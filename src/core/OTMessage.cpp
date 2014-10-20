@@ -566,191 +566,35 @@ bool OTMessage::updateContentsByType()
     }
 
     if (m_strCommand.Compare("getMint")) {
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get(), m_strAssetID.Get(),
-                                  m_strRequestNum.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlGetMint();
     }
 
-    // the Payload contains an ascii-armored OTMint object.
     if (m_strCommand.Compare("@getMint")) {
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " assetType=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAssetID.Get());
-
-        if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_bSuccess && m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<mint>\n%s</mint>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtGetMint();
     }
 
-    // the Payload contains an ascii-armored OTLedger object.
     if (m_strCommand.Compare("processInbox")) {
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get(), m_strRequestNum.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlProcessInbox();
     }
 
-    // the Payload contains an ascii-armored OTLedger object.
     if (m_strCommand.Compare("@processInbox")) {
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " accountID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get(),
-                                  m_strAcctID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<responseLedger>\n%s</responseLedger>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtProcessInbox();
     }
 
-    // the Payload contains an ascii-armored OTLedger object.
     if (m_strCommand.Compare("processNymbox")) {
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " nymID=\"%s\"\n"
-                                  " nymboxHash=\"%s\"\n"
-                                  " serverID=\"%s\"\n"
-                                  " requestNum=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strNymID.Get(),
-                                  m_strNymboxHash.Get(), m_strServerID.Get(),
-                                  m_strRequestNum.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlProcessNymbox();
     }
 
-    // the Payload contains an ascii-armored OTLedger object.
     if (m_strCommand.Compare("@processNymbox")) {
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m_ascPayload.GetLength())
-            m_xmlUnsigned.Concatenate(
-                "<responseLedger>\n%s</responseLedger>\n\n",
-                m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtProcessNymbox();
     }
 
     if (m_strCommand.Compare("triggerClause")) {
-        m_xmlUnsigned.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " nymboxHash=\"%s\"\n"
-            " serverID=\"%s\"\n"
-            " smartContractID=\"%lld\"\n" // <===
-            " clauseName=\"%s\"\n"        // <===
-            " hasParam=\"%s\"\n"          // <===
-            " requestNum=\"%s\""
-            " >\n\n",
-            m_strCommand.Get(), m_strNymID.Get(), m_strNymboxHash.Get(),
-            m_strServerID.Get(), m_lTransactionNum,
-            m_strNymID2.Get(), // clause name is stored here for this message.
-            (m_ascPayload.Exists()) ? "true" : "false", m_strRequestNum.Get());
-
-        if (m_ascPayload.Exists())
-            m_xmlUnsigned.Concatenate("<parameter>\n%s</parameter>\n\n",
-                                      m_ascPayload.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlTriggerClause();
     }
 
-    // the Payload contains an ascii-armored OTMint object.
     if (m_strCommand.Compare("@triggerClause")) {
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
-                                  " >\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  (m_bSuccess ? "true" : "false"),
-                                  m_strNymID.Get(), m_strServerID.Get());
-
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
-
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-        return true;
+        return writeXmlAtTriggerClause();
     }
     return false;
 }
@@ -1931,6 +1775,202 @@ bool OTMessage::writeXmlAtGetContract()
     if (m_bSuccess && m_ascPayload.GetLength())
         m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
                                   m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlGetMint()
+{
+    m_xmlUnsigned.Concatenate("<%s\n" // Command
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " assetType=\"%s\"\n"
+                              " requestNum=\"%s\""
+                              " >\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strServerID.Get(), m_strAssetID.Get(),
+                              m_strRequestNum.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtGetMint()
+{
+    // the Payload contains an ascii-armored OTMint object.
+    m_xmlUnsigned.Concatenate("<%s\n" // Command
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " assetType=\"%s\""
+                              " >\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get(),
+                              m_strAssetID.Get());
+
+    if (!m_bSuccess && m_ascInReferenceTo.GetLength())
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    // I would check if this was empty, but it should never be empty...
+    // famous last words.
+    if (m_bSuccess && m_ascPayload.GetLength())
+        m_xmlUnsigned.Concatenate("<mint>\n%s</mint>\n\n",
+                                  m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlProcessInbox()
+{
+    // the Payload contains an ascii-armored OTLedger object.
+    m_xmlUnsigned.Concatenate("<%s\n" // Command
+                              " nymID=\"%s\"\n"
+                              " nymboxHash=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " accountID=\"%s\"\n"
+                              " requestNum=\"%s\""
+                              " >\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strNymboxHash.Get(), m_strServerID.Get(),
+                              m_strAcctID.Get(), m_strRequestNum.Get());
+
+    // I would check if this was empty, but it should never be empty...
+    // famous last words.
+    if (m_ascPayload.GetLength())
+        m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
+                                  m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtProcessInbox()
+{
+    // the Payload contains an ascii-armored OTLedger object.
+    m_xmlUnsigned.Concatenate("<%s\n" // Command
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " accountID=\"%s\""
+                              " >\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get(),
+                              m_strAcctID.Get());
+
+    if (m_ascInReferenceTo.GetLength())
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    // I would check if this was empty, but it should never be empty...
+    // famous last words.
+    if (m_ascPayload.GetLength())
+        m_xmlUnsigned.Concatenate(
+            "<responseLedger>\n%s</responseLedger>\n\n",
+            m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlProcessNymbox()
+{
+    // the Payload contains an ascii-armored OTLedger object.
+    m_xmlUnsigned.Concatenate("<%s\n" // Command
+                              " nymID=\"%s\"\n"
+                              " nymboxHash=\"%s\"\n"
+                              " serverID=\"%s\"\n"
+                              " requestNum=\"%s\""
+                              " >\n\n",
+                              m_strCommand.Get(), m_strNymID.Get(),
+                              m_strNymboxHash.Get(), m_strServerID.Get(),
+                              m_strRequestNum.Get());
+
+    // I would check if this was empty, but it should never be empty...
+    // famous last words.
+    if (m_ascPayload.GetLength())
+        m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
+                                  m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtProcessNymbox()
+{
+    // the Payload contains an ascii-armored OTLedger object.
+    m_xmlUnsigned.Concatenate("<%s\n" // Command
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              " >\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    if (m_ascInReferenceTo.GetLength())
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
+
+    // I would check if this was empty, but it should never be empty...
+    // famous last words.
+    if (m_ascPayload.GetLength())
+        m_xmlUnsigned.Concatenate(
+            "<responseLedger>\n%s</responseLedger>\n\n",
+            m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlTriggerClause()
+{
+    m_xmlUnsigned.Concatenate(
+        "<%s\n" // Command
+        " nymID=\"%s\"\n"
+        " nymboxHash=\"%s\"\n"
+        " serverID=\"%s\"\n"
+        " smartContractID=\"%lld\"\n" // <===
+        " clauseName=\"%s\"\n"        // <===
+        " hasParam=\"%s\"\n"          // <===
+        " requestNum=\"%s\""
+        " >\n\n",
+        m_strCommand.Get(), m_strNymID.Get(), m_strNymboxHash.Get(),
+        m_strServerID.Get(), m_lTransactionNum,
+        m_strNymID2.Get(), // clause name is stored here for this message.
+        (m_ascPayload.Exists()) ? "true" : "false", m_strRequestNum.Get());
+
+    if (m_ascPayload.Exists())
+        m_xmlUnsigned.Concatenate("<parameter>\n%s</parameter>\n\n",
+                                  m_ascPayload.Get());
+
+    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    return true;
+}
+
+bool OTMessage::writeXmlAtTriggerClause()
+{
+    // the Payload contains an ascii-armored OTMint object.
+    m_xmlUnsigned.Concatenate("<%s\n" // Command
+                              " requestNum=\"%s\"\n"
+                              " success=\"%s\"\n"
+                              " nymID=\"%s\"\n"
+                              " serverID=\"%s\""
+                              " >\n\n",
+                              m_strCommand.Get(), m_strRequestNum.Get(),
+                              (m_bSuccess ? "true" : "false"),
+                              m_strNymID.Get(), m_strServerID.Get());
+
+    if (m_ascInReferenceTo.GetLength())
+        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+                                  m_ascInReferenceTo.Get());
 
     m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
     return true;

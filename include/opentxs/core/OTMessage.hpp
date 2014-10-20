@@ -209,6 +209,14 @@ private:
     bool writeXmlAtGetAccountFiles();
     bool writeXmlGetContract();
     bool writeXmlAtGetContract();
+    bool writeXmlGetMint();
+    bool writeXmlAtGetMint();
+    bool writeXmlProcessInbox();
+    bool writeXmlAtProcessInbox();
+    bool writeXmlProcessNymbox();
+    bool writeXmlAtProcessNymbox();
+    bool writeXmlTriggerClause();
+    bool writeXmlAtTriggerClause();
 
     int32_t processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(irr::io::IrrXMLReader*& xml);
