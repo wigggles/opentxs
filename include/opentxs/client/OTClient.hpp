@@ -432,6 +432,7 @@ public:
     bool ProcessServerReplyGetMarketList(OTMessage& theReply);
     bool ProcessServerReplyGetMarketOffers(OTMessage& theReply);
     bool ProcessServerReplyGetMarketRecentTrades(OTMessage& theReply);
+    bool ProcessServerReplyGetNymMarketOffers(OTMessage& theReply);
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use

@@ -8173,6 +8173,81 @@ bool OTClient::ProcessServerReplyGetMarketRecentTrades(OTMessage& theReply)
     return true;
 }
 
+bool OTClient::ProcessServerReplyGetNymMarketOffers(OTMessage& theReply)
+{
+    OTString strOfferDatafile;
+    strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
+
+    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
+    OT_ASSERT(nullptr != pStorage);
+
+    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
+    // Since it was a success, but the list was empty, then we need to erase
+    // the data file. (So when the file is loaded from storage, it will
+    // correctly
+    // display an empty list on the screen, instead of a list of outdated
+    // items.)
+    //
+    if (theReply.m_lDepth == 0) {
+        bool bSuccessErase = pStorage->EraseValueByKey(
+            OTFolders::Nym().Get(),       // "nyms"
+            theReply.m_strServerID.Get(), // "nyms/<serverID>offers", //
+                                          // "nyms/<serverID>/offers"   //
+                                          // todo stop hardcoding.
+            strOfferDatafile.Get()); // "nyms/<serverID>/offers/<NymID>.bin"
+        if (!bSuccessErase)
+            otErr << "Error erasing offers list from nyms folder: "
+                  << strOfferDatafile << " \n";
+
+        return true;
+    }
+
+    OTData thePayload;
+
+    if ((theReply.m_ascPayload.GetLength() <= 2) ||
+        (false == theReply.m_ascPayload.GetData(thePayload))) {
+        otErr << "ProcessServerReply: unable to decode ascii-armored "
+                 "payload in @getNym_MarketOffers reply.\n";
+        return true;
+    }
+
+    // Unpack the nym's offer list...
+
+    OTDB::OTPacker* pPacker =
+        pStorage->GetPacker(); // No need to check for failure, since this
+                               // already ASSERTS. No need to cleanup
+                               // either.
+
+    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
+    OT_ASSERT(nullptr != pBuffer);
+
+    pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
+                     thePayload.GetSize());
+
+    std::unique_ptr<OTDB::OfferListNym> pOfferList(
+        dynamic_cast<OTDB::OfferListNym*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM)));
+
+    bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
+
+    if (!bUnpacked) {
+        otErr << "Failed unpacking data for process server reply, "
+                 "@getNym_MarketOffers.\n";
+        return true;
+    }
+
+    bool bSuccessStore = pStorage->StoreObject(
+        *pOfferList, OTFolders::Nym().Get(), // "nyms"
+        theReply.m_strServerID.Get(),        // "nyms/<serverID>offers", //
+        // "nyms/<serverID>/offers"   // todo
+        // stop hardcoding.
+        strOfferDatafile.Get()); // "nyms/<serverID>/offers/<NymID>.bin"
+    if (!bSuccessStore)
+        otErr << "Error storing " << strOfferDatafile << " to nyms folder.\n";
+
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -8666,80 +8741,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@getMarketRecentTrades")) {
         return ProcessServerReplyGetMarketRecentTrades(theReply);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@getNym_MarketOffers")) {
-        OTString strOfferDatafile;
-        strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
-
-        OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-        OT_ASSERT(nullptr != pStorage);
-
-        // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
-        // Since it was a success, but the list was empty, then we need to erase
-        // the data file. (So when the file is loaded from storage, it will
-        // correctly
-        // display an empty list on the screen, instead of a list of outdated
-        // items.)
-        //
-        if (theReply.m_lDepth == 0) {
-            bool bSuccessErase = pStorage->EraseValueByKey(
-                OTFolders::Nym().Get(),       // "nyms"
-                theReply.m_strServerID.Get(), // "nyms/<serverID>offers", //
-                                              // "nyms/<serverID>/offers"   //
-                                              // todo stop hardcoding.
-                strOfferDatafile.Get()); // "nyms/<serverID>/offers/<NymID>.bin"
-            if (!bSuccessErase)
-                otErr << "Error erasing offers list from nyms folder: "
-                      << strOfferDatafile << " \n";
-
-            return true;
-        }
-
-        OTData thePayload;
-
-        if ((theReply.m_ascPayload.GetLength() <= 2) ||
-            (false == theReply.m_ascPayload.GetData(thePayload))) {
-            otErr << "ProcessServerReply: unable to decode ascii-armored "
-                     "payload in @getNym_MarketOffers reply.\n";
-            return true;
-        }
-
-        // Unpack the nym's offer list...
-
-        OTDB::OTPacker* pPacker =
-            pStorage->GetPacker(); // No need to check for failure, since this
-                                   // already ASSERTS. No need to cleanup
-                                   // either.
-
-        std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
-        OT_ASSERT(nullptr != pBuffer);
-
-        pBuffer->SetData(static_cast<const uint8_t*>(thePayload.GetPointer()),
-                         thePayload.GetSize());
-
-        std::unique_ptr<OTDB::OfferListNym> pOfferList(
-            dynamic_cast<OTDB::OfferListNym*>(
-                OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM)));
-
-        bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
-
-        if (!bUnpacked) {
-            otErr << "Failed unpacking data for process server reply, "
-                     "@getNym_MarketOffers.\n";
-            return true;
-        }
-
-        bool bSuccessStore = pStorage->StoreObject(
-            *pOfferList, OTFolders::Nym().Get(), // "nyms"
-            theReply.m_strServerID.Get(),        // "nyms/<serverID>offers", //
-            // "nyms/<serverID>/offers"   // todo
-            // stop hardcoding.
-            strOfferDatafile.Get()); // "nyms/<serverID>/offers/<NymID>.bin"
-        if (!bSuccessStore)
-            otErr << "Error storing " << strOfferDatafile
-                  << " to nyms folder.\n";
-
-        return true;
+    if (theReply.m_strCommand.Compare("@getNym_MarketOffers")) {
+        return ProcessServerReplyGetNymMarketOffers(theReply);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@deleteUserAccount")) {
