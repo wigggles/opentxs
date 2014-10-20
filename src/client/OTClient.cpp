@@ -3729,22 +3729,24 @@ struct OTClient::ProcessServerReplyArgs
 bool OTClient::ProcessServerReplyTriggerClause(OTMessage& theReply,
                                                ProcessServerReplyArgs& args)
 {
+    const auto& strServerID = args.strServerID;
+    const auto& pNym = args.pNym;
+
     OTIdentifier RECENT_HASH;
-    const std::string str_server(args.strServerID.Get());
+    const std::string str_server(strServerID.Get());
 
     if (theReply.m_strNymboxHash.Exists()) {
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        const bool bRecentHash =
-            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
         if (!bRecentHash)
             otErr << theReply.m_strCommand
                   << ": Failed getting NymboxHash (to store as 'recent "
                      "hash') from Nym for server: " << str_server << "\n";
         else {
-            OTPseudonym* pSignerNym = args.pNym;
-            args.pNym->SaveSignedNymfile(*pSignerNym);
+            OTPseudonym* pSignerNym = pNym;
+            pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
 
@@ -3754,6 +3756,9 @@ bool OTClient::ProcessServerReplyTriggerClause(OTMessage& theReply,
 bool OTClient::ProcessServerReplyGetRequest(OTMessage& theReply,
                                             ProcessServerReplyArgs& args)
 {
+    const auto& strServerID = args.strServerID;
+    const auto& pNym = args.pNym;
+
     int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
 
     // so the proper request number is sent next time, we take the one that
@@ -3776,23 +3781,22 @@ bool OTClient::ProcessServerReplyGetRequest(OTMessage& theReply,
     theConnection.OnServerResponseToGetRequestNumber(lNewRequestNumber);
 
     OTIdentifier RECENT_HASH;
-    const std::string str_server(args.strServerID.Get());
+    const std::string str_server(strServerID.Get());
 
     // todo (DUPLICATION): this is the same code as in
     // ProcessServerReplyTriggerClause
     if (theReply.m_strNymboxHash.Exists()) {
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        const bool bRecentHash =
-            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
         if (!bRecentHash)
             otErr << theReply.m_strCommand
                   << ": Failed getting NymboxHash (to store as 'recent "
                      "hash') from Nym for server: " << str_server << "\n";
         else {
-            OTPseudonym* pSignerNym = args.pNym;
-            args.pNym->SaveSignedNymfile(*pSignerNym);
+            OTPseudonym* pSignerNym = pNym;
+            pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
 
@@ -3937,27 +3941,29 @@ bool OTClient::ProcessServerReplyCheckUser(OTMessage& theReply,
 bool OTClient::ProcessServerReplyNotarizeTransactions(
     OTMessage& theReply, ProcessServerReplyArgs& args)
 {
+    const auto& strServerID = args.strServerID;
+    const auto& pNym = args.pNym;
+
     otOut << "Received server response to notarize Transactions message.\n";
     //        otOut << "Received server response to notarize
     // Transactions message:\n" << strReply << "\n";
     OTIdentifier RECENT_HASH;
-    const std::string str_server(args.strServerID.Get());
+    const std::string str_server(strServerID.Get());
 
     // todo (DUPLICATION): this is the same code as in
     // ProcessServerReplyTriggerClause
     if (theReply.m_strNymboxHash.Exists()) {
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        const bool bRecentHash =
-            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
         if (!bRecentHash)
             otErr << theReply.m_strCommand
                   << ": Failed getting NymboxHash (to store as 'recent "
                      "hash') from Nym for server: " << str_server << "\n";
         else {
-            OTPseudonym* pSignerNym = args.pNym;
-            args.pNym->SaveSignedNymfile(*pSignerNym);
+            OTPseudonym* pSignerNym = pNym;
+            pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
     ProcessIncomingTransactions(*m_pConnection, theReply);
@@ -3980,28 +3986,30 @@ bool OTClient::ProcessServerReplyNotarizeTransactions(
 bool OTClient::ProcessServerReplyGetTransactionNum(OTMessage& theReply,
                                                    ProcessServerReplyArgs& args)
 {
+    const auto& strServerID = args.strServerID;
+    const auto& pNym = args.pNym;
+
     otOut << "Received server response to Get Transaction Num message.\n";
     //        otOut << "Received server response to Get Transaction
     // Num message:\n" << strReply << "\n";
 
     OTIdentifier RECENT_HASH;
-    const std::string str_server(args.strServerID.Get());
+    const std::string str_server(strServerID.Get());
 
     // todo (DUPLICATION): this is the same code as in
     // ProcessServerReplyTriggerClause
     if (theReply.m_strNymboxHash.Exists()) {
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        const bool bRecentHash =
-            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
         if (!bRecentHash)
             otErr << theReply.m_strCommand
                   << ": Failed getting NymboxHash (to store as 'recent "
                      "hash') from Nym for server: " << str_server << "\n";
         else {
-            OTPseudonym* pSignerNym = args.pNym;
-            args.pNym->SaveSignedNymfile(*pSignerNym);
+            OTPseudonym* pSignerNym = pNym;
+            pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
     return true;
@@ -4011,6 +4019,11 @@ bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
                                            OTLedger* pNymbox,
                                            ProcessServerReplyArgs& args)
 {
+    const auto& pNym = args.pNym;
+    const auto& SERVER_ID = args.SERVER_ID;
+    const auto& USER_ID = args.USER_ID;
+    const auto& strServerID = args.strServerID;
+
     OTString strReply(theReply);
 
     otOut << "Received @getNymbox server response ("
@@ -4030,10 +4043,10 @@ bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
                                       "replyNotice into the nymbox.");
 
     // Load the ledger object from that string.
-    OTLedger theNymbox(args.USER_ID, args.USER_ID, args.SERVER_ID);
+    OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
 
     OTIdentifier NYMBOX_HASH, RECENT_HASH;
-    const std::string str_server(args.strServerID.Get());
+    const std::string str_server(strServerID.Get());
 
     // todo DUPLICATION: this is (almost! )the same code as in
     // ProcessServerReplyTriggerClause
@@ -4041,10 +4054,8 @@ bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
         NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        const bool bNymboxHash =
-            args.pNym->SetNymboxHash(str_server, NYMBOX_HASH);
-        const bool bRecentHash =
-            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+        const bool bNymboxHash = pNym->SetNymboxHash(str_server, NYMBOX_HASH);
+        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
         if (!bNymboxHash)
             otErr << "Failed setting NymboxHash on Nym for server: "
@@ -4054,8 +4065,8 @@ bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
                   << ": Failed setting NymboxHash (to store as 'recent "
                      "hash') from Nym for server: " << str_server << "\n";
         if (bNymboxHash || bRecentHash) {
-            OTPseudonym* pSignerNym = args.pNym;
-            args.pNym->SaveSignedNymfile(*pSignerNym);
+            OTPseudonym* pSignerNym = pNym;
+            pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
 
@@ -4091,14 +4102,14 @@ bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
 
         theNymbox.ReleaseSignatures(); // Now I'm keeping the server
                                        // signature, and just adding my own.
-        theNymbox.SignContract(*args.pNym); // UPDATE: Releasing the signature
-                                            // again, since Receipts are now
-                                            // fully functional.
-        theNymbox.SaveContract(); // Thus we can prove the Nymbox using the
-                                  // last signed transaction receipt. This
-                                  // means
-        theNymbox.SaveNymbox();   // the receipt is our proof, and the nymbox
-                                  // becomes just an intermediary file that is
+        theNymbox.SignContract(*pNym); // UPDATE: Releasing the signature
+                                       // again, since Receipts are now
+                                       // fully functional.
+        theNymbox.SaveContract();      // Thus we can prove the Nymbox using the
+                                       // last signed transaction receipt. This
+                                       // means
+        theNymbox.SaveNymbox(); // the receipt is our proof, and the nymbox
+                                // becomes just an intermediary file that is
         // downloaded occasionally (like checking for new email) but no
         // trust is risked since
         // the downloaded file is always verified against the receipt!
@@ -4115,6 +4126,13 @@ bool OTClient::ProcessServerReplyGetBoxReceipt(OTMessage& theReply,
                                                OTLedger* pNymbox,
                                                ProcessServerReplyArgs& args)
 {
+    const auto& pNym = args.pNym;
+    const auto& SERVER_ID = args.SERVER_ID;
+    const auto& USER_ID = args.USER_ID;
+    const auto& pServerNym = args.pServerNym;
+    const auto& strNymID = args.strNymID;
+    const auto& strServerID = args.strServerID;
+
     otOut << "Received server response to getBoxReceipt request ("
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
 
@@ -4185,7 +4203,7 @@ bool OTClient::ProcessServerReplyGetBoxReceipt(OTMessage& theReply,
                          "transaction type to transaction, based on "
                          "decoded theReply.m_ascPayload:\n\n" << strTransType
                       << "\n\n";
-            else if (!pBoxReceipt->VerifyAccount(*args.pServerNym))
+            else if (!pBoxReceipt->VerifyAccount(*pServerNym))
                 otErr << __FUNCTION__ << ": @getBoxReceipt: Error: Box Receipt "
                       << pBoxReceipt->GetTransactionNum() << " in "
                       << ((theReply.m_lDepth == 0)
@@ -4202,7 +4220,7 @@ bool OTClient::ProcessServerReplyGetBoxReceipt(OTMessage& theReply,
                       << theReply.m_lTransactionNum << ").\n";
             // Note: Account ID and Server ID were already verified, in
             // VerifyAccount().
-            else if (pBoxReceipt->GetUserID() != args.USER_ID) {
+            else if (pBoxReceipt->GetUserID() != USER_ID) {
                 const OTString strPurportedUserID(pBoxReceipt->GetUserID());
                 otErr << __FUNCTION__
                       << ": @getBoxReceipt: Error: NymID doesn't match on "
@@ -4232,40 +4250,37 @@ bool OTClient::ProcessServerReplyGetBoxReceipt(OTMessage& theReply,
                     (OTTransaction::instrumentRejection ==
                      pBoxReceipt->GetType())) {
                     // Just make sure not to add it if it's already there...
-                    if (!args.strServerID.Exists()) {
+                    if (!strServerID.Exists()) {
                         otErr << __FUNCTION__
                               << ": strServerID doesn't Exist!\n";
                         OT_FAIL;
                     }
-                    if (!args.strNymID.Exists()) {
+                    if (!strNymID.Exists()) {
                         otErr << __FUNCTION__ << ": strNymID dosn't Exist!\n";
                         OT_FAIL;
                     }
-                    const bool bExists = OTDB::Exists(
-                        OTFolders::PaymentInbox().Get(), args.strServerID.Get(),
-                        args.strNymID.Get());
-                    OTLedger thePmntInbox(args.USER_ID, args.USER_ID,
-                                          args.SERVER_ID); // payment inbox
+                    const bool bExists =
+                        OTDB::Exists(OTFolders::PaymentInbox().Get(),
+                                     strServerID.Get(), strNymID.Get());
+                    OTLedger thePmntInbox(USER_ID, USER_ID,
+                                          SERVER_ID); // payment inbox
                     bool bSuccessLoading =
                         (bExists && thePmntInbox.LoadPaymentInbox());
                     if (bExists && bSuccessLoading)
-                        bSuccessLoading =
-                            (thePmntInbox.VerifyContractID() &&
-                             thePmntInbox.VerifySignature(*args.pNym));
+                        bSuccessLoading = (thePmntInbox.VerifyContractID() &&
+                                           thePmntInbox.VerifySignature(*pNym));
                     //                          bSuccessLoading    =
                     // (thePmntInbox.VerifyAccount(*pNym)); // (No need here
                     // to load all the Box Receipts by using VerifyAccount)
                     else if (!bExists)
                         bSuccessLoading = thePmntInbox.GenerateLedger(
-                            args.USER_ID, args.SERVER_ID,
-                            OTLedger::paymentInbox,
+                            USER_ID, SERVER_ID, OTLedger::paymentInbox,
                             true); // bGenerateFile=true
                     // by this point, the nymbox DEFINITELY exists -- or
                     // not. (generation might have failed, or verification.)
 
                     if (!bSuccessLoading) {
-                        OTString strUserID(args.USER_ID),
-                            strAcctID(args.USER_ID);
+                        OTString strUserID(USER_ID), strAcctID(USER_ID);
                         otOut << __FUNCTION__
                               << ": @getBoxReceipt: WARNING: Unable to "
                                  "load, verify, or generate paymentInbox, "
@@ -4330,9 +4345,9 @@ bool OTClient::ProcessServerReplyGetBoxReceipt(OTMessage& theReply,
                         // (It will be moved to record box after the
                         // incoming payment is deposited or discarded.)
                         //
-                        load_str_trans_add_to_ledger(args.USER_ID, strTransType,
+                        load_str_trans_add_to_ledger(USER_ID, strTransType,
                                                      "paymentInbox", lTransNum,
-                                                     *args.pNym, thePmntInbox);
+                                                     *pNym, thePmntInbox);
                         //                          load_str_trans_add_to_ledger(USER_ID,
                         // strTransType, "recordBox",    lTransNum, *pNym,
                         // theRecordBox); // No longer here. Moved to
@@ -4405,7 +4420,7 @@ bool OTClient::ProcessServerReplyProcessInbox(OTMessage& theReply,
     const auto& pServerNym = args.pServerNym;
     const auto& strNymID = args.strNymID;
 
-    OTString strServerID(args.SERVER_ID), strReply(theReply);
+    OTString strServerID(SERVER_ID), strReply(theReply);
 
     otOut << "Received server response: " << theReply.m_strCommand << " \n";
     //        otOut << "Received server response to processInbox or
@@ -4416,8 +4431,7 @@ bool OTClient::ProcessServerReplyProcessInbox(OTMessage& theReply,
     if (theReply.m_strNymboxHash.Exists()) {
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        const bool bRecentHash =
-            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
         if (!bRecentHash)
             otErr << theReply.m_strCommand
