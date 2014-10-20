@@ -8399,6 +8399,66 @@ bool OTClient::ProcessServerReplyIssueAssetType(OTMessage& theReply,
     return false;
 }
 
+bool OTClient::ProcessServerReplyCreateAccount(OTMessage& theReply,
+                                               ProcessServerReplyArgs& args)
+{
+    const auto& ACCOUNT_ID = args.ACCOUNT_ID;
+    const auto& SERVER_ID = args.SERVER_ID;
+    const auto& USER_ID = args.USER_ID;
+    const auto& pServerNym = args.pServerNym;
+    const auto& pNym = args.pNym;
+    if (theReply.m_ascPayload.GetLength()) {
+        OTAccount* pAccount = nullptr;
+
+        // this decodes the ascii-armor payload where the new account file
+        // is stored, and returns a normal string in strAcctContents.
+        OTString strAcctContents(theReply.m_ascPayload);
+
+        pAccount = new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
+
+        if (pAccount && pAccount->LoadContractFromString(strAcctContents) &&
+            pAccount->VerifyAccount(*pServerNym)) {
+            // (2) Sign the Account
+            pAccount->ReleaseSignatures(); // So I don't get the annoying
+                                           // failure to verify message from
+                                           // the server's signature.
+            // Will eventually end up keeping the signature, however, just
+            // for reasons of proof.
+            // UPDATE (above) we are releasing these now, for good, since
+            // server's signature is not needed. Receipts are functional
+            // now,
+            pAccount->SignContract(*pNym); // and the last receipt IS signed
+                                           // by the server, and it can be
+                                           // used to verify the nym,
+                                           // account, inbox, and outbox.
+                                           // Nifty!
+            pAccount->SaveContract();
+
+            // (3) Save the Account to file
+            pAccount->SaveAccount();
+
+            // Need to consider other security considerations.
+            // What if I wasn't EXPECTING a @createAccount message?
+            // Well actually, in that case, the server wouldn't have a
+            // copy of my request to send back to me, would he? So I should
+            // check that request to make sure it's good.
+            // Also maybe should check to see if I was expecting this
+            // message
+            // in the first place.
+
+            m_pWallet->AddAccount(*pAccount);
+            m_pWallet->SaveWallet();
+
+            return true;
+        }
+        else {
+            delete pAccount;
+            pAccount = nullptr;
+        }
+    }
+    return false;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -8904,57 +8964,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@issueAssetType")) {
         return ProcessServerReplyIssueAssetType(theReply, args);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@createAccount")) {
-        if (theReply.m_ascPayload.GetLength()) {
-            OTAccount* pAccount = nullptr;
-
-            // this decodes the ascii-armor payload where the new account file
-            // is stored, and returns a normal string in strAcctContents.
-            OTString strAcctContents(theReply.m_ascPayload);
-
-            pAccount = new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
-
-            if (pAccount && pAccount->LoadContractFromString(strAcctContents) &&
-                pAccount->VerifyAccount(*pServerNym)) {
-                // (2) Sign the Account
-                pAccount->ReleaseSignatures(); // So I don't get the annoying
-                                               // failure to verify message from
-                                               // the server's signature.
-                // Will eventually end up keeping the signature, however, just
-                // for reasons of proof.
-                // UPDATE (above) we are releasing these now, for good, since
-                // server's signature is not needed. Receipts are functional
-                // now,
-                pAccount->SignContract(*pNym); // and the last receipt IS signed
-                                               // by the server, and it can be
-                                               // used to verify the nym,
-                                               // account, inbox, and outbox.
-                                               // Nifty!
-                pAccount->SaveContract();
-
-                // (3) Save the Account to file
-                pAccount->SaveAccount();
-
-                // Need to consider other security considerations.
-                // What if I wasn't EXPECTING a @createAccount message?
-                // Well actually, in that case, the server wouldn't have a
-                // copy of my request to send back to me, would he? So I should
-                // check that request to make sure it's good.
-                // Also maybe should check to see if I was expecting this
-                // message
-                // in the first place.
-
-                m_pWallet->AddAccount(*pAccount);
-                m_pWallet->SaveWallet();
-
-                return true;
-            }
-            else {
-                delete pAccount;
-                pAccount = nullptr;
-            }
-        }
+    if (theReply.m_strCommand.Compare("@createAccount")) {
+        return ProcessServerReplyCreateAccount(theReply, args);
     }
     else {
     }

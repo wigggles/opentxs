@@ -439,6 +439,8 @@ public:
                                               ProcessServerReplyArgs& args);
     bool ProcessServerReplyIssueAssetType(OTMessage& theReply,
                                           ProcessServerReplyArgs& args);
+    bool ProcessServerReplyCreateAccount(OTMessage& theReply,
+                                         ProcessServerReplyArgs& args);
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
