@@ -423,6 +423,9 @@ public:
                                          ProcessServerReplyArgs& args);
     bool ProcessServerReplyProcessInbox(OTMessage& theReply, OTLedger* pNymbox,
                                         ProcessServerReplyArgs& args);
+    bool ProcessServerReplyGetAccountFiles(OTMessage& theReply,
+                                           OTLedger* pNymbox,
+                                           ProcessServerReplyArgs& args);
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
