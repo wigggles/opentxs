@@ -3723,6 +3723,7 @@ struct OTClient::ProcessServerReplyArgs
     OTPseudonym* pNym;
     OTIdentifier USER_ID;
     OTString strServerID, strNymID;
+    OTPseudonym* pServerNym;
 };
 
 bool OTClient::ProcessServerReplyTriggerClause(OTMessage& theReply,
@@ -4110,6 +4111,280 @@ bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
     return true;
 }
 
+bool OTClient::ProcessServerReplyGetBoxReceipt(OTMessage& theReply,
+                                               OTLedger* pNymbox,
+                                               ProcessServerReplyArgs& args)
+{
+    otOut << "Received server response to getBoxReceipt request ("
+          << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
+
+    // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
+    // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
+    // so we'll never end up here except in cases where it needs to be
+    // loaded. I can even ASSERT here, that the pointer is actually nullptr!
+    //
+    OT_ASSERT_MSG(nullptr == pNymbox, "Nymbox pointer is expected to be "
+                                      "nullptr here, since @getBoxReceipt "
+                                      "isn't dropped as a server "
+                                      "replyNotice into the nymbox.");
+
+    // Note: I don't HAVE to load the ledger, and what if there are 500000
+    // receipts in it?
+    // Do I want to reload it EVERY time? Therefore
+    bool bErrorCondition = false;
+    bool bSuccessLoading =
+        true; // We don't need to load the ledger, so that's commented out.
+
+    switch (theReply.m_lDepth) { // No need to load the ledger at this
+                                 // point...  plus, it would slow things
+                                 // down.
+    case 0: // bSuccessLoading = pLedger->LoadNymbox();    break;
+    case 1: // bSuccessLoading = pLedger->LoadInbox();    break;
+    case 2: // bSuccessLoading = pLedger->LoadOutbox();    break;
+        break;
+    default:
+        otErr << __FUNCTION__
+              << ": @getBoxReceipt: Unknown box type: " << theReply.m_lDepth
+              << "\n";
+        bErrorCondition = true;
+        break;
+    }
+
+    if (bSuccessLoading && !bErrorCondition)
+    //            &&  pLedger->VerifyAccount(*pServerNym)) // commenting
+    // this out for now -- unnecessary. Plus, it speeds things up to
+    // remove this.
+    {
+        // At this point, the ledger is loaded. Now let's use it for what we
+        // really
+        // wanted: To save the Box Receipt!
+        // Update: not loading ledger -- it would slow things down. Added a
+        // method that allowed me to circumvent loading it.
+
+        // base64-Decode the server reply's payload into strTransaction
+        //
+        const OTString strTransType(theReply.m_ascPayload);
+        std::unique_ptr<OTTransactionType> pTransType;
+
+        if (strTransType.Exists())
+            pTransType.reset(
+                OTTransactionType::TransactionFactory(strTransType));
+
+        if (nullptr == pTransType)
+            otErr << __FUNCTION__
+                  << ": @getBoxReceipt: Error instantiating transaction "
+                     "type based on decoded theReply.m_ascPayload:\n\n"
+                  << strTransType << "\n";
+        else {
+            OTTransaction* pBoxReceipt =
+                dynamic_cast<OTTransaction*>(pTransType.get());
+
+            if (nullptr == pBoxReceipt)
+                otErr << __FUNCTION__
+                      << ": @getBoxReceipt: Error dynamic_cast from "
+                         "transaction type to transaction, based on "
+                         "decoded theReply.m_ascPayload:\n\n" << strTransType
+                      << "\n\n";
+            else if (!pBoxReceipt->VerifyAccount(*args.pServerNym))
+                otErr << __FUNCTION__ << ": @getBoxReceipt: Error: Box Receipt "
+                      << pBoxReceipt->GetTransactionNum() << " in "
+                      << ((theReply.m_lDepth == 0)
+                              ? "nymbox"
+                              : ((theReply.m_lDepth == 1) ? "inbox" : "outbox"))
+                      << " fails VerifyAccount().\n"; // outbox is 2.);
+            else if (pBoxReceipt->GetTransactionNum() !=
+                     theReply.m_lTransactionNum)
+                otErr << __FUNCTION__
+                      << ": @getBoxReceipt: Error: Transaction Number "
+                         "doesn't match on the box receipt itself ("
+                      << pBoxReceipt->GetTransactionNum()
+                      << "), versus the one listed in the reply message ("
+                      << theReply.m_lTransactionNum << ").\n";
+            // Note: Account ID and Server ID were already verified, in
+            // VerifyAccount().
+            else if (pBoxReceipt->GetUserID() != args.USER_ID) {
+                const OTString strPurportedUserID(pBoxReceipt->GetUserID());
+                otErr << __FUNCTION__
+                      << ": @getBoxReceipt: Error: NymID doesn't match on "
+                         "the box receipt itself (" << strPurportedUserID
+                      << "), versus the one listed in the reply message ("
+                      << theReply.m_strNymID << ").\n";
+            }
+            else // FINALLY we have the Ledger AND the Box Receipt both
+                   // loaded at the same time.
+            {      // UPDATE: Not loading the ledger at this point. Not
+                   // necessary. Faster without it.
+
+                // UPDATE: We will ASSUME the abbreviated receipt is in the
+                // NYMBOX, which is WHY
+                // we are now downloading the FULL BOX RECEIPT. We will SAVE
+                // it for the Nymbox,
+                // which finishes the Nymbox (already in box as abbreviated,
+                // and already saved in full
+                // in box receipts folder). Next we will also add it to the
+                // PAYMENT INBOX and RECORD BOX,
+                // if it's the right sort of receipt. We will also save
+                // THEIR versions of the FULL BOX RECEIPT,
+                // just as we did for the Nymbox here.
+
+                if ((OTTransaction::instrumentNotice ==
+                     pBoxReceipt->GetType()) ||
+                    (OTTransaction::instrumentRejection ==
+                     pBoxReceipt->GetType())) {
+                    // Just make sure not to add it if it's already there...
+                    if (!args.strServerID.Exists()) {
+                        otErr << __FUNCTION__
+                              << ": strServerID doesn't Exist!\n";
+                        OT_FAIL;
+                    }
+                    if (!args.strNymID.Exists()) {
+                        otErr << __FUNCTION__ << ": strNymID dosn't Exist!\n";
+                        OT_FAIL;
+                    }
+                    const bool bExists = OTDB::Exists(
+                        OTFolders::PaymentInbox().Get(), args.strServerID.Get(),
+                        args.strNymID.Get());
+                    OTLedger thePmntInbox(args.USER_ID, args.USER_ID,
+                                          args.SERVER_ID); // payment inbox
+                    bool bSuccessLoading =
+                        (bExists && thePmntInbox.LoadPaymentInbox());
+                    if (bExists && bSuccessLoading)
+                        bSuccessLoading =
+                            (thePmntInbox.VerifyContractID() &&
+                             thePmntInbox.VerifySignature(*args.pNym));
+                    //                          bSuccessLoading    =
+                    // (thePmntInbox.VerifyAccount(*pNym)); // (No need here
+                    // to load all the Box Receipts by using VerifyAccount)
+                    else if (!bExists)
+                        bSuccessLoading = thePmntInbox.GenerateLedger(
+                            args.USER_ID, args.SERVER_ID,
+                            OTLedger::paymentInbox,
+                            true); // bGenerateFile=true
+                    // by this point, the nymbox DEFINITELY exists -- or
+                    // not. (generation might have failed, or verification.)
+
+                    if (!bSuccessLoading) {
+                        OTString strUserID(args.USER_ID),
+                            strAcctID(args.USER_ID);
+                        otOut << __FUNCTION__
+                              << ": @getBoxReceipt: WARNING: Unable to "
+                                 "load, verify, or generate paymentInbox, "
+                                 "with IDs: " << strUserID << " / " << strAcctID
+                              << "\n";
+                    }
+                    else // --- ELSE --- Success loading the payment inbox
+                           // and recordBox and verifying their contractID
+                           // and signature, (OR success generating the
+                           // ledger.)
+                    {
+                        // The transaction (which we are putting into the
+                        // payment inbox) will not
+                        // be removed from the nymbox until we receive the
+                        // server's success reply to
+                        // this "process Nymbox" message. That's why you see
+                        // me adding it here to
+                        // the payment inbox, while not removing it from the
+                        // Nymbox (because that
+                        // will happen once the reply is received.) NOTE:
+                        // Need to make sure the
+                        // associated box receipt doesn't get MARKED FOR
+                        // DELETION when being removed
+                        // at that time.
+                        //
+                        //                          void
+                        // load_str_trans_add_to_ledger(const OTIdentifier&
+                        // the_nym_id, const OTString& str_trans, const
+                        // OTString str_box_type, const int64_t& lTransNum,
+                        // OTPseudonym& the_nym, OTLedger& ledger);
+
+                        // Basically we are taking this receipt from the
+                        // Nymbox, and also adding copies of it
+                        // to the paymentInbox and the recordBox.
+                        //
+                        // QUESTION: what if I ERASE it out of my recordBox.
+                        // Won't it pop back up again?
+                        // ANSWER: YES, but not if I do this instead at
+                        // @getBoxReceipt which will only happen once.
+                        //         UPDATE: which I now AM (see our location
+                        // here...)
+                        // HOWEVER: Most likely not, because this notice
+                        // will no longer BE in my Nymbox...
+                        //
+                        // QUESTION: What if I ERASE it out of my
+                        // paymentInbox? Won't this pop back there again?
+                        // ANSWER: I can't erase it out of there. I can
+                        // either accept it or reject it. Either way,
+                        // it is removed from my paymentInbox at that time
+                        // by OT. Like above, if a copy were still
+                        // in the Nymbox, I would get a duplicate here when
+                        // processing Nymbox again. But MOST TIMES,
+                        // there will be no duplicate, because it will
+                        // already be cleaned out of my Nymbox anyway.
+                        //
+                        //
+                        const int64_t lTransNum =
+                            pBoxReceipt->GetTransactionNum();
+
+                        // If pBoxReceipt->GetType() is instrument notice,
+                        // add to the payments inbox.
+                        // (It will be moved to record box after the
+                        // incoming payment is deposited or discarded.)
+                        //
+                        load_str_trans_add_to_ledger(args.USER_ID, strTransType,
+                                                     "paymentInbox", lTransNum,
+                                                     *args.pNym, thePmntInbox);
+                        //                          load_str_trans_add_to_ledger(USER_ID,
+                        // strTransType, "recordBox",    lTransNum, *pNym,
+                        // theRecordBox); // No longer here. Moved to
+                        // processDepositResponse
+
+                    } // --- ELSE --- Success loading the payment inbox and
+                      // verifying its contractID and signature, OR success
+                      // generating the ledger.
+                }     // if pBoxReceipt is instrumentNotice or
+                      // instrumentRejection...
+
+                //                    pBoxReceipt->ReleaseSignatures();
+
+                // I don't release the server's signature, so later on I can
+                // verify either
+                // signature -- the server's or pNym's. Both should be on
+                // the receipt.
+                // UPDATE: We're not changing the content of the Box Receipt
+                // AT ALL
+                // because we don't want to already its message digest,
+                // which will be
+                // compared to the hash stored in the abbreviated version of
+                // the same receipt.
+                //
+                //                    pBoxReceipt->SignContract(*pNym);
+                //                    pBoxReceipt->SaveContract();
+
+                //                    if
+                // (!pBoxReceipt->SaveBoxReceipt(*pLedger))
+                // // <===================
+                if (!pBoxReceipt->SaveBoxReceipt(
+                        theReply.m_lDepth)) // <===================
+                    otErr << __FUNCTION__
+                          << ": @getBoxReceipt(): Failed trying to "
+                             "SaveBoxReceipt. Contents:\n\n" << strTransType
+                          << "\n\n";
+                /* theReply.m_lDepth in this context stores boxType. Value
+                 * can be: 0/nymbox,1/inbox,2/outbox*/
+
+            } // We can save the box receipt.
+        }     // Success loading the boxReceipt from the server reply
+    }         // No error condition.
+    else {
+        otErr << __FUNCTION__
+              << ": SHOULD NEVER HAPPEN: @getBoxReceipt: failure loading "
+                 "box, or verifying it. UserID: " << theReply.m_strNymID
+              << "  AcctID: " << theReply.m_strAcctID << " \n";
+    }
+
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -4147,6 +4422,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     args.USER_ID = *args.pNym;
     args.strServerID = args.SERVER_ID;
     args.strNymID = args.USER_ID;
+    args.pServerNym = const_cast<OTPseudonym*>(
+        theConnection.GetServerContract()->GetContractPublicNym());
     OTIdentifier& ACCOUNT_ID = args.ACCOUNT_ID;
     OTIdentifier& SERVER_ID = args.SERVER_ID;
 
@@ -4154,8 +4431,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     OTIdentifier& USER_ID = args.USER_ID;
     const OTString& strServerID = args.strServerID;
     const OTString& strNymID = args.strNymID;
-    OTPseudonym* pServerNym = const_cast<OTPseudonym*>(
-        theConnection.GetServerContract()->GetContractPublicNym());
+    OTPseudonym* pServerNym = args.pServerNym;
 
     // Just like the server verifies all messages before processing them,
     // so does the client need to verify the signatures against each message
@@ -4332,278 +4608,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     else if (theReply.m_strCommand.Compare("@getNymbox")) {
         return ProcessServerReplyGetNymBox(theReply, pNymbox, args);
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@getBoxReceipt")) {
-        //        OTString strReply(theReply);
-        otOut << "Received server response to getBoxReceipt request ("
-              << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
-
-        // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
-        // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
-        // so we'll never end up here except in cases where it needs to be
-        // loaded. I can even ASSERT here, that the pointer is actually nullptr!
-        //
-        OT_ASSERT_MSG(nullptr == pNymbox, "Nymbox pointer is expected to be "
-                                          "nullptr here, since @getBoxReceipt "
-                                          "isn't dropped as a server "
-                                          "replyNotice into the nymbox.");
-
-        // Note: I don't HAVE to load the ledger, and what if there are 500000
-        // receipts in it?
-        // Do I want to reload it EVERY time? Therefore
-        bool bErrorCondition = false;
-        bool bSuccessLoading =
-            true; // We don't need to load the ledger, so that's commented out.
-
-        switch (theReply.m_lDepth) { // No need to load the ledger at this
-                                     // point...  plus, it would slow things
-                                     // down.
-        case 0: // bSuccessLoading = pLedger->LoadNymbox();    break;
-        case 1: // bSuccessLoading = pLedger->LoadInbox();    break;
-        case 2: // bSuccessLoading = pLedger->LoadOutbox();    break;
-            break;
-        default:
-            otErr << __FUNCTION__
-                  << ": @getBoxReceipt: Unknown box type: " << theReply.m_lDepth
-                  << "\n";
-            bErrorCondition = true;
-            break;
-        }
-
-        if (bSuccessLoading && !bErrorCondition)
-        //            &&  pLedger->VerifyAccount(*pServerNym)) // commenting
-        // this out for now -- unnecessary. Plus, it speeds things up to
-        // remove this.
-        {
-            // At this point, the ledger is loaded. Now let's use it for what we
-            // really
-            // wanted: To save the Box Receipt!
-            // Update: not loading ledger -- it would slow things down. Added a
-            // method that allowed me to circumvent loading it.
-
-            // base64-Decode the server reply's payload into strTransaction
-            //
-            const OTString strTransType(theReply.m_ascPayload);
-            std::unique_ptr<OTTransactionType> pTransType;
-
-            if (strTransType.Exists())
-                pTransType.reset(
-                    OTTransactionType::TransactionFactory(strTransType));
-
-            if (nullptr == pTransType)
-                otErr << __FUNCTION__
-                      << ": @getBoxReceipt: Error instantiating transaction "
-                         "type based on decoded theReply.m_ascPayload:\n\n"
-                      << strTransType << "\n";
-            else {
-                OTTransaction* pBoxReceipt =
-                    dynamic_cast<OTTransaction*>(pTransType.get());
-
-                if (nullptr == pBoxReceipt)
-                    otErr << __FUNCTION__
-                          << ": @getBoxReceipt: Error dynamic_cast from "
-                             "transaction type to transaction, based on "
-                             "decoded theReply.m_ascPayload:\n\n"
-                          << strTransType << "\n\n";
-                else if (!pBoxReceipt->VerifyAccount(*pServerNym))
-                    otErr << __FUNCTION__
-                          << ": @getBoxReceipt: Error: Box Receipt "
-                          << pBoxReceipt->GetTransactionNum() << " in "
-                          << ((theReply.m_lDepth == 0)
-                                  ? "nymbox"
-                                  : ((theReply.m_lDepth == 1) ? "inbox"
-                                                              : "outbox"))
-                          << " fails VerifyAccount().\n"; // outbox is 2.);
-                else if (pBoxReceipt->GetTransactionNum() !=
-                         theReply.m_lTransactionNum)
-                    otErr << __FUNCTION__
-                          << ": @getBoxReceipt: Error: Transaction Number "
-                             "doesn't match on the box receipt itself ("
-                          << pBoxReceipt->GetTransactionNum()
-                          << "), versus the one listed in the reply message ("
-                          << theReply.m_lTransactionNum << ").\n";
-                // Note: Account ID and Server ID were already verified, in
-                // VerifyAccount().
-                else if (pBoxReceipt->GetUserID() != USER_ID) {
-                    const OTString strPurportedUserID(pBoxReceipt->GetUserID());
-                    otErr << __FUNCTION__
-                          << ": @getBoxReceipt: Error: NymID doesn't match on "
-                             "the box receipt itself (" << strPurportedUserID
-                          << "), versus the one listed in the reply message ("
-                          << theReply.m_strNymID << ").\n";
-                }
-                else // FINALLY we have the Ledger AND the Box Receipt both
-                       // loaded at the same time.
-                {      // UPDATE: Not loading the ledger at this point. Not
-                       // necessary. Faster without it.
-
-                    // UPDATE: We will ASSUME the abbreviated receipt is in the
-                    // NYMBOX, which is WHY
-                    // we are now downloading the FULL BOX RECEIPT. We will SAVE
-                    // it for the Nymbox,
-                    // which finishes the Nymbox (already in box as abbreviated,
-                    // and already saved in full
-                    // in box receipts folder). Next we will also add it to the
-                    // PAYMENT INBOX and RECORD BOX,
-                    // if it's the right sort of receipt. We will also save
-                    // THEIR versions of the FULL BOX RECEIPT,
-                    // just as we did for the Nymbox here.
-
-                    if ((OTTransaction::instrumentNotice ==
-                         pBoxReceipt->GetType()) ||
-                        (OTTransaction::instrumentRejection ==
-                         pBoxReceipt->GetType())) {
-                        // Just make sure not to add it if it's already there...
-                        if (!strServerID.Exists()) {
-                            otErr << __FUNCTION__
-                                  << ": strServerID doesn't Exist!\n";
-                            OT_FAIL;
-                        }
-                        if (!strNymID.Exists()) {
-                            otErr << __FUNCTION__
-                                  << ": strNymID dosn't Exist!\n";
-                            OT_FAIL;
-                        }
-                        const bool bExists =
-                            OTDB::Exists(OTFolders::PaymentInbox().Get(),
-                                         strServerID.Get(), strNymID.Get());
-                        OTLedger thePmntInbox(USER_ID, USER_ID,
-                                              SERVER_ID); // payment inbox
-                        bool bSuccessLoading =
-                            (bExists && thePmntInbox.LoadPaymentInbox());
-                        if (bExists && bSuccessLoading)
-                            bSuccessLoading =
-                                (thePmntInbox.VerifyContractID() &&
-                                 thePmntInbox.VerifySignature(*pNym));
-                        //                          bSuccessLoading    =
-                        // (thePmntInbox.VerifyAccount(*pNym)); // (No need here
-                        // to load all the Box Receipts by using VerifyAccount)
-                        else if (!bExists)
-                            bSuccessLoading = thePmntInbox.GenerateLedger(
-                                USER_ID, SERVER_ID, OTLedger::paymentInbox,
-                                true); // bGenerateFile=true
-                        // by this point, the nymbox DEFINITELY exists -- or
-                        // not. (generation might have failed, or verification.)
-
-                        if (!bSuccessLoading) {
-                            OTString strUserID(USER_ID), strAcctID(USER_ID);
-                            otOut << __FUNCTION__
-                                  << ": @getBoxReceipt: WARNING: Unable to "
-                                     "load, verify, or generate paymentInbox, "
-                                     "with IDs: " << strUserID << " / "
-                                  << strAcctID << "\n";
-                        }
-                        else // --- ELSE --- Success loading the payment inbox
-                               // and recordBox and verifying their contractID
-                               // and signature, (OR success generating the
-                               // ledger.)
-                        {
-                            // The transaction (which we are putting into the
-                            // payment inbox) will not
-                            // be removed from the nymbox until we receive the
-                            // server's success reply to
-                            // this "process Nymbox" message. That's why you see
-                            // me adding it here to
-                            // the payment inbox, while not removing it from the
-                            // Nymbox (because that
-                            // will happen once the reply is received.) NOTE:
-                            // Need to make sure the
-                            // associated box receipt doesn't get MARKED FOR
-                            // DELETION when being removed
-                            // at that time.
-                            //
-                            //                          void
-                            // load_str_trans_add_to_ledger(const OTIdentifier&
-                            // the_nym_id, const OTString& str_trans, const
-                            // OTString str_box_type, const int64_t& lTransNum,
-                            // OTPseudonym& the_nym, OTLedger& ledger);
-
-                            // Basically we are taking this receipt from the
-                            // Nymbox, and also adding copies of it
-                            // to the paymentInbox and the recordBox.
-                            //
-                            // QUESTION: what if I ERASE it out of my recordBox.
-                            // Won't it pop back up again?
-                            // ANSWER: YES, but not if I do this instead at
-                            // @getBoxReceipt which will only happen once.
-                            //         UPDATE: which I now AM (see our location
-                            // here...)
-                            // HOWEVER: Most likely not, because this notice
-                            // will no longer BE in my Nymbox...
-                            //
-                            // QUESTION: What if I ERASE it out of my
-                            // paymentInbox? Won't this pop back there again?
-                            // ANSWER: I can't erase it out of there. I can
-                            // either accept it or reject it. Either way,
-                            // it is removed from my paymentInbox at that time
-                            // by OT. Like above, if a copy were still
-                            // in the Nymbox, I would get a duplicate here when
-                            // processing Nymbox again. But MOST TIMES,
-                            // there will be no duplicate, because it will
-                            // already be cleaned out of my Nymbox anyway.
-                            //
-                            //
-                            const int64_t lTransNum =
-                                pBoxReceipt->GetTransactionNum();
-
-                            // If pBoxReceipt->GetType() is instrument notice,
-                            // add to the payments inbox.
-                            // (It will be moved to record box after the
-                            // incoming payment is deposited or discarded.)
-                            //
-                            load_str_trans_add_to_ledger(
-                                USER_ID, strTransType, "paymentInbox",
-                                lTransNum, *pNym, thePmntInbox);
-                            //                          load_str_trans_add_to_ledger(USER_ID,
-                            // strTransType, "recordBox",    lTransNum, *pNym,
-                            // theRecordBox); // No longer here. Moved to
-                            // processDepositResponse
-
-                        } // --- ELSE --- Success loading the payment inbox and
-                          // verifying its contractID and signature, OR success
-                          // generating the ledger.
-                    }     // if pBoxReceipt is instrumentNotice or
-                          // instrumentRejection...
-
-                    //                    pBoxReceipt->ReleaseSignatures();
-
-                    // I don't release the server's signature, so later on I can
-                    // verify either
-                    // signature -- the server's or pNym's. Both should be on
-                    // the receipt.
-                    // UPDATE: We're not changing the content of the Box Receipt
-                    // AT ALL
-                    // because we don't want to already its message digest,
-                    // which will be
-                    // compared to the hash stored in the abbreviated version of
-                    // the same receipt.
-                    //
-                    //                    pBoxReceipt->SignContract(*pNym);
-                    //                    pBoxReceipt->SaveContract();
-
-                    //                    if
-                    // (!pBoxReceipt->SaveBoxReceipt(*pLedger))
-                    // // <===================
-                    if (!pBoxReceipt->SaveBoxReceipt(
-                            theReply.m_lDepth)) // <===================
-                        otErr << __FUNCTION__
-                              << ": @getBoxReceipt(): Failed trying to "
-                                 "SaveBoxReceipt. Contents:\n\n" << strTransType
-                              << "\n\n";
-                    /* theReply.m_lDepth in this context stores boxType. Value
-                     * can be: 0/nymbox,1/inbox,2/outbox*/
-
-                } // We can save the box receipt.
-            }     // Success loading the boxReceipt from the server reply
-        }         // No error condition.
-        else {
-            otErr << __FUNCTION__
-                  << ": SHOULD NEVER HAPPEN: @getBoxReceipt: failure loading "
-                     "box, or verifying it. UserID: " << theReply.m_strNymID
-                  << "  AcctID: " << theReply.m_strAcctID << " \n";
-        }
-
-        return true;
+    else if (theReply.m_strCommand.Compare("@getBoxReceipt")) {
+        return ProcessServerReplyGetBoxReceipt(theReply, pNymbox, args);
 
     } // @getBoxReceipt
     // IN EITHER of these cases, the number of transaction numbers on my Nym has

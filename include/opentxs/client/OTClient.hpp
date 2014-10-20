@@ -419,6 +419,8 @@ public:
                                              ProcessServerReplyArgs& args);
     bool ProcessServerReplyGetNymBox(OTMessage& theReply, OTLedger* pNymbox,
                                      ProcessServerReplyArgs& args);
+    bool ProcessServerReplyGetBoxReceipt(OTMessage& theReply, OTLedger* pNymbox,
+                                         ProcessServerReplyArgs& args);
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
