@@ -360,177 +360,220 @@ bool OTMessage::updateContentsByType()
     return true;
 
     if (m_strCommand.Compare("getMarketList")) {
-        return writeXmlGetMarketList();
+        m_xmlUnsigned.Concatenate(writeXmlGetMarketList(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getMarketList")) {
-        return writeXmlAtGetMarketList();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetMarketList(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getMarketOffers")) {
-        return writeXmlGetMarketOffers();
+        m_xmlUnsigned.Concatenate(writeXmlGetMarketOffers(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getMarketOffers")) {
-        return writeXmlAtGetMarketOffers();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetMarketOffers(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getMarketRecentTrades")) {
-        return writeXmlGetMarketRecentTrades();
+        m_xmlUnsigned.Concatenate(writeXmlGetMarketRecentTrades(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getMarketRecentTrades")) {
-        return writeXmlAtGetMarketRecentTrades();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetMarketRecentTrades(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getNym_MarketOffers")) {
-        return writeXmlGetNymMarketOffers();
+        m_xmlUnsigned.Concatenate(writeXmlGetNymMarketOffers(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getNym_MarketOffers")) {
-        return writeXmlAtGetNymMarketOffers();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetNymMarketOffers(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("checkServerID")) {
-        return writeXmlCheckServerID();
+        m_xmlUnsigned.Concatenate(writeXmlCheckServerID(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@checkServerID")) {
-        return writeXmlAtCheckServerID();
+        m_xmlUnsigned.Concatenate(writeXmlAtCheckServerID(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("createUserAccount")) {
-        return writeXmlCreateUserAccount();
+        m_xmlUnsigned.Concatenate(writeXmlCreateUserAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@createUserAccount")) {
-        return writeXmlAtCreateUserAccount();
+        m_xmlUnsigned.Concatenate(writeXmlAtCreateUserAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("deleteUserAccount")) {
-        return writeXmlDeleteUserAccount();
+        m_xmlUnsigned.Concatenate(writeXmlDeleteUserAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@deleteUserAccount")) {
-        return writeXmlAtDeleteUserAccount();
+        m_xmlUnsigned.Concatenate(writeXmlAtDeleteUserAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("checkUser")) {
-        return writeXmlCheckUser();
+        m_xmlUnsigned.Concatenate(writeXmlCheckUser(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@checkUser")) {
-        return writeXmlAtCheckUser();
+        m_xmlUnsigned.Concatenate(writeXmlAtCheckUser(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("usageCredits")) {
-        return writeXmlUsageCredits();
+        m_xmlUnsigned.Concatenate(writeXmlUsageCredits(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@usageCredits")) {
-        return writeXmlAtUsageCredits();
+        m_xmlUnsigned.Concatenate(writeXmlAtUsageCredits(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("outmailMessage") ||
         m_strCommand.Compare("outpaymentsMessage")) {
-        return writeXmlOutpaymentsMessage();
+        m_xmlUnsigned.Concatenate(writeXmlOutpaymentsMessage(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("sendUserMessage")) {
-        return writeXmlSendUserMessage();
+        m_xmlUnsigned.Concatenate(writeXmlSendUserMessage(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@sendUserMessage")) {
-        return writeXmlAtSendUserMessage();
+        m_xmlUnsigned.Concatenate(writeXmlAtSendUserMessage(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("sendUserInstrument") ||
         m_strCommand.Compare("payDividend")) {
-        return writeXmlSendUserInstrumentOrPayDivident();
+        m_xmlUnsigned.Concatenate(writeXmlSendUserInstrumentOrPayDivident(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@sendUserInstrument")) {
-        return writeXmlAtSendUserInstrument();
+        m_xmlUnsigned.Concatenate(writeXmlAtSendUserInstrument(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getRequest")) {
-        return writeXmlGetRequest();
+        m_xmlUnsigned.Concatenate(writeXmlGetRequest(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getRequest")) {
-        return writeXmlAtGetRequest();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetRequest(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("issueAssetType")) {
-        return writeXmlIssueAssetType();
+        m_xmlUnsigned.Concatenate(writeXmlIssueAssetType(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@issueAssetType")) {
-        return writeXmlAtIssueAssetType();
+        m_xmlUnsigned.Concatenate(writeXmlAtIssueAssetType(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("queryAssetTypes")) {
-        return writeXmlQueryAssetTypes();
+        m_xmlUnsigned.Concatenate(writeXmlQueryAssetTypes(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@queryAssetTypes")) {
-        return writeXmlAtQueryAssetTypes();
+        m_xmlUnsigned.Concatenate(writeXmlAtQueryAssetTypes(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("issueBasket")) {
-        return writeXmlIssueBasket();
+        m_xmlUnsigned.Concatenate(writeXmlIssueBasket(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@issueBasket")) {
-        return writeXmlAtIssueBasket();
+        m_xmlUnsigned.Concatenate(writeXmlAtIssueBasket(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("createAccount")) {
-        return writeXmlCreateAccount();
+        m_xmlUnsigned.Concatenate(writeXmlCreateAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@createAccount")) {
-        return writeXmlAtCreateAccount();
+        m_xmlUnsigned.Concatenate(writeXmlAtCreateAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getBoxReceipt")) {
-        return writeXmlGetBoxReceipt();
+        m_xmlUnsigned.Concatenate(writeXmlGetBoxReceipt(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getBoxReceipt")) {
-        return writeXmlAtGetBoxReceipt();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetBoxReceipt(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("deleteAssetAccount")) {
-        return writeXmlDeleteAssetAccount();
+        m_xmlUnsigned.Concatenate(writeXmlDeleteAssetAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@deleteAssetAccount")) {
-        return writeXmlAtDeleteAssetAccount();
+        m_xmlUnsigned.Concatenate(writeXmlAtDeleteAssetAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("notarizeTransactions")) {
-        return writeXmlNotarizeTransactions();
+        m_xmlUnsigned.Concatenate(writeXmlNotarizeTransactions(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@notarizeTransactions")) {
-        return writeXmlAtNotarizeTransactions();
+        m_xmlUnsigned.Concatenate(writeXmlAtNotarizeTransactions(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getTransactionNum")) {
-        return writeXmlGetTransactionNum();
+        m_xmlUnsigned.Concatenate(writeXmlGetTransactionNum(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getTransactionNum")) {
-        return writeXmlAtGetTransactionNum();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetTransactionNum(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getNymbox")) {
-        return writeXmlGetNymbox();
+        m_xmlUnsigned.Concatenate(writeXmlGetNymbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getNymbox")) {
-        return writeXmlAtGetNymbox();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetNymbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getInbox")) {
