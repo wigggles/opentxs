@@ -534,75 +534,93 @@ bool OTMessage::updateContentsByType()
     }
 
     if (m_strCommand.Compare("getInbox")) {
-        return writeXmlGetInbox();
+        m_xmlUnsigned.Concatenate(writeXmlGetInbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getInbox")) {
-        return writeXmlAtGetInbox();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetInbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getOutbox")) {
-        return writeXmlGetOutbox();
+        m_xmlUnsigned.Concatenate(writeXmlGetOutbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getOutbox")) {
-        return writeXmlAtGetOutbox();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetOutbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getAccount")) {
-        return writeXmlGetAccount();
+        m_xmlUnsigned.Concatenate(writeXmlGetAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getAccount")) {
-        return writeXmlAtGetAccount();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetAccount(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getAccountFiles")) {
-        return writeXmlGetAccountFiles();
+        m_xmlUnsigned.Concatenate(writeXmlGetAccountFiles(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getAccountFiles")) {
-        return writeXmlAtGetAccountFiles();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetAccountFiles(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getContract")) {
-        return writeXmlGetContract();
+        m_xmlUnsigned.Concatenate(writeXmlGetContract(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getContract")) {
-        return writeXmlAtGetContract();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetContract(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("getMint")) {
-        return writeXmlGetMint();
+        m_xmlUnsigned.Concatenate(writeXmlGetMint(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@getMint")) {
-        return writeXmlAtGetMint();
+        m_xmlUnsigned.Concatenate(writeXmlAtGetMint(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("processInbox")) {
-        return writeXmlProcessInbox();
+        m_xmlUnsigned.Concatenate(writeXmlProcessInbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@processInbox")) {
-        return writeXmlAtProcessInbox();
+        m_xmlUnsigned.Concatenate(writeXmlAtProcessInbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("processNymbox")) {
-        return writeXmlProcessNymbox();
+        m_xmlUnsigned.Concatenate(writeXmlProcessNymbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@processNymbox")) {
-        return writeXmlAtProcessNymbox();
+        m_xmlUnsigned.Concatenate(writeXmlAtProcessNymbox(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("triggerClause")) {
-        return writeXmlTriggerClause();
+        m_xmlUnsigned.Concatenate(writeXmlTriggerClause(*this));
+        return true;
     }
 
     if (m_strCommand.Compare("@triggerClause")) {
-        return writeXmlAtTriggerClause();
+        m_xmlUnsigned.Concatenate(writeXmlAtTriggerClause(*this));
+        return true;
     }
     return false;
 }
@@ -2944,43 +2962,45 @@ int32_t OTMessage::processXmlNodeAtGetInbox(OTMessage &m, irr::io::IrrXMLReader*
     return 1;
 }
 
-bool OTMessage::writeXmlGetInbox()
+OTString OTMessage::writeXmlGetInbox(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTLedger object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\"\n"
                               " requestNum=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAcctID.Get(),
-                              m_strRequestNum.Get());
+                              m.m_strCommand.Get(), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAcctID.Get(),
+                              m.m_strRequestNum.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
-int32_t OTMessage::processXmlNodeGetInbox(irr::io::IrrXMLReader*& xml)
+int32_t OTMessage::processXmlNodeGetInbox(OTMessage &m, irr::io::IrrXMLReader*& xml)
 {
-    m_strCommand = xml->getNodeName(); // Command
-    m_strNymID = xml->getAttributeValue("nymID");
-    m_strServerID = xml->getAttributeValue("serverID");
-    m_strAcctID = xml->getAttributeValue("accountID");
-    m_strRequestNum = xml->getAttributeValue("requestNum");
+    m.m_strCommand = xml->getNodeName(); // Command
+    m.m_strNymID = xml->getAttributeValue("nymID");
+    m.m_strServerID = xml->getAttributeValue("serverID");
+    m.m_strAcctID = xml->getAttributeValue("accountID");
+    m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
-    otWarn << "\nCommand: " << m_strCommand << "\nNymID:    " << m_strNymID
-           << "\nServerID: " << m_strServerID
-           << "\nAccountID:    " << m_strAcctID
-           << "\nRequest #: " << m_strRequestNum << "\n";
+    otWarn << "\nCommand: " << m.m_strCommand << "\nNymID:    " << m.m_strNymID
+           << "\nServerID: " << m.m_strServerID
+           << "\nAccountID:    " << m.m_strAcctID
+           << "\nRequest #: " << m.m_strRequestNum << "\n";
 
     return 1;
 }
 
-bool OTMessage::writeXmlAtGetInbox()
+OTString OTMessage::writeXmlAtGetInbox(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTLedger object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
@@ -2988,23 +3008,23 @@ bool OTMessage::writeXmlAtGetInbox()
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
-                              m_strInboxHash.Get(), m_strServerID.Get(),
-                              m_strAcctID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"), m.m_strNymID.Get(),
+                              m.m_strInboxHash.Get(), m.m_strServerID.Get(),
+                              m.m_strAcctID.Get());
 
-    if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+    if (!m.m_bSuccess && m_ascInReferenceTo.GetLength())
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
-    if (m_bSuccess && m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<inboxLedger>\n%s</inboxLedger>\n\n",
+    if (m.m_bSuccess && m_ascPayload.GetLength())
+        result.Concatenate("<inboxLedger>\n%s</inboxLedger>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtGetNymbox(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3047,21 +3067,22 @@ int32_t OTMessage::processXmlNodeAtGetNymbox(OTMessage &m, irr::io::IrrXMLReader
     return 1;
 }
 
-bool OTMessage::writeXmlGetOutbox()
+OTString OTMessage::writeXmlGetOutbox(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTLedger object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\"\n"
                               " requestNum=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAcctID.Get(),
-                              m_strRequestNum.Get());
+                              m.m_strCommand.Get(), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAcctID.Get(),
+                              m.m_strRequestNum.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeGetOutbox(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3080,10 +3101,11 @@ int32_t OTMessage::processXmlNodeGetOutbox(OTMessage &m, irr::io::IrrXMLReader*&
     return 1;
 }
 
-bool OTMessage::writeXmlAtGetOutbox()
+OTString OTMessage::writeXmlAtGetOutbox(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTLedger object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
@@ -3091,23 +3113,23 @@ bool OTMessage::writeXmlAtGetOutbox()
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
-                              m_strOutboxHash.Get(), m_strServerID.Get(),
-                              m_strAcctID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"), m.m_strNymID.Get(),
+                              m.m_strOutboxHash.Get(), m.m_strServerID.Get(),
+                              m.m_strAcctID.Get());
 
-    if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+    if (!m.m_bSuccess && m_ascInReferenceTo.GetLength())
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
-    if (m_bSuccess && m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<outboxLedger>\n%s</outboxLedger>\n\n",
+    if (m.m_bSuccess && m_ascPayload.GetLength())
+        result.Concatenate("<outboxLedger>\n%s</outboxLedger>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtGetOutbox(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3151,20 +3173,21 @@ int32_t OTMessage::processXmlNodeAtGetOutbox(OTMessage &m, irr::io::IrrXMLReader
     return 1;
 }
 
-bool OTMessage::writeXmlGetAccount()
+OTString OTMessage::writeXmlGetAccount(OTMessage &m)
 {
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    OTString result;
+    result.Concatenate("<%s\n" // Command
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\"\n"
                               " requestNum=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAcctID.Get(),
-                              m_strRequestNum.Get());
+                              m.m_strCommand.Get(), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAcctID.Get(),
+                              m.m_strRequestNum.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeGetAccount(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3183,32 +3206,33 @@ int32_t OTMessage::processXmlNodeGetAccount(OTMessage &m, irr::io::IrrXMLReader*
     return 1;
 }
 
-bool OTMessage::writeXmlAtGetAccount()
+OTString OTMessage::writeXmlAtGetAccount(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTAccount object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAcctID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAcctID.Get());
 
-    if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+    if (!m.m_bSuccess && m_ascInReferenceTo.GetLength())
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
-    if (m_bSuccess && m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<assetAccount>\n%s</assetAccount>\n\n",
+    if (m.m_bSuccess && m_ascPayload.GetLength())
+        result.Concatenate("<assetAccount>\n%s</assetAccount>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtGetAccount(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3251,20 +3275,21 @@ int32_t OTMessage::processXmlNodeAtGetAccount(OTMessage &m, irr::io::IrrXMLReade
     return 1;
 }
 
-bool OTMessage::writeXmlGetAccountFiles()
+OTString OTMessage::writeXmlGetAccountFiles(OTMessage &m)
 {
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    OTString result;
+    result.Concatenate("<%s\n" // Command
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\"\n"
                               " requestNum=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAcctID.Get(),
-                              m_strRequestNum.Get());
+                              m.m_strCommand.Get(), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAcctID.Get(),
+                              m.m_strRequestNum.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeGetAccountFiles(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3283,12 +3308,13 @@ int32_t OTMessage::processXmlNodeGetAccountFiles(OTMessage &m, irr::io::IrrXMLRe
     return 1;
 }
 
-bool OTMessage::writeXmlAtGetAccountFiles()
+OTString OTMessage::writeXmlAtGetAccountFiles(OTMessage &m)
 {
+    OTString result;
     // the Payload contains a STRING_MAP containing the OTAccount,
     // plus the inbox and outbox for that acct..
     //
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " inboxHash=\"%s\"\n"
@@ -3297,25 +3323,25 @@ bool OTMessage::writeXmlAtGetAccountFiles()
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"),
-                              m_strInboxHash.Get(), m_strOutboxHash.Get(),
-                              m_strNymID.Get(), m_strServerID.Get(),
-                              m_strAcctID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"),
+                              m.m_strInboxHash.Get(), m.m_strOutboxHash.Get(),
+                              m.m_strNymID.Get(), m.m_strServerID.Get(),
+                              m.m_strAcctID.Get());
 
-    if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+    if (!m.m_bSuccess && m_ascInReferenceTo.GetLength())
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
     // I would check if this was empty, but it should never be empty...
     // Famous last words.
     //
-    if (m_bSuccess && m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<acctFiles>\n%s</acctFiles>\n\n",
+    if (m.m_bSuccess && m_ascPayload.GetLength())
+        result.Concatenate("<acctFiles>\n%s</acctFiles>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtGetAccountFiles(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3360,20 +3386,21 @@ int32_t OTMessage::processXmlNodeAtGetAccountFiles(OTMessage &m, irr::io::IrrXML
     return 1;
 }
 
-bool OTMessage::writeXmlGetContract()
+OTString OTMessage::writeXmlGetContract(OTMessage &m)
 {
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    OTString result;
+    result.Concatenate("<%s\n" // Command
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " assetType=\"%s\"\n"
                               " requestNum=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAssetID.Get(),
-                              m_strRequestNum.Get());
+                              m.m_strCommand.Get(), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAssetID.Get(),
+                              m.m_strRequestNum.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeGetContract(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3392,32 +3419,33 @@ int32_t OTMessage::processXmlNodeGetContract(OTMessage &m, irr::io::IrrXMLReader
     return 1;
 }
 
-bool OTMessage::writeXmlAtGetContract()
+OTString OTMessage::writeXmlAtGetContract(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTAssetContract object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " assetType=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAssetID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAssetID.Get());
 
-    if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+    if (!m.m_bSuccess && m_ascInReferenceTo.GetLength())
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
-    if (m_bSuccess && m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<assetContract>\n%s</assetContract>\n\n",
+    if (m.m_bSuccess && m_ascPayload.GetLength())
+        result.Concatenate("<assetContract>\n%s</assetContract>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtGetContract(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3461,20 +3489,21 @@ int32_t OTMessage::processXmlNodeAtGetContract(OTMessage &m, irr::io::IrrXMLRead
     return 1;
 }
 
-bool OTMessage::writeXmlGetMint()
+OTString OTMessage::writeXmlGetMint(OTMessage &m)
 {
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    OTString result;
+    result.Concatenate("<%s\n" // Command
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " assetType=\"%s\"\n"
                               " requestNum=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAssetID.Get(),
-                              m_strRequestNum.Get());
+                              m.m_strCommand.Get(), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAssetID.Get(),
+                              m.m_strRequestNum.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeGetMint(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3493,31 +3522,32 @@ int32_t OTMessage::processXmlNodeGetMint(OTMessage &m, irr::io::IrrXMLReader*& x
     return 1;
 }
 
-bool OTMessage::writeXmlAtGetMint()
+OTString OTMessage::writeXmlAtGetMint(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTMint object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " assetType=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAssetID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAssetID.Get());
 
-    if (!m_bSuccess && m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+    if (!m.m_bSuccess && m_ascInReferenceTo.GetLength())
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
-    if (m_bSuccess && m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<mint>\n%s</mint>\n\n", m_ascPayload.Get());
+    if (m.m_bSuccess && m_ascPayload.GetLength())
+        result.Concatenate("<mint>\n%s</mint>\n\n", m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtGetMint(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3561,28 +3591,29 @@ int32_t OTMessage::processXmlNodeAtGetMint(OTMessage &m, irr::io::IrrXMLReader*&
     return 1;
 }
 
-bool OTMessage::writeXmlProcessInbox()
+OTString OTMessage::writeXmlProcessInbox(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTLedger object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " nymID=\"%s\"\n"
                               " nymboxHash=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\"\n"
                               " requestNum=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strNymID.Get(),
-                              m_strNymboxHash.Get(), m_strServerID.Get(),
-                              m_strAcctID.Get(), m_strRequestNum.Get());
+                              m.m_strCommand.Get(), m.m_strNymID.Get(),
+                              m.m_strNymboxHash.Get(), m.m_strServerID.Get(),
+                              m.m_strAcctID.Get(), m.m_strRequestNum.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
     if (m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
+        result.Concatenate("<processLedger>\n%s</processLedger>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeProcessInbox(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3616,32 +3647,33 @@ int32_t OTMessage::processXmlNodeProcessInbox(OTMessage &m, irr::io::IrrXMLReade
     return 1;
 }
 
-bool OTMessage::writeXmlAtProcessInbox()
+OTString OTMessage::writeXmlAtProcessInbox(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTLedger object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " accountID=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
-                              m_strServerID.Get(), m_strAcctID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"), m.m_strNymID.Get(),
+                              m.m_strServerID.Get(), m.m_strAcctID.Get());
 
     if (m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
     if (m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<responseLedger>\n%s</responseLedger>\n\n",
+        result.Concatenate("<responseLedger>\n%s</responseLedger>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtProcessInbox(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3704,27 +3736,28 @@ int32_t OTMessage::processXmlNodeAtProcessInbox(OTMessage &m, irr::io::IrrXMLRea
     return 1;
 }
 
-bool OTMessage::writeXmlProcessNymbox()
+OTString OTMessage::writeXmlProcessNymbox(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTLedger object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " nymID=\"%s\"\n"
                               " nymboxHash=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " requestNum=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strNymID.Get(),
-                              m_strNymboxHash.Get(), m_strServerID.Get(),
-                              m_strRequestNum.Get());
+                              m.m_strCommand.Get(), m.m_strNymID.Get(),
+                              m.m_strNymboxHash.Get(), m.m_strServerID.Get(),
+                              m.m_strRequestNum.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
     if (m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<processLedger>\n%s</processLedger>\n\n",
+        result.Concatenate("<processLedger>\n%s</processLedger>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeProcessNymbox(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3756,31 +3789,32 @@ int32_t OTMessage::processXmlNodeProcessNymbox(OTMessage &m, irr::io::IrrXMLRead
     return 1;
 }
 
-bool OTMessage::writeXmlAtProcessNymbox()
+OTString OTMessage::writeXmlAtProcessNymbox(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTLedger object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
-                              m_strServerID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"), m.m_strNymID.Get(),
+                              m.m_strServerID.Get());
 
     if (m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
     // I would check if this was empty, but it should never be empty...
     // famous last words.
     if (m_ascPayload.GetLength())
-        m_xmlUnsigned.Concatenate("<responseLedger>\n%s</responseLedger>\n\n",
+        result.Concatenate("<responseLedger>\n%s</responseLedger>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtProcessNymbox(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3843,9 +3877,10 @@ int32_t OTMessage::processXmlNodeAtProcessNymbox(OTMessage &m, irr::io::IrrXMLRe
     return 1;
 }
 
-bool OTMessage::writeXmlTriggerClause()
+OTString OTMessage::writeXmlTriggerClause(OTMessage &m)
 {
-    m_xmlUnsigned.Concatenate(
+    OTString result;
+    result.Concatenate(
         "<%s\n" // Command
         " nymID=\"%s\"\n"
         " nymboxHash=\"%s\"\n"
@@ -3855,17 +3890,17 @@ bool OTMessage::writeXmlTriggerClause()
         " hasParam=\"%s\"\n"          // <===
         " requestNum=\"%s\""
         " >\n\n",
-        m_strCommand.Get(), m_strNymID.Get(), m_strNymboxHash.Get(),
-        m_strServerID.Get(), m_lTransactionNum,
-        m_strNymID2.Get(), // clause name is stored here for this message.
-        (m_ascPayload.Exists()) ? "true" : "false", m_strRequestNum.Get());
+        m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNymboxHash.Get(),
+        m.m_strServerID.Get(), m_lTransactionNum,
+        m.m_strNymID2.Get(), // clause name is stored here for this message.
+        (m_ascPayload.Exists()) ? "true" : "false", m.m_strRequestNum.Get());
 
     if (m_ascPayload.Exists())
-        m_xmlUnsigned.Concatenate("<parameter>\n%s</parameter>\n\n",
+        result.Concatenate("<parameter>\n%s</parameter>\n\n",
                                   m_ascPayload.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeTriggerClause(OTMessage &m, irr::io::IrrXMLReader*& xml)
@@ -3906,25 +3941,26 @@ int32_t OTMessage::processXmlNodeTriggerClause(OTMessage &m, irr::io::IrrXMLRead
     return 1;
 }
 
-bool OTMessage::writeXmlAtTriggerClause()
+OTString OTMessage::writeXmlAtTriggerClause(OTMessage &m)
 {
+    OTString result;
     // the Payload contains an ascii-armored OTMint object.
-    m_xmlUnsigned.Concatenate("<%s\n" // Command
+    result.Concatenate("<%s\n" // Command
                               " requestNum=\"%s\"\n"
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\""
                               " >\n\n",
-                              m_strCommand.Get(), m_strRequestNum.Get(),
-                              (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
-                              m_strServerID.Get());
+                              m.m_strCommand.Get(), m.m_strRequestNum.Get(),
+                              (m.m_bSuccess ? "true" : "false"), m.m_strNymID.Get(),
+                              m.m_strServerID.Get());
 
     if (m_ascInReferenceTo.GetLength())
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
+        result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                   m_ascInReferenceTo.Get());
 
-    m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
-    return true;
+    result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
+    return result;
 }
 
 int32_t OTMessage::processXmlNodeAtTriggerClause(OTMessage &m, irr::io::IrrXMLReader*& xml)
