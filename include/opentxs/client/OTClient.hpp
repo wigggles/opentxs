@@ -406,6 +406,11 @@ public:
                            const OTIdentifier* pHisNymID = nullptr,
                            const OTIdentifier* pHisAcctID = nullptr);
 
+    struct ProcessServerReplyArgs;
+    bool ProcessServerReplyTriggerClause(OTMessage& theReply,
+                                         ProcessServerReplyArgs& args);
+    bool ProcessServerReplyGetRequest(OTMessage& theReply,
+                                      ProcessServerReplyArgs& args);
     bool ProcessServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use

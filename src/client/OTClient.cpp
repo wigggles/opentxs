@@ -3717,6 +3717,86 @@ void OTClient::ProcessWithdrawalResponse(
     } // for
 }
 
+struct OTClient::ProcessServerReplyArgs
+{
+    OTIdentifier ACCOUNT_ID, SERVER_ID;
+    OTPseudonym* pNym;
+    OTIdentifier USER_ID;
+    OTString strServerID, strNymID;
+};
+
+bool OTClient::ProcessServerReplyTriggerClause(OTMessage& theReply,
+                                               ProcessServerReplyArgs& args)
+{
+    OTIdentifier RECENT_HASH;
+    const std::string str_server(args.strServerID.Get());
+
+    if (theReply.m_strNymboxHash.Exists()) {
+        RECENT_HASH.SetString(theReply.m_strNymboxHash);
+
+        const bool bRecentHash =
+            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+
+        if (!bRecentHash)
+            otErr << theReply.m_strCommand
+                  << ": Failed getting NymboxHash (to store as 'recent "
+                     "hash') from Nym for server: " << str_server << "\n";
+        else {
+            OTPseudonym* pSignerNym = args.pNym;
+            args.pNym->SaveSignedNymfile(*pSignerNym);
+        }
+    }
+
+    return true;
+}
+
+bool OTClient::ProcessServerReplyGetRequest(OTMessage& theReply,
+                                            ProcessServerReplyArgs& args)
+{
+    int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
+
+    // so the proper request number is sent next time, we take the one that
+    // the server just sent us, and we ask the wallet to save it somewhere
+    // safe
+    // (like in the nymfile)
+
+    // In the future, I will have to write a function on the wallet that
+    // actually
+    // takes the reply, looks up the associated nym in the wallet, verifies
+    // that it was EXPECTING a response to GetRequest, (cause otherwise it
+    // won't
+    // know which one to update) and then updates the request number there.
+    // In the meantime there is only one connection, and it already has a
+    // pointer to
+    // the Nym,  so I'll just tell it to update the request number that way
+    // for now.
+
+    OTServerConnection& theConnection = *m_pConnection;
+    theConnection.OnServerResponseToGetRequestNumber(lNewRequestNumber);
+
+    OTIdentifier RECENT_HASH;
+    const std::string str_server(args.strServerID.Get());
+
+    // todo: this is same code as in ProcessServerReplyTriggerClause
+    if (theReply.m_strNymboxHash.Exists()) {
+        RECENT_HASH.SetString(theReply.m_strNymboxHash);
+
+        const bool bRecentHash =
+            args.pNym->SetRecentHash(str_server, RECENT_HASH);
+
+        if (!bRecentHash)
+            otErr << theReply.m_strCommand
+                  << ": Failed getting NymboxHash (to store as 'recent "
+                     "hash') from Nym for server: " << str_server << "\n";
+        else {
+            OTPseudonym* pSignerNym = args.pNym;
+            args.pNym->SaveSignedNymfile(*pSignerNym);
+        }
+    }
+
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -3745,14 +3825,22 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 {
     OT_ASSERT(nullptr != m_pConnection);
 
-    OTServerConnection& theConnection = (*m_pConnection);
+    OTServerConnection& theConnection = *m_pConnection;
 
-    OTIdentifier ACCOUNT_ID(theReply.m_strAcctID), SERVER_ID;
-    theConnection.GetServerID(SERVER_ID);
+    ProcessServerReplyArgs args;
+    args.ACCOUNT_ID = theReply.m_strAcctID;
+    theConnection.GetServerID(args.SERVER_ID);
+    args.pNym = theConnection.GetNym();
+    args.USER_ID = *args.pNym;
+    args.strServerID = args.SERVER_ID;
+    args.strNymID = args.USER_ID;
+    OTIdentifier& ACCOUNT_ID = args.ACCOUNT_ID;
+    OTIdentifier& SERVER_ID = args.SERVER_ID;
 
-    OTPseudonym* pNym = theConnection.GetNym();
-    OTIdentifier USER_ID(*pNym);
-    const OTString strServerID(SERVER_ID), strNymID(USER_ID);
+    OTPseudonym* pNym = args.pNym;
+    OTIdentifier& USER_ID = args.USER_ID;
+    const OTString& strServerID = args.strServerID;
+    const OTString& strNymID = args.strNymID;
     OTPseudonym* pServerNym = const_cast<OTPseudonym*>(
         theConnection.GetServerContract()->GetContractPublicNym());
 
@@ -3910,70 +3998,14 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
     // Wait a second, I think I have the Nym already cause there's a pointer on
     // the server connection that was passed in here...
 
-    if (theReply.m_bSuccess &&
-        theReply.m_strCommand.Compare("@triggerClause")) {
-        OTIdentifier RECENT_HASH;
-        const std::string str_server(strServerID.Get());
-
-        if (theReply.m_strNymboxHash.Exists()) {
-            RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-            const bool bRecentHash =
-                pNym->SetRecentHash(str_server, RECENT_HASH);
-
-            if (!bRecentHash)
-                otErr << theReply.m_strCommand
-                      << ": Failed getting NymboxHash (to store as 'recent "
-                         "hash') from Nym for server: " << str_server << "\n";
-            else {
-                OTPseudonym* pSignerNym = pNym;
-                pNym->SaveSignedNymfile(*pSignerNym);
-            }
-        }
-
-        return true;
+    if (!theReply.m_bSuccess) {
+        return false;
     }
-    if (theReply.m_bSuccess && theReply.m_strCommand.Compare("@getRequest")) {
-        int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
-
-        // so the proper request number is sent next time, we take the one that
-        // the server just sent us, and we ask the wallet to save it somewhere
-        // safe
-        // (like in the nymfile)
-
-        // In the future, I will have to write a function on the wallet that
-        // actually
-        // takes the reply, looks up the associated nym in the wallet, verifies
-        // that it was EXPECTING a response to GetRequest, (cause otherwise it
-        // won't
-        // know which one to update) and then updates the request number there.
-        // In the meantime there is only one connection, and it already has a
-        // pointer to
-        // the Nym,  so I'll just tell it to update the request number that way
-        // for now.
-
-        theConnection.OnServerResponseToGetRequestNumber(lNewRequestNumber);
-
-        OTIdentifier RECENT_HASH;
-        const std::string str_server(strServerID.Get());
-
-        if (theReply.m_strNymboxHash.Exists()) {
-            RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-            const bool bRecentHash =
-                pNym->SetRecentHash(str_server, RECENT_HASH);
-
-            if (!bRecentHash)
-                otErr << theReply.m_strCommand
-                      << ": Failed getting NymboxHash (to store as 'recent "
-                         "hash') from Nym for server: " << str_server << "\n";
-            else {
-                OTPseudonym* pSignerNym = pNym;
-                pNym->SaveSignedNymfile(*pSignerNym);
-            }
-        }
-
-        return true;
+    if (theReply.m_strCommand.Compare("@triggerClause")) {
+        return ProcessServerReplyTriggerClause(theReply, args);
+    }
+    if (theReply.m_strCommand.Compare("@getRequest")) {
+        return ProcessServerReplyGetRequest(theReply, args);
     }
     if (theReply.m_bSuccess && theReply.m_strCommand.Compare("@checkUser")) {
         const OTString strNymID2(theReply.m_strNymID2),
