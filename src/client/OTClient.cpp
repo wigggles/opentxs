@@ -7880,6 +7880,50 @@ bool OTClient::ProcessServerReplyGetAccountFiles(OTMessage& theReply,
     return true;
 }
 
+bool OTClient::ProcessServerReplyGetContract(OTMessage& theReply,
+                                             ProcessServerReplyArgs& args)
+{
+    // base64-Decode the server reply's payload into strContract
+    OTString strContract(theReply.m_ascPayload);
+
+    OTString strFoldername(OTFolders::Contract().Get());
+    OTString strFilename; // In this case the filename isn't actually used,
+                          // since SaveToContractFolder will
+    // handle setting up the filename and overwrite it anyway. But I still
+    // prefer to set it
+    // up correctly, rather than pass a blank. I'm just funny like that.
+    strFilename = theReply.m_strAssetID.Get();
+
+    OTAssetContract* pContract =
+        new OTAssetContract(theReply.m_strAssetID, strFoldername, strFilename,
+                            theReply.m_strAssetID);
+
+    OT_ASSERT(nullptr != pContract);
+
+    // Check the server signature on the contract here. (Perhaps the message
+    // is good enough?
+    // After all, the message IS signed by the server and contains the
+    // Account.
+    //        if (pContract->LoadContract() && pContract->VerifyContract())
+    if (pContract->LoadContractFromString(strContract) &&
+        pContract->VerifyContract()) {
+        // Next make sure the wallet has this contract on its list...
+        OTWallet* pWallet = m_pConnection->GetWallet();
+
+        if (nullptr != pWallet) {
+            pWallet->AddAssetContract(*pContract);
+            pContract = nullptr; // Success. The wallet "owns" it now, no need
+                                 // to clean it up.
+        }
+    }
+    // cleanup
+    if (pContract) {
+        delete pContract;
+        pContract = nullptr;
+    }
+    return true;
+}
+
 /// We have just received a message from the server.
 /// Find out what it is and do the appropriate processing.
 /// Perhaps we just tried to create an account -- this could be
@@ -8358,48 +8402,8 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
 
         return true;
     }
-    else if (theReply.m_bSuccess &&
-               theReply.m_strCommand.Compare("@getContract")) {
-        // base64-Decode the server reply's payload into strContract
-        OTString strContract(theReply.m_ascPayload);
-
-        OTString strFoldername(OTFolders::Contract().Get());
-        OTString strFilename; // In this case the filename isn't actually used,
-                              // since SaveToContractFolder will
-        // handle setting up the filename and overwrite it anyway. But I still
-        // prefer to set it
-        // up correctly, rather than pass a blank. I'm just funny like that.
-        strFilename = theReply.m_strAssetID.Get();
-
-        OTAssetContract* pContract =
-            new OTAssetContract(theReply.m_strAssetID, strFoldername,
-                                strFilename, theReply.m_strAssetID);
-
-        OT_ASSERT(nullptr != pContract);
-
-        // Check the server signature on the contract here. (Perhaps the message
-        // is good enough?
-        // After all, the message IS signed by the server and contains the
-        // Account.
-        //        if (pContract->LoadContract() && pContract->VerifyContract())
-        if (pContract->LoadContractFromString(strContract) &&
-            pContract->VerifyContract()) {
-            // Next make sure the wallet has this contract on its list...
-            OTWallet* pWallet = theConnection.GetWallet();
-
-            if (nullptr != pWallet) {
-                pWallet->AddAssetContract(*pContract);
-                pContract =
-                    nullptr; // Success. The wallet "owns" it now, no need
-                             // to clean it up.
-            }
-        }
-        // cleanup
-        if (pContract) {
-            delete pContract;
-            pContract = nullptr;
-        }
-        return true;
+    if (theReply.m_strCommand.Compare("@getContract")) {
+        return ProcessServerReplyGetContract(theReply, args);
     }
     else if (theReply.m_bSuccess &&
                theReply.m_strCommand.Compare("@getMint")) {
