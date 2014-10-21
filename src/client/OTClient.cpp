@@ -3726,12 +3726,9 @@ struct OTClient::ProcessServerReplyArgs
     OTPseudonym* pServerNym;
 };
 
-bool OTClient::processServerReplyTriggerClause(OTMessage& theReply,
-                                               ProcessServerReplyArgs& args)
+void OTClient::setRecentHash(const OTMessage& theReply,
+                             const OTString& strServerID, OTPseudonym* pNym)
 {
-    const auto& strServerID = args.strServerID;
-    const auto& pNym = args.pNym;
-
     OTIdentifier RECENT_HASH;
     const std::string str_server(strServerID.Get());
 
@@ -3749,6 +3746,12 @@ bool OTClient::processServerReplyTriggerClause(OTMessage& theReply,
             pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
+}
+
+bool OTClient::processServerReplyTriggerClause(OTMessage& theReply,
+                                               ProcessServerReplyArgs& args)
+{
+    setRecentHash(theReply, args.strServerID, args.pNym);
 
     return true;
 }
@@ -3756,8 +3759,6 @@ bool OTClient::processServerReplyTriggerClause(OTMessage& theReply,
 bool OTClient::processServerReplyGetRequest(OTMessage& theReply,
                                             ProcessServerReplyArgs& args)
 {
-    const auto& strServerID = args.strServerID;
-    const auto& pNym = args.pNym;
 
     int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
 
@@ -3780,25 +3781,7 @@ bool OTClient::processServerReplyGetRequest(OTMessage& theReply,
     OTServerConnection& theConnection = *m_pConnection;
     theConnection.OnServerResponseToGetRequestNumber(lNewRequestNumber);
 
-    OTIdentifier RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    // todo (DUPLICATION): this is the same code as in
-    // ProcessServerReplyTriggerClause
-    if (theReply.m_strNymboxHash.Exists()) {
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        else {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym);
 
     return true;
 }
@@ -3941,31 +3924,10 @@ bool OTClient::processServerReplyCheckUser(OTMessage& theReply,
 bool OTClient::processServerReplyNotarizeTransactions(
     OTMessage& theReply, ProcessServerReplyArgs& args)
 {
-    const auto& strServerID = args.strServerID;
-    const auto& pNym = args.pNym;
-
     otOut << "Received server response to notarize Transactions message.\n";
     //        otOut << "Received server response to notarize
     // Transactions message:\n" << strReply << "\n";
-    OTIdentifier RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    // todo (DUPLICATION): this is the same code as in
-    // ProcessServerReplyTriggerClause
-    if (theReply.m_strNymboxHash.Exists()) {
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        else {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym);
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
     // todo (gui):
@@ -3986,32 +3948,12 @@ bool OTClient::processServerReplyNotarizeTransactions(
 bool OTClient::processServerReplyGetTransactionNum(OTMessage& theReply,
                                                    ProcessServerReplyArgs& args)
 {
-    const auto& strServerID = args.strServerID;
-    const auto& pNym = args.pNym;
 
     otOut << "Received server response to Get Transaction Num message.\n";
     //        otOut << "Received server response to Get Transaction
     // Num message:\n" << strReply << "\n";
 
-    OTIdentifier RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    // todo (DUPLICATION): this is the same code as in
-    // ProcessServerReplyTriggerClause
-    if (theReply.m_strNymboxHash.Exists()) {
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        else {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym);
     return true;
 }
 
@@ -4425,23 +4367,7 @@ bool OTClient::processServerReplyProcessInbox(OTMessage& theReply,
     otOut << "Received server response: " << theReply.m_strCommand << " \n";
     //        otOut << "Received server response to processInbox or
     // processNymbox message:\n" << strReply << "\n";
-    OTIdentifier RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    if (theReply.m_strNymboxHash.Exists()) {
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        else {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym);
     // If the server acknowledges either of the above commands, then my
     // transaction
     // numbers have changed. I need to read the numbers from my last

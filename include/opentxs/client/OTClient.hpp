@@ -195,6 +195,8 @@ private:
                                       OTLedger& ledger) const;
 
     struct ProcessServerReplyArgs;
+    void setRecentHash(const OTMessage& theReply, const OTString& strServerID,
+                       OTPseudonym* pNym);
     bool processServerReplyTriggerClause(OTMessage& theReply,
                                          ProcessServerReplyArgs& args);
     bool processServerReplyGetRequest(OTMessage& theReply,
