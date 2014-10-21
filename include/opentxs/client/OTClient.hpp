@@ -136,6 +136,8 @@
 #include <opentxs/client/OTMessageBuffer.hpp>
 #include <opentxs/client/OTMessageOutbuffer.hpp>
 
+#include <memory>
+
 namespace opentxs
 {
 
@@ -444,7 +446,7 @@ public:
                            const OTIdentifier* pHisNymID = nullptr,
                            const OTIdentifier* pHisAcctID = nullptr);
 
-    bool processServerReply(OTMessage& theReply,
+    bool processServerReply(std::shared_ptr<OTMessage> theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
     // that one, where appropriate, instead

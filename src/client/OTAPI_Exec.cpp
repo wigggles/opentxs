@@ -14904,7 +14904,7 @@ std::string OTAPI_Exec::PopMessageBuffer(const int64_t& REQUEST_NUMBER,
 
     const int64_t lRequestNum = REQUEST_NUMBER;
     const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
-    std::unique_ptr<OTMessage> pMsg(OTAPI()->PopMessageBuffer(
+    std::shared_ptr<OTMessage> pMsg(OTAPI()->PopMessageBuffer(
         static_cast<int64_t>(lRequestNum), theServerID,
         theUserID)); // caller responsible to delete.
 

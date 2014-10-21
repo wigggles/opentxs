@@ -1268,21 +1268,18 @@ bool OT_API::TransportFunction(const OTServerContract& theServerContract,
                              "\n\n PERHAPS YOU ARE RUNNING AN OLD VERSION "
                              "OF THE SERVER ????? \n\n";
                 }
-                OTMessage* pServerReply(new OTMessage());
+                // todo: use a unique_ptr  soon as feasible.
+                std::shared_ptr<OTMessage> pServerReply(new OTMessage());
                 OT_ASSERT(nullptr != pServerReply);
 
                 if (bRetrievedReply && strServerReply.Exists() &&
                     pServerReply->LoadContractFromString(strServerReply)) {
                     // Now the fully-loaded message object (from the server,
                     // this time) can be processed by the OT library...
-                    m_pClient->processServerReply(
-                        *pServerReply); // Client takes ownership and will
-                                        // handle cleanup.
+                    // Client takes ownership and will
+                    m_pClient->processServerReply(pServerReply);
                 }
                 else {
-                    if (nullptr != pServerReply) delete pServerReply;
-                    pServerReply = nullptr; // cleanup
-
                     otErr << __FUNCTION__
                           << ": Error loading server reply from string:\n\n"
                           << strRawServerReply << "\n\n";
@@ -8305,9 +8302,9 @@ bool OT_API::ResyncNymWithServer(OTPseudonym& theNym, const OTLedger& theNymbox,
 // you receive the pointer that comes back from this function.
 // (It also might return nullptr, if there are none there.)
 //
-OTMessage* OT_API::PopMessageBuffer(const int64_t& lRequestNumber,
-                                    const OTIdentifier& SERVER_ID,
-                                    const OTIdentifier& USER_ID) const
+std::shared_ptr<OTMessage> OT_API::PopMessageBuffer(
+    const int64_t& lRequestNumber, const OTIdentifier& SERVER_ID,
+    const OTIdentifier& USER_ID) const
 {
     OT_ASSERT_MSG((m_bInitialized && (m_pClient != nullptr)),
                   "Not initialized; call OT_API::Init first.");

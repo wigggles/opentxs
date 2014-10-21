@@ -658,7 +658,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                     }
                     else // strOriginalReply.Exists() == true.
                     {
-                        OTMessage* pMessage = new OTMessage;
+                        std::shared_ptr<OTMessage> pMessage(new OTMessage);
                         OT_ASSERT_MSG(pMessage != nullptr,
                                       "OTClient::AcceptEntireNymbox: OTMessage "
                                       "* pMessage = new OTMessage;");
@@ -670,8 +670,6 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                   << ": Failed loading original server reply "
                                      "message from replyNotice:\n\n"
                                   << strOriginalReply << "\n\n";
-                            delete pMessage;
-                            pMessage = nullptr;
                         }
                         else // Success loading the server's original reply up
                                // into an OTMessage, from a string.
@@ -686,14 +684,10 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                             // with one copy ending up overwriting the other.
                             //
                             //                          const bool bProcessed =
-                            processServerReply(
-                                *pMessage, &theNymbox); // ProcessServerReply
-                                                        // sometimes has to load
-                                                        // the Nymbox. Since we
-                                                        // already have it
-                                                        // loaded here, we pass
-                                                        // it in so it won't get
-                                                        // loaded twice.
+                            // ProcessServerReply  sometimes has to load
+                            // the Nymbox. Since we  already have it loaded
+                            // here, we pass it in so it won't get loaded twice.
+                            processServerReply(pMessage, &theNymbox);
 
                             pMessage = nullptr; // We're done with it now.
 
@@ -8404,7 +8398,7 @@ bool OTClient::processServerReplyCreateAccount(OTMessage& theReply,
 /// returns true/false on whether or not the reply was actually
 /// verified and processed, versus whether
 ///
-bool OTClient::processServerReply(OTMessage& theReply,
+bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
                                   OTLedger* pNymbox) // IF the Nymbox
                                                      // is passed in,
                                                      // then use that
@@ -8414,6 +8408,7 @@ bool OTClient::processServerReply(OTMessage& theReply,
                                                      // loading it
                                                      // internally.
 {
+    OTMessage& theReply = *reply;
     OT_ASSERT(nullptr != m_pConnection);
 
     OTServerConnection& theConnection = *m_pConnection;
@@ -8442,11 +8437,6 @@ bool OTClient::processServerReply(OTMessage& theReply,
     if (!theReply.VerifySignature(*pServerNym)) {
         otErr << __FUNCTION__
               << ": Error: Server reply signature failed to verify.\n";
-
-        OTMessage* pMessage =
-            &theReply; // I'm responsible to cleanup this object.
-        delete pMessage;
-        pMessage = nullptr;
         return false;
     }
     OTMessage* pSentMsg = GetMessageOutbuffer().GetSentMessage(
@@ -8483,11 +8473,6 @@ bool OTClient::processServerReply(OTMessage& theReply,
                   "We must have already processed it, and then removed it, "
                   "earlier. (Discarding.) Reply message:\n\n" << strReply
                << "\n\n";
-
-        OTMessage* pMessage =
-            &theReply; // I'm responsible to cleanup this object.
-        delete pMessage;
-        pMessage = nullptr;
         return false;
     }
     // Below this point, we know we found the original sent message--still
@@ -8568,7 +8553,7 @@ bool OTClient::processServerReply(OTMessage& theReply,
 
     // Here, the Client takes ownership of the message (so make sure it's
     // heap-allocated.)
-    m_MessageBuffer.Push(theReply);
+    m_MessageBuffer.Push(reply);
 
     // Once that process is done, everything below that line, in this function,
     // will be able to assume there is a verified Nym available, and a Server
