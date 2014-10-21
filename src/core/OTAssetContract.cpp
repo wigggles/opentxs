@@ -438,8 +438,10 @@ OTAssetContract::OTAssetContract()
 {
 }
 
-OTAssetContract::OTAssetContract(OTString& name, OTString& foldername,
-                                 OTString& filename, OTString& strID)
+OTAssetContract::OTAssetContract(const OTString& name,
+                                 const OTString& foldername,
+                                 const OTString& filename,
+                                 const OTString& strID)
     : OTContract(name, foldername, filename, strID)
     , m_bIsCurrency(true)
     , m_bIsShares(false)
