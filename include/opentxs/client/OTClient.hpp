@@ -196,7 +196,7 @@ private:
 
     struct ProcessServerReplyArgs;
     void setRecentHash(const OTMessage& theReply, const OTString& strServerID,
-                       OTPseudonym* pNym);
+                       OTPseudonym* pNym, bool setNymboxHash);
     bool processServerReplyTriggerClause(OTMessage& theReply,
                                          ProcessServerReplyArgs& args);
     bool processServerReplyGetRequest(OTMessage& theReply,

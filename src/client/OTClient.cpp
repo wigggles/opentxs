@@ -3727,21 +3727,34 @@ struct OTClient::ProcessServerReplyArgs
 };
 
 void OTClient::setRecentHash(const OTMessage& theReply,
-                             const OTString& strServerID, OTPseudonym* pNym)
+                             const OTString& strServerID, OTPseudonym* pNym,
+                             bool setNymboxHash)
 {
-    OTIdentifier RECENT_HASH;
+    OTIdentifier NYMBOX_HASH, RECENT_HASH;
     const std::string str_server(strServerID.Get());
 
     if (theReply.m_strNymboxHash.Exists()) {
+        if (setNymboxHash) {
+            NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
+        }
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
+        bool bNymboxHash = false;
+        if (setNymboxHash) {
+            bNymboxHash = pNym->SetNymboxHash(str_server, NYMBOX_HASH);
+        }
+        bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
-        if (!bRecentHash)
+        if (!bRecentHash) {
             otErr << theReply.m_strCommand
                   << ": Failed getting NymboxHash (to store as 'recent "
                      "hash') from Nym for server: " << str_server << "\n";
-        else {
+        }
+        if (setNymboxHash && !bNymboxHash) {
+            otErr << "Failed setting NymboxHash on Nym for server: "
+                  << str_server << "\n";
+        }
+        if (bRecentHash || (setNymboxHash && bNymboxHash)) {
             OTPseudonym* pSignerNym = pNym;
             pNym->SaveSignedNymfile(*pSignerNym);
         }
@@ -3751,7 +3764,7 @@ void OTClient::setRecentHash(const OTMessage& theReply,
 bool OTClient::processServerReplyTriggerClause(OTMessage& theReply,
                                                ProcessServerReplyArgs& args)
 {
-    setRecentHash(theReply, args.strServerID, args.pNym);
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
 
     return true;
 }
@@ -3781,7 +3794,7 @@ bool OTClient::processServerReplyGetRequest(OTMessage& theReply,
     OTServerConnection& theConnection = *m_pConnection;
     theConnection.OnServerResponseToGetRequestNumber(lNewRequestNumber);
 
-    setRecentHash(theReply, args.strServerID, args.pNym);
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
 
     return true;
 }
@@ -3927,7 +3940,7 @@ bool OTClient::processServerReplyNotarizeTransactions(
     otOut << "Received server response to notarize Transactions message.\n";
     //        otOut << "Received server response to notarize
     // Transactions message:\n" << strReply << "\n";
-    setRecentHash(theReply, args.strServerID, args.pNym);
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
     // todo (gui):
@@ -3953,7 +3966,7 @@ bool OTClient::processServerReplyGetTransactionNum(OTMessage& theReply,
     //        otOut << "Received server response to Get Transaction
     // Num message:\n" << strReply << "\n";
 
-    setRecentHash(theReply, args.strServerID, args.pNym);
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
     return true;
 }
 
@@ -3964,7 +3977,6 @@ bool OTClient::processServerReplyGetNymBox(OTMessage& theReply,
     const auto& pNym = args.pNym;
     const auto& SERVER_ID = args.SERVER_ID;
     const auto& USER_ID = args.USER_ID;
-    const auto& strServerID = args.strServerID;
 
     OTString strReply(theReply);
 
@@ -3987,30 +3999,7 @@ bool OTClient::processServerReplyGetNymBox(OTMessage& theReply,
     // Load the ledger object from that string.
     OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
 
-    OTIdentifier NYMBOX_HASH, RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    // todo DUPLICATION: this is (almost! )the same code as in
-    // ProcessServerReplyTriggerClause
-    if (theReply.m_strNymboxHash.Exists()) {
-        NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bNymboxHash = pNym->SetNymboxHash(str_server, NYMBOX_HASH);
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bNymboxHash)
-            otErr << "Failed setting NymboxHash on Nym for server: "
-                  << str_server << "\n";
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed setting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        if (bNymboxHash || bRecentHash) {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym, true);
 
     // I receive the nymbox, verify the server's signature, then RE-SIGN IT
     // WITH MY OWN
@@ -4367,7 +4356,7 @@ bool OTClient::processServerReplyProcessInbox(OTMessage& theReply,
     otOut << "Received server response: " << theReply.m_strCommand << " \n";
     //        otOut << "Received server response to processInbox or
     // processNymbox message:\n" << strReply << "\n";
-    setRecentHash(theReply, args.strServerID, args.pNym);
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
     // If the server acknowledges either of the above commands, then my
     // transaction
     // numbers have changed. I need to read the numbers from my last
