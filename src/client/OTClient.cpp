@@ -8981,8 +8981,6 @@ bool OTClient::processServerReply(OTMessage& theReply,
     if (theReply.m_strCommand.Compare("@createAccount")) {
         return processServerReplyCreateAccount(theReply, args);
     }
-    else {
-    }
     return false;
 }
 
