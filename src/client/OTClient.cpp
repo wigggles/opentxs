@@ -686,7 +686,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                             // with one copy ending up overwriting the other.
                             //
                             //                          const bool bProcessed =
-                            ProcessServerReply(
+                            processServerReply(
                                 *pMessage, &theNymbox); // ProcessServerReply
                                                         // sometimes has to load
                                                         // the Nymbox. Since we
@@ -2011,10 +2011,10 @@ void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
 /// function, the same as you would have normally if you had received the server
 /// reply in the first
 /// place!  That way transaction sync issues become impossible.
-/// SOLUTION: bool OTClient::ProcessServerReply(OTMessage& theReply)
+/// SOLUTION: bool OTClient::processServerReply(OTMessage& theReply)
 /// Any message deemed important enough to have a notice containing the reply
 /// dropped into my nymbox,
-/// I will just take that message and pass it to ProcessServerReply(), which
+/// I will just take that message and pass it to processServerReply(), which
 /// will then call THIS function
 /// (ProcessIncomingTransactions) where appropriate, and THIS function should
 /// therefore then be smart
@@ -3726,7 +3726,7 @@ struct OTClient::ProcessServerReplyArgs
     OTPseudonym* pServerNym;
 };
 
-bool OTClient::ProcessServerReplyTriggerClause(OTMessage& theReply,
+bool OTClient::processServerReplyTriggerClause(OTMessage& theReply,
                                                ProcessServerReplyArgs& args)
 {
     const auto& strServerID = args.strServerID;
@@ -3753,7 +3753,7 @@ bool OTClient::ProcessServerReplyTriggerClause(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetRequest(OTMessage& theReply,
+bool OTClient::processServerReplyGetRequest(OTMessage& theReply,
                                             ProcessServerReplyArgs& args)
 {
     const auto& strServerID = args.strServerID;
@@ -3803,7 +3803,7 @@ bool OTClient::ProcessServerReplyGetRequest(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyCheckUser(OTMessage& theReply,
+bool OTClient::processServerReplyCheckUser(OTMessage& theReply,
                                            ProcessServerReplyArgs& args)
 {
     const OTString strNymID2(theReply.m_strNymID2),
@@ -3938,7 +3938,7 @@ bool OTClient::ProcessServerReplyCheckUser(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyNotarizeTransactions(
+bool OTClient::processServerReplyNotarizeTransactions(
     OTMessage& theReply, ProcessServerReplyArgs& args)
 {
     const auto& strServerID = args.strServerID;
@@ -3983,7 +3983,7 @@ bool OTClient::ProcessServerReplyNotarizeTransactions(
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetTransactionNum(OTMessage& theReply,
+bool OTClient::processServerReplyGetTransactionNum(OTMessage& theReply,
                                                    ProcessServerReplyArgs& args)
 {
     const auto& strServerID = args.strServerID;
@@ -4015,7 +4015,7 @@ bool OTClient::ProcessServerReplyGetTransactionNum(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
+bool OTClient::processServerReplyGetNymBox(OTMessage& theReply,
                                            OTLedger* pNymbox,
                                            ProcessServerReplyArgs& args)
 {
@@ -4122,7 +4122,7 @@ bool OTClient::ProcessServerReplyGetNymBox(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetBoxReceipt(OTMessage& theReply,
+bool OTClient::processServerReplyGetBoxReceipt(OTMessage& theReply,
                                                OTLedger* pNymbox,
                                                ProcessServerReplyArgs& args)
 {
@@ -4400,7 +4400,7 @@ bool OTClient::ProcessServerReplyGetBoxReceipt(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyProcessInbox(OTMessage& theReply,
+bool OTClient::processServerReplyProcessInbox(OTMessage& theReply,
                                               OTLedger* pNymbox,
                                               ProcessServerReplyArgs& args)
 {
@@ -7630,7 +7630,7 @@ bool OTClient::ProcessServerReplyProcessInbox(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetAccountFiles(OTMessage& theReply,
+bool OTClient::processServerReplyGetAccountFiles(OTMessage& theReply,
                                                  OTLedger* pNymbox,
                                                  ProcessServerReplyArgs& args)
 {
@@ -7894,7 +7894,7 @@ bool OTClient::ProcessServerReplyGetAccountFiles(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetContract(OTMessage& theReply,
+bool OTClient::processServerReplyGetContract(OTMessage& theReply,
                                              ProcessServerReplyArgs& args)
 {
     // base64-Decode the server reply's payload into strContract
@@ -7938,7 +7938,7 @@ bool OTClient::ProcessServerReplyGetContract(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetMint(OTMessage& theReply)
+bool OTClient::processServerReplyGetMint(OTMessage& theReply)
 {
     // base64-Decode the server reply's payload into strMint
     OTString strMint(theReply.m_ascPayload);
@@ -7954,7 +7954,7 @@ bool OTClient::ProcessServerReplyGetMint(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetMarketList(OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketList(OTMessage& theReply)
 {
     OTString strMarketDatafile;
     strMarketDatafile.Format("%s", "market_data.bin");
@@ -8026,7 +8026,7 @@ bool OTClient::ProcessServerReplyGetMarketList(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetMarketOffers(OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketOffers(OTMessage& theReply)
 {
 
     const OTString& strMarketID =
@@ -8107,7 +8107,7 @@ bool OTClient::ProcessServerReplyGetMarketOffers(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetMarketRecentTrades(OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketRecentTrades(OTMessage& theReply)
 {
     const OTString& strMarketID =
         theReply.m_strNymID2; // market ID stored here.
@@ -8187,7 +8187,7 @@ bool OTClient::ProcessServerReplyGetMarketRecentTrades(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::ProcessServerReplyGetNymMarketOffers(OTMessage& theReply)
+bool OTClient::processServerReplyGetNymMarketOffers(OTMessage& theReply)
 {
     OTString strOfferDatafile;
     strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
@@ -8262,7 +8262,7 @@ bool OTClient::ProcessServerReplyGetNymMarketOffers(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::ProcessServerReplyDeleteUserAccount(OTMessage& theReply,
+bool OTClient::processServerReplyDeleteUserAccount(OTMessage& theReply,
                                                    ProcessServerReplyArgs& args)
 {
     const auto& pNym = args.pNym;
@@ -8311,7 +8311,7 @@ bool OTClient::ProcessServerReplyDeleteUserAccount(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::ProcessServerReplyDeleteAssetAccount(
+bool OTClient::processServerReplyDeleteAssetAccount(
     OTMessage& theReply, ProcessServerReplyArgs& args)
 {
     const auto& SERVER_ID = args.SERVER_ID;
@@ -8364,7 +8364,7 @@ bool OTClient::ProcessServerReplyDeleteAssetAccount(
     return true;
 }
 
-bool OTClient::ProcessServerReplyIssueAssetType(OTMessage& theReply,
+bool OTClient::processServerReplyIssueAssetType(OTMessage& theReply,
                                                 ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -8413,7 +8413,7 @@ bool OTClient::ProcessServerReplyIssueAssetType(OTMessage& theReply,
     return false;
 }
 
-bool OTClient::ProcessServerReplyCreateAccount(OTMessage& theReply,
+bool OTClient::processServerReplyCreateAccount(OTMessage& theReply,
                                                ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -8489,7 +8489,7 @@ bool OTClient::ProcessServerReplyCreateAccount(OTMessage& theReply,
 /// returns true/false on whether or not the reply was actually
 /// verified and processed, versus whether
 ///
-bool OTClient::ProcessServerReply(OTMessage& theReply,
+bool OTClient::processServerReply(OTMessage& theReply,
                                   OTLedger* pNymbox) // IF the Nymbox
                                                      // is passed in,
                                                      // then use that
@@ -8679,29 +8679,29 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         return false;
     }
     if (theReply.m_strCommand.Compare("@triggerClause")) {
-        return ProcessServerReplyTriggerClause(theReply, args);
+        return processServerReplyTriggerClause(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@getRequest")) {
-        return ProcessServerReplyGetRequest(theReply, args);
+        return processServerReplyGetRequest(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@checkUser")) {
-        return ProcessServerReplyCheckUser(theReply, args);
+        return processServerReplyCheckUser(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@notarizeTransactions")) {
-        return ProcessServerReplyNotarizeTransactions(theReply, args);
+        return processServerReplyNotarizeTransactions(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@getTransactionNum")) {
-        return ProcessServerReplyGetTransactionNum(theReply, args);
+        return processServerReplyGetTransactionNum(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@getNymbox")) {
-        return ProcessServerReplyGetNymBox(theReply, pNymbox, args);
+        return processServerReplyGetNymBox(theReply, pNymbox, args);
     }
     if (theReply.m_strCommand.Compare("@getBoxReceipt")) {
-        return ProcessServerReplyGetBoxReceipt(theReply, pNymbox, args);
+        return processServerReplyGetBoxReceipt(theReply, pNymbox, args);
     }
     if ((theReply.m_strCommand.Compare("@processInbox") ||
          theReply.m_strCommand.Compare("@processNymbox"))) {
-        return ProcessServerReplyProcessInbox(theReply, pNymbox, args);
+        return processServerReplyProcessInbox(theReply, pNymbox, args);
     }
     if (theReply.m_strCommand.Compare("@getAccountFiles")) // Replaces
                                                            // getAccount,
@@ -8709,7 +8709,7 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
                                                            // and
                                                            // getOutbox
     {
-        return ProcessServerReplyGetAccountFiles(theReply, pNymbox, args);
+        return processServerReplyGetAccountFiles(theReply, pNymbox, args);
     }
     if (theReply.m_strCommand.Compare("@getAccount")) // Deprecated. (Replaced
                                                       // by getAccountFiles.)
@@ -8952,34 +8952,34 @@ bool OTClient::ProcessServerReply(OTMessage& theReply,
         return true;
     }
     if (theReply.m_strCommand.Compare("@getContract")) {
-        return ProcessServerReplyGetContract(theReply, args);
+        return processServerReplyGetContract(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@getMint")) {
-        return ProcessServerReplyGetMint(theReply);
+        return processServerReplyGetMint(theReply);
     }
     if (theReply.m_strCommand.Compare("@getMarketList")) {
-        return ProcessServerReplyGetMarketList(theReply);
+        return processServerReplyGetMarketList(theReply);
     }
     if (theReply.m_strCommand.Compare("@getMarketOffers")) {
-        return ProcessServerReplyGetMarketOffers(theReply);
+        return processServerReplyGetMarketOffers(theReply);
     }
     if (theReply.m_strCommand.Compare("@getMarketRecentTrades")) {
-        return ProcessServerReplyGetMarketRecentTrades(theReply);
+        return processServerReplyGetMarketRecentTrades(theReply);
     }
     if (theReply.m_strCommand.Compare("@getNym_MarketOffers")) {
-        return ProcessServerReplyGetNymMarketOffers(theReply);
+        return processServerReplyGetNymMarketOffers(theReply);
     }
     if (theReply.m_strCommand.Compare("@deleteUserAccount")) {
-        return ProcessServerReplyDeleteUserAccount(theReply, args);
+        return processServerReplyDeleteUserAccount(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@deleteAssetAccount")) {
-        return ProcessServerReplyDeleteAssetAccount(theReply, args);
+        return processServerReplyDeleteAssetAccount(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@issueAssetType")) {
-        return ProcessServerReplyIssueAssetType(theReply, args);
+        return processServerReplyIssueAssetType(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@createAccount")) {
-        return ProcessServerReplyCreateAccount(theReply, args);
+        return processServerReplyCreateAccount(theReply, args);
     }
     else {
     }

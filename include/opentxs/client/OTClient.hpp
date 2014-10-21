@@ -195,39 +195,39 @@ private:
                                       OTLedger& ledger) const;
 
     struct ProcessServerReplyArgs;
-    bool ProcessServerReplyTriggerClause(OTMessage& theReply,
+    bool processServerReplyTriggerClause(OTMessage& theReply,
                                          ProcessServerReplyArgs& args);
-    bool ProcessServerReplyGetRequest(OTMessage& theReply,
+    bool processServerReplyGetRequest(OTMessage& theReply,
                                       ProcessServerReplyArgs& args);
-    bool ProcessServerReplyCheckUser(OTMessage& theReply,
+    bool processServerReplyCheckUser(OTMessage& theReply,
                                      ProcessServerReplyArgs& args);
-    bool ProcessServerReplyNotarizeTransactions(OTMessage& theReply,
+    bool processServerReplyNotarizeTransactions(OTMessage& theReply,
                                                 ProcessServerReplyArgs& args);
-    bool ProcessServerReplyGetTransactionNum(OTMessage& theReply,
+    bool processServerReplyGetTransactionNum(OTMessage& theReply,
                                              ProcessServerReplyArgs& args);
-    bool ProcessServerReplyGetNymBox(OTMessage& theReply, OTLedger* pNymbox,
+    bool processServerReplyGetNymBox(OTMessage& theReply, OTLedger* pNymbox,
                                      ProcessServerReplyArgs& args);
-    bool ProcessServerReplyGetBoxReceipt(OTMessage& theReply, OTLedger* pNymbox,
+    bool processServerReplyGetBoxReceipt(OTMessage& theReply, OTLedger* pNymbox,
                                          ProcessServerReplyArgs& args);
-    bool ProcessServerReplyProcessInbox(OTMessage& theReply, OTLedger* pNymbox,
+    bool processServerReplyProcessInbox(OTMessage& theReply, OTLedger* pNymbox,
                                         ProcessServerReplyArgs& args);
-    bool ProcessServerReplyGetAccountFiles(OTMessage& theReply,
+    bool processServerReplyGetAccountFiles(OTMessage& theReply,
                                            OTLedger* pNymbox,
                                            ProcessServerReplyArgs& args);
-    bool ProcessServerReplyGetContract(OTMessage& theReply,
+    bool processServerReplyGetContract(OTMessage& theReply,
                                        ProcessServerReplyArgs& args);
-    bool ProcessServerReplyGetMint(OTMessage& theReply);
-    bool ProcessServerReplyGetMarketList(OTMessage& theReply);
-    bool ProcessServerReplyGetMarketOffers(OTMessage& theReply);
-    bool ProcessServerReplyGetMarketRecentTrades(OTMessage& theReply);
-    bool ProcessServerReplyGetNymMarketOffers(OTMessage& theReply);
-    bool ProcessServerReplyDeleteUserAccount(OTMessage& theReply,
+    bool processServerReplyGetMint(OTMessage& theReply);
+    bool processServerReplyGetMarketList(OTMessage& theReply);
+    bool processServerReplyGetMarketOffers(OTMessage& theReply);
+    bool processServerReplyGetMarketRecentTrades(OTMessage& theReply);
+    bool processServerReplyGetNymMarketOffers(OTMessage& theReply);
+    bool processServerReplyDeleteUserAccount(OTMessage& theReply,
                                              ProcessServerReplyArgs& args);
-    bool ProcessServerReplyDeleteAssetAccount(OTMessage& theReply,
+    bool processServerReplyDeleteAssetAccount(OTMessage& theReply,
                                               ProcessServerReplyArgs& args);
-    bool ProcessServerReplyIssueAssetType(OTMessage& theReply,
+    bool processServerReplyIssueAssetType(OTMessage& theReply,
                                           ProcessServerReplyArgs& args);
-    bool ProcessServerReplyCreateAccount(OTMessage& theReply,
+    bool processServerReplyCreateAccount(OTMessage& theReply,
                                          ProcessServerReplyArgs& args);
 
 public:
@@ -442,7 +442,7 @@ public:
                            const OTIdentifier* pHisNymID = nullptr,
                            const OTIdentifier* pHisAcctID = nullptr);
 
-    bool ProcessServerReply(OTMessage& theReply,
+    bool processServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
     // that one, where appropriate, instead
