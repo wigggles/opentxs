@@ -194,6 +194,42 @@ private:
                                       OTPseudonym& the_nym,
                                       OTLedger& ledger) const;
 
+    struct ProcessServerReplyArgs;
+    bool processServerReplyTriggerClause(OTMessage& theReply,
+                                         ProcessServerReplyArgs& args);
+    bool processServerReplyGetRequest(OTMessage& theReply,
+                                      ProcessServerReplyArgs& args);
+    bool processServerReplyCheckUser(OTMessage& theReply,
+                                     ProcessServerReplyArgs& args);
+    bool processServerReplyNotarizeTransactions(OTMessage& theReply,
+                                                ProcessServerReplyArgs& args);
+    bool processServerReplyGetTransactionNum(OTMessage& theReply,
+                                             ProcessServerReplyArgs& args);
+    bool processServerReplyGetNymBox(OTMessage& theReply, OTLedger* pNymbox,
+                                     ProcessServerReplyArgs& args);
+    bool processServerReplyGetBoxReceipt(OTMessage& theReply, OTLedger* pNymbox,
+                                         ProcessServerReplyArgs& args);
+    bool processServerReplyProcessInbox(OTMessage& theReply, OTLedger* pNymbox,
+                                        ProcessServerReplyArgs& args);
+    bool processServerReplyGetAccountFiles(OTMessage& theReply,
+                                           OTLedger* pNymbox,
+                                           ProcessServerReplyArgs& args);
+    bool processServerReplyGetContract(OTMessage& theReply,
+                                       ProcessServerReplyArgs& args);
+    bool processServerReplyGetMint(OTMessage& theReply);
+    bool processServerReplyGetMarketList(OTMessage& theReply);
+    bool processServerReplyGetMarketOffers(OTMessage& theReply);
+    bool processServerReplyGetMarketRecentTrades(OTMessage& theReply);
+    bool processServerReplyGetNymMarketOffers(OTMessage& theReply);
+    bool processServerReplyDeleteUserAccount(OTMessage& theReply,
+                                             ProcessServerReplyArgs& args);
+    bool processServerReplyDeleteAssetAccount(OTMessage& theReply,
+                                              ProcessServerReplyArgs& args);
+    bool processServerReplyIssueAssetType(OTMessage& theReply,
+                                          ProcessServerReplyArgs& args);
+    bool processServerReplyCreateAccount(OTMessage& theReply,
+                                         ProcessServerReplyArgs& args);
+
 public:
     int32_t CalcReturnVal(const int64_t& lRequestNumber);
     bool IsRunningAsScript() const
@@ -406,7 +442,7 @@ public:
                            const OTIdentifier* pHisNymID = nullptr,
                            const OTIdentifier* pHisAcctID = nullptr);
 
-    bool ProcessServerReply(OTMessage& theReply,
+    bool processServerReply(OTMessage& theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
     // that one, where appropriate, instead

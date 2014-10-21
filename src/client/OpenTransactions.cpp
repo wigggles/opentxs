@@ -1275,7 +1275,7 @@ bool OT_API::TransportFunction(const OTServerContract& theServerContract,
                     pServerReply->LoadContractFromString(strServerReply)) {
                     // Now the fully-loaded message object (from the server,
                     // this time) can be processed by the OT library...
-                    m_pClient->ProcessServerReply(
+                    m_pClient->processServerReply(
                         *pServerReply); // Client takes ownership and will
                                         // handle cleanup.
                 }
