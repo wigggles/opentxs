@@ -283,11 +283,6 @@ public:
                            // public key. User ID will be hash of said public
                            // key.
         deleteUserAccount, // Delete user account from a specific server.
-        checkUser, // Request a user's public key based on User ID included with
-                   // the request.
-        // (If you want to send him cash or a check, your wallet will encrypt
-        // portions
-        // of the tokens, etc, to the Nym of the recipient.)
         getRequest, // Get the next request number from the server (for this
                     // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with

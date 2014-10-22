@@ -13591,6 +13591,12 @@ int32_t OT_API::checkUser(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& USER_ID,
                           const OTIdentifier& USER_ID_CHECK) const
 {
+    // Request a user's public key based on User ID included with
+    // the request.
+    // (If you want to send him cash or a check, your wallet will encrypt
+    // portions
+    // of the tokens, etc, to the Nym of the recipient.)
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
