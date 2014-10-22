@@ -2255,26 +2255,6 @@ int32_t main(int32_t argc, char* argv[])
 
         }
 
-        // issue a new asset type
-        else if (!strcmp(buf, "issue\n")) {
-            otOut << "(User has instructed to send an issueAssetType command "
-                     "to the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::issueAssetType, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing issueAssetType command in "
-                         "ProcessMessage: " << buf << "\n";
-
-        }
-
         // issue a new basket asset type
         else if (!strcmp(buf, "basket\n")) {
             otOut << "(User has instructed to send an issueBasket command to "

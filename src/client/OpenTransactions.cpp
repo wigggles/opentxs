@@ -12834,6 +12834,15 @@ int32_t OT_API::issueAssetType(const OTIdentifier& SERVER_ID,
                                const OTIdentifier& USER_ID,
                                const OTString& THE_CONTRACT) const
 {
+
+    // Upload a currency contract to the server and create
+    // an asset ID from a hash of that.
+    // contract. Also creates an issuer account for that asset ID. This ONLY
+    // works if public
+    // key of the user matches the contract key found in the currency
+    // contract, AND if the
+    // contract is signed by the same key.
+
     OTWallet* pWallet = GetWallet(__FUNCTION__);
     if (nullptr == pWallet) return (-1);
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);

@@ -294,13 +294,6 @@ public:
                     // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
-        issueAssetType, // Upload a currency contract to the server and create
-                        // an asset ID from a hash of that.
-        // contract. Also creates an issuer account for that asset ID. This ONLY
-        // works if public
-        // key of the user matches the contract key found in the currency
-        // contract, AND if the
-        // contract is signed by the same key.
         createAccount, // Create an asset account for a certain serverID,
                        // UserID, and Asset Type ID.
         // These accounts are where users actually store their digital assets of
