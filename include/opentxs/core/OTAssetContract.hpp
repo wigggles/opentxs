@@ -148,8 +148,8 @@ class OTAssetContract : public OTContract
 {
 public:
     EXPORT OTAssetContract();
-    EXPORT OTAssetContract(OTString& name, OTString& foldername,
-                           OTString& filename, OTString& strID);
+    EXPORT OTAssetContract(const OTString& name, const OTString& foldername,
+                           const OTString& filename, const OTString& strID);
     EXPORT virtual ~OTAssetContract();
 
     EXPORT virtual void CreateContents(); // Only used when first generating an

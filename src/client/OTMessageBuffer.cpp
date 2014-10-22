@@ -142,12 +142,14 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 
+#include <memory>
+
 namespace opentxs
 {
 
-void OTMessageBuffer::Push(OTMessage& theMessage)
+void OTMessageBuffer::Push(std::shared_ptr<OTMessage> theMessage)
 {
-    messages_.push_back(&theMessage);
+    messages_.push_back(theMessage);
 }
 
 // **YOU** are responsible to delete the OTMessage object.
@@ -171,17 +173,17 @@ void OTMessageBuffer::Push(OTMessage& theMessage)
 // Therefore, we do NOT want to discard THOSE replies, but put them back if
 // necessary -- only discarding the ones where the IDs match.
 //
-OTMessage* OTMessageBuffer::Pop(const int64_t& lRequestNum,
-                                const OTString& strServerID,
-                                const OTString& strNymID)
+std::shared_ptr<OTMessage> OTMessageBuffer::Pop(const int64_t& lRequestNum,
+                                                const OTString& strServerID,
+                                                const OTString& strNymID)
 {
-    OTMessage* pReturnValue = nullptr;
+    std::shared_ptr<OTMessage> pReturnValue;
 
     Messages temp_list;
 
     while (!messages_.empty()) {
 
-        OTMessage* pMsg = messages_.front();
+        std::shared_ptr<OTMessage> pMsg = messages_.front();
 
         messages_.pop_front();
 
@@ -198,8 +200,8 @@ OTMessage* OTMessageBuffer::Pop(const int64_t& lRequestNum,
         //
         if (!strServerID.Compare(pMsg->m_strServerID) ||
             !strNymID.Compare(pMsg->m_strNymID)) {
-            temp_list.push_front(
-                pMsg); // Save it, so we can push it back again after this loop.
+            // Save it, so we can push it back again after this loop.
+            temp_list.push_front(pMsg);
             continue;
         }
         // Below this point, we KNOW that pMsg has the CORRECT ServerID and
@@ -230,8 +232,7 @@ OTMessage* OTMessageBuffer::Pop(const int64_t& lRequestNum,
                      "anyway, so it was probably slow on the network "
                      "and then assumed to have been dropped. It's okay--the "
                      "protocol is designed to handle these occurrences.)\n";
-            delete pMsg;
-            pMsg = nullptr;
+
             continue;
         }
 
@@ -240,7 +241,7 @@ OTMessage* OTMessageBuffer::Pop(const int64_t& lRequestNum,
     // Put the other messages back, in order...
     //
     while (!temp_list.empty()) {
-        OTMessage* pMsg = temp_list.front();
+        std::shared_ptr<OTMessage> pMsg = temp_list.front();
         temp_list.pop_front();
         messages_.push_front(pMsg);
     }
@@ -255,13 +256,7 @@ OTMessageBuffer::~OTMessageBuffer()
 
 void OTMessageBuffer::Clear()
 {
-    while (!messages_.empty()) {
-        OTMessage* pMsg = messages_.front();
-        messages_.pop_front();
-
-        if (nullptr != pMsg) delete pMsg;
-        pMsg = nullptr;
-    }
+    messages_.clear();
 }
 
 } // namespace opentxs

@@ -134,6 +134,7 @@
 #define OPENTXS_CLIENT_OTMESSAGEBUFFER_HPP
 
 #include <list>
+#include <memory>
 
 namespace opentxs
 {
@@ -152,17 +153,18 @@ public:
 
     EXPORT void Clear();
     // message must be heap-allocated. Takes ownership.
-    EXPORT void Push(OTMessage& message);
+    EXPORT void Push(std::shared_ptr<OTMessage> message);
     // Caller IS responsible to delete.
-    EXPORT OTMessage* Pop(const int64_t& requestNum, const OTString& serverId,
-                          const OTString& nymId);
+    EXPORT std::shared_ptr<OTMessage> Pop(const int64_t& requestNum,
+                                          const OTString& serverId,
+                                          const OTString& nymId);
 
 private:
     OTMessageBuffer(const OTMessageBuffer&);
     OTMessageBuffer& operator=(const OTMessageBuffer&);
 
 private:
-    typedef std::list<OTMessage*> Messages;
+    typedef std::list<std::shared_ptr<OTMessage>> Messages;
 
 private:
     Messages messages_;

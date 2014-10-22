@@ -658,7 +658,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                     }
                     else // strOriginalReply.Exists() == true.
                     {
-                        OTMessage* pMessage = new OTMessage;
+                        std::shared_ptr<OTMessage> pMessage(new OTMessage);
                         OT_ASSERT_MSG(pMessage != nullptr,
                                       "OTClient::AcceptEntireNymbox: OTMessage "
                                       "* pMessage = new OTMessage;");
@@ -670,8 +670,6 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                   << ": Failed loading original server reply "
                                      "message from replyNotice:\n\n"
                                   << strOriginalReply << "\n\n";
-                            delete pMessage;
-                            pMessage = nullptr;
                         }
                         else // Success loading the server's original reply up
                                // into an OTMessage, from a string.
@@ -686,14 +684,10 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                             // with one copy ending up overwriting the other.
                             //
                             //                          const bool bProcessed =
-                            processServerReply(
-                                *pMessage, &theNymbox); // ProcessServerReply
-                                                        // sometimes has to load
-                                                        // the Nymbox. Since we
-                                                        // already have it
-                                                        // loaded here, we pass
-                                                        // it in so it won't get
-                                                        // loaded twice.
+                            // ProcessServerReply  sometimes has to load
+                            // the Nymbox. Since we  already have it loaded
+                            // here, we pass it in so it won't get loaded twice.
+                            processServerReply(pMessage, &theNymbox);
 
                             pMessage = nullptr; // We're done with it now.
 
@@ -2025,7 +2019,7 @@ void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
 /// then skip it! I must have processed it already.
 ///
 void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
-                                           OTMessage& theReply) const
+                                           const OTMessage& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -3726,38 +3720,52 @@ struct OTClient::ProcessServerReplyArgs
     OTPseudonym* pServerNym;
 };
 
-bool OTClient::processServerReplyTriggerClause(OTMessage& theReply,
-                                               ProcessServerReplyArgs& args)
+void OTClient::setRecentHash(const OTMessage& theReply,
+                             const OTString& strServerID, OTPseudonym* pNym,
+                             bool setNymboxHash)
 {
-    const auto& strServerID = args.strServerID;
-    const auto& pNym = args.pNym;
-
-    OTIdentifier RECENT_HASH;
+    OTIdentifier NYMBOX_HASH, RECENT_HASH;
     const std::string str_server(strServerID.Get());
 
     if (theReply.m_strNymboxHash.Exists()) {
+        if (setNymboxHash) {
+            NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
+        }
         RECENT_HASH.SetString(theReply.m_strNymboxHash);
 
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
+        bool bNymboxHash = false;
+        if (setNymboxHash) {
+            bNymboxHash = pNym->SetNymboxHash(str_server, NYMBOX_HASH);
+        }
+        bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
 
-        if (!bRecentHash)
+        if (!bRecentHash) {
             otErr << theReply.m_strCommand
                   << ": Failed getting NymboxHash (to store as 'recent "
                      "hash') from Nym for server: " << str_server << "\n";
-        else {
+        }
+        if (setNymboxHash && !bNymboxHash) {
+            otErr << "Failed setting NymboxHash on Nym for server: "
+                  << str_server << "\n";
+        }
+        if (bRecentHash || (setNymboxHash && bNymboxHash)) {
             OTPseudonym* pSignerNym = pNym;
             pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
+}
+
+bool OTClient::processServerReplyTriggerClause(const OTMessage& theReply,
+                                               ProcessServerReplyArgs& args)
+{
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
 
     return true;
 }
 
-bool OTClient::processServerReplyGetRequest(OTMessage& theReply,
+bool OTClient::processServerReplyGetRequest(const OTMessage& theReply,
                                             ProcessServerReplyArgs& args)
 {
-    const auto& strServerID = args.strServerID;
-    const auto& pNym = args.pNym;
 
     int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
 
@@ -3780,30 +3788,12 @@ bool OTClient::processServerReplyGetRequest(OTMessage& theReply,
     OTServerConnection& theConnection = *m_pConnection;
     theConnection.OnServerResponseToGetRequestNumber(lNewRequestNumber);
 
-    OTIdentifier RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    // todo (DUPLICATION): this is the same code as in
-    // ProcessServerReplyTriggerClause
-    if (theReply.m_strNymboxHash.Exists()) {
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        else {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
 
     return true;
 }
 
-bool OTClient::processServerReplyCheckUser(OTMessage& theReply,
+bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
                                            ProcessServerReplyArgs& args)
 {
     const OTString strNymID2(theReply.m_strNymID2),
@@ -3814,9 +3804,9 @@ bool OTClient::processServerReplyCheckUser(OTMessage& theReply,
 
     // First try to get Credentials, if there are any.
     //
-    OTASCIIArmor& ascArmor =
+    const OTASCIIArmor& ascArmor =
         theReply.m_ascPayload; // credentialList  (New style! Credentials.)
-    OTASCIIArmor& ascArmor2 = theReply.m_ascPayload2; // credentials
+    const OTASCIIArmor& ascArmor2 = theReply.m_ascPayload2; // credentials
     const bool bHasCredentials = (ascArmor.Exists() && ascArmor2.Exists());
     if (bHasCredentials) // New style of doing things, for Nym keys.
                          // Credentials!
@@ -3939,33 +3929,12 @@ bool OTClient::processServerReplyCheckUser(OTMessage& theReply,
 }
 
 bool OTClient::processServerReplyNotarizeTransactions(
-    OTMessage& theReply, ProcessServerReplyArgs& args)
+    const OTMessage& theReply, ProcessServerReplyArgs& args)
 {
-    const auto& strServerID = args.strServerID;
-    const auto& pNym = args.pNym;
-
     otOut << "Received server response to notarize Transactions message.\n";
     //        otOut << "Received server response to notarize
     // Transactions message:\n" << strReply << "\n";
-    OTIdentifier RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    // todo (DUPLICATION): this is the same code as in
-    // ProcessServerReplyTriggerClause
-    if (theReply.m_strNymboxHash.Exists()) {
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        else {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
     // todo (gui):
@@ -3983,46 +3952,25 @@ bool OTClient::processServerReplyNotarizeTransactions(
     return true;
 }
 
-bool OTClient::processServerReplyGetTransactionNum(OTMessage& theReply,
+bool OTClient::processServerReplyGetTransactionNum(const OTMessage& theReply,
                                                    ProcessServerReplyArgs& args)
 {
-    const auto& strServerID = args.strServerID;
-    const auto& pNym = args.pNym;
 
     otOut << "Received server response to Get Transaction Num message.\n";
     //        otOut << "Received server response to Get Transaction
     // Num message:\n" << strReply << "\n";
 
-    OTIdentifier RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    // todo (DUPLICATION): this is the same code as in
-    // ProcessServerReplyTriggerClause
-    if (theReply.m_strNymboxHash.Exists()) {
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        else {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
     return true;
 }
 
-bool OTClient::processServerReplyGetNymBox(OTMessage& theReply,
+bool OTClient::processServerReplyGetNymBox(const OTMessage& theReply,
                                            OTLedger* pNymbox,
                                            ProcessServerReplyArgs& args)
 {
     const auto& pNym = args.pNym;
     const auto& SERVER_ID = args.SERVER_ID;
     const auto& USER_ID = args.USER_ID;
-    const auto& strServerID = args.strServerID;
 
     OTString strReply(theReply);
 
@@ -4045,30 +3993,7 @@ bool OTClient::processServerReplyGetNymBox(OTMessage& theReply,
     // Load the ledger object from that string.
     OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
 
-    OTIdentifier NYMBOX_HASH, RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    // todo DUPLICATION: this is (almost! )the same code as in
-    // ProcessServerReplyTriggerClause
-    if (theReply.m_strNymboxHash.Exists()) {
-        NYMBOX_HASH.SetString(theReply.m_strNymboxHash);
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bNymboxHash = pNym->SetNymboxHash(str_server, NYMBOX_HASH);
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bNymboxHash)
-            otErr << "Failed setting NymboxHash on Nym for server: "
-                  << str_server << "\n";
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed setting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        if (bNymboxHash || bRecentHash) {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym, true);
 
     // I receive the nymbox, verify the server's signature, then RE-SIGN IT
     // WITH MY OWN
@@ -4122,7 +4047,7 @@ bool OTClient::processServerReplyGetNymBox(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetBoxReceipt(OTMessage& theReply,
+bool OTClient::processServerReplyGetBoxReceipt(const OTMessage& theReply,
                                                OTLedger* pNymbox,
                                                ProcessServerReplyArgs& args)
 {
@@ -4400,7 +4325,7 @@ bool OTClient::processServerReplyGetBoxReceipt(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyProcessInbox(OTMessage& theReply,
+bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                               OTLedger* pNymbox,
                                               ProcessServerReplyArgs& args)
 {
@@ -4425,23 +4350,7 @@ bool OTClient::processServerReplyProcessInbox(OTMessage& theReply,
     otOut << "Received server response: " << theReply.m_strCommand << " \n";
     //        otOut << "Received server response to processInbox or
     // processNymbox message:\n" << strReply << "\n";
-    OTIdentifier RECENT_HASH;
-    const std::string str_server(strServerID.Get());
-
-    if (theReply.m_strNymboxHash.Exists()) {
-        RECENT_HASH.SetString(theReply.m_strNymboxHash);
-
-        const bool bRecentHash = pNym->SetRecentHash(str_server, RECENT_HASH);
-
-        if (!bRecentHash)
-            otErr << theReply.m_strCommand
-                  << ": Failed getting NymboxHash (to store as 'recent "
-                     "hash') from Nym for server: " << str_server << "\n";
-        else {
-            OTPseudonym* pSignerNym = pNym;
-            pNym->SaveSignedNymfile(*pSignerNym);
-        }
-    }
+    setRecentHash(theReply, args.strServerID, args.pNym, false);
     // If the server acknowledges either of the above commands, then my
     // transaction
     // numbers have changed. I need to read the numbers from my last
@@ -7630,7 +7539,7 @@ bool OTClient::processServerReplyProcessInbox(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetAccountFiles(OTMessage& theReply,
+bool OTClient::processServerReplyGetAccountFiles(const OTMessage& theReply,
                                                  OTLedger* pNymbox,
                                                  ProcessServerReplyArgs& args)
 {
@@ -7643,9 +7552,9 @@ bool OTClient::processServerReplyGetAccountFiles(OTMessage& theReply,
 
     otOut << "Received server response to getAccountFiles message.\n";
 
-    OTASCIIArmor& ascArmor = theReply.m_ascPayload; // containing account
-                                                    // file + inbox and
-                                                    // outbox.
+    const OTASCIIArmor& ascArmor = theReply.m_ascPayload; // containing account
+                                                          // file + inbox and
+                                                          // outbox.
     const bool bHasFiles = ascArmor.Exists();
     if (bHasFiles) {
         std::unique_ptr<OTDB::Storable> pStorable(
@@ -7894,7 +7803,7 @@ bool OTClient::processServerReplyGetAccountFiles(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetContract(OTMessage& theReply,
+bool OTClient::processServerReplyGetContract(const OTMessage& theReply,
                                              ProcessServerReplyArgs& args)
 {
     // base64-Decode the server reply's payload into strContract
@@ -7938,7 +7847,7 @@ bool OTClient::processServerReplyGetContract(OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetMint(OTMessage& theReply)
+bool OTClient::processServerReplyGetMint(const OTMessage& theReply)
 {
     // base64-Decode the server reply's payload into strMint
     OTString strMint(theReply.m_ascPayload);
@@ -7954,7 +7863,7 @@ bool OTClient::processServerReplyGetMint(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyGetMarketList(OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketList(const OTMessage& theReply)
 {
     OTString strMarketDatafile;
     strMarketDatafile.Format("%s", "market_data.bin");
@@ -8026,7 +7935,7 @@ bool OTClient::processServerReplyGetMarketList(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyGetMarketOffers(OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketOffers(const OTMessage& theReply)
 {
 
     const OTString& strMarketID =
@@ -8107,7 +8016,8 @@ bool OTClient::processServerReplyGetMarketOffers(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyGetMarketRecentTrades(OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketRecentTrades(
+    const OTMessage& theReply)
 {
     const OTString& strMarketID =
         theReply.m_strNymID2; // market ID stored here.
@@ -8187,7 +8097,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyGetNymMarketOffers(OTMessage& theReply)
+bool OTClient::processServerReplyGetNymMarketOffers(const OTMessage& theReply)
 {
     OTString strOfferDatafile;
     strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
@@ -8262,7 +8172,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyDeleteUserAccount(OTMessage& theReply,
+bool OTClient::processServerReplyDeleteUserAccount(const OTMessage& theReply,
                                                    ProcessServerReplyArgs& args)
 {
     const auto& pNym = args.pNym;
@@ -8312,7 +8222,7 @@ bool OTClient::processServerReplyDeleteUserAccount(OTMessage& theReply,
 }
 
 bool OTClient::processServerReplyDeleteAssetAccount(
-    OTMessage& theReply, ProcessServerReplyArgs& args)
+    const OTMessage& theReply, ProcessServerReplyArgs& args)
 {
     const auto& SERVER_ID = args.SERVER_ID;
     const auto& pNym = args.pNym;
@@ -8364,7 +8274,7 @@ bool OTClient::processServerReplyDeleteAssetAccount(
     return true;
 }
 
-bool OTClient::processServerReplyIssueAssetType(OTMessage& theReply,
+bool OTClient::processServerReplyIssueAssetType(const OTMessage& theReply,
                                                 ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -8413,7 +8323,7 @@ bool OTClient::processServerReplyIssueAssetType(OTMessage& theReply,
     return false;
 }
 
-bool OTClient::processServerReplyCreateAccount(OTMessage& theReply,
+bool OTClient::processServerReplyCreateAccount(const OTMessage& theReply,
                                                ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -8489,7 +8399,7 @@ bool OTClient::processServerReplyCreateAccount(OTMessage& theReply,
 /// returns true/false on whether or not the reply was actually
 /// verified and processed, versus whether
 ///
-bool OTClient::processServerReply(OTMessage& theReply,
+bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
                                   OTLedger* pNymbox) // IF the Nymbox
                                                      // is passed in,
                                                      // then use that
@@ -8499,6 +8409,7 @@ bool OTClient::processServerReply(OTMessage& theReply,
                                                      // loading it
                                                      // internally.
 {
+    OTMessage& theReply = *reply;
     OT_ASSERT(nullptr != m_pConnection);
 
     OTServerConnection& theConnection = *m_pConnection;
@@ -8527,11 +8438,6 @@ bool OTClient::processServerReply(OTMessage& theReply,
     if (!theReply.VerifySignature(*pServerNym)) {
         otErr << __FUNCTION__
               << ": Error: Server reply signature failed to verify.\n";
-
-        OTMessage* pMessage =
-            &theReply; // I'm responsible to cleanup this object.
-        delete pMessage;
-        pMessage = nullptr;
         return false;
     }
     OTMessage* pSentMsg = GetMessageOutbuffer().GetSentMessage(
@@ -8568,11 +8474,6 @@ bool OTClient::processServerReply(OTMessage& theReply,
                   "We must have already processed it, and then removed it, "
                   "earlier. (Discarding.) Reply message:\n\n" << strReply
                << "\n\n";
-
-        OTMessage* pMessage =
-            &theReply; // I'm responsible to cleanup this object.
-        delete pMessage;
-        pMessage = nullptr;
         return false;
     }
     // Below this point, we know we found the original sent message--still
@@ -8653,7 +8554,7 @@ bool OTClient::processServerReply(OTMessage& theReply,
 
     // Here, the Client takes ownership of the message (so make sure it's
     // heap-allocated.)
-    m_MessageBuffer.Push(theReply);
+    m_MessageBuffer.Push(reply);
 
     // Once that process is done, everything below that line, in this function,
     // will be able to assume there is a verified Nym available, and a Server

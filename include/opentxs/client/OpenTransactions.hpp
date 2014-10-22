@@ -136,6 +136,8 @@
 #include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/OTString.hpp>
 
+#include <memory>
+
 namespace opentxs
 {
 
@@ -722,9 +724,9 @@ public:
         int32_t nBoxType,               // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& lTransactionNum) const;
     // Incoming
-    EXPORT OTMessage* PopMessageBuffer(const int64_t& lRequestNumber,
-                                       const OTIdentifier& SERVER_ID,
-                                       const OTIdentifier& USER_ID) const;
+    EXPORT std::shared_ptr<OTMessage> PopMessageBuffer(
+        const int64_t& lRequestNumber, const OTIdentifier& SERVER_ID,
+        const OTIdentifier& USER_ID) const;
     void FlushMessageBuffer();
     // Outgoing
     EXPORT OTMessage* GetSentMessage(const int64_t& lRequestNumber,
