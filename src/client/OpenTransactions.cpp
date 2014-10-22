@@ -13645,6 +13645,9 @@ int32_t OT_API::sendUserMessage(const OTIdentifier& SERVER_ID,
                                                                   // bookended.
                                 const OTString& THE_MESSAGE) const
 {
+    // Send a message to another user, encrypted to his
+    // public key and dropped into his nymbox.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);

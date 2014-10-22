@@ -2398,27 +2398,6 @@ int32_t main(int32_t argc, char* argv[])
                 nullptr);
             continue;
         }
-
-        // sendUserMessage
-        else if (buf[0] == 's') {
-            otOut << "(User has instructed to send a sendUserMessage command "
-                     "to the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::sendUserMessage, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing sendUserMessage command in "
-                         "ProcessMessage: " << buf[0] << "\n";
-
-        }
-
         // process nymbox
         else if (strLine.compare(0, 2, "py") == 0) {
             otOut << "(User has instructed to send a processNymbox command "

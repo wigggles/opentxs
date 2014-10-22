@@ -288,8 +288,6 @@ public:
         // (If you want to send him cash or a check, your wallet will encrypt
         // portions
         // of the tokens, etc, to the Nym of the recipient.)
-        sendUserMessage, // Send a message to another user, encrypted to his
-                         // public key and dropped into his nymbox.
         getRequest, // Get the next request number from the server (for this
                     // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
