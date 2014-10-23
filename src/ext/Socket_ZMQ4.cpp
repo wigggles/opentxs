@@ -469,8 +469,6 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
                     OT_FAIL;
                 }
 
-                OTLog::SleepMilliseconds(1);
-
                 if (bSuccessSending || !HandleSendingError()) {
                     // Success, or the error is such that we do not want to
                     // retry.
@@ -485,19 +483,6 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
             --sendTries;
         }
     }
-
-    /*
-    Normally, we try to send...
-    If the send fails, we wait X ms and then try again (Y times).
-
-    BUT -- what if the failure was an errno==EAGAIN ?
-    In that case, it's not a REAL failure, but rather, a "failure right now, try
-    again in a sec."
-    */
-
-    if (bSuccessSending)
-        OTLog::SleepMilliseconds(m_lLatencyDelayAfter > 0 ? m_lLatencyDelayAfter
-                                                          : 1);
 
     return bSuccessSending;
 }
@@ -590,8 +575,6 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
                                   e.what());
                     OT_FAIL;
                 }
-
-                OTLog::SleepMilliseconds(1);
 
                 if (bSuccessReceiving || !HandleReceivingError()) {
                     // Success, or the error is such that we do not want to
