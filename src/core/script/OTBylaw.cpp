@@ -146,10 +146,10 @@ namespace opentxs
 void OTBylaw::Serialize(OTString& strAppend, bool bCalculatingID) const
 {
     strAppend.Concatenate("<bylaw\n name=\"%s\"\n"
-                          " numVariables=\"%zu\"\n"
-                          " numClauses=\"%zu\"\n"
-                          " numHooks=\"%zu\"\n"
-                          " numCallbacks=\"%zu\"\n"
+                          " numVariables=\"%" PRI_SIZE "\"\n"
+                          " numClauses=\"%" PRI_SIZE "\"\n"
+                          " numHooks=\"%" PRI_SIZE "\"\n"
+                          " numCallbacks=\"%" PRI_SIZE "\"\n"
                           " language=\"%s\" >\n\n",
                           m_strName.Get(),
                           m_mapVariables.size(), // HOW MANY VARIABLES?

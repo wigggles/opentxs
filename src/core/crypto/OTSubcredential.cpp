@@ -248,7 +248,7 @@ void OTSubcredential::UpdatePublicContentsToString(
     OTString& strAppendTo) // Used in UpdateContents.
 {
     if (!m_mapPublicInfo.empty()) {
-        strAppendTo.Concatenate("<publicContents count=\"%zu\">\n\n",
+        strAppendTo.Concatenate("<publicContents count=\"%" PRI_SIZE "\">\n\n",
                                 m_mapPublicInfo.size());
 
         for (auto& it : m_mapPublicInfo) {
@@ -279,7 +279,7 @@ void OTSubcredential::UpdatePrivateContentsToString(
     OTString& strAppendTo) // Used in UpdateContents.
 {
     if (!m_mapPrivateInfo.empty()) {
-        strAppendTo.Concatenate("<privateContents count=\"%zu\">\n\n",
+        strAppendTo.Concatenate("<privateContents count=\"%" PRI_SIZE "\">\n\n",
                                 m_mapPrivateInfo.size());
 
         for (auto& it : m_mapPrivateInfo) {

@@ -3898,9 +3898,11 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
     // it in the client API? Makes no sense.
     // strOutput.Concatenate("Usage Credits: %" PRId64 "\n", m_lUsageCredits);
 
-    strOutput.Concatenate("       Mail count: %zu\n", m_dequeMail.size());
-    strOutput.Concatenate("    Outmail count: %zu\n", m_dequeOutmail.size());
-    strOutput.Concatenate("Outpayments count: %zu\n",
+    strOutput.Concatenate("       Mail count: %" PRI_SIZE "\n",
+                          m_dequeMail.size());
+    strOutput.Concatenate("    Outmail count: %" PRI_SIZE "\n",
+                          m_dequeOutmail.size());
+    strOutput.Concatenate("Outpayments count: %" PRI_SIZE "\n",
                           m_dequeOutpayments.size());
 
     OTString theStringID;
