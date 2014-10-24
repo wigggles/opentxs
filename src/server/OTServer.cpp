@@ -439,9 +439,11 @@ void OTServer::Init(bool readOnly)
                     uint64_t lPID = old_pid;
                     OTLog::vError(
                         "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
-                        "I found a PID (%llu) in the data lock file, located "
+                        "I found a PID (%" PRIu64
+                        ") in the data lock file, located "
                         "at: %s\n\n"
-                        "If the OT process with PID %llu is truly not running "
+                        "If the OT process with PID %" PRIu64
+                        " is truly not running "
                         "anymore, "
                         "then just ERASE THAT FILE and then RESTART.\n",
                         lPID, strPIDPath.Get(), lPID);
@@ -472,7 +474,7 @@ void OTServer::Init(bool readOnly)
             }
             else {
                 OTLog::vError("Failed trying to open data locking file (to "
-                              "store PID %llu): %s\n",
+                              "store PID %" PRIu64 "): %s\n",
                               the_pid, strPIDPath.Get());
             }
         }
@@ -656,7 +658,8 @@ bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
 
     if (!bGotNextTransNum) {
         OTLog::vError(
-            "%s: Error: failed trying to get next transaction number.\n");
+            "%s: Error: failed trying to get next transaction number.\n",
+            szFunc);
         return false;
     }
     switch (theType) {

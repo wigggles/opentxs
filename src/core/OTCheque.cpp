@@ -164,9 +164,9 @@ void OTCheque::UpdateContents()
 
     m_xmlUnsigned.Concatenate(
         "<cheque\n version=\"%s\"\n"
-        " amount=\"%lld\"\n"
+        " amount=\"%" PRId64 "\"\n"
         " assetTypeID=\"%s\"\n"
-        " transactionNum=\"%lld\"\n"
+        " transactionNum=\"%" PRId64 "\"\n"
         " serverID=\"%s\"\n"
         " senderAcctID=\"%s\"\n"
         " senderUserID=\"%s\"\n"

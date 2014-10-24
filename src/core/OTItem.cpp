@@ -607,12 +607,13 @@ bool OTItem::VerifyBalanceStatement(
 
 
             const OTString strTrans(*pTransaction);
-            otOut << "OTItem::%s: %s transaction (%lld) mismatch Origin Num:
-            %lld, expected %lld\n\nTRANSACTION:\n%s\n\n"
-                           "SubItem Type: %s  Amount: %lld\nAccount: %s\nServer:
+            otOut << "OTItem::%s: %s transaction (%" PRId64 ") mismatch Origin
+            Num:
+            %" PRId64 ", expected %" PRId64 "\n\nTRANSACTION:\n%s\n\n"
+               "SubItem Type: %s  Amount: %" PRId64 "\nAccount: %s\nServer:
             %s\nUser: %s\n"
-                           " Number of Origin: %lld\n Transaction Num: %lld\n In
-            Reference To: %lld\n Closing Num: %d\n",
+            " Number of Origin: %" PRId64 "\n Transaction Num: %" PRId64 "\n In
+            Reference To: %" PRId64 "\n Closing Num: %d\n",
                            __FUNCTION__, pszLedgerType,
             pSubItem->GetTransactionNum(),
                            pSubItem->GetRawNumberOfOrigin(),
@@ -2302,26 +2303,27 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
     if (m_lNewOutboxTransNum > 0)
         m_xmlUnsigned.Concatenate(
             "<item type=\"%s\"\n status=\"%s\"\n"
-            " outboxNewTransNum=\"%lld\"\n" // only used in server reply item:
-                                            // atBalanceStatement. In cases
-                                            // where the statement includes a
-                                            // new outbox item, this variable is
-                                            // used to transport the new
-                                            // transaction number (generated on
-                                            // server side for that new outbox
-                                            // item) back to the client, so the
-                                            // client knows the transaction
-                                            // number to verify when he is
-                                            // verifying the outbox against the
-                                            // last signed receipt.
-            " numberOfOrigin=\"%lld\"\n"
-            " transactionNum=\"%lld\"\n"
+            " outboxNewTransNum=\"%" PRId64
+            "\"\n" // only used in server reply item:
+                   // atBalanceStatement. In cases
+                   // where the statement includes a
+                   // new outbox item, this variable is
+                   // used to transport the new
+                   // transaction number (generated on
+                   // server side for that new outbox
+                   // item) back to the client, so the
+                   // client knows the transaction
+                   // number to verify when he is
+                   // verifying the outbox against the
+                   // last signed receipt.
+            " numberOfOrigin=\"%" PRId64 "\"\n"
+            " transactionNum=\"%" PRId64 "\"\n"
             " serverID=\"%s\"\n"
             " userID=\"%s\"\n"
             " fromAccountID=\"%s\"\n"
             " toAccountID=\"%s\"\n"
-            " inReferenceTo=\"%lld\"\n"
-            " amount=\"%lld\" >\n\n",
+            " inReferenceTo=\"%" PRId64 "\"\n"
+            " amount=\"%" PRId64 "\" >\n\n",
             strType.Get(), strStatus.Get(), m_lNewOutboxTransNum,
             GetRawNumberOfOrigin(), // GetRaw so it doesn't calculate.
             GetTransactionNum(), strServerID.Get(), strUserID.Get(),
@@ -2330,14 +2332,14 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
     else
         m_xmlUnsigned.Concatenate(
             "<item type=\"%s\"\n status=\"%s\"\n"
-            " numberOfOrigin=\"%lld\"\n"
-            " transactionNum=\"%lld\"\n%s"
+            " numberOfOrigin=\"%" PRId64 "\"\n"
+            " transactionNum=\"%" PRId64 "\"\n%s"
             " serverID=\"%s\"\n"
             " userID=\"%s\"\n"
             " fromAccountID=\"%s\"\n"
             " toAccountID=\"%s\"\n"
-            " inReferenceTo=\"%lld\"\n"
-            " amount=\"%lld\" >\n\n",
+            " inReferenceTo=\"%" PRId64 "\"\n"
+            " amount=\"%" PRId64 "\" >\n\n",
             strType.Get(), strStatus.Get(),
             GetRawNumberOfOrigin(), // GetRaw so it doesn't calculate.
             GetTransactionNum(), strListOfBlanks.Get(), strServerID.Get(),
@@ -2376,14 +2378,14 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
 
             m_xmlUnsigned.Concatenate(
                 "<transactionReport type=\"%s\"\n"
-                " adjustment=\"%lld\"\n"
+                " adjustment=\"%" PRId64 "\"\n"
                 " accountID=\"%s\"\n"
                 " userID=\"%s\"\n"
                 " serverID=\"%s\"\n"
-                " numberOfOrigin=\"%lld\"\n"
-                " transactionNum=\"%lld\"\n"
-                " closingTransactionNum=\"%lld\"\n"
-                " inReferenceTo=\"%lld\" />\n\n",
+                " numberOfOrigin=\"%" PRId64 "\"\n"
+                " transactionNum=\"%" PRId64 "\"\n"
+                " closingTransactionNum=\"%" PRId64 "\"\n"
+                " inReferenceTo=\"%" PRId64 "\" />\n\n",
                 receiptType.Exists() ? receiptType.Get() : "error_state",
                 pItem->GetAmount(), acctID.Get(), userID.Get(), serverID.Get(),
                 pItem->GetRawNumberOfOrigin(), pItem->GetTransactionNum(),

@@ -580,7 +580,8 @@ bool SetupBoxReceiptFilename(int64_t lLedgerType,
     strFolder2name.Set(strServerID); // "SERVER_ID"
     strFolder3name.Format("%s.r", strUserOrAcctID.Get()); // "USER_ID.r"
 
-    strFilename.Format("%lld.rct", lTransactionNum); // "TRANSACTION_ID.rct"
+    // "TRANSACTION_ID.rct"
+    strFilename.Format("%" PRId64 ".rct", lTransactionNum);
     // todo hardcoding of file extension. Need to standardize extensions.
 
     // Finished product: "nymbox/SERVER_ID/USER_ID.r/TRANSACTION_ID.rct"

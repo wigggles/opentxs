@@ -447,7 +447,7 @@ void OTPartyAccount::Serialize(OTString& strAppend, bool bCalculatingID,
         " acctID=\"%s\"\n"
         " assetTypeID=\"%s\"\n"
         " agentName=\"%s\"\n"
-        " closingTransNo=\"%lld\" />\n\n",
+        " closingTransNo=\"%" PRId64 "\" />\n\n",
         m_strName.Get(), bCalculatingID ? "" : m_strAcctID.Get(),
         (bCalculatingID && !bSpecifyAssetID) ? "" : m_strAssetTypeID.Get(),
         bCalculatingID ? "" : m_strAgentName.Get(),

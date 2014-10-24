@@ -302,7 +302,7 @@ void OTMessage::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
     m_xmlUnsigned.Concatenate(
-        "<OTmessage\n version=\"%s\"\n dateSigned=\"%lld\">\n\n",
+        "<OTmessage\n version=\"%s\"\n dateSigned=\"%" PRId64 "\">\n\n",
         m_strVersion.Get(), m_lTime);
 
     if (!updateContentsByType()) {
@@ -620,7 +620,7 @@ bool OTMessage::writeXmlAtGetMarketList()
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
-                              " depth=\"%lld\""
+                              " depth=\"%" PRId64 "\""
                               ">\n\n",
                               m_strCommand.Get(), m_strRequestNum.Get(),
                               (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
@@ -644,7 +644,7 @@ bool OTMessage::writeXmlGetMarketOffers()
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " marketID=\"%s\"\n" // stored in NymID2
-                              " depth=\"%lld\""
+                              " depth=\"%" PRId64 "\""
                               ">\n\n",
                               m_strCommand.Get(), m_strRequestNum.Get(),
                               m_strNymID.Get(), m_strServerID.Get(),
@@ -663,7 +663,7 @@ bool OTMessage::writeXmlAtGetMarketOffers()
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " marketID=\"%s\"\n" // stored in NymID2
-                              " depth=\"%lld\""
+                              " depth=\"%" PRId64 "\""
                               ">\n\n",
                               m_strCommand.Get(), m_strRequestNum.Get(),
                               (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
@@ -707,7 +707,7 @@ bool OTMessage::writeXmlAtGetMarketRecentTrades()
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
                               " marketID=\"%s\"\n" // stored in NymID2
-                              " depth=\"%lld\""
+                              " depth=\"%" PRId64 "\""
                               ">\n\n",
                               m_strCommand.Get(), m_strRequestNum.Get(),
                               (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
@@ -747,7 +747,7 @@ bool OTMessage::writeXmlAtGetNymMarketOffers()
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " serverID=\"%s\"\n"
-                              " depth=\"%lld\""
+                              " depth=\"%" PRId64 "\""
                               ">\n\n",
                               m_strCommand.Get(), m_strRequestNum.Get(),
                               (m_bSuccess ? "true" : "false"), m_strNymID.Get(),
@@ -943,7 +943,7 @@ bool OTMessage::writeXmlUsageCredits()
                               " nymID=\"%s\"\n"
                               " nymID2=\"%s\"\n"
                               " requestNum=\"%s\"\n"
-                              " adjustment=\"%lld\"\n"
+                              " adjustment=\"%" PRId64 "\"\n"
                               " serverID=\"%s\""
                               ">\n\n",
                               m_strCommand.Get(), m_strNymID.Get(),
@@ -961,7 +961,7 @@ bool OTMessage::writeXmlAtUsageCredits()
                               " success=\"%s\"\n"
                               " nymID=\"%s\"\n"
                               " nymID2=\"%s\"\n"
-                              " totalCredits=\"%lld\"\n"
+                              " totalCredits=\"%" PRId64 "\"\n"
                               " serverID=\"%s\""
                               ">\n\n",
                               m_strCommand.Get(), m_strRequestNum.Get(),
@@ -1115,7 +1115,7 @@ bool OTMessage::writeXmlAtGetRequest()
                               " nymID=\"%s\"\n"
                               " nymboxHash=\"%s\"\n"
                               " serverID=\"%s\"\n"
-                              " newRequestNum=\"%lld\"\n"
+                              " newRequestNum=\"%" PRId64 "\"\n"
                               " requestNum=\"%s\""
                               ">\n\n",
                               m_strCommand.Get(),
@@ -1309,7 +1309,7 @@ bool OTMessage::writeXmlGetBoxReceipt()
         " nymID=\"%s\"\n"
         " serverID=\"%s\"\n"
         " requestNum=\"%s\"\n"
-        " transactionNum=\"%lld\"\n"
+        " transactionNum=\"%" PRId64 "\"\n"
         " boxType=\"%s\"\n"
         " accountID=\"%s\"" // If retrieving box receipt for Nymbox, NymID
                             // will appear in this variable.
@@ -1332,7 +1332,7 @@ bool OTMessage::writeXmlAtGetBoxReceipt()
         " requestNum=\"%s\"\n"
         " success=\"%s\"\n"
         " accountID=\"%s\"\n"
-        " transactionNum=\"%lld\"\n"
+        " transactionNum=\"%" PRId64 "\"\n"
         " boxType=\"%s\"\n"
         " nymID=\"%s\"\n"
         " serverID=\"%s\""
@@ -1907,9 +1907,9 @@ bool OTMessage::writeXmlTriggerClause()
         " nymID=\"%s\"\n"
         " nymboxHash=\"%s\"\n"
         " serverID=\"%s\"\n"
-        " smartContractID=\"%lld\"\n" // <===
-        " clauseName=\"%s\"\n"        // <===
-        " hasParam=\"%s\"\n"          // <===
+        " smartContractID=\"%" PRId64 "\"\n"
+        " clauseName=\"%s\"\n"
+        " hasParam=\"%s\"\n"
         " requestNum=\"%s\""
         " >\n\n",
         m_strCommand.Get(), m_strNymID.Get(), m_strNymboxHash.Get(),

@@ -178,8 +178,8 @@ bool ConfigLoader::load(OTString& walletFilename)
 
     // Second Load, Throw Assert if Failed loading.
     if (!p_Config->Load()) {
-        OTLog::vError(0, "%s: Error: Unable to load config file: %s It should "
-                         "exist, as we just saved it!\n",
+        OTLog::vError("%s: Error: Unable to load config file: %s It should "
+                      "exist, as we just saved it!\n",
                       szFunc, strConfigFilename.Get());
         OT_FAIL;
     }

@@ -1886,8 +1886,8 @@ bool OTTransaction::VerifyBalanceReceipt(
 
             lReceiptBalanceChange += pSubItem->GetAmount();
 
-        //                otErr << "RECEIPT: lReceiptBalanceChange: %lld
-        // pSubItem->GetAmount()  %lld\n",
+        //                otErr << "RECEIPT: lReceiptBalanceChange: %" PRId64 "
+        // pSubItem->GetAmount()  %" PRId64 "\n",
         //                    lReceiptBalanceChange, pSubItem->GetAmount());
 
         // DROPS THROUGH HERE...
@@ -2309,8 +2309,9 @@ bool OTTransaction::VerifyBalanceReceipt(
                 pTransaction->GetReceiptAmount(); // Here I total ALL relevant
                                                   // receipts.
 
-        //                otErr << "ON INBOX:  lInboxBalanceChange: %lld
-        // pTransaction->GetReceiptAmount(): %lld\n", // temp remove debugging
+        //                otErr << "ON INBOX:  lInboxBalanceChange: %" PRId64 "
+        // pTransaction->GetReceiptAmount(): %" PRId64 "\n", // temp remove
+        // debugging
         // todo
         //                              lInboxBalanceChange,
         // pTransaction->GetReceiptAmount());
@@ -2415,8 +2416,9 @@ bool OTTransaction::VerifyBalanceReceipt(
                                                       // inbox.)
 
             //                    otErr << "NOT ON RECEIPT:
-            // lInboxSupposedDifference: %lld  pTransaction->GetReceiptAmount():
-            // %lld\n", // temp remove debugging todo
+            // lInboxSupposedDifference: %" PRId64 "
+            // pTransaction->GetReceiptAmount():
+            // %" PRId64 "\n", // temp remove debugging todo
             //                                  lInboxSupposedDifference,
             // pTransaction->GetReceiptAmount());
 
@@ -4363,9 +4365,9 @@ void OTTransaction::UpdateContents()
 
     switch (m_Type) {
     case OTTransaction::replyNotice:
-        strRequestNum.Format(" requestNumber=\"%lld\"\n transSuccess=\"%s\"\n",
-                             m_lRequestNumber,
-                             m_bReplyTransSuccess ? "true" : "false");
+        strRequestNum.Format(
+            " requestNumber=\"%" PRId64 "\"\n transSuccess=\"%s\"\n",
+            m_lRequestNumber, m_bReplyTransSuccess ? "true" : "false");
         break;
 
     case OTTransaction::blank:         // freshly issued transaction number, not
@@ -4401,13 +4403,13 @@ void OTTransaction::UpdateContents()
     m_xmlUnsigned.Release();
 
     m_xmlUnsigned.Concatenate("<transaction type=\"%s\"\n%s"
-                              " dateSigned=\"%lld\"\n"
+                              " dateSigned=\"%" PRId64 "\"\n"
                               " accountID=\"%s\"\n"
                               " userID=\"%s\"\n"
                               " serverID=\"%s\"\n%s"
-                              " numberOfOrigin=\"%lld\"\n"
-                              " transactionNum=\"%lld\"\n%s"
-                              " inReferenceTo=\"%lld\" >\n\n",
+                              " numberOfOrigin=\"%" PRId64 "\"\n"
+                              " transactionNum=\"%" PRId64 "\"\n%s"
+                              " inReferenceTo=\"%" PRId64 "\" >\n\n",
                               strType.Get(), strCancelled.Get(), lDateSigned,
                               strAcctID.Get(), strUserID.Get(),
                               strServerID.Get(), strRequestNum.Get(),
@@ -4460,7 +4462,7 @@ void OTTransaction::UpdateContents()
         if ((OTTransaction::finalReceipt == m_Type) ||
             (OTTransaction::basketReceipt == m_Type)) {
             m_xmlUnsigned.Concatenate(
-                "<closingTransactionNumber value=\"%lld\"/>\n\n",
+                "<closingTransactionNumber value=\"%" PRId64 "\"/>\n\n",
                 m_lClosingTransactionNo);
         }
 
@@ -4621,12 +4623,12 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString& strOutput)
     }
 
     strOutput.Concatenate("<paymentInboxRecord type=\"%s\"\n"
-                          " dateSigned=\"%lld\"\n"
+                          " dateSigned=\"%" PRId64 "\"\n"
                           " receiptHash=\"%s\"\n"
-                          " displayValue=\"%lld\"\n"
-                          " transactionNum=\"%lld\"\n"
-                          " inRefDisplay=\"%lld\"\n"
-                          " inReferenceTo=\"%lld\" />\n\n",
+                          " displayValue=\"%" PRId64 "\"\n"
+                          " transactionNum=\"%" PRId64 "\"\n"
+                          " inRefDisplay=\"%" PRId64 "\"\n"
+                          " inReferenceTo=\"%" PRId64 "\" />\n\n",
                           strType.Get(), lDateSigned, strHash.Get(),
                           lDisplayValue, GetTransactionNum(),
                           GetReferenceNumForDisplay(), GetReferenceToNum());
@@ -4704,12 +4706,12 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
     }
 
     strOutput.Concatenate("<expiredBoxRecord type=\"%s\"\n"
-                          " dateSigned=\"%lld\"\n"
+                          " dateSigned=\"%" PRId64 "\"\n"
                           " receiptHash=\"%s\"\n"
-                          " displayValue=\"%lld\"\n"
-                          " transactionNum=\"%lld\"\n"
-                          " inRefDisplay=\"%lld\"\n"
-                          " inReferenceTo=\"%lld\" />\n\n",
+                          " displayValue=\"%" PRId64 "\"\n"
+                          " transactionNum=\"%" PRId64 "\"\n"
+                          " inRefDisplay=\"%" PRId64 "\"\n"
+                          " inReferenceTo=\"%" PRId64 "\" />\n\n",
                           strType.Get(), lDateSigned, strHash.Get(),
                           lDisplayValue, GetTransactionNum(),
                           GetReferenceNumForDisplay(), GetReferenceToNum());
@@ -4917,28 +4919,28 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString& strOutput)
 
         strOutput.Concatenate(
             "<recordBoxRecord type=\"%s\"\n"
-            " dateSigned=\"%lld\"\n"
+            " dateSigned=\"%" PRId64 "\"\n"
             " receiptHash=\"%s\"\n"
-            " adjustment=\"%lld\"\n"
-            " displayValue=\"%lld\"\n"
-            " numberOfOrigin=\"%lld\"\n"
-            " transactionNum=\"%lld\"\n"
-            " closingNum=\"%lld\"\n"
-            " inRefDisplay=\"%lld\"\n"
-            " inReferenceTo=\"%lld\" />\n\n",
+            " adjustment=\"%" PRId64 "\"\n"
+            " displayValue=\"%" PRId64 "\"\n"
+            " numberOfOrigin=\"%" PRId64 "\"\n"
+            " transactionNum=\"%" PRId64 "\"\n"
+            " closingNum=\"%" PRId64 "\"\n"
+            " inRefDisplay=\"%" PRId64 "\"\n"
+            " inReferenceTo=\"%" PRId64 "\" />\n\n",
             strType.Get(), lDateSigned, strHash.Get(), lAdjustment,
             lDisplayValue, GetRawNumberOfOrigin(), GetTransactionNum(),
             GetClosingNum(), GetReferenceNumForDisplay(), GetReferenceToNum());
     else
         strOutput.Concatenate("<recordBoxRecord type=\"%s\"\n"
-                              " dateSigned=\"%lld\"\n"
+                              " dateSigned=\"%" PRId64 "\"\n"
                               " receiptHash=\"%s\"\n"
-                              " adjustment=\"%lld\"\n"
-                              " displayValue=\"%lld\"\n"
-                              " numberOfOrigin=\"%lld\"\n"
-                              " transactionNum=\"%lld\"\n"
-                              " inRefDisplay=\"%lld\"\n"
-                              " inReferenceTo=\"%lld\" />\n\n",
+                              " adjustment=\"%" PRId64 "\"\n"
+                              " displayValue=\"%" PRId64 "\"\n"
+                              " numberOfOrigin=\"%" PRId64 "\"\n"
+                              " transactionNum=\"%" PRId64 "\"\n"
+                              " inRefDisplay=\"%" PRId64 "\"\n"
+                              " inReferenceTo=\"%" PRId64 "\" />\n\n",
                               strType.Get(), lDateSigned, strHash.Get(),
                               lAdjustment, lDisplayValue,
                               GetRawNumberOfOrigin(), GetTransactionNum(),
@@ -4988,9 +4990,9 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
     case OTTransaction::replyNotice: // A copy of a server reply to a previous
                                      // request you sent. (To make SURE you get
                                      // the reply.)
-        strRequestNum.Format(" requestNumber=\"%lld\"\n transSuccess=\"%s\"\n",
-                             m_lRequestNumber,
-                             m_bReplyTransSuccess ? "true" : "false");
+        strRequestNum.Format(
+            " requestNumber=\"%" PRId64 "\"\n transSuccess=\"%s\"\n",
+            m_lRequestNumber, m_bReplyTransSuccess ? "true" : "false");
         break;
 
     case OTTransaction::message: // A message from one user to another, also in
@@ -5010,7 +5012,8 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
             lDisplayValue = GetAbbrevDisplayAmount();
         else
             lDisplayValue = GetReceiptAmount();
-        strDisplayValue.Format(" displayValue=\"%lld\"\n", lDisplayValue);
+        strDisplayValue.Format(" displayValue=\"%" PRId64 "\"\n",
+                               lDisplayValue);
         break; // (These last two are just passing through, on their way to the
                // paymentInbox.)
     case OTTransaction::instrumentRejection: // A rejection notice from the
@@ -5070,12 +5073,12 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
                                                   // can remove this line.
 
         strOutput.Concatenate("<nymboxRecord type=\"%s\"\n"
-                              " dateSigned=\"%lld\"\n"
+                              " dateSigned=\"%" PRId64 "\"\n"
                               " receiptHash=\"%s\"\n"
-                              " transactionNum=\"%lld\"\n"
-                              " closingNum=\"%lld\"\n"
-                              " inRefDisplay=\"%lld\"\n"
-                              " inReferenceTo=\"%lld\" />\n\n",
+                              " transactionNum=\"%" PRId64 "\"\n"
+                              " closingNum=\"%" PRId64 "\"\n"
+                              " inRefDisplay=\"%" PRId64 "\"\n"
+                              " inReferenceTo=\"%" PRId64 "\" />\n\n",
                               strType.Get(), lDateSigned, strHash.Get(),
                               GetTransactionNum(), GetClosingNum(),
                               GetReferenceNumForDisplay(), GetReferenceToNum());
@@ -5083,14 +5086,15 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
     else
         strOutput.Concatenate(
             "<nymboxRecord type=\"%s\"\n"
-            " dateSigned=\"%lld\"\n%s"
+            " dateSigned=\"%" PRId64 "\"\n%s"
             " receiptHash=\"%s\"\n%s" // SOMETIMES this is added here by the
-                                      // final %s: " displayValue=\"%lld\"\n"
-            " transactionNum=\"%lld\"\n%s" // SOMETIMES this is added here by
-                                           // the final %s: "
-                                           // totalListOfNumbers=\"%s\"\n"
-            " inRefDisplay=\"%lld\"\n"
-            " inReferenceTo=\"%lld\" />\n\n",
+            // final %s: " displayValue=\"%" PRId64 "\"\n"
+            " transactionNum=\"%" PRId64
+            "\"\n%s" // SOMETIMES this is added here by
+                     // the final %s: "
+                     // totalListOfNumbers=\"%s\"\n"
+            " inRefDisplay=\"%" PRId64 "\"\n"
+            " inReferenceTo=\"%" PRId64 "\" />\n\n",
             strType.Get(), lDateSigned, strRequestNum.Get(), strHash.Get(),
             strDisplayValue.Get(), GetTransactionNum(), strListOfBlanks.Get(),
             GetReferenceNumForDisplay(), GetReferenceToNum());
@@ -5162,14 +5166,14 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString& strOutput)
     }
 
     strOutput.Concatenate("<outboxRecord type=\"%s\"\n"
-                          " dateSigned=\"%lld\"\n"
+                          " dateSigned=\"%" PRId64 "\"\n"
                           " receiptHash=\"%s\"\n"
-                          " adjustment=\"%lld\"\n"
-                          " displayValue=\"%lld\"\n"
-                          " numberOfOrigin=\"%lld\"\n"
-                          " transactionNum=\"%lld\"\n"
-                          " inRefDisplay=\"%lld\"\n"
-                          " inReferenceTo=\"%lld\" />\n\n",
+                          " adjustment=\"%" PRId64 "\"\n"
+                          " displayValue=\"%" PRId64 "\"\n"
+                          " numberOfOrigin=\"%" PRId64 "\"\n"
+                          " transactionNum=\"%" PRId64 "\"\n"
+                          " inRefDisplay=\"%" PRId64 "\"\n"
+                          " inReferenceTo=\"%" PRId64 "\" />\n\n",
                           strType.Get(), lDateSigned, strHash.Get(),
                           lAdjustment, lDisplayValue, GetRawNumberOfOrigin(),
                           GetTransactionNum(), GetReferenceNumForDisplay(),
@@ -5320,28 +5324,28 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString& strOutput)
 
         strOutput.Concatenate(
             "<inboxRecord type=\"%s\"\n"
-            " dateSigned=\"%lld\"\n"
+            " dateSigned=\"%" PRId64 "\"\n"
             " receiptHash=\"%s\"\n"
-            " adjustment=\"%lld\"\n"
-            " displayValue=\"%lld\"\n"
-            " numberOfOrigin=\"%lld\"\n"
-            " transactionNum=\"%lld\"\n"
-            " closingNum=\"%lld\"\n"
-            " inRefDisplay=\"%lld\"\n"
-            " inReferenceTo=\"%lld\" />\n\n",
+            " adjustment=\"%" PRId64 "\"\n"
+            " displayValue=\"%" PRId64 "\"\n"
+            " numberOfOrigin=\"%" PRId64 "\"\n"
+            " transactionNum=\"%" PRId64 "\"\n"
+            " closingNum=\"%" PRId64 "\"\n"
+            " inRefDisplay=\"%" PRId64 "\"\n"
+            " inReferenceTo=\"%" PRId64 "\" />\n\n",
             strType.Get(), lDateSigned, strHash.Get(), lAdjustment,
             lDisplayValue, GetRawNumberOfOrigin(), GetTransactionNum(),
             GetClosingNum(), GetReferenceNumForDisplay(), GetReferenceToNum());
     else
         strOutput.Concatenate("<inboxRecord type=\"%s\"\n"
-                              " dateSigned=\"%lld\"\n"
+                              " dateSigned=\"%" PRId64 "\"\n"
                               " receiptHash=\"%s\"\n"
-                              " adjustment=\"%lld\"\n"
-                              " displayValue=\"%lld\"\n"
-                              " numberOfOrigin=\"%lld\"\n"
-                              " transactionNum=\"%lld\"\n"
-                              " inRefDisplay=\"%lld\"\n"
-                              " inReferenceTo=\"%lld\" />\n\n",
+                              " adjustment=\"%" PRId64 "\"\n"
+                              " displayValue=\"%" PRId64 "\"\n"
+                              " numberOfOrigin=\"%" PRId64 "\"\n"
+                              " transactionNum=\"%" PRId64 "\"\n"
+                              " inRefDisplay=\"%" PRId64 "\"\n"
+                              " inReferenceTo=\"%" PRId64 "\" />\n\n",
                               strType.Get(), lDateSigned, strHash.Get(),
                               lAdjustment, lDisplayValue,
                               GetRawNumberOfOrigin(), GetTransactionNum(),

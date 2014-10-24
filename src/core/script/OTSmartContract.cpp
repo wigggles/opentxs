@@ -1348,7 +1348,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pPartyAssetAcct);
 
     OTString strBalance;
-    strBalance.Format("%lld", pPartyAssetAcct->GetBalance());
+    strBalance.Format("%" PRId64, pPartyAssetAcct->GetBalance());
 
     return strBalance.Get();
 }
@@ -1614,7 +1614,7 @@ std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
     //        pServerNym, pCron.
     //
     OTString strBalance;
-    strBalance.Format("%lld", pStash->GetAmount(asset_type_id));
+    strBalance.Format("%" PRId64, pStash->GetAmount(asset_type_id));
     return strBalance.Get();
 }
 
@@ -3715,7 +3715,7 @@ bool OTSmartContract::ProcessCron()
 // virtual
 void OTSmartContract::SetDisplayLabel(const std::string* pstrLabel)
 {
-    m_strLabel.Format("smartcontract trans# %lld, clause: %s",
+    m_strLabel.Format("smartcontract trans# %" PRId64 ", clause: %s",
                       GetTransactionNum(),
                       (nullptr != pstrLabel) ? pstrLabel->c_str() : "");
 }
@@ -5459,7 +5459,7 @@ void OTSmartContract::UpdateContents()
         " lastRecipientAcctID=\"%s\"\n"
         " canceled=\"%s\"\n"
         " cancelerUserID=\"%s\"\n"
-        " transactionNum=\"%lld\"\n"
+        " transactionNum=\"%" PRId64 "\"\n"
         " creationDate=\"%" PRId64 "\"\n"
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\"\n"
@@ -5483,7 +5483,7 @@ void OTSmartContract::UpdateContents()
             OT_ASSERT(lClosingNumber > 0);
 
             m_xmlUnsigned.Concatenate(
-                "<closingTransactionNumber value=\"%lld\"/>\n\n",
+                "<closingTransactionNumber value=\"%" PRId64 "\"/>\n\n",
                 lClosingNumber);
 
             // For OTSmartContract, this should only contain a single number,

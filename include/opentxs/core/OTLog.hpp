@@ -291,7 +291,8 @@ public:
 
     EXPORT static void Output(int32_t nVerbosity,
                               const char* szOutput); // stdout
-    EXPORT static void vOutput(int32_t nVerbosity, const char* szOutput, ...);
+    EXPORT static void vOutput(int32_t nVerbosity, const char* szOutput, ...)
+        ATTR_PRINTF(2, 3);
 
     // This logs an error condition, which usually means bad input from the
     // user, or a file wouldn't open,
@@ -302,8 +303,9 @@ public:
     // The bad input would log with Error(), whereas the nullptr pointer would
     // log
     // with Assert();
-    EXPORT static void Error(const char* szError);       // stderr
-    EXPORT static void vError(const char* szError, ...); // stderr
+    EXPORT static void Error(const char* szError);      // stderr
+    EXPORT static void vError(const char* szError, ...) // stderr
+        ATTR_PRINTF(1, 2);
 
     // This method will print out errno and its associated string.
     // Optionally you can pass the location you are calling it from,

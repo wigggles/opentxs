@@ -3787,7 +3787,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
         int64_t lRequestNumber = it.second;
 
         // Now we can log BOTH, before and after...
-        strOutput.Concatenate("Req# is %lld for server ID: %s\n",
+        strOutput.Concatenate("Req# is %" PRId64 " for server ID: %s\n",
                               lRequestNumber, strServerID.c_str());
     }
 
@@ -3795,7 +3795,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
         std::string strServerID = it.first;
         const int64_t lHighestNum = it.second;
 
-        strOutput.Concatenate("Highest trans# was %lld for server: %s\n",
+        strOutput.Concatenate("Highest trans# was %" PRId64 " for server: %s\n",
                               lHighestNum, strServerID.c_str());
     }
 
@@ -3813,7 +3813,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 int64_t lTransactionNumber = pDeque->at(i);
 
-                strOutput.Concatenate(0 == i ? "%lld" : ", %lld",
+                strOutput.Concatenate(0 == i ? "%" PRId64 : ", %" PRId64,
                                       lTransactionNumber);
             }
             strOutput.Concatenate("\n");
@@ -3833,7 +3833,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
 
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 int64_t lTransactionNumber = pDeque->at(i);
-                strOutput.Concatenate(0 == i ? "%lld" : ", %lld",
+                strOutput.Concatenate(0 == i ? "%" PRId64 : ", %" PRId64,
                                       lTransactionNumber);
             }
             strOutput.Concatenate("\n");
@@ -3853,7 +3853,7 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
 
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 int64_t lRequestNumber = pDeque->at(i);
-                strOutput.Concatenate(0 == i ? "%lld" : ", %lld",
+                strOutput.Concatenate(0 == i ? "%" PRId64 : ", %" PRId64,
                                       lRequestNumber);
             }
             strOutput.Concatenate("\n");
@@ -3896,11 +3896,12 @@ void OTPseudonym::DisplayStatistics(OTString& strOutput)
     // by querying the server.)
     // Therefore since m_lUsageCredits is unused on client side, why display
     // it in the client API? Makes no sense.
-    //    strOutput.Concatenate("Usage Credits: %lld\n", m_lUsageCredits);
+    // strOutput.Concatenate("Usage Credits: %" PRId64 "\n", m_lUsageCredits);
 
-    strOutput.Concatenate("       Mail count: %d\n", m_dequeMail.size());
-    strOutput.Concatenate("    Outmail count: %d\n", m_dequeOutmail.size());
-    strOutput.Concatenate("Outpayments count: %d\n", m_dequeOutpayments.size());
+    strOutput.Concatenate("       Mail count: %zu\n", m_dequeMail.size());
+    strOutput.Concatenate("    Outmail count: %zu\n", m_dequeOutmail.size());
+    strOutput.Concatenate("Outpayments count: %zu\n",
+                          m_dequeOutpayments.size());
 
     OTString theStringID;
     GetIdentifier(theStringID);
@@ -4285,7 +4286,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
     else
         strNym.Concatenate("<OTuser version=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " usageCredits=\"%lld\""
+                           " usageCredits=\"%" PRId64 "\""
                            ">\n\n",
                            m_strVersion.Get(), nymID.Get(), m_lUsageCredits);
 
@@ -4308,7 +4309,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
 
         strNym.Concatenate("<requestNum\n"
                            " serverID=\"%s\"\n"
-                           " currentRequestNum=\"%lld\""
+                           " currentRequestNum=\"%" PRId64 "\""
                            "/>\n\n",
                            strServerID.c_str(), lRequestNum);
     }
@@ -4319,7 +4320,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
 
         strNym.Concatenate("<highestTransNum\n"
                            " serverID=\"%s\"\n"
-                           " mostRecent=\"%lld\""
+                           " mostRecent=\"%" PRId64 "\""
                            "/>\n\n",
                            strServerID.c_str(), lHighestNum);
     }
@@ -4350,7 +4351,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
         //
         //                strNym.Concatenate("<transactionNum\n"
         //                                   " serverID=\"%s\"\n"
-        //                                   " transactionNum=\"%lld\""
+        //                                   " transactionNum=\"%" PRId64 "\""
         //                                   "/>\n\n",
         //                                   strServerID.c_str(),
         //                                   lTransactionNumber
@@ -4395,7 +4396,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
         //
         //                strNym.Concatenate("<issuedNum\n"
         //                                   " serverID=\"%s\"\n"
-        //                                   " transactionNum=\"%lld\""
+        //                                   " transactionNum=\"%" PRId64 "\""
         //                                   "/>\n\n",
         //                                   strServerID.c_str(),
         //                                   lTransactionNumber
@@ -4439,7 +4440,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
         //
         //                strNym.Concatenate("<tentativeNum\n"
         //                                   " serverID=\"%s\"\n"
-        //                                   " transactionNum=\"%lld\""
+        //                                   " transactionNum=\"%" PRId64 "\""
         //                                   "/>\n\n",
         //                                   strServerID.c_str(),
         //                                   lTransactionNumber
@@ -4489,7 +4490,7 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
         //
         //                strNym.Concatenate("<acknowledgedNum\n"
         //                                   " serverID=\"%s\"\n"
-        //                                   " requestNum=\"%lld\""
+        //                                   " requestNum=\"%" PRId64 "\""
         //                                   "/>\n\n",
         //                                   strServerID.c_str(),
         //                                   lRequestNumber
@@ -4578,7 +4579,8 @@ bool OTPseudonym::SavePseudonym(OTString& strNym)
     //
     if (!(m_setOpenCronItems.empty())) {
         for (auto& it : m_setOpenCronItems) {
-            strNym.Concatenate("<hasOpenCronItem ID=\"%lld\" />\n\n", it);
+            strNym.Concatenate("<hasOpenCronItem ID=\"%" PRId64 "\" />\n\n",
+                               it);
         }
     }
 

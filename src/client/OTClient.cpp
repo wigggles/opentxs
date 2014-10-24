@@ -9141,7 +9141,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -9211,7 +9211,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -9257,7 +9257,7 @@ int32_t OTClient::ProcessUserCommand(
             pMessage->m_strNymID = strNymID;
             pMessage->m_strNymID2 = strNymID2;
             pMessage->m_strServerID = strServerID;
-            pMessage->m_strRequestNum.Format("%lld", lRequestNumber);
+            pMessage->m_strRequestNum.Format("%" PRId64 "", lRequestNumber);
 
             pMessage->SetAcknowledgments(theNym); // Must be called AFTER
                                                   // theMessage.m_strServerID is
@@ -9290,7 +9290,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -9376,7 +9376,7 @@ int32_t OTClient::ProcessUserCommand(
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
-                "%lld", lRequestNumber); // Always have to send this.
+                "%" PRId64 "", lRequestNumber); // Always have to send this.
             theNym.IncrementRequestNum(theNym, strServerID); // since I used it
                                                              // for a server
                                                              // request, I have
@@ -9739,7 +9739,7 @@ int32_t OTClient::ProcessUserCommand(
                             theNym.GetCurrentRequestNum(strServerID,
                                                         lRequestNumber);
                             theMessage.m_strRequestNum.Format(
-                                "%lld",
+                                "%" PRId64 "",
                                 lRequestNumber); // Always have to send this.
                             theNym.IncrementRequestNum(
                                 theNym, strServerID); // since I used it for a
@@ -9887,7 +9887,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -9923,7 +9923,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -10162,7 +10162,7 @@ int32_t OTClient::ProcessUserCommand(
                 // (0) Set up the REQUEST NUMBER and then INCREMENT IT
                 theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
                 theMessage.m_strRequestNum.Format(
-                    "%lld", lRequestNumber); // Always have to send this.
+                    "%" PRId64 "", lRequestNumber); // Always have to send this.
                 theNym.IncrementRequestNum(
                     theNym, strServerID); // since I used it for a server
                                           // request, I have to increment it
@@ -10353,7 +10353,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -10430,7 +10430,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -10509,7 +10509,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -10613,7 +10613,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -10802,7 +10802,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -10891,7 +10891,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -10929,7 +10929,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -10967,7 +10967,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -11236,7 +11236,7 @@ int32_t OTClient::ProcessUserCommand(
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
-                "%lld", lRequestNumber); // Always have to send this.
+                "%" PRId64 "", lRequestNumber); // Always have to send this.
             theNym.IncrementRequestNum(theNym, strServerID); // since I used it
                                                              // for a server
                                                              // request, I have
@@ -11608,7 +11608,7 @@ int32_t OTClient::ProcessUserCommand(
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
-                "%lld", lRequestNumber); // Always have to send this.
+                "%" PRId64 "", lRequestNumber); // Always have to send this.
             theNym.IncrementRequestNum(theNym, strServerID); // since I used it
                                                              // for a server
                                                              // request, I have
@@ -11851,7 +11851,8 @@ int32_t OTClient::ProcessUserCommand(
                     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
                     theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
                     theMessage.m_strRequestNum.Format(
-                        "%lld", lRequestNumber); // Always have to send this.
+                        "%" PRId64 "",
+                        lRequestNumber); // Always have to send this.
                     theNym.IncrementRequestNum(
                         theNym, strServerID); // since I used it for a server
                                               // request, I have to increment it
@@ -12125,7 +12126,7 @@ int32_t OTClient::ProcessUserCommand(
                 // (0) Set up the REQUEST NUMBER and then INCREMENT IT
                 theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
                 theMessage.m_strRequestNum.Format(
-                    "%lld", lRequestNumber); // Always have to send this.
+                    "%" PRId64 "", lRequestNumber); // Always have to send this.
                 theNym.IncrementRequestNum(
                     theNym, strServerID); // since I used it for a server
                                           // request, I have to increment it
@@ -12424,7 +12425,7 @@ int32_t OTClient::ProcessUserCommand(
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
             theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
-                "%lld", lRequestNumber); // Always have to send this.
+                "%" PRId64 "", lRequestNumber); // Always have to send this.
             theNym.IncrementRequestNum(theNym, strServerID); // since I used it
                                                              // for a server
                                                              // request, I have
@@ -12477,7 +12478,7 @@ int32_t OTClient::ProcessUserCommand(
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
-            "%lld", lRequestNumber); // Always have to send this.
+            "%" PRId64 "", lRequestNumber); // Always have to send this.
         theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
@@ -12775,7 +12776,8 @@ int32_t OTClient::ProcessUserCommand(
                     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
                     theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
                     theMessage.m_strRequestNum.Format(
-                        "%lld", lRequestNumber); // Always have to send this.
+                        "%" PRId64 "",
+                        lRequestNumber); // Always have to send this.
                     theNym.IncrementRequestNum(
                         theNym, strServerID); // since I used it for a server
                                               // request, I have to increment it
@@ -13620,7 +13622,7 @@ int32_t OTClient::ProcessUserCommand(
                 // (0) Set up the REQUEST NUMBER and then INCREMENT IT
                 theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
                 theMessage.m_strRequestNum.Format(
-                    "%lld", lRequestNumber); // Always have to send this.
+                    "%" PRId64 "", lRequestNumber); // Always have to send this.
                 theNym.IncrementRequestNum(
                     theNym, strServerID); // since I used it for a server
                                           // request, I have to increment it
@@ -13670,7 +13672,8 @@ int32_t OTClient::ProcessUserCommand(
     {
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
-    theMessage.m_strRequestNum.Format("%lld", lRequestNumber); // Always have to
+    theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber); // Always
+    have to
     send this.
     theNym.IncrementRequestNum(strServerID); // since I used it for a server
     request, I have to increment it

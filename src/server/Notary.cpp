@@ -3460,8 +3460,8 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                                         "voucher remitted directly by the "
                                         "server (such as a dividend payment) "
                                         "but one of these values is false: "
-                                        "bHasRemitter (), "
-                                        "bRemitterIsServer()\n",
+                                        "bHasRemitter (%s), "
+                                        "bRemitterIsServer(%s)\n",
                                         __FUNCTION__,
                                         bHasRemitter ? "true" : "false",
                                         bRemitterIsServer ? "true" : "false");
