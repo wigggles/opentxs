@@ -176,7 +176,7 @@ void AccountList::Serialize(OTString& append) const
     OTString acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
-    append.Concatenate("<accountList type=\"%s\" count=\"%zu\" >\n\n",
+    append.Concatenate("<accountList type=\"%s\" count=\"%" PRI_SIZE "\" >\n\n",
                        acctType.Get(), mapAcctIDs_.size());
 
     for (auto& it : mapAcctIDs_) {

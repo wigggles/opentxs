@@ -1738,10 +1738,10 @@ void OTParty::Serialize(OTString& strAppend, bool bCalculatingID,
                               // both...
         " openingTransNo=\"%" PRId64 "\"\n" // fine here.
         " signedCopyProvided=\"%s\"\n"      // true/false
-        " authorizingAgent=\"%s\"\n"  // When an agent activates this contract,
-                                      // it's HIS opening trans#.
-        " numAgents=\"%zu\"\n"        // integer count.
-        " numAccounts=\"%zu\" >\n\n", // integer count.
+        " authorizingAgent=\"%s\"\n" // When an agent activates this contract,
+                                     // it's HIS opening trans#.
+        " numAgents=\"%" PRI_SIZE "\"\n"        // integer count.
+        " numAccounts=\"%" PRI_SIZE "\" >\n\n", // integer count.
         GetPartyName().c_str(),
         bCalculatingID ? "" : (m_bPartyIsNym ? "nym" : "entity"),
         (bCalculatingID && !bSpecifyParties) ? "" : m_str_owner_id.c_str(),

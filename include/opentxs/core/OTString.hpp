@@ -153,6 +153,12 @@
 #define ATTR_PRINTF(a, b)
 #endif
 
+#ifdef _MSC_VER
+#define PRI_SIZE "Iu"
+#else
+#define PRI_SIZE "zu"
+#endif
+
 namespace opentxs
 {
 

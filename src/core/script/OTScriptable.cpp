@@ -2288,7 +2288,8 @@ void OTScriptable::UpdateContentsToString(OTString& strAppend,
     if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
         strAppend.Concatenate("<scriptableContract\n specifyAssetID=\"%s\"\n "
                               "specifyParties=\"%s\"\n"
-                              " numParties=\"%zu\"\n numBylaws=\"%zu\" >\n\n",
+                              " numParties=\"%" PRI_SIZE
+                              "\"\n numBylaws=\"%" PRI_SIZE "\" >\n\n",
                               m_bSpecifyAssetID ? "true" : "false",
                               m_bSpecifyParties ? "true" : "false",
                               m_mapParties.size(), m_mapBylaws.size());
