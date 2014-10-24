@@ -1,10 +1,3 @@
-scripts/opentxs            This was the command line utility.
- It has been superseded by a new C++ version
-
-Try:  opentxs list
-Also: opentxs help
-And:  opentxs stat
-
 The entire regular OT API is fully accessible from within the ot scripts.
 For more on that, see:
 https://github.com/FellowTraveler/Open-Transactions/wiki/Use_Cases
@@ -18,7 +11,6 @@ There are "SCRIPT HEADERS" which OT automatically includes in every script.
 These are in the scripts/ot folder. These form an "Ultra-High Level" wrapper
 to the OT API, in the OT script language (chaiscript.)
 
-scripts/ot/ot_commands.ot  The code for each individual opentxs command is here.
 scripts/ot/ot_made_easy.ot High-level interface for sending server requests.
 scripts/ot/otapi.ot        Used by ot_made_easy. Corresponds to Java OTAPI_Func.
 scripts/ot/ot_utility.ot   Used by otapi. Handles low-level OTAPI calls for you.
