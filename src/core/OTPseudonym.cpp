@@ -504,12 +504,8 @@ bool OTPseudonym::AddNewMasterCredential(
         {
             strReason.Set("Using existing signing key for new master "
                           "credential (preserving existing Nym keypair.)");
-            strPublicError.Set("In %s, line %d: Failed using existing public "
-                               "key as public signing key in "
-                               "OTPseudonym::%s.\n");
-            strPrivateError.Set("In %s, line %d: Failed using existing private "
-                                "key as private signing key in "
-                                "OTPseudonym::%s.\n");
+            strPublicError.Set("using existing public key as");
+            strPrivateError.Set("using existing private key as");
         }
         else // GENERATE A NEW KEYPAIR.
         {
@@ -526,10 +522,8 @@ bool OTPseudonym::AddNewMasterCredential(
                                                              // to do this.
 
             strReason.Set("Generating signing key for new master credential.");
-            strPublicError.Set("In %s, line %d: Failed creating public signing "
-                               "key in OTPseudonym::%s.\n");
-            strPrivateError.Set("In %s, line %d: Failed creating private "
-                                "signing key in OTPseudonym::%s.\n");
+            strPublicError.Set("creating");
+            strPrivateError.Set("creating");
         }
 
         // SIGNING KEY
@@ -549,13 +543,17 @@ bool OTPseudonym::AddNewMasterCredential(
         }
 
         if (!b1 || !(mapPublic.size() > sizeMapPublic)) {
-            OTLog::vError(strPublicError.Get(), __FILE__, __LINE__,
+            OTLog::vError("In %s, line %d: Failed %s public signing key in "
+                          "OTPseudonym::%s.\n",
+                          __FILE__, __LINE__, strPublicError.Get(),
                           __FUNCTION__);
             return false;
         }
 
         if (!b2 || !(mapPrivate.size() > sizeMapPrivate)) {
-            OTLog::vError(strPrivateError.Get(), __FILE__, __LINE__,
+            OTLog::vError("In %s, line %d: Failed %s private signing key in "
+                          "OTPseudonym::%s.\n",
+                          __FILE__, __LINE__, strPrivateError.Get(),
                           __FUNCTION__);
             return false;
         }
