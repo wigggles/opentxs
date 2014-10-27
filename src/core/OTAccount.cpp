@@ -393,6 +393,11 @@ bool OTAccount::Debit(const int64_t& amount)
     // The MINUS here is the big difference between Debit and Credit
     int64_t newBalance = oldBalance - amount;
 
+    // fail if integer overflow
+    if ((amount > 0 && oldBalance < INT64_MIN + amount) ||
+        (amount < 0 && oldBalance > INT64_MAX + amount))
+        return false;
+
     // This is where issuer accounts get a pass. They just go negative.
     //
     // IF the new balance is less than zero...
@@ -419,6 +424,11 @@ bool OTAccount::Credit(const int64_t& amount)
     int64_t oldBalance = atol(balanceAmount_.Get());
     // The PLUS here is the big difference between Debit and Credit.
     int64_t newBalance = oldBalance + amount;
+
+    // fail if integer overflow
+    if ((amount > 0 && oldBalance > INT64_MAX - amount) ||
+        (amount < 0 && oldBalance < INT64_MIN - amount))
+        return false;
 
     // If the balance gets too big, it may flip to negative due to us using
     // int64_t int32_t.
