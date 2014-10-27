@@ -152,6 +152,7 @@
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTIdentifier.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTMessage.hpp>
@@ -8415,10 +8416,10 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
     OTServerConnection& theConnection = *m_pConnection;
 
     ProcessServerReplyArgs args;
-    args.ACCOUNT_ID = theReply.m_strAcctID;
+    args.ACCOUNT_ID = OTIdentifier(theReply.m_strAcctID);
     theConnection.GetServerID(args.SERVER_ID);
     args.pNym = theConnection.GetNym();
-    args.USER_ID = *args.pNym;
+    args.USER_ID = OTIdentifier(*args.pNym);
     args.strServerID = args.SERVER_ID;
     args.strNymID = args.USER_ID;
     args.pServerNym = const_cast<OTPseudonym*>(
