@@ -424,7 +424,7 @@ public:
     EXPORT static Storable* Create(StoredObjectType eType,
                                    PackType thePackType);
 
-#ifndef __clang__
+#if !defined(__clang__) && !defined(_WIN32)
 // -Wuseless-cast does not exist in clang
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -818,6 +818,7 @@ EXPORT bool EraseValueByKey(std::string strFolder, std::string oneStr = "",
 
 #ifdef SWIG
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
+                                                                               \
 protected:                                                                     \
     std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
                                                                                \
@@ -831,6 +832,7 @@ public:                                                                        \
 
 #ifndef SWIG
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
+                                                                               \
 protected:                                                                     \
     std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
                                                                                \
