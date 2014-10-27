@@ -283,24 +283,10 @@ public:
                            // public key. User ID will be hash of said public
                            // key.
         deleteUserAccount, // Delete user account from a specific server.
-        checkUser, // Request a user's public key based on User ID included with
-                   // the request.
-        // (If you want to send him cash or a check, your wallet will encrypt
-        // portions
-        // of the tokens, etc, to the Nym of the recipient.)
-        sendUserMessage, // Send a message to another user, encrypted to his
-                         // public key and dropped into his nymbox.
         getRequest, // Get the next request number from the server (for this
                     // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
-        issueAssetType, // Upload a currency contract to the server and create
-                        // an asset ID from a hash of that.
-        // contract. Also creates an issuer account for that asset ID. This ONLY
-        // works if public
-        // key of the user matches the contract key found in the currency
-        // contract, AND if the
-        // contract is signed by the same key.
         createAccount, // Create an asset account for a certain serverID,
                        // UserID, and Asset Type ID.
         // These accounts are where users actually store their digital assets of

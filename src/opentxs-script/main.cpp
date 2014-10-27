@@ -2215,26 +2215,6 @@ int32_t main(int32_t argc, char* argv[])
         // EXPECT THE SERVER TO PROCESS THEM.
         // (Handled inside ProcessUserCommand)
 
-        // checkUser
-        else if (buf[0] == 'u') {
-            otOut << "(User has instructed to send a checkUser command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::checkUser, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing checkUser command in "
-                         "ProcessMessage: " << buf[0] << "\n";
-
-        }
-
         // register new asset account
         else if (buf[0] == 'a') {
             otOut << "(User has instructed to send a createAccount command "
@@ -2252,26 +2232,6 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error processing createAccount command in "
                          "ProcessMessage: " << buf[0] << "\n";
-
-        }
-
-        // issue a new asset type
-        else if (!strcmp(buf, "issue\n")) {
-            otOut << "(User has instructed to send an issueAssetType command "
-                     "to the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::issueAssetType, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing issueAssetType command in "
-                         "ProcessMessage: " << buf << "\n";
 
         }
 
@@ -2418,27 +2378,6 @@ int32_t main(int32_t argc, char* argv[])
                 nullptr);
             continue;
         }
-
-        // sendUserMessage
-        else if (buf[0] == 's') {
-            otOut << "(User has instructed to send a sendUserMessage command "
-                     "to the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::sendUserMessage, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing sendUserMessage command in "
-                         "ProcessMessage: " << buf[0] << "\n";
-
-        }
-
         // process nymbox
         else if (strLine.compare(0, 2, "py") == 0) {
             otOut << "(User has instructed to send a processNymbox command "
