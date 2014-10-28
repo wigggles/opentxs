@@ -137,11 +137,44 @@
 #include "OTContract.hpp"
 #include "OTNumList.hpp"
 
+#include <unordered_map>
+#include <memory>
+
 namespace opentxs
 {
 
 class OTPasswordData;
 class OTPseudonym;
+class OTMessage;
+
+class OTMessageStrategy
+{
+public:
+    virtual int32_t processXml(OTMessage& message,
+                               irr::io::IrrXMLReader*& xml) = 0;
+    virtual OTString writeXml(OTMessage& message) = 0;
+    virtual ~OTMessageStrategy();
+
+    void processXmlSuccess(OTMessage& m, irr::io::IrrXMLReader*& xml);
+};
+
+class OTMessageStrategyManager
+{
+public:
+    OTMessageStrategy* findStrategy(std::string name)
+    {
+        auto strategy = mapping.find(name);
+        if (strategy == mapping.end()) return nullptr;
+        return strategy->second.get();
+    }
+    void registerStrategy(std::string name, OTMessageStrategy* strategy)
+    {
+        mapping[name] = std::unique_ptr<OTMessageStrategy>(strategy);
+    }
+
+private:
+    std::unordered_map<std::string, std::unique_ptr<OTMessageStrategy>> mapping;
+};
 
 class OTMessage : public OTContract
 {
@@ -152,138 +185,13 @@ protected:
 
     bool m_bIsSigned;
 
-    void processXmlSuccess(irr::io::IrrXMLReader*& xml);
-
 private:
     bool updateContentsByType();
-    bool writeXmlGetMarketList();
-    bool writeXmlAtGetMarketList();
-    bool writeXmlGetMarketOffers();
-    bool writeXmlAtGetMarketOffers();
-    bool writeXmlGetMarketRecentTrades();
-    bool writeXmlAtGetMarketRecentTrades();
-    bool writeXmlGetNymMarketOffers();
-    bool writeXmlAtGetNymMarketOffers();
-    bool writeXmlCheckServerID();
-    bool writeXmlAtCheckServerID();
-    bool writeXmlCreateUserAccount();
-    bool writeXmlAtCreateUserAccount();
-    bool writeXmlDeleteUserAccount();
-    bool writeXmlAtDeleteUserAccount();
-    bool writeXmlCheckUser();
-    bool writeXmlAtCheckUser();
-    bool writeXmlUsageCredits();
-    bool writeXmlAtUsageCredits();
-    bool writeXmlOutpaymentsMessage();
-    bool writeXmlSendUserMessage();
-    bool writeXmlAtSendUserMessage();
-    bool writeXmlSendUserInstrumentOrPayDivident();
-    bool writeXmlAtSendUserInstrument();
-    bool writeXmlGetRequest();
-    bool writeXmlAtGetRequest();
-    bool writeXmlIssueAssetType();
-    bool writeXmlAtIssueAssetType();
-    bool writeXmlQueryAssetTypes();
-    bool writeXmlAtQueryAssetTypes();
-    bool writeXmlIssueBasket();
-    bool writeXmlAtIssueBasket();
-    bool writeXmlCreateAccount();
-    bool writeXmlAtCreateAccount();
-    bool writeXmlGetBoxReceipt();
-    bool writeXmlAtGetBoxReceipt();
-    bool writeXmlDeleteAssetAccount();
-    bool writeXmlAtDeleteAssetAccount();
-    bool writeXmlNotarizeTransactions();
-    bool writeXmlAtNotarizeTransactions();
-    bool writeXmlGetTransactionNum();
-    bool writeXmlAtGetTransactionNum();
-    bool writeXmlGetNymbox();
-    bool writeXmlAtGetNymbox();
-    bool writeXmlGetInbox();
-    bool writeXmlAtGetInbox();
-    bool writeXmlGetOutbox();
-    bool writeXmlAtGetOutbox();
-    bool writeXmlGetAccount();
-    bool writeXmlAtGetAccount();
-    bool writeXmlGetAccountFiles();
-    bool writeXmlAtGetAccountFiles();
-    bool writeXmlGetContract();
-    bool writeXmlAtGetContract();
-    bool writeXmlGetMint();
-    bool writeXmlAtGetMint();
-    bool writeXmlProcessInbox();
-    bool writeXmlAtProcessInbox();
-    bool writeXmlProcessNymbox();
-    bool writeXmlAtProcessNymbox();
-    bool writeXmlTriggerClause();
-    bool writeXmlAtTriggerClause();
 
-    int32_t processXmlNodeAckReplies(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAcknowledgedReplies(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeOTmessage(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetMarketList(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetMarketList(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetMarketOffers(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetMarketOffers(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetMarketRecentTrades(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetMarketRecentTrades(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetNymMarketOffers(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetNymMarketOffers(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeCheckServerID(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtCheckServerID(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeCreateUserAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtcreateUserAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeDeleteUserAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtDeleteUserAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetRequest(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetRequest(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeOutmailMessageOrOutpaymentsMessage(
-        irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeSendUserMessage(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtSendUserMessage(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeSendUserInstrumentOrPayDivident(
-        irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtSendUserInstrument(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeUsageCredits(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtUsageCredits(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeCheckUser(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtCheckUser(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeIssueAssetType(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtIssueAssetType(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeQueryAssetTypes(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtQueryAssetTypes(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeCreateAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtCreateAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetBoxReceipt(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetBoxReceipt(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeDeleteAssetAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtDeleteAssetAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeIssueBasket(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtIssueBasket(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetTransactionNum(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetTransactionNum(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeNotarizeTransactions(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtNotarizeTransactions(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetInbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetNymbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetInbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetNymbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetOutbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetOutbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetAccount(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetAccountFiles(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetAccountFiles(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetContract(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetContract(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeGetMint(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtGetMint(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeTriggerClause(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtTriggerClause(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeProcessInbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeProcessNymbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtProcessInbox(irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAtProcessNymbox(irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAckReplies(OTMessage& m, irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAcknowledgedReplies(OTMessage& m,
+                                              irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeOTmessage(OTMessage& m, irr::io::IrrXMLReader*& xml);
 
 public:
     EXPORT OTMessage();
@@ -316,6 +224,9 @@ public:
     // ASSERT if you don't...)
     //
     EXPORT void SetAcknowledgments(OTPseudonym& theNym);
+
+    EXPORT static void registerStrategy(std::string name,
+                                        OTMessageStrategy* strategy);
 
     OTString m_strCommand;  // perhaps @register is the string for "reply to
                             // register" a-ha
@@ -375,6 +286,17 @@ public:
     bool m_bBool;    // Some commands need to send a bool. This variable is for
                      // those.
     int64_t m_lTime; // Timestamp when the message was signed.
+
+    static OTMessageStrategyManager messageStrategyManager;
+};
+
+class RegisterStrategy
+{
+public:
+    RegisterStrategy(std::string name, OTMessageStrategy* strategy)
+    {
+        OTMessage::registerStrategy(name, strategy);
+    }
 };
 
 } // namespace opentxs
