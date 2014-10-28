@@ -31,6 +31,14 @@ else()
 endif()
 
 
+### Build bitcoin-base58 as library
+add_library(bitcoin-base58
+  STATIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-base58/base58.cpp
+)
+target_link_libraries(bitcoin-base58 ssl crypto)
+
+
 ### Build bigint as library
 set(bigint-sources
   ${CMAKE_CURRENT_SOURCE_DIR}/bigint/BigInteger.cc
