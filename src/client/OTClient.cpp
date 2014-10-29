@@ -8442,7 +8442,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
         return false;
     }
     OTMessage* pSentMsg = GetMessageOutbuffer().GetSentMessage(
-        atol(theReply.m_strRequestNum.Get()), strServerID,
+        theReply.m_strRequestNum.ToLong(), strServerID,
         strNymID); // doesn't delete.
     // We couldn't find it in the "sent message" outbuffer (todo: persist this
     // buffer on the Nym.)
@@ -8489,7 +8489,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
     // we clearly had a proper
     // reply come through!)
     //
-    const int64_t lReplyRequestNum = atol(theReply.m_strRequestNum.Get());
+    const int64_t lReplyRequestNum = theReply.m_strRequestNum.ToLong();
 
     //  bool bRemoved =
     GetMessageOutbuffer().RemoveSentMessage(lReplyRequestNum, strServerID,
@@ -9557,7 +9557,7 @@ int32_t OTClient::ProcessUserCommand(
             strTemp.Release();
             strTemp.OTfgets(std::cin);
 
-            lMinimumTransferAmount = atol(strTemp.Get());
+            lMinimumTransferAmount = strTemp.ToLong();
 
             // ADD THE CONTRACT ID TO A LIST TO BE SENT TO THE SERVER.
             // ADD THE MINIMUM TRANSFER AMOUNT TO THE SAME OBJECT
@@ -9733,8 +9733,8 @@ int32_t OTClient::ProcessUserCommand(
 
         const int64_t lTotalAmount =
             (0 == lTransactionAmount)
-                ? // If nothing was passed in, then use atol(strAmount),
-                (atol(strAmount.Exists() ? strAmount.Get() : "0"))
+                ? // If nothing was passed in, then use strAmount,
+                (strAmount.Exists() ? strAmount.ToLong() : 0)
                 : lTransactionAmount; // otherwise lTransactionAmount.
 
         OTIdentifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
@@ -9833,8 +9833,8 @@ int32_t OTClient::ProcessUserCommand(
                 // pBalanceItem is signed and saved within this call. No need to
                 // do that again.
                 OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
-                    atol(strAmount.Get()) * (-1), *pTransaction, theNym,
-                    *pAccount, *pOutbox);
+                    strAmount.ToLong() * (-1), *pTransaction, theNym, *pAccount,
+                    *pOutbox);
 
                 if (nullptr !=
                     pBalanceItem) // will never be nullptr. Will assert
@@ -11697,8 +11697,8 @@ int32_t OTClient::ProcessUserCommand(
 
         const int64_t lTotalAmount =
             (0 == lTransactionAmount)
-                ? // If nothing was passed in, then use atol(strAmount),
-                (atol(strAmount.Exists() ? strAmount.Get() : "0"))
+                ? // If nothing was passed in, then use strAmount,
+                (strAmount.Exists() ? strAmount.ToLong() : 0)
                 : lTransactionAmount; // otherwise lTransactionAmount.
         int64_t lWithdrawTransNum = 0, lVoucherTransNum = 0;
 
@@ -11952,8 +11952,8 @@ int32_t OTClient::ProcessUserCommand(
 
         const int64_t lTotalAmount =
             (0 == lTransactionAmount)
-                ? // If nothing was passed in, then use atol(strAmount),
-                (atol(strAmount.Exists() ? strAmount.Get() : "0"))
+                ? // If nothing was passed in, then use strAmount,
+                (strAmount.Exists() ? strAmount.ToLong() : 0)
                 : lTransactionAmount;   // otherwise lTransactionAmount.
         int64_t lAmount = lTotalAmount; // Used in calculating the denominations
                                         // of tokens needed for the withdrawal.
@@ -12299,7 +12299,7 @@ int32_t OTClient::ProcessUserCommand(
                 otOut << "What is the market granularity (or 'scale')? [1]: ";
                 strTemp.Release();
                 strTemp.OTfgets(std::cin);
-                int64_t lMarketScale = atol(strTemp.Get());
+                int64_t lMarketScale = strTemp.ToLong();
 
                 if (lMarketScale < 1) lMarketScale = 1;
 
@@ -12307,7 +12307,7 @@ int32_t OTClient::ProcessUserCommand(
                          "multiplied by the scale) [1]: ";
                 strTemp.Release();
                 strTemp.OTfgets(std::cin);
-                lMinimumIncrement = atol(strTemp.Get());
+                lMinimumIncrement = strTemp.ToLong();
 
                 lMinimumIncrement *= lMarketScale;
 
@@ -12319,7 +12319,7 @@ int32_t OTClient::ProcessUserCommand(
                          "increment) [1]: ";
                 strTemp.Release();
                 strTemp.OTfgets(std::cin);
-                lTotalAssetsOnOffer = atol(strTemp.Get());
+                lTotalAssetsOnOffer = strTemp.ToLong();
 
                 //              lTotalAssetsOnOffer *= lMinimumIncrement;  //
                 // this was a bug.
@@ -12336,7 +12336,7 @@ int32_t OTClient::ProcessUserCommand(
                              "you are buying).\nAgain, PER SCALE: ";
                     strTemp.Release();
                     strTemp.OTfgets(std::cin);
-                    lPriceLimit = atol(strTemp.Get());
+                    lPriceLimit = strTemp.ToLong();
 
                     if (lPriceLimit < 1)
                         otOut << "Price must be at least 1.\n\n";
@@ -12714,8 +12714,8 @@ int32_t OTClient::ProcessUserCommand(
 
         const int64_t lTotalAmount =
             (0 == lTransactionAmount)
-                ? // If nothing was passed in, then use atol(strAmount),
-                (atol(strAmount.Exists() ? strAmount.Get() : "0"))
+                ? // If nothing was passed in, then use strAmount,
+                (strAmount.Exists() ? strAmount.ToLong() : 0)
                 : lTransactionAmount; // otherwise lTransactionAmount.
 
         // To write a cheque, we need to burn one of our transaction numbers.
@@ -12760,7 +12760,7 @@ int32_t OTClient::ProcessUserCommand(
         OTString strTemp;
         strTemp.OTfgets(std::cin);
 
-        if (strTemp.GetLength() > 1) lExpirationInSeconds = atol(strTemp.Get());
+        if (strTemp.GetLength() > 1) lExpirationInSeconds = strTemp.ToLong();
 
         time64_t VALID_FROM =
             OTTimeGetCurrentTime(); // This time is set to TODAY NOW
@@ -12977,7 +12977,7 @@ int32_t OTClient::ProcessUserCommand(
             strTemp.OTfgets(std::cin);
 
             if (strTemp.GetLength() > 1)
-                lExpirationInSeconds = atol(strTemp.Get());
+                lExpirationInSeconds = strTemp.ToLong();
 
             time64_t VALID_FROM =
                 OTTimeGetCurrentTime(); // This time is set to TODAY NOW
@@ -13017,7 +13017,7 @@ int32_t OTClient::ProcessUserCommand(
             otOut << "What is the Initial Payment Amount, if any? [0]: ";
             strTemp.Release();
             strTemp.OTfgets(std::cin);
-            int64_t lInitialPayment = atol(strTemp.Get());
+            int64_t lInitialPayment = strTemp.ToLong();
 
             if (lInitialPayment > 0) {
                 time64_t PAYMENT_DELAY =
@@ -13030,7 +13030,7 @@ int32_t OTClient::ProcessUserCommand(
                 strTemp.Release();
                 strTemp.OTfgets(std::cin);
 
-                if ((strTemp.GetLength() > 1) && atol(strTemp.Get()) > 0)
+                if ((strTemp.GetLength() > 1) && strTemp.ToLong() > 0)
                     PAYMENT_DELAY = OTTimeGetTimeFromSeconds(strTemp.Get());
 
                 bSuccessSetInitialPayment =
@@ -13051,7 +13051,7 @@ int32_t OTClient::ProcessUserCommand(
             otOut << "What is the regular payment amount, if any? [0]: ";
             strTemp.Release();
             strTemp.OTfgets(std::cin);
-            int64_t lRegularPayment = atol(strTemp.Get());
+            int64_t lRegularPayment = strTemp.ToLong();
 
             if (lRegularPayment > 0) // If there are regular payments.
             {
@@ -13066,7 +13066,7 @@ int32_t OTClient::ProcessUserCommand(
                 strTemp.Release();
                 strTemp.OTfgets(std::cin);
 
-                if ((strTemp.GetLength() > 1) && atol(strTemp.Get()) > 0)
+                if ((strTemp.GetLength() > 1) && strTemp.ToLong() > 0)
                     PAYMENT_DELAY = OTTimeGetTimeFromSeconds(strTemp.Get());
 
                 time64_t PAYMENT_PERIOD =
@@ -13079,7 +13079,7 @@ int32_t OTClient::ProcessUserCommand(
                 strTemp.Release();
                 strTemp.OTfgets(std::cin);
 
-                if ((strTemp.GetLength() > 1) && atol(strTemp.Get()) > 0)
+                if ((strTemp.GetLength() > 1) && strTemp.ToLong() > 0)
                     PAYMENT_PERIOD = OTTimeGetTimeFromSeconds(strTemp.Get());
 
                 time64_t PLAN_LENGTH =

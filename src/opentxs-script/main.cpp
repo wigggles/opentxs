@@ -1443,7 +1443,7 @@ int32_t main(int32_t argc, char* argv[])
         }
         else if (opt->getValue('w') != nullptr ||
                    opt->getValue("withdraw") != nullptr) {
-            const int64_t lAmount = atol(opt->getValue('w'));
+            const int64_t lAmount = OTString::StringToLong(opt->getValue('w'));
 
             otOut << "(User has instructed to withdraw cash...)\n";
 
@@ -1460,7 +1460,7 @@ int32_t main(int32_t argc, char* argv[])
         }
         else if (opt->getValue('t') != nullptr ||
                    opt->getValue("transfer") != nullptr) {
-            const int64_t lAmount = atol(opt->getValue('t'));
+            const int64_t lAmount = OTString::StringToLong(opt->getValue('t'));
 
             OTIdentifier HIS_ACCT_ID(
                 (str_HisAcct.size() > 0) ? str_HisAcct.c_str() : "aaaaaaaa");
@@ -1489,7 +1489,7 @@ int32_t main(int32_t argc, char* argv[])
                    opt->getValue("cheque") != nullptr) {
             otOut << "(User has instructed to write a cheque...)\n";
 
-            const int64_t lAmount = atol(opt->getValue('c'));
+            const int64_t lAmount = OTString::StringToLong(opt->getValue('c'));
 
             OTIdentifier HIS_NYM_ID((str_HisNym.size() > 0)
                                         ? str_HisNym.c_str()
@@ -1504,7 +1504,7 @@ int32_t main(int32_t argc, char* argv[])
                    opt->getValue("voucher") != nullptr) {
             otOut << "(User has instructed to withdraw a voucher...)\n";
 
-            const int64_t lAmount = atol(opt->getValue('v'));
+            const int64_t lAmount = OTString::StringToLong(opt->getValue('v'));
 
             OTIdentifier HIS_NYM_ID((str_HisNym.size() > 0) ? str_HisNym.c_str()
                                                             : "aaaaaaaa");
@@ -2735,7 +2735,7 @@ int32_t main(int32_t argc, char* argv[])
             // having to re-create my data each time -- speeds up debugging.
             //
             int64_t lTransactionNumber =
-                ((strlen(buf) > 2) ? atol(&(buf[2])) : 0);
+                ((strlen(buf) > 2) ? OTString::StringToLong(&(buf[2])) : 0);
 
             if (lTransactionNumber > 0) {
                 OTString strServerID;

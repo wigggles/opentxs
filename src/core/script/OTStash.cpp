@@ -205,7 +205,7 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
                 }
 
                 if (!CreditStash(strAssetTypeID.Get(),
-                                 atol(strAmount.Get()))) // <===============
+                                 strAmount.ToLong())) // <===============
                 {
                     otErr << "OTStash::ReadFromXMLNode: Failed crediting "
                              "stashItem for stash " << strStashName

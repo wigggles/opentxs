@@ -432,7 +432,7 @@ int32_t OTMessage::processXmlNodeOTmessage(OTMessage& m,
 
     OTString strDateSigned = xml->getAttributeValue("dateSigned");
 
-    if (strDateSigned.Exists()) m_lTime = atol(strDateSigned.Get());
+    if (strDateSigned.Exists()) m_lTime = strDateSigned.ToLong();
 
     otInfo << "\n===> Loading XML for Message into memory structures...\n";
 
@@ -598,7 +598,7 @@ public:
 
         OTString strDepth = xml->getAttributeValue("depth");
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
+        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -657,7 +657,7 @@ public:
 
         OTString strDepth = xml->getAttributeValue("depth");
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
+        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
 
         const char* pElementExpected = nullptr;
         if (m.m_bSuccess && (m.m_lDepth > 0))
@@ -791,7 +791,7 @@ public:
 
         OTString strDepth = xml->getAttributeValue("depth");
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
+        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
 
         const char* pElementExpected = nullptr;
         if (m.m_bSuccess && (m.m_lDepth > 0))
@@ -917,7 +917,7 @@ public:
 
         OTString strDepth = xml->getAttributeValue("depth");
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
+        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
 
         const char* pElementExpected = nullptr;
         if (m.m_bSuccess && (m.m_lDepth > 0))
@@ -1514,8 +1514,7 @@ public:
 
         OTString strAdjustment = xml->getAttributeValue("adjustment");
 
-        if (strAdjustment.GetLength() > 0)
-            m.m_lDepth = atol(strAdjustment.Get());
+        if (strAdjustment.GetLength() > 0) m.m_lDepth = strAdjustment.ToLong();
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -1567,7 +1566,7 @@ public:
         OTString strTotalCredits = xml->getAttributeValue("totalCredits");
 
         if (strTotalCredits.GetLength() > 0)
-            m.m_lDepth = atol(strTotalCredits.Get());
+            m.m_lDepth = strTotalCredits.ToLong();
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
@@ -1956,7 +1955,7 @@ public:
         const OTString strNewRequestNum =
             xml->getAttributeValue("newRequestNum");
         m.m_lNewRequestNum =
-            strNewRequestNum.Exists() ? atol(strNewRequestNum.Get()) : 0;
+            strNewRequestNum.Exists() ? strNewRequestNum.ToLong() : 0;
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
@@ -2610,7 +2609,7 @@ public:
 
         OTString strTransactionNum = xml->getAttributeValue("transactionNum");
         m.m_lTransactionNum =
-            strTransactionNum.Exists() ? atol(strTransactionNum.Get()) : 0;
+            strTransactionNum.Exists() ? strTransactionNum.ToLong() : 0;
 
         const OTString strBoxType = xml->getAttributeValue("boxType");
 
@@ -2695,7 +2694,7 @@ public:
 
         OTString strTransactionNum = xml->getAttributeValue("transactionNum");
         m.m_lTransactionNum =
-            strTransactionNum.Exists() ? atol(strTransactionNum.Get()) : 0;
+            strTransactionNum.Exists() ? strTransactionNum.ToLong() : 0;
 
         const OTString strBoxType = xml->getAttributeValue("boxType");
 
@@ -4357,7 +4356,7 @@ public:
 
         OTString strTransactionNum = xml->getAttributeValue("smartContractID");
         if (strTransactionNum.Exists())
-            m.m_lTransactionNum = atol(strTransactionNum.Get());
+            m.m_lTransactionNum = strTransactionNum.ToLong();
 
         if (strHasParam.Compare("true")) {
             const char* pElementExpected = "parameter";
@@ -4503,7 +4502,7 @@ public:
 
         OTString strDepth = xml->getAttributeValue("depth");
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = atol(strDepth.Get());
+        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
 
         const char* pElementExpected = nullptr;
         if (m.m_bSuccess && (m.m_lDepth > 0))

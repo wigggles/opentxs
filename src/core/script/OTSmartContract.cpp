@@ -1797,7 +1797,7 @@ bool OTSmartContract::StashAcctFunds(std::string from_acct_name,
         return false;
     }
 
-    const int64_t lAmount = atol(str_Amount.c_str());
+    const int64_t lAmount = OTString::StringToLong(str_Amount.c_str());
 
     if (lAmount <= 0) {
         otOut << "OTSmartContract::StashAcctFunds: Error: lAmount cannot be 0 "
@@ -2051,7 +2051,7 @@ bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
         return false;
     }
 
-    const int64_t lAmount = atol(str_Amount.c_str());
+    const int64_t lAmount = OTString::StringToLong(str_Amount.c_str());
 
     if (lAmount <= 0) {
         otOut << "OTSmartContract::UnstashAcctFunds: Error: lAmount cannot be "
@@ -3097,7 +3097,7 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
         return false;
     }
 
-    const int64_t lAmount = atol(str_Amount.c_str());
+    const int64_t lAmount = OTString::StringToLong(str_Amount.c_str());
 
     if (lAmount <= 0) {
         otOut << "OTSmartContract::MoveAcctFunds: Error: lAmount cannot be 0 "
@@ -5637,7 +5637,7 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const OTString strTransNum = xml->getAttributeValue("transactionNum");
 
-        SetTransactionNum(strTransNum.Exists() ? atol(strTransNum.Get()) : 0);
+        SetTransactionNum(strTransNum.Exists() ? strTransNum.ToLong() : 0);
 
         const OTString str_valid_from = xml->getAttributeValue("validFrom");
         const OTString str_valid_to = xml->getAttributeValue("validTo");

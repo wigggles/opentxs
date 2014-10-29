@@ -792,7 +792,8 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("mintPrivateInfo")) {
-        int64_t lDenomination = atol(xml->getAttributeValue("denomination"));
+        int64_t lDenomination =
+            OTString::StringToLong(xml->getAttributeValue("denomination"));
 
         OTASCIIArmor* pArmor = new OTASCIIArmor;
 
@@ -815,7 +816,8 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("mintPublicInfo")) {
-        int64_t lDenomination = atol(xml->getAttributeValue("denomination"));
+        int64_t lDenomination =
+            OTString::StringToLong(xml->getAttributeValue("denomination"));
 
         OTASCIIArmor* pArmor = new OTASCIIArmor;
 

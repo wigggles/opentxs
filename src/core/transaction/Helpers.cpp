@@ -240,11 +240,11 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
               << ") while loading abbreviated receipt. \n";
         return (-1);
     }
-    lTransactionNum = atol(strTransNum.Get());
-    lInRefTo = atol(strInRefTo.Get());
-    lInRefDisplay = atol(strInRefDisplay.Get());
+    lTransactionNum = strTransNum.ToLong();
+    lInRefTo = strInRefTo.ToLong();
+    lInRefDisplay = strInRefDisplay.ToLong();
 
-    if (strOrigin.Exists()) lNumberOfOrigin = atol(strOrigin.Get());
+    if (strOrigin.Exists()) lNumberOfOrigin = strOrigin.ToLong();
 
     // DATE SIGNED
     the_DATE_SIGNED = OTTimeGetTimeFromSeconds(
@@ -295,12 +295,12 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 
     const OTString strAbbrevAdjustment = xml->getAttributeValue("adjustment");
     if (strAbbrevAdjustment.Exists())
-        lAdjustment = atol(strAbbrevAdjustment.Get());
+        lAdjustment = strAbbrevAdjustment.ToLong();
     // -------------------------------------
     const OTString strAbbrevDisplayValue =
         xml->getAttributeValue("displayValue");
     if (strAbbrevDisplayValue.Exists())
-        lDisplayValue = atol(strAbbrevDisplayValue.Get());
+        lDisplayValue = strAbbrevDisplayValue.ToLong();
 
     if (OTTransaction::replyNotice == theType) {
         const OTString strRequestNum = xml->getAttributeValue("requestNumber");
@@ -313,7 +313,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                   << ")\n";
             return (-1);
         }
-        lRequestNum = atol(strRequestNum.Get());
+        lRequestNum = strRequestNum.ToLong();
 
         const OTString strTransSuccess = xml->getAttributeValue("transSuccess");
 
@@ -336,7 +336,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                   << " (In Reference To: " << lInRefTo << ")\n";
             return (-1);
         }
-        lClosingNum = atol(strAbbrevClosingNum.Get());
+        lClosingNum = strAbbrevClosingNum.ToLong();
     } // if finalReceipt or basketReceipt (expecting closing num)
 
     // These types carry their own internal list of numbers.

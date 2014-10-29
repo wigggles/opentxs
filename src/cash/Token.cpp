@@ -896,7 +896,8 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_VALID_FROM = OTTimeGetTimeFromSeconds(tFrom);
         m_VALID_TO = OTTimeGetTimeFromSeconds(tTo);
 
-        SetDenomination(atol(xml->getAttributeValue("denomination")));
+        SetDenomination(
+            OTString::StringToLong(xml->getAttributeValue("denomination")));
 
         if (strState.Compare("blankToken"))
             m_State = Token::blankToken;

@@ -1539,7 +1539,8 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     if (!strcmp("agreement", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
-        SetTransactionNum(atol(xml->getAttributeValue("transactionNum")));
+        SetTransactionNum(
+            OTString::StringToLong(xml->getAttributeValue("transactionNum")));
 
         const OTString strCreation = xml->getAttributeValue("creationDate");
         int64_t tCreation = strCreation.ToLong();
@@ -1632,7 +1633,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTString strClosingNumber = xml->getAttributeValue("value");
 
         if (strClosingNumber.Exists()) {
-            const int64_t lClosingNumber = atol(strClosingNumber.Get());
+            const int64_t lClosingNumber = strClosingNumber.ToLong();
 
             AddRecipientClosingTransactionNo(lClosingNumber);
         }

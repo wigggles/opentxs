@@ -188,7 +188,8 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             OTTimeGetTimeFromSeconds(tDateLastAttempt));
 
         SetNoInitialFailures(atoi(xml->getAttributeValue("numberOfAttempts")));
-        SetInitialPaymentAmount(atol(xml->getAttributeValue("amount")));
+        SetInitialPaymentAmount(
+            OTString::StringToLong(xml->getAttributeValue("amount")));
 
         OTString strCompleted(xml->getAttributeValue("completed"));
         m_bInitialPaymentDone = strCompleted.Compare("true");
@@ -210,7 +211,8 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // Yes, there IS apparently a payment plan. We can set the bool to true.
         m_bPaymentPlan = true;
 
-        SetPaymentPlanAmount(atol(xml->getAttributeValue("amountPerPayment")));
+        SetPaymentPlanAmount(
+            OTString::StringToLong(xml->getAttributeValue("amountPerPayment")));
         SetMaximumNoPayments(atoi(xml->getAttributeValue("maxNoPayments")));
         SetNoPaymentsDone(atoi(xml->getAttributeValue("completedNoPayments")));
         SetNoFailedPayments(atoi(xml->getAttributeValue("failedNoPayments")));

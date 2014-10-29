@@ -318,7 +318,7 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strMinTrans = xml->getAttributeValue("minimumTransfer");
 
         m_nSubCount = atoi(strSubCount.Get());
-        m_lMinimumTransfer = atol(strMinTrans.Get());
+        m_lMinimumTransfer = strMinTrans.ToLong();
 
         otWarn << "Loading currency basket...\n";
 
@@ -338,7 +338,7 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (strRequestAccountID.Exists())
             m_RequestAccountID.SetString(strRequestAccountID);
         if (strDirection.Exists()) m_bExchangingIn = strDirection.Compare("in");
-        if (strTemp.Exists()) SetClosingNum(atol(strTemp.Get()));
+        if (strTemp.Exists()) SetClosingNum(strTemp.ToLong());
 
         otInfo << "Basket Transfer multiple is " << m_nTransferMultiple
                << ". Direction is " << strDirection << ". Closing number is "
@@ -356,12 +356,10 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTString strTemp;
 
         strTemp = xml->getAttributeValue("minimumTransfer");
-        if (strTemp.Exists())
-            pItem->lMinimumTransferAmount = atol(strTemp.Get());
+        if (strTemp.Exists()) pItem->lMinimumTransferAmount = strTemp.ToLong();
 
         strTemp = xml->getAttributeValue("closingTransactionNo");
-        if (strTemp.Exists())
-            pItem->lClosingTransactionNo = atol(strTemp.Get());
+        if (strTemp.Exists()) pItem->lClosingTransactionNo = strTemp.ToLong();
 
         OTString strSubAccountID(xml->getAttributeValue("accountID")),
             strContractID(xml->getAttributeValue("assetID"));

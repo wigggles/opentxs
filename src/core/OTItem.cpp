@@ -1834,7 +1834,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strOutboxNewTransNum = xml->getAttributeValue("outboxNewTransNum");
 
         if (strOutboxNewTransNum.Exists())
-            m_lNewOutboxTransNum = atol(strOutboxNewTransNum.Get());
+            m_lNewOutboxTransNum = strOutboxNewTransNum.ToLong();
 
         // an OTTransaction::blank may now contain 20 or 100 new numbers.
         // Therefore, the OTItem::acceptTransaction must contain the same list,
@@ -1868,15 +1868,15 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTString strTemp;
 
         strTemp = xml->getAttributeValue("numberOfOrigin");
-        if (strTemp.Exists()) SetNumberOfOrigin(atol(strTemp.Get()));
+        if (strTemp.Exists()) SetNumberOfOrigin(strTemp.ToLong());
 
         strTemp = xml->getAttributeValue("transactionNum");
-        if (strTemp.Exists()) SetTransactionNum(atol(strTemp.Get()));
+        if (strTemp.Exists()) SetTransactionNum(strTemp.ToLong());
 
         strTemp = xml->getAttributeValue("inReferenceTo");
-        if (strTemp.Exists()) SetReferenceToNum(atol(strTemp.Get()));
+        if (strTemp.Exists()) SetReferenceToNum(strTemp.ToLong());
 
-        m_lAmount = atol(xml->getAttributeValue("amount"));
+        m_lAmount = OTString::StringToLong(xml->getAttributeValue("amount"));
 
         otLog3 << "Loaded transaction Item, transaction num "
                << GetTransactionNum()
@@ -1945,7 +1945,8 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                            // receipts that matter for inbox reports for balance
                            // agreements.)
 
-            pItem->SetAmount(atol(xml->getAttributeValue("adjustment")));
+            pItem->SetAmount(
+                OTString::StringToLong(xml->getAttributeValue("adjustment")));
 
             // Status
             pItem->SetStatus(OTItem::acknowledgement); // I don't need this, but
@@ -1975,18 +1976,18 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             OTString strTemp;
 
             strTemp = xml->getAttributeValue("numberOfOrigin");
-            if (strTemp.Exists()) pItem->SetNumberOfOrigin(atol(strTemp.Get()));
+            if (strTemp.Exists()) pItem->SetNumberOfOrigin(strTemp.ToLong());
 
             strTemp = xml->getAttributeValue("transactionNum");
-            if (strTemp.Exists()) pItem->SetTransactionNum(atol(strTemp.Get()));
+            if (strTemp.Exists()) pItem->SetTransactionNum(strTemp.ToLong());
 
             strTemp = xml->getAttributeValue("inReferenceTo");
-            if (strTemp.Exists()) pItem->SetReferenceToNum(atol(strTemp.Get()));
+            if (strTemp.Exists()) pItem->SetReferenceToNum(strTemp.ToLong());
 
             strTemp = xml->getAttributeValue(
                 "closingTransactionNum"); // only used in the inbox report for
                                           // balance agreement.
-            if (strTemp.Exists()) pItem->SetClosingNum(atol(strTemp.Get()));
+            if (strTemp.Exists()) pItem->SetClosingNum(strTemp.ToLong());
 
             AddItem(*pItem); // <======= adding to list.
 

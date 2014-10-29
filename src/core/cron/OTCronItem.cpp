@@ -1821,7 +1821,7 @@ int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTString strClosingNumber = xml->getAttributeValue("value");
 
         if (strClosingNumber.Exists()) {
-            const int64_t lClosingNumber = atol(strClosingNumber.Get());
+            const int64_t lClosingNumber = strClosingNumber.ToLong();
 
             AddClosingTransactionNo(lClosingNumber);
         }

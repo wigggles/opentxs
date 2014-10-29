@@ -460,7 +460,8 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (!strcmp("transactionNum", xml->getNodeName())) {
-        const int64_t lTransactionNum = atol(xml->getAttributeValue("value"));
+        const int64_t lTransactionNum =
+            OTString::StringToLong(xml->getAttributeValue("value"));
 
         otWarn << "Transaction Number " << lTransactionNum
                << " available for Cron.\n";
@@ -543,7 +544,8 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const OTString strAssetID(xml->getAttributeValue("assetID"));
         const OTString strCurrencyID(xml->getAttributeValue("currencyID"));
 
-        const int64_t lScale = atol(xml->getAttributeValue("marketScale"));
+        const int64_t lScale =
+            OTString::StringToLong(xml->getAttributeValue("marketScale"));
 
         const OTIdentifier ASSET_ID(strAssetID), CURRENCY_ID(strCurrencyID);
 
