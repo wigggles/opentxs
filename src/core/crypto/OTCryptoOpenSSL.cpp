@@ -134,6 +134,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -608,18 +609,17 @@ void OTCrypto_OpenSSL::SetIDFromBase62String(const OTString& strInput,
     theOutput.Release();
 
     // If it's short, no validate.
-    //
     if (strInput.GetLength() < 3) return;
 
     std::vector<unsigned char> decoded;
-    bool nConverted = DecodeBase58Check(strInput.Get(), decoded);
+    bool success = IdentifierFormat::decode(strInput.Get(), decoded);
+
+    OT_ASSERT(success);
+    // OTData will be gone soon, and then the following ugly lines
+    // can be improved.
     theOutput.SetSize(decoded.size());
-    // Since the removal OTData is almost finished, I won't bother making this
-    // nice.
     memcpy(const_cast<void*>(theOutput.GetPointer()), decoded.data(),
            decoded.size());
-
-    OT_ASSERT(nConverted);
 }
 
 // GET (binary id) AS BASE62-ENCODED STRING
@@ -639,7 +639,7 @@ void OTCrypto_OpenSSL::SetBase62StringFromID(const OTIdentifier& theInput,
 
     auto inputPtr = static_cast<const unsigned char*>(theInput.GetPointer());
     strOutput.Set(
-        EncodeBase58Check(inputPtr, inputPtr + theInput.GetSize()).c_str());
+        IdentifierFormat::encode(inputPtr, theInput.GetSize()).c_str());
 }
 
 bool OTCrypto_OpenSSL::RandomizeMemory(uint8_t* szDestination,
