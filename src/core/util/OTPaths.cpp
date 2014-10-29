@@ -154,6 +154,7 @@
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
+#include <CoreServices/CoreServices.h>
 #endif
 
 #ifdef TARGET_OS_MAC
@@ -169,14 +170,22 @@
 #define S_ISREG(mode) (((mode)&S_IFMT) == S_IFREG)
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define OT_APPDATA_DIR "OpenTransactions"
-#elif defined(TARGET_OS_IPHONE)
+
+#elif defined(TARGET_OS_MAC)
+#if TARGET_OS_IPHONE // iOS
 #define OT_APPDATA_DIR "Documents"
+#else // OSX
+#define OT_APPDATA_DIR "OpenTransactions"
+#endif
+
 #elif defined(ANDROID)
 #define OT_APPDATA_DIR "ot"
-#else
+
+#else // unix
 #define OT_APPDATA_DIR ".ot"
+
 #endif
 
 #ifndef OT_PREFIX_PATH
@@ -1091,6 +1100,14 @@ bool OTPaths::GetHomeFromSystem(OTString& out_strHomeFolder)
         out_strHomeFolder.Set("");
         return false;
     }
+
+#elif defined(__APPLE__)
+
+    OTString home(getenv("HOME"));
+    OTString library = "";
+    AppendFolder(library, home, "Library");
+    AppendFolder(out_strHomeFolder, library, "Application Support");
+
 #else
     out_strHomeFolder.Set(getenv("HOME"));
 #endif
