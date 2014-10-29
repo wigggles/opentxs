@@ -269,10 +269,10 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetCurrencyID(CURRENCY_TYPE_ID);
 
         const OTString strScale = xml->getAttributeValue("marketScale");
-        const int64_t lScale = strScale.Exists() ? atol(strScale.Get())
-                                                 : 0; // if it doesn't exist,
-                                                      // the 0 here causes the
-                                                      // below error to fire.
+        const int64_t lScale =
+            strScale.Exists() ? strScale.ToLong() : 0; // if it doesn't exist,
+                                                       // the 0 here causes the
+                                                       // below error to fire.
 
         if (!isPowerOfTen(lScale)) {
             otOut << "OTOffer::ProcessXMLNode: Failure: marketScale *must* be "
@@ -284,7 +284,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const OTString strPriceLimit = xml->getAttributeValue("priceLimit");
         const int64_t lPriceLimit = strPriceLimit.Exists()
-                                        ? atol(strPriceLimit.Get())
+                                        ? strPriceLimit.ToLong()
                                         : 0; // if it doesn't exist, the 0 here
                                              // causes the below error to fire.
 
@@ -301,10 +301,10 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetPriceLimit(lPriceLimit);
 
         const OTString strTotal = xml->getAttributeValue("totalAssetsOnOffer");
-        const int64_t lTotal = strTotal.Exists() ? atol(strTotal.Get())
-                                                 : 0; // if it doesn't exist,
-                                                      // the 0 here causes the
-                                                      // below error to fire.
+        const int64_t lTotal =
+            strTotal.Exists() ? strTotal.ToLong() : 0; // if it doesn't exist,
+                                                       // the 0 here causes the
+                                                       // below error to fire.
         if (lTotal < 1) {
             otOut << "OTOffer::ProcessXMLNode: Failure: totalAssetsOnOffer "
                      "*must* be larger than 0. Instead I got: " << lTotal
@@ -316,7 +316,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const OTString strFinished = xml->getAttributeValue("finishedSoFar");
         const int64_t lFinished = strFinished.Exists()
-                                      ? atol(strFinished.Get())
+                                      ? strFinished.ToLong()
                                       : 0; // if it doesn't exist, the 0 here
                                            // causes the below error to fire.
         if (lFinished < 0) {
@@ -328,10 +328,9 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetFinishedSoFar(lFinished);
 
         const OTString strMinInc = xml->getAttributeValue("minimumIncrement");
-        const int64_t lMinInc = strMinInc.Exists() ? atol(strMinInc.Get())
-                                                   : 0; // if it doesn't exist,
-                                                        // the 0 here causes the
-                                                        // below error to fire.
+        // if it doesn't exist, the 0 here causes the below error to fire.
+        const int64_t lMinInc = strMinInc.Exists() ? strMinInc.ToLong() : 0;
+
         if ((lMinInc < 1) || (lMinInc > lTotal)) // Minimum increment cannot
                                                  // logically be higher than the
                                                  // total assets on offer...
@@ -347,7 +346,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const OTString strTransNum = xml->getAttributeValue("transactionNum");
         const int64_t lTransNum =
-            strTransNum.Exists() ? atol(strTransNum.Get()) : 0;
+            strTransNum.Exists() ? strTransNum.ToLong() : 0;
 
         SetTransactionNum(lTransNum);
 

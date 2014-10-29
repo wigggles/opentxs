@@ -451,7 +451,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     strTransactionNumber =
                         xml->getAttributeValue("transactionNum");
                     server_->transactor_.transactionNumber(
-                        atol(strTransactionNumber.Get()));
+                        strTransactionNumber.ToLong());
 
                     OTLog::vOutput(
                         0,

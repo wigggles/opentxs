@@ -798,12 +798,11 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
     if (false == theMessage.m_strCommand.Compare("getRequest")) {
         // AND the request number attached does not match what we just
         // read out of the file...
-        if (lRequestNumber != atol(theMessage.m_strRequestNum.Get())) {
+        if (lRequestNumber != theMessage.m_strRequestNum.ToLong()) {
             OTLog::vOutput(0, "Request number sent in this message "
                               "%ld does not match the one in the "
                               "file! (%ld)\n",
-                           atol(theMessage.m_strRequestNum.Get()),
-                           lRequestNumber);
+                           theMessage.m_strRequestNum.ToLong(), lRequestNumber);
             return false;
         }
         // it's not a getRequest CMD, and the request number
@@ -1490,7 +1489,7 @@ void UserCommandProcessor::UserCmdGetMarketList(OTPseudonym&, OTMessage& MsgIn,
 
         OTString strCount;
         strCount.Format("%d", nMarketCount);
-        msgOut.m_lDepth = atol(strCount.Get());
+        msgOut.m_lDepth = strCount.ToLong();
     }
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
@@ -2658,7 +2657,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
     //
     if (msgOut.m_bSuccess) {
         const OTString strReplyMessage(msgOut);
-        const int64_t lReqNum = atol(MsgIn.m_strRequestNum.Get());
+        const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(SERVER_ID, USER_ID, strReplyMessage, lReqNum,
                                 false, // trans success (not a transaction...)
@@ -3120,7 +3119,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
     //
     if (msgOut.m_bSuccess) {
         const OTString strReplyMessage(msgOut);
-        const int64_t lReqNum = atol(MsgIn.m_strRequestNum.Get());
+        const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
@@ -4081,7 +4080,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
     //
     if (msgOut.m_bSuccess) {
         const OTString strReplyMessage(msgOut);
-        const int64_t lReqNum = atol(MsgIn.m_strRequestNum.Get());
+        const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(SERVER_ID, USER_ID, strReplyMessage, lReqNum,
@@ -4452,7 +4451,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     //
     if (msgOut.m_bSuccess) {
         const OTString strReplyMessage(msgOut);
-        const int64_t lReqNum = atol(MsgIn.m_strRequestNum.Get());
+        const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(SERVER_ID, USER_ID, strReplyMessage, lReqNum,
@@ -4799,7 +4798,7 @@ send_message:
     //
     if (msgOut.m_bSuccess) {
         const OTString strReplyMessage(msgOut);
-        const int64_t lReqNum = atol(MsgIn.m_strRequestNum.Get());
+        const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
@@ -5131,7 +5130,7 @@ send_message:
     //
     if (msgOut.m_bSuccess) {
         const OTString strReplyMessage(msgOut);
-        const int64_t lReqNum = atol(MsgIn.m_strRequestNum.Get());
+        const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(SERVER_ID, USER_ID, strReplyMessage,
@@ -5403,7 +5402,7 @@ send_message:
     //
     if (msgOut.m_bSuccess) {
         const OTString strReplyMessage(msgOut);
-        const int64_t lReqNum = atol(MsgIn.m_strRequestNum.Get());
+        const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
         //      DropReplyNoticeToNymbox(SERVER_ID, USER_ID,

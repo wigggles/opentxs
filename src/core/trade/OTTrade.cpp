@@ -198,7 +198,8 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strVersion = xml->getAttributeValue("version");
         tradesAlreadyDone_ = atoi(xml->getAttributeValue("completedNoTrades"));
 
-        SetTransactionNum(atol(xml->getAttributeValue("transactionNum")));
+        SetTransactionNum(
+            OTString::StringToLong(xml->getAttributeValue("transactionNum")));
 
         const OTString creationStr = xml->getAttributeValue("creationDate");
         const OTString validFromStr = xml->getAttributeValue("validFrom");
@@ -278,7 +279,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // Now we know the sign is properly formed, let's grab the price value.
 
-        stopPrice_ = atol(xml->getAttributeValue("price"));
+        stopPrice_ = OTString::StringToLong(xml->getAttributeValue("price"));
 
         OTString activated(xml->getAttributeValue("hasActivated"));
 

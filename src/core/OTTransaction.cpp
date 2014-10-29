@@ -4147,7 +4147,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         OTString strDateSigned = xml->getAttributeValue("dateSigned");
         const int64_t lDateSigned =
-            strDateSigned.Exists() ? atol(strDateSigned.Get()) : 0;
+            strDateSigned.Exists() ? strDateSigned.ToLong() : 0;
         m_DATE_SIGNED = OTTimeGetTimeFromSeconds(lDateSigned); // Todo casting ?
 
         const OTString strAcctID = xml->getAttributeValue("accountID");
@@ -4184,7 +4184,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 xml->getAttributeValue("requestNumber");
 
             if (strRequestNum.Exists())
-                m_lRequestNumber = atol(strRequestNum.Get());
+                m_lRequestNumber = strRequestNum.ToLong();
 
             const OTString strTransSuccess =
                 xml->getAttributeValue("transSuccess");
@@ -4240,10 +4240,10 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetRealServerID(SERVER_ID);
         }
 
-        if (strOrigin.Exists()) SetNumberOfOrigin(atol(strOrigin.Get()));
+        if (strOrigin.Exists()) SetNumberOfOrigin(strOrigin.ToLong());
 
-        SetTransactionNum(atol(strTransNum.Get()));
-        SetReferenceToNum(atol(strInRefTo.Get()));
+        SetTransactionNum(strTransNum.ToLong());
+        SetReferenceToNum(strInRefTo.ToLong());
 
         otLog4 << "Loaded transaction " << GetTransactionNum()
                << ", in reference to: " << GetReferenceToNum()
@@ -4257,7 +4257,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (strClosingNumber.Exists() &&
             ((OTTransaction::finalReceipt == m_Type) ||
              (OTTransaction::basketReceipt == m_Type))) {
-            m_lClosingTransactionNo = atol(strClosingNumber.Get());
+            m_lClosingTransactionNo = strClosingNumber.ToLong();
         }
         else {
             otErr << "Error in OTTransaction::ProcessXMLNode: "

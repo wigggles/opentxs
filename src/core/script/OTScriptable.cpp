@@ -2423,7 +2423,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     int64_t lOpeningTransNo = 0;
 
                     if (strOpeningTransNo.Exists())
-                        lOpeningTransNo = atol(strOpeningTransNo.Get());
+                        lOpeningTransNo = strOpeningTransNo.ToLong();
                     else
                         otErr << szFunc
                               << "s: Expected openingTransNo in party.\n";
@@ -2622,7 +2622,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                                 if (strClosingTransNo.Exists())
                                     lClosingTransNo =
-                                        atol(strClosingTransNo.Get());
+                                        strClosingTransNo.ToLong();
                                 else {
                                     otErr << szFunc << ": Expected "
                                                        "closingTransNo in "

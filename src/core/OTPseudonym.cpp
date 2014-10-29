@@ -4893,7 +4893,7 @@ bool OTPseudonym::LoadFromString(
                 OTString strCredits = xml->getAttributeValue("usageCredits");
 
                 if (strCredits.GetLength() > 0)
-                    m_lUsageCredits = atol(strCredits.Get());
+                    m_lUsageCredits = strCredits.ToLong();
                 else
                     m_lUsageCredits =
                         0; // This is the default anyway, but just being safe...
@@ -5181,8 +5181,7 @@ bool OTPseudonym::LoadFromString(
                 // Make sure now that I've loaded this request number, to add it
                 // to my
                 // internal map so that it is available for future lookups.
-                m_mapRequestNum[ReqNumServerID.Get()] =
-                    atol(ReqNumCurrent.Get());
+                m_mapRequestNum[ReqNumServerID.Get()] = ReqNumCurrent.ToLong();
             }
             else if (strNodeName.Compare("nymboxHash")) {
                 const OTString strValue = xml->getAttributeValue("value");
@@ -5273,7 +5272,7 @@ bool OTPseudonym::LoadFromString(
                 // to my
                 // internal map so that it is available for future lookups.
                 m_mapHighTransNo[HighNumServerID.Get()] =
-                    atol(HighNumRecent.Get());
+                    HighNumRecent.ToLong();
             }
             else if (strNodeName.Compare("transactionNums")) {
                 const OTString tempServerID =
@@ -5415,9 +5414,9 @@ bool OTPseudonym::LoadFromString(
 
                 AddTransactionNum(
                     TransNumServerID,
-                    atol(TransNumAvailable.Get())); // This version doesn't save
-                                                    // to disk. (Why save to
-                                                    // disk AS WE'RE LOADING?)
+                    TransNumAvailable.ToLong()); // This version doesn't save
+                                                 // to disk. (Why save to
+                                                 // disk AS WE'RE LOADING?)
             }
             else if (strNodeName.Compare("issuedNum")) {
                 const OTString TransNumServerID =
@@ -5430,11 +5429,11 @@ bool OTPseudonym::LoadFromString(
                        << ", for ServerID: " << TransNumServerID << "\n";
 
                 AddIssuedNum(TransNumServerID,
-                             atol(TransNumAvailable.Get())); // This version
-                                                             // doesn't save to
-                                                             // disk. (Why save
-                                                             // to disk AS WE'RE
-                                                             // LOADING?)
+                             TransNumAvailable.ToLong()); // This version
+                                                          // doesn't save to
+                                                          // disk. (Why save
+                                                          // to disk AS WE'RE
+                                                          // LOADING?)
             }
             else if (strNodeName.Compare("tentativeNum")) {
                 const OTString TransNumServerID =
@@ -5447,12 +5446,12 @@ bool OTPseudonym::LoadFromString(
                        << ", for ServerID: " << TransNumServerID << "\n";
 
                 AddTentativeNum(TransNumServerID,
-                                atol(TransNumAvailable.Get())); // This version
-                                                                // doesn't save
-                                                                // to disk. (Why
-                                                                // save to disk
-                                                                // AS WE'RE
-                                                                // LOADING?)
+                                TransNumAvailable.ToLong()); // This version
+                                                             // doesn't save
+                                                             // to disk. (Why
+                                                             // save to disk
+                                                             // AS WE'RE
+                                                             // LOADING?)
             }
             else if (strNodeName.Compare("acknowledgedNum")) {
                 const OTString AckNumServerID =
@@ -5465,11 +5464,11 @@ bool OTPseudonym::LoadFromString(
                        << ", for ServerID: " << AckNumServerID << "\n";
 
                 AddAcknowledgedNum(AckNumServerID,
-                                   atol(AckNumValue.Get())); // This version
-                                                             // doesn't save to
-                                                             // disk. (Why save
-                                                             // to disk AS WE'RE
-                                                             // LOADING?)
+                                   AckNumValue.ToLong()); // This version
+                                                          // doesn't save to
+                                                          // disk. (Why save
+                                                          // to disk AS WE'RE
+                                                          // LOADING?)
             }
             else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
                 m_bMarkForDeletion = true;
@@ -5480,7 +5479,7 @@ bool OTPseudonym::LoadFromString(
                 OTString strID = xml->getAttributeValue("ID");
 
                 if (strID.Exists()) {
-                    const int64_t lNewID = atol(strID.Get());
+                    const int64_t lNewID = strID.ToLong();
                     m_setOpenCronItems.insert(lNewID);
                     otLog3 << "This nym has an open cron item with ID: "
                            << strID << "\n";

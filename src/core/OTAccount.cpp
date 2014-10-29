@@ -389,7 +389,7 @@ bool OTAccount::SaveAccount()
 // credited somewhere else)
 bool OTAccount::Debit(const int64_t& amount)
 {
-    int64_t oldBalance = atol(balanceAmount_.Get());
+    int64_t oldBalance = balanceAmount_.ToLong();
     // The MINUS here is the big difference between Debit and Credit
     int64_t newBalance = oldBalance - amount;
 
@@ -421,7 +421,7 @@ bool OTAccount::Debit(const int64_t& amount)
 // debited somewhere else)
 bool OTAccount::Credit(const int64_t& amount)
 {
-    int64_t oldBalance = atol(balanceAmount_.Get());
+    int64_t oldBalance = balanceAmount_.ToLong();
     // The PLUS here is the big difference between Debit and Credit.
     int64_t newBalance = oldBalance + amount;
 
@@ -676,7 +676,7 @@ bool OTAccount::GenerateNewAccount(const OTPseudonym& server,
 int64_t OTAccount::GetBalance() const
 {
     if (balanceAmount_.Exists()) {
-        return atol(balanceAmount_.Get());
+        return balanceAmount_.ToLong();
     }
     return 0;
 }
@@ -895,7 +895,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         // (Just an easy way to keep the data clean.)
 
         int32_t date = atoi(balanceDate_.Get());
-        int64_t amount = atol(balanceAmount_.Get());
+        int64_t amount = balanceAmount_.ToLong();
 
         balanceDate_.Format("%d", date);
         balanceAmount_.Format("%" PRId64, amount);
@@ -915,7 +915,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         int64_t lTransNum = 0;
         OTString strStashTransNum = xml->getAttributeValue("cronItemNum");
         if (!strStashTransNum.Exists() ||
-            ((lTransNum = atol(strStashTransNum.Get())) <= 0)) {
+            ((lTransNum = strStashTransNum.ToLong()) <= 0)) {
             stashTransNum_ = 0;
             otErr << "OTAccount::ProcessXMLNode: Error: Bad transaction number "
                      "for supposed corresponding cron item: " << lTransNum

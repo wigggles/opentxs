@@ -167,8 +167,9 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     if (!strcmp("market", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
-        SetScale(atol(xml->getAttributeValue("marketScale")));
-        m_lLastSalePrice = atol(xml->getAttributeValue("lastSalePrice"));
+        SetScale(OTString::StringToLong(xml->getAttributeValue("marketScale")));
+        m_lLastSalePrice =
+            OTString::StringToLong(xml->getAttributeValue("lastSalePrice"));
         m_strLastSaleDate = xml->getAttributeValue("lastSaleDate");
 
         const OTString strServerID(xml->getAttributeValue("serverID")),

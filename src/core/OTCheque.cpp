@@ -218,9 +218,10 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
         m_bHasRemitter = strHasRemitter.Compare("true");
 
         m_strVersion = xml->getAttributeValue("version");
-        m_lAmount = atol(xml->getAttributeValue("amount"));
+        m_lAmount = OTString::StringToLong(xml->getAttributeValue("amount"));
 
-        SetTransactionNum(atol(xml->getAttributeValue("transactionNum")));
+        SetTransactionNum(
+            OTString::StringToLong(xml->getAttributeValue("transactionNum")));
 
         const OTString str_valid_from = xml->getAttributeValue("validFrom");
         const OTString str_valid_to = xml->getAttributeValue("validTo");

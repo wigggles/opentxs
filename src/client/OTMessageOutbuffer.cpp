@@ -172,10 +172,10 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     int64_t lRequestNum = 0;
 
     if (theMessage.m_strRequestNum.Exists())
-        lRequestNum = atol(theMessage.m_strRequestNum.Get()); // The map index
-                                                              // is the request
-                                                              // number on the
-                                                              // message itself.
+        lRequestNum = theMessage.m_strRequestNum.ToLong(); // The map index
+                                                           // is the request
+                                                           // number on the
+                                                           // message itself.
 
     // It's technically possible to have TWO messages (from two different
     // servers) that happen to have the same request number. So we verify

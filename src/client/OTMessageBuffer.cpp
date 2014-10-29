@@ -209,7 +209,7 @@ std::shared_ptr<OTMessage> OTMessageBuffer::Pop(const int64_t& lRequestNum,
         // (And that all others, though popped, were pushed to temp_list in
         // order.)
 
-        const int64_t lMsgRequest = atol(pMsg->m_strRequestNum.Get());
+        const int64_t lMsgRequest = pMsg->m_strRequestNum.ToLong();
 
         // Now we only need to see if the request number matches...
         //

@@ -1071,8 +1071,8 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const OTString strTotalValue = xml->getAttributeValue("totalValue");
 
-        if (strTotalValue.Exists() && (atol(strTotalValue.Get()) > 0))
-            m_lTotalValue = atol(strTotalValue.Get());
+        if (strTotalValue.Exists() && (strTotalValue.ToLong() > 0))
+            m_lTotalValue = strTotalValue.ToLong();
         else
             m_lTotalValue = 0;
 
