@@ -595,16 +595,9 @@ uint8_t* OTCrypto_OpenSSL::Base64Decode(const char* input, size_t* out_len,
     return buf;
 }
 
-// SET (binary id) FROM BASE62-ENCODED STRING
-//
-// Using a BigInteger lib I just added.
-//
-// Hopefully use something like this to replace some of the internals for
-// OTIdentifier.
-// I need to get the author to add a "back into data again" function though.
-//
-void OTCrypto_OpenSSL::SetIDFromBase62String(const OTString& strInput,
-                                             OTIdentifier& theOutput) const
+// Decode formatted OT ID to the binary hash ID.
+void OTCrypto_OpenSSL::SetIDFromEncoded(const OTString& strInput,
+                                        OTIdentifier& theOutput) const
 {
     theOutput.Release();
 
@@ -622,16 +615,9 @@ void OTCrypto_OpenSSL::SetIDFromBase62String(const OTString& strInput,
            decoded.size());
 }
 
-// GET (binary id) AS BASE62-ENCODED STRING
-//
-// This Identifier is stored in binary form.
-// But what if you want a pretty hex string version of it?
-// Just call this function.
-// UPDATE: Now Base62 instead of Hex. (More compact.)
-// Easy double-click the ID and the entire thing highlights at once.
-//
-void OTCrypto_OpenSSL::SetBase62StringFromID(const OTIdentifier& theInput,
-                                             OTString& strOutput) const
+// Encode binary hash ID to the formatted OT ID.
+void OTCrypto_OpenSSL::EncodeID(const OTIdentifier& theInput,
+                                OTString& strOutput) const
 {
     strOutput.Release();
 

@@ -268,10 +268,10 @@ public:
     //
     bool IsBase62(const std::string& str) const;
 
-    virtual void SetIDFromBase62String(const OTString& strInput,
-                                       OTIdentifier& theOutput) const = 0;
-    virtual void SetBase62StringFromID(const OTIdentifier& theInput,
-                                       OTString& strOutput) const = 0;
+    virtual void SetIDFromEncoded(const OTString& strInput,
+                                  OTIdentifier& theOutput) const = 0;
+    virtual void EncodeID(const OTIdentifier& theInput,
+                          OTString& strOutput) const = 0;
     // BASE 64 ENCODING
     // Caller is responsible to delete. Todo: return a unqiue pointer.
     virtual char* Base64Encode(const uint8_t* input, int32_t in_len,
