@@ -137,7 +137,7 @@
 #include "util/Assert.hpp"
 
 #include <deque>
-#include <ostream>
+#include <iostream>
 #include <cstdint>
 
 #if defined(unix) || defined(__unix__) || defined(__unix) ||                   \

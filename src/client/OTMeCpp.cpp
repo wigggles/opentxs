@@ -133,9 +133,21 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include "OTMeCpp.hpp"
-#include <opentxs/client/ot_commands_ot.hpp>
 #include "ot_made_easy_ot.hpp"
 #include <opentxs/client/ot_otapi_ot.hpp>
+
+#include "commands/CmdAcceptInbox.hpp"
+#include "commands/CmdAcceptPayments.hpp"
+#include "commands/CmdAcceptReceipts.hpp"
+#include "commands/CmdAcceptTransfers.hpp"
+#include "commands/CmdCancel.hpp"
+#include "commands/CmdDeposit.hpp"
+#include "commands/CmdDiscard.hpp"
+#include "commands/CmdExportCash.hpp"
+#include "commands/CmdSendCash.hpp"
+#include "commands/CmdWithdrawCash.hpp"
+
+#include <opentxs/core/OTLog.hpp>
 
 namespace opentxs
 {
@@ -238,7 +250,14 @@ bool OTMeCpp::retrieve_account(const std::string& SERVER_ID,
 bool OTMeCpp::retrieve_nym(const std::string& SERVER_ID,
                            const std::string& NYM_ID, bool bForceDownload) const
 {
-    return OT_Command::details_refresh_nym(SERVER_ID, NYM_ID, bForceDownload);
+    bool msgWasSent = false;
+    if (0 >
+        MadeEasy::retrieve_nym(SERVER_ID, NYM_ID, msgWasSent, bForceDownload)) {
+        otOut << "Error: cannot retrieve nym.\n";
+        return false;
+    }
+
+    return true;
 }
 
 std::string OTMeCpp::send_transfer(const std::string& SERVER_ID,
@@ -264,31 +283,52 @@ bool OTMeCpp::accept_inbox_items(const std::string& ACCOUNT_ID,
                                  int32_t nItemType,
                                  const std::string& INDICES) const
 {
-    return OT_Command::accept_inbox_items(ACCOUNT_ID, nItemType, INDICES) == 1;
+    switch (nItemType) {
+    case 0: {
+        CmdAcceptInbox acceptInbox;
+        return 1 == acceptInbox.run(ACCOUNT_ID, INDICES);
+    }
+
+    case 1: {
+        CmdAcceptTransfers acceptTransfers;
+        return 1 == acceptTransfers.run(ACCOUNT_ID, INDICES);
+    }
+
+    case 2: {
+        CmdAcceptReceipts acceptReceipts;
+        return 1 == acceptReceipts.run(ACCOUNT_ID, INDICES);
+    }
+
+    default:
+        otErr << __FUNCTION__ << ": Invalid nItemType.\n";
+        break;
+    }
+
+    return false;
 }
 
 bool OTMeCpp::discard_incoming_payments(const std::string& SERVER_ID,
                                         const std::string& NYM_ID,
                                         const std::string& INDICES) const
 {
-    return OT_Command::details_discard_incoming(SERVER_ID, NYM_ID, INDICES) ==
-           1;
+    CmdDiscard discard;
+    return 1 == discard.run(SERVER_ID, NYM_ID, INDICES);
 }
 
 bool OTMeCpp::cancel_outgoing_payments(const std::string& NYM_ID,
                                        const std::string& ACCOUNT_ID,
                                        const std::string& INDICES) const
 {
-    return OT_Command::details_cancel_outgoing(NYM_ID, ACCOUNT_ID, INDICES) ==
-           1;
+    CmdCancel cancel;
+    return 1 == cancel.run(NYM_ID, ACCOUNT_ID, INDICES);
 }
 
 bool OTMeCpp::accept_from_paymentbox(const std::string& ACCOUNT_ID,
                                      const std::string& INDICES,
                                      const std::string& PAYMENT_TYPE) const
 {
-    return 1 == OT_Command::accept_from_paymentbox(ACCOUNT_ID, INDICES,
-                                                   PAYMENT_TYPE);
+    CmdAcceptPayments cmd;
+    return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE);
 }
 
 std::string OTMeCpp::load_public_encryption_key(const std::string& NYM_ID) const
@@ -377,13 +417,12 @@ std::string OTMeCpp::send_user_cash(const std::string& SERVER_ID,
 
 bool OTMeCpp::withdraw_and_send_cash(const std::string& ACCT_ID,
                                      const std::string& RECIPIENT_NYM_ID,
-                                     const std::string& MEMO,
                                      int64_t AMOUNT) const
 {
-    std::string recipient_nym_id = RECIPIENT_NYM_ID;
-
-    return OT_Command::withdraw_and_send_cash(ACCT_ID, recipient_nym_id, MEMO,
-                                              std::to_string(AMOUNT));
+    CmdSendCash sendCash;
+    return 1 ==
+           sendCash.run("", "", ACCT_ID, "", RECIPIENT_NYM_ID,
+                        std::to_string(AMOUNT), "", "");
 }
 
 std::string OTMeCpp::get_payment_instrument(
@@ -492,7 +531,8 @@ std::string OTMeCpp::withdraw_cash(const std::string& SERVER_ID,
 bool OTMeCpp::easy_withdraw_cash(const std::string& ACCT_ID,
                                  int64_t AMOUNT) const
 {
-    return 1 == OT_Command::details_withdraw_cash(ACCT_ID, AMOUNT);
+    CmdWithdrawCash cmd;
+    return 1 == cmd.withdrawCash(ACCT_ID, AMOUNT);
 }
 
 std::string OTMeCpp::export_cash(const std::string& SERVER_ID,
@@ -504,9 +544,9 @@ std::string OTMeCpp::export_cash(const std::string& SERVER_ID,
                                  std::string& STR_RETAINED_COPY) const
 {
     std::string to_nym_id = TO_NYM_ID;
-    return OT_Command::details_export_cash(
-        SERVER_ID, FROM_NYM_ID, ASSET_TYPE_ID, to_nym_id, STR_INDICES,
-        bPasswordProtected, STR_RETAINED_COPY);
+    CmdExportCash cmd;
+    return cmd.exportCash(SERVER_ID, FROM_NYM_ID, ASSET_TYPE_ID, to_nym_id,
+                          STR_INDICES, bPasswordProtected, STR_RETAINED_COPY);
 }
 
 std::string OTMeCpp::withdraw_voucher(const std::string& SERVER_ID,
@@ -544,8 +584,8 @@ bool OTMeCpp::deposit_cash(const std::string& SERVER_ID,
                            const std::string& ACCT_ID,
                            const std::string& STR_PURSE) const
 {
-    return 1 == OT_Command::details_deposit_purse(SERVER_ID, ACCT_ID, NYM_ID,
-                                                  STR_PURSE, "");
+    CmdDeposit cmd;
+    return 1 == cmd.depositPurse(SERVER_ID, ACCT_ID, NYM_ID, STR_PURSE, "");
 }
 
 bool OTMeCpp::deposit_local_purse(const std::string& SERVER_ID,
@@ -553,8 +593,8 @@ bool OTMeCpp::deposit_local_purse(const std::string& SERVER_ID,
                                   const std::string& ACCT_ID,
                                   const std::string& STR_INDICES) const
 {
-    return 1 == OT_Command::details_deposit_purse(SERVER_ID, ACCT_ID, NYM_ID,
-                                                  "", STR_INDICES);
+    CmdDeposit cmd;
+    return 1 == cmd.depositPurse(SERVER_ID, ACCT_ID, NYM_ID, "", STR_INDICES);
 }
 
 std::string OTMeCpp::get_market_list(const std::string& SERVER_ID,

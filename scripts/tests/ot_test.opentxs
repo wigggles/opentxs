@@ -8,30 +8,90 @@
 # macro definitions
 #
 
-$SERVER      = r1fUoHwJOWCuK3WBAAySjmKYqsG6G2TYIxdqY6YNuuG
+$SERVER       = r1fUoHwJOWCuK3WBAAySjmKYqsG6G2TYIxdqY6YNuuG
 
-$FTNYM       = DYEB6U7dcpbwdGrftPnslNKz76BDuBTFAjiAgKaiY2n
-$BOBNYM      = HpDoVBTix9GRLvZZoKBi2zv2f4IFVLmRrW2Q0nAA0OH
+$FTNYM        = DYEB6U7dcpbwdGrftPnslNKz76BDuBTFAjiAgKaiY2n
+$BOBNYM       = HpDoVBTix9GRLvZZoKBi2zv2f4IFVLmRrW2Q0nAA0OH
 
-$FTACCT      = yQGh0vgm9YiqYOh6bfLDxyAA7Nnh2NmturCQmOt4LTo
-$BOBACCT     = O8uUtFNyeKUqYdaBrroDR9OIgPhvtW91iBBVNEfbHDC
+$FTACCT       = yQGh0vgm9YiqYOh6bfLDxyAA7Nnh2NmturCQmOt4LTo
+$BOBACCT      = O8uUtFNyeKUqYdaBrroDR9OIgPhvtW91iBBVNEfbHDC
 
-$SILVERPURSE = JY7kEFnm2c50CGNphdpgnlVo2hOZuLrBua5cFqWWR9Q
-$TOKENSPURSE = 7f8nlUn795x8931JParRnmKAyw8cegRyBMcFg9FccaF
+$BITCOINPURSE = XU1Gu6sjcLxg260FmRgrSvRz9L0OohXRSEhlkeSd9j2
+$DOLLARPURSE  = EYGad9FjZWgGKeVbgh2FbA0Hf8oP0XlnRyYCsvSIYKL
+$SILVERPURSE  = JY7kEFnm2c50CGNphdpgnlVo2hOZuLrBua5cFqWWR9Q
+$TOKENSPURSE  = 7f8nlUn795x8931JParRnmKAyw8cegRyBMcFg9FccaF
 
 
 #
 # test commands
 #
 
-# show the asset accounts in the wallet.
-showaccounts
+# display wallet contents.
+showwallet
 
 # show the server contracts in the wallet.
 showservers
 
-# show the currency contracts in the wallet.
+# edit a server label
+!editserver
+!editserver                  --label localhost
+!editserver --server dummy   --label localhost
+!editserver --server $SERVER
+editserver --server $SERVER --label localhost
+
+# show the server contracts in the wallet.
+showservers
+
+# show the nyms in the wallet.
+shownyms
+
+# edit a nym label
+!editnym
+!editnym                 --label FellowTraveler
+!editnym --mynym dummy   --label FellowTraveler
+!editnym --mynym $FTNYM
+editnym --mynym $FTNYM --label FellowTraveler
+
+# show the nyms in the wallet.
+shownyms
+
+# show the asset contracts in the wallet.
 showassets
+
+# edit an asset label
+!editasset
+!editasset                        --label "Funny money""
+!editasset --mypurse dummy        --label "Funny money"
+!editasset --mypurse $DOLLARPURSE
+editasset --mypurse $DOLLARPURSE --label "Funny money"
+
+# show the asset contracts in the wallet.
+showassets
+
+# show the asset accounts in the wallet.
+showaccounts
+
+# edit an account label
+!editaccount
+!editaccount                  --label "Silver mine"
+!editaccount --myacct dummy   --label "Silver mine"
+!editaccount --myacct $FTACCT
+editaccount --myacct $FTACCT --label "Silver mine"
+
+# show the asset accounts in the wallet.
+showaccounts
+
+# show the statistics for a specific nym.
+!shownym
+!shownym --mynym dummy
+shownym --mynym $FTNYM
+shownym --mynym $BOBNYM
+
+# show the statistics for a specific account.
+!showaccount
+!showaccount --myacct dummy
+showaccount --myacct $FTACCT
+showaccount --myacct $BOBACCT
 
 # download a nym's public key based on his ID.
 !checknym
@@ -43,24 +103,14 @@ showassets
 !checknym --server $SERVER --mynym $FTNYM --hisnym dummy
 checknym --server $SERVER --mynym $FTNYM --hisnym $BOBNYM
 
-# show the nyms in the wallet.
-shownyms
-
-# display wallet contents.
-showwallet
-
-# show the statistics for a specific nym.
-!shownym
-!shownym --mynym dummy
-shownym --mynym $FTNYM
-
 # download the list of markets.
 !getmarkets
 !getmarkets                  --mynym $FTNYM
 !getmarkets --server dummy   --mynym $FTNYM
 !getmarkets --server $SERVER 
 !getmarkets --server $SERVER --mynym dummy
-getmarkets --server $SERVER --mynym $FTNYM
+# NOTE: there currently is no market list in the sample data 
+!getmarkets --server $SERVER --mynym $FTNYM
 
 # display the list of markets on a particular server.
 !showmarkets
@@ -80,13 +130,173 @@ showbalance --myacct $FTACCT
 
 # performs both refreshnym and refreshaccount.
 !refresh
-!refresh                  --mynym $FTNYM --myacct $FTACCT
-!refresh --server dummy   --mynym $FTNYM --myacct $FTACCT
-!refresh --server $SERVER                --myacct $FTACCT
-!refresh --server $SERVER --mynym dummy  --myacct $FTACCT
-!refresh --server $SERVER --mynym $FTNYM
-!refresh --server $SERVER --mynym $FTNYM --myacct dummy
-refresh --server $SERVER --mynym $FTNYM --myacct $FTACCT
+!refresh --myacct dummy
+refresh --myacct $FTACCT
+
+# ----------------------------------------------------------------------------------------
+# encode/decode, encrypt/decrypt passwordencrypt/passworddecrypt
+
+!encode
+~
+
+encode
+The quick brown fox jumps over the lazy cat...
+~
+
+!decode
+~
+
+# decode plaintext
+!decode
+The quick brown fox jumps over the lazy cat...
+~
+
+# decode incomplete wrapper
+!decode
+-----BEGIN OT ARMORED ENCODED TEXT-----
+Version: Open Transactions 0.93.0
+Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
+
+eNrj0g/JSFUoLM1MzlZIKsovz1NIy69QyCrNLShWyC9LLVIoAUrnJFZVKiQnlujp
+6XEBAKeOEKU=
+~
+
+# decode complete wrapper
+decode
+-----BEGIN OT ARMORED ENCODED TEXT-----
+Version: Open Transactions 0.93.0
+Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
+
+eNrj0g/JSFUoLM1MzlZIKsovz1NIy69QyCrNLShWyC9LLVIoAUrnJFZVKiQnlujp
+6XEBAKeOEKU=
+-----END OT ARMORED ENCODED TEXT-----
+~
+
+# decode without wrapper
+decode
+eNrj0g/JSFUoLM1MzlZIKsovz1NIy69QyCrNLShWyC9LLVIoAUrnJFZVKiQnlujp
+6XEBAKeOEKU=
+~
+
+
+!encrypt
+!encrypt --mynym dummy
+!encrypt --mynym $FTNYM
+~
+
+encrypt --mynym $FTNYM
+The quick brown fox jumps over the lazy cat...
+~
+
+
+!decrypt
+!decrypt --mynym dummy
+!decrypt --mynym $FTNYM
+~
+
+# decrypt plaintext
+!decrypt --mynym $FTNYM
+The quick brown fox jumps over the lazy cat...
+~
+
+# decrypt using wrong nym
+!decrypt --mynym $BOBNYM
+-----BEGIN OT ARMORED ENCRYPTED TEXT-----
+Version: Open Transactions 0.93.0
+Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
+
+Co4CAAEAAAABAAAALERZRUI2VTdkY3Bid2RHcmZ0UG5zbE5Lejc2QkR1QlRGQWpp
+QWdLYWlZMm4AAAAAgFPrhN4uWC1zTPf/QkX3dc21yB+PObanFl6a/S8tFAC5CwGr
+NbDNa8EOgZd4ADme/dqOORPgiSIixbukgyCm8DVCpUNghxsDTddT0ycp/WmEB+x2
++TpaoMAkqzpRaa69m0PD8ERqdzF330AJzx3AY2II96Jw4bbz7ud9GEILZWkrAAAA
+EGqY0JX9ALTmX0Mxh2QdfBcrxeiOs7mw1CsRjOXMmXjmZPVX/hzmDJmI7hcZS6lZ
+/DZLoOtg0Z5WQDXRAKlCSZyFh/0ycVroGTg1G21hsg1T
+-----END OT ARMORED ENCRYPTED TEXT-----
+~
+
+# decrypt incomplete wrapper
+!decrypt --mynym $FTNYM
+-----BEGIN OT ARMORED ENCRYPTED TEXT-----
+Version: Open Transactions 0.93.0
+Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
+
+Co4CAAEAAAABAAAALERZRUI2VTdkY3Bid2RHcmZ0UG5zbE5Lejc2QkR1QlRGQWpp
+QWdLYWlZMm4AAAAAgFPrhN4uWC1zTPf/QkX3dc21yB+PObanFl6a/S8tFAC5CwGr
+NbDNa8EOgZd4ADme/dqOORPgiSIixbukgyCm8DVCpUNghxsDTddT0ycp/WmEB+x2
++TpaoMAkqzpRaa69m0PD8ERqdzF330AJzx3AY2II96Jw4bbz7ud9GEILZWkrAAAA
+EGqY0JX9ALTmX0Mxh2QdfBcrxeiOs7mw1CsRjOXMmXjmZPVX/hzmDJmI7hcZS6lZ
+/DZLoOtg0Z5WQDXRAKlCSZyFh/0ycVroGTg1G21hsg1T
+~
+
+# decrypt complete wrapper
+decrypt --mynym $FTNYM
+-----BEGIN OT ARMORED ENCRYPTED TEXT-----
+Version: Open Transactions 0.93.0
+Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
+
+Co4CAAEAAAABAAAALERZRUI2VTdkY3Bid2RHcmZ0UG5zbE5Lejc2QkR1QlRGQWpp
+QWdLYWlZMm4AAAAAgFPrhN4uWC1zTPf/QkX3dc21yB+PObanFl6a/S8tFAC5CwGr
+NbDNa8EOgZd4ADme/dqOORPgiSIixbukgyCm8DVCpUNghxsDTddT0ycp/WmEB+x2
++TpaoMAkqzpRaa69m0PD8ERqdzF330AJzx3AY2II96Jw4bbz7ud9GEILZWkrAAAA
+EGqY0JX9ALTmX0Mxh2QdfBcrxeiOs7mw1CsRjOXMmXjmZPVX/hzmDJmI7hcZS6lZ
+/DZLoOtg0Z5WQDXRAKlCSZyFh/0ycVroGTg1G21hsg1T
+-----END OT ARMORED ENCRYPTED TEXT-----
+~
+
+# decrypt without wrapper
+decrypt --mynym $FTNYM
+Co4CAAEAAAABAAAALERZRUI2VTdkY3Bid2RHcmZ0UG5zbE5Lejc2QkR1QlRGQWpp
+QWdLYWlZMm4AAAAAgFPrhN4uWC1zTPf/QkX3dc21yB+PObanFl6a/S8tFAC5CwGr
+NbDNa8EOgZd4ADme/dqOORPgiSIixbukgyCm8DVCpUNghxsDTddT0ycp/WmEB+x2
++TpaoMAkqzpRaa69m0PD8ERqdzF330AJzx3AY2II96Jw4bbz7ud9GEILZWkrAAAA
+EGqY0JX9ALTmX0Mxh2QdfBcrxeiOs7mw1CsRjOXMmXjmZPVX/hzmDJmI7hcZS6lZ
+/DZLoOtg0Z5WQDXRAKlCSZyFh/0ycVroGTg1G21hsg1T
+~
+
+
+#
+#newkey
+#The quick brown fox jumps over the lazy cat
+#The quick brown fox jumps over the lazy cat
+#
+#
+#passwordencrypt
+#-----BEGIN OT ARMORED SYMMETRIC KEY-----
+#Version: Open Transactions 0.93.0
+#Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
+#
+#CmAAAQCAAAD//wAAAAi18x1ZVqdEzgAAABAYkkdEnUihGBl1wuDrjmDPAAAAIKTC
+#vJnME700AYPVSNn1TBws5K3CV5s8oGtqFvzlv4ckAAAAEJAlUEtdqNMnIJfUJY33
+#b3Q=
+#-----END OT ARMORED SYMMETRIC KEY-----
+#~
+#The quick brown fox jumps over the lazy dog
+#~
+#The quick brown fox jumps over the lazy cat
+#
+#
+#passworddecrypt
+#-----BEGIN OT ARMORED SYMMETRIC KEY-----
+#Version: Open Transactions 0.93.0
+#Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
+#
+#CmAAAQCAAAD//wAAAAi18x1ZVqdEzgAAABAYkkdEnUihGBl1wuDrjmDPAAAAIKTC
+#vJnME700AYPVSNn1TBws5K3CV5s8oGtqFvzlv4ckAAAAEJAlUEtdqNMnIJfUJY33
+#b3Q=
+#-----END OT ARMORED SYMMETRIC KEY-----
+#~
+#-----BEGIN OT ARMORED SYMMETRIC MSG-----
+#Version: Open Transactions 0.93.0
+#Comment: http://github.com/FellowTraveler/Open-Transactions/wiki
+#
+#CkYAAgAAABB6qPGwuTZ5gcj1N9kNpoL+IAShJngifoMyKdKjqN9Z+F3shFfA4UjB
+#pXzEoaF1eii+/QOf+6R8UuNGejsR7aJ/
+#-----END OT ARMORED SYMMETRIC MSG-----
+#~
+#The quick brown fox jumps over the lazy cat
+#
+
+
 
 # ----------------------------------------------------------------------------------------
 # Cash Handling
@@ -103,12 +313,10 @@ showmint --server $SERVER --mynym $FTNYM --mypurse $SILVERPURSE
 
 # withdraw cash. (From acct on server into local purse.)
 !withdraw
-!withdraw                  --args "amount 6"
-!withdraw --myacct dummy   --args "amount 6"
+!withdraw                  --amount 6
+!withdraw --myacct dummy   --amount 6
 #!withdraw --myacct $FTACCT
-#!withdraw --myacct $FTACCT --args
-#!withdraw --myacct $FTACCT --args nonsense
-withdraw --myacct $FTACCT --args "amount 6"
+withdraw --myacct $FTACCT --amount 6
 
 # show contents of cash purse.
 !showpurse
@@ -123,7 +331,7 @@ showpurse --server $SERVER --mynym $FTNYM --mypurse $SILVERPURSE
 # deposit cash, cheque, voucher, or tokens.
 !deposit
 !deposit --myacct dummy
-deposit --myacct $FTACCT --args "indices all"
+deposit --myacct $FTACCT --indices all
 
 # show contents of cash purse.
 !showpurse
@@ -137,13 +345,8 @@ showpurse --server $SERVER --mynym $FTNYM --mypurse $SILVERPURSE
 
 # download latest intermediary files for myacct.
 !refresh
-!refresh                  --mynym $BOBNYM --myacct $BOBACCT
-!refresh --server dummy   --mynym $BOBNYM --myacct $BOBACCT
-!refresh --server $SERVER                 --myacct $BOBACCT
-!refresh --server $SERVER --mynym dummy   --myacct $BOBACCT
-!refresh --server $SERVER --mynym $BOBNYM
-!refresh --server $SERVER --mynym $BOBNYM --myacct dummy
-refresh --server $SERVER --mynym $BOBNYM --myacct $BOBACCT
+!refresh --myacct dummy
+refresh --myacct $BOBACCT
 
 # show account stats for a single account.
 !showaccount
@@ -152,14 +355,12 @@ showaccount --myacct $BOBACCT
 
 # send cash from mypurse to recipient, withdraw since purse should be empty.
 !sendcash
-!sendcash                  --hisnym $BOBNYM --args "amount 16 memo 'Test FTs sendcash memo.'"
-!sendcash --myacct dummy   --hisnym $BOBNYM --args "amount 16 memo 'Test FTs sendcash memo.'"
-!sendcash --myacct $FTACCT                  --args "amount 16 memo 'Test FTs sendcash memo.'"
-!sendcash --myacct $FTACCT --hisnym dummy   --args "amount 16 memo 'Test FTs sendcash memo.'"
+!sendcash                  --hisnym $BOBNYM --amount 16 --memo "Test FTs sendcash memo."
+!sendcash --myacct dummy   --hisnym $BOBNYM --amount 16 --memo "Test FTs sendcash memo."
+!sendcash --myacct $FTACCT                  --amount 16 --memo "Test FTs sendcash memo."
+!sendcash --myacct $FTACCT --hisnym dummy   --amount 16 --memo "Test FTs sendcash memo."
 #!sendcash --myacct $FTACCT --hisnym $BOBNYM
-#!sendcash --myacct $FTACCT --hisnym $BOBNYM --args
-#!sendcash --myacct $FTACCT --hisnym $BOBNYM --args nonsense
-sendcash --myacct $FTACCT --hisnym $BOBNYM --args "amount 16 memo 'Test FTs sendcash memo.'"
+sendcash --myacct $FTACCT --hisnym $BOBNYM --amount 16 --memo "Test FTs sendcash memo."
 
 # accept all incoming transfers and payments into MyAcct.
 !acceptmoney
@@ -177,14 +378,12 @@ showaccount --myacct $BOBACCT
 
 # send a transfer from myacct to hisacct.
 !transfer
-!transfer                  --hisacct $BOBACCT --args "amount 11 memo 'Test FTs transfer memo.'"
-!transfer --myacct dummy   --hisacct $BOBACCT --args "amount 11 memo 'Test FTs transfer memo.'"
-!transfer --myacct $FTACCT                    --args "amount 11 memo 'Test FTs transfer memo.'"
-!transfer --myacct $FTACCT --hisacct dummy    --args "amount 11 memo 'Test FTs transfer memo.'"
+!transfer                  --hisacct $BOBACCT --amount 11 --memo "Test FTs transfer memo."
+!transfer --myacct dummy   --hisacct $BOBACCT --amount 11 --memo "Test FTs transfer memo."
+!transfer --myacct $FTACCT                    --amount 11 --memo "Test FTs transfer memo."
+!transfer --myacct $FTACCT --hisacct dummy    --amount 11 --memo "Test FTs transfer memo."
 #!transfer --myacct $FTACCT --hisacct $BOBACCT
-#!transfer --myacct $FTACCT --hisacct $BOBACCT --args
-#!transfer --myacct $FTACCT --hisacct $BOBACCT --args nonsense
-transfer --myacct $FTACCT --hisacct $BOBACCT --args "amount 11 memo 'Test FTs transfer memo.'"
+transfer --myacct $FTACCT --hisacct $BOBACCT --amount 11 --memo "Test FTs transfer memo."
 
 # show outbox of a particular account.
 !outbox
@@ -193,13 +392,8 @@ outbox --myacct $FTACCT
 
 # refresh Bob's intermediary files before looking at his inbox.
 !refresh
-!refresh                  --mynym $BOBNYM --myacct $BOBACCT
-!refresh --server dummy   --mynym $BOBNYM --myacct $BOBACCT
-!refresh --server $SERVER                 --myacct $BOBACCT
-!refresh --server $SERVER --mynym dummy   --myacct $BOBACCT
-!refresh --server $SERVER --mynym $BOBNYM
-!refresh --server $SERVER --mynym $BOBNYM --myacct dummy
-refresh --server $SERVER --mynym $BOBNYM --myacct $BOBACCT
+!refresh --myacct dummy
+refresh --myacct $BOBACCT
 
 # show inbox of a particular account.
 !inbox
@@ -220,6 +414,18 @@ inbox --myacct $BOBACCT
 # ----------------------------------------------------------------------------------------
 # TESTING "MAIL" SYSTEM.
 
+# show in-mail for both nyms.
+!inmail
+!inmail --mynym dummy
+inmail --mynym $FTNYM
+inmail --mynym $BOBNYM
+
+# show out-mail for both nyms.
+!outmail
+!outmail --mynym dummy
+outmail --mynym $FTNYM
+outmail --mynym $BOBNYM
+
 # send a message to another nym's in-mail.
 !sendmessage
 !sendmessage                  --mynym $FTNYM --hisnym $BOBNYM
@@ -232,6 +438,12 @@ sendmessage --server $SERVER --mynym $FTNYM --hisnym $BOBNYM
 Blabla message text
 ~
 
+#show all inmail and outmail boxes
+inmail --mynym $FTNYM
+inmail --mynym $BOBNYM
+outmail --mynym $FTNYM
+outmail --mynym $BOBNYM
+
 # need to refresh Bob so we'll receive his incoming mail.
 !refreshnym
 !refreshnym                  --mynym $BOBNYM
@@ -240,53 +452,52 @@ Blabla message text
 !refreshnym --server $SERVER --mynym dummy
 refreshnym --server $SERVER --mynym $BOBNYM
 
-# show in-mail for a particular nym.
-!inmail
-!inmail --mynym dummy
+#show all inmail and outmail boxes
+inmail --mynym $FTNYM
 inmail --mynym $BOBNYM
+outmail --mynym $FTNYM
+outmail --mynym $BOBNYM
 
 # show a specific in-mail item.
 !inmail
-!inmail                 --args "index 0"
-!inmail --mynym dummy   --args "index 0"
-!inmail --mynym $BOBNYM --args "index 666"
-inmail --mynym $BOBNYM --args "index 0"
+!inmail                 --index 0
+!inmail --mynym dummy   --index 0
+!inmail --mynym $BOBNYM --index 666
+inmail --mynym $BOBNYM --index 0
 
 # delete a specific in-mail item.
 !deleteinmail
-!deleteinmail                 --args "index 0"
-!deleteinmail --mynym dummy   --args "index 0"
-#!deleteinmail --mynym $BOBNYM --args "index 666"
-deleteinmail --mynym $BOBNYM --args "index 0"
+!deleteinmail                 --indices 0
+!deleteinmail --mynym dummy   --indices 0
+!deleteinmail --mynym $BOBNYM --indices 666
+deleteinmail --mynym $BOBNYM --indices 0
 
-# show in-mail for a particular nym.
-!inmail
-!inmail --mynym dummy
+#show all inmail and outmail boxes
+inmail --mynym $FTNYM
 inmail --mynym $BOBNYM
-
-# show out-mail for a particular nym.
-!outmail
-!outmail --mynym dummy
 outmail --mynym $FTNYM
+outmail --mynym $BOBNYM
 
 # show a specific out-mail item.
 !outmail
-!outmail                --args "index 0"
-!outmail --mynym dummy  --args "index 0"
-!outmail --mynym $FTNYM --args "index 666"
-outmail --mynym $FTNYM --args "index 0"
+!outmail                --index 0
+!outmail --mynym dummy  --index 0
+!outmail --mynym $FTNYM --index 666
+outmail --mynym $FTNYM --index 0
 
 # delete a specific out-mail item.
 !deleteoutmail
-!deleteoutmail                 --args "index 0"
-!deleteoutmail --mynym dummy   --args "index 0"
-#!deleteoutmail --mynym $FTNYM --args "index 666"
-deleteoutmail --mynym $FTNYM --args "index 0"
+!deleteoutmail                 --indices 0
+!deleteoutmail --mynym dummy   --indices 0
+!deleteoutmail --mynym $FTNYM --indices 666
+deleteoutmail --mynym $FTNYM --indices 0
 
-# show out-mail for a particular nym.
-!outmail
-!outmail --mynym dummy
+#show all inmail and outmail boxes
+inmail --mynym $FTNYM
+inmail --mynym $BOBNYM
 outmail --mynym $FTNYM
+outmail --mynym $BOBNYM
+
 
 #
 # ----------------------------------------------------------------------------------------
@@ -295,14 +506,12 @@ outmail --mynym $FTNYM
 
 # write a cheque and then send it to the hisnym.
 !sendcheque
-!sendcheque                  --hisnym $BOBNYM --args "amount 1 validfor 2592000 memo 'Test FTs sendcheque memo.'"
-!sendcheque --myacct dummy   --hisnym $BOBNYM --args "amount 1 validfor 2592000 memo 'Test FTs sendcheque memo.'"
-!sendcheque --myacct $FTACCT                  --args "amount 1 validfor 2592000 memo 'Test FTs sendcheque memo.'"
-!sendcheque --myacct $FTACCT --hisnym dummy   --args "amount 1 validfor 2592000 memo 'Test FTs sendcheque memo.'"
+!sendcheque                  --hisnym $BOBNYM --amount 1 --validfor 2592000 --memo "Test FTs sendcheque memo."
+!sendcheque --myacct dummy   --hisnym $BOBNYM --amount 1 --validfor 2592000 --memo "Test FTs sendcheque memo."
+!sendcheque --myacct $FTACCT                  --amount 1 --validfor 2592000 --memo "Test FTs sendcheque memo."
+!sendcheque --myacct $FTACCT --hisnym dummy   --amount 1 --validfor 2592000 --memo "Test FTs sendcheque memo."
 #!sendcheque --myacct $FTACCT --hisnym $BOBNYM 
-#!sendcheque --myacct $FTACCT --hisnym $BOBNYM --args 
-#!sendcheque --myacct $FTACCT --hisnym $BOBNYM --args nonsense
-sendcheque --myacct $FTACCT --hisnym $BOBNYM --args "amount 1 validfor 2592000 memo 'Test FTs sendcheque memo.'"
+sendcheque --myacct $FTACCT --hisnym $BOBNYM  --amount 1 --validfor 2592000 --memo "Test FTs sendcheque memo."
 
 # show contents of outgoing payments box.
 !outpayment
@@ -310,8 +519,12 @@ sendcheque --myacct $FTACCT --hisnym $BOBNYM --args "amount 1 validfor 2592000 m
 outpayment --mynym $FTNYM
 
 # show details for both(?) cheques
-outpayment --mynym $FTNYM --args "index 0"
-outpayment --mynym $FTNYM --args "index 1"
+!outpayment
+!outpayment                --index 0
+!outpayment --mynym dummy  --index 0
+!outpayment --mynym $FTNYM --index 666
+outpayment --mynym $FTNYM --index 0
+outpayment --mynym $FTNYM --index 1
 
 # refresh Bob's intermediary files before looking at his payments inbox.
 !refreshnym
@@ -331,14 +544,12 @@ inpayments --server $SERVER --mynym $BOBNYM
 
 # show the details of Bob's incoming payment in the payments inbox.
 !showpayment
-!showpayment                  --mynym $BOBNYM --args "index 0"
-!showpayment --server dummy   --mynym $BOBNYM --args "index 0"
-!showpayment --server $SERVER                 --args "index 0"
-!showpayment --server $SERVER --mynym dummy   --args "index 0"
-#!showpayment --server $SERVER --mynym $BOBNYM
-#!showpayment --server $SERVER --mynym $BOBNYM --args
-#!showpayment --server $SERVER --mynym $BOBNYM --args nonsense
-showpayment --server $SERVER --mynym $BOBNYM --args "index 0"
+!showpayment                  --mynym $BOBNYM --index 0
+!showpayment --server dummy   --mynym $BOBNYM --index 0
+!showpayment --server $SERVER                 --index 0
+!showpayment --server $SERVER --mynym dummy   --index 0
+!showpayment --server $SERVER --mynym $BOBNYM --index 666
+showpayment --server $SERVER --mynym $BOBNYM --index 0
 
 # accept all incoming payments for mynym.
 !acceptpayments
@@ -371,13 +582,8 @@ inpayments --server $SERVER --mynym $BOBNYM
 
 # refresh FT's intermediary files before looking at his asset acct inbox. (for cheque receipt.)
 !refresh
-!refresh                  --mynym $FTNYM --myacct $FTACCT
-!refresh --server dummy   --mynym $FTNYM --myacct $FTACCT
-!refresh --server $SERVER                --myacct $FTACCT
-!refresh --server $SERVER --mynym dummy  --myacct $FTACCT
-!refresh --server $SERVER --mynym $FTNYM
-!refresh --server $SERVER --mynym $FTNYM --myacct dummy
-refresh --server $SERVER --mynym $FTNYM --myacct $FTACCT
+!refresh --myacct dummy
+refresh --myacct $FTACCT
 
 # and then show his inbox (to see the chequereceipt)
 !inbox
@@ -411,24 +617,17 @@ outpayment --mynym $FTNYM
 
 # send a transfer from myacct to hisacct.
 !transfer
-!transfer                  --hisacct $BOBACCT --args "amount 12 memo 'Test FTs transfer memo.'"
-!transfer --myacct dummy   --hisacct $BOBACCT --args "amount 12 memo 'Test FTs transfer memo.'"
-!transfer --myacct $FTACCT                    --args "amount 12 memo 'Test FTs transfer memo.'"
-!transfer --myacct $FTACCT --hisacct dummy    --args "amount 12 memo 'Test FTs transfer memo.'"
+!transfer                  --hisacct $BOBACCT --amount 12 --memo "Test FTs transfer memo."
+!transfer --myacct dummy   --hisacct $BOBACCT --amount 12 --memo "Test FTs transfer memo."
+!transfer --myacct $FTACCT                    --amount 12 --memo "Test FTs transfer memo."
+!transfer --myacct $FTACCT --hisacct dummy    --amount 12 --memo "Test FTs transfer memo."
 #!transfer --myacct $FTACCT --hisacct $BOBACCT
-#!transfer --myacct $FTACCT --hisacct $BOBACCT --args
-#!transfer --myacct $FTACCT --hisacct $BOBACCT --args nonsense
-transfer --myacct $FTACCT --hisacct $BOBACCT --args "amount 12 memo 'Test FTs transfer memo.'"
+transfer --myacct $FTACCT --hisacct $BOBACCT --amount 12 --memo "Test FTs transfer memo."
 
 # refresh Bob's intermediary files before looking at his inbox.
 !refresh
-!refresh                  --mynym $BOBNYM --myacct $BOBACCT
-!refresh --server dummy   --mynym $BOBNYM --myacct $BOBACCT
-!refresh --server $SERVER                 --myacct $BOBACCT
-!refresh --server $SERVER --mynym dummy   --myacct $BOBACCT
-!refresh --server $SERVER --mynym $BOBNYM
-!refresh --server $SERVER --mynym $BOBNYM --myacct dummy
-refresh --server $SERVER --mynym $BOBNYM --myacct $BOBACCT
+!refresh --myacct dummy
+refresh --myacct $BOBACCT
 
 # accept all incoming transfers and receipts for myacct.
 !acceptinbox
@@ -446,14 +645,12 @@ inbox --myacct $BOBACCT
 
 # write an invoice and then send it to the recipient.
 !sendinvoice
-!sendinvoice                  --hisnym $BOBNYM --args "amount 2 validfor 2592000 memo 'Test FTs sendinvoice memo.'"
-!sendinvoice --myacct dummy   --hisnym $BOBNYM --args "amount 2 validfor 2592000 memo 'Test FTs sendinvoice memo.'"
-!sendinvoice --myacct $FTACCT                  --args "amount 2 validfor 2592000 memo 'Test FTs sendinvoice memo.'"
-!sendinvoice --myacct $FTACCT --hisnym dummy   --args "amount 2 validfor 2592000 memo 'Test FTs sendinvoice memo.'"
+!sendinvoice                  --hisnym $BOBNYM --amount 2 --validfor 2592000 --memo "Test FTs sendinvoice memo."
+!sendinvoice --myacct dummy   --hisnym $BOBNYM --amount 2 --validfor 2592000 --memo "Test FTs sendinvoice memo."
+!sendinvoice --myacct $FTACCT                  --amount 2 --validfor 2592000 --memo "Test FTs sendinvoice memo."
+!sendinvoice --myacct $FTACCT --hisnym dummy   --amount 2 --validfor 2592000 --memo "Test FTs sendinvoice memo."
 #!sendinvoice --myacct $FTACCT --hisnym $BOBNYM
-#!sendinvoice --myacct $FTACCT --hisnym $BOBNYM --args
-#!sendinvoice --myacct $FTACCT --hisnym $BOBNYM --args nonsense
-sendinvoice --myacct $FTACCT --hisnym $BOBNYM --args "amount 2 validfor 2592000 memo 'Test FTs sendinvoice memo.'"
+sendinvoice --myacct $FTACCT --hisnym $BOBNYM --amount 2 --validfor 2592000 --memo "Test FTs sendinvoice memo."
 
 # display contents of outgoing payments box.
 !outpayment
@@ -478,14 +675,12 @@ inpayments --server $SERVER --mynym $BOBNYM
 
 # show the details of Bob's incoming payment in the payments inbox.
 !showpayment
-!showpayment                  --mynym $BOBNYM --args "index 0"
-!showpayment --server dummy   --mynym $BOBNYM --args "index 0"
-!showpayment --server $SERVER                 --args "index 0"
-!showpayment --server $SERVER --mynym dummy   --args "index 0"
-#!showpayment --server $SERVER --mynym $BOBNYM
-#!showpayment --server $SERVER --mynym $BOBNYM --args
-#!showpayment --server $SERVER --mynym $BOBNYM --args nonsense
-showpayment --server $SERVER --mynym $BOBNYM --args "index 0"
+!showpayment                  --mynym $BOBNYM --index 0
+!showpayment --server dummy   --mynym $BOBNYM --index 0
+!showpayment --server $SERVER                 --index 0
+!showpayment --server $SERVER --mynym dummy   --index 0
+!showpayment --server $SERVER --mynym $BOBNYM --index 666
+showpayment --server $SERVER --mynym $BOBNYM --index 0
 
 # accept all invoices in mynym's payments inbox.
 !acceptinvoices
@@ -518,13 +713,8 @@ inpayments --server $SERVER --mynym $BOBNYM
 
 # refresh FT's intermediary files before looking at his asset acct inbox. (for cheque receipt.)
 !refresh
-!refresh                  --mynym $FTNYM --myacct $FTACCT
-!refresh --server dummy   --mynym $FTNYM --myacct $FTACCT
-!refresh --server $SERVER                --myacct $FTACCT
-!refresh --server $SERVER --mynym dummy  --myacct $FTACCT
-!refresh --server $SERVER --mynym $FTNYM
-!refresh --server $SERVER --mynym $FTNYM --myacct dummy
-refresh --server $SERVER --mynym $FTNYM --myacct $FTACCT
+!refresh --myacct dummy
+refresh --myacct $FTACCT
 
 # and then show his inbox (to see the chequereceipt)
 !inbox
@@ -554,14 +744,12 @@ outpayment --mynym $FTNYM
 
 # withdraw a voucher and then send it to the recipient.
 !sendvoucher
-!sendvoucher                  --hisnym $BOBNYM --args "amount 2 memo 'Test FTs sendvoucher memo.'"
-!sendvoucher --myacct dummy   --hisnym $BOBNYM --args "amount 2 memo 'Test FTs sendvoucher memo.'"
-!sendvoucher --myacct $FTACCT                  --args "amount 2 memo 'Test FTs sendvoucher memo.'"
-!sendvoucher --myacct $FTACCT --hisnym dummy   --args "amount 2 memo 'Test FTs sendvoucher memo.'"
+!sendvoucher                  --hisnym $BOBNYM --amount 2 --memo "Test FTs sendvoucher memo."
+!sendvoucher --myacct dummy   --hisnym $BOBNYM --amount 2 --memo "Test FTs sendvoucher memo."
+!sendvoucher --myacct $FTACCT                  --amount 2 --memo "Test FTs sendvoucher memo."
+!sendvoucher --myacct $FTACCT --hisnym dummy   --amount 2 --memo "Test FTs sendvoucher memo."
 #!sendvoucher --myacct $FTACCT --hisnym $BOBNYM
-#!sendvoucher --myacct $FTACCT --hisnym $BOBNYM --args
-#!sendvoucher --myacct $FTACCT --hisnym $BOBNYM --args nonsense
-sendvoucher --mynym $FTNYM --myacct $FTACCT --hisnym $BOBNYM --args "amount 2 memo 'Test FTs sendvoucher memo.'"
+sendvoucher --myacct $FTACCT --hisnym $BOBNYM --amount 2 --memo "Test FTs sendvoucher memo."
 
 #
 # ------------------------------------------------------------------------------------------

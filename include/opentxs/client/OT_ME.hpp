@@ -326,7 +326,6 @@ public:
 
     EXPORT bool withdraw_and_send_cash(const std::string& ACCT_ID,
                                        const std::string& RECIPIENT_NYM_ID,
-                                       const std::string& MEMO,
                                        int64_t AMOUNT) const;
 
     EXPORT std::string get_payment_instrument(
