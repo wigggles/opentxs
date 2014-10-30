@@ -155,20 +155,10 @@
 #endif
 #endif
 
-#if defined(ANDROID) || defined(OT_KEYRING_IOS)
-#include "Generics-lite.pb.h"
-#include "Markets-lite.pb.h"
-#include "Bitcoin-lite.pb.h"
-#include "Moneychanger-lite.pb.h"
-#else
-
-// (NOT Android.)
-//
 #include "Generics.pb.h"
 #include "Markets.pb.h"
 #include "Bitcoin.pb.h"
 #include "Moneychanger.pb.h"
-#endif
 
 #ifdef _WIN32
 #pragma warning(pop)
