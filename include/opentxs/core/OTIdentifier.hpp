@@ -151,6 +151,9 @@ class OTSymmetricKey;
 
 class OTIdentifier : public OTData
 {
+private:
+    bool CalculateDigest(const unsigned char* data, size_t len);
+
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os,
                                            const OTString& obj);
