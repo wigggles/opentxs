@@ -664,11 +664,10 @@ std::string OT_ME::send_user_cash(const std::string& SERVER_ID,
 
 bool OT_ME::withdraw_and_send_cash(const std::string& ACCT_ID,
                                    const std::string& RECIPIENT_NYM_ID,
-                                   const std::string& MEMO,
                                    int64_t AMOUNT) const
 {
     return m_pImplementation->withdraw_and_send_cash(ACCT_ID, RECIPIENT_NYM_ID,
-                                                     MEMO, AMOUNT);
+                                                     AMOUNT);
 }
 
 // GET PAYMENT INSTRUMENT (from payments inbox, by index.)

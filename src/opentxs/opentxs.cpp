@@ -130,23 +130,113 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
-
 #include "opentxs.hpp"
 
-#include <opentxs/client/OTAPI.hpp>
-#include <opentxs/client/OpenTransactions.hpp>
-#include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTWallet.hpp>
-#include <opentxs/client/ot_commands_ot.hpp>
-#include <opentxs/client/ot_otapi_ot.hpp>
+#include "../client/commands/CmdAcceptAll.hpp"
+#include "../client/commands/CmdAcceptInbox.hpp"
+#include "../client/commands/CmdAcceptInvoices.hpp"
+#include "../client/commands/CmdAcceptMoney.hpp"
+#include "../client/commands/CmdAcceptPayments.hpp"
+#include "../client/commands/CmdAcceptReceipts.hpp"
+#include "../client/commands/CmdAcceptTransfers.hpp"
+#include "../client/commands/CmdAddAsset.hpp"
+#include "../client/commands/CmdAddServer.hpp"
+#include "../client/commands/CmdAddSignature.hpp"
+#include "../client/commands/CmdCancel.hpp"
+#include "../client/commands/CmdChangePw.hpp"
+#include "../client/commands/CmdCheckNym.hpp"
+#include "../client/commands/CmdClearExpired.hpp"
+#include "../client/commands/CmdClearRecords.hpp"
+#include "../client/commands/CmdConfirm.hpp"
+#include "../client/commands/CmdDecode.hpp"
+#include "../client/commands/CmdDecrypt.hpp"
+#include "../client/commands/CmdDeleteInmail.hpp"
+#include "../client/commands/CmdDeleteOutmail.hpp"
+#include "../client/commands/CmdDeposit.hpp"
+#include "../client/commands/CmdDiscard.hpp"
+#include "../client/commands/CmdEditAccount.hpp"
+#include "../client/commands/CmdEditAsset.hpp"
+#include "../client/commands/CmdEditNym.hpp"
+#include "../client/commands/CmdEditServer.hpp"
+#include "../client/commands/CmdEncode.hpp"
+#include "../client/commands/CmdEncrypt.hpp"
+#include "../client/commands/CmdExchangeBasket.hpp"
+#include "../client/commands/CmdExportCash.hpp"
+#include "../client/commands/CmdExportNym.hpp"
+#include "../client/commands/CmdGetContract.hpp"
+#include "../client/commands/CmdGetMarkets.hpp"
+#include "../client/commands/CmdGetMyOffers.hpp"
+#include "../client/commands/CmdGetOffers.hpp"
+#include "../client/commands/CmdGetReceipt.hpp"
+#include "../client/commands/CmdImportCash.hpp"
+#include "../client/commands/CmdImportNym.hpp"
+#include "../client/commands/CmdInbox.hpp"
+#include "../client/commands/CmdInmail.hpp"
+#include "../client/commands/CmdInpayments.hpp"
+#include "../client/commands/CmdIssueAsset.hpp"
+#include "../client/commands/CmdKillOffer.hpp"
+#include "../client/commands/CmdKillPlan.hpp"
+#include "../client/commands/CmdNewAccount.hpp"
+#include "../client/commands/CmdNewAsset.hpp"
+#include "../client/commands/CmdNewBasket.hpp"
+#include "../client/commands/CmdNewKey.hpp"
+#include "../client/commands/CmdNewNym.hpp"
+#include "../client/commands/CmdNewOffer.hpp"
+#include "../client/commands/CmdNewServer.hpp"
+#include "../client/commands/CmdOutbox.hpp"
+#include "../client/commands/CmdOutmail.hpp"
+#include "../client/commands/CmdOutpayment.hpp"
+#include "../client/commands/CmdPasswordDecrypt.hpp"
+#include "../client/commands/CmdPasswordEncrypt.hpp"
+#include "../client/commands/CmdPayDividend.hpp"
+#include "../client/commands/CmdPayInvoice.hpp"
+#include "../client/commands/CmdProposePlan.hpp"
+#include "../client/commands/CmdRefresh.hpp"
+#include "../client/commands/CmdRefreshAccount.hpp"
+#include "../client/commands/CmdRefreshNym.hpp"
+#include "../client/commands/CmdRegisterNym.hpp"
+#include "../client/commands/CmdSendCash.hpp"
+#include "../client/commands/CmdSendCheque.hpp"
+#include "../client/commands/CmdSendInvoice.hpp"
+#include "../client/commands/CmdSendMessage.hpp"
+#include "../client/commands/CmdSendVoucher.hpp"
+#include "../client/commands/CmdShowAccount.hpp"
+#include "../client/commands/CmdShowAccounts.hpp"
+#include "../client/commands/CmdShowActive.hpp"
+#include "../client/commands/CmdShowAssets.hpp"
+#include "../client/commands/CmdShowBalance.hpp"
+#include "../client/commands/CmdShowBasket.hpp"
+#include "../client/commands/CmdShowCredential.hpp"
+#include "../client/commands/CmdShowCredentials.hpp"
+#include "../client/commands/CmdShowExpired.hpp"
+#include "../client/commands/CmdShowMarkets.hpp"
+#include "../client/commands/CmdShowMint.hpp"
+#include "../client/commands/CmdShowMyOffers.hpp"
+#include "../client/commands/CmdShowNym.hpp"
+#include "../client/commands/CmdShowNyms.hpp"
+#include "../client/commands/CmdShowOffers.hpp"
+#include "../client/commands/CmdShowPayment.hpp"
+#include "../client/commands/CmdShowPurse.hpp"
+#include "../client/commands/CmdShowRecords.hpp"
+#include "../client/commands/CmdShowServers.hpp"
+#include "../client/commands/CmdShowWallet.hpp"
+#include "../client/commands/CmdSignContract.hpp"
+#include "../client/commands/CmdShowWallet.hpp"
+#include "../client/commands/CmdTransfer.hpp"
+#include "../client/commands/CmdTriggerClause.hpp"
+#include "../client/commands/CmdUsageCredits.hpp"
+#include "../client/commands/CmdVerifyReceipt.hpp"
+#include "../client/commands/CmdVerifySignature.hpp"
+#include "../client/commands/CmdWithdrawCash.hpp"
+#include "../client/commands/CmdWithdrawVoucher.hpp"
+#include "../client/commands/CmdWriteCheque.hpp"
+#include "../client/commands/CmdWriteInvoice.hpp"
 
-#include <opentxs/core/OTAccount.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/client/OTAPI.hpp>
+
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
-#include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/Version.hpp>
 
 #include <anyoption/anyoption.hpp>
@@ -164,206 +254,40 @@ const char* categoryName[] = {
     "Dealing with other users", "Financial instruments", "Basket currencies",
     "Pseudonyms"};
 
-Opentxs::CommandEntry commands[] = {
-    {"acceptall", OT_Command::mainAcceptAll, Opentxs::catAccounts,
-     "accept all incoming transfers, receipts, payments, invoices."},
-    {"acceptinbox", OT_Command::mainAcceptInbox, Opentxs::catAccounts,
-     "accept all incoming transfers and receipts in MyAcct's inbox."},
-    {"acceptinvoices", OT_Command::mainAcceptInvoices, Opentxs::catAccounts,
-     "pay all invoices in MyNym's payments inbox."},
-    {"acceptmoney", OT_Command::mainAcceptMoney, Opentxs::catAccounts,
-     "accept all incoming transfers and payments into MyAcct."},
-    {"acceptpayments", OT_Command::mainAcceptPayments, Opentxs::catAccounts,
-     "accept all incoming payments in MyNym's payments inbox."},
-    {"acceptreceipts", OT_Command::mainAcceptReceipts, Opentxs::catAccounts,
-     "accept all receipts in MyAcct's inbox."},
-    {"accepttransfers", OT_Command::mainAcceptTransfers, Opentxs::catAccounts,
-     "accept all incoming transfers in MyAcct's inbox."},
-    {"addasset", OT_Command::mainAddAsset, Opentxs::catWallet,
-     "paste an existing asset contract, import into your wallet."},
-    {"addserver", OT_Command::mainAddServer, Opentxs::catWallet,
-     "paste an existing server contract, import into your wallet."},
-    {"addsignature", OT_Command::mainAddSignature, Opentxs::catAdmin,
-     "add a signature to a contract without releasing others."},
-    {"cancel", OT_Command::mainCancel, Opentxs::catInstruments,
-     "cancel an uncashed outgoing instrument from outpayment box."},
-    {"changepw", OT_Command::mainChangePw, Opentxs::catWallet,
-     "change the master passphrase for the wallet."},
-    {"checknym", OT_Command::mainCheckNym, Opentxs::catOtherUsers,
-     "download a nym's public key based on his ID."},
-    {"clearexpired", OT_Command::mainClearExpired, Opentxs::catMisc,
-     "clear all expired records."},
-    {"clearrecords", OT_Command::mainClearRecords, Opentxs::catMisc,
-     "clear all archived records and receipts."},
-    {"confirm", OT_Command::mainConfirm, Opentxs::catInstruments,
-     "confirm your agreement to a smart contract or payment plan."},
-    {"decode", OT_Command::mainDecode, Opentxs::catAdmin,
-     "OT-base64-decode out of armor."},
-    {"decrypt", OT_Command::mainDecrypt, Opentxs::catAdmin,
-     "decrypt ciphertext using nym's private key."},
-    {"deleteinmail", OT_Command::mainDeleteInmail, Opentxs::catOtherUsers,
-     "delete an in-mail item."},
-    {"deleteoutmail", OT_Command::mainDeleteOutmail, Opentxs::catOtherUsers,
-     "delete an out-mail item."},
-    {"deposit", OT_Command::mainDeposit, Opentxs::catAccounts,
-     "deposit cash, cheque, voucher, or invoice."},
-    {"discard", OT_Command::mainDiscard, Opentxs::catInstruments,
-     "discard an uncashed incoming instrument from payments inbox."},
-    {"editaccount", OT_Command::mainEditAccount, Opentxs::catWallet,
-     "edit an asset account label, as it appears in your wallet."},
-    {"editasset", OT_Command::mainEditAsset, Opentxs::catWallet,
-     "edit a currency contract label, as it appears in your wallet."},
-    {"editnym", OT_Command::mainEditNym, Opentxs::catWallet,
-     "edit the nym label, as it appears in your wallet."},
-    {"editserver", OT_Command::mainEditServer, Opentxs::catWallet,
-     "edit a server contract label, as it appears in your wallet."},
-    {"encode", OT_Command::mainEncode, Opentxs::catAdmin,
-     "OT-base64-encode into armor."},
-    {"encrypt", OT_Command::mainEncrypt, Opentxs::catAdmin,
-     "encrypt plaintext to a nym's public key."},
-    {"exchangebasket", OT_Command::mainExchangeBasket, Opentxs::catBaskets,
-     "exchange in/out of a basket currency."},
-    {"exportcash", OT_Command::mainExportCash, Opentxs::catInstruments,
-     "export a cash purse."},
-    {"exportnym", OT_Command::mainExportNym, Opentxs::catWallet,
-     "export an OT Nym as a single importable file."},
-    {"getcontract", OT_Command::mainGetContract, Opentxs::catAdmin,
-     "download an asset or server contract by its ID."},
-    {"getmarkets", OT_Command::mainGetMarkets, Opentxs::catMarkets,
-     "download the list of markets."},
-    {"getmyoffers", OT_Command::mainGetMyOffers, Opentxs::catMarkets,
-     "download mynym's list of market offers."},
-    {"getoffers", OT_Command::mainGetOffers, Opentxs::catMarkets,
-     "download the list of market offers."},
-    {"getreceipt", OT_Command::mainGetReceipt, Opentxs::catAdmin,
-     "downloads a box receipt based on transaction ID."},
-    {"importcash", OT_Command::mainImportCash, Opentxs::catInstruments,
-     "import a cash purse."},
-    {"importnym", OT_Command::mainImportNym, Opentxs::catWallet,
-     "import an OT Nym that was previously exported."},
-    {"inbox", OT_Command::mainInbox, Opentxs::catAccounts,
-     "show inbox of a particular account."},
-    {"inmail", OT_Command::mainInmail, Opentxs::catOtherUsers,
-     "show in-mail for a particular nym."},
-    {"inpayments", OT_Command::mainInpayments, Opentxs::catOtherUsers,
-     "show contents of incoming payments box."},
-    {"issueasset", OT_Command::mainIssueAsset, Opentxs::catAdmin,
-     "issue a currency contract onto an OT server."},
-    {"killoffer", OT_Command::mainKillOffer, Opentxs::catMarkets,
-     "kill an active recurring market offer."},
-    {"killplan", OT_Command::mainKillPlan, Opentxs::catInstruments,
-     "kill an active recurring payment plan."},
-    {"newaccount", OT_Command::mainNewAccount, Opentxs::catAccounts,
-     "create a new asset account."},
-    {"newasset", OT_Command::mainNewAsset, Opentxs::catAdmin,
-     "create a new asset contract."},
-    {"newbasket", OT_Command::mainNewBasket, Opentxs::catBaskets,
-     "create a new basket currency."},
-    {"newcredential", OT_Command::mainNewCredential, Opentxs::catNyms,
-     "create a new credential for a specific nym."},
-    {"newkey", OT_Command::mainNewKey, Opentxs::catAdmin,
-     "create a new symmetric key."},
-    {"newnym", OT_Command::mainNewNym, Opentxs::catNyms, "create a new nym."},
-    {"newoffer", OT_Command::mainNewOffer, Opentxs::catMarkets,
-     "create a new market offer."},
-    {"newserver", OT_Command::mainNewServer, Opentxs::catAdmin,
-     "create a new server contract."},
-    {"outbox", OT_Command::mainOutbox, Opentxs::catAccounts,
-     "show outbox of a particular account."},
-    {"outmail", OT_Command::mainOutmail, Opentxs::catOtherUsers,
-     "show out-mail for a particular nym."},
-    {"outpayment", OT_Command::mainOutpayment, Opentxs::catOtherUsers,
-     "show contents of outgoing payments box."},
-    {"passworddecrypt", OT_Command::mainPasswordDecrypt, Opentxs::catAdmin,
-     "password-decrypt a ciphertext using a symmetric key."},
-    {"passwordencrypt", OT_Command::mainPasswordEncrypt, Opentxs::catAdmin,
-     "password-encrypt a plaintext using a symmetric key."},
-    {"paydividend", OT_Command::mainPayDividend, Opentxs::catMarkets,
-     "dividend payout, sent to all shareholders (in voucher form.)"},
-    {"payinvoice", OT_Command::mainPayInvoice, Opentxs::catOtherUsers,
-     "pay an invoice."},
-    {"proposeplan", OT_Command::mainProposePlan, Opentxs::catInstruments,
-     "as merchant, propose a payment plan to a customer."},
-    {"refresh", OT_Command::mainRefresh, Opentxs::catWallet,
-     "performs both refreshnym and refreshaccount."},
-    {"refreshaccount", OT_Command::mainRefreshAccount, Opentxs::catAccounts,
-     "download latest intermediary files for myacct."},
-    {"refreshnym", OT_Command::mainRefreshNym, Opentxs::catNyms,
-     "download latest intermediary files for mynym."},
-    {"registernym", OT_Command::mainRegisterNym, Opentxs::catAdmin,
-     "register a nym onto an OT server."},
-    {"revokecredential", OT_Command::mainRevokeCredential, Opentxs::catNyms,
-     "revoke one of a nym's credentials."},
-    {"sendcash", OT_Command::mainSendCash, Opentxs::catOtherUsers,
-     "send cash from mypurse to recipient, withdraw if necessary."},
-    {"sendcheque", OT_Command::mainSendCheque, Opentxs::catOtherUsers,
-     "write a cheque and then send it to the recipient."},
-    {"sendinvoice", OT_Command::mainSendInvoice, Opentxs::catOtherUsers,
-     "write an invoice and then send it to the recipient."},
-    {"sendmessage", OT_Command::mainSendMessage, Opentxs::catOtherUsers,
-     "send a message to another nym's in-mail."},
-    {"sendvoucher", OT_Command::mainSendVoucher, Opentxs::catOtherUsers,
-     "withdraw a voucher and then send it to the recipient."},
-    {"showaccount", OT_Command::mainShowAccount, Opentxs::catAccounts,
-     "show account stats for a single account."},
-    {"showaccounts", OT_Command::mainShowAccounts, Opentxs::catWallet,
-     "show the asset accounts in the wallet."},
-    {"showactive", OT_Command::mainShowActive, Opentxs::catInstruments,
-     "show the active cron item IDs, or the details of one by ID."},
-    {"showassets", OT_Command::mainShowAssets, Opentxs::catWallet,
-     "show the currency contracts in the wallet."},
-    {"showbalance", OT_Command::mainShowBalance, Opentxs::catAccounts,
-     "show balance for a specific account."},
-    {"showbasket", OT_Command::mainShowBasket, Opentxs::catBaskets,
-     "show basket currencies available in the wallet."},
-    {"showcredential", OT_Command::mainShowCredential, Opentxs::catNyms,
-     "show a specific credential in detail."},
-    {"showcredentials", OT_Command::mainShowCredentials, Opentxs::catNyms,
-     "show the credentials for a specific nym."},
-    {"showexpired", OT_Command::mainShowExpired, Opentxs::catMisc,
-     "show contents of expired record box."},
-    {"showmarkets", OT_Command::mainShowMarkets, Opentxs::catMarkets,
-     "show the list of markets."},
-    {"showmint", OT_Command::mainShowMint, Opentxs::catAdmin,
-     "show mint file for specific asset ID. Download if necessary."},
-    {"showmyoffers", OT_Command::mainShowMyOffers, Opentxs::catMarkets,
-     "show mynym's offers on a particular server and market."},
-    {"shownym", OT_Command::mainShowNym, Opentxs::catNyms,
-     "show the statistics for a specific nym."},
-    {"shownyms", OT_Command::mainShowNyms, Opentxs::catWallet,
-     "show the nyms in the wallet."},
-    {"showoffers", OT_Command::mainShowOffers, Opentxs::catMarkets,
-     "show all offers on a particular server and market."},
-    {"showpayment", OT_Command::mainShowPayment, Opentxs::catOtherUsers,
-     "show the details of an incoming payment in the payments inbox."},
-    {"showpurse", OT_Command::mainShowPurse, Opentxs::catWallet,
-     "show contents of cash purse."},
-    {"showrecords", OT_Command::mainShowRecords, Opentxs::catMisc,
-     "show contents of record box."},
-    {"showservers", OT_Command::mainShowServers, Opentxs::catWallet,
-     "show the server contracts in the wallet."},
-    {"showwallet", OT_Command::mainShowWallet, Opentxs::catWallet,
-     "show wallet contents."},
-    {"signcontract", OT_Command::mainSignContract, Opentxs::catAdmin,
-     "sign a contract, releasing all other signatures first."},
-    {"transfer", OT_Command::mainTransfer, Opentxs::catAccounts,
-     "send a transfer from myacct to hisacct."},
-    {"triggerclause", OT_Command::mainTriggerClause, Opentxs::catInstruments,
-     "trigger a clause on a running smart contract."},
-    {"verifyreceipt", OT_Command::mainVerifyReceipt, Opentxs::catAccounts,
-     "verify your intermediary files against last signed receipt."},
-    {"verifysignature", OT_Command::mainVerifySignature, Opentxs::catAdmin,
-     "verify a signature on a contract."},
-    {"withdraw", OT_Command::mainWithdrawCash, Opentxs::catInstruments,
-     "withdraw cash. (From acct on server into local purse.)"},
-    {"withdrawvoucher", OT_Command::mainWithdrawVoucher,
-     Opentxs::catInstruments,
-     "withdraw from myacct as a voucher (cashier's cheque.)"},
-    {"writecheque", OT_Command::mainWriteCheque, Opentxs::catInstruments,
-     "write a cheque and print it out to the screen."},
-    {"writeinvoice", OT_Command::mainWriteInvoice, Opentxs::catInstruments,
-     "write an invoice and print it out to the screen."},
-    {nullptr, nullptr, Opentxs::catError, nullptr}};
+CmdBase* cmds[] = {
+    new CmdAcceptAll,       new CmdAcceptInbox,     new CmdAcceptInvoices,
+    new CmdAcceptMoney,     new CmdAcceptPayments,  new CmdAcceptReceipts,
+    new CmdAcceptTransfers, new CmdAddAsset,        new CmdAddServer,
+    new CmdAddSignature,    new CmdCancel,          new CmdChangePw,
+    new CmdCheckNym,        new CmdClearExpired,    new CmdClearRecords,
+    new CmdConfirm,         new CmdDecode,          new CmdDecrypt,
+    new CmdDeleteInmail,    new CmdDeleteOutmail,   new CmdDeposit,
+    new CmdDiscard,         new CmdEditAccount,     new CmdEditAsset,
+    new CmdEditNym,         new CmdEditServer,      new CmdEncode,
+    new CmdEncrypt,         new CmdExchangeBasket,  new CmdExportCash,
+    new CmdExportNym,       new CmdGetContract,     new CmdGetMarkets,
+    new CmdGetMyOffers,     new CmdGetOffers,       new CmdGetReceipt,
+    new CmdImportCash,      new CmdImportNym,       new CmdInbox,
+    new CmdInmail,          new CmdInpayments,      new CmdIssueAsset,
+    new CmdKillOffer,       new CmdKillPlan,        new CmdNewAccount,
+    new CmdNewAsset,        new CmdNewKey,          new CmdNewNym,
+    new CmdNewOffer,        new CmdNewServer,       new CmdOutbox,
+    new CmdOutmail,         new CmdNewBasket,       new CmdOutpayment,
+    new CmdPasswordDecrypt, new CmdPasswordEncrypt, new CmdPayDividend,
+    new CmdPayInvoice,      new CmdProposePlan,     new CmdRefresh,
+    new CmdRefreshAccount,  new CmdRefreshNym,      new CmdRegisterNym,
+    new CmdSendCash,        new CmdSendCheque,      new CmdSendInvoice,
+    new CmdSendMessage,     new CmdSendVoucher,     new CmdShowAccount,
+    new CmdShowAccounts,    new CmdShowActive,      new CmdShowAssets,
+    new CmdShowBalance,     new CmdShowBasket,      new CmdShowCredential,
+    new CmdShowCredentials, new CmdShowExpired,     new CmdShowMarkets,
+    new CmdShowMint,        new CmdShowMyOffers,    new CmdShowNym,
+    new CmdShowNyms,        new CmdShowOffers,      new CmdShowPayment,
+    new CmdShowPurse,       new CmdShowRecords,     new CmdShowServers,
+    new CmdShowWallet,      new CmdSignContract,    new CmdTransfer,
+    new CmdTriggerClause,   new CmdUsageCredits,    new CmdVerifyReceipt,
+    new CmdVerifySignature, new CmdWithdrawCash,    new CmdWithdrawVoucher,
+    new CmdWriteCheque,     new CmdWriteInvoice,    nullptr};
 
 Opentxs::Opentxs()
 {
@@ -395,7 +319,30 @@ string& Opentxs::trim(string& s)
     return ltrim(rtrim(s));
 }
 
-void Opentxs::handleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
+const char* Opentxs::getOption(AnyOption& opt, const char* optionName,
+                               const char* defaultName)
+{
+    // can we get the default value from the command line?
+    const char* value = opt.getValue(optionName);
+    if (value != nullptr) {
+        otWarn << "Option  " << optionName << ": " << value << "\n";
+        return value;
+    }
+
+    // can we get the default value from the options file?
+    if (nullptr != defaultName) {
+        value = opt.getValue(defaultName);
+        if (value != nullptr) {
+            otWarn << "Default " << optionName << ": " << value << "\n";
+            return value;
+        }
+    }
+
+    // clear option value
+    return "";
+}
+
+void Opentxs::loadOptions(AnyOption& opt)
 {
     OTString configPath(OTPaths::AppDataFolder());
     bool configPathFound = configPath.Exists() && 3 < configPath.GetLength();
@@ -437,234 +384,11 @@ void Opentxs::handleCommandLineArguments(int argc, char* argv[], AnyOption& opt)
     OT_ASSERT_MSG(buildFullPathSuccess, "Unable to set Full Path");
 
     opt.processFile(iniFileExact.Get());
-    opt.processCommandArgs(argc, argv);
 }
 
-const char* Opentxs::getOption(AnyOption& opt, const char* optionName,
-                               const char* defaultName)
+int Opentxs::processCommand(AnyOption& opt)
 {
-    // can we get the default value from the command line?
-    const char* value = opt.getValue(optionName);
-    if (value != nullptr) {
-        otWarn << "Option  " << optionName << ": " << value << "\n";
-        return value;
-    }
-
-    // can we get the default value from the options file?
-    if (nullptr != defaultName) {
-        value = opt.getValue(defaultName);
-        if (value != nullptr) {
-            otWarn << "Default " << optionName << ": " << value << "\n";
-            return value;
-        }
-    }
-
-    // clear option value
-    return "";
-}
-
-OTVariable* Opentxs::setGlobalVar(OT_ME& madeEasy, const string& name,
-                                  const string& value)
-{
-    if (value.size() == 0) {
-        otInfo << "Variable " << name << " isn't set\n";
-        return nullptr;
-    }
-
-    otWarn << "Variable " << name << " has value: " << value << "\n";
-
-    OTVariable* var = new OTVariable(name, value, OTVariable::Var_Constant);
-    OT_ASSERT(var != nullptr);
-    madeEasy.AddVariable(name, *var);
-    return var;
-}
-
-int Opentxs::processCommand(OT_ME& madeEasy, AnyOption& opt)
-{
-    // process command line values such as account ID, Nym ID, etc.
-    // Also available as defaults in a config file in the ~/.ot folder
-    argArgs = getOption(opt, "args", "defaultargs");
-    argHisAcct = getOption(opt, "hisacct", "defaulthisacct");
-    argHisNym = getOption(opt, "hisnym", "defaulthisnym");
-    argHisPurse = getOption(opt, "hispurse", "defaulthispurse");
-    argMyAcct = getOption(opt, "myacct", "defaultmyacct");
-    argMyNym = getOption(opt, "mynym", "defaultmynym");
-    argMyPurse = getOption(opt, "mypurse", "defaultmypurse");
-    argServer = getOption(opt, "server", "defaultserver");
-
-    OTWallet* wallet = OTAPI_Wrap::OTAPI()->GetWallet();
-
-    OT_ASSERT_MSG(
-        wallet != nullptr,
-        "The wallet object is still nullptr, somehow. Please load it.\n");
-
-    OTServerContract* serverContract = nullptr;
-    if (argServer.size() > 0) {
-        serverContract = wallet->GetServerContract(argServer);
-        if (serverContract == nullptr) {
-            serverContract = wallet->GetServerContractPartialMatch(argServer);
-            if (serverContract == nullptr) {
-                otOut << "Unknown default server contract for --server "
-                      << argServer << "\n";
-            }
-        }
-        if (serverContract != nullptr) {
-            OTString tmp;
-            serverContract->GetIdentifier(tmp);
-            argServer = tmp.Get();
-            otOut << "Using as server: " << argServer << "\n";
-        }
-    }
-
-    OTPseudonym* myNym = nullptr;
-    if (argMyNym.size() > 0) {
-        myNym = wallet->GetNymByID(argMyNym);
-        if (myNym == nullptr) {
-            myNym = wallet->GetNymByIDPartialMatch(argMyNym);
-            if (myNym == nullptr) {
-                otOut << "Unknown default nym for --mynym " << argMyNym << "\n";
-            }
-        }
-        if (myNym != nullptr) {
-            OTString tmp;
-            myNym->GetIdentifier(tmp);
-            argMyNym = tmp.Get();
-            otOut << "Using as mynym: " << argMyNym << "\n";
-        }
-    }
-
-    OTAccount* myAccount = nullptr;
-    if (argMyAcct.size() > 0) {
-        myAccount = wallet->GetAccount(argMyAcct);
-        if (myAccount == nullptr) {
-            myAccount = wallet->GetAccountPartialMatch(argMyAcct);
-            if (myAccount == nullptr) {
-                otOut << "Unknown default account for --myacct " << argMyAcct
-                      << "\n";
-            }
-        }
-        if (myAccount != nullptr) {
-            OTString tmp;
-            myAccount->GetPurportedAccountID().GetString(tmp);
-            argMyAcct = tmp.Get();
-            otOut << "Using as myacct: " << argMyAcct << "\n";
-        }
-    }
-
-    OTPseudonym* hisNym = nullptr;
-    if (argHisNym.size() > 0) {
-        hisNym = wallet->GetNymByID(argHisNym);
-        if (hisNym == nullptr) {
-            hisNym = wallet->GetNymByIDPartialMatch(argHisNym);
-            if (hisNym == nullptr) {
-                otOut << "Unknown default nym for --hisnym " << argHisNym
-                      << "\n";
-            }
-        }
-        if (hisNym != nullptr) {
-            OTString tmp;
-            hisNym->GetIdentifier(tmp);
-            argHisNym = tmp.Get();
-            otOut << "Using as hisnym: " << argHisNym << "\n";
-        }
-    }
-
-    OTAccount* hisAccount = nullptr;
-    if (argHisAcct.size() > 0) {
-        hisAccount = wallet->GetAccount(argHisAcct);
-        if (hisAccount == nullptr) {
-            hisAccount = wallet->GetAccountPartialMatch(argHisAcct);
-            if (hisAccount == nullptr) {
-                otOut << "Unknown default account for --hisacct " << argHisAcct
-                      << "\n";
-            }
-        }
-        if (hisAccount != nullptr) {
-            OTString tmp;
-            hisAccount->GetPurportedAccountID().GetString(tmp);
-            argHisAcct = tmp.Get();
-            otOut << "Using as hisacct: " << argHisAcct << "\n";
-        }
-    }
-
-    OTIdentifier purseAssetTypeID;
-    OTAssetContract* myAssetContract = nullptr;
-    if (argMyPurse.size() > 0) {
-        myAssetContract = wallet->GetAssetContract(argMyPurse);
-        if (myAssetContract == nullptr) {
-            myAssetContract = wallet->GetAssetContractPartialMatch(argMyPurse);
-            if (myAssetContract == nullptr) {
-                otOut << "Unknown default purse for --mypurse " << argMyPurse
-                      << "\n";
-            }
-        }
-        if (myAssetContract != nullptr) {
-            myAssetContract->GetIdentifier(purseAssetTypeID);
-            OTString tmp;
-            myAssetContract->GetIdentifier(tmp);
-            argMyPurse = tmp.Get();
-            otOut << "Using as mypurse: " << argMyPurse << "\n";
-        }
-    }
-
-    OTIdentifier hisPurseAssetTypeID;
-    OTAssetContract* hisAssetContract = nullptr;
-    if (argHisPurse.size() > 0) {
-        hisAssetContract = wallet->GetAssetContract(argHisPurse);
-        if (hisAssetContract == nullptr) {
-            hisAssetContract =
-                wallet->GetAssetContractPartialMatch(argHisPurse);
-            if (hisAssetContract == nullptr) {
-                otOut << "Unknown default purse for --hispurse " << argHisPurse
-                      << "\n";
-            }
-        }
-        if (hisAssetContract != nullptr) {
-            hisAssetContract->GetIdentifier(hisPurseAssetTypeID);
-            OTString tmp;
-            hisAssetContract->GetIdentifier(tmp);
-            argHisPurse = tmp.Get();
-            otOut << "Using as hispurse: " << argHisPurse << "\n";
-        }
-    }
-
-    if (serverContract != nullptr && myNym != nullptr) {
-        OTAPI_Wrap::OTAPI()->GetClient()->SetFocusToServerAndNym(
-            *serverContract, *myNym,
-            OTAPI_Wrap::OTAPI()->GetTransportCallback());
-    }
-
-    string command = "list";
-    if (opt.getArgc() == 1) {
-        command = opt.getArgv(0);
-    }
-    else {
-        otOut << "Expecting a single opentxs command:\n\n";
-    }
-
-    typedef unique_ptr<OTVariable> GlobalVar;
-    GlobalVar varArgs(setGlobalVar(madeEasy, "Args", argArgs));
-    GlobalVar varHisAcct(setGlobalVar(madeEasy, "HisAcct", argHisAcct));
-    GlobalVar varHisNym(setGlobalVar(madeEasy, "HisNym", argHisNym));
-    GlobalVar varHisPurse(setGlobalVar(madeEasy, "HisPurse", argHisPurse));
-    GlobalVar varMyAcct(setGlobalVar(madeEasy, "MyAcct", argMyAcct));
-    GlobalVar varMyNym(setGlobalVar(madeEasy, "MyNym", argMyNym));
-    GlobalVar varMyPurse(setGlobalVar(madeEasy, "MyPurse", argMyPurse));
-    GlobalVar varServer(setGlobalVar(madeEasy, "Server", argServer));
-
-    OTAPI_Func::CopyVariables();
-
-    otWarn << "Script output:\n\n";
-
-    int result = opentxsCommand(command);
-    return opt.getArgc() == 1 ? result : -2;
-}
-
-int Opentxs::opentxsCommand(const string& command)
-{
-    if ("exit" == command || "quit" == command) {
-        return -2;
-    }
+    string command = opt.getArgv(0);
 
     if ("version" == command) {
         otOut << "opentxs " << OPENTXS_VERSION_STRING << "\n";
@@ -674,9 +398,9 @@ int Opentxs::opentxsCommand(const string& command)
 
     if ("list" == command) {
         otOut << "\nCommands:\n\n";
-        for (int32_t i = 0; commands[i].command != nullptr; i++) {
-            CommandEntry& cmd = commands[i];
-            otOut << (cmd.command + spaces18).substr(0, 18);
+        for (int32_t i = 0; cmds[i] != nullptr; i++) {
+            CmdBase& cmd = *cmds[i];
+            otOut << (cmd.getCommand() + spaces18).substr(0, 18);
             if (i % 4 == 3) {
                 otOut << "\n";
             }
@@ -694,10 +418,11 @@ int Opentxs::opentxsCommand(const string& command)
 
         // add commands to their category group
         otOut << "\nCommands:\n";
-        for (int32_t i = 0; commands[i].command != nullptr; i++) {
-            CommandEntry& cmd = commands[i];
-            categoryGroup[cmd.category] +=
-                (cmd.command + spaces18).substr(0, 18) + cmd.helpText + "\n";
+        for (int32_t i = 0; cmds[i] != nullptr; i++) {
+            CmdBase& cmd = *cmds[i];
+            categoryGroup[cmd.getCategory()] +=
+                (cmd.getCommand() + spaces18).substr(0, 18) + cmd.getHelp() +
+                "\n";
         }
 
         // print all category groups
@@ -708,28 +433,15 @@ int Opentxs::opentxsCommand(const string& command)
         return 0;
     }
 
-    // all other commands.
-    for (int32_t i = 0; commands[i].command != nullptr; i++) {
-        CommandEntry& cmd = commands[i];
-        if (cmd.command == command) {
-            int32_t returnValue = (*cmd.function)();
-            switch (returnValue) {
-            case 0: // no action performed, return success
-                return 0;
-            case 1: // success
-                return 0;
-            case -1: // failed
-                return -1;
-            default: // should not happen
-                otOut << "\nUndefined error code: \"" << returnValue
-                      << "\".\n\n";
-                return -1;
-            }
-            break;
+    for (int32_t i = 0; cmds[i] != nullptr; i++) {
+        CmdBase& cmd = *cmds[i];
+        if (command == cmd.getCommand()) {
+            return runCommand(cmd);
         }
     }
 
-    otOut << "\nUndefined command: \"" << command << "\" -- Try 'list'.\n\n";
+    otOut << "Expecting a single opentxs command.\n";
+
     return -1;
 }
 
@@ -743,13 +455,17 @@ int Opentxs::run(int argc, char* argv[])
     vector<int> errorLineNumbers;
     vector<string> errorCommands;
 
-    OT_ME madeEasy;
+    newArgc = argc;
+    newArgv = argv;
 
     AnyOption opt;
-    handleCommandLineArguments(argc, argv, opt);
+    loadOptions(opt);
+    opt.processCommandArgs(argc, argv);
 
+    // is there a command on the command line?
     if (opt.getArgc() != 0) {
-        return processCommand(madeEasy, opt);
+        expectFailure = false;
+        return processCommand(opt);
     }
 
     int lineNumber = 0;
@@ -772,20 +488,20 @@ int Opentxs::run(int argc, char* argv[])
 
         lineNumber++;
 
-        // quit/exit the command loop?
         cmd = trim(cmd);
         if (echoCommand) {
             cout << cmd << endl;
-        }
-
-        if (cmd == "quit" || cmd == "exit") {
-            break;
         }
 
         // empty lines and lines starting with a hash character are seen as
         // comments
         if (cmd.size() == 0 || cmd[0] == '#') {
             continue;
+        }
+
+        // exit/quit the command loop?
+        if ("exit" == cmd || "quit" == cmd) {
+            break;
         }
 
         string originalCmd = cmd;
@@ -907,7 +623,7 @@ int Opentxs::run(int argc, char* argv[])
 
         // '!' indicates that we expect this command to fail
         //     which is very useful for running a test script
-        bool expectFailure = cmd[0] == '!';
+        expectFailure = cmd[0] == '!';
 
         // Parse command string into its separate parts so it can be passed as
         // an argc/argv combo
@@ -994,18 +710,19 @@ int Opentxs::run(int argc, char* argv[])
         }
 
         // set up a new argc/argv combo
-        int newArgc = arguments.size();
-        char** newArgv = new char* [newArgc];
+        newArgc = arguments.size();
+        newArgv = new char* [newArgc];
         for (int i = 0; i < newArgc; i++) {
             newArgv[i] = const_cast<char*>(arguments[i].c_str());
         }
 
         // preprocess the command line
         AnyOption opt;
-        handleCommandLineArguments(newArgc, newArgv, opt);
+        loadOptions(opt);
+        opt.processCommandArgs(newArgc, newArgv);
 
         cout << "\n";
-        if (expectFailure != (0 != processCommand(madeEasy, opt))) {
+        if (expectFailure != (0 != processCommand(opt))) {
             errorLineNumbers.push_back(lineNumber);
             errorCommands.push_back(originalCmd);
             otOut << "\n\n***ERROR***\n"
@@ -1015,6 +732,9 @@ int Opentxs::run(int argc, char* argv[])
 
         delete[] newArgv;
         delete[] buf;
+
+        newArgc = 0;
+        newArgv = nullptr;
 
         otOut << "\n\n";
         processed++;
@@ -1032,4 +752,51 @@ int Opentxs::run(int argc, char* argv[])
     }
 
     return failed == 0 ? 0 : -1;
+}
+
+int Opentxs::runCommand(CmdBase& cmd)
+{
+    auto argNames = cmd.extractArgumentNames();
+
+    AnyOption options;
+    for (size_t i = 0; i < argNames.size(); i++) {
+        if (!options.findOption(argNames[i].c_str())) {
+            options.setCommandOption(argNames[i].c_str());
+        }
+    }
+
+    loadOptions(options);
+    options.processCommandArgs(newArgc, newArgv);
+
+    map<string, string> arguments;
+    for (size_t i = 0; i < argNames.size(); i++) {
+        const char* optionName = argNames[i].c_str();
+        const char* value = options.getValue(optionName);
+        if (value != nullptr) {
+            arguments[argNames[i]] = value;
+            continue;
+        }
+
+        static const string defaultPrefix = "default";
+        static const string haveDefault[] = {"hisacct", "hisnym", "hispurse",
+                                             "myacct",  "mynym",  "mypurse",
+                                             "server",  ""};
+
+        // can we get the argument value from the option file?
+        for (int i = 0; haveDefault[i] != ""; i++) {
+            if (haveDefault[i] == optionName) {
+                value = options.getValue((defaultPrefix + optionName).c_str());
+                if (value != nullptr) {
+                    arguments[argNames[i]] = value;
+                }
+                break;
+            }
+        }
+    }
+
+    bool success = cmd.run(arguments);
+    if (!success && !expectFailure) {
+        cout << cmd.getUsage();
+    }
+    return success ? 0 : -1;
 }

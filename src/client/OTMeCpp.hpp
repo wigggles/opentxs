@@ -269,7 +269,7 @@ public:
 
     bool withdraw_and_send_cash(const std::string& ACCT_ID,
                                 const std::string& RECIPIENT_NYM_ID,
-                                const std::string& MEMO, int64_t AMOUNT) const;
+                                int64_t AMOUNT) const;
 
     std::string get_payment_instrument(
         const std::string& SERVER_ID, const std::string& NYM_ID, int32_t nIndex,
