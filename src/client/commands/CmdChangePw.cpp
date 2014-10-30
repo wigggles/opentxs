@@ -156,7 +156,7 @@ int32_t CmdChangePw::runWithOptions()
 
 int32_t CmdChangePw::run()
 {
-    if (OTAPI_Wrap::Wallet_ChangePassphrase()) {
+    if (!OTAPI_Wrap::Wallet_ChangePassphrase()) {
         otOut << "Error: cannot change passphrase.\n";
         return -1;
     }
