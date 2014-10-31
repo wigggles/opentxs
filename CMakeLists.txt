@@ -150,6 +150,7 @@ else()
 endif()
 
 if(ANDROID)
+  set(PEDANTIC_CXX_FLAGS "${PEDANTIC_CXX_FLAGS} -Wno-useless-cast")
   add_definitions(-D__STDC_LIMIT_MACROS)
 endif()
 
