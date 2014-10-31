@@ -198,8 +198,12 @@ endif()
 # System libraries used for linking.
 
 if(UNIX AND NOT APPLE)
-  list(APPEND OPENTXS_SYSTEM_LIBRARIES rt)
   list(APPEND OPENTXS_SYSTEM_LIBRARIES dl)
+  if(ANDROID)
+    list(APPEND OPENTXS_SYSTEM_LIBRARIES log)
+  else()
+    list(APPEND OPENTXS_SYSTEM_LIBRARIES rt)
+  endif()
 endif()
 
 
