@@ -1765,7 +1765,6 @@ OT_UTILITY_OT string Utility::ReceiveReplyLowLevel(const string& serverID17,
                                                    int32_t nRequestNumber8,
                                                    const string& IN_FUNCTION)
 {
-    delay();
     setLastReplyReceived("");
 
     if (0 > nRequestNumber8) {
