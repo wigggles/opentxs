@@ -239,10 +239,15 @@
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Version.hpp>
 
+#include <opentxs/core/crypto/OTCallback.hpp>
+#include <opentxs/core/crypto/OTCaller.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+
 #include <anyoption/anyoption.hpp>
 
 #include <algorithm>
 #include <cctype>
+#include <string>
 #include <functional>
 
 using namespace opentxs;
@@ -358,6 +363,7 @@ void Opentxs::loadOptions(AnyOption& opt)
     opt.setCommandFlag("echoexpand");
     opt.setCommandFlag("errorlist");
     opt.setCommandFlag("noprompt");
+    opt.setCommandFlag("dummy-passphrase");
     opt.setCommandFlag("test");
 
     opt.setCommandOption("args");
@@ -386,9 +392,39 @@ void Opentxs::loadOptions(AnyOption& opt)
     opt.processFile(iniFileExact.Get());
 }
 
+class DummyPassphraseCallback : public OTCallback
+{
+private:
+    const std::string dummy_;
+
+public:
+    DummyPassphraseCallback(const std::string dummy)
+        : dummy_(dummy)
+    {
+    }
+    void runOne(const char*, OTPassword& password) const
+    {
+        password.setPassword(dummy_.c_str(), dummy_.size());
+    }
+
+    void runTwo(const char*, OTPassword& password) const
+    {
+        password.setPassword(dummy_.c_str(), dummy_.size());
+    }
+};
+
 int Opentxs::processCommand(AnyOption& opt)
 {
     string command = opt.getArgv(0);
+
+    if (opt.getFlag("dummy-passphrase")) {
+        // For automatic testing, set the password callback to
+        // always return "test" as the password, not prompting the user.
+        OTCaller* caller = new OTCaller;
+        DummyPassphraseCallback* callback = new DummyPassphraseCallback("test");
+        caller->setCallback(callback);
+        OTAsymmetricKey::SetPasswordCaller(*caller);
+    }
 
     if ("version" == command) {
         otOut << "opentxs " << OPENTXS_VERSION_STRING << "\n";
