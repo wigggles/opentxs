@@ -9,7 +9,7 @@ set(lucre-sources
   ${CMAKE_CURRENT_SOURCE_DIR}/lucre/src/bankimp.cpp
 )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/ ${OPENSSL_INCLUDE_DIR})
 
 
 if(WIN32)
@@ -27,7 +27,7 @@ else()
     ${lucre-sources}
   )
 
-  target_link_libraries(lucre ssl crypto)
+  target_link_libraries(lucre ${OPENSSL_LIBRARIES})
 endif()
 
 
@@ -36,7 +36,7 @@ add_library(bitcoin-base58
   STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-base58/base58.cpp
 )
-target_link_libraries(bitcoin-base58 ssl crypto)
+target_link_libraries(bitcoin-base58 ${OPENSSL_LIBRARIES})
 
 
 ### Build bigint as library
