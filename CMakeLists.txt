@@ -155,7 +155,11 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 #-----------------------------------------------------------------------------
 # Third party libraries
 
-find_package(OpenSSL 1.0.1 REQUIRED)
+if(APPLE)
+  find_package(OpenSSL REQUIRED)
+else()
+  find_package(OpenSSL 1.0.1 REQUIRED)
+endif()
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_library(ZMQ_LIB NAMES
