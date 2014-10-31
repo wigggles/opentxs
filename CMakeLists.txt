@@ -362,6 +362,7 @@ add_subdirectory(tests)
 add_subdirectory(wrappers)
 
 
+if (NOT ANDROID)
 #-----------------------------------------------------------------------------
 # Produce a cmake-package
 
@@ -486,3 +487,4 @@ if(DEB)
 endif()
 
 include(CPack)
+endif (NOT ANDROID)
