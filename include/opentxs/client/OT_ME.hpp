@@ -150,7 +150,6 @@ EXPORT std::string OT_CLI_GetKeyByIndex(const std::string& str_Args,
 EXPORT std::string OT_CLI_ReadLine();
 EXPORT std::string OT_CLI_ReadUntilEOF();
 
-class OTMeCpp;
 class OTScript;
 class OTScriptChai;
 class OTVariable;
@@ -453,7 +452,6 @@ private:
 
     OT_ME* r_pPrev; // For reference only. Do not delete.
     std::shared_ptr<OTScript> m_pScript;
-    OTMeCpp* m_pImplementation;
 
     bool HaveWorkingScript();
 

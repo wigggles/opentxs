@@ -115,7 +115,6 @@ set(cxx-sources
   OTAPI.cpp
   OTAPI_Exec.cpp
   OTClient.cpp
-  OTMeCpp.cpp
   OTRecord.cpp
   OTRecordList.cpp
   OTServerConnection.cpp
