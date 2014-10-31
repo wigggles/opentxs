@@ -602,17 +602,6 @@ bool OTLog::PushMemlogFront(const String& strLog)
 }
 
 // static
-bool OTLog::SleepSeconds(int64_t lSeconds)
-{
-#ifdef _WIN32
-    Sleep(static_cast<DWORD>(1000 * lSeconds));
-#else
-    sleep(lSeconds);
-#endif
-    return true;
-}
-
-// static
 bool OTLog::SleepMilliseconds(int64_t lMilliseconds)
 {
 #ifdef _WIN32

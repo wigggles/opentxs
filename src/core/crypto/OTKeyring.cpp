@@ -189,6 +189,7 @@ extern "C" {
 #include <gnome-keyring.h>
 #include <glib.h>
 }
+#include <unistd.h>
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
 // KDE / KWallet
@@ -854,7 +855,7 @@ bool OTKeyring::Gnome_RetrieveSecret(const OTString& strUser,
         // on first iteration, nCount is 0, and this will say "attempt 2" aka
         // "second attempt," which is correct.
 
-        OTLog::SleepSeconds(lSleep);
+        sleep(lSleep);
         lSleep *= 2; // double it each time
     }
 

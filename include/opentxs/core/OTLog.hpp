@@ -265,7 +265,6 @@ public:
     EXPORT static bool PopMemlogFront();
     EXPORT static bool PopMemlogBack();
     EXPORT static bool PushMemlogFront(const String& strLog);
-    EXPORT static bool SleepSeconds(int64_t lSeconds);
     EXPORT static bool SleepMilliseconds(int64_t lMilliseconds);
 
     // Output() logs normal output, which carries a verbosity level.
