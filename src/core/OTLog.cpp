@@ -1124,7 +1124,8 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 }
 */
 
-void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* v)
+void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
+                   ANDROID_UNUSED siginfo_t* info, ANDROID_UNUSED void* v)
 {
 #ifndef ANDROID
     static std::mutex the_Mutex;

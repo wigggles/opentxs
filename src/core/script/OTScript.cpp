@@ -130,6 +130,7 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
+#include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/script/OTScript.hpp>
@@ -235,8 +236,9 @@ std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type)
     return retVal;
 }
 
-std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type,
-                                          const std::string& script_contents)
+std::shared_ptr<OTScript> OTScriptFactory(
+    const std::string& script_type,
+    ANDROID_UNUSED const std::string& script_contents)
 {
 
 #ifdef OT_USE_SCRIPT_CHAI
