@@ -199,10 +199,10 @@ public:
                                  const OTString& strHashAlgorithm,
                                  OTIdentifier& theOutput) const;
     // BASE 62 ENCODING  (for IDs)
-    virtual void SetIDFromBase62String(const OTString& strInput,
-                                       OTIdentifier& theOutput) const;
-    virtual void SetBase62StringFromID(const OTIdentifier& theInput,
-                                       OTString& strOutput) const;
+    virtual void SetIDFromEncoded(const OTString& strInput,
+                                  OTIdentifier& theOutput) const;
+    virtual void EncodeID(const OTIdentifier& theInput,
+                          OTString& strOutput) const;
     // BASE 64 ENCODING
     // Lower-level version:
     // Caller is responsible to delete. Todo: return a unqiue pointer.

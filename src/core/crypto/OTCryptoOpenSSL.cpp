@@ -134,6 +134,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -142,6 +143,8 @@
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/stacktrace.h>
+
+#include <bitcoin-base58/base58.h>
 
 #include <bigint/BigIntegerLibrary.hh>
 
@@ -592,119 +595,37 @@ uint8_t* OTCrypto_OpenSSL::Base64Decode(const char* input, size_t* out_len,
     return buf;
 }
 
-// SET (binary id) FROM BASE62-ENCODED STRING
-//
-// Using a BigInteger lib I just added.
-//
-// Hopefully use something like this to replace some of the internals for
-// OTIdentifier.
-// I need to get the author to add a "back into data again" function though.
-//
-void OTCrypto_OpenSSL::SetIDFromBase62String(const OTString& strInput,
-                                             OTIdentifier& theOutput) const
+// Decode formatted OT ID to the binary hash ID.
+void OTCrypto_OpenSSL::SetIDFromEncoded(const OTString& strInput,
+                                        OTIdentifier& theOutput) const
 {
     theOutput.Release();
 
     // If it's short, no validate.
-    //
     if (strInput.GetLength() < 3) return;
 
-    // If it's not base62-encoded, then it doesn't validate.
-    //
-    const std::string strINPUT = strInput.Get();
-    if (!IsBase62(strINPUT)) return;
+    std::vector<unsigned char> decoded;
+    bool success = IdentifierFormat::decode(strInput.Get(), decoded);
 
-    // Todo there are try/catches in here, so need to handle those at some
-    // point.
-    BigInteger bigIntFromBase62 = stringToBigIntegerBase62(strINPUT);
-
-    // Now theBaseConverter contains a BigInteger that it read in as base62.
-    //
-    // Next step is to output it from that to Hex so I can convert to Binary.
-    //
-    // Why not convert it DIRECTLY to binary, you might ask?  TODO.
-    // In fact this is what we SHOULD be doing. But the BigInteger lib
-    // I'm using doesn't have a damned output to binary!  I'm emailing the
-    // author now.
-    //
-    // In the meantime, I had old code from before, that converted hex string to
-    // binary, which still needs to be removed. But for now, I'll just convert
-    // the
-    // BigInteger to hex, and then call my old code (below) just to get things
-    // running.
-
-    // You can convert the other way too.
-    std::string strHEX_VERSION = bigIntegerToStringBase16(bigIntFromBase62);
-
-    // I would rather use stringToBigUnsigned and then convert that to data.
-    // But apparently this class has no conversion back to data, I will contact
-    // the author.
-    BIGNUM* pBigNum = BN_new();
-    OT_ASSERT(nullptr != pBigNum);
-
-    // Convert from Hex String to BIGNUM.
-    const int32_t nToHex = BN_hex2bn(&pBigNum, strHEX_VERSION.c_str());
-    OT_ASSERT(0 < nToHex);
-
-    // Convert from Hex String to BigInteger (unwieldy, I know. Future versions
-    // will improve.)
-    //
-    uint32_t nBigNumBytes = BN_num_bytes(pBigNum);
-    theOutput.SetSize(nBigNumBytes);
-
-    const int32_t nConverted = BN_bn2bin(
-        pBigNum,
-        static_cast<uint8_t*>(const_cast<void*>(theOutput.GetPointer())));
-    OT_ASSERT(nConverted);
-
-    // BN_bn2bin() converts the absolute value of param 1 into big-endian form
-    // and stores it at param2.
-    // param2 must point to BN_num_bytes(pBigNum) bytes of memory.
-
-    BN_free(pBigNum);
+    OT_ASSERT(success);
+    // OTData will be gone soon, and then the following ugly lines
+    // can be improved.
+    theOutput.SetSize(decoded.size());
+    memcpy(const_cast<void*>(theOutput.GetPointer()), decoded.data(),
+           decoded.size());
 }
 
-// GET (binary id) AS BASE62-ENCODED STRING
-//
-// This Identifier is stored in binary form.
-// But what if you want a pretty hex string version of it?
-// Just call this function.
-// UPDATE: Now Base62 instead of Hex. (More compact.)
-// Easy double-click the ID and the entire thing highlights at once.
-//
-void OTCrypto_OpenSSL::SetBase62StringFromID(const OTIdentifier& theInput,
-                                             OTString& strOutput) const
+// Encode binary hash ID to the formatted OT ID.
+void OTCrypto_OpenSSL::EncodeID(const OTIdentifier& theInput,
+                                OTString& strOutput) const
 {
     strOutput.Release();
 
     if (theInput.IsEmpty()) return;
 
-    // Convert from internal binary format to BIGNUM format.
-    //
-    BIGNUM* pBigNum = BN_new();
-    OT_ASSERT(nullptr != pBigNum);
-
-    BN_bin2bn(static_cast<uint8_t*>(const_cast<void*>(theInput.GetPointer())),
-              theInput.GetSize(), pBigNum);
-
-    // Convert from BIGNUM to Hex String.
-    //
-    char* szBigNumInHex = BN_bn2hex(pBigNum);
-    OT_ASSERT(szBigNumInHex != nullptr);
-
-    // Convert from Hex String to BigInteger (unwieldy, I know. Future versions
-    // will improve.)
-    //
-    BigInteger theBigInt = stringToBigIntegerBase16(szBigNumInHex);
-    OPENSSL_free(szBigNumInHex);
-    szBigNumInHex = nullptr;
-    BN_free(pBigNum);
-
-    // Convert from BigInteger to std::string in Base62 format.
-    //
-    std::string strBigInt = bigIntegerToStringBase62(theBigInt);
-
-    strOutput.Set(strBigInt.c_str());
+    auto inputPtr = static_cast<const unsigned char*>(theInput.GetPointer());
+    strOutput.Set(
+        IdentifierFormat::encode(inputPtr, theInput.GetSize()).c_str());
 }
 
 bool OTCrypto_OpenSSL::RandomizeMemory(uint8_t* szDestination,

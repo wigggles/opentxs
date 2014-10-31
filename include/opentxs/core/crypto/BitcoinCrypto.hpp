@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTIdentifier.hpp
+ *  BitcoinCrypto.hpp
  *
  */
 
@@ -130,80 +130,52 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
-#define OPENTXS_CORE_OTIDENTIFIER_HPP
+#ifndef OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP
+#define OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP
 
-#include "OTData.hpp"
-
-#include <string>
-
-// An Identifier is basically a 256 bit hash value.
-// This class makes it easy to convert IDs back and forth to strings.
+#include <bitcoin-base58/base58.h>
+#include <vector>
 
 namespace opentxs
 {
 
-class OTCachedKey;
-class OTContract;
-class OTPseudonym;
-class OTString;
-class OTSymmetricKey;
-
-class OTIdentifier : public OTData
+// This class is built in the same fashion as the Bitcoin reference client's
+// bitcoin address class:
+// https://github.com/bitcoin/bitcoin/blob/0.9.3/src/base58.h#L101
+class IdentifierFormat : public CBase58Data
 {
 private:
-    bool CalculateDigest(const unsigned char* data, size_t len);
+    // Prefix to all IDs.
+    const std::string prefix_;
+    // version byte prepended before base58Check encoding.
+    // Similar to https://en.bitcoin.it/wiki/Base58Check_encoding#Version_bytes.
+    const unsigned char versionByte_;
+
+    // do not expose this version of CBase58Data's SetString.
+    bool SetString(const char* psz, unsigned int nVersionBytes = 1);
 
 public:
-    EXPORT friend std::ostream& operator<<(std::ostream& os,
-                                           const OTString& obj);
+    IdentifierFormat();
 
-    // Some digests are handled in special ways before they can call OpenSSL.
-    // They are internal, like SAMY hash.
-    EXPORT bool CalculateDigestInternal(const OTString& strInput,
-                                        const OTString& strHashAlgorithm);
-    EXPORT bool CalculateDigestInternal(const OTData& dataInput,
-                                        const OTString& strHashAlgorithm);
-    EXPORT static const OTString DefaultHashAlgorithm;
-    EXPORT static const OTString HashAlgorithm1;
-    EXPORT static const OTString HashAlgorithm2;
-    EXPORT OTIdentifier();
+    // Checks for OT prefix before calling base method.
+    // Decodes the OT ID format. Access the binary data with Get().
+    bool SetString(const std::string& str);
+    // Prepends OT prefix.
+    std::string ToString() const;
 
-    EXPORT OTIdentifier(const OTIdentifier& theID);
-    EXPORT OTIdentifier(const char* szStr);
-    EXPORT OTIdentifier(const std::string& szStr);
-    EXPORT OTIdentifier(const OTString& theStr);
-    EXPORT OTIdentifier(const OTPseudonym& theNym);
-    EXPORT OTIdentifier(const OTContract& theContract);
-    EXPORT OTIdentifier(const OTSymmetricKey& theKey);
-    EXPORT OTIdentifier(const OTCachedKey& theKey);
+    // Encodes to the OT ID format. Access the encoded string
+    // with ToString().
+    bool Set(const unsigned char* pbegin, const unsigned char* pend);
+    // Get back data that is in OT format.
+    // Use SetString() beforehand.
+    std::vector<unsigned char> Get() const;
 
-    EXPORT virtual ~OTIdentifier();
-    using OTData::swap;
-    using OTData::operator=;
-    EXPORT bool operator==(const OTIdentifier& s2) const;
-    EXPORT bool operator!=(const OTIdentifier& s2) const;
-
-    EXPORT bool operator>(const OTIdentifier& s2) const;
-    EXPORT bool operator<(const OTIdentifier& s2) const;
-    EXPORT bool operator<=(const OTIdentifier& s2) const;
-    EXPORT bool operator>=(const OTIdentifier& s2) const;
-    EXPORT bool CalculateDigest(const OTData& dataInput);
-    EXPORT bool CalculateDigest(const OTString& strInput);
-
-    EXPORT bool CalculateDigest(const OTString& strInput,
-                                const OTString& strHashAlgorithm);
-    EXPORT bool CalculateDigest(const OTData& dataInput,
-                                const OTString& strHashAlgorithm);
-    EXPORT bool XOR(const OTIdentifier& theInput) const;
-    // If someone passes in the pretty string of hex digits,
-    // convert it to the actual binary hash and set it internally.
-    EXPORT void SetString(const char* szString);
-    EXPORT void SetString(const OTString& theStr);
-    // theStr will contain pretty hex string after call.
-    EXPORT void GetString(OTString& theStr) const;
+    // Convenience functions for using this class.
+    static std::string encode(const unsigned char* data, size_t len);
+    static bool decode(const std::string& str,
+                       std::vector<unsigned char>& decoded);
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_OTIDENTIFIER_HPP
+#endif // OPENTXS_CORE_CRYPTO_BITCOINCRYPTO_HPP

@@ -138,7 +138,9 @@
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <bitcoin-base58/hash.h>
 #include <cstring>
+#include <iostream>
 
 namespace opentxs
 {
@@ -262,46 +264,36 @@ OTIdentifier::~OTIdentifier()
 // Using SHA-256 and WHIRLPOOL
 // We now have 256-bit keysize, though half of WHIRLPOOL output is still XORed
 // onto it.
-// We also now input/output the string values with Base62 instead of Hex. (More
-// compact.)
 //
 
 const OTString OTIdentifier::DefaultHashAlgorithm("SAMY");
 const OTString OTIdentifier::HashAlgorithm1("SHA256");
 const OTString OTIdentifier::HashAlgorithm2("WHIRLPOOL");
 
-// This method implements the SAMY hash
+bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
+{
+    // The Hash160 function comes from the Bitcoin reference client, where
+    // it is implemented as RIPEMD160 ( SHA256 ( x ) ) => 20 byte hash
+    auto hash160 = Hash160(data, data + len);
+    SetSize(20);
+    memcpy(const_cast<void*>(GetPointer()), hash160, 20);
+    return true;
+}
+
+// This method implements the (ripemd160 . sha256) hash,
+// so the result is 20 bytes long.
 bool OTIdentifier::CalculateDigest(const OTString& strInput)
 {
-    OTIdentifier idSecondHash;
-
-    if (idSecondHash.CalculateDigest(strInput, HashAlgorithm2) &&
-        CalculateDigest(strInput, HashAlgorithm1)) {
-        // At this point, we have successfully generated the WHRLPOOL hash in
-        // idSecondHash, and we've successfully generated the SHA-256 hash in
-        // this object.
-        // Next we XOR them together for the final product.
-        return XOR(idSecondHash);
-    }
-
-    return false;
+    return CalculateDigest(
+        reinterpret_cast<const unsigned char*>(strInput.Get()),
+        static_cast<size_t>(strInput.GetLength()));
 }
 
 // This method implements the SAMY hash
 bool OTIdentifier::CalculateDigest(const OTData& dataInput)
 {
-    OTIdentifier idSecondHash;
-
-    if (idSecondHash.CalculateDigest(dataInput, HashAlgorithm2) &&
-        CalculateDigest(dataInput, HashAlgorithm1)) {
-        // At this point, we have successfully generated the WHRLPOOL hash in
-        // idSecondHash, and we've successfully generated the SHA-256 hash in
-        // this object.
-        // Next we XOR them together for the final product.
-        return XOR(idSecondHash);
-    }
-
-    return false;
+    auto dataPtr = static_cast<const unsigned char*>(dataInput.GetPointer());
+    return CalculateDigest(dataPtr, dataInput.GetSize());
 }
 
 // Some of the digest calculations are done by crypto++, instead of OpenSSL.
@@ -434,24 +426,20 @@ bool OTIdentifier::XOR(const OTIdentifier& theInput) const
     return true;
 }
 
-// SET (binary id) FROM BASE62-ENCODED STRING
+// SET (binary id) FROM ENCODED STRING
 //
 void OTIdentifier::SetString(const OTString& theStr)
 {
-    OTCrypto::It()->SetIDFromBase62String(theStr,
-                                          *this); // theStr input, *this output.
+    OTCrypto::It()->SetIDFromEncoded(theStr, *this);
 }
 
-// GET (binary id) AS BASE62-ENCODED STRING
-//
 // This Identifier is stored in binary form.
-// But what if you want a pretty base62 string version of it?
+// But what if you want a pretty string version of it?
 // Just call this function.
 //
 void OTIdentifier::GetString(OTString& theStr) const
 {
-    OTCrypto::It()->SetBase62StringFromID(
-        *this, theStr); // *this input, theStr output.
+    OTCrypto::It()->EncodeID(*this, theStr); // *this input, theStr output.
 }
 
 } // namespace opentxs
