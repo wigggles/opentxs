@@ -135,6 +135,10 @@
 #include <opentxs/core/script/OTVariable.hpp>
 #include <opentxs/core/OTLog.hpp>
 
+#ifdef ANDROID
+#include "opentxs/core/util/android_string.hpp"
+#endif // ANDROID
+
 using namespace opentxs;
 using namespace std;
 
