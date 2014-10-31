@@ -679,7 +679,7 @@ size_t OTLog::logAssert(const char* szFilename, size_t nLinenumber,
         strAndroidAssertMsg.Format("\nOT_ASSERT in %s at line %d\n", szFilename,
                                    nLinenumber);
         __android_log_write(ANDROID_LOG_FATAL, "OT Assert",
-                            (const char*)strAndroidAssertMsg.Get());
+                            strAndroidAssertMsg.Get());
 #endif
     }
 
