@@ -141,6 +141,7 @@
 
 #include <cerrno>
 #include <vector>
+#include <cstdlib>
 
 #include <sys/stat.h>
 

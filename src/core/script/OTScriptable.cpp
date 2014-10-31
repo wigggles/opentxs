@@ -150,8 +150,11 @@
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
+#else
+#include <opentxs/core/script/OTScript.hpp>
 #endif
 
+#include <algorithm>
 #include <memory>
 
 // CALLBACKS
