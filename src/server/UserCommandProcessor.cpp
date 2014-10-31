@@ -847,7 +847,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
         }
 
         OTLog::vOutput(3, "Request number sent in this message "
-                          "%ld DOES match the one in the "
+                          "%" PRId64 " DOES match the one in the "
                           "file!\n",
                        lRequestNumber);
 
@@ -3767,17 +3767,17 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
 
         if (nullptr == pCronItem) {
             OTLog::vOutput(0, "%s: Couldn't find smart contract based on "
-                              "transaction #: %ld \n",
+                              "transaction #: %" PRId64 " \n",
                            __FUNCTION__, MsgIn.m_lTransactionNum);
         }
         // Also: CAN this guy trigger it?
         else if (nullptr ==
                  (pSmartContract = dynamic_cast<OTSmartContract*>(pCronItem))) {
-            OTLog::vOutput(
-                0, "%s: Found cron item %ld based on %ld, but it wasn't a "
-                   "smart contract. \n",
-                __FUNCTION__, pCronItem->GetTransactionNum(),
-                MsgIn.m_lTransactionNum);
+            OTLog::vOutput(0, "%s: Found cron item %" PRId64
+                              " based on %" PRId64 ", but it wasn't a "
+                              "smart contract. \n",
+                           __FUNCTION__, pCronItem->GetTransactionNum(),
+                           MsgIn.m_lTransactionNum);
         }
         else {
             // FIND THE PARTY / PARTY NAME
@@ -3787,7 +3787,7 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
 
             if (nullptr == pParty) {
                 OTLog::vOutput(0, "%s: Unable to find party to this contract "
-                                  "(%ld based on %ld) "
+                                  "(%" PRId64 " based on %" PRId64 ") "
                                   "based on Nym as agent: %s",
                                __FUNCTION__, pCronItem->GetTransactionNum(),
                                MsgIn.m_lTransactionNum, MsgIn.m_strNymID.Get());
@@ -3817,18 +3817,20 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
 
                         if (pSmartContract->IsFlaggedForRemoval()) {
                             OTLog::vOutput(0, "%s: Removing smart contract "
-                                              "from cron processing: %ld\n",
+                                              "from cron processing: %" PRId64
+                                              "\n",
                                            __FUNCTION__,
                                            pSmartContract->GetTransactionNum());
                         }
                         bSuccess = true;
                     }
                     else {
-                        OTLog::vOutput(0, "%s: Failed attempt to process "
-                                          "clause (%s) on smart contract: %ld "
-                                          "\n",
-                                       __FUNCTION__, str_clause_name.c_str(),
-                                       pSmartContract->GetTransactionNum());
+                        OTLog::vOutput(
+                            0, "%s: Failed attempt to process "
+                               "clause (%s) on smart contract: %" PRId64 " "
+                               "\n",
+                            __FUNCTION__, str_clause_name.c_str(),
+                            pSmartContract->GetTransactionNum());
                     }
                 }
 
@@ -4177,7 +4179,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
         break;
     default:
         OTLog::vError("UserCommandProcessor::UserCmdGetBoxReceipt: Unknown box "
-                      "type: %ld\n",
+                      "type: %" PRId64 "\n",
                       MsgIn.m_lDepth);
         bErrorCondition = true;
         break;
@@ -4201,7 +4203,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
             OTLog::vError(
                 "UserCommandProcessor::UserCmdGetBoxReceipt: User requested a "
                 "transaction number "
-                "(%ld) that's not in the %s. UserID (%s) and "
+                "(%" PRId64 ") that's not in the %s. UserID (%s) and "
                 "AccountID (%s) FYI.\n",
                 MsgIn.m_lTransactionNum,
                 (MsgIn.m_lDepth == 0)
@@ -4243,10 +4245,11 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
                 msgOut.m_bSuccess = true;
 
                 OTLog::vOutput(
-                    3, "UserCommandProcessor::UserCmdGetBoxReceipt: Success: "
-                       "User is "
-                       "retrieving the box receipt for transaction number "
-                       "%ld in the %s for UserID (%s) AccountID (%s).\n",
+                    3,
+                    "UserCommandProcessor::UserCmdGetBoxReceipt: Success: "
+                    "User is "
+                    "retrieving the box receipt for transaction number "
+                    "%" PRId64 " in the %s for UserID (%s) AccountID (%s).\n",
                     MsgIn.m_lTransactionNum,
                     (MsgIn.m_lDepth == 0)
                         ? "nymbox"
@@ -4259,7 +4262,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
                 OTLog::vError(
                     "UserCommandProcessor::UserCmdGetBoxReceipt: User "
                     "requested a "
-                    "transaction number (%ld) that's "
+                    "transaction number (%" PRId64 ") that's "
                     "failing to retrieve from the %s, AFTER calling "
                     "LoadBoxReceipt(). (Though it worked BEFORE calling it.) "
                     "UserID (%s) and AccountID (%s) FYI. IsAbbreviated == %s\n",
@@ -4280,7 +4283,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
         OTLog::vError(
             "UserCommandProcessor::UserCmdGetBoxReceipt: Failed loading or "
             "verifying %s. "
-            "Transaction (%ld), UserID (%s) and AccountID (%s) FYI.\n",
+            "Transaction (%" PRId64 "), UserID (%s) and AccountID (%s) FYI.\n",
             (MsgIn.m_lDepth == 0)
                 ? "nymbox"
                 : ((MsgIn.m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
@@ -4967,7 +4970,7 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
                     // already used before.
                     OTLog::vOutput(
                         0, "UserCommandProcessor::UserCmdProcessInbox: Error "
-                           "verifying transaction num %ld for Nym "
+                           "verifying transaction num %" PRId64 " for Nym "
                            "%s\n",
                         lTransactionNumber, msgOut.m_strNymID.Get());
                 }
@@ -5412,15 +5415,18 @@ send_message:
                                 bTransSuccess); // trans success
     }
     if (bCancelled) {
-        OTLog::vOutput(0, "Success: canceling transaction %ld for nym: %s \n",
+        OTLog::vOutput(0, "Success: canceling transaction %" PRId64
+                          " for nym: %s \n",
                        lTransactionNumber, msgOut.m_strNymID.Get());
     }
     else if (bTransSuccess) {
-        OTLog::vOutput(0, "Success: processing transaction %ld for nym: %s \n",
+        OTLog::vOutput(0, "Success: processing transaction %" PRId64
+                          " for nym: %s \n",
                        lTransactionNumber, msgOut.m_strNymID.Get());
     }
     else {
-        OTLog::vOutput(0, "Failure: processing transaction %ld for nym: %s \n",
+        OTLog::vOutput(0, "Failure: processing transaction %" PRId64
+                          " for nym: %s \n",
                        lTransactionNumber, msgOut.m_strNymID.Get());
     }
 }
