@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8.11)
 project(opentxs)
 
 
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM LAST)
 find_package(Git)
 if(GIT_FOUND)
     execute_process(COMMAND git "describe" OUTPUT_VARIABLE GIT_VERSION WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_STRIP_TRAILING_WHITESPACE)
