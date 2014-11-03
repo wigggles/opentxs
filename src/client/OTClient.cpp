@@ -9172,38 +9172,6 @@ int32_t OTClient::ProcessUserCommand(
         bSendCommand = true;
         lReturnValue = lRequestNumber;
     } break;
-    case OTClient::setAssetName: // SET ASSET CONTRACT NAME (wallet label only)
-    {
-        OT_ASSERT(nullptr != m_pWallet);
-
-        otOut << "Please enter an Asset Type ID: ";
-        // User input.
-        // I need a server ID
-        OTString strContractID;
-        strContractID.OTfgets(std::cin);
-
-        const OTIdentifier theTargetID(strContractID);
-
-        OTAssetContract* pTargetContract =
-            m_pWallet->GetAssetContract(theTargetID);
-
-        if (nullptr != pTargetContract) {
-            otOut << "Enter the new client-side \"name\" label for that asset "
-                     "type: ";
-            // User input.
-            // I need a name
-            OTString strNewName;
-            strNewName.OTfgets(std::cin);
-
-            pTargetContract->SetName(strNewName);
-
-            m_pWallet->SaveWallet(); // Only 'cause the server's name is stored
-                                     // here.
-        }
-        else {
-            otOut << "No Asset Contract found with that ID. Try 'load'.\n";
-        }
-    } break;
     case OTClient::getNymbox: // GET NYMBOX
     {
 

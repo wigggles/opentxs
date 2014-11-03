@@ -342,7 +342,6 @@ public:
         // The Payee must create it and sign it, then he sends it to the Payer,
         // who uses this command
         // to sign it and submit it to the server.
-        setAssetName, // For setting the client-side label on an asset contract.
         badID
     };
 
