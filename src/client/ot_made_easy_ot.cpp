@@ -137,6 +137,10 @@
 
 #include <algorithm>
 
+#ifdef ANDROID
+#include "opentxs/core/util/android_string.hpp"
+#endif
+
 // Returns:
 //  True if I have enough numbers, or if there was success getting more
 // transaction numbers.

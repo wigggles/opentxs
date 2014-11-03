@@ -196,26 +196,7 @@ struct sigcontext
 };
 #endif // defined __APPLE__
 
-#if defined(ANDROID)
-
-#ifndef ucontext_h_seen
-#define ucontext_h_seen
-
-#include <asm/sigcontext.h> /* for sigcontext */
-#include <asm/signal.h>     /* for stack_t */
-
-typedef struct ucontext
-{
-    uint64_t uc_flags;
-    struct ucontext* uc_link;
-    stack_t uc_stack;
-    struct sigcontext uc_mcontext;
-    uint64_t uc_sigmask;
-} ucontext_t;
-
-#endif // ucontext_h_seen
-
-#else // Not ANDROID
+#if !defined(ANDROID)
 #include <signal.h>
 #include <ucontext.h>
 #include <wordexp.h>

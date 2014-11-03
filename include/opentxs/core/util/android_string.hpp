@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  CmdBase.hpp
+ *  android_string.hpp
  *
  */
 
@@ -130,107 +130,39 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CLIENT_CMDBASE_HPP
-#define OPENTXS_CLIENT_CMDBASE_HPP
-
-#include "opentxs/core/util/Common.hpp"
-
-#include <vector>
-#include <map>
+#ifndef OPENTXS_CORE_UTIL_ANDROID_STRING_HPP
+#define OPENTXS_CORE_UTIL_ANDROID_STRING_HPP
 
 #ifdef ANDROID
-#include "opentxs/core/util/android_string.hpp"
+
+#include <cstdlib>
+#include <sstream>
+
+namespace std
+{
+inline long int stoll(const string& s)
+{
+    return atoll(s.c_str());
+}
+
+inline long int stol(const string& s)
+{
+    return atol(s.c_str());
+}
+
+inline int stoi(const string& s)
+{
+    return atoi(s.c_str());
+}
+
+template <typename T>
+string to_string(T value)
+{
+    ostringstream os;
+    os << value;
+    return os.str();
+}
+}
+
 #endif // ANDROID
-
-namespace opentxs
-{
-
-class OTWallet;
-
-const int MAX_ARGS = 10;
-
-typedef enum {
-    catError = 0,
-    catAdmin = 1,
-    catWallet = 2,
-    catMisc = 3,
-    catMarkets = 4,
-    catAccounts = 5,
-    catOtherUsers = 6,
-    catInstruments = 7,
-    catBaskets = 8,
-    catNyms = 9,
-    catLast = 10
-} Category;
-
-class CmdBase
-{
-public:
-    EXPORT CmdBase();
-    virtual ~CmdBase();
-
-    EXPORT const std::vector<std::string>& extractArgumentNames();
-    EXPORT Category getCategory() const;
-    EXPORT const char* getCommand() const;
-    EXPORT const char* getHelp() const;
-    virtual std::string getUsage() const;
-    EXPORT bool run(const std::map<std::string, std::string>& _options);
-
-protected:
-    const char* args[MAX_ARGS];
-    Category category;
-    const char* command;
-    const char* help;
-    const char* usage;
-
-    bool checkAccount(const char* name, std::string& account) const;
-    int64_t checkAmount(const char* name, const std::string& amount,
-                        const std::string& myacct) const;
-    bool checkFlag(const char* name, const std::string& value) const;
-    int32_t checkIndex(const char* name, const std::string& index,
-                       int32_t items) const;
-    bool checkIndices(const char* name, const std::string& indices) const;
-    bool checkIndicesRange(const char* name, const std::string& indices,
-                           int32_t items) const;
-    bool checkMandatory(const char* name, const std::string& value) const;
-    bool checkNym(const char* name, std::string& nym) const;
-    bool checkPurse(const char* name, std::string& purse) const;
-    bool checkServer(const char* name, std::string& server) const;
-    int64_t checkTransNum(const char* name, const std::string& id) const;
-    bool checkValue(const char* name, const std::string& index) const;
-    void dashLine() const;
-    std::string formatAmount(const std::string& assetType,
-                             int64_t amount) const;
-    std::string getAccountAssetType(const std::string& myacct) const;
-    std::string getAccountNym(const std::string& myacct) const;
-    std::string getAccountServer(const std::string& myacct) const;
-    std::string getOption(std::string optionName) const;
-    OTWallet* getWallet() const;
-    int32_t harvestTxNumbers(const std::string& contract,
-                             const std::string& mynym);
-    std::string inputLine();
-    std::string inputText(const char* what);
-    int32_t processResponse(const std::string& response,
-                            const char* what) const;
-    int32_t processTxResponse(const std::string& server,
-                              const std::string& mynym,
-                              const std::string& myacct,
-                              const std::string& response,
-                              const char* what) const;
-    int32_t responseReply(const std::string& response,
-                          const std::string& server, const std::string& mynym,
-                          const std::string& myacct,
-                          const char* function) const;
-    int32_t responseStatus(const std::string& response) const;
-    virtual int32_t runWithOptions() = 0;
-    std::vector<std::string> tokenize(const std::string& str, char delim,
-                                      bool noEmpty) const;
-
-private:
-    std::vector<std::string> argNames;
-    std::map<std::string, std::string> options;
-};
-
-} // namespace opentxs
-
-#endif // OPENTXS_CLIENT_CMDBASE_HPP
+#endif // OPENTXS_CORE_COMMON_HPP

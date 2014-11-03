@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8.11)
 project(opentxs)
 
 
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM LAST)
 find_package(Git)
 if(GIT_FOUND)
     execute_process(COMMAND git "describe" OUTPUT_VARIABLE GIT_VERSION WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -148,6 +149,11 @@ else()
   set(PEDANTIC_CXX_FLAGS "-Wall -Werror -Wextra -pedantic -Wno-missing-braces -Wcast-align -Wctor-dtor-privacy -Wdisabled-optimization -Winit-self -Wmissing-include-dirs -Wswitch-default -Wold-style-cast -Wredundant-decls -Woverloaded-virtual -Wmissing-declarations -Wunused-macros -Wundef -Wformat=2 -Wno-format-nonliteral ${GCC_WARN_FLAGS}")
 endif()
 
+if(ANDROID)
+  set(PEDANTIC_CXX_FLAGS "${PEDANTIC_CXX_FLAGS} -Wno-useless-cast")
+  add_definitions(-D__STDC_LIMIT_MACROS)
+endif()
+
 message(STATUS "C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS}")
 message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
@@ -193,8 +199,12 @@ endif()
 # System libraries used for linking.
 
 if(UNIX AND NOT APPLE)
-  list(APPEND OPENTXS_SYSTEM_LIBRARIES rt)
   list(APPEND OPENTXS_SYSTEM_LIBRARIES dl)
+  if(ANDROID)
+    list(APPEND OPENTXS_SYSTEM_LIBRARIES log)
+  else()
+    list(APPEND OPENTXS_SYSTEM_LIBRARIES rt)
+  endif()
 endif()
 
 
@@ -361,6 +371,7 @@ add_subdirectory(tests)
 add_subdirectory(wrappers)
 
 
+if (NOT ANDROID)
 #-----------------------------------------------------------------------------
 # Produce a cmake-package
 
@@ -485,3 +496,4 @@ if(DEB)
 endif()
 
 include(CPack)
+endif (NOT ANDROID)
