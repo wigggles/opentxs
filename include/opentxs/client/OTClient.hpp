@@ -302,8 +302,6 @@ public:
         // a single currency,
         // when in fact the issuence is delegated and distributed across
         // multiple issuers.
-        exchangeBasket,    // Use this to exchange assets in and out of a basket
-                           // currency.
         getTransactionNum, // Every transaction requires a transaction number.
                            // If your wallet doesn't have one,
         // then here it can request the server to send one over. (Or several.)

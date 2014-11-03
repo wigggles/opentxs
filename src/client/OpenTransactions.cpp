@@ -9107,6 +9107,9 @@ int32_t OT_API::exchangeBasket(
     bool bExchangeInOrOut // exchanging in == true, out == false.
     ) const
 {
+    // Use this to exchange assets in and out of a basket
+    // currency.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);

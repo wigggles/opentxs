@@ -2254,27 +2254,6 @@ int32_t main(int32_t argc, char* argv[])
                          "ProcessMessage: " << buf << "\n";
 
         }
-
-        // exchange in/out of a basket currency
-        else if (!strcmp(buf, "exchange\n")) {
-            otOut << "(User has instructed to send an exchangeBasket command "
-                     "to the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::exchangeBasket, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing exchangeBasket command in "
-                         "ProcessMessage: " << buf << "\n";
-
-        }
-
         // make an offer and put it onto a market.
         else if (!strcmp(buf, "offer\n")) {
             otOut << "(User has instructed to send a marketOffer command to "
