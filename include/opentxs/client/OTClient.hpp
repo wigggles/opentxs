@@ -290,12 +290,10 @@ public:
         getTransactionNum, // Every transaction requires a transaction number.
                            // If your wallet doesn't have one,
         // then here it can request the server to send one over. (Or several.)
-        processNymbox,       // Used by AcceptEntireNymbox() as it's setting
-                             // everything up.
-        processEntireNymbox, // Instruct the server what to do with the various
-                             // items sitting in my nymbox. (per user)
-        processInbox, // Instruct the server what to do with the various items
-                      // sitting in my inbox. (per asset acct)
+        processNymbox, // Used by AcceptEntireNymbox() as it's setting
+                       // everything up.
+        processInbox,  // Instruct the server what to do with the various items
+                       // sitting in my inbox. (per asset acct)
         processEntireInbox, // Just accept everything in the server (used in the
                             // command line test client.)
         getAccount,  // Grab the server's copy of my asset account file, in case

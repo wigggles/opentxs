@@ -2204,25 +2204,6 @@ int32_t main(int32_t argc, char* argv[])
                 nullptr);
             continue;
         }
-        // process nymbox
-        else if (strLine.compare(0, 2, "py") == 0) {
-            otOut << "(User has instructed to send a processNymbox command "
-                     "to the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::processEntireNymbox, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error in processNymbox command in ProcessMessage: "
-                      << strLine << "\n";
-
-        }
 
         // Nym, Account, Server ID, Server Contract
 

@@ -9197,53 +9197,6 @@ int32_t OTClient::ProcessUserCommand(
 
     const OTIdentifier SERVER_ID(strServerID);
     */
-
-    case OTClient::processEntireNymbox: // PROCESS ENTIRE NYMBOX
-    {
-        const OTIdentifier MY_NYM_ID(theNym);
-
-        // Load up the appropriate Nymbox...
-        OTLedger theNymbox(MY_NYM_ID, MY_NYM_ID, SERVER_ID);
-
-        bool bSuccess = false;
-        bool bLoadedNymbox = theNymbox.LoadNymbox();
-        bool bVerifiedNymbox =
-            bLoadedNymbox ? theNymbox.VerifyAccount(theNym) : false;
-        bool bIsEmpty = theNymbox.GetTransactionCount() < 1;
-
-        if (!bLoadedNymbox)
-            otOut << "OTClient::ProcessUserCommand::processEntireNymbox: "
-                     "Failed loading Nymbox: " << strNymID << " \n";
-        else if (!bVerifiedNymbox)
-            otOut << "OTClient::ProcessUserCommand::processEntireNymbox: "
-                     "Failed verifying Nymbox: " << strNymID << " \n";
-        else if (!bIsEmpty)
-            bSuccess = AcceptEntireNymbox(theNymbox, SERVER_ID, theServer,
-                                          theNym, theMessage);
-
-        if (!bSuccess) {
-            if (bIsEmpty)
-                otOut << "OTClient::ProcessUserCommand::processEntireNymbox: "
-                         "Nymbox (" << strNymID
-                      << ") is empty (so, skipping processNymbox.)\n";
-            else
-                otOut << "OTClient::ProcessUserCommand::processEntireNymbox: "
-                         "Failed trying to accept the entire Nymbox.\n";
-        }
-        else {
-            // (2) Sign the Message
-            theMessage.SignContract(theNym);
-
-            // (3) Save the Message (with signatures and all, back to its
-            // internal member m_strRawFile.)
-            theMessage.SaveContract();
-
-            bSendCommand = true;
-        }
-    }
-
-    // This is called by AcceptEntireNymbox().
-    break;
     case OTClient::processNymbox: // PROCESS NYMBOX
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
