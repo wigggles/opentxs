@@ -206,7 +206,7 @@ void MessageProcessor::init(int port)
     OTString bindPath;
     bindPath.Format("%s%d", "tcp://*:", port);
 
-    if (!socket_.Listen(bindPath)) {
+    if (!socket_.Listen(bindPath.Get())) {
         OT_FAIL;
     }
 }
@@ -250,7 +250,7 @@ void MessageProcessor::run()
         // (The timing code here is still pretty new, need to do some load
         // testing.)
         for (int i = 0; i < ServerSettings::GetHeartbeatNoRequests(); i++) {
-            OTString messageString;
+            std::string messageString;
 
             // With 100ms heartbeat, receive will try 100 ms, then 200 ms, then
             // 400 ms, total of 700.
@@ -263,14 +263,14 @@ void MessageProcessor::run()
             bool received = socket_.Receive(messageString);
 
             if (received) {
-                if (messageString.GetLength() <= 0) {
+                if (messageString.size() <= 0) {
                     OTLog::Error("server main: Received a message, but of 0 "
                                  "length or less. Weird. (Skipping it.)\n");
                 }
                 else {
-                    std::string strMsg(messageString.Get());
                     std::string reply;
-                    bool shouldDisconnect = processMessage(strMsg, reply);
+                    bool shouldDisconnect =
+                        processMessage(messageString, reply);
 
                     if (reply.length() <= 0 || shouldDisconnect) {
                         OTLog::vOutput(
@@ -278,7 +278,7 @@ void MessageProcessor::run()
                                "client request is "
                                "legible or worthy of a server response. :-)  "
                                "Msg:\n\n%s\n\n",
-                            strMsg.c_str());
+                            messageString.c_str());
 
                         socket_.Listen();
                     }
@@ -290,7 +290,7 @@ void MessageProcessor::run()
                                           "while trying to send reply "
                                           "back to client! \n\n "
                                           "MESSAGE:\n%s\n\nREPLY:\n%s\n\n",
-                                          strMsg.c_str(), reply.c_str());
+                                          messageString.c_str(), reply.c_str());
                         }
                     }
                 }
