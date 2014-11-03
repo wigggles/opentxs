@@ -161,6 +161,14 @@ message(STATUS "C++ Flags:       ${CMAKE_CXX_FLAGS}")
 message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 
 #-----------------------------------------------------------------------------
+# Get submodules
+
+message("before update")
+execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+message("after update")
+
+
+#-----------------------------------------------------------------------------
 # Third party libraries
 
 if(APPLE)
@@ -284,12 +292,6 @@ if(BUILD_DOCUMENTATION)
       COMMENT "Generating API documentation with Doxygen.." VERBATIM)
   endif()
 endif()
-
-
-#-----------------------------------------------------------------------------
-# Get submodules
-
-execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 #-----------------------------------------------------------------------------
