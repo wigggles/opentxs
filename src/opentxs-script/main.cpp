@@ -2207,26 +2207,6 @@ int32_t main(int32_t argc, char* argv[])
 
         // Nym, Account, Server ID, Server Contract
 
-        // process inbox
-        else if (strLine.compare(0, 2, "pi") == 0) {
-            otOut << "(User has instructed to send a processInbox command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::processEntireInbox, theMessage, *pMyNym,
-                        *pServerContract, nullptr)) // have to allow this to be
-            // defaulted at some point...
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error in processInbox command in ProcessMessage: "
-                      << strLine << "\n";
-
-        }
-
         // deposit cheque
         else if (buf[0] == 'q') {
             otOut << "User has instructed to deposit a cheque...\n";

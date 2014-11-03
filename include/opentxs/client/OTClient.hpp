@@ -294,8 +294,6 @@ public:
                        // everything up.
         processInbox,  // Instruct the server what to do with the various items
                        // sitting in my inbox. (per asset acct)
-        processEntireInbox, // Just accept everything in the server (used in the
-                            // command line test client.)
         getAccount,  // Grab the server's copy of my asset account file, in case
                      // mine is lost.
         getContract, // Grab the server's copy of any asset contract. Input is
