@@ -29,6 +29,7 @@ endif()
 option(BUILD_VERBOSE       "Verbose build output." ON)
 option(BUILD_DOCUMENTATION "Build the Doxygen documentation." ON)
 option(BUILD_TESTS         "Build the unit tests." ON)
+option(USE_CCACHE          "Use ccache." OFF)
 
 option(BUILD_SHARED_LIBS   "Build shared libraries." ON)
 
@@ -76,6 +77,7 @@ message(STATUS "Processor:              ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Verbose:                ${BUILD_VERBOSE}")
 message(STATUS "Testing:                ${BUILD_TESTS}")
 message(STATUS "Documentation:          ${BUILD_DOCUMENTATION}")
+message(STATUS "Using ccache            ${USE_CCACHE}")
 
 message(STATUS "Packaging -----------------------------------")
 message(STATUS "Build RPM:              ${RPM}")
@@ -222,6 +224,16 @@ Remove the CMakeCache.txt file and try again from another folder, e.g.:
 ")
 endif()
 
+#-----------------------------------------------------------------------------
+# Use ccache
+
+if (USE_CCACHE)
+  find_program(CCACHE "ccache")
+  if (CCACHE)
+    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "CCACHE_CPP2=yes ${CCACHE}")
+    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE})
+  endif(CCACHE)
+endif (USE_CCACHE)
 
 #-----------------------------------------------------------------------------
 # Default to Release build
