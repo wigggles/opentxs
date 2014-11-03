@@ -13458,6 +13458,9 @@ int32_t OT_API::getAccount(const OTIdentifier& SERVER_ID,
                            const OTIdentifier& USER_ID,
                            const OTIdentifier& ACCT_ID) const
 {
+    // Grab the server's copy of my asset account file, in case
+    // mine is lost.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);

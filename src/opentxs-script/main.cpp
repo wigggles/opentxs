@@ -1650,21 +1650,6 @@ int32_t main(int32_t argc, char* argv[])
                 otOut << " CASH PURSE (client-side): "
                       << pPurse->GetTotalValue() << "\n";
         }
-        else if (opt->getFlag('r') || opt->getFlag("refresh")) {
-            otOut << "(User has instructed to download intermediary files "
-                     "for an asset account...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getAccount, theMessage, *pMyNym,
-                        *pServerContract, pMyAccount)) {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing getAccount command in "
-                         "ProcessMessage.\n";
-        }
 
         //
         const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
@@ -2313,26 +2298,6 @@ int32_t main(int32_t argc, char* argv[])
             }
             else
                 otErr << "Error processing payment plan command in "
-                         "ProcessMessage: " << buf[0] << "\n";
-
-        }
-
-        // get account
-        else if (!strcmp(buf, "get\n")) {
-            otOut << "(User has instructed to send a getAccount command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getAccount, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing getAccount command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
         }

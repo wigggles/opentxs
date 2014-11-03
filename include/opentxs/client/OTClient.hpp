@@ -292,10 +292,8 @@ public:
         // then here it can request the server to send one over. (Or several.)
         processNymbox, // Used by AcceptEntireNymbox() as it's setting
                        // everything up.
-        getAccount,  // Grab the server's copy of my asset account file, in case
-                     // mine is lost.
-        getContract, // Grab the server's copy of any asset contract. Input is
-                     // the asset type ID.
+        getContract,   // Grab the server's copy of any asset contract. Input is
+                       // the asset type ID.
         getMint, // Grab the server's copy of any mint based on Asset ID. (For
                  // blinded tokens.)
         writeCheque, // Write a cheque. (Actually sends no message to the server
