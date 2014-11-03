@@ -12328,6 +12328,9 @@ int32_t OT_API::notarizeTransfer(const OTIdentifier& SERVER_ID,
                                  const int64_t& AMOUNT,
                                  const OTString& NOTE) const
 {
+    // Request the server to transfer from one account to
+    // another.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.

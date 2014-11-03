@@ -1458,33 +1458,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr
                     << "Error processing withdraw command in ProcessMessage.\n";
         }
-        else if (opt->getValue('t') != nullptr ||
-                   opt->getValue("transfer") != nullptr) {
-            const int64_t lAmount = OTString::StringToLong(opt->getValue('t'));
-
-            OTIdentifier HIS_ACCT_ID(
-                (str_HisAcct.size() > 0) ? str_HisAcct.c_str() : "aaaaaaaa");
-
-            otOut << "User has instructed to send a Transfer command "
-                     "(Notarize Transactions)...\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizeTransfer, theMessage, *pMyNym,
-                        *pServerContract, pMyAccount, lAmount,
-                        nullptr, // asset contract
-                        nullptr, // his Nym
-                        (str_HisAcct.size() > 0) ? &HIS_ACCT_ID
-                                                 : nullptr)) // his acct
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing notarizeTransactions (transfer) "
-                         "command "
-                         "in ProcessMessage.\n";
-        }
         else if (opt->getValue('c') != nullptr ||
                    opt->getValue("cheque") != nullptr) {
             otOut << "(User has instructed to write a cheque...)\n";
@@ -2609,26 +2582,6 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error processing getMint command in ProcessMessage: "
                       << buf[0] << "\n";
-
-        }
-
-        // notarize transfer
-        else if (buf[0] == 't') {
-            otOut << "(User has instructed to send a Transfer command "
-                     "(Notarize Transactions) to the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizeTransfer, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing notarizeTransactions command in "
-                         "ProcessMessage: " << buf[0] << "\n";
 
         }
 

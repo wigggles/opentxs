@@ -317,8 +317,6 @@ public:
                             // message to the server.)
         confirmPaymentPlan, // (Customer) Confirm a payment plan. (Sends no
                             // message to the server.)
-        notarizeTransfer, // Request the server to transfer from one account to
-                          // another.
         notarizeWithdrawal, // Request the server to withdraw from an asset
                             // account and return digital cash tokens to the
                             // wallet.
