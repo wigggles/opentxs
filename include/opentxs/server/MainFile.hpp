@@ -137,7 +137,7 @@
 
 namespace opentxs
 {
-class OTString;
+class String;
 class OTServer;
 
 class MainFile
@@ -152,7 +152,7 @@ public:
     bool LoadMainFile(bool readOnly = false);
     bool LoadServerUserAndContract();
     bool SaveMainFile();
-    bool SaveMainFileToString(OTString& filename);
+    bool SaveMainFileToString(String& filename);
 
 private:
     std::string version_;

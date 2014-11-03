@@ -221,7 +221,7 @@ public:
     {
         // We're going to listen on the same port that is listed in our server
         // contract. The hostname of this server, according to its own contract.
-        OTString hostname;
+        String hostname;
         int port = 0;
         bool connectInfo = server_->GetConnectInfo(hostname, port);
 

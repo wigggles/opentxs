@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTDATAFOLDER_HPP
 #define OPENTXS_CORE_OTDATAFOLDER_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 namespace opentxs
@@ -147,20 +147,20 @@ private:
 
     bool m_bInitialized;
 
-    OTString m_strDataFolderPath;
-    OTString m_strDataConifgFilePath;
+    String m_strDataFolderPath;
+    String m_strDataConifgFilePath;
 
 public:
-    EXPORT static bool Init(const OTString& strThreadContext);
+    EXPORT static bool Init(const String& strThreadContext);
 
     EXPORT static bool IsInitialized();
 
     EXPORT static bool Cleanup();
 
-    EXPORT static OTString Get();
-    EXPORT static bool Get(OTString& strDataFolder);
+    EXPORT static String Get();
+    EXPORT static bool Get(String& strDataFolder);
 
-    EXPORT static bool GetConfigFilePath(OTString& strConfigFilePath);
+    EXPORT static bool GetConfigFilePath(String& strConfigFilePath);
 };
 
 } // namespace opentxs

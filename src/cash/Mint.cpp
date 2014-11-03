@@ -171,8 +171,7 @@ Mint* Mint::MintFactory()
 }
 
 // static
-Mint* Mint::MintFactory(const OTString& strServerID,
-                        const OTString& strAssetTypeID)
+Mint* Mint::MintFactory(const String& strServerID, const String& strAssetTypeID)
 {
     Mint* pMint = nullptr;
 
@@ -193,9 +192,8 @@ Mint* Mint::MintFactory(const OTString& strServerID,
 }
 
 // static
-Mint* Mint::MintFactory(const OTString& strServerID,
-                        const OTString& strServerNymID,
-                        const OTString& strAssetTypeID)
+Mint* Mint::MintFactory(const String& strServerID, const String& strServerNymID,
+                        const String& strAssetTypeID)
 {
     Mint* pMint = nullptr;
 
@@ -312,8 +310,8 @@ void Mint::InitMint()
     m_pReserveAcct = nullptr;
 }
 
-Mint::Mint(const OTString& strServerID, const OTString& strServerNymID,
-           const OTString& strAssetTypeID)
+Mint::Mint(const String& strServerID, const String& strServerNymID,
+           const String& strAssetTypeID)
     : ot_super(strAssetTypeID)
     , m_ServerID(strServerID)
     , m_ServerNymID(strServerNymID)
@@ -334,7 +332,7 @@ Mint::Mint(const OTString& strServerID, const OTString& strServerNymID,
     InitMint();
 }
 
-Mint::Mint(const OTString& strServerID, const OTString& strAssetTypeID)
+Mint::Mint(const String& strServerID, const String& strAssetTypeID)
     : ot_super(strAssetTypeID)
     , m_ServerID(strServerID)
     , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
@@ -381,7 +379,7 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 
-    const OTString strServerID(m_ServerID), strAssetTypeID(m_AssetID);
+    const String strServerID(m_ServerID), strAssetTypeID(m_AssetID);
 
     if (!m_strFilename.Exists()) {
         if (nullptr != szAppend)
@@ -395,7 +393,7 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
                 strAssetTypeID.Get()); // client uses only asset ID, no append.
     }
 
-    OTString strFilename;
+    String strFilename;
     if (nullptr != szAppend)
         strFilename.Format("%s%s", strAssetTypeID.Get(),
                            szAppend); // server side
@@ -428,7 +426,7 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
     // NOTE: No need to worry about the OT ARMORED file format, since
     // LoadContractFromString already handles that internally.
 
-    OTString strRawFile(strFileContents.c_str());
+    String strRawFile(strFileContents.c_str());
 
     bool bSuccess = LoadContractFromString(
         strRawFile); // Note: This handles OT ARMORED file format.
@@ -440,7 +438,7 @@ bool Mint::SaveMint(const char* szAppend)
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 
-    const OTString strServerID(m_ServerID), strAssetTypeID(m_AssetID);
+    const String strServerID(m_ServerID), strAssetTypeID(m_AssetID);
 
     if (!m_strFilename.Exists()) {
         if (nullptr != szAppend)
@@ -453,7 +451,7 @@ bool Mint::SaveMint(const char* szAppend)
                                  strAssetTypeID.Get()); // client side
     }
 
-    OTString strFilename;
+    String strFilename;
     if (nullptr != szAppend)
         strFilename.Format("%s%s", strAssetTypeID.Get(), szAppend);
     else
@@ -463,7 +461,7 @@ bool Mint::SaveMint(const char* szAppend)
     const char* szFolder2name = strServerID.Get();
     const char* szFilename = strFilename.Get();
 
-    OTString strRawFile;
+    String strRawFile;
 
     if (!SaveContractRaw(strRawFile)) {
         otErr << "Mint::SaveMint: Error saving Mintfile (to string):\n"
@@ -472,7 +470,7 @@ bool Mint::SaveMint(const char* szAppend)
         return false;
     }
 
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp(strRawFile);
 
     if (false ==
@@ -536,7 +534,7 @@ bool Mint::VerifyContractID() const
     // I use the == operator here because there is no != operator at this time.
     // That's why you see the ! outside the parenthesis.
     if (!(m_ID == m_AssetID)) {
-        OTString str1(m_ID), str2(m_AssetID);
+        String str1(m_ID), str2(m_AssetID);
 
         otErr << "\nMint ID does NOT match Asset Type ID in "
                  "Mint::VerifyContractID.\n" << str1 << "\n" << str2 << "\n";
@@ -544,7 +542,7 @@ bool Mint::VerifyContractID() const
         return false;
     }
     else {
-        OTString str1(m_ID);
+        String str1(m_ID);
         otInfo << "\nMint ID *SUCCESSFUL* match to Asset Contract ID:\n" << str1
                << "\n\n";
         return true;
@@ -635,7 +633,7 @@ void Mint::UpdateContents()
 {
     OT_ASSERT(nullptr != m_pKeyPublic);
 
-    OTString SERVER_ID(m_ServerID), SERVER_NYM_ID(m_ServerNymID),
+    String SERVER_ID(m_ServerID), SERVER_NYM_ID(m_ServerNymID),
         ASSET_ID(m_AssetID), CASH_ACCOUNT_ID(m_CashAccountID);
 
     int64_t lFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
@@ -707,7 +705,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     int32_t nReturnVal = 0;
 
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -721,7 +719,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (strNodeName.Compare("mint")) {
-        OTString strServerID, strServerNymID, strAssetID, strCashAcctID;
+        String strServerID, strServerNymID, strAssetID, strCashAcctID;
 
         m_strVersion = xml->getAttributeValue("version");
         strServerID = xml->getAttributeValue("serverID");
@@ -733,8 +731,8 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_EXPIRATION =
             OTTimeGetTimeFromSeconds(xml->getAttributeValue("expiration"));
 
-        const OTString str_valid_from = xml->getAttributeValue("validFrom");
-        const OTString str_valid_to = xml->getAttributeValue("validTo");
+        const String str_valid_from = xml->getAttributeValue("validFrom");
+        const String str_valid_to = xml->getAttributeValue("validTo");
 
         m_VALID_FROM = OTTimeGetTimeFromSeconds(str_valid_from.ToLong());
         m_VALID_TO = OTTimeGetTimeFromSeconds(str_valid_to.ToLong());
@@ -793,7 +791,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (strNodeName.Compare("mintPrivateInfo")) {
         int64_t lDenomination =
-            OTString::StringToLong(xml->getAttributeValue("denomination"));
+            String::StringToLong(xml->getAttributeValue("denomination"));
 
         OTASCIIArmor* pArmor = new OTASCIIArmor;
 
@@ -817,7 +815,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (strNodeName.Compare("mintPublicInfo")) {
         int64_t lDenomination =
-            OTString::StringToLong(xml->getAttributeValue("denomination"));
+            String::StringToLong(xml->getAttributeValue("denomination"));
 
         OTASCIIArmor* pArmor = new OTASCIIArmor;
 

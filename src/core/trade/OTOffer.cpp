@@ -206,7 +206,7 @@ bool OTOffer::isPowerOfTen(const int64_t& x)
  */
 void OTOffer::GetIdentifier(OTIdentifier& theIdentifier) const
 {
-    OTString strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
+    String strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
 
     int64_t lScale = GetScale();
 
@@ -248,7 +248,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (!strcmp("marketOffer", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
 
-        OTString strIsSelling;
+        String strIsSelling;
         strIsSelling = xml->getAttributeValue("isSelling");
         if (strIsSelling.Compare("true"))
             m_bSelling = true;
@@ -257,7 +257,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_strContractType.Set((m_bSelling ? "ASK" : "BID"));
 
-        const OTString strServerID(xml->getAttributeValue("serverID")),
+        const String strServerID(xml->getAttributeValue("serverID")),
             strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
@@ -268,7 +268,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetAssetID(ASSET_ID);
         SetCurrencyID(CURRENCY_TYPE_ID);
 
-        const OTString strScale = xml->getAttributeValue("marketScale");
+        const String strScale = xml->getAttributeValue("marketScale");
         const int64_t lScale =
             strScale.Exists() ? strScale.ToLong() : 0; // if it doesn't exist,
                                                        // the 0 here causes the
@@ -282,7 +282,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             SetScale(lScale);
 
-        const OTString strPriceLimit = xml->getAttributeValue("priceLimit");
+        const String strPriceLimit = xml->getAttributeValue("priceLimit");
         const int64_t lPriceLimit = strPriceLimit.Exists()
                                         ? strPriceLimit.ToLong()
                                         : 0; // if it doesn't exist, the 0 here
@@ -300,7 +300,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             SetPriceLimit(lPriceLimit);
 
-        const OTString strTotal = xml->getAttributeValue("totalAssetsOnOffer");
+        const String strTotal = xml->getAttributeValue("totalAssetsOnOffer");
         const int64_t lTotal =
             strTotal.Exists() ? strTotal.ToLong() : 0; // if it doesn't exist,
                                                        // the 0 here causes the
@@ -314,7 +314,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             SetTotalAssetsOnOffer(lTotal);
 
-        const OTString strFinished = xml->getAttributeValue("finishedSoFar");
+        const String strFinished = xml->getAttributeValue("finishedSoFar");
         const int64_t lFinished = strFinished.Exists()
                                       ? strFinished.ToLong()
                                       : 0; // if it doesn't exist, the 0 here
@@ -327,7 +327,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             SetFinishedSoFar(lFinished);
 
-        const OTString strMinInc = xml->getAttributeValue("minimumIncrement");
+        const String strMinInc = xml->getAttributeValue("minimumIncrement");
         // if it doesn't exist, the 0 here causes the below error to fire.
         const int64_t lMinInc = strMinInc.Exists() ? strMinInc.ToLong() : 0;
 
@@ -344,14 +344,14 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             SetMinimumIncrement(lMinInc);
 
-        const OTString strTransNum = xml->getAttributeValue("transactionNum");
+        const String strTransNum = xml->getAttributeValue("transactionNum");
         const int64_t lTransNum =
             strTransNum.Exists() ? strTransNum.ToLong() : 0;
 
         SetTransactionNum(lTransNum);
 
-        const OTString str_valid_from = xml->getAttributeValue("validFrom");
-        const OTString str_valid_to = xml->getAttributeValue("validTo");
+        const String str_valid_from = xml->getAttributeValue("validFrom");
+        const String str_valid_to = xml->getAttributeValue("validTo");
 
         int64_t tValidFrom =
             str_valid_from.Exists() ? str_valid_from.ToLong() : 0;
@@ -391,7 +391,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 void OTOffer::UpdateContents()
 {
-    const OTString SERVER_ID(GetServerID()), ASSET_TYPE_ID(GetAssetID()),
+    const String SERVER_ID(GetServerID()), ASSET_TYPE_ID(GetAssetID()),
         CURRENCY_TYPE_ID(GetCurrencyID());
 
     const int64_t lFrom = OTTimeGetSecondsFromTime(GetValidFrom());

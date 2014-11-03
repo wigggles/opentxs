@@ -140,7 +140,7 @@ namespace opentxs
 {
 
 class OTMessage;
-class OTString;
+class String;
 
 class OTMessageBuffer
 {
@@ -156,8 +156,8 @@ public:
     EXPORT void Push(std::shared_ptr<OTMessage> message);
     // Caller IS responsible to delete.
     EXPORT std::shared_ptr<OTMessage> Pop(const int64_t& requestNum,
-                                          const OTString& serverId,
-                                          const OTString& nymId);
+                                          const String& serverId,
+                                          const String& nymId);
 
 private:
     OTMessageBuffer(const OTMessageBuffer&);

@@ -227,16 +227,16 @@ public:
     // OTPayment needs to be able to instantiate OTPurse without knowing the
     // server ID
     // in advance. I decided to add a factory for OTPurse to facilitate that.
-    EXPORT static Purse* PurseFactory(OTString strInput);
-    EXPORT static Purse* PurseFactory(OTString strInput,
+    EXPORT static Purse* PurseFactory(String strInput);
+    EXPORT static Purse* PurseFactory(String strInput,
                                       const OTIdentifier& SERVER_ID);
-    EXPORT static Purse* PurseFactory(OTString strInput,
+    EXPORT static Purse* PurseFactory(String strInput,
                                       const OTIdentifier& SERVER_ID,
                                       const OTIdentifier& ASSET_ID);
-    EXPORT static Purse* LowLevelInstantiate(const OTString& strFirstLine);
-    EXPORT static Purse* LowLevelInstantiate(const OTString& strFirstLine,
+    EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine);
+    EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine,
                                              const OTIdentifier& SERVER_ID);
-    EXPORT static Purse* LowLevelInstantiate(const OTString& strFirstLine,
+    EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine,
                                              const OTIdentifier& SERVER_ID,
                                              const OTIdentifier& ASSET_ID);
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);

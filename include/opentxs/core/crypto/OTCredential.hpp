@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_CRYPTO_OTCREDENTIAL_HPP
 
 #include "OTMasterkey.hpp"
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 // A nym contains a list of master credentials, via OTCredential.
 // The whole purpose of a Nym is to be an identity, which can have
@@ -219,13 +219,13 @@ class OTCredential
 private:
     OTMasterkey m_Masterkey;
     mapOfSubcredentials m_mapSubcredentials;
-    OTString m_strNymID;
-    OTString m_strSourceForNymID;
+    String m_strNymID;
+    String m_strSourceForNymID;
     // --------------------------------------
-    OTString m_strMasterCredID; // This can't be stored in the master itself
-                                // since it's a hash of that master. But this
-                                // SHOULD be found in every subcredential signed
-                                // by that master.
+    String m_strMasterCredID; // This can't be stored in the master itself
+                              // since it's a hash of that master. But this
+                              // SHOULD be found in every subcredential signed
+                              // by that master.
 
     const OTPassword* m_pImportPassword; // Not owned. Just here for
                                          // convenience.
@@ -239,21 +239,21 @@ private:
     // back to nullptr when he's done.
 private:
     OTCredential();
-    bool SetPublicContents(const OTString::Map& mapPublic);    // For master
-                                                               // credential.
-    bool SetPrivateContents(const OTString::Map& mapPrivate);  // For master
-                                                               // credential.
-    void SetSourceForNymID(const OTString& strSourceForNymID); // The source is
-                                                               // the
-                                                               // URL/DN/pubkey
-                                                               // that hashes to
-                                                               // form the
-                                                               // NymID. Any
-                                                               // credential
-                                                               // must verify
-                                                               // against its
-                                                               // own source.
-    void SetMasterCredID(const OTString& strID);  // The master credential ID is
+    bool SetPublicContents(const String::Map& mapPublic);    // For master
+                                                             // credential.
+    bool SetPrivateContents(const String::Map& mapPrivate);  // For master
+                                                             // credential.
+    void SetSourceForNymID(const String& strSourceForNymID); // The source is
+                                                             // the
+                                                             // URL/DN/pubkey
+                                                             // that hashes to
+                                                             // form the
+                                                             // NymID. Any
+                                                             // credential
+                                                             // must verify
+                                                             // against its
+                                                             // own source.
+    void SetMasterCredID(const String& strID);    // The master credential ID is
                                                   // a hash of the master
                                                   // credential m_MasterKey
     bool GenerateMasterkey(int32_t nBits = 1024); // CreateMaster is able to
@@ -278,46 +278,46 @@ public:
     {
         m_pImportPassword = pImportPassword;
     }
-    static OTCredential* CreateMaster(
-        const OTString& strSourceForNymID,
-        int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
-        const OTString::Map* pmapPrivate = nullptr,
-        const OTString::Map* pmapPublic = nullptr,
-        const OTPasswordData* pPWData = nullptr);
-    static OTCredential* LoadMaster(const OTString& strNymID, // Caller is
-                                                              // responsible to
-                                                              // delete, in both
+    static OTCredential* CreateMaster(const String& strSourceForNymID,
+                                      int32_t nBits = 1024, // Ignored unless
+                                                            // pmapPrivate is
+                                                            // nullptr
+                                      const String::Map* pmapPrivate = nullptr,
+                                      const String::Map* pmapPublic = nullptr,
+                                      const OTPasswordData* pPWData = nullptr);
+    static OTCredential* LoadMaster(const String& strNymID, // Caller is
+                                                            // responsible to
+                                                            // delete, in both
                                     // CreateMaster and LoadMaster.
-                                    const OTString& strMasterCredID,
+                                    const String& strMasterCredID,
                                     const OTPasswordData* pPWData = nullptr);
     static OTCredential* LoadMasterFromString(
-        const OTString& strInput,
-        const OTString& strNymID, // Caller is responsible to delete, in both
-                                  // CreateMaster and LoadMaster.
-        const OTString& strMasterCredID, OTPasswordData* pPWData = nullptr,
+        const String& strInput,
+        const String& strNymID, // Caller is responsible to delete, in both
+                                // CreateMaster and LoadMaster.
+        const String& strMasterCredID, OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    EXPORT bool Load_Master(const OTString& strNymID,
-                            const OTString& strMasterCredID,
+    EXPORT bool Load_Master(const String& strNymID,
+                            const String& strMasterCredID,
                             const OTPasswordData* pPWData = nullptr);
     EXPORT bool Load_MasterFromString(
-        const OTString& strInput, const OTString& strNymID,
-        const OTString& strMasterCredID,
-        const OTPasswordData* pPWData = nullptr,
+        const String& strInput, const String& strNymID,
+        const String& strMasterCredID, const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // For subcredentials that are specifically *subkeys*. Meaning it will
     // contain 3 keypairs: signing, authentication, and encryption.
     //
     EXPORT bool AddNewSubkey(
         int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
-        const OTString::Map* pmapPrivate = nullptr, // Public keys are derived
-                                                    // from the private.
+        const String::Map* pmapPrivate = nullptr, // Public keys are derived
+                                                  // from the private.
         const OTPasswordData* pPWData = nullptr, // The master key will sign the
                                                  // subkey.
         OTSubkey* *ppSubkey = nullptr);          // output
     // For non-key credentials, such as for 3rd-party authentication.
     //
     EXPORT bool AddNewSubcredential(
-        const OTString::Map& mapPrivate, const OTString::Map& mapPublic,
+        const String::Map& mapPrivate, const String::Map& mapPublic,
         const OTPasswordData* pPWData = nullptr, // The master key will sign the
                                                  // subcredential.
         OTSubcredential* *ppSubcred = nullptr);  // output
@@ -327,30 +327,30 @@ public:
                                                               // exporting a Nym
                                                               // from the
                                                               // wallet.
-    EXPORT bool LoadSubkey(const OTString& strSubID);
-    EXPORT bool LoadSubcredential(const OTString& strSubID);
+    EXPORT bool LoadSubkey(const String& strSubID);
+    EXPORT bool LoadSubcredential(const String& strSubID);
     EXPORT bool LoadSubkeyFromString(
-        const OTString& strInput, const OTString& strSubID,
+        const String& strInput, const String& strSubID,
         const OTPassword* pImportPassword = nullptr);
     EXPORT bool LoadSubcredentialFromString(
-        const OTString& strInput, const OTString& strSubID,
+        const String& strInput, const String& strSubID,
         const OTPassword* pImportPassword = nullptr);
     EXPORT size_t GetSubcredentialCount() const;
     EXPORT const OTSubcredential* GetSubcredential(
-        const OTString& strSubID,
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String& strSubID,
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTSubcredential* GetSubcredentialByIndex(int32_t nIndex) const;
     EXPORT const std::string GetSubcredentialIDByIndex(size_t nIndex) const;
-    EXPORT const OTString& GetPubCredential() const; // Returns: m_Masterkey's
-                                                     // public credential
-                                                     // string.
-    EXPORT const OTString& GetPriCredential() const; // Returns: m_Masterkey's
-                                                     // private credential
-                                                     // string.
-    EXPORT const OTString& GetMasterCredID() const;  // Returns: Master
-                                                     // Credential ID!
-    EXPORT const OTString& GetNymID() const;
-    EXPORT const OTString& GetSourceForNymID() const;
+    EXPORT const String& GetPubCredential() const; // Returns: m_Masterkey's
+                                                   // public credential
+                                                   // string.
+    EXPORT const String& GetPriCredential() const; // Returns: m_Masterkey's
+                                                   // private credential
+                                                   // string.
+    EXPORT const String& GetMasterCredID() const;  // Returns: Master
+                                                   // Credential ID!
+    EXPORT const String& GetNymID() const;
+    EXPORT const String& GetSourceForNymID() const;
     // listRevokedIDs should contain a list of std::strings for IDs of
     // already-revoked subcredentials.
     // That way, SerializeIDs will know whether to mark them as valid while
@@ -360,10 +360,10 @@ public:
     // bValid=true means we are saving OTPseudonym::m_mapCredentials. Whereas
     // bValid=false means we're saving m_mapRevoked.
     //
-    EXPORT void SerializeIDs(OTString& strOutput,
-                             const OTString::List& listRevokedIDs,
-                             OTString::Map* pmapPubInfo = nullptr,
-                             OTString::Map* pmapPriInfo = nullptr,
+    EXPORT void SerializeIDs(String& strOutput,
+                             const String::List& listRevokedIDs,
+                             String::Map* pmapPubInfo = nullptr,
+                             String::Map* pmapPriInfo = nullptr,
                              bool bShowRevoked = false,
                              bool bValid = true) const;
     EXPORT bool VerifyInternally() const;
@@ -379,23 +379,23 @@ public:
                                     // or 'A'
                                     // (authentication key)
     EXPORT const OTAsymmetricKey& GetPublicAuthKey(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPublicEncrKey(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPublicSignKey(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPrivateSignKey(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPrivateEncrKey(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTAsymmetricKey& GetPrivateAuthKey(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTKeypair& GetAuthKeypair(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTKeypair& GetEncrKeypair(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTKeypair& GetSignKeypair(
-        const OTString::List* plistRevokedIDs = nullptr) const;
+        const String::List* plistRevokedIDs = nullptr) const;
     EXPORT void ClearSubcredentials();
     EXPORT ~OTCredential();
 };

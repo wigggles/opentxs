@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 // Instantiate one of these whenever you do an action that may
@@ -228,8 +228,7 @@ OTPasswordData::OTPasswordData(const std::string& str_Display,
               ((nullptr != pMasterPW) && (pCachedKey)));
 }
 
-OTPasswordData::OTPasswordData(const OTString& strDisplay,
-                               OTPassword* pMasterPW,
+OTPasswordData::OTPasswordData(const String& strDisplay, OTPassword* pMasterPW,
                                std::shared_ptr<OTCachedKey> pCachedKey)
     : m_pMasterPW(pMasterPW)
     , m_strDisplay(strDisplay.Get())

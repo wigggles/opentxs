@@ -141,7 +141,7 @@ namespace opentxs
 class OTASCIIArmor;
 class OTCaller;
 class OTPassword;
-class OTString;
+class String;
 
 // Todo:
 // 1. Add this value to the config file so it becomes merely a default value
@@ -193,23 +193,23 @@ public:
     // CERTIFICATE....
     //
     virtual bool LoadPrivateKeyFromCertString(
-        const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = nullptr,
+        const String& strCert, bool bEscaped = true,
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // Load Public Key from Cert String
     //
     virtual bool LoadPublicKeyFromCertString(
-        const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = nullptr,
+        const String& strCert, bool bEscaped = true,
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
                                                       // AND
                                                       // escapes.
 
     virtual bool SaveCertToString(
-        OTString& strOutput, const OTString* pstrReason = nullptr,
+        String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
     virtual bool SavePrivateKeyToString(
-        OTString& strOutput, const OTString* pstrReason = nullptr,
+        String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
     virtual bool LoadPublicKeyFromPGPKey(

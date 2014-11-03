@@ -1332,7 +1332,7 @@ bool OTKeyring::FlatFile_DeleteSecret(const OTString& strUser,
 #endif
 
 // static
-bool OTKeyring::StoreSecret(const OTString& strUser,
+bool OTKeyring::StoreSecret(const String& strUser,
                             const OTPassword& thePassword,
                             const std::string& str_display)
 {
@@ -1362,7 +1362,7 @@ bool OTKeyring::StoreSecret(const OTString& strUser,
 }
 
 // static
-bool OTKeyring::RetrieveSecret(const OTString& strUser, OTPassword& thePassword,
+bool OTKeyring::RetrieveSecret(const String& strUser, OTPassword& thePassword,
                                const std::string& str_display)
 {
     if (OTCachedKey::It()->IsUsingSystemKeyring()) {
@@ -1392,7 +1392,7 @@ bool OTKeyring::RetrieveSecret(const OTString& strUser, OTPassword& thePassword,
 }
 
 // static
-bool OTKeyring::DeleteSecret(const OTString& strUser,
+bool OTKeyring::DeleteSecret(const String& strUser,
                              const std::string& str_display)
 {
     if (OTCachedKey::It()->IsUsingSystemKeyring()) {

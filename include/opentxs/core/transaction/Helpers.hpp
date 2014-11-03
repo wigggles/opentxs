@@ -139,7 +139,7 @@
 namespace opentxs
 {
 
-class OTString;
+class String;
 class OTTransaction;
 class OTLedger;
 class OTIdentifier;
@@ -151,7 +151,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int64_t& lNumberOfOrigin,
                               int64_t& lTransactionNum, int64_t& lInRefTo,
                               int64_t& lInRefDisplay, time64_t& the_DATE_SIGNED,
-                              int& theType, OTString& strHash,
+                              int& theType, String& strHash,
                               int64_t& lAdjustment, int64_t& lDisplayValue,
                               int64_t& lClosingNum, int64_t& lRequestNum,
                               bool& bReplyTransSuccess,
@@ -170,22 +170,21 @@ EXPORT OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
                                      int64_t lLedgerType);
 
 bool SetupBoxReceiptFilename(int64_t lLedgerType, OTTransaction& theTransaction,
-                             const char* szCaller, OTString& strFolder1name,
-                             OTString& strFolder2name, OTString& strFolder3name,
-                             OTString& strFilename);
+                             const char* szCaller, String& strFolder1name,
+                             String& strFolder2name, String& strFolder3name,
+                             String& strFilename);
 
 bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
-                             const char* szCaller, OTString& strFolder1name,
-                             OTString& strFolder2name, OTString& strFolder3name,
-                             OTString& strFilename);
+                             const char* szCaller, String& strFolder1name,
+                             String& strFolder2name, String& strFolder3name,
+                             String& strFilename);
 
-bool SetupBoxReceiptFilename(int64_t lLedgerType,
-                             const OTString& strUserOrAcctID,
-                             const OTString& strServerID,
+bool SetupBoxReceiptFilename(int64_t lLedgerType, const String& strUserOrAcctID,
+                             const String& strServerID,
                              const int64_t& lTransactionNum,
-                             const char* szCaller, OTString& strFolder1name,
-                             OTString& strFolder2name, OTString& strFolder3name,
-                             OTString& strFilename);
+                             const char* szCaller, String& strFolder1name,
+                             String& strFolder2name, String& strFolder3name,
+                             String& strFilename);
 
 } // namespace opentxs
 

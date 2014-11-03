@@ -241,10 +241,10 @@ protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
-    OTString m_strLabel; // OTSmartContract can put its trans# here. (Allowing
-                         // us to use it in the OTScriptable methods where any
-                         // smart contract would normally want to log its
-                         // transaction #, not just the clause name.)
+    String m_strLabel; // OTSmartContract can put its trans# here. (Allowing
+                       // us to use it in the OTScriptable methods where any
+                       // smart contract would normally want to log its
+                       // transaction #, not just the clause name.)
 public:
     EXPORT virtual void SetDisplayLabel(const std::string* pstrLabel = nullptr);
     int32_t GetPartyCount() const
@@ -314,8 +314,8 @@ public:
                            // supposedly executed agreement.
         OTPseudonym& theSignerNym, // For verifying signature on the authorizing
                                    // Nym, when loading it
-        const OTString& strServerID, // For verifying issued num, need the
-                                     // serverID the # goes with.
+        const String& strServerID, // For verifying issued num, need the
+                                   // serverID the # goes with.
         mapOfNyms* pmap_ALREADY_LOADED = nullptr, // If some nyms are already
                                                   // loaded, pass them here so
                                                   // we don't
@@ -337,12 +337,12 @@ public:
         OTPartyAccount& thePartyAcct, // The party is assumed to have been
                                       // verified already via
                                       // VerifyPartyAuthorization()
-        OTPseudonym& theSignerNym, // For verifying signature on the authorized
-                                   // Nym
-        const OTString& strServerID, // For verifying issued num, need the
-                                     // serverID the # goes with.
-        bool bBurnTransNo = false);  // In OTServer::VerifySmartContract(), it
-                                     // not only wants to
+        OTPseudonym& theSignerNym,  // For verifying signature on the authorized
+                                    // Nym
+        const String& strServerID,  // For verifying issued num, need the
+                                    // serverID the # goes with.
+        bool bBurnTransNo = false); // In OTServer::VerifySmartContract(), it
+                                    // not only wants to
     // verify the closing # is properly issued, but it
     // additionally wants to see that it hasn't been USED yet --
     // AND it wants to burn it, so it can't be used again!  This
@@ -395,8 +395,8 @@ public:
         const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
-        const OTString& strReference, OTString* pstrNote = nullptr,
-        OTString* pstrAttachment = nullptr,
+        const String& strReference, String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
         OTPseudonym* pActualNym = nullptr) const;
     // This is an OT Native call party_may_execute_clause
     // It returns true/false whether party is allowed to execute clause.
@@ -424,7 +424,7 @@ public:
 
     EXPORT virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
     EXPORT virtual bool Compare(OTScriptable& rhs) const;
-    EXPORT static OTScriptable* InstantiateScriptable(const OTString& strInput);
+    EXPORT static OTScriptable* InstantiateScriptable(const String& strInput);
 
     // Make sure a string contains only alpha, numeric, or '_'
     // And make sure it's not blank. This is for script variable names, clause
@@ -438,7 +438,7 @@ public:
     OTScriptable();
     virtual ~OTScriptable();
 
-    void UpdateContentsToString(OTString& strAppend, bool bCalculatingID) const;
+    void UpdateContentsToString(String& strAppend, bool bCalculatingID) const;
     EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
 
     virtual void Release();

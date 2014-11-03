@@ -169,7 +169,7 @@ public:
 
     bool IsFlaggedForShutdown() const;
 
-    bool GetConnectInfo(OTString& hostname, int32_t& port) const;
+    bool GetConnectInfo(String& hostname, int32_t& port) const;
 
     const OTPseudonym& GetServerNym() const;
 
@@ -191,7 +191,7 @@ private:
                              const OTIdentifier& recipientUserId,
                              OTTransaction::transactionType transactionType,
                              OTMessage* msg = nullptr,
-                             const OTString* messageString = nullptr,
+                             const String* messageString = nullptr,
                              const char* command = nullptr);
 
 private:
@@ -200,7 +200,7 @@ private:
     Transactor transactor_;
     UserCommandProcessor userCommandProcessor_;
 
-    OTString m_strWalletFilename;
+    String m_strWalletFilename;
     // Used at least for whether or not to write to the PID.
     bool m_bReadOnly;
     // If the server wants to be shut down, it can set
@@ -208,9 +208,9 @@ private:
     bool m_bShutdownFlag;
 
     // A hash of the server contract
-    OTString m_strServerID;
+    String m_strServerID;
     // A hash of the public key that signed the server contract
-    OTString m_strServerUserID;
+    String m_strServerUserID;
     // This is the server's own contract, containing its public key and
     // connect info.
     std::unique_ptr<OTServerContract> m_pServerContract;

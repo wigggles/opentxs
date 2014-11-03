@@ -202,29 +202,29 @@ class OTCrypto_OpenSSL::OTCrypto_OpenSSLdp
 public:
     // These are protected because they contain OpenSSL-specific parameters.
 
-    bool SignContractDefaultHash(const OTString& strContractUnsigned,
+    bool SignContractDefaultHash(const String& strContractUnsigned,
                                  const EVP_PKEY* pkey,
                                  OTSignature& theSignature, // output
                                  const OTPasswordData* pPWData = nullptr) const;
 
     bool VerifyContractDefaultHash(
-        const OTString& strContractToVerify, const EVP_PKEY* pkey,
+        const String& strContractToVerify, const EVP_PKEY* pkey,
         const OTSignature& theSignature,
         const OTPasswordData* pPWData = nullptr) const;
 
     // Sign or verify using the actual OpenSSL EVP_PKEY
     //
-    bool SignContract(const OTString& strContractUnsigned, const EVP_PKEY* pkey,
+    bool SignContract(const String& strContractUnsigned, const EVP_PKEY* pkey,
                       OTSignature& theSignature, // output
-                      const OTString& strHashType,
+                      const String& strHashType,
                       const OTPasswordData* pPWData = nullptr) const;
 
-    bool VerifySignature(const OTString& strContractToVerify,
+    bool VerifySignature(const String& strContractToVerify,
                          const EVP_PKEY* pkey, const OTSignature& theSignature,
-                         const OTString& strHashType,
+                         const String& strHashType,
                          const OTPasswordData* pPWData = nullptr) const;
 
-    static const EVP_MD* GetOpenSSLDigestByName(const OTString& theName);
+    static const EVP_MD* GetOpenSSLDigestByName(const String& theName);
 };
 
 #else // Apparently NO crypto engine is defined!
@@ -596,7 +596,7 @@ uint8_t* OTCrypto_OpenSSL::Base64Decode(const char* input, size_t* out_len,
 }
 
 // Decode formatted OT ID to the binary hash ID.
-void OTCrypto_OpenSSL::SetIDFromEncoded(const OTString& strInput,
+void OTCrypto_OpenSSL::SetIDFromEncoded(const String& strInput,
                                         OTIdentifier& theOutput) const
 {
     theOutput.Release();
@@ -617,7 +617,7 @@ void OTCrypto_OpenSSL::SetIDFromEncoded(const OTString& strInput,
 
 // Encode binary hash ID to the formatted OT ID.
 void OTCrypto_OpenSSL::EncodeID(const OTIdentifier& theInput,
-                                OTString& strOutput) const
+                                String& strOutput) const
 {
     strOutput.Release();
 
@@ -725,7 +725,7 @@ OTPassword* OTCrypto_OpenSSL::DeriveNewKey(const OTPassword& userPassword,
         ;
 
     if (bHaveCheckHash) {
-        OTString strDataCheck, strTestCheck;
+        String strDataCheck, strTestCheck;
         strDataCheck.Set(static_cast<const char*>(dataCheckHash.GetPointer()),
                          dataCheckHash.GetSize());
         strTestCheck.Set(static_cast<const char*>(tmpHashCheck.GetPointer()),
@@ -774,7 +774,7 @@ openssl dgst -sha1 -verify clientpub.pem -signature cheesy2.sig  cheesy2.xml
 
 // static
 const EVP_MD* OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
-    const OTString& theName)
+    const String& theName)
 {
     if (theName.Compare("SHA1"))
         return EVP_sha1();
@@ -796,8 +796,8 @@ const EVP_MD* OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
     return nullptr;
 }
 
-bool OTCrypto_OpenSSL::CalculateDigest(const OTString& strInput,
-                                       const OTString& strHashAlgorithm,
+bool OTCrypto_OpenSSL::CalculateDigest(const String& strInput,
+                                       const String& strHashAlgorithm,
                                        OTIdentifier& theOutput) const
 {
     theOutput.Release();
@@ -839,7 +839,7 @@ bool OTCrypto_OpenSSL::CalculateDigest(const OTString& strInput,
 }
 
 bool OTCrypto_OpenSSL::CalculateDigest(const OTData& dataInput,
-                                       const OTString& strHashAlgorithm,
+                                       const String& strHashAlgorithm,
                                        OTIdentifier& theOutput) const
 {
     theOutput.Release();
@@ -974,7 +974,7 @@ bool OTCrypto_OpenSSL::GetPasswordFromConsoleLowLevel(
         char buf[_PASSWORD_LEN + 10] = "", buff[_PASSWORD_LEN + 10] = "";
 
         if (UI_UTIL_read_pw(buf, buff, _PASSWORD_LEN, szPrompt, 0) == 0) {
-            size_t nPassLength = OTString::safe_strlen(buf, _PASSWORD_LEN);
+            size_t nPassLength = String::safe_strlen(buf, _PASSWORD_LEN);
             theOutput.setPassword_uint8(reinterpret_cast<uint8_t*>(buf),
                                         nPassLength);
             OTPassword::zeroMemory(buf, nPassLength);
@@ -1673,7 +1673,7 @@ bool OTCrypto_OpenSSL::Decrypt(
 // Seal up as envelope (Asymmetric, using public key and then AES key.)
 
 bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                            const OTString& theInput, OTData& dataOutput) const
+                            const String& theInput, OTData& dataOutput) const
 {
     OT_ASSERT_MSG(!RecipPubKeys.empty(),
                   "OTCrypto_OpenSSL::Seal: ASSERT: RecipPubKeys.size() > 0");
@@ -2044,7 +2044,7 @@ bool OTCrypto_OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
         //            return false;
         //        }
 
-        const OTString strNymID(str_nym_id.c_str());
+        const String strNymID(str_nym_id.c_str());
 
         // +1 for null terminator.
         uint32_t nymid_len = strNymID.GetLength() + 1;
@@ -2218,7 +2218,7 @@ EVP_OpenFinal() returns 0 if the decrypt failed or 1 for success.
 // RSA / AES
 
 bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
-                            OTString& theOutput,
+                            String& theOutput,
                             const OTPasswordData* pPWData) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::Open";
@@ -2245,7 +2245,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
     // key (there might be symmetric keys for several Nyms, not just this
     // one, and we need to find the right one in order to perform this Open.)
     //
-    OTString strNymID;
+    String strNymID;
     theRecipient.GetIdentifier(strNymID);
 
     OTAsymmetricKey& theTempPrivateKey =
@@ -2478,7 +2478,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
         nymid[nymid_len - 1] = '\0'; // for null terminator. If string is 10
                                      // bytes int64_t, it's from 0-9, and the
                                      // null terminator is at index 9.
-        const OTString loopStrNymID(reinterpret_cast<char*>(nymid));
+        const String loopStrNymID(reinterpret_cast<char*>(nymid));
         free(nymid);
         nymid = nullptr;
 
@@ -2813,7 +2813,7 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
 
  */
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
-    const OTString& strContractUnsigned, const EVP_PKEY* pkey,
+    const String& strContractUnsigned, const EVP_PKEY* pkey,
     OTSignature& theSignature, const OTPasswordData*) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::SignContractDefaultHash";
@@ -3083,7 +3083,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
 // broken.
 
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
-    const OTString& strContractToVerify, const EVP_PKEY* pkey,
+    const String& strContractToVerify, const EVP_PKEY* pkey,
     const OTSignature& theSignature, const OTPasswordData*) const
 {
     const char* szFunc = "OTCrypto_OpenSSL::VerifyContractDefaultHash";
@@ -3715,8 +3715,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
 // All the other various versions eventually call this one, where the actual
 // work is done.
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
-    const OTString& strContractUnsigned, const EVP_PKEY* pkey,
-    OTSignature& theSignature, const OTString& strHashType,
+    const String& strContractUnsigned, const EVP_PKEY* pkey,
+    OTSignature& theSignature, const String& strHashType,
     const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(nullptr != pkey,
@@ -3845,10 +3845,10 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
     }
 }
 
-bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
+bool OTCrypto_OpenSSL::SignContract(const String& strContractUnsigned,
                                     const OTAsymmetricKey& theKey,
                                     OTSignature& theSignature, // output
-                                    const OTString& strHashType,
+                                    const String& strHashType,
                                     const OTPasswordData* pPWData)
 {
 
@@ -3871,10 +3871,10 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
     return true;
 }
 
-bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
+bool OTCrypto_OpenSSL::VerifySignature(const String& strContractToVerify,
                                        const OTAsymmetricKey& theKey,
                                        const OTSignature& theSignature,
-                                       const OTString& strHashType,
+                                       const String& strHashType,
                                        const OTPasswordData* pPWData) const
 {
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
@@ -3899,8 +3899,8 @@ bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
 // All the other various versions eventually call this one, where the actual
 // work is done.
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
-    const OTString& strContractToVerify, const EVP_PKEY* pkey,
-    const OTSignature& theSignature, const OTString& strHashType,
+    const String& strContractToVerify, const EVP_PKEY* pkey,
+    const OTSignature& theSignature, const String& strHashType,
     const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractToVerify.Exists(),
@@ -3997,8 +3997,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
 
 // Sign the Contract using a private key from a file.
 // theSignature will contain the output.
-bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
-                                    const OTString& strSigHashType,
+bool OTCrypto_OpenSSL::SignContract(const String& strContractUnsigned,
+                                    const String& strSigHashType,
                                     const std::string& strCertFileContents,
                                     OTSignature& theSignature,
                                     const OTPasswordData* pPWData)
@@ -4057,8 +4057,8 @@ bool OTCrypto_OpenSSL::SignContract(const OTString& strContractUnsigned,
 // contract and is
 // somewhere in m_listSignatures. Now it is being verified.
 //
-bool OTCrypto_OpenSSL::VerifySignature(const OTString& strContractToVerify,
-                                       const OTString& strSigHashType,
+bool OTCrypto_OpenSSL::VerifySignature(const String& strContractToVerify,
+                                       const String& strSigHashType,
                                        const std::string& strCertFileContents,
                                        const OTSignature& theSignature,
                                        const OTPasswordData* pPWData) const

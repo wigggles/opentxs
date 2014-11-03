@@ -171,9 +171,9 @@ AccountList::~AccountList()
     Release_AcctList();
 }
 
-void AccountList::Serialize(OTString& append) const
+void AccountList::Serialize(String& append) const
 {
-    OTString acctType;
+    String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
     append.Concatenate("<accountList type=\"%s\" count=\"%" PRI_SIZE "\" >\n\n",
@@ -193,8 +193,8 @@ void AccountList::Serialize(OTString& append) const
 }
 
 int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                     const OTString& acctType,
-                                     const OTString& acctCount)
+                                     const String& acctType,
+                                     const String& acctCount)
 {
     if (!acctType.Exists()) {
         otErr << "AccountList::ReadFromXMLNode: Failed: Empty accountList "
@@ -223,9 +223,9 @@ int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
 
             if ((xml->getNodeType() == EXN_ELEMENT) &&
                 (!strcmp("accountEntry", xml->getNodeName()))) {
-                OTString assetTypeID = xml->getAttributeValue(
+                String assetTypeID = xml->getAttributeValue(
                     "assetTypeID"); // Asset Type ID of this account.
-                OTString accountID = xml->getAttributeValue(
+                String accountID = xml->getAttributeValue(
                     "accountID"); // Account ID for this account.
 
                 if (!assetTypeID.Exists() || !accountID.Exists()) {
@@ -289,9 +289,9 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
 
     // First, we'll see if there's already an account ID available for the
     // requested asset type ID.
-    std::string assetTypeIdString = OTString(assetTypeId).Get();
+    std::string assetTypeIdString = String(assetTypeId).Get();
 
-    OTString acctTypeString;
+    String acctTypeString;
     TranslateAccountTypeToString(acctType_, acctTypeString);
 
     auto acctIDsIt = mapAcctIDs_.find(assetTypeIdString);
@@ -341,7 +341,7 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
         // (Or it was there, but we couldn't lock a shared_ptr onto it, so we
         // erased it...)
         // So let's load it now. After all, the Account ID *does* exist...
-        OTString acctIDString(accountIdString.c_str());
+        String acctIDString(accountIdString.c_str());
         OTIdentifier accountID(acctIDString);
 
         // The Account ID exists, but we don't have the pointer to a loaded
@@ -358,7 +358,7 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
                   << " account with account ID: " << acctIDString << '\n';
         }
         else if (!loadedAccount->VerifyOwnerByID(accountOwnerId)) {
-            OTString strOwnerID(accountOwnerId);
+            String strOwnerID(accountOwnerId);
             otErr << "Failed verifying owner ID (" << strOwnerID << ") on "
                   << acctTypeString << " account ID: " << acctIDString << '\n';
         }
@@ -392,7 +392,7 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
               << " account with asset type ID: " << assetTypeIdString << "\n";
     }
     else {
-        OTString acctIDString;
+        String acctIDString;
         createdAccount->GetIdentifier(acctIDString);
 
         otOut << "Successfully created " << acctTypeString

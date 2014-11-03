@@ -176,7 +176,7 @@ int32_t OTMasterkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (0 != nReturnVal) return nReturnVal;
     // else it was 0 (continue...)
 
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     if (strNodeName.Compare("masterCredential")) {
         m_strNymID = xml->getAttributeValue("nymID");
@@ -382,7 +382,7 @@ bool OTMasterkey::VerifyAgainstSource() const
     return bVerified;
 }
 
-bool OTMasterkey::VerifySource_HTTP(const OTString) const
+bool OTMasterkey::VerifySource_HTTP(const String) const
 {
     /*
      The source is a URL, http://blah.com/folder
@@ -403,7 +403,7 @@ bool OTMasterkey::VerifySource_HTTP(const OTString) const
     return true;
 }
 
-bool OTMasterkey::VerifySource_HTTPS(const OTString) const
+bool OTMasterkey::VerifySource_HTTPS(const String) const
 {
     /*
      The source is a URL, https://blah.com/folder
@@ -424,7 +424,7 @@ bool OTMasterkey::VerifySource_HTTPS(const OTString) const
     return true;
 }
 
-bool OTMasterkey::VerifySource_Bitcoin(const OTString) const
+bool OTMasterkey::VerifySource_Bitcoin(const String) const
 {
     /*
      The source is a Bitcoin address
@@ -451,7 +451,7 @@ bool OTMasterkey::VerifySource_Bitcoin(const OTString) const
     return true;
 }
 
-bool OTMasterkey::VerifySource_Namecoin(const OTString) const
+bool OTMasterkey::VerifySource_Namecoin(const String) const
 {
     /*
      The source is a URL, http://blah.bit/folder
@@ -472,7 +472,7 @@ bool OTMasterkey::VerifySource_Namecoin(const OTString) const
     return true;
 }
 
-bool OTMasterkey::VerifySource_Freenet(const OTString) const
+bool OTMasterkey::VerifySource_Freenet(const String) const
 {
     otErr << __FUNCTION__ << ": Failure: this function has not yet been "
                              "written, so this Freenet source cannot be "
@@ -480,7 +480,7 @@ bool OTMasterkey::VerifySource_Freenet(const OTString) const
     return false;
 }
 
-bool OTMasterkey::VerifySource_TOR(const OTString) const
+bool OTMasterkey::VerifySource_TOR(const String) const
 {
     otErr << __FUNCTION__ << ": Failure: this function has not yet been "
                              "written, so this Tor source cannot be "
@@ -488,7 +488,7 @@ bool OTMasterkey::VerifySource_TOR(const OTString) const
     return false;
 }
 
-bool OTMasterkey::VerifySource_I2P(const OTString) const
+bool OTMasterkey::VerifySource_I2P(const String) const
 {
     otErr << __FUNCTION__ << ": Failure: this function has not yet been "
                              "written, so this I2P source cannot be "
@@ -496,7 +496,7 @@ bool OTMasterkey::VerifySource_I2P(const OTString) const
     return false;
 }
 
-bool OTMasterkey::VerifySource_CA(const OTString) const
+bool OTMasterkey::VerifySource_CA(const String) const
 {
 
     /*
@@ -511,7 +511,7 @@ bool OTMasterkey::VerifySource_CA(const OTString) const
     return false;
 }
 
-bool OTMasterkey::VerifySource_Pubkey(const OTString) const
+bool OTMasterkey::VerifySource_Pubkey(const String) const
 {
     // Verify signed by self.
     //

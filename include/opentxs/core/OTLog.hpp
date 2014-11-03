@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTLOG_HPP
 #define OPENTXS_CORE_OTLOG_HPP
 
-#include "OTString.hpp"
+#include "String.hpp"
 #include "util/Assert.hpp"
 
 #include <deque>
@@ -153,7 +153,7 @@
 namespace opentxs
 {
 
-typedef std::deque<OTString*> dequeOfStrings;
+typedef std::deque<String*> dequeOfStrings;
 
 class OTLogStream;
 
@@ -200,14 +200,14 @@ private:
 
     static OTLog* pLogger;
 
-    static const OTString m_strVersion;
-    static const OTString m_strPathSeparator;
+    static const String m_strVersion;
+    static const String m_strPathSeparator;
 
     dequeOfStrings logDeque;
 
-    OTString m_strThreadContext;
-    OTString m_strLogFileName;
-    OTString m_strLogFilePath;
+    String m_strThreadContext;
+    String m_strLogFileName;
+    String m_strLogFilePath;
 
     int32_t m_nLogLevel;
 
@@ -224,7 +224,7 @@ public:
     // EXPORT static OTLog& It();
 
     // now the logger checks the global config file itself for the log-filename.
-    EXPORT static bool Init(const OTString& strThreadContext = "",
+    EXPORT static bool Init(const String& strThreadContext = "",
                             const int32_t& nLogLevel = 0);
 
     EXPORT static bool IsInitialized();
@@ -237,17 +237,17 @@ public:
     // Compiled into OTLog:
 
     EXPORT static const char* Version();
-    EXPORT static const OTString& GetVersion();
+    EXPORT static const String& GetVersion();
 
     EXPORT static const char* PathSeparator();
-    EXPORT static const OTString& GetPathSeparator();
+    EXPORT static const String& GetPathSeparator();
 
     // Set in constructor:
 
-    EXPORT static const OTString& GetThreadContext();
+    EXPORT static const String& GetThreadContext();
 
     EXPORT static const char* LogFilePath();
-    EXPORT static const OTString& GetLogFilePath();
+    EXPORT static const String& GetLogFilePath();
 
     EXPORT static int32_t LogLevel();
     EXPORT static bool SetLogLevel(const int32_t& nLogLevel);
@@ -255,16 +255,16 @@ public:
     // OTLog Functions:
     //
 
-    EXPORT static bool LogToFile(const OTString& strOutput);
+    EXPORT static bool LogToFile(const String& strOutput);
 
     // We keep 1024 logs in memory, to make them available via the API.
     EXPORT static int32_t GetMemlogSize();
-    EXPORT static OTString GetMemlogAtIndex(int32_t nIndex);
-    EXPORT static OTString PeekMemlogFront();
-    EXPORT static OTString PeekMemlogBack();
+    EXPORT static String GetMemlogAtIndex(int32_t nIndex);
+    EXPORT static String PeekMemlogFront();
+    EXPORT static String PeekMemlogBack();
     EXPORT static bool PopMemlogFront();
     EXPORT static bool PopMemlogBack();
-    EXPORT static bool PushMemlogFront(const OTString& strLog);
+    EXPORT static bool PushMemlogFront(const String& strLog);
     EXPORT static bool SleepSeconds(int64_t lSeconds);
     EXPORT static bool SleepMilliseconds(int64_t lMilliseconds);
 
@@ -314,7 +314,7 @@ public:
     EXPORT static void Errno(const char* szLocation = nullptr); // stderr
 
     // String Helpers
-    EXPORT static bool StringFill(OTString& out_strString, const char* szString,
+    EXPORT static bool StringFill(String& out_strString, const char* szString,
                                   int32_t iLength,
                                   const char* szAppend = nullptr);
 

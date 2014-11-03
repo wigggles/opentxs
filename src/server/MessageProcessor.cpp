@@ -137,7 +137,7 @@
 #include <opentxs/server/ClientConnection.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTMessage.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
@@ -170,7 +170,7 @@ MessageProcessor::MessageProcessor(ServerLoader& loader)
 
 void MessageProcessor::init(int port)
 {
-    OTString configFolderPath = "";
+    String configFolderPath = "";
     if (!OTDataFolder::GetConfigFilePath(configFolderPath)) {
         OT_FAIL;
     }
@@ -203,7 +203,7 @@ void MessageProcessor::init(int port)
     if (port == 0) {
         OT_FAIL;
     }
-    OTString bindPath;
+    String bindPath;
     bindPath.Format("%s%d", "tcp://*:", port);
 
     if (!socket_.Listen(bindPath.Get())) {
@@ -336,7 +336,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     OTLog::vOutput(2, "Successfully retrieved envelope from message.\n");
 
     // Decrypt the Envelope.
-    OTString envelopeContents;
+    String envelopeContents;
     if (!envelope.Open(server_->GetServerNym(), envelopeContents)) {
         OTLog::vError("Unable to open envelope.\n");
         return true;
@@ -377,7 +377,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     // for the reply, I'll  have the key and thus I'll be able to
     // encrypt reply to the recipient.)
     if (!processedUserCmd) {
-        OTString s1(message);
+        String s1(message);
 
         OTLog::vOutput(0, "Unable to process user command: %s\n ********** "
                           "REQUEST:\n\n%s\n\n",
@@ -406,7 +406,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
         replyMessage.SignContract(server_->GetServerNym());
         replyMessage.SaveContract();
 
-        OTString s2(replyMessage);
+        String s2(replyMessage);
 
         OTLog::vOutput(0, " ********** RESPONSE:\n\n%s\n\n", s2.Get());
     }
@@ -450,7 +450,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
             return true;
         }
 
-        OTString output;
+        String output;
         bool val = ascReply.Exists() &&
                    ascReply.WriteArmoredString(output, "ENVELOPE");
 
@@ -467,7 +467,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     // ELSE we send the message in the CLEAR. (As an armored
     // message, instead of as an armored envelope.)
     else {
-        OTString replyString(replyMessage);
+        String replyString(replyMessage);
 
         if (!replyString.Exists()) {
             OTLog::vOutput(0, "Failed trying to grab the reply "
@@ -477,7 +477,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
         }
 
         OTASCIIArmor ascReply(replyString);
-        OTString output;
+        String output;
         bool val =
             ascReply.Exists() && ascReply.WriteArmoredString(output, "MESSAGE");
 

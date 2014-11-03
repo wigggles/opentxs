@@ -132,7 +132,7 @@
 
 #include <opentxs/server/ConfigLoader.hpp>
 #include <opentxs/server/ServerSettings.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
@@ -147,19 +147,19 @@
 namespace opentxs
 {
 
-bool ConfigLoader::load(OTString& walletFilename)
+bool ConfigLoader::load(String& walletFilename)
 {
     const char* szFunc = "ConfigLoader::load()";
 
     // Setup Config File
-    OTString strConfigFolder, strConfigFilename;
+    String strConfigFolder, strConfigFilename;
 
     if (!OTDataFolder::IsInitialized()) {
         OT_FAIL;
     }
 
     // Create Config Object (OTSettings)
-    OTString strConfigFilePath = "";
+    String strConfigFilePath = "";
     if (!OTDataFolder::GetConfigFilePath(strConfigFilePath)) {
         OT_FAIL;
     }
@@ -199,7 +199,7 @@ bool ConfigLoader::load(OTString& walletFilename)
     // Clean and Set
     {
         bool bIsNewKey;
-        OTString strValue;
+        String strValue;
         p_Config->CheckSet_str("wallet", "wallet_filename",
                                SERVER_WALLET_FILENAME, strValue, bIsNewKey);
         walletFilename.Set(strValue);
@@ -304,7 +304,7 @@ bool ConfigLoader::load(OTString& walletFilename)
     }
 
     {
-        OTString strValue;
+        String strValue;
         const char* szValue;
 
         std::string stdstrValue = ServerSettings::GetOverrideNymID();

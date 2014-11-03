@@ -182,7 +182,7 @@ class OTPassword;
 class OTPasswordData;
 class OTSignature;
 class OTSignatureMetadata;
-class OTString;
+class String;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 
@@ -199,62 +199,61 @@ class OTKeypair
 public:
     EXPORT bool MakeNewKeypair(int32_t nBits = 1024);
     EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
-                          OTString& strOutput); // Used when importing/exporting
-                                                // a Nym to/from the wallet.
+                          String& strOutput); // Used when importing/exporting
+                                              // a Nym to/from the wallet.
     EXPORT bool HasPublicKey();
     EXPORT bool HasPrivateKey();
     EXPORT const OTAsymmetricKey& GetPublicKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
     EXPORT bool CalculateID(OTIdentifier& theOutput) const;
     EXPORT bool SaveCertToString(
-        OTString& strOutput, const OTString* pstrReason = nullptr,
+        String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
     EXPORT bool SavePrivateKeyToString(
-        OTString& strOutput, const OTString* pstrReason = nullptr,
+        String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
     EXPORT bool SaveCertAndPrivateKeyToString(
-        OTString& strOutput, const OTString* pstrReason = nullptr,
+        String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // Load from local storage.
-    EXPORT bool LoadPrivateKey(const OTString& strFoldername,
-                               const OTString& strFilename,
-                               const OTString* pstrReason = nullptr,
+    EXPORT bool LoadPrivateKey(const String& strFoldername,
+                               const String& strFilename,
+                               const String* pstrReason = nullptr,
                                const OTPassword* pImportPassword = nullptr);
-    EXPORT bool LoadPublicKey(const OTString& strFoldername,
-                              const OTString& strFilename);
+    EXPORT bool LoadPublicKey(const String& strFoldername,
+                              const String& strFilename);
     // LoadPrivateKeyFromCertString
     //
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN
     // CERTIFICATE....
     //
     EXPORT bool LoadPrivateKeyFromCertString(
-        const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = nullptr,
+        const String& strCert, bool bEscaped = true,
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // Load Public Key from Cert (file or string)
     //
     EXPORT bool LoadPublicKeyFromCertString(
-        const OTString& strCert, bool bEscaped = true,
-        const OTString* pstrReason = nullptr,
+        const String& strCert, bool bEscaped = true,
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
                                                       // AND escapes.
     EXPORT bool LoadPublicKeyFromCertFile(
-        const OTString& strFoldername, const OTString& strFilename,
-        const OTString* pstrReason = nullptr,
+        const String& strFoldername, const String& strFilename,
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr); // DOES handle bookends.
     EXPORT bool LoadCertAndPrivateKeyFromString(
-        const OTString& strInput, const OTString* pstrReason = nullptr,
+        const String& strInput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // LOAD BOTH KEYS FROM CERT FILE
     //
     EXPORT bool LoadBothKeysFromCertFile(
-        const OTString& strFoldername, const OTString& strFilename,
-        const OTString* pstrReason = nullptr,
+        const String& strFoldername, const String& strFilename,
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
     EXPORT bool SaveAndReloadBothKeysFromTempFile(
-        OTString* pstrOutputCert = nullptr,
-        const OTString* pstrReason = nullptr,
+        String* pstrOutputCert = nullptr, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // PUBLIC KEY
 
@@ -264,11 +263,11 @@ public:
     //       - ------- BEGIN PUBLIC KEY --------
     //       Notice the "- " before the rest of the bookend starts.
     EXPORT bool GetPublicKey(OTASCIIArmor& strKey) const;
-    EXPORT bool GetPublicKey(OTString& strKey, bool bEscaped = true) const;
+    EXPORT bool GetPublicKey(String& strKey, bool bEscaped = true) const;
     // (Below) Decodes a public key from ASCII armor into an actual key pointer
     // and sets that as the m_pKey on this object.
     EXPORT bool SetPublicKey(const OTASCIIArmor& strKey);
-    EXPORT bool SetPublicKey(const OTString& strKey, bool bEscaped = false);
+    EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);
     // (Above) Decodes a public key from bookended key string into an actual key
     // pointer, and sets that as the m_pPublicKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN PUBLIC
@@ -278,7 +277,7 @@ public:
     // Get the private key in ASCII-armored format with bookends
     // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
     // Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPrivateKey(OTString& strKey, bool bEscaped = true) const;
+    EXPORT bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
     EXPORT bool GetPrivateKey(OTASCIIArmor& strKey) const; // Get the private
                                                            // key in
                                                            // ASCII-armored
@@ -287,7 +286,7 @@ public:
     // and sets that as the m_pPrivateKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
     // PRIVATE KEY-----)
-    EXPORT bool SetPrivateKey(const OTString& strKey, bool bEscaped = false);
+    EXPORT bool SetPrivateKey(const String& strKey, bool bEscaped = false);
     EXPORT bool SetPrivateKey(const OTASCIIArmor& strKey); // Decodes a private
                                                            // key from ASCII
                                                            // armor into an

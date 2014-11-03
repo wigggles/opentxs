@@ -162,7 +162,7 @@
 namespace opentxs
 {
 
-OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
+OTCronItem* OTCronItem::NewCronItem(const String& strCronItem)
 {
     static char buf[45] = "";
 
@@ -172,7 +172,7 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
         return nullptr;
     }
 
-    OTString strContract(strCronItem);
+    String strContract(strCronItem);
 
     if (!strContract.DecodeIfArmored(false)) {
         otErr << __FUNCTION__ << ": Input string apparently was encoded and "
@@ -187,7 +187,7 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
 
     if (!bGotLine) return nullptr;
 
-    OTString strFirstLine(buf);
+    String strFirstLine(buf);
     // set the "file" pointer within this string back to index 0.
     strContract.reset();
 
@@ -226,7 +226,7 @@ OTCronItem* OTCronItem::NewCronItem(const OTString& strCronItem)
 
 OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
 {
-    OTString strFilename;
+    String strFilename;
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
 
     const char* szFoldername = OTFolders::Cron().Get();
@@ -239,7 +239,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
         return nullptr;
     }
 
-    OTString strFileContents(OTDB::QueryPlainString(
+    String strFileContents(OTDB::QueryPlainString(
         szFoldername, szFilename)); // <=== LOADING FROM DATA STORE.
 
     if (strFileContents.GetLength() < 2) {
@@ -263,7 +263,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     const int64_t& lTransactionNum,
     const OTIdentifier& serverID) // Client-side only.
 {
-    OTString strFilename, strServerID(serverID);
+    String strFilename, strServerID(serverID);
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
 
     const char* szFoldername = OTFolders::Cron().Get();
@@ -277,7 +277,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
         return nullptr;
     }
 
-    OTString strFileContents(
+    String strFileContents(
         OTDB::QueryPlainString(szFoldername, strServerID.Get(),
                                szFilename)); // <=== LOADING FROM DATA STORE.
 
@@ -310,13 +310,13 @@ bool OTCronItem::GetActiveCronTransNums(OTNumList& output,
 
     // We need to load up the local list of active (recurring) transactions.
     //
-    OTString strListFilename(nymID), strServerID(serverID);
+    String strListFilename(nymID), strServerID(serverID);
     strListFilename.Concatenate(".lst"); // nymID.lst
 
     if (OTDB::Exists(szFoldername, strServerID.Get(), strListFilename.Get())) {
         // Load up existing list, if it exists.
         //
-        OTString strNumlist(OTDB::QueryPlainString(
+        String strNumlist(OTDB::QueryPlainString(
             szFoldername, strServerID.Get(), strListFilename.Get()));
 
         if (strNumlist.Exists()) {
@@ -345,7 +345,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
                                         const OTIdentifier& nymID,
                                         const OTIdentifier& serverID)
 {
-    OTString strFilename, strServerID(serverID);
+    String strFilename, strServerID(serverID);
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
 
     const char* szFoldername = OTFolders::Cron().Get();
@@ -356,7 +356,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
     // from that list. Otherwise the GUI will continue thinking the transaction
     // is active in cron.
     //
-    OTString strListFilename(nymID);
+    String strListFilename(nymID);
     strListFilename.Concatenate(".lst"); // nymID.lst
 
     if (OTDB::Exists(szFoldername, strServerID.Get(), strListFilename.Get())) {
@@ -364,7 +364,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
         //
         OTNumList numlist;
 
-        OTString strNumlist(OTDB::QueryPlainString(
+        String strNumlist(OTDB::QueryPlainString(
             szFoldername, strServerID.Get(), strListFilename.Get()));
 
         if (strNumlist.Exists()) {
@@ -398,7 +398,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
         else {
             numlist.Output(strNumlist);
 
-            OTString strFinal;
+            String strFinal;
             OTASCIIArmor ascTemp(strNumlist);
 
             if (false ==
@@ -455,7 +455,7 @@ bool OTCronItem::SaveActiveCronReceipt(
 {
     const int64_t lOpeningNum = GetOpeningNumber(theNymID);
 
-    OTString strFilename, strServerID(GetServerID());
+    String strFilename, strServerID(GetServerID());
     strFilename.Format("%" PRId64 ".crn", lOpeningNum);
 
     const char* szFoldername = OTFolders::Cron().Get(); // cron
@@ -476,7 +476,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     else // It wasn't there already, so we need to save the number in our
            // local list of trans nums.
     {
-        OTString strListFilename(theNymID);
+        String strListFilename(theNymID);
         strListFilename.Concatenate(".lst"); // nymID.lst
         OTNumList numlist;
 
@@ -484,7 +484,7 @@ bool OTCronItem::SaveActiveCronReceipt(
                          strListFilename.Get())) {
             // Load up existing list, to add the new transaction num to it.
             //
-            OTString strNumlist(OTDB::QueryPlainString(
+            String strNumlist(OTDB::QueryPlainString(
                 szFoldername, strServerID.Get(), strListFilename.Get()));
 
             if (strNumlist.Exists()) {
@@ -504,10 +504,10 @@ bool OTCronItem::SaveActiveCronReceipt(
 
         numlist.Add(lOpeningNum);
 
-        OTString strNumlist;
+        String strNumlist;
 
         if (numlist.Output(strNumlist)) {
-            OTString strFinal;
+            String strFinal;
             OTASCIIArmor ascTemp(strNumlist);
 
             if (false ==
@@ -536,7 +536,7 @@ bool OTCronItem::SaveActiveCronReceipt(
         }
     }
 
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp(m_strRawFile);
 
     if (false ==
@@ -576,7 +576,7 @@ bool OTCronItem::SaveActiveCronReceipt(
 
 bool OTCronItem::SaveCronReceipt()
 {
-    OTString strFilename;
+    String strFilename;
     strFilename.Format("%" PRId64 ".crn", GetTransactionNum());
 
     const char* szFoldername = OTFolders::Cron().Get(); // cron
@@ -592,7 +592,7 @@ bool OTCronItem::SaveCronReceipt()
         return false;
     }
 
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp(m_strRawFile);
 
     if (false ==
@@ -720,7 +720,7 @@ bool OTCronItem::CanRemoveItemFromCron(OTPseudonym& theNym)
         return false;
     }
 
-    const OTString strServerID(GetServerID());
+    const String strServerID(GetServerID());
 
     if (!theNym.VerifyIssuedNum(strServerID, GetClosingNum())) {
         otOut << "OTCronItem::CanRemoveItemFromCron: Closing number didn't "
@@ -885,7 +885,7 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
         }
 
         // I now have a String copy of the original CronItem...
-        const OTString strOrigCronItem(*pOrigCronItem);
+        const String strOrigCronItem(*pOrigCronItem);
 
         OTPseudonym theOriginatorNym; // Don't use this... use the pointer just
                                       // below.
@@ -940,7 +940,7 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
             theOriginatorNym.SetIdentifier(NYM_ID);
 
             if (!theOriginatorNym.LoadPublicKey()) {
-                OTString strNymID(NYM_ID);
+                String strNymID(NYM_ID);
                 otErr << "OTCronItem::HookRemovalFromCron: Failure loading "
                          "Sender's public key:\n" << strNymID << "\n";
             }
@@ -952,7 +952,7 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
                 pOriginator = &theOriginatorNym; //  <=====
             }
             else {
-                OTString strNymID(NYM_ID);
+                String strNymID(NYM_ID);
                 otErr << "OTCronItem::HookRemovalFromCron: Failure verifying "
                          "Sender's"
                          " public key or loading signed nymfile: " << strNymID
@@ -1003,10 +1003,10 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
     //
-    OTString strUpdatedCronItem(*this);
-    OTString* pstrAttachment = &strUpdatedCronItem;
+    String strUpdatedCronItem(*this);
+    String* pstrAttachment = &strUpdatedCronItem;
 
-    const OTString strOrigCronItem(theOrigCronItem);
+    const String strOrigCronItem(theOrigCronItem);
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -1020,7 +1020,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
     const int64_t lOpeningNumber = theOrigCronItem.GetOpeningNum();
     const int64_t lClosingNumber = theOrigCronItem.GetClosingNum();
 
-    const OTString strServerID(GetServerID());
+    const String strServerID(GetServerID());
 
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use pActualNym.)
@@ -1074,7 +1074,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
                                                // are only updating his
                                                // Nymfile, not his key.
             {
-                OTString strNymID(ACTUAL_NYM_ID);
+                String strNymID(ACTUAL_NYM_ID);
                 otErr << __FUNCTION__
                       << ": Failure loading public key for Nym: " << strNymID
                       << ". (To update his NymboxHash.) \n";
@@ -1093,7 +1093,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
                 pActualNym = &theActualNym; //  <=====
             }
             else {
-                OTString strNymID(ACTUAL_NYM_ID);
+                String strNymID(ACTUAL_NYM_ID);
                 otErr
                     << __FUNCTION__
                     << ": Failure loading or verifying Actual Nym public key: "
@@ -1161,8 +1161,8 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 bool OTCronItem::DropFinalReceiptToInbox(
     const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-    const OTString& strOrigCronItem, OTString* pstrNote,
-    OTString* pstrAttachment, OTAccount* pActualAcct)
+    const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
+    OTAccount* pActualAcct)
 {
     OTPseudonym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
@@ -1346,9 +1346,9 @@ bool OTCronItem::DropFinalReceiptToInbox(
 //
 bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
                                           const int64_t& lNewTransactionNumber,
-                                          const OTString& strOrigCronItem,
-                                          OTString* pstrNote,
-                                          OTString* pstrAttachment,
+                                          const String& strOrigCronItem,
+                                          String* pstrNote,
+                                          String* pstrAttachment,
                                           OTPseudonym* pActualNym)
 {
     OTPseudonym* pServerNym = serverNym_;
@@ -1512,7 +1512,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
                                                    // Nymfile, not his
                                                    // key.
                 {
-                    OTString strNymID(ACTUAL_NYM_ID);
+                    String strNymID(ACTUAL_NYM_ID);
                     otErr << szFunc << ": Failure loading public key for Nym: "
                           << strNymID << ". "
                                          "(To update his NymboxHash.) \n";
@@ -1530,7 +1530,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
                     pActualNym = &theActualNym; //  <=====
                 }
                 else {
-                    OTString strNymID(ACTUAL_NYM_ID);
+                    String strNymID(ACTUAL_NYM_ID);
                     otErr << szFunc << ": Failure loading or verifying Actual "
                                        "Nym public key: " << strNymID
                           << ". "
@@ -1815,10 +1815,10 @@ int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         0) // -1 is error, and 1 is "found it". Either way, return.
         return nReturnVal; // 0 means "nothing happened, keep going."
 
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     if (strNodeName.Compare("closingTransactionNumber")) {
-        OTString strClosingNumber = xml->getAttributeValue("value");
+        String strClosingNumber = xml->getAttributeValue("value");
 
         if (strClosingNumber.Exists()) {
             const int64_t lClosingNumber = strClosingNumber.ToLong();

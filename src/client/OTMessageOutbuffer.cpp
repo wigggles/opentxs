@@ -225,7 +225,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     // run.
     //
     bool bAlreadyExists = false, bIsNewFolder = false;
-    OTString strFolder, strFolder1, strFolder2;
+    String strFolder, strFolder1, strFolder2;
     strFolder1.Format("%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
                       theMessage.m_strServerID.Get());
     strFolder2.Format("%s%s%s", strFolder1.Get(), OTLog::PathSeparator(),
@@ -234,7 +234,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     strFolder.Format("%s%s%s", strFolder2.Get(), OTLog::PathSeparator(),
                      theMessage.m_strNymID.Get());
 
-    OTString strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
+    String strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
 
     OTPaths::AppendFolder(strFolderPath, dataFolder_, strFolder);
     OTPaths::AppendFolder(strFolder1Path, dataFolder_, strFolder1);
@@ -244,7 +244,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     OTPaths::ConfirmCreateFolder(strFolder1Path, bAlreadyExists, bIsNewFolder);
     OTPaths::ConfirmCreateFolder(strFolder2Path, bAlreadyExists, bIsNewFolder);
 
-    OTString strFile;
+    String strFile;
     strFile.Format("%s.msg", theMessage.m_strRequestNum.Get());
 
     theMessage.SaveContract(strFolder.Get(), strFile.Get());
@@ -256,7 +256,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     OTNumList theNumList;
     std::string str_data_filename("sent.dat"); // todo hardcoding.
     if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
-        OTString strNumList(
+        String strNumList(
             OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Add(lRequestNum); // Add the new request number to it.
@@ -295,7 +295,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     // numnbers to it (including new one.)
     // Therefore nothing left to do here, but save it back again!
     //
-    OTString strOutput;
+    String strOutput;
     theNumList.Output(strOutput);
 
     if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(),
@@ -311,8 +311,8 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
 // ownership until you call RemoveSentMessage().
 
 OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
-                                              const OTString& strServerID,
-                                              const OTString& strNymID)
+                                              const String& strServerID,
+                                              const String& strNymID)
 {
     auto it = messagesMap_.begin();
 
@@ -342,7 +342,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 
     // Didn't find it? Okay let's load it from local storage, if it's there...
     //
-    OTString strFolder, strFile;
+    String strFolder, strFile;
     strFolder.Format(
         "%s%s%s%s%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
         strServerID.Get(), OTLog::PathSeparator(), "sent",
@@ -355,7 +355,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
     std::string str_data_filename("sent.dat");
     if (OTDB::Exists(strFolder.Get(), str_data_filename)) // todo hardcoding.
     {
-        OTString strNumList(
+        String strNumList(
             OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
 
         if (strNumList.Exists()) theNumList.Add(strNumList);
@@ -392,8 +392,8 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 // @getNymbox has been received!
 // See comments below for more details.
 //
-void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
-                               const OTString* pstrNymID, OTPseudonym* pNym,
+void OTMessageOutbuffer::Clear(const String* pstrServerID,
+                               const String* pstrNymID, OTPseudonym* pNym,
                                const bool* pbHarvestingForRetry)
 {
     //  const char * szFuncName        = "OTMessageOutbuffer::Clear";
@@ -593,7 +593,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
             pThisMsg = nullptr;
 
             if (nullptr != pstrNymID && nullptr != pstrServerID) {
-                OTString strFolder, strFile;
+                String strFolder, strFile;
                 strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
                                  OTLog::PathSeparator(), pstrServerID->Get(),
                                  OTLog::PathSeparator(), "sent",
@@ -604,7 +604,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                 OTNumList theNumList;
                 std::string str_data_filename("sent.dat"); // todo hardcoding.
                 if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
-                    OTString strNumList(OTDB::QueryPlainString(
+                    String strNumList(OTDB::QueryPlainString(
                         strFolder.Get(), str_data_filename));
                     if (strNumList.Exists()) theNumList.Add(strNumList);
                     theNumList.Remove(lRequestNum); // Clear (this function)
@@ -659,7 +659,7 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
                 //
                 // Therefore nothing left to do here, but save it back again!
                 //
-                OTString strOutput;
+                String strOutput;
                 theNumList.Output(strOutput);
                 if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(),
                                             str_data_filename)) // todo
@@ -690,10 +690,10 @@ void OTMessageOutbuffer::Clear(const OTString* pstrServerID,
 // OTMessageOutbuffer deletes the OTMessage when you call this.
 //
 bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
-                                           const OTString& strServerID,
-                                           const OTString& strNymID)
+                                           const String& strServerID,
+                                           const String& strNymID)
 {
-    OTString strFolder, strFile;
+    String strFolder, strFile;
     strFolder.Format(
         "%s%s%s%s%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
         strServerID.Get(), OTLog::PathSeparator(), "sent",
@@ -751,7 +751,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     OTNumList theNumList;
     std::string str_data_filename("sent.dat"); // todo hardcoding.
     if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
-        OTString strNumList(
+        String strNumList(
             OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Remove(lRequestNum);
@@ -794,7 +794,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     //
     // Therefore nothing left to do here, but save it back again!
     //
-    OTString strOutput;
+    String strOutput;
     theNumList.Output(strOutput);
     if (!OTDB::StorePlainString(strOutput.Get(), strFolder.Get(),
                                 str_data_filename)) {
@@ -822,8 +822,8 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(
     const OTTransaction& theTransaction)
 {
     const int64_t& lRequestNum = theTransaction.GetRequestNum();
-    const OTString strServerID(theTransaction.GetPurportedServerID());
-    const OTString strNymID(theTransaction.GetUserID());
+    const String strServerID(theTransaction.GetPurportedServerID());
+    const String strNymID(theTransaction.GetUserID());
 
     return GetSentMessage(lRequestNum, strServerID, strNymID);
 }
@@ -833,8 +833,8 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(
 bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction& theTransaction)
 {
     const int64_t& lRequestNum = theTransaction.GetRequestNum();
-    const OTString strServerID(theTransaction.GetPurportedServerID());
-    const OTString strNymID(theTransaction.GetUserID());
+    const String strServerID(theTransaction.GetPurportedServerID());
+    const String strNymID(theTransaction.GetUserID());
 
     return RemoveSentMessage(lRequestNum, strServerID, strNymID);
 }

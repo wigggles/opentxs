@@ -136,7 +136,7 @@
 #include <opentxs/core/OTAccount.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 
 namespace opentxs
@@ -145,13 +145,13 @@ namespace opentxs
 PayDividendVisitor::PayDividendVisitor(
     const OTIdentifier& theServerID, const OTIdentifier& theUserID,
     const OTIdentifier& thePayoutAssetID, const OTIdentifier& theVoucherAcctID,
-    const OTString& strMemo, OTServer& theServer, int64_t lPayoutPerShare,
+    const String& strMemo, OTServer& theServer, int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
     : AccountVisitor(theServerID, pLoadedAccounts)
     , m_pUserID(new OTIdentifier(theUserID))
     , m_pPayoutAssetID(new OTIdentifier(thePayoutAssetID))
     , m_pVoucherAcctID(new OTIdentifier(theVoucherAcctID))
-    , m_pstrMemo(new OTString(strMemo))
+    , m_pstrMemo(new String(strMemo))
     , m_pServer(&theServer)
     , m_lPayoutPerShare(lPayoutPerShare)
     , m_lAmountPaidOut(0)
@@ -211,7 +211,7 @@ bool PayDividendVisitor::Trigger(
     OT_ASSERT(nullptr != GetUserID());
     const OTIdentifier& theSenderUserID = *(GetUserID());
     OT_ASSERT(nullptr != GetMemo());
-    const OTString& strMemo = *(GetMemo());
+    const String& strMemo = *(GetMemo());
     // Note: theSenderUserID is the originator of the Dividend Payout.
     // However, all the actual vouchers will be from "the server Nym" and
     // not from theSenderUserID. So then why is it even here? Because anytime
@@ -285,7 +285,7 @@ bool PayDividendVisitor::Trigger(
 
             // Send the voucher to the payments inbox of the recipient.
             //
-            const OTString strVoucher(theVoucher);
+            const String strVoucher(theVoucher);
             OTPayment thePayment(strVoucher);
 
             // calls DropMessageToNymbox
@@ -302,7 +302,7 @@ bool PayDividendVisitor::Trigger(
                                    // to the sender.
         }
         else {
-            const OTString strPayoutAssetID(thePayoutAssetID),
+            const String strPayoutAssetID(thePayoutAssetID),
                 strRecipientUserID(RECIPIENT_ID);
             OTLog::vError("PayDividendVisitor::Trigger: ERROR failed "
                           "issuing voucher (to send to dividend payout "
@@ -345,7 +345,7 @@ bool PayDividendVisitor::Trigger(
                 // Return the voucher back to the payments inbox of the original
                 // sender.
                 //
-                const OTString strReturnVoucher(theReturnVoucher);
+                const String strReturnVoucher(theReturnVoucher);
                 OTPayment theReturnPayment(strReturnVoucher);
 
                 // calls DropMessageToNymbox
@@ -362,7 +362,7 @@ bool PayDividendVisitor::Trigger(
                                        // we return the rest to the sender.
             }
             else {
-                const OTString strPayoutAssetID(thePayoutAssetID),
+                const String strPayoutAssetID(thePayoutAssetID),
                     strSenderUserID(theSenderUserID);
                 OTLog::vError("PayDividendVisitor::Trigger: ERROR "
                               "failed issuing voucher (to return back to "
@@ -378,7 +378,7 @@ bool PayDividendVisitor::Trigger(
     }
     else // !bGotNextTransNum
     {
-        const OTString strPayoutAssetID(thePayoutAssetID),
+        const String strPayoutAssetID(thePayoutAssetID),
             strRecipientUserID(RECIPIENT_ID);
         OTLog::vError(
             "PayDividendVisitor::Trigger: ERROR!! Failed issuing next "

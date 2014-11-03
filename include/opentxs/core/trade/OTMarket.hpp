@@ -217,7 +217,7 @@ private:
                                 OTAccount& p4, bool b4, const int64_t& a4);
 
 public:
-    bool ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason = nullptr);
+    bool ValidateOfferForMarket(OTOffer& theOffer, String* pReason = nullptr);
 
     OTOffer* GetOffer(const int64_t& lTransactionNum);
     bool AddOffer(OTTrade* pTrade, OTOffer& theOffer, bool bSaveFile = true,

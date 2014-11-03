@@ -413,11 +413,11 @@ void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook() const
 // Load the private key from a .pem formatted cert string
 //
 bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
-    const OTString& strCert, // Contains certificate and private key.
-    bool bEscaped,           // "escaped" means pre-pended with "- " as in:   -
-                             // -----BEGIN CER....
-    const OTString* pstrReason,        // This reason is what displays on the
-                                       // passphrase dialog.
+    const String& strCert,    // Contains certificate and private key.
+    bool bEscaped,            // "escaped" means pre-pended with "- " as in:   -
+                              // -----BEGIN CER....
+    const String* pstrReason, // This reason is what displays on the
+                              // passphrase dialog.
     const OTPassword* pImportPassword) // Used when importing an exported
                                        // Nym into a wallet.
 {
@@ -433,7 +433,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
 
     // Read private key
     //
-    OTString strWithBookends;
+    String strWithBookends;
     otLog3 << __FUNCTION__ << ": FYI, Reading private key from x509 stored in "
                               "bookended string...\n";
 
@@ -447,7 +447,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
         // the
         // other function that does that.
         if (theArmor.LoadFromString(
-                const_cast<OTString&>(strCert),
+                const_cast<String&>(strCert),
                 true, // passing bEscaped in as true explicitly here.
                 "-----BEGIN ENCRYPTED PRIVATE")) // It will start loading from
                                                  // THIS substring...
@@ -552,7 +552,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
 // This function will remove the escapes.
 //
 bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
-    const OTString& strCert, bool bEscaped, const OTString* pstrReason,
+    const String& strCert, bool bEscaped, const String* pstrReason,
     const OTPassword* pImportPassword)
 {
     Release();
@@ -566,7 +566,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
     otLog3 << __FUNCTION__
            << ": Reading public key from x509 stored in bookended string...\n";
 
-    OTString strWithBookends;
+    String strWithBookends;
 
     if (bEscaped) {
         OTASCIIArmor theArmor;
@@ -579,7 +579,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
         // other function that does that.
         //
         if (theArmor.LoadFromString(
-                const_cast<OTString&>(strCert),
+                const_cast<String&>(strCert),
                 true, // passing bEscaped in as true explicitly here.
                 "-----BEGIN CERTIFICATE")) // Overrides "-----BEGIN"
             strWithBookends.Format(
@@ -859,7 +859,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
 
 // virtual
 bool OTAsymmetricKey_OpenSSL::SaveCertToString(
-    OTString& strOutput, const OTString* pstrReason,
+    String& strOutput, const String* pstrReason,
     const OTPassword* pImportPassword) const
 {
     X509* x509 = dp->GetX509();
@@ -877,7 +877,7 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
     bool bSuccess = false;
 
     uint8_t buffer_x509[8192] = ""; // todo hardcoded
-    OTString strx509;
+    String strx509;
     int32_t len = 0;
 
     // todo hardcoded 4080 (see array above.)
@@ -912,7 +912,7 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
 
 // virtual
 bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
-    OTString& strOutput, const OTString* pstrReason,
+    String& strOutput, const String* pstrReason,
     const OTPassword* pImportPassword) const
 {
     const EVP_CIPHER* pCipher =

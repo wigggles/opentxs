@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
 
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 #include <mutex>
@@ -258,20 +258,20 @@ public:
                                  uint32_t nNewSize) const = 0;
     // HASHING
     //
-    virtual bool CalculateDigest(const OTString& strInput,
-                                 const OTString& strHashAlgorithm,
+    virtual bool CalculateDigest(const String& strInput,
+                                 const String& strHashAlgorithm,
                                  OTIdentifier& theOutput) const = 0;
     virtual bool CalculateDigest(const OTData& dataInput,
-                                 const OTString& strHashAlgorithm,
+                                 const String& strHashAlgorithm,
                                  OTIdentifier& theOutput) const = 0;
     // BASE 62 ENCODING  (for IDs)
     //
     bool IsBase62(const std::string& str) const;
 
-    virtual void SetIDFromEncoded(const OTString& strInput,
+    virtual void SetIDFromEncoded(const String& strInput,
                                   OTIdentifier& theOutput) const = 0;
     virtual void EncodeID(const OTIdentifier& theInput,
-                          OTString& strOutput) const = 0;
+                          String& strOutput) const = 0;
     // BASE 64 ENCODING
     // Caller is responsible to delete. Todo: return a unqiue pointer.
     virtual char* Base64Encode(const uint8_t* input, int32_t in_len,
@@ -341,36 +341,36 @@ public:
     //
     // Asymmetric (public key) encryption / decryption
     //
-    virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                      const OTString& theInput, OTData& dataOutput) const = 0;
+    virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
+                      OTData& dataOutput) const = 0;
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
-                      OTString& theOutput,
+                      String& theOutput,
                       const OTPasswordData* pPWData = nullptr) const = 0;
     // SIGN / VERIFY
     //
     // Sign or verify using the Asymmetric Key itself.
     //
-    virtual bool SignContract(const OTString& strContractUnsigned,
+    virtual bool SignContract(const String& strContractUnsigned,
                               const OTAsymmetricKey& theKey,
                               OTSignature& theSignature, // output
-                              const OTString& strHashType,
+                              const String& strHashType,
                               const OTPasswordData* pPWData = nullptr) = 0;
 
     virtual bool VerifySignature(
-        const OTString& strContractToVerify, const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature, const OTString& strHashType,
+        const String& strContractToVerify, const OTAsymmetricKey& theKey,
+        const OTSignature& theSignature, const String& strHashType,
         const OTPasswordData* pPWData = nullptr) const = 0;
     // Sign or verify using the contents of a Certfile.
     //
-    virtual bool SignContract(const OTString& strContractUnsigned,
-                              const OTString& strSigHashType,
+    virtual bool SignContract(const String& strContractUnsigned,
+                              const String& strSigHashType,
                               const std::string& strCertFileContents,
                               OTSignature& theSignature, // output
                               const OTPasswordData* pPWData = nullptr) = 0;
 
     virtual bool VerifySignature(
-        const OTString& strContractToVerify, const OTString& strSigHashType,
+        const String& strContractToVerify, const String& strSigHashType,
         const std::string& strCertFileContents, const OTSignature& theSignature,
         const OTPasswordData* pPWData = nullptr) const = 0;
     EXPORT static OTCrypto* It();

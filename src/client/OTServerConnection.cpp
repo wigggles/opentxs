@@ -232,7 +232,7 @@ void OTServerConnection::OnServerResponseToGetRequestNumber(
         otOut << "Received new request number from the server: "
               << lNewRequestNumber << ". Updating Nym records...\n";
 
-        OTString strServerID;
+        String strServerID;
         m_pServerContract->GetIdentifier(strServerID);
         m_pNym->OnUpdateRequestNum(*m_pNym, strServerID, lNewRequestNumber);
     }
@@ -285,7 +285,7 @@ void OTServerConnection::ProcessMessageOut(const OTMessage& theMessage) const
     // Make sure we can send encrypted envelopes.
     OT_ASSERT(m_pServerContract && (nullptr != pServerNym));
 
-    OTString strEnvelopeContents;
+    String strEnvelopeContents;
     // Save the ready-to-go message into a string.
     theMessage.SaveContractRaw(strEnvelopeContents);
 

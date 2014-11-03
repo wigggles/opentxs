@@ -189,7 +189,7 @@ bool Purse::GetPassphrase(OTPassword& theOutput, const char* szDisplay)
     std::shared_ptr<OTCachedKey> pCachedKey(GetInternalMaster());
     if (!pCachedKey) OT_FAIL;
 
-    const OTString strReason((nullptr == szDisplay) ? szFunc : szDisplay);
+    const String strReason((nullptr == szDisplay) ? szFunc : szDisplay);
 
     const bool bGotMasterPassword = pCachedKey->GetMasterPassword(
         pCachedKey, theOutput, strReason.Get()); // bVerifyTwice=false
@@ -292,7 +292,7 @@ bool Purse::GenerateInternalKey()
     // create the symmetric key.
     //
     OTPassword thePassphrase;
-    const OTString strDisplay(
+    const String strDisplay(
         "Enter the new passphrase for this new password-protected "
         "purse."); // todo internationalization / hardcoding.
 
@@ -532,7 +532,7 @@ bool Purse::Merge(const OTPseudonym& theSigner,
 
 // static -- class factory.
 //
-Purse* Purse::LowLevelInstantiate(const OTString& strFirstLine,
+Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
                                   const OTIdentifier& SERVER_ID,
                                   const OTIdentifier& ASSET_ID)
 {
@@ -548,7 +548,7 @@ Purse* Purse::LowLevelInstantiate(const OTString& strFirstLine,
     return pPurse;
 }
 
-Purse* Purse::LowLevelInstantiate(const OTString& strFirstLine,
+Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
                                   const OTIdentifier& SERVER_ID)
 {
     Purse* pPurse = nullptr;
@@ -563,7 +563,7 @@ Purse* Purse::LowLevelInstantiate(const OTString& strFirstLine,
     return pPurse;
 }
 
-Purse* Purse::LowLevelInstantiate(const OTString& strFirstLine)
+Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
 {
     Purse* pPurse = nullptr;
     if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----")) // this string is
@@ -581,10 +581,10 @@ Purse* Purse::LowLevelInstantiate(const OTString& strFirstLine)
 //
 // Checks the serverID / AssetID, so you don't have to.
 //
-Purse* Purse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID,
+Purse* Purse::PurseFactory(String strInput, const OTIdentifier& SERVER_ID,
                            const OTIdentifier& ASSET_ID)
 {
-    OTString strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -599,7 +599,7 @@ Purse* Purse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID,
         if (pPurse->LoadContractFromString(strContract)) {
             const char* szFunc = "Purse::PurseFactory";
             if (SERVER_ID != pPurse->GetServerID()) {
-                const OTString strServerID(SERVER_ID),
+                const String strServerID(SERVER_ID),
                     strPurseServerID(pPurse->GetServerID());
                 otErr << szFunc << ": Failure: ServerID on purse ("
                       << strPurseServerID << ") doesn't match expected "
@@ -609,7 +609,7 @@ Purse* Purse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID,
                 pPurse = nullptr;
             }
             else if (ASSET_ID != pPurse->GetAssetID()) {
-                const OTString strAssetID(ASSET_ID),
+                const String strAssetID(ASSET_ID),
                     strPurseAssetID(pPurse->GetAssetID());
                 otErr << szFunc << ": Failure: AssetID on purse ("
                       << strPurseAssetID << ") doesn't match expected "
@@ -632,9 +632,9 @@ Purse* Purse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID,
 
 // Checks the serverID, so you don't have to.
 //
-Purse* Purse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID)
+Purse* Purse::PurseFactory(String strInput, const OTIdentifier& SERVER_ID)
 {
-    OTString strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -647,7 +647,7 @@ Purse* Purse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID)
         // Does the contract successfully load from the string passed in?
         if (pPurse->LoadContractFromString(strContract)) {
             if (SERVER_ID != pPurse->GetServerID()) {
-                const OTString strServerID(SERVER_ID),
+                const String strServerID(SERVER_ID),
                     strPurseServerID(pPurse->GetServerID());
                 otErr << "Purse::PurseFactory"
                       << ": Failure: ServerID on purse (" << strPurseServerID
@@ -668,11 +668,11 @@ Purse* Purse::PurseFactory(OTString strInput, const OTIdentifier& SERVER_ID)
     return nullptr;
 }
 
-Purse* Purse::PurseFactory(OTString strInput)
+Purse* Purse::PurseFactory(String strInput)
 {
     //  const char * szFunc = "Purse::PurseFactory";
 
-    OTString strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -837,7 +837,7 @@ bool Purse::LoadPurse(const char* szServerID, const char* szUserID,
     if (!m_strFoldername.Exists())
         m_strFoldername.Set(OTFolders::Purse().Get());
 
-    OTString strServerID(m_ServerID), strUserID(m_UserID),
+    String strServerID(m_ServerID), strUserID(m_UserID),
         strAssetTypeID(m_AssetID);
 
     if (nullptr != szServerID) strServerID = szServerID;
@@ -881,7 +881,7 @@ bool Purse::LoadPurse(const char* szServerID, const char* szUserID,
     // LoadContractFromString
     // already handles it internally.
 
-    OTString strRawFile(strFileContents.c_str());
+    String strRawFile(strFileContents.c_str());
 
     return LoadContractFromString(strRawFile);
 }
@@ -894,7 +894,7 @@ bool Purse::SavePurse(const char* szServerID, const char* szUserID,
     if (!m_strFoldername.Exists())
         m_strFoldername.Set(OTFolders::Purse().Get());
 
-    OTString strServerID(m_ServerID), strUserID(m_UserID),
+    String strServerID(m_ServerID), strUserID(m_UserID),
         strAssetTypeID(m_AssetID);
 
     if (nullptr != szServerID) strServerID = szServerID;
@@ -913,7 +913,7 @@ bool Purse::SavePurse(const char* szServerID, const char* szUserID,
     const char* szFilename =
         strAssetTypeID.Get(); // purse/SERVER_ID/USER_ID/ASSET_TYPE_ID
 
-    OTString strRawFile;
+    String strRawFile;
 
     if (!SaveContractRaw(strRawFile)) {
         otErr << "Purse::SavePurse: Error saving Pursefile (to string):\n"
@@ -923,7 +923,7 @@ bool Purse::SavePurse(const char* szServerID, const char* szUserID,
         return false;
     }
 
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp(strRawFile);
 
     if (false ==
@@ -952,7 +952,7 @@ bool Purse::SavePurse(const char* szServerID, const char* szUserID,
 void Purse::UpdateContents() // Before transmission or serialization, this is
                              // where the Purse saves its contents
 {
-    const OTString SERVER_ID(m_ServerID), USER_ID(m_UserID),
+    const String SERVER_ID(m_ServerID), USER_ID(m_UserID),
         ASSET_TYPE_ID(m_AssetID);
 
     int64_t lValidFrom = OTTimeGetSecondsFromTime(m_tLatestValidFrom);
@@ -1064,20 +1064,20 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const char* szFunc = "Purse::ProcessXMLNode";
 
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     if (strNodeName.Compare("purse")) {
         m_strVersion = xml->getAttributeValue("version");
 
-        const OTString strTotalValue = xml->getAttributeValue("totalValue");
+        const String strTotalValue = xml->getAttributeValue("totalValue");
 
         if (strTotalValue.Exists() && (strTotalValue.ToLong() > 0))
             m_lTotalValue = strTotalValue.ToLong();
         else
             m_lTotalValue = 0;
 
-        const OTString str_valid_from = xml->getAttributeValue("validFrom");
-        const OTString str_valid_to = xml->getAttributeValue("validTo");
+        const String str_valid_from = xml->getAttributeValue("validFrom");
+        const String str_valid_to = xml->getAttributeValue("validTo");
 
         if (str_valid_from.Exists()) {
             int64_t lValidFrom = str_valid_from.ToLong();
@@ -1090,18 +1090,18 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_tEarliestValidTo = OTTimeGetTimeFromSeconds(lValidTo);
         }
 
-        const OTString strPasswdProtected =
+        const String strPasswdProtected =
             xml->getAttributeValue("isPasswordProtected");
         m_bPasswordProtected = strPasswdProtected.Compare("true");
 
-        const OTString strNymIDIncluded =
+        const String strNymIDIncluded =
             xml->getAttributeValue("isNymIDIncluded");
         m_bIsNymIDIncluded = strNymIDIncluded.Compare("true");
 
         // TODO security: Might want to verify the server ID here, if it's
         // already set.
         // Just to make sure it's the one we were expecting.
-        const OTString strServerID = xml->getAttributeValue("serverID");
+        const String strServerID = xml->getAttributeValue("serverID");
         if (strServerID.Exists())
             m_ServerID.SetString(strServerID);
         else {
@@ -1114,7 +1114,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // TODO security: Might want to verify the asset ID here, if it's
         // already set.
         // Just to make sure it's the one we were expecting.
-        const OTString strAssetTypeID = xml->getAttributeValue("assetTypeID");
+        const String strAssetTypeID = xml->getAttributeValue("assetTypeID");
         if (strAssetTypeID.Exists())
             m_AssetID.SetString(strAssetTypeID);
         else {
@@ -1124,7 +1124,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        const OTString strUserID =
+        const String strUserID =
             xml->getAttributeValue("userID"); // (May not exist.)
         if (m_bIsNymIDIncluded) // Nym ID **is** included.  (It's optional. Even
                                 // if you use one, you don't have to list it.)
@@ -1424,10 +1424,10 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
 
     // Open the envelope into a string.
     //
-    OTString strToken;
-    const OTString strDisplay(__FUNCTION__); // this is the passphrase string
-                                             // that will display if theOwner
-                                             // doesn't have one already.
+    String strToken;
+    const String strDisplay(__FUNCTION__); // this is the passphrase string
+                                           // that will display if theOwner
+                                           // doesn't have one already.
 
     const bool bSuccess =
         theOwner.Open_or_Decrypt(theEnvelope, strToken, &strDisplay);
@@ -1524,11 +1524,11 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
 
         // Open the envelope into a string.
         //
-        OTString strToken;
-        const OTString strDisplay(__FUNCTION__); // this is the passphrase
-                                                 // string that will display if
-                                                 // theOwner doesn't have one
-                                                 // already.
+        String strToken;
+        const String strDisplay(__FUNCTION__); // this is the passphrase
+                                               // string that will display if
+                                               // theOwner doesn't have one
+                                               // already.
 
         const bool bSuccess =
             theOwner.Open_or_Decrypt(theEnvelope, strToken, &strDisplay);
@@ -1570,12 +1570,12 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
 bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
 {
     if (theToken.GetAssetID() == m_AssetID) {
-        const OTString strDisplay(__FUNCTION__); // this is the passphrase
-                                                 // string that will display if
-                                                 // theOwner doesn't have one
-                                                 // already.
+        const String strDisplay(__FUNCTION__); // this is the passphrase
+                                               // string that will display if
+                                               // theOwner doesn't have one
+                                               // already.
 
-        OTString strToken(theToken);
+        String strToken(theToken);
         OTEnvelope theEnvelope;
         const bool bSuccess =
             theOwner.Seal_or_Encrypt(theEnvelope, strToken, &strDisplay);
@@ -1610,7 +1610,7 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
             return true;
         }
         else {
-            OTString strPurseAssetType(m_AssetID),
+            String strPurseAssetType(m_AssetID),
                 strTokenAssetType(theToken.GetAssetID());
             otErr << __FUNCTION__ << ": Failed while calling: "
                                      "theOwner.Seal_or_Encrypt(theEnvelope, "
@@ -1621,7 +1621,7 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
         }
     }
     else {
-        OTString strPurseAssetType(m_AssetID),
+        String strPurseAssetType(m_AssetID),
             strTokenAssetType(theToken.GetAssetID());
         otErr << __FUNCTION__ << ": ERROR: Tried to push token with wrong "
                                  "asset type.\nPurse Asset Type:\n"

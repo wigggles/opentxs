@@ -553,7 +553,7 @@ bool CheckStringsExistInOrder(std::string& strFolder, std::string& oneStr,
 {
     if (nullptr == szFuncName) szFuncName = __FUNCTION__;
 
-    OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+    String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
         ot_threeStr(threeStr);
 
     if (ot_strFolder.Exists()) {
@@ -586,7 +586,7 @@ bool Exists(std::string strFolder, std::string oneStr, std::string twoStr,
             std::string threeStr)
 {
     {
-        OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+        String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
         OT_ASSERT_MSG(ot_strFolder.Exists(),
                       "OTDB::Exists: strFolder is empty.");
@@ -615,7 +615,7 @@ int64_t FormPathString(std::string& strOutput, std::string strFolder,
                        std::string threeStr)
 {
     {
-        OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+        String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
         OT_ASSERT_MSG(ot_strFolder.Exists(),
                       "OTDB::FormPathString: strFolder is empty.");
@@ -646,7 +646,7 @@ bool StoreString(std::string strContents, std::string strFolder,
                  std::string oneStr, std::string twoStr, std::string threeStr)
 {
     {
-        OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+        String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
         OT_ASSERT_MSG(ot_strFolder.Exists(),
                       "OTDB::StoreString: strFolder is null");
@@ -673,7 +673,7 @@ std::string QueryString(std::string strFolder, std::string oneStr,
                         std::string twoStr, std::string threeStr)
 {
     {
-        OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+        String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
 
         if (!CheckStringsExistInOrder(strFolder, oneStr, twoStr, threeStr,
@@ -701,7 +701,7 @@ bool StorePlainString(std::string strContents, std::string strFolder,
                       std::string threeStr)
 {
     {
-        OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+        String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
         OT_ASSERT_MSG(ot_strFolder.Exists(),
                       "OTDB::StorePlainString: strFolder is null");
@@ -730,7 +730,7 @@ std::string QueryPlainString(std::string strFolder, std::string oneStr,
                              std::string twoStr, std::string threeStr)
 {
     {
-        OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+        String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
         OT_ASSERT_MSG(ot_strFolder.Exists(),
                       "OTDB::QueryPlainString: strFolder is null");
@@ -761,7 +761,7 @@ bool StoreObject(Storable& theContents, std::string strFolder,
                  std::string oneStr, std::string twoStr, std::string threeStr)
 {
     {
-        OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+        String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
         OT_ASSERT_MSG(ot_strFolder.Exists(),
                       "OTDB:StoreObject: strFolder is null");
@@ -791,7 +791,7 @@ Storable* QueryObject(StoredObjectType theObjectType, std::string strFolder,
                       std::string threeStr)
 {
     {
-        OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+        String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
             ot_threeStr(threeStr);
         OT_ASSERT_MSG(ot_strFolder.Exists(),
                       "OTDB::QueryObject: strFolder is null");
@@ -2205,7 +2205,7 @@ bool Storage::StoreString(std::string strContents, std::string strFolder,
                           std::string oneStr, std::string twoStr,
                           std::string threeStr)
 {
-    OTString ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
+    String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
         ot_threeStr(threeStr);
     OT_ASSERT_MSG(ot_strFolder.Exists(),
                   "Storage::StoreString: strFolder is null");
@@ -2516,7 +2516,7 @@ bool Storage::EraseValueByKey(std::string strFolder, std::string oneStr,
 bool StorageFS::ConfirmOrCreateFolder(const char* szFolderName, struct stat*)
 {
     bool bConfirmOrCreateSuccess = false, bFolderAlreadyExist = false;
-    OTString strFolderName(szFolderName);
+    String strFolderName(szFolderName);
     if (!OTPaths::ConfirmCreateFolder(strFolderName, bConfirmOrCreateSuccess,
                                       bFolderAlreadyExist)) {
         OT_FAIL;
@@ -2529,7 +2529,7 @@ bool StorageFS::ConfirmOrCreateFolder(const char* szFolderName, struct stat*)
 //
 bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
 {
-    OTString strFilePath("");
+    String strFilePath("");
     OTPaths::AppendFile(strFilePath, m_strDataPath, szFileName);
     return OTPaths::PathExists(strFilePath);
 }
@@ -2923,7 +2923,7 @@ bool StorageFS::onEraseValueByKey(std::string strFolder, std::string oneStr,
 StorageFS::StorageFS()
     : Storage()
 {
-    OTString strDataPath;
+    String strDataPath;
     OTDataFolder::Get(strDataPath);
     m_strDataPath = strDataPath.Get();
 }

@@ -187,7 +187,7 @@ namespace opentxs
 void Basket::HarvestClosingNumbers(OTPseudonym& theNym,
                                    const OTIdentifier& theServerID, bool bSave)
 {
-    const OTString strServerID(theServerID);
+    const String strServerID(theServerID);
     bool bNeedToSave = false;
 
     // The SUB-CURRENCIES first...
@@ -310,10 +310,10 @@ int32_t Basket::Count() const
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     if (strNodeName.Compare("currencyBasket")) {
-        OTString strSubCount, strMinTrans;
+        String strSubCount, strMinTrans;
         strSubCount = xml->getAttributeValue("contractCount");
         strMinTrans = xml->getAttributeValue("minimumTransfer");
 
@@ -325,8 +325,7 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("requestExchange")) {
-        OTString strTransferMultiple, strRequestAccountID, strDirection,
-            strTemp;
+        String strTransferMultiple, strRequestAccountID, strDirection, strTemp;
 
         strTransferMultiple = xml->getAttributeValue("transferMultiple");
         strRequestAccountID = xml->getAttributeValue("transferAccountID");
@@ -353,7 +352,7 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OT_ASSERT_MSG(nullptr != pItem,
                       "Error allocating memory in Basket::ProcessXMLNode\n");
 
-        OTString strTemp;
+        String strTemp;
 
         strTemp = xml->getAttributeValue("minimumTransfer");
         if (strTemp.Exists()) pItem->lMinimumTransferAmount = strTemp.ToLong();
@@ -361,7 +360,7 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strTemp = xml->getAttributeValue("closingTransactionNo");
         if (strTemp.Exists()) pItem->lClosingTransactionNo = strTemp.ToLong();
 
-        OTString strSubAccountID(xml->getAttributeValue("accountID")),
+        String strSubAccountID(xml->getAttributeValue("accountID")),
             strContractID(xml->getAttributeValue("assetID"));
         pItem->SUB_ACCOUNT_ID.SetString(strSubAccountID);
         pItem->SUB_CONTRACT_ID.SetString(strContractID);
@@ -398,7 +397,7 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
     // EXCHANGING instead.)
     //
     if (IsExchanging()) {
-        OTString strRequestAcctID(m_RequestAccountID);
+        String strRequestAcctID(m_RequestAccountID);
         xmlUnsigned.Concatenate("<requestExchange "
                                 "transferMultiple=\"%d\"\n "
                                 "transferAccountID=\"%s\"\n "
@@ -415,7 +414,7 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
         OT_ASSERT_MSG(nullptr != pItem,
                       "Error allocating memory in Basket::UpdateContents\n");
 
-        OTString strAcctID(pItem->SUB_ACCOUNT_ID),
+        String strAcctID(pItem->SUB_ACCOUNT_ID),
             strContractID(pItem->SUB_CONTRACT_ID);
 
         if (IsExchanging())

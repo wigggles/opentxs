@@ -195,7 +195,7 @@ bool OTCredential::VerifyInternally() const
 
     OTIdentifier theActualMasterCredID;
     theActualMasterCredID.CalculateDigest(m_Masterkey.GetPubCredential());
-    const OTString strActualMasterCredID(theActualMasterCredID);
+    const String strActualMasterCredID(theActualMasterCredID);
 
     if (!m_strNymID.Compare(m_Masterkey.GetNymID())) {
         otOut << __FUNCTION__
@@ -275,12 +275,12 @@ bool OTCredential::VerifyAgainstSource() const
 // several master keys.
 //
 
-const OTString& OTCredential::GetNymID() const
+const String& OTCredential::GetNymID() const
 {
     return m_strNymID;
 }
 
-const OTString& OTCredential::GetSourceForNymID() const
+const String& OTCredential::GetSourceForNymID() const
 {
     return m_strSourceForNymID;
 }
@@ -288,7 +288,7 @@ const OTString& OTCredential::GetSourceForNymID() const
 /// This sets m_strSourceForNymID.
 /// This also sets m_strNymID, which is always a hash of strSourceForNymID.
 ///
-void OTCredential::SetSourceForNymID(const OTString& strSourceForNymID)
+void OTCredential::SetSourceForNymID(const String& strSourceForNymID)
 {
     m_strSourceForNymID = strSourceForNymID;
 
@@ -308,22 +308,22 @@ void OTCredential::SetSourceForNymID(const OTString& strSourceForNymID)
     // are both set.
 }
 
-const OTString& OTCredential::GetPubCredential() const
+const String& OTCredential::GetPubCredential() const
 {
     return m_Masterkey.GetPubCredential();
 }
 
-const OTString& OTCredential::GetPriCredential() const
+const String& OTCredential::GetPriCredential() const
 {
     return m_Masterkey.GetPriCredential();
 }
 
-bool OTCredential::SetPublicContents(const OTString::Map& mapPublic)
+bool OTCredential::SetPublicContents(const String::Map& mapPublic)
 {
     return m_Masterkey.SetPublicContents(mapPublic);
 }
 
-bool OTCredential::SetPrivateContents(const OTString::Map& mapPrivate)
+bool OTCredential::SetPrivateContents(const String::Map& mapPrivate)
 {
     return m_Masterkey.SetPrivateContents(mapPrivate);
 }
@@ -335,21 +335,21 @@ OTCredential::OTCredential()
 {
 }
 
-void OTCredential::SetMasterCredID(const OTString& strID)
+void OTCredential::SetMasterCredID(const String& strID)
 {
     m_strMasterCredID = strID;
 }
 
-const OTString& OTCredential::GetMasterCredID() const
+const String& OTCredential::GetMasterCredID() const
 {
     return m_strMasterCredID;
 }
 
 // static  (Caller is responsible to delete.)
 OTCredential* OTCredential::LoadMaster(
-    const OTString& strNymID, // Caller is responsible to delete, in both
-                              // CreateMaster and LoadMaster.
-    const OTString& strMasterCredID, const OTPasswordData* pPWData)
+    const String& strNymID, // Caller is responsible to delete, in both
+                            // CreateMaster and LoadMaster.
+    const String& strMasterCredID, const OTPasswordData* pPWData)
 {
     OTCredential* pCredential = new OTCredential;
     std::unique_ptr<OTCredential> theCredentialAngel(pCredential);
@@ -369,10 +369,10 @@ OTCredential* OTCredential::LoadMaster(
 
 // static  (Caller is responsible to delete.)
 OTCredential* OTCredential::LoadMasterFromString(
-    const OTString& strInput,
-    const OTString& strNymID, // Caller is responsible to delete, in both
-                              // CreateMaster and LoadMaster.
-    const OTString& strMasterCredID, OTPasswordData* pPWData,
+    const String& strInput,
+    const String& strNymID, // Caller is responsible to delete, in both
+                            // CreateMaster and LoadMaster.
+    const String& strMasterCredID, OTPasswordData* pPWData,
     const OTPassword* pImportPassword)
 {
     OTCredential* pCredential = new OTCredential;
@@ -412,7 +412,7 @@ bool OTCredential::SignNewMaster(const OTPasswordData* pPWData)
         // Future verifiers can hash it and the output should match the master
         // credential ID.
         //
-        OTString strPublicCredential;
+        String strPublicCredential;
 
         if (m_Masterkey.SaveContractRaw(strPublicCredential)) {
             m_Masterkey.SetContents(strPublicCredential); // <=== The "master
@@ -433,7 +433,7 @@ bool OTCredential::SignNewMaster(const OTPasswordData* pPWData)
                                                  // against what was actually
                                                  // loaded (by hashing it.)
 
-            const OTString strMasterCredID(theNewID);
+            const String strMasterCredID(theNewID);
             SetMasterCredID(
                 strMasterCredID); // <=== Master Credential ID is now set.
         }
@@ -598,7 +598,7 @@ bool OTCredential::SignNewSubcredential(OTSubcredential& theSubCred,
     // then it doesn't need to contain a "master signed" version,
     // since the entire subcredential will already be master signed, since
     // there's no subkey to sign in that case.
-    if (!bIsSubkey) theSubCred.SetMasterSigned(OTString(""));
+    if (!bIsSubkey) theSubCred.SetMasterSigned(String(""));
 
     // ELSE It's a subkey...
     else // Subkeys must be self-signed, and must contain a master-signed
@@ -624,7 +624,7 @@ bool OTCredential::SignNewSubcredential(OTSubcredential& theSubCred,
             // Make a copy of the "master signed" version of the public
             // subcredential.
             //
-            OTString strMasterSigned;
+            String strMasterSigned;
 
             if (pSubkey->SaveContractRaw(strMasterSigned)) // <=== The "master
                                                            // signed" version of
@@ -688,7 +688,7 @@ bool OTCredential::SignNewSubcredential(OTSubcredential& theSubCred,
         // form
         // the ID for this sub-credential.
         //
-        OTString strPublicCredential;
+        String strPublicCredential;
         if (theSubCred.SaveContractRaw(strPublicCredential)) {
             theSubCred.SetContents(strPublicCredential); // <=== The "public
                                                          // credential" string
@@ -755,9 +755,9 @@ bool OTCredential::GenerateMasterkey(int32_t nBits) // CreateMaster is
     return m_Masterkey.GenerateKeys(nBits);
 }
 
-bool OTCredential::Load_MasterFromString(const OTString& strInput,
-                                         const OTString& strNymID,
-                                         const OTString& strMasterCredID,
+bool OTCredential::Load_MasterFromString(const String& strInput,
+                                         const String& strNymID,
+                                         const String& strMasterCredID,
                                          const OTPasswordData*,
                                          const OTPassword* pImportPassword)
 {
@@ -803,8 +803,8 @@ bool OTCredential::Load_MasterFromString(const OTString& strInput,
     return true;
 }
 
-bool OTCredential::Load_Master(const OTString& strNymID,
-                               const OTString& strMasterCredID,
+bool OTCredential::Load_Master(const String& strNymID,
+                               const String& strMasterCredID,
                                const OTPasswordData* pPWData)
 {
 
@@ -825,8 +825,8 @@ bool OTCredential::Load_Master(const OTString& strNymID,
         }
     }
 
-    OTString strFileContents(OTDB::QueryPlainString(str_Folder, strNymID.Get(),
-                                                    strMasterCredID.Get()));
+    String strFileContents(OTDB::QueryPlainString(str_Folder, strNymID.Get(),
+                                                  strMasterCredID.Get()));
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Failed trying to load master credential "
                                  "from local storage.\n";
@@ -846,8 +846,8 @@ bool OTCredential::Load_Master(const OTString& strNymID,
                                  pPWData);
 }
 
-bool OTCredential::LoadSubkeyFromString(const OTString& strInput,
-                                        const OTString& strSubID,
+bool OTCredential::LoadSubkeyFromString(const String& strInput,
+                                        const String& strSubID,
                                         const OTPassword* pImportPassword)
 {
     // Make sure it's not already there.
@@ -895,7 +895,7 @@ bool OTCredential::LoadSubkeyFromString(const OTString& strInput,
     return true;
 }
 
-bool OTCredential::LoadSubkey(const OTString& strSubID)
+bool OTCredential::LoadSubkey(const String& strSubID)
 {
 
     std::string str_Folder =
@@ -913,7 +913,7 @@ bool OTCredential::LoadSubkey(const OTString& strSubID)
         }
     }
 
-    OTString strFileContents(
+    String strFileContents(
         OTDB::QueryPlainString(str_Folder, GetNymID().Get(), strSubID.Get()));
 
     if (!strFileContents.Exists()) {
@@ -935,7 +935,7 @@ bool OTCredential::LoadSubkey(const OTString& strSubID)
 }
 
 bool OTCredential::LoadSubcredentialFromString(
-    const OTString& strInput, const OTString& strSubID,
+    const String& strInput, const String& strSubID,
     const OTPassword* pImportPassword)
 {
     // Make sure it's not already there.
@@ -982,7 +982,7 @@ bool OTCredential::LoadSubcredentialFromString(
     return true;
 }
 
-bool OTCredential::LoadSubcredential(const OTString& strSubID)
+bool OTCredential::LoadSubcredential(const String& strSubID)
 {
 
     std::string str_Folder =
@@ -1000,7 +1000,7 @@ bool OTCredential::LoadSubcredential(const OTString& strSubID)
         }
     }
 
-    OTString strFileContents(
+    String strFileContents(
         OTDB::QueryPlainString(str_Folder, GetNymID().Get(), strSubID.Get()));
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__
@@ -1024,11 +1024,11 @@ bool OTCredential::LoadSubcredential(const OTString& strSubID)
 // contain 3 keypairs: signing, authentication, and encryption.
 //
 bool OTCredential::AddNewSubkey(
-    int32_t nBits,                    // Ignored unless pmapPrivate is nullptr
-    const OTString::Map* pmapPrivate, // Public keys are derived from
-                                      // the private.
-    const OTPasswordData* pPWData,    // The master key will sign the subkey.
-    OTSubkey** ppSubkey)              // output
+    int32_t nBits,                  // Ignored unless pmapPrivate is nullptr
+    const String::Map* pmapPrivate, // Public keys are derived from
+                                    // the private.
+    const OTPasswordData* pPWData,  // The master key will sign the subkey.
+    OTSubkey** ppSubkey)            // output
 {
     OTSubkey* pSub = new OTSubkey(*this);
     OT_ASSERT(nullptr != pSub);
@@ -1083,7 +1083,7 @@ bool OTCredential::AddNewSubkey(
             return false;
         }
 
-        const OTString strSubCredID(
+        const String strSubCredID(
             theSubCredID); // SignNewSubcredential also generates the ID.
 
         pSub->SetMetadata();
@@ -1108,7 +1108,7 @@ bool OTCredential::AddNewSubkey(
 // For adding non-key credentials, such as for 3rd-party authentication.
 //
 bool OTCredential::AddNewSubcredential(
-    const OTString::Map& mapPrivate, const OTString::Map& mapPublic,
+    const String::Map& mapPrivate, const String::Map& mapPublic,
     const OTPasswordData* pPWData, // The master key will sign the
                                    // subcredential.
     OTSubcredential** ppSubcred)   // output
@@ -1160,7 +1160,7 @@ bool OTCredential::AddNewSubcredential(
             return false;
         }
 
-        const OTString strSubCredID(theSubCredID);
+        const String strSubCredID(theSubCredID);
 
         // ADD IT TO THE MAP
         // Only after pSub is signed and saved can we then calculate its ID and
@@ -1181,15 +1181,15 @@ bool OTCredential::AddNewSubcredential(
 //
 // static
 OTCredential* OTCredential::CreateMaster(
-    const OTString& strSourceForNymID,
-    int32_t nBits,                    // Ignored unless pmapPrivate is nullptr.
-    const OTString::Map* pmapPrivate, // If nullptr, then the keys are
-                                      // generated in here.
-    const OTString::Map* pmapPublic,  // In the case of key credentials,
-                                      // public is optional since it can
-                                      // already be derived from
-                                      // private. But not all
-                                      // credentials are keys...
+    const String& strSourceForNymID,
+    int32_t nBits,                  // Ignored unless pmapPrivate is nullptr.
+    const String::Map* pmapPrivate, // If nullptr, then the keys are
+                                    // generated in here.
+    const String::Map* pmapPublic,  // In the case of key credentials,
+                                    // public is optional since it can
+                                    // already be derived from
+                                    // private. But not all
+                                    // credentials are keys...
     const OTPasswordData* pPWData)
 {
     OTCredential* pCredential = new OTCredential;
@@ -1298,7 +1298,7 @@ size_t OTCredential::GetSubcredentialCount() const
 }
 
 const OTSubcredential* OTCredential::GetSubcredential(
-    const OTString& strSubID, const OTString::List* plistRevokedIDs) const
+    const String& strSubID, const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1367,7 +1367,7 @@ const std::string OTCredential::GetSubcredentialIDByIndex(size_t nIndex) const
 }
 
 const OTKeypair& OTCredential::GetAuthKeypair(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1404,7 +1404,7 @@ const OTKeypair& OTCredential::GetAuthKeypair(
 }
 
 const OTKeypair& OTCredential::GetEncrKeypair(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1441,7 +1441,7 @@ const OTKeypair& OTCredential::GetEncrKeypair(
 }
 
 const OTKeypair& OTCredential::GetSignKeypair(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapSubcredentials) {
         const std::string str_cred_id = it.first;
@@ -1485,37 +1485,37 @@ const OTKeypair& OTCredential::GetSignKeypair(
 // (Optional.)
 
 const OTAsymmetricKey& OTCredential::GetPublicAuthKey(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     return GetAuthKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPublicEncrKey(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     return GetEncrKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPublicSignKey(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     return GetSignKeypair(plistRevokedIDs).GetPublicKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateAuthKey(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     return GetAuthKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateEncrKey(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     return GetEncrKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
 const OTAsymmetricKey& OTCredential::GetPrivateSignKey(
-    const OTString::List* plistRevokedIDs) const
+    const String::List* plistRevokedIDs) const
 {
     return GetSignKeypair(plistRevokedIDs).GetPrivateKey();
 }
@@ -1550,10 +1550,10 @@ void OTCredential::ClearSubcredentials()
 // pmapPubInfo is optional output, the public info for all the credentials will
 // be placed inside, if a pointer is provided.
 //
-void OTCredential::SerializeIDs(OTString& strOutput,
-                                const OTString::List& listRevokedIDs,
-                                OTString::Map* pmapPubInfo,
-                                OTString::Map* pmapPriInfo, bool bShowRevoked,
+void OTCredential::SerializeIDs(String& strOutput,
+                                const String::List& listRevokedIDs,
+                                String::Map* pmapPubInfo,
+                                String::Map* pmapPriInfo, bool bShowRevoked,
                                 bool bValid) const
 {
     if (bValid || bShowRevoked) {

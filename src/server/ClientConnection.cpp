@@ -144,7 +144,7 @@ namespace opentxs
 // he says he is, he sets the public key onto the connection object for
 // that nym.  That way, if the connection object ever needs to encrypt something
 // being sent to the client, he has access to the public key.
-void ClientConnection::SetPublicKey(const OTString& publicKey)
+void ClientConnection::SetPublicKey(const String& publicKey)
 {
     OT_ASSERT(nullptr != publicKey_);
 
@@ -158,7 +158,7 @@ void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
 {
     OT_ASSERT(nullptr != publicKey_);
 
-    OTString strNymsPublicKey;
+    String strNymsPublicKey;
 
     publicKey.GetPublicKey(strNymsPublicKey, true);
     publicKey_->SetPublicKey(strNymsPublicKey, true);
@@ -175,7 +175,7 @@ bool ClientConnection::SealMessageForRecipient(OTMessage& msg,
 
     if (!(publicKey_->IsEmpty()) && publicKey_->IsPublic()) {
         // Save the ready-to-go message into a string.
-        OTString strEnvelopeContents(msg);
+        String strEnvelopeContents(msg);
 
         // Seal the string up into an encrypted Envelope.
         if (strEnvelopeContents.Exists())

@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 #define OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {
@@ -195,16 +195,16 @@ class OTPartyAccount
     // account name (inside the script language, "gold_acct_A" could be used to
     // reference this acct.)
     //
-    OTString m_strName;        // Name of the account (for use in scripts.)
-    OTString m_strAcctID;      // The Account ID itself.
-    OTString m_strAssetTypeID; // The asset type ID for the account. Stored
-                               // because parties agree on this even before the
-                               // account ID is selected. Compare() uses this
-                               // even when the account ID is blank, and when
-                               // acct ID *is* added, its asset type must match
-                               // this.
-    OTString m_strAgentName;   // The name of the agent who has rights to this
-                               // account.
+    String m_strName;        // Name of the account (for use in scripts.)
+    String m_strAcctID;      // The Account ID itself.
+    String m_strAssetTypeID; // The asset type ID for the account. Stored
+                             // because parties agree on this even before the
+                             // account ID is selected. Compare() uses this
+                             // even when the account ID is blank, and when
+                             // acct ID *is* added, its asset type must match
+                             // this.
+    String m_strAgentName;   // The name of the agent who has rights to this
+                             // account.
     // Entity, role, and Nym information are not stored here.
     // Entity is already known on the party who owns this account (and I should
     // have a ptr to him.)
@@ -228,34 +228,34 @@ public:
                                            // is added to the party. (so I have
                                            // a ptr back)
 
-    EXPORT const OTString& GetName() const
+    EXPORT const String& GetName() const
     {
         return m_strName;
     } // account's name as used in a script.
-    const OTString& GetAgentName() const
+    const String& GetAgentName() const
     {
         return m_strAgentName;
     } // agent's name as used in a script.
-    const OTString& GetAcctID() const
+    const String& GetAcctID() const
     {
         return m_strAcctID;
     } // account's ID as used internal to OT.
-    const OTString& GetAssetTypeID() const
+    const String& GetAssetTypeID() const
     {
         return m_strAssetTypeID;
     } // asset type ID for the account.
 
-    void SetAgentName(const OTString& strAgentName)
+    void SetAgentName(const String& strAgentName)
     {
         m_strAgentName = strAgentName;
     }
-    void SetAcctID(const OTString& strAccountID)
+    void SetAcctID(const String& strAccountID)
     {
         m_strAcctID = strAccountID;
     }
     EXPORT OTAgent* GetAuthorizedAgent();
     OTAccount* LoadAccount(OTPseudonym& theSignerNym,
-                           const OTString& strServerID);
+                           const String& strServerID);
     bool IsAccount(OTAccount& theAccount);
     bool IsAccountByID(const OTIdentifier& theAcctID) const;
     bool VerifyOwnership() const; // I have a ptr to my owner (party), as well
@@ -273,21 +273,23 @@ public:
         m_lClosingTransNo = lTransNo;
     }
     bool Compare(const OTPartyAccount& rhs) const;
-    bool DropFinalReceiptToInbox(
-        mapOfNyms* pNymMap, const OTString& strServerID,
-        OTPseudonym& theServerNym, OTSmartContract& theSmartContract,
-        const int64_t& lNewTransactionNumber, const OTString& strOrigCronItem,
-        OTString* pstrNote = nullptr, OTString* pstrAttachment = nullptr);
+    bool DropFinalReceiptToInbox(mapOfNyms* pNymMap, const String& strServerID,
+                                 OTPseudonym& theServerNym,
+                                 OTSmartContract& theSmartContract,
+                                 const int64_t& lNewTransactionNumber,
+                                 const String& strOrigCronItem,
+                                 String* pstrNote = nullptr,
+                                 String* pstrAttachment = nullptr);
     OTPartyAccount();
-    OTPartyAccount(std::string str_account_name, const OTString& strAgentName,
+    OTPartyAccount(std::string str_account_name, const String& strAgentName,
                    OTAccount& theAccount, int64_t lClosingTransNo);
-    OTPartyAccount(const OTString& strName, const OTString& strAgentName,
-                   const OTString& strAcctID, const OTString& strAssetTypeID,
+    OTPartyAccount(const String& strName, const String& strAgentName,
+                   const String& strAcctID, const String& strAssetTypeID,
                    int64_t lClosingTransNo);
 
     virtual ~OTPartyAccount();
 
-    void Serialize(OTString& strAppend, bool bCalculatingID = false,
+    void Serialize(String& strAppend, bool bCalculatingID = false,
                    bool bSpecifyAssetID = false) const;
 
     // For pointers I don't own, but store for convenience.

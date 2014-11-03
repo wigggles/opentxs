@@ -336,7 +336,7 @@ void Token::ReleasePrototokens()
 
 // static -- class factory.
 //
-Token* Token::LowLevelInstantiate(const OTString& strFirstLine,
+Token* Token::LowLevelInstantiate(const String& strFirstLine,
                                   const OTIdentifier& SERVER_ID,
                                   const OTIdentifier& ASSET_ID)
 {
@@ -371,7 +371,7 @@ Token* Token::LowLevelInstantiate(const OTString& strFirstLine,
     return pToken;
 }
 
-Token* Token::LowLevelInstantiate(const OTString& strFirstLine,
+Token* Token::LowLevelInstantiate(const String& strFirstLine,
                                   const Purse& thePurse)
 {
     Token* pToken = nullptr;
@@ -420,7 +420,7 @@ Token* Token::LowLevelInstantiate(const Purse& thePurse)
     return pToken;
 }
 
-Token* Token::LowLevelInstantiate(const OTString& strFirstLine)
+Token* Token::LowLevelInstantiate(const String& strFirstLine)
 {
     Token* pToken = nullptr;
 
@@ -455,12 +455,12 @@ Token* Token::LowLevelInstantiate(const OTString& strFirstLine)
 
 // static -- class factory.
 //
-Token* Token::TokenFactory(OTString strInput, const OTIdentifier& SERVER_ID,
+Token* Token::TokenFactory(String strInput, const OTIdentifier& SERVER_ID,
                            const OTIdentifier& ASSET_ID)
 {
     //  const char * szFunc = "Token::TokenFactory";
 
-    OTString strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -481,11 +481,11 @@ Token* Token::TokenFactory(OTString strInput, const OTIdentifier& SERVER_ID,
     return nullptr;
 }
 
-Token* Token::TokenFactory(OTString strInput, const Purse& thePurse)
+Token* Token::TokenFactory(String strInput, const Purse& thePurse)
 {
     //  const char * szFunc = "Token::TokenFactory";
 
-    OTString strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -505,11 +505,11 @@ Token* Token::TokenFactory(OTString strInput, const Purse& thePurse)
     return nullptr;
 }
 
-Token* Token::TokenFactory(OTString strInput)
+Token* Token::TokenFactory(String strInput)
 {
     //  const char * szFunc = "Token::TokenFactory";
 
-    OTString strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -544,18 +544,18 @@ Token* Token::TokenFactory(OTString strInput)
 // submit
 // it again later and it will work.
 //
-bool Token::IsTokenAlreadySpent(OTString& theCleartextToken)
+bool Token::IsTokenAlreadySpent(String& theCleartextToken)
 {
-    OTString strAssetID(GetAssetID());
+    String strAssetID(GetAssetID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
     OTIdentifier theTokenHash;
     theTokenHash.CalculateDigest(theCleartextToken);
 
     // Grab the new hash into a string (for use as a filename)
-    OTString strTokenHash(theTokenHash);
+    String strTokenHash(theTokenHash);
 
-    OTString strAssetFolder;
+    String strAssetFolder;
     strAssetFolder.Format("%s.%d", strAssetID.Get(), GetSeries());
 
     bool bTokenIsPresent = OTDB::Exists(
@@ -577,18 +577,18 @@ bool Token::IsTokenAlreadySpent(OTString& theCleartextToken)
     return false;
 }
 
-bool Token::RecordTokenAsSpent(OTString& theCleartextToken)
+bool Token::RecordTokenAsSpent(String& theCleartextToken)
 {
-    OTString strAssetID(GetAssetID());
+    String strAssetID(GetAssetID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
     OTIdentifier theTokenHash;
     theTokenHash.CalculateDigest(theCleartextToken);
 
     // Grab the new hash into a string (for use as a filename)
-    OTString strTokenHash(theTokenHash);
+    String strTokenHash(theTokenHash);
 
-    OTString strAssetFolder;
+    String strAssetFolder;
     strAssetFolder.Format("%s.%d", strAssetID.Get(), GetSeries());
 
     // See if the spent token file ALREADY EXISTS...
@@ -610,7 +610,7 @@ bool Token::RecordTokenAsSpent(OTString& theCleartextToken)
     // on a hash of the Lucre data.
     // The success of that operation is also now the success of this one.
 
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp(m_strRawFile);
 
     if (false ==
@@ -708,7 +708,7 @@ bool Token::ReassignOwnership(
     OTNym_or_SymmetricKey& newOwner) // can be public, if a Nym.
 {
     const char* szFunc = "Token::ReassignOwnership";
-    const OTString strDisplay(szFunc);
+    const String strDisplay(szFunc);
 
     bool bSuccess = true;
 
@@ -716,8 +716,8 @@ bool Token::ReassignOwnership(
                                        // have the same owner.
     {
         OTEnvelope theEnvelope(m_ascSpendable);
-        OTString theString; // output from opening/decrypting (and eventually
-                            // input for sealing/encrypting) envelope.
+        String theString; // output from opening/decrypting (and eventually
+                          // input for sealing/encrypting) envelope.
 
         // Remember, OTPurse can store its own internal symmetric key, for cases
         // where the purse is "password protected" instead of belonging to a
@@ -739,7 +739,7 @@ bool Token::ReassignOwnership(
 }
 
 bool Token::GetSpendableString(OTNym_or_SymmetricKey theOwner,
-                               OTString& theString) const
+                               String& theString) const
 {
     const char* szFunc = "Token::GetSpendableString";
 
@@ -747,7 +747,7 @@ bool Token::GetSpendableString(OTNym_or_SymmetricKey theOwner,
         OTEnvelope theEnvelope(m_ascSpendable);
 
         // Decrypt the Envelope into strContents
-        const OTString strDisplay(szFunc);
+        const String strDisplay(szFunc);
 
         if (theOwner.Open_or_Decrypt(theEnvelope, theString, &strDisplay))
             return true;
@@ -762,9 +762,9 @@ void Token::UpdateContents()
 {
     if (m_State == Token::spendableToken) m_strContractType.Set("CASH TOKEN");
 
-    OTString ASSET_TYPE_ID(m_AssetTypeID), SERVER_ID(m_ServerID);
+    String ASSET_TYPE_ID(m_AssetTypeID), SERVER_ID(m_ServerID);
 
-    OTString strState;
+    String strState;
     switch (m_State) {
     case Token::blankToken:
         strState.Set("blankToken");
@@ -866,7 +866,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     int32_t nReturnVal = 0;
 
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -880,15 +880,15 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (strNodeName.Compare("token")) {
-        OTString strState;
+        String strState;
 
         m_strVersion = xml->getAttributeValue("version");
         strState = xml->getAttributeValue("state");
 
         m_nSeries = atoi(xml->getAttributeValue("series"));
 
-        const OTString str_from = xml->getAttributeValue("validFrom");
-        const OTString str_to = xml->getAttributeValue("validTo");
+        const String str_from = xml->getAttributeValue("validFrom");
+        const String str_to = xml->getAttributeValue("validTo");
 
         int64_t tFrom = str_from.ToLong();
         int64_t tTo = str_to.ToLong();
@@ -897,7 +897,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_VALID_TO = OTTimeGetTimeFromSeconds(tTo);
 
         SetDenomination(
-            OTString::StringToLong(xml->getAttributeValue("denomination")));
+            String::StringToLong(xml->getAttributeValue("denomination")));
 
         if (strState.Compare("blankToken"))
             m_State = Token::blankToken;
@@ -915,7 +915,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (m_State == Token::spendableToken)
             m_strContractType.Set("CASH TOKEN");
 
-        OTString strAssetTypeID(xml->getAttributeValue("assetTypeID")),
+        String strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strServerID(xml->getAttributeValue("serverID"));
 
         m_AssetTypeID.SetString(strAssetTypeID);
@@ -1170,7 +1170,7 @@ bool Token::VerifyToken(OTPseudonym& theNotary, Mint& theMint)
     // first before I can use it.
     OTEnvelope theEnvelope(m_ascSpendable);
 
-    OTString strContents; // output from opening the envelope.
+    String strContents; // output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (!theEnvelope.Open(theNotary, strContents))
         return false; // todo log error, etc.

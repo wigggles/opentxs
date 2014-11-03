@@ -141,7 +141,7 @@
 namespace opentxs
 {
 
-void OTVariable::Serialize(OTString& strAppend, bool bCalculatingID) const
+void OTVariable::Serialize(String& strAppend, bool bCalculatingID) const
 {
 
     std::string str_access("");
@@ -175,7 +175,7 @@ void OTVariable::Serialize(OTString& strAppend, bool bCalculatingID) const
             (m_str_Value.size() > 0))    // owner OTScriptable's ID, since the
                                          // value can change over time.
         {
-            OTString strVal(m_str_Value.c_str());
+            String strVal(m_str_Value.c_str());
             OTASCIIArmor ascVal(strVal);
             strAppend.Concatenate("<variable\n name=\"%s\"\n"
                                   " value=\"%s\"\n"

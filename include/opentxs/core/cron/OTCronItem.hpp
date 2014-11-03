@@ -146,7 +146,7 @@ namespace opentxs
 class OTCron;
 class OTIdentifier;
 class OTPseudonym;
-class OTString;
+class String;
 
 class OTCronItem : public OTTrackable
 {
@@ -206,16 +206,16 @@ public:
     bool DropFinalReceiptToInbox(
         const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
         const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-        const OTString& strOrigCronItem, OTString* pstrNote = nullptr,
-        OTString* pstrAttachment = nullptr, OTAccount* pActualAcct = nullptr);
+        const String& strOrigCronItem, String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr, OTAccount* pActualAcct = nullptr);
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.
     bool DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
                                   const int64_t& lNewTransactionNumber,
-                                  const OTString& strOrigCronItem,
-                                  OTString* pstrNote = nullptr,
-                                  OTString* pstrAttachment = nullptr,
+                                  const String& strOrigCronItem,
+                                  String* pstrNote = nullptr,
+                                  String* pstrAttachment = nullptr,
                                   OTPseudonym* pActualNym = nullptr);
     virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
     virtual void HarvestOpeningNumber(OTPseudonym& theNym);
@@ -248,7 +248,7 @@ public:
         m_pCron = &theCron;
     }
 
-    EXPORT static OTCronItem* NewCronItem(const OTString& strCronItem);
+    EXPORT static OTCronItem* NewCronItem(const String& strCronItem);
     EXPORT static OTCronItem* LoadCronReceipt(
         const int64_t& lTransactionNum); // Server-side only.
     EXPORT static OTCronItem* LoadActiveCronReceipt(

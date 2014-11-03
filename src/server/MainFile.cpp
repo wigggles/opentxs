@@ -133,7 +133,7 @@
 #include <opentxs/server/MainFile.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/Helpers.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -157,7 +157,7 @@ MainFile::MainFile(OTServer* server)
 {
 }
 
-bool MainFile::SaveMainFileToString(OTString& strMainFile)
+bool MainFile::SaveMainFileToString(String& strMainFile)
 {
     const char* szFunc = "MainFile::SaveMainFileToString";
 
@@ -201,8 +201,8 @@ bool MainFile::SaveMainFileToString(OTString& strMainFile)
     // Save the basket account information
 
     for (auto& it : server_->transactor_.idToBasketMap_) {
-        OTString strBasketID = it.first.c_str();
-        OTString strBasketAcctID = it.second.c_str();
+        String strBasketID = it.first.c_str();
+        String strBasketAcctID = it.second.c_str();
 
         const OTIdentifier BASKET_ACCOUNT_ID(strBasketAcctID);
         OTIdentifier BASKET_CONTRACT_ID;
@@ -217,7 +217,7 @@ bool MainFile::SaveMainFileToString(OTString& strMainFile)
             break;
         }
 
-        OTString strBasketContractID(BASKET_CONTRACT_ID);
+        String strBasketContractID(BASKET_CONTRACT_ID);
 
         strMainFile.Concatenate("<basketInfo basketID=\"%s\"\n"
                                 " basketAcctID=\"%s\"\n"
@@ -241,7 +241,7 @@ bool MainFile::SaveMainFile()
 {
     // Get the loaded (or new) version of the Server's Main File.
     //
-    OTString strMainFile;
+    String strMainFile;
 
     if (!SaveMainFileToString(strMainFile)) {
         OTLog::vError(
@@ -251,7 +251,7 @@ bool MainFile::SaveMainFile()
     }
     // Try to save the notary server's main datafile to local storage...
     //
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp(strMainFile);
 
     if (false ==
@@ -312,7 +312,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
 
     int64_t lTransNum = 5; // a starting point, for the new server.
 
-    OTString strNotaryFile;
+    String strNotaryFile;
     strNotaryFile.Format(szBlankFile, strServerID.c_str(), strNymID.c_str(),
                          lTransNum, strCachedKey.c_str());
 
@@ -345,7 +345,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     // notaryServer.xml file
     // is saved. All we have left is the Nymfile, which we'll create.
 
-    const OTString strServerUserID(strNymID.c_str());
+    const String strServerUserID(strNymID.c_str());
 
     server_->m_nymServer.SetIdentifier(strServerUserID);
 
@@ -384,7 +384,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                       server_->m_strWalletFilename.Get());
         return false;
     }
-    OTString strFileContents(OTDB::QueryPlainString(
+    String strFileContents(OTDB::QueryPlainString(
         ".",
         server_->m_strWalletFilename.Get())); // <=== LOADING FROM DATA STORE.
 
@@ -425,11 +425,11 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         while (xml && xml->read()) {
             // strings for storing the data that we want to read out of the file
 
-            OTString AssetName;
-            OTString AssetContract;
-            OTString AssetID;
+            String AssetName;
+            String AssetContract;
+            String AssetID;
 
-            const OTString strNodeName(xml->getNodeName());
+            const String strNodeName(xml->getNodeName());
 
             switch (xml->getNodeType()) {
             case irr::io::EXN_TEXT:
@@ -444,10 +444,10 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     server_->m_strServerUserID =
                         xml->getAttributeValue("serverUserID");
 
-                    OTString strTransactionNumber; // The server issues
-                                                   // transaction numbers and
-                                                   // stores the counter here
-                                                   // for the latest one.
+                    String strTransactionNumber; // The server issues
+                                                 // transaction numbers and
+                                                 // stores the counter here
+                                                 // for the latest one.
                     strTransactionNumber =
                         xml->getAttributeValue("transactionNum");
                     server_->transactor_.transactionNumber(
@@ -537,9 +537,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                                                // reserve
                                                                // account IDs.
                 {
-                    const OTString strAcctType = xml->getAttributeValue("type");
-                    const OTString strAcctCount =
-                        xml->getAttributeValue("count");
+                    const String strAcctType = xml->getAttributeValue("type");
+                    const String strAcctCount = xml->getAttributeValue("count");
 
                     if ((-1) ==
                         server_->transactor_.voucherAccounts_.ReadFromXMLNode(
@@ -549,10 +548,10 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             __FUNCTION__);
                 }
                 else if (strNodeName.Compare("basketInfo")) {
-                    OTString strBasketID = xml->getAttributeValue("basketID");
-                    OTString strBasketAcctID =
+                    String strBasketID = xml->getAttributeValue("basketID");
+                    String strBasketAcctID =
                         xml->getAttributeValue("basketAcctID");
-                    OTString strBasketContractID =
+                    String strBasketContractID =
                         xml->getAttributeValue("basketContractID");
 
                     const OTIdentifier BASKET_ID(strBasketID),
@@ -589,7 +588,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                       "listing)\n Name: %s\n Contract ID: %s\n",
                                    AssetName.Get(), AssetID.Get());
 
-                    OTString strContractPath;
+                    String strContractPath;
                     strContractPath = OTFolders::Contract().Get();
 
                     OTAssetContract* pContract = new OTAssetContract(
@@ -636,14 +635,14 @@ bool MainFile::LoadMainFile(bool bReadOnly)
     }
     if (!bReadOnly) {
         {
-            OTString strReason("Converting Server Nym to master key.");
+            String strReason("Converting Server Nym to master key.");
             if (bNeedToConvertUser &&
                 server_->m_nymServer.Savex509CertAndPrivateKey(true,
                                                                &strReason))
                 SaveMainFile();
         }
         {
-            OTString strReason("Creating a Hash Check for the master key.");
+            String strReason("Creating a Hash Check for the master key.");
             if (bNeedToSaveAgain &&
                 server_->m_nymServer.Savex509CertAndPrivateKey(true,
                                                                &strReason))
@@ -705,7 +704,7 @@ bool MainFile::LoadServerUserAndContract()
         OTLog::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
         // We have the serverID, so let's load  up the server Contract!
-        OTString strContractPath(OTFolders::Contract().Get());
+        String strContractPath(OTFolders::Contract().Get());
 
         std::unique_ptr<OTServerContract> pContract(new OTServerContract(
             server_->m_strServerID, strContractPath, server_->m_strServerID,

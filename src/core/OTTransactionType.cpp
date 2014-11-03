@@ -144,9 +144,9 @@
 namespace opentxs
 {
 
-OTTransactionType* OTTransactionType::TransactionFactory(OTString strInput)
+OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
 {
-    OTString strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -237,7 +237,7 @@ void OTTransactionType::GetNumList(OTNumList& theOutput)
 }
 
 // Allows you to string-search the raw contract.
-bool OTTransactionType::Contains(const OTString& strContains)
+bool OTTransactionType::Contains(const String& strContains)
 {
     return m_strRawFile.Contains(strContains);
 }
@@ -378,12 +378,12 @@ bool OTTransactionType::IsSameAccount(const OTTransactionType& rhs) const
     return true;
 }
 
-void OTTransactionType::GetReferenceString(OTString& theStr) const
+void OTTransactionType::GetReferenceString(String& theStr) const
 {
     m_ascInReferenceTo.GetString(theStr);
 }
 
-void OTTransactionType::SetReferenceString(const OTString& theStr)
+void OTTransactionType::SetReferenceString(const String& theStr)
 {
     m_ascInReferenceTo.SetString(theStr);
 }
@@ -431,7 +431,7 @@ bool OTTransactionType::VerifyContractID() const
     // Also, for this class, we compare ServerID as well.  They go hand in hand.
 
     if ((m_ID != m_AcctID) || (m_ServerID != m_AcctServerID)) {
-        OTString str1(m_ID), str2(m_AcctID), str3(m_ServerID),
+        String str1(m_ID), str2(m_AcctID), str3(m_ServerID),
             str4(m_AcctServerID);
         otErr << "Identifiers do NOT match in "
                  "OTTransactionType::VerifyContractID.\n"

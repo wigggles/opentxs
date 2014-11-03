@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CLIENT_OTWALLET_HPP
 #define OPENTXS_CLIENT_OTWALLET_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 #include <map>
 #include <memory>
@@ -153,7 +153,7 @@ class OTPasswordData;
 class OTPseudonym;
 class Purse;
 class OTServerContract;
-class OTString;
+class String;
 class OTSymmetricKey;
 
 typedef std::map<std::string, OTAccount*> mapOfAccounts;
@@ -203,16 +203,15 @@ public:
     EXPORT int32_t GetAssetTypeCount();
     EXPORT int32_t GetAccountCount();
 
-    EXPORT bool GetNym(int32_t iIndex, OTIdentifier& NYM_ID,
-                       OTString& NYM_NAME);
+    EXPORT bool GetNym(int32_t iIndex, OTIdentifier& NYM_ID, String& NYM_NAME);
     EXPORT bool GetServer(int32_t iIndex, OTIdentifier& THE_ID,
-                          OTString& THE_NAME);
+                          String& THE_NAME);
     EXPORT bool GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
-                             OTString& THE_NAME);
+                             String& THE_NAME);
     EXPORT bool GetAccount(int32_t iIndex, OTIdentifier& THE_ID,
-                           OTString& THE_NAME);
+                           String& THE_NAME);
 
-    EXPORT void DisplayStatistics(OTString& strOutput);
+    EXPORT void DisplayStatistics(String& strOutput);
 
     EXPORT OTPseudonym* GetNymByID(const OTIdentifier& NYM_ID);
     EXPORT OTPseudonym* GetNymByIDPartialMatch(
@@ -232,7 +231,7 @@ public:
         std::string PARTIAL_ID); // wallet name for asset also accepted.
     bool VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
                             const OTIdentifier& SERVER_ID,
-                            const OTString& strAcctID,
+                            const String& strAcctID,
                             const char* szFuncName = nullptr);
     EXPORT OTAccount* GetAccount(const OTIdentifier& theAccountID);
     EXPORT OTAccount* GetAccountPartialMatch(
@@ -252,8 +251,8 @@ public:
     }
     EXPORT bool LoadWallet(const char* szFilename = nullptr);
     EXPORT bool SaveWallet(const char* szFilename = nullptr);
-    bool SaveContract(OTString& strContract); // For saving the wallet to a
-                                              // string.
+    bool SaveContract(String& strContract); // For saving the wallet to a
+                                            // string.
 
     EXPORT bool SignContractWithFirstNymOnList(
         OTContract& theContract); // todo : follow-up on this and see what it's
@@ -277,15 +276,13 @@ public:
     // Nyms.)
     //
     EXPORT bool Encrypt_ByKeyID(const std::string& key_id,
-                                const OTString& strPlaintext,
-                                OTString& strOutput,
-                                const OTString* pstrDisplay = nullptr,
+                                const String& strPlaintext, String& strOutput,
+                                const String* pstrDisplay = nullptr,
                                 bool bBookends = true);
 
     EXPORT bool Decrypt_ByKeyID(const std::string& key_id,
-                                const OTString& strCiphertext,
-                                OTString& strOutput,
-                                const OTString* pstrDisplay = nullptr);
+                                const String& strCiphertext, String& strOutput,
+                                const String* pstrDisplay = nullptr);
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
         const std::string* pReason = nullptr); // Use this one.
@@ -322,8 +319,8 @@ private:
                                            // to see which ones are converted
                                            // already.)
 
-    OTString m_strName;
-    OTString m_strVersion;
+    String m_strName;
+    String m_strVersion;
 
     // Let's say you have some private data that you want to store safely.
     // For example, your Bitmessage user/pass. Perhaps you want to throw
@@ -357,8 +354,8 @@ private:
     Purse* m_pWithdrawalPurse;
 
 public:
-    OTString m_strFilename;
-    OTString m_strDataFolder;
+    String m_strFilename;
+    String m_strDataFolder;
 };
 
 } // namespace opentxs

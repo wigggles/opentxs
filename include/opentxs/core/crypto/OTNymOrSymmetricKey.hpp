@@ -140,7 +140,7 @@ class OTEnvelope;
 class OTIdentifier;
 class OTPassword;
 class OTPseudonym;
-class OTString;
+class String;
 class OTSymmetricKey;
 
 // There are certain cases where we want the option to pass a Nym OR a
@@ -163,7 +163,7 @@ private:
     // order to make sure we cleanup on destruction.
     bool m_bCleanupPassword;
 
-    const OTString* m_pstrDisplay;
+    const String* m_pstrDisplay;
 
     OTNym_or_SymmetricKey();
 
@@ -195,7 +195,7 @@ public:
     } // for symmetric key (optional)
 
     EXPORT void GetIdentifier(OTIdentifier& theIdentifier) const;
-    EXPORT void GetIdentifier(OTString& strIdentifier) const;
+    EXPORT void GetIdentifier(String& strIdentifier) const;
 
     EXPORT bool CompareID(const OTNym_or_SymmetricKey& rhs) const;
 
@@ -204,23 +204,23 @@ public:
     // Whereas Encrypt/Decrypt is for symmetric key crypto (With
     // OTSymmetricKey.)
     EXPORT bool Seal_or_Encrypt(OTEnvelope& outputEnvelope,
-                                const OTString& strInput,
-                                const OTString* pstrDisplay = nullptr);
+                                const String& strInput,
+                                const String* pstrDisplay = nullptr);
     EXPORT bool Open_or_Decrypt(const OTEnvelope& inputEnvelope,
-                                OTString& strOutput,
-                                const OTString* pstrDisplay = nullptr);
+                                String& strOutput,
+                                const String* pstrDisplay = nullptr);
 
     EXPORT ~OTNym_or_SymmetricKey();
 
     EXPORT OTNym_or_SymmetricKey(const OTNym_or_SymmetricKey& rhs);
 
     EXPORT OTNym_or_SymmetricKey(const OTPseudonym& theNym,
-                                 const OTString* pstrDisplay = nullptr);
+                                 const String* pstrDisplay = nullptr);
     EXPORT OTNym_or_SymmetricKey(const OTSymmetricKey& theKey,
-                                 const OTString* pstrDisplay = nullptr);
+                                 const String* pstrDisplay = nullptr);
     EXPORT OTNym_or_SymmetricKey(const OTSymmetricKey& theKey,
                                  const OTPassword& thePassword,
-                                 const OTString* pstrDisplay = nullptr);
+                                 const String* pstrDisplay = nullptr);
 
     EXPORT void swap(OTNym_or_SymmetricKey& other);
 

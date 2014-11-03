@@ -185,18 +185,18 @@ private:
     // the information is
     // stored in m_mapStashes, not in the accounts themselves, which are only
     // reserves for those stashes.
-    OTString m_strLastSenderUser;    // These four strings are here so that each
-                                     // sender or recipient (of a transfer of
-                                     // funds)
-    OTString m_strLastSenderAcct;    // is clearly saved in each inbox receipt.
-                                     // That way, if the receipt has a monetary
-                                     // value, then
-    OTString m_strLastRecipientUser; // we know who was sending and who was
-                                     // receiving. Also, if a STASH was the last
-                                     // action, then
-    OTString m_strLastRecipientAcct; // the sender (or recipient) will be blank,
-                                     // signifying that the source or
-                                     // destination was a stash.
+    String m_strLastSenderUser;    // These four strings are here so that each
+                                   // sender or recipient (of a transfer of
+                                   // funds)
+    String m_strLastSenderAcct;    // is clearly saved in each inbox receipt.
+                                   // That way, if the receipt has a monetary
+                                   // value, then
+    String m_strLastRecipientUser; // we know who was sending and who was
+                                   // receiving. Also, if a STASH was the last
+                                   // action, then
+    String m_strLastRecipientAcct; // the sender (or recipient) will be blank,
+                                   // signifying that the source or
+                                   // destination was a stash.
 
     // If onProcess() is on a timer (say, to wake up in a week) then this will
     // contain the
@@ -246,19 +246,19 @@ public:
     // then set right when a MoveAcctFunds() or StashAcctFunds() is being
     // performed.
     //
-    const OTString& GetLastSenderUserID() const
+    const String& GetLastSenderUserID() const
     {
         return m_strLastSenderUser;
     }
-    const OTString& GetLastSenderAcctID() const
+    const String& GetLastSenderAcctID() const
     {
         return m_strLastSenderAcct;
     }
-    const OTString& GetLastRecipientUserID() const
+    const String& GetLastRecipientUserID() const
     {
         return m_strLastRecipientUser;
     }
-    const OTString& GetLastRecipientAcctID() const
+    const String& GetLastRecipientAcctID() const
     {
         return m_strLastRecipientAcct;
     }
@@ -448,7 +448,7 @@ public:
 
     // Low-level.
     EXPORT void ExecuteClauses(mapOfClauses& theClauses,
-                               OTString* pParam = nullptr);
+                               String* pParam = nullptr);
 
     // Low level.
     // This function (StashFunds) is called by StashAcctFunds() and

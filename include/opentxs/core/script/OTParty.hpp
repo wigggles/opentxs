@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTPARTY_HPP
 #define OPENTXS_CORE_SCRIPT_OTPARTY_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {
@@ -190,10 +190,10 @@ private:
     mapOfPartyAccounts m_mapPartyAccounts; // These are owned. Each contains a
                                            // Closing Transaction#.
 
-    int64_t m_lOpeningTransNo;  // Each party (to a smart contract anyway) must
-                                // provide an opening transaction #.
-    OTString m_strMySignedCopy; // One party confirms it and sends it over. Then
-                                // another confirms it,
+    int64_t m_lOpeningTransNo; // Each party (to a smart contract anyway) must
+                               // provide an opening transaction #.
+    String m_strMySignedCopy;  // One party confirms it and sends it over. Then
+                               // another confirms it,
     // which adds his own transaction numbers and signs it. This, unfortunately,
     // invalidates the original version,
     // (since the digital signature ceases to verify, once you change the
@@ -220,7 +220,7 @@ public:
     void CleanupAgents();
     void CleanupAccounts();
     bool Compare(const OTParty& rhs) const;
-    void Serialize(OTString& strAppend, bool bCalculatingID = false,
+    void Serialize(String& strAppend, bool bCalculatingID = false,
                    bool bSpecifyAssetID = false,
                    bool bSpecifyParties = false) const;
 
@@ -237,42 +237,41 @@ public:
     // Set aside all the necessary transaction #s from the various Nyms.
     // (Assumes those Nym pointers are available inside their various agents.)
     //
-    bool ReserveTransNumsForConfirm(const OTString& strServerID);
-    void HarvestAllTransactionNumbers(const OTString& strServerID);
-    void HarvestOpeningNumber(const OTString& strServerID);
-    void HarvestOpeningNumber(OTAgent& theAgent, const OTString& strServerID);
-    void HarvestOpeningNumber(OTPseudonym& theNym, const OTString& strServerID);
-    void CloseoutOpeningNumber(const OTString& strServerID, bool bSave = false,
+    bool ReserveTransNumsForConfirm(const String& strServerID);
+    void HarvestAllTransactionNumbers(const String& strServerID);
+    void HarvestOpeningNumber(const String& strServerID);
+    void HarvestOpeningNumber(OTAgent& theAgent, const String& strServerID);
+    void HarvestOpeningNumber(OTPseudonym& theNym, const String& strServerID);
+    void CloseoutOpeningNumber(const String& strServerID, bool bSave = false,
                                OTPseudonym* pSignerNym = nullptr);
-    void HarvestClosingNumbers(const OTString& strServerID, bool bSave = false,
+    void HarvestClosingNumbers(const String& strServerID, bool bSave = false,
                                OTPseudonym* pSignerNym = nullptr);
-    void HarvestClosingNumbers(OTAgent& theAgent, const OTString& strServerID);
-    void HarvestClosingNumbers(OTPseudonym& theNym,
-                               const OTString& strServerID);
+    void HarvestClosingNumbers(OTAgent& theAgent, const String& strServerID);
+    void HarvestClosingNumbers(OTPseudonym& theNym, const String& strServerID);
     // Iterates through the agents.
     //
     bool DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
-                                    const OTString& strOrigCronItem,
-                                    OTString* pstrNote = nullptr,
-                                    OTString* pstrAttachment = nullptr,
+                                    const String& strOrigCronItem,
+                                    String* pstrNote = nullptr,
+                                    String* pstrAttachment = nullptr,
                                     OTPseudonym* pActualNym = nullptr);
     // Iterates through the accounts.
     //
     bool DropFinalReceiptToInboxes(mapOfNyms* pNymMap,
-                                   const OTString& strServerID,
+                                   const String& strServerID,
                                    OTPseudonym& theServerNym,
                                    const int64_t& lNewTransactionNumber,
-                                   const OTString& strOrigCronItem,
-                                   OTString* pstrNote = nullptr,
-                                   OTString* pstrAttachment = nullptr);
+                                   const String& strOrigCronItem,
+                                   String* pstrNote = nullptr,
+                                   String* pstrAttachment = nullptr);
     bool SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
                            const OTIdentifier& theServerID,
                            const int64_t& lNewTransactionNumber,
                            // const int64_t& lInReferenceTo,
                            // We use GetOpenTransNo() now.
-                           const OTString& strReference,
-                           OTString* pstrNote = nullptr,
-                           OTString* pstrAttachment = nullptr,
+                           const String& strReference,
+                           String* pstrNote = nullptr,
+                           String* pstrAttachment = nullptr,
                            OTPseudonym* pActualNym = nullptr);
     // This pointer isn't owned -- just stored for convenience.
     //
@@ -284,11 +283,11 @@ public:
     {
         m_pOwnerAgreement = &theOwner;
     }
-    void SetMySignedCopy(const OTString& strMyCopy)
+    void SetMySignedCopy(const String& strMyCopy)
     {
         m_strMySignedCopy = strMyCopy;
     }
-    const OTString& GetMySignedCopy()
+    const String& GetMySignedCopy()
     {
         return m_strMySignedCopy;
     }
@@ -390,11 +389,11 @@ public:
     //
     void RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded);
     bool AddAccount(OTPartyAccount& thePartyAcct);
-    EXPORT bool AddAccount(const OTString& strAgentName,
-                           const OTString& strName, const OTString& strAcctID,
-                           const OTString& strAssetTypeID,
+    EXPORT bool AddAccount(const String& strAgentName, const String& strName,
+                           const String& strAcctID,
+                           const String& strAssetTypeID,
                            int64_t lClosingTransNo);
-    EXPORT bool AddAccount(const OTString& strAgentName, const char* szAcctName,
+    EXPORT bool AddAccount(const String& strAgentName, const char* szAcctName,
                            OTAccount& theAccount, int64_t lClosingTransNo);
 
     int32_t GetAccountCount() const
@@ -419,7 +418,7 @@ public:
                         OTPartyAccount** ppPartyAccount = nullptr) const;
     bool VerifyOwnershipOfAccount(const OTAccount& theAccount) const;
     bool VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
-                                       const OTString& strServerID,
+                                       const String& strServerID,
                                        bool bBurnTransNo = false);
     EXPORT bool CopyAcctsToConfirmingParty(OTParty& theParty)
         const; // When confirming a party, a new version replaces the original.
@@ -430,7 +429,7 @@ public:
                                 mapOfNyms& map_NewlyLoaded);
 
     bool LoadAndVerifyAssetAccounts(OTPseudonym& theServerNym,
-                                    const OTString& strServerID,
+                                    const String& strServerID,
                                     mapOfAccounts& map_Accts_Already_Loaded,
                                     mapOfAccounts& map_NewlyLoaded);
 

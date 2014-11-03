@@ -133,14 +133,14 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 #define OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {
 
 class OTStashItem
 {
-    OTString m_strAssetTypeID;
+    String m_strAssetTypeID;
     int64_t m_lAmount;
 
 public:
@@ -154,12 +154,12 @@ public:
     }
     bool CreditStash(const int64_t& lAmount);
     bool DebitStash(const int64_t& lAmount);
-    const OTString& GetAssetTypeID()
+    const String& GetAssetTypeID()
     {
         return m_strAssetTypeID;
     }
     OTStashItem();
-    OTStashItem(const OTString& strAssetTypeID, int64_t lAmount = 0);
+    OTStashItem(const String& strAssetTypeID, int64_t lAmount = 0);
     OTStashItem(const OTIdentifier& theAssetTypeID, int64_t lAmount = 0);
     virtual ~OTStashItem();
 };

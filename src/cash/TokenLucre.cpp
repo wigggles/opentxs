@@ -205,7 +205,7 @@ bool Token_Lucre::GenerateTokenRequest(const OTPseudonym& theNym, Mint& theMint,
     theMint.GetPublic(ascPublicMint, lDenomination);
     //    otErr << "DEBUG: OTToken  public asc: \n%s\n", ascPublicMint.Get());
 
-    OTString strPublicMint(ascPublicMint);
+    String strPublicMint(ascPublicMint);
     //    otErr << "DEBUG: OTToken  public str: \n%s\n", strPublicMint.Get());
 
     // Get the bank's public key (now decoded in strPublicMint)
@@ -287,9 +287,9 @@ bool Token_Lucre::GenerateTokenRequest(const OTPseudonym& theNym, Mint& theMint,
         if (privatecoinLen && publiccoinLen) {
             // With this, we have the Lucre public and private bank info
             // converted to OTStrings
-            OTString strPublicCoin;
+            String strPublicCoin;
             strPublicCoin.Set(publicCoinBuffer, publiccoinLen);
-            OTString strPrivateCoin;
+            String strPrivateCoin;
             strPrivateCoin.Set(privateCoinBuffer, privatecoinLen);
 
             OTASCIIArmor* pArmoredPublic = new OTASCIIArmor(strPublicCoin);
@@ -357,13 +357,13 @@ bool Token_Lucre::ProcessToken(const OTPseudonym& theNym, Mint& theMint,
     //
     OTASCIIArmor ascPublicMint;
     theMint.GetPublic(ascPublicMint, GetDenomination());
-    OTString strPublicMint(ascPublicMint);
+    String strPublicMint(ascPublicMint);
     BIO_puts(bioBank, strPublicMint.Get());
 
     // Get the existing signature into a bio.
     //    otErr << "DEBUGGING, m_Signature: -------------%s--------------\n",
     // m_Signature.Get());
-    OTString strSignature(m_Signature);
+    String strSignature(m_Signature);
     BIO_puts(bioSignature, strSignature.Get());
 
     // I need the Private coin request also. (Only the client has this private
@@ -379,7 +379,7 @@ bool Token_Lucre::ProcessToken(const OTPseudonym& theNym, Mint& theMint,
         //                thePrototoken.Get());
 
         // Decrypt the prototoken
-        OTString strPrototoken;
+        String strPrototoken;
         OTEnvelope theEnvelope(thePrototoken);
         theEnvelope.Open(theNym, strPrototoken); // todo check return value.
 
@@ -424,7 +424,7 @@ bool Token_Lucre::ProcessToken(const OTPseudonym& theNym, Mint& theMint,
 
         if (coinLen) {
             // ...to OTString...
-            OTString strCoin;
+            String strCoin;
             strCoin.Set(CoinBuffer, coinLen);
 
             //            otErr << "Processing token...\n%s\n", strCoin.Get());

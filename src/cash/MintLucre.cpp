@@ -156,15 +156,13 @@ MintLucre::MintLucre()
 {
 }
 
-MintLucre::MintLucre(const OTString& strServerID,
-                     const OTString& strAssetTypeID)
+MintLucre::MintLucre(const String& strServerID, const String& strAssetTypeID)
     : ot_super(strServerID, strAssetTypeID)
 {
 }
 
-MintLucre::MintLucre(const OTString& strServerID,
-                     const OTString& strServerNymID,
-                     const OTString& strAssetTypeID)
+MintLucre::MintLucre(const String& strServerID, const String& strServerNymID,
+                     const String& strAssetTypeID)
     : ot_super(strServerID, strServerNymID, strAssetTypeID)
 {
 }
@@ -238,9 +236,9 @@ bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
     if (privatebankLen && publicbankLen) {
         // With this, we have the Lucre public and private bank info converted
         // to OTStrings
-        OTString strPublicBank;
+        String strPublicBank;
         strPublicBank.Set(publicBankBuffer, publicbankLen);
-        OTString strPrivateBank;
+        String strPrivateBank;
         strPrivateBank.Set(privateBankBuffer, privatebankLen);
 
         OTASCIIArmor* pPublic = new OTASCIIArmor();
@@ -286,7 +284,7 @@ bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
 // Lucre step 3: the mint signs the token
 //
 bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
-                          OTString& theOutput, int32_t nTokenIndex)
+                          String& theOutput, int32_t nTokenIndex)
 {
     bool bReturnValue = false;
 
@@ -304,7 +302,7 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
     // So I need to extract that first before I can use it.
     OTEnvelope theEnvelope(thePrivate);
 
-    OTString strContents; // output from opening the envelope.
+    String strContents; // output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (!theEnvelope.Open(theNotary, strContents)) return false;
 
@@ -320,7 +318,7 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
 
     if (bFoundToken) {
         // base64-Decode the prototoken
-        OTString strPrototoken(ascPrototoken);
+        String strPrototoken(ascPrototoken);
 
         // copy strPrototoken to a BIO
         BIO_puts(bioRequest, strPrototoken.Get());
@@ -366,7 +364,7 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
 
                 // Base64-encode the signature contents into
                 // theToken.m_Signature.
-                OTString strSignature(sig_buf);
+                String strSignature(sig_buf);
 
                 // Here we pass the signature back to the caller.
                 // He will probably set it onto the token.
@@ -389,7 +387,7 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
 // Lucre step 5: mint verifies token when it is redeemed by merchant.
 // This function is called by OTToken::VerifyToken.
 // That's the one you should be calling, most likely, not this one.
-bool MintLucre::VerifyToken(OTPseudonym& theNotary, OTString& theCleartextToken,
+bool MintLucre::VerifyToken(OTPseudonym& theNotary, String& theCleartextToken,
                             int64_t lDenomination)
 {
     bool bReturnValue = false;
@@ -407,7 +405,7 @@ bool MintLucre::VerifyToken(OTPseudonym& theNotary, OTString& theCleartextToken,
     GetPrivate(theArmor, lDenomination);
     OTEnvelope theEnvelope(theArmor);
 
-    OTString strContents; // will contain output from opening the envelope.
+    String strContents; // will contain output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (theEnvelope.Open(theNotary, strContents)) {
         // copy strContents to a BIO

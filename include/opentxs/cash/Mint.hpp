@@ -240,17 +240,17 @@ public:
     // Caller is responsible to delete.
     //
     EXPORT static Mint* MintFactory();
-    EXPORT static Mint* MintFactory(const OTString& strServerID,
-                                    const OTString& strAssetTypeID);
-    EXPORT static Mint* MintFactory(const OTString& strServerID,
-                                    const OTString& strServerNymID,
-                                    const OTString& strAssetTypeID);
+    EXPORT static Mint* MintFactory(const String& strServerID,
+                                    const String& strAssetTypeID);
+    EXPORT static Mint* MintFactory(const String& strServerID,
+                                    const String& strServerNymID,
+                                    const String& strAssetTypeID);
 
 protected:
     Mint();
-    EXPORT Mint(const OTString& strServerID, const OTString& strAssetTypeID);
-    EXPORT Mint(const OTString& strServerID, const OTString& strServerNymID,
-                const OTString& strAssetTypeID);
+    EXPORT Mint(const String& strServerID, const String& strAssetTypeID);
+    EXPORT Mint(const String& strServerID, const String& strServerNymID,
+                const String& strAssetTypeID);
 
 public:
     EXPORT virtual ~Mint();
@@ -312,13 +312,13 @@ public:
 
     // Lucre step 3: mint signs token
     EXPORT virtual bool SignToken(OTPseudonym& theNotary, Token& theToken,
-                                  OTString& theOutput, int32_t nTokenIndex) = 0;
+                                  String& theOutput, int32_t nTokenIndex) = 0;
 
     // step 4: (unblind coin is in Token)
 
     // Lucre step 5: mint verifies token when it is redeemed by merchant.
     EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
-                                    OTString& theCleartextToken,
+                                    String& theCleartextToken,
                                     int64_t lDenomination) = 0;
 };
 

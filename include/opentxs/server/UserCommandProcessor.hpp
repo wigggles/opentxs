@@ -137,7 +137,7 @@
 
 namespace opentxs
 {
-class OTString;
+class String;
 class OTMessage;
 class OTPseudonym;
 class OTServer;
@@ -157,11 +157,11 @@ private:
                           const OTIdentifier& senderUserId,
                           const OTIdentifier& recipientUserId,
                           OTMessage* msg = nullptr,
-                          const OTString* messageString = nullptr);
+                          const String* messageString = nullptr);
 
     void DropReplyNoticeToNymbox(const OTIdentifier& serverId,
                                  const OTIdentifier& userId,
-                                 const OTString& messageString,
+                                 const String& messageString,
                                  const int64_t& requestNum,
                                  const bool replyTransSuccess,
                                  OTPseudonym* actualNym = nullptr);

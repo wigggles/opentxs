@@ -172,9 +172,9 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // true.
         m_bInitialPayment = true;
 
-        const OTString str_date = xml->getAttributeValue("date");
-        const OTString str_completed = xml->getAttributeValue("dateCompleted");
-        const OTString str_last_attempt =
+        const String str_date = xml->getAttributeValue("date");
+        const String str_completed = xml->getAttributeValue("dateCompleted");
+        const String str_last_attempt =
             xml->getAttributeValue("dateOfLastAttempt");
 
         int64_t tDate = str_date.ToLong();
@@ -189,9 +189,9 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         SetNoInitialFailures(atoi(xml->getAttributeValue("numberOfAttempts")));
         SetInitialPaymentAmount(
-            OTString::StringToLong(xml->getAttributeValue("amount")));
+            String::StringToLong(xml->getAttributeValue("amount")));
 
-        OTString strCompleted(xml->getAttributeValue("completed"));
+        String strCompleted(xml->getAttributeValue("completed"));
         m_bInitialPaymentDone = strCompleted.Compare("true");
 
         otWarn << "\n\nInitial Payment. Amount: " << m_lInitialPaymentAmount
@@ -212,17 +212,17 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_bPaymentPlan = true;
 
         SetPaymentPlanAmount(
-            OTString::StringToLong(xml->getAttributeValue("amountPerPayment")));
+            String::StringToLong(xml->getAttributeValue("amountPerPayment")));
         SetMaximumNoPayments(atoi(xml->getAttributeValue("maxNoPayments")));
         SetNoPaymentsDone(atoi(xml->getAttributeValue("completedNoPayments")));
         SetNoFailedPayments(atoi(xml->getAttributeValue("failedNoPayments")));
 
-        const OTString str_between =
+        const String str_between =
             xml->getAttributeValue("timeBetweenPayments");
-        const OTString str_start = xml->getAttributeValue("planStartDate");
-        const OTString str_length = xml->getAttributeValue("planLength");
-        const OTString str_last = xml->getAttributeValue("dateOfLastPayment");
-        const OTString str_last_attempt =
+        const String str_start = xml->getAttributeValue("planStartDate");
+        const String str_length = xml->getAttributeValue("planLength");
+        const String str_last = xml->getAttributeValue("dateOfLastPayment");
+        const String str_last_attempt =
             xml->getAttributeValue("dateOfLastFailedPayment");
 
         int64_t tBetween = str_between.ToLong();
@@ -265,14 +265,14 @@ void OTPaymentPlan::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const OTString SERVER_ID(GetServerID()), ASSET_TYPE_ID(GetAssetID()),
+    const String SERVER_ID(GetServerID()), ASSET_TYPE_ID(GetAssetID()),
         SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
         RECIPIENT_ACCT_ID(GetRecipientAcctID()),
         RECIPIENT_USER_ID(GetRecipientUserID());
 
     OT_ASSERT(nullptr != m_pCancelerNymID);
 
-    OTString strCanceler;
+    String strCanceler;
 
     if (m_bCanceled) m_pCancelerNymID->GetString(strCanceler);
 
@@ -479,7 +479,7 @@ bool OTPaymentPlan::VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
         return false;
     }
 
-    const OTString strServerID(GetServerID());
+    const String strServerID(GetServerID());
 
     // Verify Transaction Num and Closing Nums against SENDER's issued list
     if ((GetCountClosingNumbers() < 1) ||
@@ -682,7 +682,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     const OTIdentifier& RECIPIENT_ACCT_ID = GetRecipientAcctID();
     const OTIdentifier& RECIPIENT_USER_ID = GetRecipientUserID();
 
-    OTString strSenderUserID(SENDER_USER_ID),
+    String strSenderUserID(SENDER_USER_ID),
         strRecipientUserID(RECIPIENT_USER_ID), strSourceAcctID(SOURCE_ACCT_ID),
         strRecipientAcctID(RECIPIENT_ACCT_ID);
 
@@ -719,8 +719,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
     // strOrigPlan is a String copy (a PGP-signed XML file, in string form) of
     // the original Payment Plan request...
-    OTString strOrigPlan(*pOrigCronItem); // <====== Farther down in the code, I
-                                          // attach this string to the receipts.
+    String strOrigPlan(*pOrigCronItem); // <====== Farther down in the code, I
+                                        // attach this string to the receipts.
 
     // -------------- Make sure have both nyms loaded and checked out.
     // --------------------------------------------------
@@ -762,7 +762,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             SENDER_USER_ID); // theSenderNym is pSenderNym
 
         if (!theSenderNym.LoadPublicKey()) {
-            OTString strNymID(SENDER_USER_ID);
+            String strNymID(SENDER_USER_ID);
             otErr << "Failure loading Sender Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -779,7 +779,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             pSenderNym = &theSenderNym; //  <=====
         }
         else {
-            OTString strNymID(SENDER_USER_ID);
+            String strNymID(SENDER_USER_ID);
             otErr << "Failure loading or verifying Sender Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -802,7 +802,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         theRecipientNym.SetIdentifier(RECIPIENT_USER_ID);
 
         if (!theRecipientNym.LoadPublicKey()) {
-            OTString strNymID(RECIPIENT_USER_ID);
+            String strNymID(RECIPIENT_USER_ID);
             otErr << "Failure loading Recipient Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -814,7 +814,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             pRecipientNym = &theRecipientNym; //  <=====
         }
         else {
-            OTString strNymID(RECIPIENT_USER_ID);
+            String strNymID(RECIPIENT_USER_ID);
             otErr << "Failure loading or verifying Recipient Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -1229,7 +1229,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             // Field. Now let's add the UPDATED plan as an ATTACHMENT on the
             // Transaction ITEM:
             //
-            OTString strUpdatedPlan(*this);
+            String strUpdatedPlan(*this);
 
             // Set the updated plan as the attachment on the transaction item.
             // (With the SERVER's signature on it!)

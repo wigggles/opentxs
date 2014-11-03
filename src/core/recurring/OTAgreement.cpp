@@ -152,7 +152,7 @@ bool OTAgreement::SendNoticeToAllParties(
     const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
     //                                       const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
-    const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
+    const String& strReference, String* pstrNote, String* pstrAttachment,
     OTPseudonym* pActualNym) const
 {
     bool bSuccess =
@@ -176,7 +176,7 @@ bool OTAgreement::SendNoticeToAllParties(
         theRecipientNym.SetIdentifier(NYM_ID);
 
         if (!theRecipientNym.LoadPublicKey()) {
-            const OTString strNymID(NYM_ID);
+            const String strNymID(NYM_ID);
             otErr << __FUNCTION__
                   << ": Failure loading Recipient's public key: " << strNymID
                   << "\n";
@@ -190,7 +190,7 @@ bool OTAgreement::SendNoticeToAllParties(
             pRecipient = &theRecipientNym; //  <=====
         }
         else {
-            const OTString strNymID(NYM_ID);
+            const String strNymID(NYM_ID);
             otErr << __FUNCTION__
                   << ": Failure verifying Recipient's public key or loading "
                      "signed nymfile: " << strNymID << "\n";
@@ -217,7 +217,7 @@ bool OTAgreement::SendNoticeToAllParties(
         theSenderNym.SetIdentifier(NYM_ID);
 
         if (!theSenderNym.LoadPublicKey()) {
-            const OTString strNymID(NYM_ID);
+            const String strNymID(NYM_ID);
             otErr << __FUNCTION__
                   << ": Failure loading Sender's public key: " << strNymID
                   << "\n";
@@ -233,7 +233,7 @@ bool OTAgreement::SendNoticeToAllParties(
             pSender = &theSenderNym; //  <=====
         }
         else {
-            const OTString strNymID(NYM_ID);
+            const String strNymID(NYM_ID);
             otErr << __FUNCTION__ << ": Failure verifying Sender's public key "
                                      "or loading signed nymfile: " << strNymID
                   << "\n";
@@ -273,8 +273,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
                       // OTItem::rejection.
     OTPseudonym& theServerNym, const OTIdentifier& SERVER_ID,
     const OTIdentifier& USER_ID, const int64_t& lNewTransactionNumber,
-    const int64_t& lInReferenceTo, const OTString& strReference,
-    OTString* pstrNote, OTString* pstrAttachment, OTPseudonym* pActualNym)
+    const int64_t& lInReferenceTo, const String& strReference, String* pstrNote,
+    String* pstrAttachment, OTPseudonym* pActualNym)
 {
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
 
@@ -408,7 +408,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
                                                    // Nymfile, not his
                                                    // key.
                 {
-                    OTString strNymID(ACTUAL_NYM_ID);
+                    String strNymID(ACTUAL_NYM_ID);
                     otErr << __FUNCTION__
                           << ": Failure loading public key for Nym: "
                           << strNymID << ". "
@@ -427,7 +427,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
                     pActualNym = &theActualNym; //  <=====
                 }
                 else {
-                    OTString strNymID(ACTUAL_NYM_ID);
+                    String strNymID(ACTUAL_NYM_ID);
                     otErr << __FUNCTION__
                           << ": Failure loading or verifying Actual Nym public "
                              "key: " << strNymID
@@ -542,10 +542,10 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
     //
-    OTString strUpdatedCronItem(*this);
-    OTString* pstrAttachment = &strUpdatedCronItem;
+    String strUpdatedCronItem(*this);
+    String* pstrAttachment = &strUpdatedCronItem;
 
-    const OTString strOrigCronItem(theOrigCronItem);
+    const String strOrigCronItem(theOrigCronItem);
 
     OTPseudonym theRecipientNym; // Don't use this... use the pointer just
                                  // below.
@@ -585,7 +585,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         theRecipientNym.SetIdentifier(NYM_ID);
 
         if (!theRecipientNym.LoadPublicKey()) {
-            const OTString strNymID(NYM_ID);
+            const String strNymID(NYM_ID);
             otErr << szFunc << ": Failure loading Recipient's public key:\n"
                   << strNymID << "\n";
         }
@@ -599,7 +599,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
             pRecipient = &theRecipientNym; //  <=====
         }
         else {
-            const OTString strNymID(NYM_ID);
+            const String strNymID(NYM_ID);
             otErr << szFunc << ": Failure verifying Recipient's public key or "
                                "loading signed nymfile: " << strNymID << "\n";
         }
@@ -625,7 +625,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
             : 0; // index 0 is closing number for sender, since
                  // GetTransactionNum() is his opening #.
 
-    const OTString strServerID(GetServerID());
+    const String strServerID(GetServerID());
 
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use pActualNym.)
@@ -677,7 +677,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                                                // are only updating his
                                                // Nymfile, not his key.
             {
-                OTString strNymID(ACTUAL_NYM_ID);
+                String strNymID(ACTUAL_NYM_ID);
                 otErr << szFunc
                       << ": Failure loading public key for Nym : " << strNymID
                       << ". "
@@ -697,7 +697,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                 pActualNym = &theActualNym; //  <=====
             }
             else {
-                OTString strNymID(ACTUAL_NYM_ID);
+                String strNymID(ACTUAL_NYM_ID);
                 otErr
                     << szFunc
                     << ": Failure loading or verifying Actual Nym public key: "
@@ -1052,7 +1052,7 @@ bool OTAgreement::CanRemoveItemFromCron(OTPseudonym& theNym)
     //
     if (true == ot_super::CanRemoveItemFromCron(theNym)) return true;
 
-    const OTString strServerID(GetServerID());
+    const String strServerID(GetServerID());
 
     // Usually the Nym is the originator. (Meaning GetTransactionNum() on this
     // agreement
@@ -1153,7 +1153,7 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 // (lMerchantTransactionNumber, lMerchantClosingNumber are set internally in
 // this call, from MERCHANT_NYM.)
 bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
-                              const OTString& strConsideration,
+                              const String& strConsideration,
                               time64_t VALID_FROM,
                               time64_t VALID_TO) // VALID_TO is a
                                                  // length here.
@@ -1228,7 +1228,7 @@ bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
     // Since we'll be needing 2 transaction numbers to do this, let's grab
     // 'em...
     //
-    OTString strServerID(GetServerID());
+    String strServerID(GetServerID());
 
     int64_t lTransactionNumber = 0, lClosingTransactionNo = 0;
 
@@ -1335,14 +1335,14 @@ bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
     // re-signing it,
     // (to add my own transaction numbers...)
     //
-    OTString strTemp;
+    String strTemp;
     SaveContractRaw(strTemp);
     SetMerchantSignedCopy(strTemp);
 
     // The payer has to submit TWO transaction numbers in order to activate this
     // agreement...
     //
-    OTString strServerID(GetServerID());
+    String strServerID(GetServerID());
     int64_t lTransactionNumber = 0, lClosingTransactionNo = 0;
 
     if (false ==
@@ -1540,15 +1540,15 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (!strcmp("agreement", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
         SetTransactionNum(
-            OTString::StringToLong(xml->getAttributeValue("transactionNum")));
+            String::StringToLong(xml->getAttributeValue("transactionNum")));
 
-        const OTString strCreation = xml->getAttributeValue("creationDate");
+        const String strCreation = xml->getAttributeValue("creationDate");
         int64_t tCreation = strCreation.ToLong();
 
         SetCreationDate(OTTimeGetTimeFromSeconds(tCreation));
 
-        const OTString str_valid_from = xml->getAttributeValue("validFrom");
-        const OTString str_valid_to = xml->getAttributeValue("validTo");
+        const String str_valid_from = xml->getAttributeValue("validFrom");
+        const String str_valid_to = xml->getAttributeValue("validTo");
 
         int64_t tValidFrom = str_valid_from.ToLong();
         int64_t tValidTo = str_valid_to.ToLong();
@@ -1556,7 +1556,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
 
-        const OTString strServerID(xml->getAttributeValue("serverID")),
+        const String strServerID(xml->getAttributeValue("serverID")),
             strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strSenderAcctID(xml->getAttributeValue("senderAcctID")),
             strSenderUserID(xml->getAttributeValue("senderUserID")),
@@ -1630,7 +1630,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //  std::deque<int64_t>   m_dequeRecipientClosingNumbers; // Numbers used
     // for CLOSING a transaction. (finalReceipt.)
     else if (!strcmp("closingRecipientNumber", xml->getNodeName())) {
-        OTString strClosingNumber = xml->getAttributeValue("value");
+        String strClosingNumber = xml->getAttributeValue("value");
 
         if (strClosingNumber.Exists()) {
             const int64_t lClosingNumber = strClosingNumber.ToLong();

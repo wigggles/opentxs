@@ -199,7 +199,7 @@ private:
     int32_t tradesAlreadyDone_; // How many trades have already processed
                                 // through this order? We keep track.
 
-    OTString marketOffer_; // The market offer associated with this trade.
+    String marketOffer_; // The market offer associated with this trade.
 
 protected:
     virtual void onFinalReceipt(OTCronItem& origCronItem,
@@ -214,7 +214,7 @@ public:
 
     // The Trade always stores the original, signed version of its Offer.
     // This method allows you to grab a copy of it.
-    inline bool GetOfferString(OTString& offer)
+    inline bool GetOfferString(String& offer)
     {
         offer.Set(marketOffer_);
         if (marketOffer_.Exists()) {

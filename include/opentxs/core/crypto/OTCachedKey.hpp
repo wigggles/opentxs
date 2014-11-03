@@ -146,7 +146,7 @@ class OTASCIIArmor;
 class OTCachedKey;
 class OTIdentifier;
 class OTPassword;
-class OTString;
+class String;
 class OTSymmetricKey;
 
 /// OTCachedKey
@@ -380,7 +380,7 @@ public:
                                   // CleanupOTAPI and also in OTServer wherever
                                   // it cleans up.
     EXPORT bool GetIdentifier(OTIdentifier& theIdentifier) const;
-    EXPORT bool GetIdentifier(OTString& strIdentifier) const;
+    EXPORT bool GetIdentifier(String& strIdentifier) const;
     EXPORT bool IsGenerated();
     EXPORT bool HasHashCheck();
     EXPORT bool IsUsingSystemKeyring() const

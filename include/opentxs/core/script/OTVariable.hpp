@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTVARIABLE_HPP
 #define OPENTXS_CORE_SCRIPT_OTVARIABLE_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {
@@ -162,7 +162,7 @@ public:
     };
 
 private:
-    OTString m_strName;            // Name of this variable.
+    String m_strName;              // Name of this variable.
     std::string m_str_Value;       // If a string, the value is stored here.
     int32_t m_nValue;              // If an integer, the value is stored here.
     bool m_bValue;                 // If a bool, the value is stored here.
@@ -217,7 +217,7 @@ public:
     bool SetValue(bool bValue);
     bool SetValue(const std::string& str_Value);
 
-    EXPORT const OTString& GetName() const
+    EXPORT const String& GetName() const
     {
         return m_strName;
     } // variable's name as used in a script.
@@ -280,7 +280,7 @@ public:
                       OTVariable_Access theAccess = Var_Persistent);
     EXPORT virtual ~OTVariable();
 
-    void Serialize(OTString& strAppend, bool bCalculatingID = false) const;
+    void Serialize(String& strAppend, bool bCalculatingID = false) const;
 };
 
 } // namespace opentxs

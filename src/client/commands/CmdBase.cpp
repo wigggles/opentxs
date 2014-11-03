@@ -183,7 +183,7 @@ bool CmdBase::checkAccount(const char* name, string& account) const
         }
     }
 
-    OTString tmp;
+    String tmp;
     theAccount->GetPurportedAccountID().GetString(tmp);
     account = tmp.Get();
     otOut << "Using " << name << ": " << account << "\n";
@@ -313,7 +313,7 @@ bool CmdBase::checkNym(const char* name, string& nym) const
         }
     }
 
-    OTString tmp;
+    String tmp;
     theNym->GetIdentifier(tmp);
     nym = tmp.Get();
     otOut << "Using " << name << ": " << nym << "\n";
@@ -336,7 +336,7 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
         }
     }
 
-    OTString tmp;
+    String tmp;
     thePurse->GetIdentifier(tmp);
     purse = tmp.Get();
     otOut << "Using " << name << ": " << purse << "\n";
@@ -360,7 +360,7 @@ bool CmdBase::checkServer(const char* name, string& server) const
         }
     }
 
-    OTString tmp;
+    String tmp;
     theServer->GetIdentifier(tmp);
     server = tmp.Get();
     otOut << "Using " << name << ": " << server << "\n";

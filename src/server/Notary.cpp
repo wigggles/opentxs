@@ -150,7 +150,7 @@
 #include <opentxs/core/OTAccount.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTTransaction.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
 #include <opentxs/core/OTItem.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
@@ -187,8 +187,8 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -196,7 +196,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
         ACCOUNT_ID(theFromAccount),
         ASSET_TYPE_ID(theFromAccount.GetAssetTypeID());
 
-    OTString strUserID(USER_ID), strAccountID(ACCOUNT_ID);
+    String strUserID(USER_ID), strAccountID(ACCOUNT_ID);
     pResponseBalanceItem =
         OTItem::CreateItemFromTransaction(tranOut, OTItem::atBalanceStatement);
     pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
@@ -218,7 +218,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
     }
     else if (nullptr ==
                (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeTransfer: Expected "
                "OTItem::balanceStatement in trans# %" PRId64 ": \n\n%s\n\n",
@@ -230,7 +230,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
     // transaction.
     // So we treat it that way... I either get it successfully or not.
     else if (nullptr == (pItem = tranIn.GetItem(OTItem::transfer))) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(0, "Notary::NotarizeTransfer: Expected "
                           "OTItem::transfer in trans# %" PRId64 ": \n\n%s\n\n",
                        tranIn.GetTransactionNum(),
@@ -239,7 +239,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
                            : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     else if (ACCOUNT_ID == pItem->GetDestinationAcctID()) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeTransfer: Failed attempt by user %s in "
                "trans# %" PRId64
@@ -325,7 +325,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
         // Are both of the accounts of the same Asset Type?
         else if (!(theFromAccount.GetAssetTypeID() ==
                    pDestinationAcct->GetAssetTypeID())) {
-            OTString strFromAssetID(theFromAccount.GetAssetTypeID()),
+            String strFromAssetID(theFromAccount.GetAssetTypeID()),
                 strDestinationAssetID(pDestinationAcct->GetAssetTypeID());
             OTLog::vOutput(
                 0, "ERROR - user attempted to transfer between accounts of 2 "
@@ -677,8 +677,8 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -686,7 +686,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
         ACCOUNT_ID(theAccount), SERVER_USER_ID(server_->m_nymServer),
         ASSET_TYPE_ID(theAccount.GetAssetTypeID());
 
-    const OTString strUserID(USER_ID), strAccountID(ACCOUNT_ID),
+    const String strUserID(USER_ID), strAccountID(ACCOUNT_ID),
         strAssetTypeID(ASSET_TYPE_ID);
 
     // Here we find out if we're withdrawing cash, or a voucher
@@ -718,7 +718,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
                                             // cleanup the item. It "owns" it
                                             // now.
     if (nullptr == pItem) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeWithdrawal: Expected OTItem::withdrawal or "
                "OTItem::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
@@ -762,7 +762,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
     //
     else if (nullptr ==
              (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(0, "Notary::NotarizeWithdrawal: Expected "
                           "OTItem::balanceStatement, but not found in trans # "
                           "%" PRId64 ": \n\n%s\n\n",
@@ -842,7 +842,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
                                             // that
                                             // verifies...
         {
-            OTString strVoucherRequest, strItemNote;
+            String strVoucherRequest, strItemNote;
             pItem->GetNote(strItemNote);
             pItem->GetAttachment(strVoucherRequest);
 
@@ -870,7 +870,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
                     tranIn.GetTransactionNum(), strUserID.Get());
             }
             else if (ASSET_TYPE_ID != theVoucherRequest.GetAssetID()) {
-                const OTString strFoundAssetID(theVoucherRequest.GetAssetID());
+                const String strFoundAssetID(theVoucherRequest.GetAssetID());
                 OTLog::vError(
                     "Notary::%s: Failed verifying asset type ID (%s) on the "
                     "withdraw voucher request (found: %s) "
@@ -895,7 +895,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
                 pResponseBalanceItem->SetStatus(
                     OTItem::acknowledgement); // the transaction agreement was
                                               // successful.
-                OTString strChequeMemo;
+                String strChequeMemo;
                 strChequeMemo.Format("%s%s", strItemNote.Get(),
                                      theVoucherRequest.GetMemo().Get());
 
@@ -973,7 +973,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
                                          "account.\n");
                     }
                     else {
-                        OTString strVoucher;
+                        String strVoucher;
                         theVoucher.SetAsVoucher(
                             USER_ID, ACCOUNT_ID); // All this does is set the
                                                   // voucher's internal contract
@@ -1118,7 +1118,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
             // amount, because otherwise he'll
             // just get the wrong key and then get rejected by the bank.
 
-            OTString strPurse;
+            String strPurse;
             pItem->GetAttachment(strPurse);
 
             // Todo do more security checking in here, like making sure the
@@ -1203,10 +1203,10 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
                         break; // Once there's a failure, we ditch the loop.
                     }
                     else {
-                        OTString theStringReturnVal;
+                        String theStringReturnVal;
 
                         if (pToken->GetAssetID() != ASSET_TYPE_ID) {
-                            const OTString str1(pToken->GetAssetID()),
+                            const String str1(pToken->GetAssetID()),
                                 str2(ASSET_TYPE_ID);
                             bSuccess = false;
                             OTLog::vError("%s: ERROR while signing token: "
@@ -1409,7 +1409,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
         pResponseBalanceItem->SaveContract();
     }
     else {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeWithdrawal: Expected OTItem::withdrawal or "
                "OTItem::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
@@ -1488,8 +1488,8 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
     //
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -1501,7 +1501,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                                             // (PAYOUT_ASSET_ID
                                                             // is Dollars.)
 
-    const OTString strUserID(USER_ID), strAccountID(SOURCE_ACCT_ID),
+    const String strUserID(USER_ID), strAccountID(SOURCE_ACCT_ID),
         strAssetTypeID(PAYOUT_ASSET_ID);
     // Make sure the appropriate item is attached.
     //
@@ -1530,7 +1530,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                             // cleanup the item. It "owns" it
                                             // now.
     if (nullptr == pItem) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(0, "%s: Expected OTItem::payDividend in trans# %" PRId64
                           ": \n\n%s\n\n",
                        szFunc, tranIn.GetTransactionNum(),
@@ -1565,7 +1565,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
     //
     else if (nullptr ==
              (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(0, "%s: Expected OTItem::balanceStatement, but not "
                           "found in trans # %" PRId64 ": \n\n%s\n\n",
                        szFunc, tranIn.GetTransactionNum(),
@@ -1606,7 +1606,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                          // pItem and its Owner Transaction.
         const int64_t lTotalCostOfDividend = pItem->GetAmount();
         OTCheque theVoucherRequest;
-        OTString strVoucherRequest,
+        String strVoucherRequest,
             strItemNote; // When paying a dividend, you create a voucher request
                          // (the same as in withdrawVoucher). It's just for
                          // information
@@ -1640,7 +1640,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
             const OTIdentifier SHARES_ISSUER_ACCT_ID =
                 theVoucherRequest.GetSenderAcctID();
 
-            const OTString strSharesIssuerAcct(SHARES_ISSUER_ACCT_ID);
+            const String strSharesIssuerAcct(SHARES_ISSUER_ACCT_ID);
             // Get the asset contract for the shares type, stored in the voucher
             // request, inside pItem.
             //       (Make sure it's NOT the same asset type as
@@ -1659,19 +1659,19 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
             }
 
             if (nullptr == pSharesContract) {
-                const OTString strSharesType(SHARES_ASSET_ID);
+                const String strSharesType(SHARES_ASSET_ID);
                 OTLog::vError("%s: ERROR unable to find shares contract based "
                               "on asset type ID: %s\n",
                               szFunc, strSharesType.Get());
             }
             else if (!pSharesContract->IsShares()) {
-                const OTString strSharesType(SHARES_ASSET_ID);
+                const String strSharesType(SHARES_ASSET_ID);
                 OTLog::vError("%s: FAILURE: Asset contract is not "
                               "shares-based. Asset type ID: %s\n",
                               szFunc, strSharesType.Get());
             }
             else if (!pSharesContract->VerifySignature(theNym)) {
-                const OTString strSharesType(SHARES_ASSET_ID);
+                const String strSharesType(SHARES_ASSET_ID);
                 OTLog::vError("%s: ERROR unable to verify signature for Nym "
                               "(%s) on shares contract "
                               "with asset ID: %s\n",
@@ -1685,7 +1685,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
             else if (PAYOUT_ASSET_ID ==
                        SHARES_ASSET_ID) // these can't be the same
             {
-                const OTString strSharesType(PAYOUT_ASSET_ID);
+                const String strSharesType(PAYOUT_ASSET_ID);
                 OTLog::vError("%s: ERROR dividend payout attempted, using "
                               "shares asset type as payout type also. "
                               "(It's logically impossible for it to payout to "
@@ -1696,13 +1696,13 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
             else if (false ==
                        pSharesIssuerAccount->VerifyAccount(
                            server_->m_nymServer)) {
-                const OTString strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
+                const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
                 OTLog::vError(
                     "%s: ERROR failed trying to verify issuer account: %s\n",
                     szFunc, strIssuerAcctID.Get());
             }
             else if (!pSharesIssuerAccount->VerifyOwner(theNym)) {
-                const OTString strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
+                const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
                 OTLog::vOutput(
                     0, "%s: ERROR verifying signer's ownership of shares "
                        "issuer account (%s), "
@@ -1718,7 +1718,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
             //
             else if ((pSharesIssuerAccount->GetBalance() * (-1) *
                       lAmountPerShare) != lTotalCostOfDividend) {
-                const OTString strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
+                const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
                 OTLog::vOutput(0, "%s: ERROR: total payout of dividend as "
                                   "calculated (%" PRId64
                                   ") doesn't match client's "
@@ -1728,7 +1728,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                lTotalCostOfDividend, strAccountID.Get());
             }
             else if (theSourceAccount.GetBalance() < lTotalCostOfDividend) {
-                const OTString strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
+                const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
                 OTLog::vOutput(0,
                                "%s: FAILURE: not enough funds (%" PRId64 ") to "
                                "cover total dividend payout (%" PRId64 ") for "
@@ -1860,7 +1860,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                                       // better funds transfer
                                                       // code.
                             ) {
-                            const OTString strVoucherAcctID(VOUCHER_ACCOUNT_ID);
+                            const String strVoucherAcctID(VOUCHER_ACCOUNT_ID);
 
                             if (false ==
                                 pVoucherReserveAcct->Credit(
@@ -2169,8 +2169,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                             // Send the voucher to the payments
                                             // inbox of the recipient.
                                             //
-                                            const OTString strVoucher(
-                                                theVoucher);
+                                            const String strVoucher(theVoucher);
                                             OTPayment thePayment(strVoucher);
 
                                             // calls DropMessageToNymbox
@@ -2190,7 +2189,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                         // from.
                                         //
                                         if (!bSent) {
-                                            const OTString strPayoutAssetID(
+                                            const String strPayoutAssetID(
                                                 PAYOUT_ASSET_ID),
                                                 strSenderUserID(USER_ID);
                                             OTLog::vError(
@@ -2209,7 +2208,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                     }
                                     else // !bGotNextTransNum
                                     {
-                                        const OTString strPayoutAssetID(
+                                        const String strPayoutAssetID(
                                             PAYOUT_ASSET_ID),
                                             strRecipientUserID(USER_ID);
                                         OTLog::vError(
@@ -2243,7 +2242,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
         }
     }
     else {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(0, "%s: Expected OTItem::payDividend in trans# %" PRId64
                           ": \n\n%s\n\n",
                        szFunc, tranIn.GetTransactionNum(),
@@ -2283,8 +2282,8 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -2292,7 +2291,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
         ACCOUNT_ID(theAccount), SERVER_USER_ID(server_->m_nymServer),
         ASSET_TYPE_ID(theAccount.GetAssetTypeID());
 
-    const OTString strUserID(USER_ID), strAccountID(ACCOUNT_ID);
+    const String strUserID(USER_ID), strAccountID(ACCOUNT_ID);
 
     Mint* pMint = nullptr; // the Mint itself.
     OTAccount* pMintCashReserveAcct =
@@ -2325,7 +2324,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                                             // cleanup the item. It "owns" it
                                             // now.
     if (nullptr == pItem) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeDeposit: Expected OTItem::deposit "
                "or OTItem::depositCheque in trans# %" PRId64 ": \n\n%s\n\n",
@@ -2370,7 +2369,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
     //
     else if (nullptr ==
              (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeDeposit: Expected OTItem::balanceStatement, "
                "but not found in trans # %" PRId64 ": \n\n%s\n\n",
@@ -2445,7 +2444,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
         }
         else {
             // Get the cheque from the Item and load it up into a Cheque object.
-            OTString strCheque;
+            String strCheque;
             pItem->GetAttachment(strCheque);
             OTCheque theCheque(SERVER_ID,
                                ASSET_TYPE_ID); // allocated on the stack :-)
@@ -2461,9 +2460,8 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
             // (the server running this code right now.)
             //
             else if (SERVER_ID != theCheque.GetServerID()) {
-                const OTString strSenderUserID(theCheque.GetSenderUserID());
-                const OTString strRecipientUserID(
-                    theCheque.GetRecipientUserID());
+                const String strSenderUserID(theCheque.GetSenderUserID());
+                const String strRecipientUserID(theCheque.GetRecipientUserID());
                 OTLog::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
                                   "Incorrect Server ID on cheque. Sender User "
                                   "ID: %s\nRecipient User ID is: %s\n",
@@ -2473,9 +2471,8 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
             // See if the cheque is already expired or otherwise not within it's
             // valid date range.
             else if (!theCheque.VerifyCurrentDate()) {
-                const OTString strSenderUserID(theCheque.GetSenderUserID());
-                const OTString strRecipientUserID(
-                    theCheque.GetRecipientUserID());
+                const String strSenderUserID(theCheque.GetSenderUserID());
+                const String strRecipientUserID(theCheque.GetRecipientUserID());
                 OTLog::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
                                   "Not within valid date range. Sender User "
                                   "ID: %s\nRecipient User ID: %s\n",
@@ -2509,9 +2506,8 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                 // the original
                 // recipient manages to deposit it.
 
-                const OTString strSenderUserID(theCheque.GetSenderUserID());
-                const OTString strRecipientUserID(
-                    theCheque.GetRecipientUserID());
+                const String strSenderUserID(theCheque.GetSenderUserID());
+                const String strRecipientUserID(theCheque.GetRecipientUserID());
                 if (theCheque.GetSenderUserID() != USER_ID) {
                     OTLog::vOutput(
                         0,
@@ -2739,7 +2735,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                 // (Note that we allow the remitter of a voucher to deposit that
                 // voucher.)
 
-                const OTString strSenderUserID(SENDER_USER_ID),
+                const String strSenderUserID(SENDER_USER_ID),
                     strSourceAcctID(SOURCE_ACCT_ID),
                     strRecipientUserID(RECIPIENT_USER_ID),
                     strRemitterUserID(REMITTER_USER_ID),
@@ -3287,8 +3283,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                              (bHasRemitter &&
                               !(theCheque.GetAssetID() ==
                                 pRemitterAcct->GetAssetTypeID()))) {
-                        OTString strSourceAssetID(
-                            pSourceAcct->GetAssetTypeID()),
+                        String strSourceAssetID(pSourceAcct->GetAssetTypeID()),
                             strRecipientAssetID(theAccount.GetAssetTypeID());
                         OTLog::vOutput(
                             0, "Notary::%s: ERROR - user attempted to "
@@ -3300,7 +3295,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                             strRecipientAssetID.Get());
 
                         if (bHasRemitter) {
-                            OTString strRemitterAssetID(
+                            String strRemitterAssetID(
                                 pRemitterAcct->GetAssetTypeID());
                             OTLog::vOutput(0, "Remitter Acct: %s\nType: %s\n",
                                            strRemitterAcctID.Get(),
@@ -3770,7 +3765,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                              "verifying outbox.\n");
                 OT_FAIL;
             }
-            OTString strPurse;
+            String strPurse;
             pItem->GetAttachment(strPurse);
 
             Purse thePurse(SERVER_ID, ASSET_TYPE_ID);
@@ -3822,7 +3817,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                     else if ((pMintCashReserveAcct =
                                     pMint->GetCashReserveAccount()) !=
                                nullptr) {
-                        OTString strSpendableToken;
+                        String strSpendableToken;
                         bool bToken = pToken->GetSpendableString(
                             server_->m_nymServer, strSpendableToken);
 
@@ -4034,7 +4029,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
         }     // the account ID matches correctly to the acct ID on the item.
     }
     else {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "%s: Expected OTItem::deposit or "
                "OTItem::depositCheque on trans# %" PRId64 ": \n\n%s\n\n",
@@ -4093,8 +4088,8 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -4102,7 +4097,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
         DEPOSITOR_USER_ID(theNym), SERVER_USER_ID(server_->m_nymServer),
         DEPOSITOR_ACCT_ID(theDepositorAccount), USER_ID(theNym);
 
-    const OTString strUserID(USER_ID);
+    const String strUserID(USER_ID);
     pItem = tranIn.GetItem(OTItem::paymentPlan);
     pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
     pResponseItem =
@@ -4177,7 +4172,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                                              // Transaction.
 
             // Also load up the Payment Plan from inside the transaction item.
-            OTString strPaymentPlan;
+            String strPaymentPlan;
             pItem->GetAttachment(strPaymentPlan);
             OTPaymentPlan* pPlan = new OTPaymentPlan();
             OT_ASSERT(nullptr != pPlan);
@@ -4194,7 +4189,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
             }
             else if (pPlan->GetAssetID() !=
                        theDepositorAccount.GetAssetTypeID()) {
-                const OTString strAssetID1(pPlan->GetAssetID()),
+                const String strAssetID1(pPlan->GetAssetID()),
                     strAssetID2(theDepositorAccount.GetAssetTypeID());
                 OTLog::vOutput(0, "%s: ERROR wrong Asset Type ID (%s) on "
                                   "payment plan. Expected: %s\n",
@@ -4245,7 +4240,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                         lFoundOpeningNum, pItem->GetTransactionNum());
                 }
                 else if (FOUND_USER_ID != DEPOSITOR_USER_ID) {
-                    const OTString strIDExpected(FOUND_USER_ID),
+                    const String strIDExpected(FOUND_USER_ID),
                         strIDDepositor(DEPOSITOR_USER_ID);
                     OTLog::vOutput(
                         0, "%s: ERROR wrong user ID while %s payment plan. "
@@ -4255,7 +4250,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                 }
                 else if (bCancelling &&
                            (DEPOSITOR_USER_ID != theCancelerNymID)) {
-                    const OTString strIDExpected(DEPOSITOR_USER_ID),
+                    const String strIDExpected(DEPOSITOR_USER_ID),
                         strIDDepositor(theCancelerNymID);
                     OTLog::vOutput(0, "%s: ERROR wrong canceler Nym ID while "
                                       "canceling payment plan. Depositor: %s  "
@@ -4264,7 +4259,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                                    strIDDepositor.Get());
                 }
                 else if (FOUND_ACCT_ID != DEPOSITOR_ACCT_ID) {
-                    const OTString strAcctID1(FOUND_ACCT_ID),
+                    const String strAcctID1(FOUND_ACCT_ID),
                         strAcctID2(DEPOSITOR_ACCT_ID);
                     OTLog::vOutput(0, "%s: ERROR wrong Acct ID (%s) while %s "
                                       "payment plan. Expected: %s\n",
@@ -4370,7 +4365,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                                                              // removed.
 
                         if (!bLoadedNym) {
-                            OTString strNymID(RECIPIENT_USER_ID);
+                            String strNymID(RECIPIENT_USER_ID);
                             OTLog::vError("%s: Failure loading Recipient Nym "
                                           "public key: %s\n",
                                           __FUNCTION__, strNymID.Get());
@@ -4379,7 +4374,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                         else if (!theRecipientNym.VerifyPseudonym() ||
                                    !theRecipientNym.LoadSignedNymfile(
                                        server_->m_nymServer)) {
-                            OTString strNymID(RECIPIENT_USER_ID);
+                            String strNymID(RECIPIENT_USER_ID);
                             OTLog::vError("%s: Failure loading or verifying "
                                           "Recipient Nym public key: %s\n",
                                           __FUNCTION__, strNymID.Get());
@@ -4530,7 +4525,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                             // VERY IMPORTANT!!
                             else if (pRecipientAcct->GetAssetTypeID() !=
                                      theDepositorAccount.GetAssetTypeID()) {
-                                OTString strSourceAssetID(
+                                String strSourceAssetID(
                                     theDepositorAccount.GetAssetTypeID()),
                                     strRecipAssetID(
                                         pRecipientAcct->GetAssetTypeID());
@@ -4560,7 +4555,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                             // ID.)
                             else if (pRecipientAcct->GetAssetTypeID() !=
                                      pPlan->GetAssetID()) {
-                                const OTString strAssetID1(pPlan->GetAssetID()),
+                                const String strAssetID1(pPlan->GetAssetID()),
                                     strAssetID2(
                                         pRecipientAcct->GetAssetTypeID());
                                 OTLog::vOutput(0, "%s: ERROR wrong Asset Type "
@@ -4835,15 +4830,15 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const OTIdentifier SERVER_ID(server_->m_strServerID),
         ACTIVATOR_USER_ID(theNym), SERVER_USER_ID(server_->m_nymServer),
         ACTIVATOR_ACCT_ID(theActivatingAccount), USER_ID(theNym);
-    const OTString strUserID(USER_ID);
+    const String strUserID(USER_ID);
     pItem = tranIn.GetItem(OTItem::smartContract);
     pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
     pResponseItem =
@@ -4916,7 +4911,7 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
                                              // Transaction.
 
             // Also load up the smart contract from inside the transaction item.
-            OTString strContract;
+            String strContract;
             pItem->GetAttachment(strContract);
             OTSmartContract* pContract = new OTSmartContract(SERVER_ID);
             OT_ASSERT(nullptr != pContract);
@@ -4928,7 +4923,7 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
                     __FUNCTION__, strContract.Get());
             }
             else if (pContract->GetServerID() != SERVER_ID) {
-                const OTString strWrongID(pContract->GetServerID());
+                const String strWrongID(pContract->GetServerID());
                 OTLog::vOutput(0, "%s: ERROR bad server ID (%s) on smart "
                                   "contract. Expected %s\n",
                                __FUNCTION__, strWrongID.Get(),
@@ -4993,8 +4988,8 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
                         __FUNCTION__, lFoundOpeningNum, lExpectedNum);
                 }
                 else if (FOUND_USER_ID != ACTIVATOR_USER_ID) {
-                    const OTString strWrongID(ACTIVATOR_USER_ID);
-                    const OTString strRightID(FOUND_USER_ID);
+                    const String strWrongID(ACTIVATOR_USER_ID);
+                    const String strRightID(FOUND_USER_ID);
                     OTLog::vOutput(0, "%s: ERROR wrong user ID (%s) used while "
                                       "%s smart contract. Expected from "
                                       "contract: %s\n",
@@ -5003,7 +4998,7 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
                                    strRightID.Get());
                 }
                 else if (FOUND_ACCT_ID != ACTIVATOR_ACCT_ID) {
-                    const OTString strSenderAcctID(FOUND_ACCT_ID),
+                    const String strSenderAcctID(FOUND_ACCT_ID),
                         strActivatorAcctID(ACTIVATOR_ACCT_ID);
                     OTLog::vOutput(0, "%s: ERROR wrong asset Acct ID used (%s) "
                                       "to %s smart contract. Expected from "
@@ -5569,14 +5564,14 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
 
-    const OTString strUserID(USER_ID);
+    const String strUserID(USER_ID);
 
     pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
     pResponseItem =
@@ -5599,7 +5594,7 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
             __FUNCTION__, strUserID.Get());
     }
     else if (nullptr == pBalanceItem) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "%s: Expected transaction statement in trans# %" PRId64
                ": \n\n%s\n\n",
@@ -5718,7 +5713,7 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
         } // transaction statement verified.
     }
     else {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "Error, expected OTItem::cancelCronItem "
                "in Notary::NotarizeCancelCronItem for trans# %" PRId64
@@ -5758,13 +5753,13 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
         BASKET_CONTRACT_ID(theAccount.GetAssetTypeID()), ACCOUNT_ID(theAccount);
 
-    const OTString strUserID(USER_ID);
+    const String strUserID(USER_ID);
 
     std::unique_ptr<OTLedger> pInbox(
         theAccount.LoadInbox(server_->m_nymServer));
@@ -5849,7 +5844,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
             std::list<OTLedger*> listInboxes;
 
             // Here's the request from the user.
-            OTString strBasket;
+            String strBasket;
             Basket theBasket, theRequestBasket;
 
             pItem->GetAttachment(strBasket);
@@ -5945,7 +5940,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
                             if (setOfAccounts.end() !=
                                 it_account) // The account appears twice!!
                             {
-                                const OTString strSubID(item->SUB_ACCOUNT_ID);
+                                const String strSubID(item->SUB_ACCOUNT_ID);
                                 OTLog::vError("%s: Failed: Sub-account ID "
                                               "found TWICE on same basket "
                                               "exchange request: %s\n",
@@ -6653,13 +6648,13 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
-    const OTString strUserID(USER_ID);
+    const String strUserID(USER_ID);
 
     pItem = tranIn.GetItem(OTItem::marketOffer);
     pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
@@ -6684,7 +6679,7 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
             strUserID.Get());
     }
     else if (nullptr == pBalanceItem) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(0, "Notary::NotarizeMarketOffer: Expected transaction "
                           "statement in trans # %" PRId64 ": \n\n%s\n\n",
                        tranIn.GetTransactionNum(),
@@ -6693,7 +6688,7 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
                            : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     else if (nullptr == pItem) {
-        OTString strTemp(tranIn);
+        String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeMarketOffer: Expected "
                "OTItem::marketOffer in trans# %" PRId64 ":\n\n%s\n\n",
@@ -6753,10 +6748,10 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
                 OTAccount::LoadExistingAccount(CURRENCY_ACCT_ID, SERVER_ID));
 
             // Also load up the Trade from inside the transaction item.
-            OTString strOffer;
+            String strOffer;
             OTOffer theOffer;
 
-            OTString strTrade;
+            String strTrade;
             pItem->GetAttachment(strTrade);
 
             OTTrade* pTrade = new OTTrade();
@@ -6799,7 +6794,7 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
             // Are both of the accounts of the same Asset Type?
             else if (theAssetAccount.GetAssetTypeID() ==
                      pCurrencyAcct->GetAssetTypeID()) {
-                OTString strAssetTypeID(theAssetAccount.GetAssetTypeID()),
+                String strAssetTypeID(theAssetAccount.GetAssetTypeID()),
                     strCurrencyTypeID(pCurrencyAcct->GetAssetTypeID());
                 OTLog::vOutput(
                     0, "ERROR - user attempted to trade between identical "
@@ -6836,28 +6831,27 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
                                  "numbers in Notary::NotarizeMarketOffer\n");
             }
             else if (pTrade->GetServerID() != SERVER_ID) {
-                const OTString strID1(pTrade->GetServerID()), strID2(SERVER_ID);
+                const String strID1(pTrade->GetServerID()), strID2(SERVER_ID);
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "Server ID (%s) on trade. Expected: %s\n",
                                strID1.Get(), strID2.Get());
             }
             else if (pTrade->GetSenderUserID() != USER_ID) {
-                const OTString strID1(pTrade->GetSenderUserID()),
-                    strID2(USER_ID);
+                const String strID1(pTrade->GetSenderUserID()), strID2(USER_ID);
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "Nym ID (%s) on trade. Expected: %s\n",
                                strID1.Get(), strID2.Get());
             }
             else if (pTrade->GetAssetID() !=
                        theAssetAccount.GetAssetTypeID()) {
-                const OTString strAssetID1(pTrade->GetAssetID()),
+                const String strAssetID1(pTrade->GetAssetID()),
                     strAssetID2(theAssetAccount.GetAssetTypeID());
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "Asset Type ID (%s) on trade. Expected: %s\n",
                                strAssetID1.Get(), strAssetID2.Get());
             }
             else if (pTrade->GetSenderAcctID() != ASSET_ACCT_ID) {
-                const OTString strAcctID1(pTrade->GetSenderAcctID()),
+                const String strAcctID1(pTrade->GetSenderAcctID()),
                     strAcctID2(ASSET_ACCT_ID);
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "asset Acct ID (%s) on trade. Expected: %s\n",
@@ -6865,7 +6859,7 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
             }
             else if (pTrade->GetCurrencyID() !=
                        pCurrencyAcct->GetAssetTypeID()) {
-                const OTString strID1(pTrade->GetCurrencyID()),
+                const String strID1(pTrade->GetCurrencyID()),
                     strID2(pCurrencyAcct->GetAssetTypeID());
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "Currency Type ID (%s) on trade. Expected: "
@@ -6873,7 +6867,7 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
                                strID1.Get(), strID2.Get());
             }
             else if (pTrade->GetCurrencyAcctID() != CURRENCY_ACCT_ID) {
-                const OTString strID1(pTrade->GetCurrencyAcctID()),
+                const String strID1(pTrade->GetCurrencyAcctID()),
                     strID2(CURRENCY_ACCT_ID);
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "Currency Acct ID (%s) on trade. Expected: "
@@ -7048,20 +7042,20 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     const OTIdentifier SERVER_ID(server_->m_strServerID);
     OTIdentifier USER_ID;
     theNym.GetIdentifier(USER_ID);
-    const OTString strIDNym(USER_ID);
+    const String strIDNym(USER_ID);
 
     OTAccount theFromAccount(USER_ID, tranIn.GetPurportedAccountID(),
                              SERVER_ID);
 
     // Make sure the "from" account even exists...
     if (!theFromAccount.LoadContract()) {
-        const OTString strIDAcct(tranIn.GetPurportedAccountID());
+        const String strIDAcct(tranIn.GetPurportedAccountID());
         OTLog::vOutput(0, "%s: Error loading asset account: %s\n", __FUNCTION__,
                        strIDAcct.Get());
     }
     // Make sure the "from" account isn't marked for deletion.
     else if (theFromAccount.IsMarkedForDeletion()) {
-        const OTString strIDAcct(tranIn.GetPurportedAccountID());
+        const String strIDAcct(tranIn.GetPurportedAccountID());
         OTLog::vOutput(0, "%s: Failed attempt to use an Asset account that was "
                           "marked for deletion: %s\n",
                        __FUNCTION__, strIDAcct.Get());
@@ -7072,7 +7066,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
         // this should never happen. How did the wrong ID get into the account
         // file, if the right
         // ID is on the filename itself? and vice versa.
-        const OTString strIDAcct(tranIn.GetPurportedAccountID());
+        const String strIDAcct(tranIn.GetPurportedAccountID());
         OTLog::vError("%s: Error verifying account ID: %s\n", __FUNCTION__,
                       strIDAcct.Get());
     }
@@ -7083,7 +7077,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     // could do transactions on your account, no?
     else if (!theFromAccount.VerifyOwner(theNym)) {
         const OTIdentifier idAcct(theFromAccount);
-        const OTString strIDAcct(idAcct);
+        const String strIDAcct(idAcct);
         OTLog::vOutput(
             0, "%s: Error verifying account ownership... Nym: %s  Acct: %s\n",
             __FUNCTION__, strIDNym.Get(), strIDAcct.Get());
@@ -7091,7 +7085,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     // Make sure I, the server, have signed this file.
     else if (!theFromAccount.VerifySignature(server_->m_nymServer)) {
         const OTIdentifier idAcct(theFromAccount);
-        const OTString strIDAcct(idAcct);
+        const String strIDAcct(idAcct);
         OTLog::vError(
             "%s: Error verifying server signature on account: %s for Nym: %s\n",
             __FUNCTION__, strIDAcct.Get(), strIDNym.Get());
@@ -7101,7 +7095,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     else if (!server_->transactor_.verifyTransactionNumber(
                  theNym, lTransactionNumber)) {
         const OTIdentifier idAcct(theFromAccount);
-        const OTString strIDAcct(idAcct);
+        const String strIDAcct(idAcct);
         // The user may not submit a transaction using a number he's already
         // used before.
         OTLog::vOutput(
@@ -7120,7 +7114,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     //
     else if (!tranIn.VerifyItems(theNym)) {
         const OTIdentifier idAcct(theFromAccount);
-        const OTString strIDAcct(idAcct);
+        const String strIDAcct(idAcct);
         OTLog::vOutput(
             0, "%s: Error verifying transaction items. Trans: %" PRId64 " "
                "Nym: %s  Account: %s\n",
@@ -7347,7 +7341,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
                                     theNym, lTransactionNumber,
                                     true)) // bSave=true
                             {
-                                const OTString strNymID(USER_ID);
+                                const String strNymID(USER_ID);
                                 OTLog::vError("%s: Error removing issued "
                                               "number %" PRId64
                                               " from user nym: %s\n",
@@ -7371,7 +7365,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
                 if (!server_->transactor_.removeIssuedNumber(
                         theNym, lTransactionNumber, true)) // bSave=true
                 {
-                    const OTString strNymID(USER_ID);
+                    const String strNymID(USER_ID);
                     OTLog::vError(
                         "%s: Error removing issued number %" PRId64 " from "
                         "user nym: %s\n",
@@ -7438,7 +7432,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
     OTPseudonym theTempNym;
 
     OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
-    OTString strNymID(USER_ID);
+    String strNymID(USER_ID);
 
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
@@ -7460,14 +7454,14 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
             __FUNCTION__, strNymID.Get());
     }
     else if (nullptr == pBalanceItem) {
-        const OTString strTransaction(tranIn);
+        const String strTransaction(tranIn);
         OTLog::vOutput(
             0, "Notary::%s: No Transaction Agreement item found "
                "on this transaction %" PRId64 " (required):\n\n%s\n\n",
             __FUNCTION__, tranIn.GetTransactionNum(), strTransaction.Get());
     }
     else {
-        OTString strBalanceItem;
+        String strBalanceItem;
 
         pBalanceItem->SaveContractRaw(strBalanceItem);
 
@@ -7677,7 +7671,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
                      (OTItem::acceptNotice ==
                       pItem->GetType()) // Accepted server notification.
                      )) {
-                    OTString strInReferenceTo;
+                    String strInReferenceTo;
 
                     // The response item will contain a copy of the "accept"
                     // request.
@@ -8031,7 +8025,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
                 }
                 else {
                     const int32_t nStatus = pItem->GetStatus();
-                    OTString strItemType;
+                    String strItemType;
                     pItem->GetTypeString(strItemType);
 
                     OTLog::vError("Error, unexpected item type (%s) and/or "
@@ -8060,7 +8054,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
                                    // redundantly.
     }
 
-    OTString strPath;
+    String strPath;
 
     // On the server side, response will only have chance to succeed if balance
     // agreement succeeds first.
@@ -8122,15 +8116,15 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    OTString strInReferenceTo;
-    OTString strBalanceItem;
+    String strInReferenceTo;
+    String strBalanceItem;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const OTIdentifier SERVER_ID(server_->m_strServerID),
         ACCOUNT_ID(theAccount), USER_ID(theNym);
 
-    const OTString strUserID(USER_ID);
+    const String strUserID(USER_ID);
 
     OTPseudonym theTempNym, theTempClosingNumNym;
     std::unique_ptr<OTLedger> pInbox(
@@ -8237,7 +8231,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
                 break;
 
             default: {
-                OTString strItemType;
+                String strItemType;
                 pItem->GetTypeString(strItemType);
                 int32_t nItemType = pItem->GetType();
 
@@ -8251,7 +8245,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
             }
             }
             if (nullptr == pServerTransaction) {
-                const OTString strAccountID(ACCOUNT_ID);
+                const String strAccountID(ACCOUNT_ID);
                 OTLog::vError("%s: Unable to find or process inbox transaction "
                               "being accepted by user: %s for account: %s\n",
                               __FUNCTION__, strUserID.Get(),
@@ -8442,7 +8436,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
                     // my original transfer (or contains a cheque with my
                     // original number.) (THAT's the # I need.)
                     //
-                    OTString strOriginalItem;
+                    String strOriginalItem;
                     pServerTransaction->GetReferenceString(strOriginalItem);
 
                     std::unique_ptr<OTItem> pOriginalItem(
@@ -8487,7 +8481,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
                         {
                             // Get the cheque from the Item and load it up into
                             // a Cheque object.
-                            OTString strCheque;
+                            String strCheque;
                             pOriginalItem->GetAttachment(strCheque);
 
                             OTCheque theCheque; // allocated on the stack :-)
@@ -8568,7 +8562,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
                             }
                         }
                         else {
-                            OTString strOriginalItemType;
+                            String strOriginalItemType;
                             pOriginalItem->GetTypeString(strOriginalItemType);
                             OTLog::vError("%s: Original item has wrong type, "
                                           "while accepting item receipt:\n%s\n",
@@ -9015,7 +9009,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
                             // the original item (from the sender) as the
                             // "referenced to" object. So let's extract
                             // it.
-                            OTString strOriginalItem;
+                            String strOriginalItem;
                             pServerTransaction->GetReferenceString(
                                 strOriginalItem);
 
@@ -9473,7 +9467,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
                         pResponseItem->SaveContract();
                     }
                     else {
-                        OTString strItemType;
+                        String strItemType;
                         pItem->GetTypeString(strItemType);
 
                         OTLog::vError("Notary::%s: Error, unexpected "
@@ -9495,8 +9489,8 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
     tranOut.ReleaseSignatures();
     tranOut.SignContract(server_->m_nymServer);
     tranOut.SaveContract();
-    OTString strPath; // SAVE THE RECEIPT TO LOCAL STORAGE (for dispute
-                      // resolution.)
+    String strPath; // SAVE THE RECEIPT TO LOCAL STORAGE (for dispute
+                    // resolution.)
 
     // On the server side, response will only have chance to succeed if balance
     // agreement succeeds first.
@@ -9511,7 +9505,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
     // If NEITHER succeeded, then there is no point recording it to a file, now
     // is there?
 
-    const OTString strAcctID(ACCOUNT_ID);
+    const String strAcctID(ACCOUNT_ID);
 
     if (tranOut.GetSuccess()) {
         // Balance agreement was a success, AND process inbox was a success.

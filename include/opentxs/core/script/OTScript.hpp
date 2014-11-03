@@ -151,7 +151,7 @@ namespace opentxs
 
 class OTParty;
 class OTPartyAccount;
-class OTString;
+class String;
 class OTVariable;
 
 typedef std::map<std::string, OTParty*> mapOfParties;
@@ -189,14 +189,14 @@ protected:
     // Construction -- Destruction
 public:
     OTScript();
-    OTScript(const OTString& strValue);
+    OTScript(const String& strValue);
     OTScript(const char* new_string);
     OTScript(const char* new_string, size_t sizeLength);
     OTScript(const std::string& new_string);
 
     virtual ~OTScript();
 
-    EXPORT void SetScript(const OTString& strValue);
+    EXPORT void SetScript(const String& strValue);
     EXPORT void SetScript(const char* new_string);
     EXPORT void SetScript(const char* new_string, size_t sizeLength);
     EXPORT void SetScript(const std::string& new_string);

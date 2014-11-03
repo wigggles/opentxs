@@ -369,8 +369,8 @@ bool OTAssetContract::FormatAmount(int64_t amount,
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    static OTString strSeparator(OT_THOUSANDS_SEP);
-    static OTString strDecimalPoint(OT_DECIMAL_POINT);
+    static String strSeparator(OT_THOUSANDS_SEP);
+    static String strDecimalPoint(OT_DECIMAL_POINT);
 
     // NOTE: from web searching, I've determined that locale / moneypunct has
     // internationalization problems. Therefore it looks like if you want to
@@ -421,8 +421,8 @@ bool OTAssetContract::StringToAmount(
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    static OTString strSeparator(",");
-    static OTString strDecimalPoint(".");
+    static String strSeparator(",");
+    static String strDecimalPoint(".");
 
     bool bSuccess = OTAssetContract::ParseFormatted(amount, str_input, nFactor,
                                                     nPower, strSeparator.Get(),
@@ -438,10 +438,8 @@ OTAssetContract::OTAssetContract()
 {
 }
 
-OTAssetContract::OTAssetContract(const OTString& name,
-                                 const OTString& foldername,
-                                 const OTString& filename,
-                                 const OTString& strID)
+OTAssetContract::OTAssetContract(const String& name, const String& foldername,
+                                 const String& filename, const String& strID)
     : OTContract(name, foldername, filename, strID)
     , m_bIsCurrency(true)
     , m_bIsShares(false)
@@ -452,9 +450,9 @@ OTAssetContract::~OTAssetContract()
 {
 }
 
-bool OTAssetContract::DisplayStatistics(OTString& strContents) const
+bool OTAssetContract::DisplayStatistics(String& strContents) const
 {
-    const OTString strID(m_ID);
+    const String strID(m_ID);
 
     strContents.Concatenate(" Asset Type:  %s\n"
                             " AssetTypeID: %s\n"
@@ -463,9 +461,9 @@ bool OTAssetContract::DisplayStatistics(OTString& strContents) const
     return true;
 }
 
-bool OTAssetContract::SaveContractWallet(OTString& strContents) const
+bool OTAssetContract::SaveContractWallet(String& strContents) const
 {
-    const OTString strID(m_ID);
+    const String strID(m_ID);
 
     OTASCIIArmor ascName;
 
@@ -488,7 +486,7 @@ bool OTAssetContract::SaveContractWallet(OTString& strContents) const
 // reserve accounts, or cash reserve accounts, are not included on this list.
 bool OTAssetContract::VisitAccountRecords(AccountVisitor& visitor) const
 {
-    OTString strAssetTypeID, strAcctRecordFile;
+    String strAssetTypeID, strAcctRecordFile;
     GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
@@ -610,9 +608,9 @@ bool OTAssetContract::AddAccountRecord(
     }
 
     const OTIdentifier theAcctID(theAccount);
-    const OTString strAcctID(theAcctID);
+    const String strAcctID(theAcctID);
 
-    OTString strAssetTypeID, strAcctRecordFile;
+    String strAssetTypeID, strAcctRecordFile;
     GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
@@ -709,9 +707,9 @@ bool OTAssetContract::EraseAccountRecord(const OTIdentifier& theAcctID)
 
     const char* szFunc = "OTAssetContract::EraseAccountRecord";
 
-    const OTString strAcctID(theAcctID);
+    const String strAcctID(theAcctID);
 
-    OTString strAssetTypeID, strAcctRecordFile;
+    String strAssetTypeID, strAcctRecordFile;
     GetIdentifier(strAssetTypeID);
     strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
 
@@ -841,7 +839,7 @@ int32_t OTAssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 
     if (nReturnVal == 1 || nReturnVal == (-1)) return nReturnVal;
 
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     if (strNodeName.Compare("digitalAssetContract")) {
         m_strVersion = xml->getAttributeValue("version");

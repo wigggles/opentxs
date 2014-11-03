@@ -173,7 +173,7 @@
 namespace opentxs
 {
 
-class OTString;
+class String;
 class OTCredential;
 
 class OTMasterkey : public OTKeyCredential
@@ -195,18 +195,18 @@ public:
                                       // network slowdown of this step, we will
                                       // eventually make a separate identity
                                       // verification server.
-    bool VerifySource_HTTP(const OTString strSource) const;
-    bool VerifySource_HTTPS(const OTString strSource) const; // It's deliberate
-                                                             // that strSource
-                                                             // isn't passed by
-                                                             // reference here.
-    bool VerifySource_Bitcoin(const OTString strSource) const;
-    bool VerifySource_Namecoin(const OTString strSource) const;
-    bool VerifySource_Freenet(const OTString strSource) const;
-    bool VerifySource_TOR(const OTString strSource) const;
-    bool VerifySource_I2P(const OTString strSource) const;
-    bool VerifySource_CA(const OTString strSource) const;
-    bool VerifySource_Pubkey(const OTString strSource) const;
+    bool VerifySource_HTTP(const String strSource) const;
+    bool VerifySource_HTTPS(const String strSource) const; // It's deliberate
+                                                           // that strSource
+                                                           // isn't passed by
+                                                           // reference here.
+    bool VerifySource_Bitcoin(const String strSource) const;
+    bool VerifySource_Namecoin(const String strSource) const;
+    bool VerifySource_Freenet(const String strSource) const;
+    bool VerifySource_TOR(const String strSource) const;
+    bool VerifySource_I2P(const String strSource) const;
+    bool VerifySource_CA(const String strSource) const;
+    bool VerifySource_Pubkey(const String strSource) const;
     OTMasterkey();
     OTMasterkey(OTCredential& theOwner);
     virtual ~OTMasterkey();

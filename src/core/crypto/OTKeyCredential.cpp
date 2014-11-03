@@ -329,10 +329,10 @@ bool OTKeyCredential::GenerateKeys(int32_t nBits) // Gotta start
     // certificate data into the m_mapPublicInfo and m_mapPrivateInfo (string
     // maps.)
     //
-    OTString strPublicKey, strPrivateCert;
-    OTString::Map mapPublic, mapPrivate;
+    String strPublicKey, strPrivateCert;
+    String::Map mapPublic, mapPrivate;
 
-    const OTString strReason("Generating keys for new credential...");
+    const String strReason("Generating keys for new credential...");
 
     const bool b1 = m_SigningKey.GetPublicKey(
         strPublicKey, false); // bEscaped=true by default.
@@ -396,7 +396,7 @@ bool OTKeyCredential::GenerateKeys(int32_t nBits) // Gotta start
 }
 
 // virtual
-bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
+bool OTKeyCredential::SetPublicContents(const String::Map& mapPublic)
 {
     // NOTE: We might use this on the server side, we'll see, but so far on the
     // client
@@ -435,7 +435,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
 
     if (ot_super::SetPublicContents(mapPublic)) {
 
-        OTString strKey;
+        String strKey;
         strKey.Set(itAuth->second.c_str());
         if (!m_AuthentKey.SetPublicKey(strKey)) {
             otErr << __FILE__ << " line " << __LINE__
@@ -486,7 +486,7 @@ bool OTKeyCredential::SetPublicContents(const OTString::Map& mapPublic)
 
 // virtual
 bool OTKeyCredential::SetPrivateContents(
-    const OTString::Map& mapPrivate,
+    const String::Map& mapPrivate,
     const OTPassword* pImportPassword) // if not nullptr, it means to use this
                                        // password by default.
 {
@@ -520,10 +520,10 @@ bool OTKeyCredential::SetPrivateContents(
     }
 
     if (ot_super::SetPrivateContents(mapPrivate, pImportPassword)) {
-        const OTString strReason("Loading private key from credential.");
-        OTString::Map mapPublic;
+        const String strReason("Loading private key from credential.");
+        String::Map mapPublic;
 
-        OTString strPrivate;
+        String strPrivate;
         strPrivate.Set(itAuth->second.c_str()); // strPrivate now contains the
                                                 // private Cert string.
 
@@ -542,7 +542,7 @@ bool OTKeyCredential::SetPrivateContents(
         else // Success loading the private key. Let's grab the public key
                // here.
         {
-            OTString strPublic;
+            String strPublic;
 
             if ((false ==
                  m_AuthentKey.LoadPublicKeyFromCertString(
@@ -582,7 +582,7 @@ bool OTKeyCredential::SetPrivateContents(
         else // Success loading the private key. Let's grab the public key
                // here.
         {
-            OTString strPublic;
+            String strPublic;
 
             if ((false ==
                  m_EncryptKey.LoadPublicKeyFromCertString(
@@ -621,7 +621,7 @@ bool OTKeyCredential::SetPrivateContents(
         else // Success loading the private key. Let's grab the public key
                // here.
         {
-            OTString strPublic;
+            String strPublic;
 
             if ((false ==
                  m_SigningKey.LoadPublicKeyFromCertString(
@@ -673,7 +673,7 @@ bool OTKeyCredential::Sign(OTContract& theContract,
 bool OTKeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
                                     bool bImporting)
 {
-    OTString strSign, strAuth, strEncr;
+    String strSign, strAuth, strEncr;
 
     const bool bSign =
         m_SigningKey.ReEncrypt(theExportPassword, bImporting, strSign);
@@ -694,7 +694,7 @@ bool OTKeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
     // If success, we now have the updated versions of the private certs.
     //
     if (bSuccessReEncrypting) {
-        OTString::Map mapPrivate;
+        String::Map mapPrivate;
 
         for (auto& it : m_mapPrivateInfo) {
             std::string str_key_type = it.first; // A, E, S.
@@ -770,7 +770,7 @@ void OTKeyCredential::SetMetadata()
     // Represents first letter of a SubCredential ID
     // (signed by that Master.)
 
-    OTString strSubcredID;
+    String strSubcredID;
     GetIdentifier(strSubcredID);
 
     const bool bNymID = GetNymID().At(0, cMetaNymID);

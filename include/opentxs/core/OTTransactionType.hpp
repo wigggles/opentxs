@@ -141,7 +141,7 @@ namespace opentxs
 {
 
 class OTIdentifier;
-class OTString;
+class String;
 
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
 class OTTransactionType : public OTContract
@@ -799,8 +799,8 @@ protected:
     // numbers, I am able to list them in the accept item.
 public:
     EXPORT void GetNumList(OTNumList& theOutput);
-    EXPORT static OTTransactionType* TransactionFactory(OTString strInput);
-    bool Contains(const OTString& strContains);   // Allows you to string-search
+    EXPORT static OTTransactionType* TransactionFactory(String strInput);
+    bool Contains(const String& strContains);     // Allows you to string-search
                                                   // the raw contract.
     EXPORT bool Contains(const char* szContains); // Allows you to string-search
                                                   // the raw contract.
@@ -936,8 +936,8 @@ public:
     EXPORT int64_t GetReferenceToNum() const;
     EXPORT void SetReferenceToNum(int64_t lTransactionNum);
 
-    EXPORT void GetReferenceString(OTString& theStr) const;
-    EXPORT void SetReferenceString(const OTString& theStr);
+    EXPORT void GetReferenceString(String& theStr) const;
+    EXPORT void SetReferenceString(const String& theStr);
 };
 
 } // namespace opentxs

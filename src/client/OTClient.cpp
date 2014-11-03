@@ -190,7 +190,7 @@ int32_t OTClient::CalcReturnVal(const int64_t& lRequestNumber)
 
 void OTClient::ProcessMessageOut(const OTMessage& theMessage)
 {
-    const OTString strMessage(theMessage);
+    const String strMessage(theMessage);
     //    otErr << "OTClient::ProcessMessageOut: \n\n" << strMessage << "\n\n";
     //
 
@@ -261,7 +261,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
     //    theConnection.GetServerID(theServerID);
     //
     const OTIdentifier theNymID(*pNym);
-    const OTString strServerID(theServerID), strNymID(theNymID);
+    const String strServerID(theServerID), strNymID(theNymID);
 
     int64_t lHighestNum = 0;
     // get the last/current highest transaction number for the serverID.
@@ -379,7 +379,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
         //        OTString strTransaction(*pTransaction);
         //        otErr << "TRANSACTION CONTENTS:\n" << strTransaction << "\n";
 
-        OTString strRespTo;
+        String strRespTo;
         pTransaction->GetReferenceString(strRespTo);
         //        otErr << "TRANSACTION \"IN REFERENCE TO\"
         // CONTENTS:\n" << strRespTo << "\n";
@@ -648,7 +648,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
 
                 if ((nullptr != pItem) &&
                     OTItem::acknowledgement == pItem->GetStatus()) {
-                    OTString strOriginalReply;
+                    String strOriginalReply;
                     pItem->GetAttachment(strOriginalReply);
 
                     if (!strOriginalReply.Exists()) {
@@ -1052,7 +1052,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
 
             // Extract the ledger into string form and add it as the payload on
             // the message.
-            OTString strLedger(processLedger);
+            String strLedger(processLedger);
             theMessage.m_ascPayload.SetString(strLedger);
 
             // Release any other signatures from the message, since I know it
@@ -1073,8 +1073,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
 // (To avoid duplicating code.)  Watch and learn...
 //
 void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
-                                            const OTString& str_trans,
-                                            OTString str_box_type,
+                                            const String& str_trans,
+                                            String str_box_type,
                                             const int64_t& lTransNum,
                                             OTPseudonym& the_nym,
                                             OTLedger& ledger) const
@@ -1095,7 +1095,7 @@ void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
             if (nullptr ==
                 pCopy) // it's a transaction type but not a transaction.
             {
-                const OTString strUserID(the_nym_id), strAcctID(the_nym_id);
+                const String strUserID(the_nym_id), strAcctID(the_nym_id);
                 otOut
                     << __FUNCTION__
                     << ": it's a transaction type but not a transaction: (for "
@@ -1112,7 +1112,7 @@ void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
                                                     // paymentInbox or recordBox
                                                     // ledger...
                 {
-                    OTString strUserID(the_nym_id), strAcctID(the_nym_id);
+                    String strUserID(the_nym_id), strAcctID(the_nym_id);
                     otOut << __FUNCTION__
                           << ": Unable to add the transaction to the "
                           << str_box_type
@@ -1192,8 +1192,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     OTPseudonym* pNym = theConnection.GetNym();
     OTIdentifier USER_ID;
     pNym->GetIdentifier(USER_ID);
-    const OTString strNymID(USER_ID);
-    OTString strServerID(SERVER_ID),
+    const String strNymID(USER_ID);
+    String strServerID(SERVER_ID),
         strReceiptID("ID_NOT_SET_YET"); // This will be user ID or acct ID
                                         // depending on whether trans statement
                                         // or balance statement.
@@ -1207,7 +1207,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     // lose it.)
     // So let's just check to see if it's a withdrawal...
     OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID);
-    OTString strLedger(theReply.m_ascPayload);
+    String strLedger(theReply.m_ascPayload);
 
     // The ledger we received from the server was generated there, so we don't
     // have to call GenerateLedger. We just load it.
@@ -1342,7 +1342,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                     if ((nullptr != pItem) &&
                         OTItem::rejection == pItem->GetStatus()) // REJECTION
                     {
-                        OTString strOriginalItem;
+                        String strOriginalItem;
                         pItem->GetReferenceString(strOriginalItem);
 
                         OTTransactionType* pTempTransType =
@@ -1357,7 +1357,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                 : dynamic_cast<OTItem*>(pTempTransType));
 
                         if (nullptr != pOriginalItem) {
-                            OTString strBasket;
+                            String strBasket;
                             Basket theRequestBasket;
 
                             pOriginalItem->GetAttachment(strBasket);
@@ -1404,7 +1404,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                         // then I can remove the transaction number from my
                         // issued list, presumably the server already has.
                         //
-                        OTString strOriginalItem;
+                        String strOriginalItem;
                         pItem->GetReferenceString(strOriginalItem);
 
                         OTTransactionType* pTempTransType =
@@ -1502,7 +1502,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                         pTransaction->GetTransactionNum();
                     OTItem* pReplyItem = pTransaction->GetItem(theItemType);
                     if (nullptr != pReplyItem) {
-                        OTString strOriginalItem;
+                        String strOriginalItem;
                         pReplyItem->GetReferenceString(strOriginalItem);
 
                         OTTransactionType* pTempTransType =
@@ -1517,7 +1517,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                 : dynamic_cast<OTItem*>(pTempTransType));
 
                         if (nullptr != pOriginalItem) {
-                            OTString strCronItem;
+                            String strCronItem;
                             pOriginalItem->GetAttachment(strCronItem);
 
                             // What kind of cron item is it?
@@ -1606,10 +1606,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                 // smart contracts.)
                                 //
 
-                                OTString strInstrument; // If the instrument is
-                                                        // in the outpayments
-                                                        // box, we put a copy of
-                                                        // it here.
+                                String strInstrument; // If the instrument is
+                                                      // in the outpayments
+                                                      // box, we put a copy of
+                                                      // it here.
 
                                 if ((OTTransaction::atPaymentPlan ==
                                      pTransaction->GetType()) || // No need to
@@ -2220,7 +2220,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                                  ->SaveBoxReceipt(
                                                                      theRecordBox)) // <===================
                                                         {
-                                                            OTString strNewTransaction(
+                                                            String strNewTransaction(
                                                                 *pNewTransaction);
                                                             otErr
                                                                 << __FUNCTION__
@@ -2302,9 +2302,9 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             // SAVE THE RECEIPT....
             //
             // OTFolders::Receipt().Get()
-            const OTString strServerID(SERVER_ID);
-            OTString strReceiptFilename; // contains: strReceiptID .success,
-                                         // fail, or error.
+            const String strServerID(SERVER_ID);
+            String strReceiptFilename; // contains: strReceiptID .success,
+                                       // fail, or error.
             OTItem* pItem = pTransaction->GetItem(OTItem::atBalanceStatement);
 
             if (nullptr == pItem) {
@@ -2322,9 +2322,9 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             }
             // Try to save the transaction receipt to local storage.
             //
-            OTString strTransaction;
+            String strTransaction;
             pTransaction->SaveContractRaw(strTransaction);
-            OTString strFinal;
+            String strFinal;
             OTASCIIArmor ascTemp(strTransaction);
 
             if (false ==
@@ -2463,7 +2463,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                         // Response item contains a copy of the original item,
                         // as reference string.
                         //
-                        OTString strOriginalDepositItem;
+                        String strOriginalDepositItem;
                         OTItem* pOriginalItem = nullptr;
                         pReplyItem->GetReferenceString(strOriginalDepositItem);
 
@@ -2476,7 +2476,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                 dynamic_cast<OTItem*>(pTransType.get());
                         }
                         if (nullptr != pOriginalItem) {
-                            OTString strCheque;
+                            String strCheque;
                             pOriginalItem->GetAttachment(strCheque);
 
                             OTCheque theCheque;
@@ -2519,7 +2519,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                         //
                                         OTTransaction* pTransaction =
                                             pLedger->GetTransactionByIndex(ii);
-                                        OTString strPmntInboxTransaction;
+                                        String strPmntInboxTransaction;
                                         int64_t lRemoveTransaction = 0;
 
                                         if (nullptr != pTransaction) {
@@ -2585,9 +2585,8 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                         // Save a copy to the record box.
                                         //
                                         if (strPmntInboxTransaction.Exists()) {
-                                            const OTString strNymID(USER_ID);
-                                            const OTString strServerID(
-                                                SERVER_ID);
+                                            const String strNymID(USER_ID);
+                                            const String strServerID(SERVER_ID);
                                             const bool bExists = OTDB::Exists(
                                                 OTFolders::RecordBox().Get(),
                                                 strServerID.Get(),
@@ -2623,7 +2622,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                             // verification.)
                                             //
                                             if (!bSuccessLoading) {
-                                                OTString strUserID(USER_ID),
+                                                String strUserID(USER_ID),
                                                     strAcctID(USER_ID);
                                                 otOut
                                                     << __FUNCTION__
@@ -2674,7 +2673,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                         } // if nullptr != pOriginalItem
                     }
                     else {
-                        OTString strUserID(USER_ID), strAcctID(USER_ID);
+                        String strUserID(USER_ID), strAcctID(USER_ID);
                         otWarn << __FUNCTION__ << ": Unable to load or verify "
                                                   "payments inbox: User "
                                << strUserID << " / Acct " << strAcctID << "\n";
@@ -2701,13 +2700,13 @@ void OTClient::ProcessWithdrawalResponse(
     OTIdentifier SERVER_ID;
     theConnection.GetServerID(SERVER_ID);
 
-    OTString strServerID(SERVER_ID);
+    String strServerID(SERVER_ID);
 
     OTPseudonym* pNym = theConnection.GetNym();
     OTIdentifier USER_ID;
     pNym->GetIdentifier(USER_ID);
 
-    const OTString strUserID(USER_ID);
+    const String strUserID(USER_ID);
 
     OTWallet* pWallet = theConnection.GetWallet();
     OTPseudonym* pServerNym = const_cast<OTPseudonym*>(
@@ -2729,7 +2728,7 @@ void OTClient::ProcessWithdrawalResponse(
         //
         if ((OTItem::atWithdrawVoucher == pItem->GetType()) &&
             (OTItem::acknowledgement == pItem->GetStatus())) {
-            OTString strVoucher;
+            String strVoucher;
             OTCheque theVoucher;
 
             pItem->GetAttachment(strVoucher);
@@ -2747,7 +2746,7 @@ void OTClient::ProcessWithdrawalResponse(
         //
         else if ((OTItem::atWithdrawal == pItem->GetType()) &&
                  (OTItem::acknowledgement == pItem->GetStatus())) {
-            OTString strPurse;
+            String strPurse;
             pItem->GetAttachment(strPurse);
 
             Purse thePurse(SERVER_ID);
@@ -2760,7 +2759,7 @@ void OTClient::ProcessWithdrawalResponse(
                 // needed it (now).
                 Purse* pRequestPurse = pWallet->GetPendingWithdrawal();
 
-                OTString strAssetID(thePurse.GetAssetID());
+                String strAssetID(thePurse.GetAssetID());
                 std::unique_ptr<Mint> pMint(
                     Mint::MintFactory(strServerID, strAssetID));
                 OT_ASSERT(nullptr != pMint);
@@ -2881,12 +2880,12 @@ struct OTClient::ProcessServerReplyArgs
     OTIdentifier ACCOUNT_ID, SERVER_ID;
     OTPseudonym* pNym;
     OTIdentifier USER_ID;
-    OTString strServerID, strNymID;
+    String strServerID, strNymID;
     OTPseudonym* pServerNym;
 };
 
 void OTClient::setRecentHash(const OTMessage& theReply,
-                             const OTString& strServerID, OTPseudonym* pNym,
+                             const String& strServerID, OTPseudonym* pNym,
                              bool setNymboxHash)
 {
     OTIdentifier NYMBOX_HASH, RECENT_HASH;
@@ -2961,7 +2960,7 @@ bool OTClient::processServerReplyGetRequest(const OTMessage& theReply,
 bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
                                            ProcessServerReplyArgs& args)
 {
-    const OTString strNymID2(theReply.m_strNymID2),
+    const String strNymID2(theReply.m_strNymID2),
         strPubkey(theReply.m_strNymPublicKey.Get()); // Old style (It's
                                                      // deprecated to pass a
                                                      // pubkey directly like
@@ -2978,7 +2977,7 @@ bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
     {
         // credentialList
         //
-        OTString strCredentialList;
+        String strCredentialList;
         ascArmor.GetString(strCredentialList);
 
         if (strCredentialList.Exists()) {
@@ -2992,7 +2991,7 @@ bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
             else // IF the list saved, then we save the credentials
                  // themselves...
             {
-                OTString::Map& theMap = pMap->the_map;
+                String::Map& theMap = pMap->the_map;
                 OTPseudonym theTargetNym;
                 theTargetNym.SetIdentifier(strNymID2);
 
@@ -3022,11 +3021,11 @@ bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
                     // So let's save it to local storage...
                     //
                     std::string str_nym_id = strNymID2.Get();
-                    OTString strFilename;
+                    String strFilename;
                     strFilename.Format("%s.cred", str_nym_id.c_str());
 
                     bool bStoredList = false;
-                    OTString strOutput;
+                    String strOutput;
                     if (ascArmor.Exists() &&
                         ascArmor.WriteArmoredString(
                             strOutput,
@@ -3046,7 +3045,7 @@ bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
                               << "\n";
                         for (auto& it : theMap) {
                             std::string str_cred_id = it.first;
-                            OTString strCredential(it.second);
+                            String strCredential(it.second);
                             bool bStoredCredential = false;
                             strOutput.Release();
                             OTASCIIArmor ascLoopArmor(strCredential);
@@ -3077,7 +3076,7 @@ bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
     // Old-style (deprecated.)
     //
     else if (strPubkey.Exists()) {
-        OTString strPath = strNymID2.Get();
+        String strPath = strNymID2.Get();
         // Next we save the public key in the pubkeys folder...
         //
         OTPseudonym thePubkeyNym(strNymID2);
@@ -3137,13 +3136,13 @@ bool OTClient::processServerReplyGetNymBox(const OTMessage& theReply,
     const auto& SERVER_ID = args.SERVER_ID;
     const auto& USER_ID = args.USER_ID;
 
-    OTString strReply(theReply);
+    String strReply(theReply);
 
     otOut << "Received @getNymbox server response ("
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
 
     // base64-Decode the server reply's payload into strInbox
-    OTString strNymbox(theReply.m_ascPayload);
+    String strNymbox(theReply.m_ascPayload);
 
     // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
     // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
@@ -3271,7 +3270,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const OTMessage& theReply,
 
         // base64-Decode the server reply's payload into strTransaction
         //
-        const OTString strTransType(theReply.m_ascPayload);
+        const String strTransType(theReply.m_ascPayload);
         std::unique_ptr<OTTransactionType> pTransType;
 
         if (strTransType.Exists())
@@ -3311,7 +3310,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const OTMessage& theReply,
             // Note: Account ID and Server ID were already verified, in
             // VerifyAccount().
             else if (pBoxReceipt->GetUserID() != USER_ID) {
-                const OTString strPurportedUserID(pBoxReceipt->GetUserID());
+                const String strPurportedUserID(pBoxReceipt->GetUserID());
                 otErr << __FUNCTION__
                       << ": @getBoxReceipt: Error: NymID doesn't match on "
                          "the box receipt itself (" << strPurportedUserID
@@ -3370,7 +3369,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const OTMessage& theReply,
                     // not. (generation might have failed, or verification.)
 
                     if (!bSuccessLoading) {
-                        OTString strUserID(USER_ID), strAcctID(USER_ID);
+                        String strUserID(USER_ID), strAcctID(USER_ID);
                         otOut << __FUNCTION__
                               << ": @getBoxReceipt: WARNING: Unable to "
                                  "load, verify, or generate paymentInbox, "
@@ -3510,7 +3509,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
     const auto& pServerNym = args.pServerNym;
     const auto& strNymID = args.strNymID;
 
-    OTString strServerID(SERVER_ID), strReply(theReply);
+    String strServerID(SERVER_ID), strReply(theReply);
 
     otOut << "Received server response: " << theReply.m_strCommand << " \n";
     //        otOut << "Received server response to processInbox or
@@ -3523,7 +3522,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
     // (which should be saved in this server reply) and make sure to update
     // my nym accordingly.
     //
-    OTString strOriginalMessage;
+    String strOriginalMessage;
     if (theReply.m_ascInReferenceTo.Exists())
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
 
@@ -3532,7 +3531,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
         theOriginalMessage.VerifySignature(*pNym)) {
-        OTString strLedger, strReplyLedger;
+        String strLedger, strReplyLedger;
 
         // todo: we are already in the function which is called
         // for @processNymbox and @processInbox. Maybe call this func.
@@ -3547,14 +3546,14 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
         theReply.m_ascPayload.GetString(strReplyLedger);
 
         if (!strLedger.Exists()) {
-            OTString strLogData(theOriginalMessage);
+            String strLogData(theOriginalMessage);
             otErr << "Strange: Received server acknowledgment ("
                   << theReply.m_strCommand
                   << "), but found no request ledger within your original "
                      "message:\n\n" << strLogData << "\n\n";
         }
         else if (!strReplyLedger.Exists()) {
-            OTString strReply(theReply);
+            String strReply(theReply);
             otOut << "Strange... received server acknowledgment ("
                   << theReply.m_strCommand
                   << "), but found no reply ledger within:\n\n" << strReply
@@ -3773,7 +3772,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                 const int32_t nReplyItemType =
                                     pReplyItem->GetType();
 
-                                OTString strTheType;
+                                String strTheType;
                                 pReplyItem->GetTypeString(strTheType);
 
                                 otErr
@@ -3790,7 +3789,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                             // pReplyItem was a SUCCESS.
                             // (Otherwise we skip them...)
                             //
-                            OTString strTempTypeString;
+                            String strTempTypeString;
                             pReplyItem->GetTypeString(strTempTypeString);
 
                             if (OTItem::acknowledgement !=
@@ -3852,7 +3851,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                             //
                             // Sheesh!
 
-                            OTString strProcessInboxItem;
+                            String strProcessInboxItem;
                             pReplyItem->GetReferenceString(strProcessInboxItem);
 
                             std::unique_ptr<OTItem> pProcessInboxItem(
@@ -3952,7 +3951,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                 const int32_t nReplyItemType =
                                     pReplyItem->GetType();
 
-                                OTString strTheType;
+                                String strTheType;
                                 pReplyItem->GetTypeString(strTheType);
 
                                 otErr
@@ -4014,7 +4013,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                 // cheque with my original number.) (THAT's
                                 // the # I need.)
                                 //
-                                OTString strOriginalItem;
+                                String strOriginalItem;
                                 pServerTransaction->GetReferenceString(
                                     strOriginalItem);
 
@@ -4069,7 +4068,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                     {
                                         // Get the cheque from the Item and
                                         // load it up into a Cheque object.
-                                        OTString strCheque;
+                                        String strCheque;
                                         pOriginalItem->GetAttachment(strCheque);
 
                                         OTCheque theCheque; // allocated on
@@ -4165,7 +4164,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                             true); // bool bSave=true
                                     }
                                     else {
-                                        OTString strOriginalItemType;
+                                        String strOriginalItemType;
                                         pOriginalItem->GetTypeString(
                                             strOriginalItemType);
                                         otErr << "OTClient::"
@@ -4214,7 +4213,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                                                 // here.
 
                                 if (nullptr != pServerItem) {
-                                    OTString strOffer, strTrade;
+                                    String strOffer, strTrade;
                                     pServerItem->GetAttachment(
                                         strOffer); // contains updated
                                                    // offer.
@@ -4286,7 +4285,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                             // contains:  (lAmountSold); //
                                             // asset
 
-                                            const OTString strAssetID(
+                                            const String strAssetID(
                                                 theTrade.GetAssetID());
                                             int64_t lAssetsThisTrade =
                                                 pServerItem->GetAmount();
@@ -4306,7 +4305,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                             // contains:  (lTotalPaidOut);
                                             // // currency
 
-                                            const OTString strCurrencyID(
+                                            const String strCurrencyID(
                                                 theTrade.GetCurrencyID());
                                             int64_t lCurrencyThisTrade =
                                                 pServerItem->GetAmount();
@@ -4333,7 +4332,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                             to_string<int64_t>(lFinishedSoFar);
                                         // save to local storage...
                                         //
-                                        OTString strUserID(USER_ID);
+                                        String strUserID(USER_ID);
 
                                         std::unique_ptr<OTDB::TradeListNym>
                                             pList;
@@ -4434,11 +4433,11 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                                     !pTradeData->currency_paid
                                                          .empty()) {
                                                     const int64_t lAmountSold =
-                                                        OTString::StringToLong(
+                                                        String::StringToLong(
                                                             pTradeData
                                                                 ->amount_sold);
                                                     const int64_t lCurrencyPaid =
-                                                        OTString::StringToLong(
+                                                        String::StringToLong(
                                                             pTradeData
                                                                 ->currency_paid);
 
@@ -4451,7 +4450,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                                                 (lCurrencyPaid /
                                                                  lAmountSold);
 
-                                                        OTString strSalePrice;
+                                                        String strSalePrice;
                                                         strSalePrice.Format(
                                                             "%" PRId64 "",
                                                             lSalePrice);
@@ -4613,7 +4612,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                     }
                                 }
                                 if (bLoadedRecordBox) {
-                                    const OTString strServerTransaction(
+                                    const String strServerTransaction(
                                         *pServerTransaction);
                                     OTTransaction* pNewTransaction = nullptr;
                                     std::unique_ptr<OTTransactionType>
@@ -4788,7 +4787,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                  "says FAILED.\n";
                     }
                     else {
-                        OTString strMessageNym;
+                        String strMessageNym;
                         OTPseudonym theMessageNym;
 
                         pStatementItem->GetAttachment(strMessageNym);
@@ -4930,7 +4929,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                       // "for" loop.)
 
                         default: {
-                            OTString strTempTypeString;
+                            String strTempTypeString;
                             pReplyItem->GetTypeString(strTempTypeString);
                             otErr << __FUNCTION__
                                   << ": Unexpected replyItem:type while "
@@ -4943,7 +4942,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                         // pReplyItem was a SUCCESS.
                         // (Otherwise we skip them...)
                         //
-                        OTString strTempTypeString;
+                        String strTempTypeString;
                         pReplyItem->GetTypeString(strTempTypeString);
 
                         if (OTItem::acknowledgement !=
@@ -4987,7 +4986,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                         //
                         // Sheesh!
 
-                        OTString strProcessNymboxItem;
+                        String strProcessNymboxItem;
                         pReplyItem->GetReferenceString(strProcessNymboxItem);
 
                         std::unique_ptr<OTItem> pProcessNymboxItem(
@@ -5068,7 +5067,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                             break;
 
                         default: {
-                            OTString strTempTypeString;
+                            String strTempTypeString;
                             pReplyItem->GetTypeString(strTempTypeString);
                             otErr << __FUNCTION__
                                   << ": Unexpected replyItem::type while "
@@ -5238,7 +5237,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                     // closing ones, basically.
                                     //
 
-                                    OTString strCronItem;
+                                    String strCronItem;
                                     pServerTransaction->GetReferenceString(
                                         strCronItem);
 
@@ -5449,8 +5448,8 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                             //
                                             OTNumList numlistOutpayment(
                                                 lNymOpeningNumber);
-                                            OTString strInstrument; // If
-                                                                    // the
+                                            String strInstrument; // If
+                                                                  // the
                                             // instrument is
                                             // in the
                                             // outpayments
@@ -6394,7 +6393,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                                                      ->SaveBoxReceipt(
                                                                          theRecordBox)) // <===================
                                                             {
-                                                                OTString strNewTransaction(
+                                                                String strNewTransaction(
                                                                     *pNewTransaction);
                                                                 otErr
                                                                     << __FUNCTION__
@@ -6567,7 +6566,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                             break;
 
                         default: {
-                            OTString strTempTypeString;
+                            String strTempTypeString;
                             pReplyItem->GetTypeString(strTempTypeString);
                             otErr << "Unexpected replyItem:type while "
                                      "processing Nymbox: " << strTempTypeString
@@ -6612,9 +6611,9 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                 //
                 // SAVE THE RECEIPT....
 
-                OTString strServerID(SERVER_ID);
+                String strServerID(SERVER_ID);
 
-                OTString strReceiptID("NOT_SET_YET");
+                String strReceiptID("NOT_SET_YET");
 
                 OTItem* pReplyItem =
                     pReplyTransaction->GetItem(OTItem::atBalanceStatement);
@@ -6634,16 +6633,16 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                               // then the receipt ID is the
                                               // Account ID.
                 }
-                OTString strTransaction;
+                String strTransaction;
                 pReplyTransaction->SaveContractRaw(
                     strTransaction); // <=========== Save that receipt!
-                OTString strReceiptFilename;
+                String strReceiptFilename;
 
                 if (pReplyTransaction->GetSuccess())
                     strReceiptFilename.Format("%s.success", strReceiptID.Get());
                 else
                     strReceiptFilename.Format("%s.fail", strReceiptID.Get());
-                OTString strFinal;
+                String strFinal;
                 OTASCIIArmor ascTemp(strTransaction);
 
                 if (false ==
@@ -6681,7 +6680,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                 } // success writing armored string
             }
             else {
-                const OTString strTheLedger(theLedger),
+                const String strTheLedger(theLedger),
                     strTheReplyLedger(theReplyLedger);
                 otOut << "Strange... found ledger in " << theReply.m_strCommand
                       << ", but didn't find the right transaction type "
@@ -6729,8 +6728,8 @@ bool OTClient::processServerReplyGetAccountFiles(const OTMessage& theReply,
             otOut << __FUNCTION__ << ": Failed decoding StringMap object "
                                      "in @getAccountFiles.\n";
         else {
-            OTString::Map& theMap = pMap->the_map;
-            OTString strAccount, strInbox, strOutbox;
+            String::Map& theMap = pMap->the_map;
+            String strAccount, strInbox, strOutbox;
             auto it_account = theMap.find("account");
             auto it_inbox = theMap.find("inbox");
             auto it_outbox = theMap.find("outbox");
@@ -6773,11 +6772,11 @@ bool OTClient::processServerReplyGetAccountFiles(const OTMessage& theReply,
                 }
             }
 
-            const OTString strAcctID(ACCOUNT_ID);
+            const String strAcctID(ACCOUNT_ID);
             const std::string str_acct_id(strAcctID.Get());
 
             if (strInbox.Exists()) {
-                const OTString strServerID(SERVER_ID);
+                const String strServerID(SERVER_ID);
 
                 // Load the ledger object from strInbox
                 OTLedger theInbox(USER_ID, ACCOUNT_ID, SERVER_ID);
@@ -6972,11 +6971,11 @@ bool OTClient::processServerReplyGetContract(const OTMessage& theReply,
                                              ProcessServerReplyArgs& args)
 {
     // base64-Decode the server reply's payload into strContract
-    OTString strContract(theReply.m_ascPayload);
+    String strContract(theReply.m_ascPayload);
 
-    OTString strFoldername(OTFolders::Contract().Get());
-    OTString strFilename; // In this case the filename isn't actually used,
-                          // since SaveToContractFolder will
+    String strFoldername(OTFolders::Contract().Get());
+    String strFilename; // In this case the filename isn't actually used,
+                        // since SaveToContractFolder will
     // handle setting up the filename and overwrite it anyway. But I still
     // prefer to set it
     // up correctly, rather than pass a blank. I'm just funny like that.
@@ -7015,7 +7014,7 @@ bool OTClient::processServerReplyGetContract(const OTMessage& theReply,
 bool OTClient::processServerReplyGetMint(const OTMessage& theReply)
 {
     // base64-Decode the server reply's payload into strMint
-    OTString strMint(theReply.m_ascPayload);
+    String strMint(theReply.m_ascPayload);
     // Load the mint object from that string...
     std::unique_ptr<Mint> pMint(
         Mint::MintFactory(theReply.m_strServerID, theReply.m_strAssetID));
@@ -7030,7 +7029,7 @@ bool OTClient::processServerReplyGetMint(const OTMessage& theReply)
 
 bool OTClient::processServerReplyGetMarketList(const OTMessage& theReply)
 {
-    OTString strMarketDatafile;
+    String strMarketDatafile;
     strMarketDatafile.Format("%s", "market_data.bin");
 
     OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
@@ -7103,10 +7102,9 @@ bool OTClient::processServerReplyGetMarketList(const OTMessage& theReply)
 bool OTClient::processServerReplyGetMarketOffers(const OTMessage& theReply)
 {
 
-    const OTString& strMarketID =
-        theReply.m_strNymID2; // market ID stored here.
+    const String& strMarketID = theReply.m_strNymID2; // market ID stored here.
 
-    OTString strOfferDatafile;
+    String strOfferDatafile;
     strOfferDatafile.Format("%s.bin", strMarketID.Get());
 
     OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
@@ -7184,10 +7182,9 @@ bool OTClient::processServerReplyGetMarketOffers(const OTMessage& theReply)
 bool OTClient::processServerReplyGetMarketRecentTrades(
     const OTMessage& theReply)
 {
-    const OTString& strMarketID =
-        theReply.m_strNymID2; // market ID stored here.
+    const String& strMarketID = theReply.m_strNymID2; // market ID stored here.
 
-    OTString strTradeDatafile;
+    String strTradeDatafile;
     strTradeDatafile.Format("%s.bin", strMarketID.Get());
 
     OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
@@ -7264,7 +7261,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(
 
 bool OTClient::processServerReplyGetNymMarketOffers(const OTMessage& theReply)
 {
-    OTString strOfferDatafile;
+    String strOfferDatafile;
     strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
 
     OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
@@ -7343,13 +7340,13 @@ bool OTClient::processServerReplyDeleteUserAccount(const OTMessage& theReply,
     const auto& pNym = args.pNym;
     const auto& SERVER_ID = args.SERVER_ID;
 
-    OTString strOriginalMessage;
+    String strOriginalMessage;
     if (theReply.m_ascInReferenceTo.Exists())
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
 
     OTMessage theOriginalMessage;
 
-    const OTString strServerID(SERVER_ID);
+    const String strServerID(SERVER_ID);
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
@@ -7392,13 +7389,13 @@ bool OTClient::processServerReplyDeleteAssetAccount(
     const auto& SERVER_ID = args.SERVER_ID;
     const auto& pNym = args.pNym;
 
-    OTString strOriginalMessage;
+    String strOriginalMessage;
     if (theReply.m_ascInReferenceTo.Exists())
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
 
     OTMessage theOriginalMessage;
 
-    const OTString strServerID(SERVER_ID);
+    const String strServerID(SERVER_ID);
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
@@ -7452,7 +7449,7 @@ bool OTClient::processServerReplyIssueAssetType(const OTMessage& theReply,
 
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
-        OTString strAcctContents(theReply.m_ascPayload);
+        String strAcctContents(theReply.m_ascPayload);
 
         // TODO check return value
         pAccount = new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
@@ -7501,7 +7498,7 @@ bool OTClient::processServerReplyCreateAccount(const OTMessage& theReply,
 
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
-        OTString strAcctContents(theReply.m_ascPayload);
+        String strAcctContents(theReply.m_ascPayload);
 
         pAccount = new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
 
@@ -7593,8 +7590,8 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
 
     OTPseudonym* pNym = args.pNym;
     OTIdentifier& USER_ID = args.USER_ID;
-    const OTString& strServerID = args.strServerID;
-    const OTString& strNymID = args.strNymID;
+    const String& strServerID = args.strServerID;
+    const String& strNymID = args.strNymID;
     OTPseudonym* pServerNym = args.pServerNym;
 
     // Just like the server verifies all messages before processing them,
@@ -7633,7 +7630,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
     //
     if (nullptr == pSentMsg) //
     {
-        const OTString strReply(theReply);
+        const String strReply(theReply);
         otLog3 << __FUNCTION__
                << ": FYI: no record of server reply in sent messages buffer. "
                   "We must have already processed it, and then removed it, "
@@ -7781,7 +7778,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
                                                       // by getAccountFiles.)
     {
         // base64-Decode the server reply's payload into strAccount
-        OTString strAccount(theReply.m_ascPayload);
+        String strAccount(theReply.m_ascPayload);
 
         // Load the account object from that string.
         std::unique_ptr<OTAccount> pAccount(
@@ -7816,12 +7813,12 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
     else if (theReply.m_strCommand.Compare(
                    "@getInbox")) // Deprecated. (Replaced by getAccountFiles.)
     {
-        const OTString strServerID(SERVER_ID);
+        const String strServerID(SERVER_ID);
 
         otWarn << "Received server response to Get Inbox message.\n";
 
         // base64-Decode the server reply's payload into strInbox
-        OTString strInbox(theReply.m_ascPayload);
+        String strInbox(theReply.m_ascPayload);
 
         // Load the ledger object from that string.
         OTLedger theInbox(USER_ID, ACCOUNT_ID, SERVER_ID);
@@ -7845,7 +7842,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
                                                    // fail here...
         {
             OTIdentifier THE_HASH;
-            const OTString strAcctID(ACCOUNT_ID);
+            const String strAcctID(ACCOUNT_ID);
             const std::string str_acct_id(strAcctID.Get());
 
             if (theReply.m_strInboxHash.Exists()) {
@@ -7963,7 +7960,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
         // message:\n" << strReply << "\n";
 
         // base64-Decode the server reply's payload into strOutbox
-        OTString strOutbox(theReply.m_ascPayload);
+        String strOutbox(theReply.m_ascPayload);
 
         //        otErr << "OUTBOX CONTENTS:\n" << strOutbox << "\n";
 
@@ -7986,7 +7983,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
                                                     // box receipts yet...
         {
             OTIdentifier THE_HASH;
-            const OTString strAcctID(ACCOUNT_ID);
+            const String strAcctID(ACCOUNT_ID);
             const std::string str_acct_id(strAcctID.Get());
 
             if (theReply.m_strOutboxHash.Exists()) {
@@ -8080,8 +8077,7 @@ int32_t OTClient::ProcessUserCommand(
     // -- only
     // then can we put those pieces into a message.
     OTIdentifier CONTRACT_ID;
-    OTString strNymID, strContractID, strServerID, strNymPublicKey,
-        strAccountID;
+    String strNymID, strContractID, strServerID, strNymPublicKey, strAccountID;
     int64_t lRequestNumber = 0;
 
     theNym.GetIdentifier(strNymID);
@@ -8107,7 +8103,7 @@ int32_t OTClient::ProcessUserCommand(
     switch (requestedCommand) {
 
     case (OTClient::checkServerID): {
-        OTString strAuthentKey, strEncryptionKey;
+        String strAuthentKey, strEncryptionKey;
 
         theNym.GetPublicAuthKey().GetPublicKey(strAuthentKey);
         theNym.GetPublicEncrKey().GetPublicKey(strEncryptionKey);
@@ -8157,8 +8153,8 @@ int32_t OTClient::ProcessUserCommand(
                                      "a STORED_OBJ_STRING_MAP.\n";
         else // It instantiated.
         {
-            OTString strCredList;
-            OTString::Map& theMap = pMap->the_map;
+            String strCredList;
+            String::Map& theMap = pMap->the_map;
 
             // Credentials exist already.
             if (theNym.GetMasterCredentialCount() > 0) {
@@ -8166,7 +8162,7 @@ int32_t OTClient::ProcessUserCommand(
             }
             else // No credentials? Create them, then.
             {
-                OTString strMasterCredID;
+                String strMasterCredID;
                 const bool bAddedMaster =
                     theNym.AddNewMasterCredential(strMasterCredID);
 
@@ -8373,7 +8369,7 @@ int32_t OTClient::ProcessUserCommand(
     break;
     case OTClient::notarizePurse: // NOTARIZE PURSE (deposit)
     {
-        OTString strFromAcct;
+        String strFromAcct;
 
         if (nullptr == pAccount) {
             otOut << "Please enter an asset Account ID: ";
@@ -8425,7 +8421,7 @@ int32_t OTClient::ProcessUserCommand(
 
         Purse theSourcePurse(thePurse);
 
-        OTString strAssetTypeID;
+        String strAssetTypeID;
 
         // If no asset contract was passed in, then --mypurse was not specified.
         // Therefore,
@@ -8439,7 +8435,7 @@ int32_t OTClient::ProcessUserCommand(
         // to ask for the type.
         //
         if (nullptr == pMyAssetContract) {
-            OTString strSourcePurse;
+            String strSourcePurse;
 
             otOut << "Please enter a plaintext purse (of the same asset type "
                      "as the account), \nand terminate with a ~ (tilde "
@@ -8567,7 +8563,7 @@ int32_t OTClient::ProcessUserCommand(
         OTItem* pItem =
             OTItem::CreateItemFromTransaction(*pTransaction, OTItem::deposit);
 
-        OTString strNote("Deposit this cash, please!");
+        String strNote("Deposit this cash, please!");
         pItem->SetNote(strNote);
 
         OTNym_or_SymmetricKey theNymAsOwner(theNym),
@@ -8630,7 +8626,7 @@ int32_t OTClient::ProcessUserCommand(
                                      // WRONG. It's necessary.
 
             // Save the purse into a string...
-            OTString strPurse;
+            String strPurse;
             thePurse.SaveContractRaw(strPurse);
 
             // Add the purse string as the attachment on the transaction item.
@@ -8682,7 +8678,7 @@ int32_t OTClient::ProcessUserCommand(
             theLedger.SaveContract();
 
             // extract the ledger in ascii-armored form... encoding...
-            OTString strLedger(theLedger);
+            String strLedger(theLedger);
             OTASCIIArmor ascLedger(strLedger); // I can't pass strLedger into
                                                // this constructor because I
                                                // want to encode it
@@ -8744,7 +8740,7 @@ int32_t OTClient::ProcessUserCommand(
     break;
     case OTClient::notarizeCheque: // DEPOSIT CHEQUE
     {
-        OTString strFromAcct;
+        String strFromAcct;
 
         if (nullptr == pAccount) {
             otOut << "Please enter an asset Account ID (to deposit to): ";
@@ -8792,7 +8788,7 @@ int32_t OTClient::ProcessUserCommand(
 
         otOut << "Please enter plaintext cheque, terminate with ~ on a new "
                  "line:\n> ";
-        OTString strCheque;
+        String strCheque;
         char decode_buffer[200]; // Safe since we only read
                                  // sizeof(decode_buffer) - 1
 
@@ -8821,7 +8817,7 @@ int32_t OTClient::ProcessUserCommand(
         else if (theCheque.LoadContractFromString(strCheque)) {
             if (theCheque.HasRecipient() &&
                 (theCheque.GetRecipientUserID() != USER_ID)) {
-                const OTString strRecipientNym(theCheque.GetRecipientUserID());
+                const String strRecipientNym(theCheque.GetRecipientUserID());
                 otOut << "This cheque is made out to the Nym: "
                       << strRecipientNym
                       << " (and that is NOT you, so you can't deposit it!)\n "
@@ -8845,7 +8841,7 @@ int32_t OTClient::ProcessUserCommand(
                 OTItem* pItem = OTItem::CreateItemFromTransaction(
                     *pTransaction, OTItem::depositCheque);
 
-                OTString strNote("Deposit this cheque, please!");
+                String strNote("Deposit this cheque, please!");
                 pItem->SetNote(strNote);
 
                 strCheque.Release();
@@ -8926,7 +8922,7 @@ int32_t OTClient::ProcessUserCommand(
                     theLedger.SaveContract();
 
                     // extract the ledger in ascii-armored form... encoding...
-                    OTString strLedger(theLedger);
+                    String strLedger(theLedger);
                     OTASCIIArmor ascLedger(strLedger);
 
                     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -9024,7 +9020,7 @@ int32_t OTClient::ProcessUserCommand(
     } break;
     case OTClient::writeCheque: // Write a CHEQUE. (Sends no message to server.)
     {
-        OTString strFromAcct;
+        String strFromAcct;
 
         if (nullptr == pAccount) {
             otOut << "Please enter an Asset Account ID (to draw the cheque "
@@ -9069,7 +9065,7 @@ int32_t OTClient::ProcessUserCommand(
             return (-1);
         }
 
-        OTString strRecipientNym;
+        String strRecipientNym;
 
         if (nullptr == pHisNymID) {
             otOut << "Enter Recipient's Nym ID (full ID -- no partials here.) "
@@ -9093,7 +9089,7 @@ int32_t OTClient::ProcessUserCommand(
 
         const OTIdentifier HIS_NYM_ID(strRecipientNym);
 
-        OTString strAmount;
+        String strAmount;
         if (0 == lTransactionAmount) {
             otOut << "Please enter an amount: ";
             // User input.
@@ -9133,7 +9129,7 @@ int32_t OTClient::ProcessUserCommand(
 
         // Memo
         otOut << "Enter a memo for your check: ";
-        OTString strChequeMemo;
+        String strChequeMemo;
         strChequeMemo.OTfgets(std::cin);
 
         // Valid date range (in seconds)
@@ -9146,7 +9142,7 @@ int32_t OTClient::ProcessUserCommand(
             OTTimeGetSecondsFromTime(OT_TIME_HOUR_IN_SECONDS);
         otOut << "How many seconds before cheque expires? (defaults to 1 hour: "
               << lExpirationInSeconds << "): ";
-        OTString strTemp;
+        String strTemp;
         strTemp.OTfgets(std::cin);
 
         if (strTemp.GetLength() > 1) lExpirationInSeconds = strTemp.ToLong();
@@ -9176,7 +9172,7 @@ int32_t OTClient::ProcessUserCommand(
             theCheque.SignContract(theNym);
             theCheque.SaveContract();
 
-            OTString strCheque(theCheque);
+            String strCheque(theCheque);
 
             otOut << "\n\nOUTPUT (writeCheque):\n\n\n";
             // otOut actually goes to stderr, whereas the cout below is
@@ -9202,7 +9198,7 @@ int32_t OTClient::ProcessUserCommand(
 
         otOut << "Please enter plaintext payment plan. Terminate with ~ on a "
                  "new line:\n> ";
-        OTString strPlan;
+        String strPlan;
         char decode_buffer[200]; // Safe since we only read
                                  // sizeof(decode_buffer)-1
 
@@ -9238,7 +9234,7 @@ int32_t OTClient::ProcessUserCommand(
                          "explicit, and use:  --myacct <acct_id>\n";
             }
             else {
-                OTString strFromAcct(ACCOUNT_ID);
+                String strFromAcct(ACCOUNT_ID);
 
                 // Create a transaction
                 OTTransaction* pTransaction =
@@ -9307,7 +9303,7 @@ int32_t OTClient::ProcessUserCommand(
                 theLedger.SaveContract();
 
                 // extract the ledger in ascii-armored form... encoding...
-                OTString strLedger(theLedger);
+                String strLedger(theLedger);
                 OTASCIIArmor ascLedger(strLedger);
 
                 // (0) Set up the REQUEST NUMBER and then INCREMENT IT

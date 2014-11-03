@@ -142,7 +142,7 @@ namespace opentxs
 
 class OTAsymmetricKey;
 class OTPasswordData;
-class OTString;
+class String;
 
 // Useful for storing a std::set of longs,
 // serializing to/from comma-separated string,
@@ -166,14 +166,14 @@ public:
     EXPORT OTNumList(const std::set<int64_t>& theNumbers);
     //        OTNumList(const char* szNumbers); // removed for security
     // reasons.
-    EXPORT OTNumList(const OTString& strNumbers);
+    EXPORT OTNumList(const String& strNumbers);
     EXPORT OTNumList(const std::string& strNumbers);
     EXPORT OTNumList(int64_t lInput);
     EXPORT OTNumList();
     EXPORT ~OTNumList();
-    EXPORT bool Add(const OTString& strNumbers); // if false, means the numbers
-                                                 // were already there. (At
-                                                 // least one of them.)
+    EXPORT bool Add(const String& strNumbers); // if false, means the numbers
+                                               // were already there. (At
+                                               // least one of them.)
     EXPORT bool Add(const std::string& strNumbers); // if false, means the
                                                     // numbers were already
                                                     // there. (At least one of
@@ -225,8 +225,8 @@ public:
 
     // Outputs the numlist as a comma-separated string (for serialization,
     // usually.)
-    EXPORT bool Output(OTString& strOutput) const; // returns false if the
-                                                   // numlist was empty.
+    EXPORT bool Output(String& strOutput) const; // returns false if the
+                                                 // numlist was empty.
     EXPORT void Release();
 };
 

@@ -253,7 +253,7 @@ bool OTWallet::SignContractWithFirstNymOnList(OTContract& theContract)
 {
     if (GetNymCount() > 0) {
         OTIdentifier NYM_ID;
-        OTString NYM_NAME;
+        String NYM_NAME;
 
         if (GetNym(0, // index 0
                    NYM_ID, NYM_NAME)) {
@@ -299,7 +299,7 @@ OTPseudonym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID) // works
             (nullptr != pNym),
             "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
 
-        OTString strTemp;
+        String strTemp;
         pNym->GetIdentifier(strTemp);
 
         std::string strIdentifier = strTemp.Get();
@@ -316,7 +316,7 @@ OTPseudonym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID) // works
             (nullptr != pNym),
             "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
 
-        OTString strNymName;
+        String strNymName;
         strNymName.Set(pNym->GetNymName());
         std::string str_NymName = strNymName.Get();
 
@@ -349,7 +349,7 @@ int32_t OTWallet::GetAccountCount()
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetNym(int32_t iIndex, OTIdentifier& NYM_ID, OTString& NYM_NAME)
+bool OTWallet::GetNym(int32_t iIndex, OTIdentifier& NYM_ID, String& NYM_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
     if (iIndex < GetNymCount() && iIndex >= 0) {
@@ -374,8 +374,7 @@ bool OTWallet::GetNym(int32_t iIndex, OTIdentifier& NYM_ID, OTString& NYM_NAME)
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetServer(int32_t iIndex, OTIdentifier& THE_ID,
-                         OTString& THE_NAME)
+bool OTWallet::GetServer(int32_t iIndex, OTIdentifier& THE_ID, String& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
     if (iIndex < GetServerCount() && iIndex >= 0) {
@@ -402,7 +401,7 @@ bool OTWallet::GetServer(int32_t iIndex, OTIdentifier& THE_ID,
 
 // used by high-level wrapper.
 bool OTWallet::GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
-                            OTString& THE_NAME)
+                            String& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
     if (iIndex < GetAssetTypeCount() && iIndex >= 0) {
@@ -429,7 +428,7 @@ bool OTWallet::GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
 
 // used by high-level wrapper.
 bool OTWallet::GetAccount(int32_t iIndex, OTIdentifier& THE_ID,
-                          OTString& THE_NAME)
+                          String& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
     if (iIndex < GetAccountCount() && iIndex >= 0) {
@@ -454,7 +453,7 @@ bool OTWallet::GetAccount(int32_t iIndex, OTIdentifier& THE_ID,
     return false;
 }
 
-void OTWallet::DisplayStatistics(OTString& strOutput)
+void OTWallet::DisplayStatistics(String& strOutput)
 {
     strOutput.Concatenate(
         "\n-------------------------------------------------\n");
@@ -525,7 +524,7 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
     const OTIdentifier NYM_ID(theNym);
     OTIdentifier aNymID;
 
-    OTString strName;
+    String strName;
 
     for (auto it(m_mapNyms.begin()); it != m_mapNyms.end(); ++it) {
         OTPseudonym* pNym = it->second;
@@ -534,7 +533,7 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
         pNym->GetIdentifier(aNymID);
 
         if (aNymID == NYM_ID) {
-            OTString strTemp(pNym->GetNymName());
+            String strTemp(pNym->GetNymName());
             strName = strTemp; // todo optimize. currently am fixing "blank nym
                                // name" bug.
 
@@ -550,7 +549,7 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
         }
     }
 
-    const OTString strNymID(NYM_ID);
+    const String strNymID(NYM_ID);
     m_mapNyms[strNymID.Get()] = const_cast<OTPseudonym*>(&theNym);
 
     if (strName.Exists())
@@ -573,7 +572,7 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
         pAccount->GetIdentifier(anAccountID);
 
         if (anAccountID == ACCOUNT_ID) {
-            OTString strName;
+            String strName;
             pAccount->GetName(strName);
 
             if (strName.Exists()) {
@@ -588,7 +587,7 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
         }
     }
 
-    const OTString strAcctID(ACCOUNT_ID);
+    const String strAcctID(ACCOUNT_ID);
     m_mapAccounts[strAcctID.Get()] = const_cast<OTAccount*>(&theAcct);
 }
 
@@ -623,7 +622,7 @@ OTAccount* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
 
         OTIdentifier anAccountID;
         pAccount->GetIdentifier(anAccountID);
-        OTString strTemp(anAccountID);
+        String strTemp(anAccountID);
         std::string strIdentifier = strTemp.Get();
 
         if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
@@ -636,7 +635,7 @@ OTAccount* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
         OTAccount* pAccount = it.second;
         OT_ASSERT(nullptr != pAccount);
 
-        OTString strName;
+        String strName;
         pAccount->GetName(strName);
         std::string str_Name = strName.Get();
 
@@ -695,7 +694,7 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
         OTIdentifier id_CurrentContract;
         pServer->GetIdentifier(id_CurrentContract);
 
-        OTString strTemp(id_CurrentContract);
+        String strTemp(id_CurrentContract);
         std::string strIdentifier = strTemp.Get();
 
         if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
@@ -710,7 +709,7 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
                                             "OTWallet::m_mapServers, "
                                             "OTWallet::GetServerContract");
 
-        OTString strName;
+        String strName;
         pServer->GetName(strName);
         std::string str_Name = strName.Get();
 
@@ -726,7 +725,7 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
 void OTWallet::AddServerContract(const OTServerContract& theContract)
 {
     OTIdentifier CONTRACT_ID(theContract);
-    OTString STR_CONTRACT_ID(CONTRACT_ID);
+    String STR_CONTRACT_ID(CONTRACT_ID);
 
     OTServerContract* pContract = GetServerContract(CONTRACT_ID);
 
@@ -753,7 +752,7 @@ void OTWallet::AddServerContract(const OTServerContract& theContract)
 void OTWallet::AddAssetContract(const OTAssetContract& theContract)
 {
     OTIdentifier CONTRACT_ID(theContract);
-    OTString STR_CONTRACT_ID(CONTRACT_ID);
+    String STR_CONTRACT_ID(CONTRACT_ID);
 
     OTAssetContract* pContract = GetAssetContract(CONTRACT_ID);
 
@@ -777,14 +776,14 @@ void OTWallet::AddAssetContract(const OTAssetContract& theContract)
 
 bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
                                   const OTIdentifier& SERVER_ID,
-                                  const OTString& strAcctID,
+                                  const String& strAcctID,
                                   const char* szFuncName)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::VerifyAssetAccount";
 
     if (SERVER_ID != theAcct.GetRealServerID()) {
-        const OTString s1(SERVER_ID), s2(theAcct.GetRealServerID());
+        const String s1(SERVER_ID), s2(theAcct.GetRealServerID());
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
               << ": Server ID passed in (" << s1 << ") didn't match the one "
                                                     "on the account (" << s2
@@ -793,7 +792,7 @@ bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
     }
 
     const OTIdentifier theNymID(theNym);
-    const OTString strNymID(theNymID);
+    const String strNymID(theNymID);
 
     if (!theAcct.VerifyOwner(theNym)) // Verifies Ownership.
     {
@@ -828,7 +827,7 @@ OTAccount* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::GetOrLoadAccount";
 
-    const OTString strAcctID(ACCT_ID);
+    const String strAcctID(ACCT_ID);
 
     OTAccount* pAccount = GetAccount(ACCT_ID);
 
@@ -869,7 +868,7 @@ OTAccount* OTWallet::LoadAccount(const OTPseudonym& theNym,
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::LoadAccount";
 
-    const OTString strAcctID(ACCT_ID);
+    const String strAcctID(ACCT_ID);
     OTAccount* pAccount = OTAccount::LoadExistingAccount(ACCT_ID, SERVER_ID);
 
     // It loaded successfully...
@@ -911,7 +910,7 @@ OTAccount* OTWallet::LoadAccount(const OTPseudonym& theNym,
 OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
                                           const char* szFuncName)
 {
-    const OTString strNymID(NYM_ID);
+    const String strNymID(NYM_ID);
     const char* szFunc = "OTWallet::GetOrLoadPublicNym";
 
     szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
@@ -966,7 +965,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
         return nullptr;
     }
 
-    const OTString strNymID(NYM_ID);
+    const String strNymID(NYM_ID);
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
 
@@ -1036,7 +1035,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
             // Let's save the Name, in case that is already set, so we don't
             // blank it out...
             //
-            OTString strName =
+            String strName =
                 pNym->GetNymName().Get(); // Get returns "" if string is empty.
 
             if (RemoveNym(NYM_ID)) {
@@ -1226,7 +1225,7 @@ OTAssetContract* OTWallet::GetAssetContractPartialMatch(
         OTIdentifier aContractID;
         pContract->GetIdentifier(aContractID);
 
-        OTString strTemp(aContractID);
+        String strTemp(aContractID);
         std::string strIdentifier = strTemp.Get();
 
         if (strIdentifier.compare(0, PARTIAL_ID.length(), PARTIAL_ID) == 0)
@@ -1239,7 +1238,7 @@ OTAssetContract* OTWallet::GetAssetContractPartialMatch(
         OTAssetContract* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
-        OTString strName;
+        String strName;
         pContract->GetName(strName);
         std::string str_Name = strName.Get();
 
@@ -1250,7 +1249,7 @@ OTAssetContract* OTWallet::GetAssetContractPartialMatch(
     return nullptr;
 }
 
-bool OTWallet::SaveContract(OTString& strContract)
+bool OTWallet::SaveContract(String& strContract)
 {
     OTASCIIArmor ascName;
 
@@ -1286,7 +1285,7 @@ bool OTWallet::SaveContract(OTString& strContract)
         const std::string str_id = it.first;
         std::shared_ptr<OTSymmetricKey> pKey = it.second;
 
-        OTString strKeyID(str_id.c_str());
+        String strKeyID(str_id.c_str());
         OTASCIIArmor ascKeyID;
 
         ascKeyID.SetString(strKeyID,
@@ -1311,7 +1310,7 @@ bool OTWallet::SaveContract(OTString& strContract)
     //
     for (const auto& it : m_setNymsOnCachedKey) {
         const OTIdentifier& theNymID = it;
-        OTString strNymID(theNymID);
+        String strNymID(theNymID);
 
         strContract.Concatenate("<nymUsingCachedKey id=\"%s\" />\n\n",
                                 strNymID.Get());
@@ -1393,7 +1392,7 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
             const bool bGotMasterPW = pMasterKey->GetMasterPassword(
                 pMasterKey, master_password,
                 (nullptr == pReason) ? "" : pReason->c_str());
-            OTString strNewKeyOutput;
+            String strNewKeyOutput;
 
             if (bGotMasterPW &&
                 OTSymmetricKey::CreateNewKey(strNewKeyOutput, nullptr,
@@ -1481,9 +1480,8 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,
 }
 
 bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
-                               const OTString& strPlaintext,
-                               OTString& strOutput, const OTString* pstrDisplay,
-                               bool bBookends)
+                               const String& strPlaintext, String& strOutput,
+                               const String* pstrDisplay, bool bBookends)
 {
     if (key_id.empty() || !strPlaintext.Exists()) return false;
 
@@ -1507,8 +1505,8 @@ bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
     return false;
 }
 bool OTWallet::Decrypt_ByKeyID(const std::string& key_id,
-                               const OTString& strCiphertext,
-                               OTString& strOutput, const OTString* pstrDisplay)
+                               const String& strCiphertext, String& strOutput,
+                               const String* pstrDisplay)
 {
     if (key_id.empty() || !strCiphertext.Exists()) return false;
 
@@ -1574,13 +1572,13 @@ bool OTWallet::SaveWallet(const char* szFilename)
     }
 
     bool bSuccess = false;
-    OTString strContract;
+    String strContract;
 
     if (SaveContract(strContract)) {
 
         // Try to save the wallet to local storage.
         //
-        OTString strFinal;
+        String strFinal;
         OTASCIIArmor ascTemp(strContract);
 
         if (false ==
@@ -1656,7 +1654,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
         }
     }
 
-    OTString strFileContents(OTDB::QueryPlainString(
+    String strFileContents(OTDB::QueryPlainString(
         ".", szFilename)); // <=== LOADING FROM DATA STORE.
 
     if (!strFileContents.Exists()) {
@@ -1685,22 +1683,22 @@ bool OTWallet::LoadWallet(const char* szFilename)
         // parse the file until end reached
         while (xml && xml->read()) {
             // strings for storing the data that we want to read out of the file
-            OTString NymName;
-            OTString NymID;
+            String NymName;
+            String NymID;
 
-            OTString AssetName;
-            OTString AssetContract;
-            OTString AssetID;
+            String AssetName;
+            String AssetContract;
+            String AssetID;
 
-            OTString ServerName;
-            OTString ServerContract;
-            OTString ServerID;
+            String ServerName;
+            String ServerContract;
+            String ServerID;
 
-            OTString AcctName;
-            OTString AcctFile;
-            OTString AcctID;
+            String AcctName;
+            String AcctFile;
+            String AcctID;
 
-            const OTString strNodeName(xml->getNodeName());
+            const String strNodeName(xml->getNodeName());
 
             switch (xml->getNodeType()) {
             case irr::io::EXN_NONE:
@@ -1783,7 +1781,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     m_setNymsOnCachedKey.insert(theNymID);
                 }
                 else if (strNodeName.Compare("symmetricKey")) {
-                    OTString strKeyID;
+                    String strKeyID;
                     OTASCIIArmor ascKeyID = xml->getAttributeValue("id");
                     OTASCIIArmor ascSymmetricKey;
 
@@ -1898,7 +1896,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                               "Asset Name: " << AssetName
                            << "\n Contract ID: " << AssetID << "\n";
 
-                    OTString strContractPath(OTFolders::Contract());
+                    String strContractPath(OTFolders::Contract());
                     OTAssetContract* pContract = new OTAssetContract(
                         AssetName, strContractPath, AssetID, AssetID);
 
@@ -1948,7 +1946,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                               "listing):\n Server Name: " << ServerName
                            << "\n   Server ID: " << ServerID << "\n";
 
-                    OTString strContractPath(OTFolders::Contract().Get());
+                    String strContractPath(OTFolders::Contract().Get());
 
                     OTServerContract* pContract = new OTServerContract(
                         ServerName, strContractPath, ServerID, ServerID);
@@ -2072,13 +2070,13 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
         // The Nym has credentials.
         //
         if (theNym.GetMasterCredentialCount() > 0) {
-            OTString strNymID, strCredList, strOutput;
-            OTString::Map mapCredFiles;
+            String strNymID, strCredList, strOutput;
+            String::Map mapCredFiles;
 
             theNym.GetIdentifier(strNymID);
             theNym.GetPrivateCredentials(strCredList, &mapCredFiles);
 
-            OTString strFilename;
+            String strFilename;
             strFilename.Format("%s.cred", strNymID.Get());
 
             OTASCIIArmor ascArmor(strCredList);
@@ -2100,7 +2098,7 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
             // Here we do the actual credentials.
             for (auto& it : mapCredFiles) {
                 std::string str_cred_id = it.first;
-                OTString strCredential(it.second);
+                String strCredential(it.second);
 
                 strOutput.Release();
                 OTASCIIArmor ascLoopArmor(strCredential);
@@ -2124,7 +2122,7 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
         }
         else // Kicking it old-school. (No credentials.)
         {
-            OTString strReason("Converting Nym to cached master key.");
+            String strReason("Converting Nym to cached master key.");
             bConverted = theNym.Savex509CertAndPrivateKey(true, &strReason);
         }
 

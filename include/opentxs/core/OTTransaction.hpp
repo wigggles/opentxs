@@ -440,7 +440,7 @@ class OTLedger;
 class OTTransaction : public OTTransactionType
 {
     friend OTTransactionType* OTTransactionType::TransactionFactory(
-        OTString strInput);
+        String strInput);
 
 public:
     // a transaction can be blank (issued from server)
@@ -542,7 +542,7 @@ public:
                   const int64_t& lNumberOfOrigin,
                   const int64_t& lTransactionNum, const int64_t& lInRefTo,
                   const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
-                  transactionType theType, const OTString& strHash,
+                  transactionType theType, const String& strHash,
                   const int64_t& lAdjustment, const int64_t& lDisplayValue,
                   const int64_t& lClosingNum, const int64_t& lRequestNum,
                   bool bReplyTransSuccess, OTNumList* pNumList = nullptr);
@@ -651,7 +651,7 @@ public:
 
     EXPORT bool GetSenderAcctIDForDisplay(OTIdentifier& theReturnID);
     EXPORT bool GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID);
-    EXPORT bool GetMemo(OTString& strMemo);
+    EXPORT bool GetMemo(String& strMemo);
 
     inline time64_t GetDateSigned() const
     {
@@ -734,16 +734,16 @@ public:
     // Because all of the actual receipts cannot fit into the single inbox
     // file, you must put their hash, and then store the receipt itself
     // separately...
-    void SaveAbbreviatedNymboxRecord(OTString& strOutput);
-    void SaveAbbreviatedOutboxRecord(OTString& strOutput);
-    void SaveAbbreviatedInboxRecord(OTString& strOutput);
-    void SaveAbbrevPaymentInboxRecord(OTString& strOutput);
-    void SaveAbbrevRecordBoxRecord(OTString& strOutput);
-    void SaveAbbrevExpiredBoxRecord(OTString& strOutput);
+    void SaveAbbreviatedNymboxRecord(String& strOutput);
+    void SaveAbbreviatedOutboxRecord(String& strOutput);
+    void SaveAbbreviatedInboxRecord(String& strOutput);
+    void SaveAbbrevPaymentInboxRecord(String& strOutput);
+    void SaveAbbrevRecordBoxRecord(String& strOutput);
+    void SaveAbbrevExpiredBoxRecord(String& strOutput);
     void ProduceInboxReportItem(OTItem& theBalanceItem);
     void ProduceOutboxReportItem(OTItem& theBalanceItem);
 
-    static transactionType GetTypeFromString(const OTString& strType);
+    static transactionType GetTypeFromString(const String& strType);
 
     const char* GetTypeString() const
     {

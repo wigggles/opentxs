@@ -153,7 +153,7 @@ namespace opentxs
 
 class OTIdentifier;
 class OTStashItem;
-class OTString;
+class String;
 
 typedef std::map<std::string, OTStashItem*> mapOfStashItems;
 
@@ -174,17 +174,17 @@ public:
     bool CreditStash(std::string str_asset_type_id, const int64_t& lAmount);
     bool DebitStash(std::string str_asset_type_id, const int64_t& lAmount);
 
-    void Serialize(OTString& strAppend) const;
+    void Serialize(String& strAppend) const;
     int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                            const OTString& strStashName,
-                            const OTString& strItemCount);
+                            const String& strStashName,
+                            const String& strItemCount);
 
     OTStash();
     OTStash(std::string str_stash_name)
         : m_str_stash_name(str_stash_name)
     {
     }
-    OTStash(const OTString& strAssetTypeID, int64_t lAmount = 0);
+    OTStash(const String& strAssetTypeID, int64_t lAmount = 0);
     OTStash(const OTIdentifier& theAssetTypeID, int64_t lAmount = 0);
     virtual ~OTStash();
 };

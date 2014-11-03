@@ -228,8 +228,8 @@ namespace opentxs
 
 OTLog* OTLog::pLogger = nullptr;
 
-const OTString OTLog::m_strVersion = OPENTXS_VERSION_STRING;
-const OTString OTLog::m_strPathSeparator = "/";
+const String OTLog::m_strVersion = OPENTXS_VERSION_STRING;
+const String OTLog::m_strPathSeparator = "/";
 
 OTLOG_IMPORT OTLogStream otErr(-1); // logs using otErr << )
 OTLOG_IMPORT OTLogStream otInfo(2); // logs using OTLog::vOutput(2)
@@ -275,7 +275,7 @@ int OTLogStream::overflow(int c)
 //  OTLog Init, must run this before using any OTLog function.
 
 // static
-bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
+bool OTLog::Init(const String& strThreadContext, const int32_t& nLogLevel)
 {
     if (nullptr == pLogger) {
         pLogger = new OTLog();
@@ -285,7 +285,7 @@ bool OTLog::Init(const OTString& strThreadContext, const int32_t& nLogLevel)
     if (strThreadContext.Compare(GLOBAL_LOGNAME)) return false;
 
     if (!pLogger->m_bInitialized) {
-        pLogger->logDeque = std::deque<OTString*>();
+        pLogger->logDeque = std::deque<String*>();
         pLogger->m_strThreadContext = strThreadContext;
 
         pLogger->m_nLogLevel = nLogLevel;
@@ -378,7 +378,7 @@ const char* OTLog::Version()
 {
     return OTLog::GetVersion().Get();
 }
-const OTString& OTLog::GetVersion()
+const String& OTLog::GetVersion()
 {
     return m_strVersion;
 }
@@ -387,14 +387,14 @@ const char* OTLog::PathSeparator()
 {
     return OTLog::GetPathSeparator().Get();
 }
-const OTString& OTLog::GetPathSeparator()
+const String& OTLog::GetPathSeparator()
 {
     return m_strPathSeparator;
 }
 
 // Set in constructor:
 
-const OTString& OTLog::GetThreadContext()
+const String& OTLog::GetThreadContext()
 {
     return pLogger->m_strThreadContext;
 }
@@ -403,7 +403,7 @@ const char* OTLog::LogFilePath()
 {
     return OTLog::GetLogFilePath().Get();
 }
-const OTString& OTLog::GetLogFilePath()
+const String& OTLog::GetLogFilePath()
 {
     return pLogger->m_strLogFilePath;
 }
@@ -437,7 +437,7 @@ bool OTLog::SetLogLevel(const int32_t& nLogLevel)
 // if I was actually writing to stdout.)
 //
 // static
-bool OTLog::LogToFile(const OTString& strOutput)
+bool OTLog::LogToFile(const String& strOutput)
 {
     // We now do this either way.
     {
@@ -474,7 +474,7 @@ bool OTLog::LogToFile(const OTString& strOutput)
     return bSuccess;
 }
 
-OTString OTLog::GetMemlogAtIndex(int32_t nIndex)
+String OTLog::GetMemlogAtIndex(int32_t nIndex)
 {
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
@@ -491,7 +491,7 @@ OTString OTLog::GetMemlogAtIndex(int32_t nIndex)
     else
         OT_FAIL;
 
-    const OTString strLogEntry = *OTLog::pLogger->logDeque.at(uIndex);
+    const String strLogEntry = *OTLog::pLogger->logDeque.at(uIndex);
 
     if (strLogEntry.Exists())
         return strLogEntry;
@@ -509,7 +509,7 @@ int32_t OTLog::GetMemlogSize()
     return static_cast<int32_t>(OTLog::pLogger->logDeque.size());
 }
 
-OTString OTLog::PeekMemlogFront()
+String OTLog::PeekMemlogFront()
 {
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
@@ -521,7 +521,7 @@ OTString OTLog::PeekMemlogFront()
     else
         OT_FAIL;
 
-    const OTString strLogEntry = *OTLog::pLogger->logDeque.front();
+    const String strLogEntry = *OTLog::pLogger->logDeque.front();
 
     if (strLogEntry.Exists())
         return strLogEntry;
@@ -529,7 +529,7 @@ OTString OTLog::PeekMemlogFront()
         return "";
 }
 
-OTString OTLog::PeekMemlogBack()
+String OTLog::PeekMemlogBack()
 {
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
@@ -541,7 +541,7 @@ OTString OTLog::PeekMemlogBack()
     else
         OT_FAIL;
 
-    const OTString strLogEntry = *OTLog::pLogger->logDeque.back();
+    const String strLogEntry = *OTLog::pLogger->logDeque.back();
 
     if (strLogEntry.Exists())
         return strLogEntry;
@@ -557,7 +557,7 @@ bool OTLog::PopMemlogFront()
 
     if (OTLog::pLogger->logDeque.size() <= 0) return false;
 
-    OTString* strLogFront = OTLog::pLogger->logDeque.front();
+    String* strLogFront = OTLog::pLogger->logDeque.front();
     if (nullptr != strLogFront) delete strLogFront;
     strLogFront = nullptr;
 
@@ -574,7 +574,7 @@ bool OTLog::PopMemlogBack()
 
     if (OTLog::pLogger->logDeque.size() <= 0) return false;
 
-    OTString* strLogBack = OTLog::pLogger->logDeque.back();
+    String* strLogBack = OTLog::pLogger->logDeque.back();
     if (nullptr != strLogBack) delete strLogBack;
     strLogBack = nullptr;
 
@@ -584,14 +584,14 @@ bool OTLog::PopMemlogBack()
 }
 
 // static
-bool OTLog::PushMemlogFront(const OTString& strLog)
+bool OTLog::PushMemlogFront(const String& strLog)
 {
     // lets check if we are Initialized in this context
     CheckLogger(OTLog::pLogger);
 
     OT_ASSERT(strLog.Exists());
 
-    OTLog::pLogger->logDeque.push_front(new OTString(strLog));
+    OTLog::pLogger->logDeque.push_front(new String(strLog));
 
     if (OTLog::pLogger->logDeque.size() > LOG_DEQUE_SIZE) {
         OTLog::PopMemlogBack(); // We start removing from the back when it
@@ -650,7 +650,7 @@ size_t OTLog::logAssert(const char* szFilename, size_t nLinenumber,
 
         // Pass it to LogToFile, as this always logs.
         //
-        OTString strTemp;
+        String strTemp;
         strTemp.Format("\nOT_ASSERT in %s at line %" PRI_SIZE "\n", szFilename,
                        nLinenumber);
         LogToFile(strTemp.Get());
@@ -750,7 +750,7 @@ void OTLog::vOutput(int32_t nVerbosity, const char* szOutput, ...)
 
     std::string strOutput;
 
-    const bool bFormatted = OTString::vformat(szOutput, &args, strOutput);
+    const bool bFormatted = String::vformat(szOutput, &args, strOutput);
 
     va_end(args);
 
@@ -778,7 +778,7 @@ void OTLog::vError(const char* szError, ...)
 
     std::string strOutput;
 
-    const bool bFormatted = OTString::vformat(szError, &args, strOutput);
+    const bool bFormatted = String::vformat(szError, &args, strOutput);
 
     va_end(args);
 
@@ -864,7 +864,7 @@ void OTLog::Errno(const char* szLocation) // stderr
 
 // String Helpers
 
-bool OTLog::StringFill(OTString& out_strString, const char* szString,
+bool OTLog::StringFill(String& out_strString, const char* szString,
                        int32_t iLength, const char* szAppend)
 {
     std::string strString(szString);

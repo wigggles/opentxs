@@ -203,28 +203,28 @@
 namespace opentxs
 {
 
-OTString OTFolders::s_strAccount("");
-OTString OTFolders::s_strCert("");
-OTString OTFolders::s_strContract("");
-OTString OTFolders::s_strCredential("");
-OTString OTFolders::s_strCron("");
-OTString OTFolders::s_strInbox("");
-OTString OTFolders::s_strMarket("");
-OTString OTFolders::s_strMint("");
-OTString OTFolders::s_strNym("");
-OTString OTFolders::s_strNymbox("");
-OTString OTFolders::s_strOutbox("");
-OTString OTFolders::s_strPaymentInbox("");
-OTString OTFolders::s_strPubcred("");
-OTString OTFolders::s_strPubkey("");
-OTString OTFolders::s_strPurse("");
-OTString OTFolders::s_strReceipt("");
-OTString OTFolders::s_strRecordBox("");
-OTString OTFolders::s_strExpiredBox("");
-OTString OTFolders::s_strScript("");
-OTString OTFolders::s_strSmartContracts("");
-OTString OTFolders::s_strSpent("");
-OTString OTFolders::s_strUserAcct("");
+String OTFolders::s_strAccount("");
+String OTFolders::s_strCert("");
+String OTFolders::s_strContract("");
+String OTFolders::s_strCredential("");
+String OTFolders::s_strCron("");
+String OTFolders::s_strInbox("");
+String OTFolders::s_strMarket("");
+String OTFolders::s_strMint("");
+String OTFolders::s_strNym("");
+String OTFolders::s_strNymbox("");
+String OTFolders::s_strOutbox("");
+String OTFolders::s_strPaymentInbox("");
+String OTFolders::s_strPubcred("");
+String OTFolders::s_strPubkey("");
+String OTFolders::s_strPurse("");
+String OTFolders::s_strReceipt("");
+String OTFolders::s_strRecordBox("");
+String OTFolders::s_strExpiredBox("");
+String OTFolders::s_strScript("");
+String OTFolders::s_strSmartContracts("");
+String OTFolders::s_strSpent("");
+String OTFolders::s_strUserAcct("");
 
 bool OTFolders::GetSetAll()
 {
@@ -292,91 +292,91 @@ bool OTFolders::GetSetAll()
     return true;
 }
 
-const OTString& OTFolders::Account()
+const String& OTFolders::Account()
 {
     return GetFolder(s_strAccount);
 }
-const OTString& OTFolders::Cert()
+const String& OTFolders::Cert()
 {
     return GetFolder(s_strCert);
 }
-const OTString& OTFolders::Contract()
+const String& OTFolders::Contract()
 {
     return GetFolder(s_strContract);
 }
-const OTString& OTFolders::Credential()
+const String& OTFolders::Credential()
 {
     return GetFolder(s_strCredential);
 }
-const OTString& OTFolders::Cron()
+const String& OTFolders::Cron()
 {
     return GetFolder(s_strCron);
 }
-const OTString& OTFolders::Inbox()
+const String& OTFolders::Inbox()
 {
     return GetFolder(s_strInbox);
 }
-const OTString& OTFolders::Market()
+const String& OTFolders::Market()
 {
     return GetFolder(s_strMarket);
 }
-const OTString& OTFolders::Mint()
+const String& OTFolders::Mint()
 {
     return GetFolder(s_strMint);
 }
-const OTString& OTFolders::Nym()
+const String& OTFolders::Nym()
 {
     return GetFolder(s_strNym);
 }
-const OTString& OTFolders::Nymbox()
+const String& OTFolders::Nymbox()
 {
     return GetFolder(s_strNymbox);
 }
-const OTString& OTFolders::Outbox()
+const String& OTFolders::Outbox()
 {
     return GetFolder(s_strOutbox);
 }
-const OTString& OTFolders::PaymentInbox()
+const String& OTFolders::PaymentInbox()
 {
     return GetFolder(s_strPaymentInbox);
 }
-const OTString& OTFolders::Pubcred()
+const String& OTFolders::Pubcred()
 {
     return GetFolder(s_strPubcred);
 }
-const OTString& OTFolders::Pubkey()
+const String& OTFolders::Pubkey()
 {
     return GetFolder(s_strPubkey);
 }
-const OTString& OTFolders::Purse()
+const String& OTFolders::Purse()
 {
     return GetFolder(s_strPurse);
 }
-const OTString& OTFolders::Receipt()
+const String& OTFolders::Receipt()
 {
     return GetFolder(s_strReceipt);
 }
-const OTString& OTFolders::RecordBox()
+const String& OTFolders::RecordBox()
 {
     return GetFolder(s_strRecordBox);
 }
-const OTString& OTFolders::ExpiredBox()
+const String& OTFolders::ExpiredBox()
 {
     return GetFolder(s_strExpiredBox);
 }
-const OTString& OTFolders::Script()
+const String& OTFolders::Script()
 {
     return GetFolder(s_strScript);
 }
-const OTString& OTFolders::SmartContracts()
+const String& OTFolders::SmartContracts()
 {
     return GetFolder(s_strSmartContracts);
 }
-const OTString& OTFolders::Spent()
+const String& OTFolders::Spent()
 {
     return GetFolder(s_strSpent);
 }
-const OTString& OTFolders::UserAcct()
+const String& OTFolders::UserAcct()
 {
     return GetFolder(s_strUserAcct);
 }

@@ -143,7 +143,7 @@ namespace opentxs
 class OTAccount;
 class OTIdentifier;
 class OTServer;
-class OTString;
+class String;
 
 // Note: from OTAssetContract.h and .cpp.
 // This is a subclass of AccountVisitor, which is used whenever OTAssetContract
@@ -159,10 +159,10 @@ class PayDividendVisitor : public AccountVisitor
     OTIdentifier* m_pUserID;
     OTIdentifier* m_pPayoutAssetID;
     OTIdentifier* m_pVoucherAcctID;
-    OTString* m_pstrMemo; // contains the original payDividend item from the
-                          // payDividend transaction request. (Stored in the
-                          // memo field for each voucher.)
-    OTServer* m_pServer;  // no need to cleanup. It's here for convenience only.
+    String* m_pstrMemo;  // contains the original payDividend item from the
+                         // payDividend transaction request. (Stored in the
+                         // memo field for each voucher.)
+    OTServer* m_pServer; // no need to cleanup. It's here for convenience only.
     int64_t m_lPayoutPerShare;
     int64_t m_lAmountPaidOut;  // as we pay each voucher out, we keep a running
                                // count.
@@ -174,7 +174,7 @@ public:
                        const OTIdentifier& theUserID,
                        const OTIdentifier& thePayoutAssetID,
                        const OTIdentifier& theVoucherAcctID,
-                       const OTString& strMemo, OTServer& theServer,
+                       const String& strMemo, OTServer& theServer,
                        int64_t lPayoutPerShare,
                        mapOfAccounts* pLoadedAccounts = nullptr);
     virtual ~PayDividendVisitor();
@@ -191,7 +191,7 @@ public:
     {
         return m_pVoucherAcctID;
     }
-    OTString* GetMemo()
+    String* GetMemo()
     {
         return m_pstrMemo;
     }

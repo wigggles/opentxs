@@ -141,7 +141,7 @@ namespace opentxs
 
 class OTCachedKey;
 class OTPassword;
-class OTString;
+class String;
 
 /*
  To use:
@@ -386,7 +386,7 @@ public:
                           OTPassword* pMasterPW = nullptr,
                           std::shared_ptr<OTCachedKey> pCachedKey =
                               std::shared_ptr<OTCachedKey>());
-    EXPORT OTPasswordData(const OTString& strDisplay,
+    EXPORT OTPasswordData(const String& strDisplay,
                           OTPassword* pMasterPW = nullptr,
                           std::shared_ptr<OTCachedKey> pCachedKey =
                               std::shared_ptr<OTCachedKey>());

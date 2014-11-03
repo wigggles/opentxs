@@ -139,7 +139,7 @@
 namespace opentxs
 {
 
-class OTString;
+class String;
 class OTAccount;
 class OTLedger;
 class OTMessage;
@@ -148,7 +148,7 @@ class OTPseudonym;
 class OTAccount : public OTTransactionType
 {
     friend OTTransactionType* OTTransactionType::TransactionFactory(
-        OTString input);
+        String input);
 
 public:
     // If you add any types to this list, update the list of strings at the
@@ -170,7 +170,7 @@ public:
 
 public:
     EXPORT OTAccount(const OTIdentifier& userId, const OTIdentifier& accountId,
-                     const OTIdentifier& serverId, const OTString& name);
+                     const OTIdentifier& serverId, const String& name);
     EXPORT OTAccount(const OTIdentifier& userId, const OTIdentifier& accountId,
                      const OTIdentifier& serverId);
 
@@ -179,8 +179,8 @@ public:
     EXPORT virtual void Release();
     // overriding this so I can set filename automatically inside based on ID.
     EXPORT virtual bool LoadContract();
-    EXPORT virtual bool SaveContractWallet(OTString& contents) const;
-    EXPORT virtual bool DisplayStatistics(OTString& contents) const;
+    EXPORT virtual bool SaveContractWallet(String& contents) const;
+    EXPORT virtual bool DisplayStatistics(String& contents) const;
 
     inline void MarkForDeletion()
     {
@@ -285,8 +285,8 @@ protected:
     AccountType acctType_;
     // These are all the variables from the account file itself.
     OTIdentifier acctAssetTypeId_;
-    OTString balanceDate_;
-    OTString balanceAmount_;
+    String balanceDate_;
+    String balanceAmount_;
     // the Transaction Number of a smart contract running on cron, if this is a
     // stash account.
     int64_t stashTransNum_;

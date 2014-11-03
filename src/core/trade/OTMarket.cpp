@@ -167,12 +167,12 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     if (!strcmp("market", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
-        SetScale(OTString::StringToLong(xml->getAttributeValue("marketScale")));
+        SetScale(String::StringToLong(xml->getAttributeValue("marketScale")));
         m_lLastSalePrice =
-            OTString::StringToLong(xml->getAttributeValue("lastSalePrice"));
+            String::StringToLong(xml->getAttributeValue("lastSalePrice"));
         m_strLastSaleDate = xml->getAttributeValue("lastSaleDate");
 
-        const OTString strServerID(xml->getAttributeValue("serverID")),
+        const String strServerID(xml->getAttributeValue("serverID")),
             strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
@@ -191,12 +191,12 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (!strcmp("offer", xml->getNodeName())) {
-        const OTString strDateAdded(xml->getAttributeValue("dateAdded"));
+        const String strDateAdded(xml->getAttributeValue("dateAdded"));
         const int64_t lDateAdded =
             strDateAdded.Exists() ? strDateAdded.ToLong() : 0;
         const time64_t tDateAdded = OTTimeGetTimeFromSeconds(lDateAdded);
 
-        OTString strData;
+        String strData;
 
         if (!OTContract::LoadEncodedTextField(xml, strData) ||
             !strData.Exists()) {
@@ -239,7 +239,7 @@ void OTMarket::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const OTString SERVER_ID(m_SERVER_ID), ASSET_TYPE_ID(m_ASSET_TYPE_ID),
+    const String SERVER_ID(m_SERVER_ID), ASSET_TYPE_ID(m_ASSET_TYPE_ID),
         CURRENCY_TYPE_ID(m_CURRENCY_TYPE_ID);
 
     m_xmlUnsigned.Concatenate("<market\n version=\"%s\"\n"
@@ -260,7 +260,7 @@ void OTMarket::UpdateContents()
         OTOffer* pOffer = it.second;
         OT_ASSERT(nullptr != pOffer);
 
-        OTString strOffer(
+        String strOffer(
             *pOffer); // Extract the offer contract into string form.
         OTASCIIArmor ascOffer(strOffer); // Base64-encode that for storage.
 
@@ -277,7 +277,7 @@ void OTMarket::UpdateContents()
         OTOffer* pOffer = it.second;
         OT_ASSERT(nullptr != pOffer);
 
-        OTString strOffer(
+        String strOffer(
             *pOffer); // Extract the offer contract into string form.
         OTASCIIArmor ascOffer(strOffer); // Base64-encode that for storage.
 
@@ -350,15 +350,15 @@ bool OTMarket::GetNym_OfferList(const OTIdentifier& NYM_ID,
         const time64_t tDateAddedToMarket = pOffer->GetDateAddedToMarket();
 
         const OTIdentifier& theServerID = pOffer->GetServerID();
-        const OTString strServerID(theServerID);
+        const String strServerID(theServerID);
         const OTIdentifier& theAssetID = pOffer->GetAssetID();
-        const OTString strAssetID(theAssetID);
+        const String strAssetID(theAssetID);
         const OTIdentifier& theAssetAcctID = pTrade->GetSenderAcctID();
-        const OTString strAssetAcctID(theAssetAcctID);
+        const String strAssetAcctID(theAssetAcctID);
         const OTIdentifier& theCurrencyID = pOffer->GetCurrencyID();
-        const OTString strCurrencyID(theCurrencyID);
+        const String strCurrencyID(theCurrencyID);
         const OTIdentifier& theCurrencyAcctID = pTrade->GetCurrencyAcctID();
-        const OTString strCurrencyAcctID(theCurrencyAcctID);
+        const String strCurrencyAcctID(theCurrencyAcctID);
 
         const bool bSelling = pOffer->IsAsk();
 
@@ -828,7 +828,7 @@ bool OTMarket::LoadMarket()
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
     OTIdentifier MARKET_ID(*this);
-    OTString str_MARKET_ID(MARKET_ID);
+    String str_MARKET_ID(MARKET_ID);
 
     const char* szFoldername = OTFolders::Market().Get();
     const char* szFilename = str_MARKET_ID.Get();
@@ -861,7 +861,7 @@ bool OTMarket::SaveMarket()
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
     OTIdentifier MARKET_ID(*this);
-    OTString str_MARKET_ID(MARKET_ID);
+    String str_MARKET_ID(MARKET_ID);
 
     const char* szFoldername = OTFolders::Market().Get();
     const char* szFilename = str_MARKET_ID.Get();
@@ -903,7 +903,7 @@ bool OTMarket::SaveMarket()
 //
 void OTMarket::GetIdentifier(OTIdentifier& theIdentifier) const
 {
-    OTString strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
+    String strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
 
     int64_t lScale = GetScale();
 
@@ -1135,7 +1135,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
         theNym.SetIdentifier(FIRST_NYM_ID); // theNym is pFirstNym
 
         if (!theNym.LoadPublicKey()) {
-            OTString strNymID(FIRST_NYM_ID);
+            String strNymID(FIRST_NYM_ID);
             otErr << "Failure loading First Nym public key in OTMarket::"
                   << __FUNCTION__ << ": " << strNymID << "\n";
             theTrade.FlagForRemoval();
@@ -1152,7 +1152,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             pFirstNym = &theNym; //  <=====
         }
         else {
-            OTString strNymID(FIRST_NYM_ID);
+            String strNymID(FIRST_NYM_ID);
             otErr << "OTMarket::" << __FUNCTION__
                   << ": Failure verifying trade, offer, or nym, or loading "
                      "signed Nymfile: " << strNymID << "\n";
@@ -1176,7 +1176,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
         theOtherNym.SetIdentifier(OTHER_NYM_ID);
 
         if (!theOtherNym.LoadPublicKey()) {
-            OTString strNymID(OTHER_NYM_ID);
+            String strNymID(OTHER_NYM_ID);
             otErr << "Failure loading Other Nym public key in OTMarket::"
                   << __FUNCTION__ << ": " << strNymID << "\n";
             pOtherTrade->FlagForRemoval();
@@ -1190,7 +1190,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             pOtherNym = &theOtherNym; //  <=====
         }
         else {
-            OTString strNymID(OTHER_NYM_ID);
+            String strNymID(OTHER_NYM_ID);
             otErr << "Failure loading or verifying Other Nym public key in "
                      "OTMarket::" << __FUNCTION__ << ": " << strNymID << "\n";
             pOtherTrade->FlagForRemoval();
@@ -2004,7 +2004,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             // verified when they were first added to the market--and they have
             // been signed by the
             // server nym ever since.)
-            OTString strOrigTrade(*pOrigTrade),
+            String strOrigTrade(*pOrigTrade),
                 strOrigOtherTrade(*pOrigOtherTrade);
 
             // The reference on the transaction contains OTCronItem, in this
@@ -2036,7 +2036,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             // Lucky I just signed and saved these trades / offers above, or
             // they would
             // still have the old data in them.
-            OTString strTrade(theTrade), strOtherTrade(*pOtherTrade),
+            String strTrade(theTrade), strOtherTrade(*pOtherTrade),
                 strOffer(theOffer), strOtherOffer(theOtherOffer);
 
             // The marketReceipt ITEM's NOTE contains the UPDATED TRADE.
@@ -2659,26 +2659,26 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
 }
 
 // Make sure the offer is for the right asset type, the right currency, etc.
-bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, OTString* pReason)
+bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
 {
     bool bValidOffer = true;
-    OTString strReason("");
+    String strReason("");
 
     if (GetServerID() != theOffer.GetServerID()) {
         bValidOffer = false;
-        const OTString strID(GetServerID()), strOtherID(theOffer.GetServerID());
+        const String strID(GetServerID()), strOtherID(theOffer.GetServerID());
         strReason.Format("Wrong Server ID on offer. Expected %s, but found %s",
                          strID.Get(), strOtherID.Get());
     }
     else if (GetAssetID() != theOffer.GetAssetID()) {
         bValidOffer = false;
-        const OTString strID(GetAssetID()), strOtherID(theOffer.GetAssetID());
+        const String strID(GetAssetID()), strOtherID(theOffer.GetAssetID());
         strReason.Format("Wrong Asset ID on offer. Expected %s, but found %s",
                          strID.Get(), strOtherID.Get());
     }
     else if (GetCurrencyID() != theOffer.GetCurrencyID()) {
         bValidOffer = false;
-        const OTString strID(GetCurrencyID()),
+        const String strID(GetCurrencyID()),
             strOtherID(theOffer.GetCurrencyID());
         strReason.Format(
             "Wrong Currency ID on offer. Expected %s, but found %s",

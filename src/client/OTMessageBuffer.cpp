@@ -174,8 +174,8 @@ void OTMessageBuffer::Push(std::shared_ptr<OTMessage> theMessage)
 // necessary -- only discarding the ones where the IDs match.
 //
 std::shared_ptr<OTMessage> OTMessageBuffer::Pop(const int64_t& lRequestNum,
-                                                const OTString& strServerID,
-                                                const OTString& strNymID)
+                                                const String& strServerID,
+                                                const String& strNymID)
 {
     std::shared_ptr<OTMessage> pReturnValue;
 
