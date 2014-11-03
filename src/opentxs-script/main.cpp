@@ -1473,20 +1473,6 @@ int32_t main(int32_t argc, char* argv[])
                 pMyAccount, lAmount, nullptr, // asset contract
                 (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr);
         }
-        else if (opt->getFlag("proposepaymentplan")) {
-            otOut << "(User has instructed to propose a payment plan...)\n";
-
-            OTIdentifier HIS_NYM_ID((str_HisNym.size() > 0) ? str_HisNym.c_str()
-                                                            : "aaaaaaaa");
-            OTIdentifier HIS_ACCT_ID(
-                (str_HisAcct.size() > 0) ? str_HisAcct.c_str() : "aaaaaaaa");
-
-            OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                OTClient::proposePaymentPlan, theMessage, *pMyNym,
-                *pServerContract, pMyAccount, 0, pMyAssetContract,
-                (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr,
-                (str_HisAcct.size() > 0) ? &HIS_ACCT_ID : nullptr);
-        }
         else if (opt->getFlag("confirmpaymentplan")) {
             otOut << "(User has instructed to confirm a payment plan...)\n";
 
@@ -2155,15 +2141,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing payment plan command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-        }
-        else if (!strcmp(buf, "propose\n")) {
-            otOut << "(User has instructed to propose a payment plan...)\n";
-
-            OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                OTClient::proposePaymentPlan, theMessage, *pMyNym,
-                *pServerContract,
-                nullptr); // User owns Merchant (recipient) account
-            continue;
         }
         else if (!strcmp(buf, "confirm\n")) {
             otOut << "(User has instructed to confirm a payment plan...)\n";

@@ -294,8 +294,6 @@ public:
                        // everything up.
         writeCheque, // Write a cheque. (Actually sends no message to the server
                      // -- returns false.)
-        proposePaymentPlan, // (Merchant) Propose a payment plan. (Sends no
-                            // message to the server.)
         confirmPaymentPlan, // (Customer) Confirm a payment plan. (Sends no
                             // message to the server.)
         notarizeWithdrawal, // Request the server to withdraw from an asset
