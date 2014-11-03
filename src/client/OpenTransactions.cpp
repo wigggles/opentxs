@@ -13012,6 +13012,9 @@ int32_t OT_API::getContract(const OTIdentifier& SERVER_ID,
                             const OTIdentifier& USER_ID,
                             const OTIdentifier& ASSET_ID) const
 {
+    // Grab the server's copy of any asset contract. Input is
+    // the asset type ID.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.

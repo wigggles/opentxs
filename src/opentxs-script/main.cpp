@@ -2301,26 +2301,6 @@ int32_t main(int32_t argc, char* argv[])
                          "ProcessMessage: " << buf[0] << "\n";
 
         }
-
-        // get contract
-        else if (!strcmp(buf, "getcontract\n")) {
-            otOut << "(User has instructed to send a getContract command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getContract, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing getContract command in "
-                         "ProcessMessage: " << buf[0] << "\n";
-
-        }
         else if (!strcmp(buf, "propose\n")) {
             otOut << "(User has instructed to propose a payment plan...)\n";
 
