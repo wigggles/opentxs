@@ -292,8 +292,6 @@ public:
         // then here it can request the server to send one over. (Or several.)
         processNymbox, // Used by AcceptEntireNymbox() as it's setting
                        // everything up.
-        getMint, // Grab the server's copy of any mint based on Asset ID. (For
-                 // blinded tokens.)
         writeCheque, // Write a cheque. (Actually sends no message to the server
                      // -- returns false.)
         signContract, // Sign a contract. (Sends no message to the server.)
