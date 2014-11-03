@@ -2246,24 +2246,6 @@ int32_t main(int32_t argc, char* argv[])
 
         }
 
-        // get inbox
-        else if (buf[0] == 'i') {
-            otOut << "(User has instructed to send a getInbox command to the "
-                     "server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getInbox, theMessage, *pMyNym,
-                        *pServerContract, nullptr)) {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing getInbox command in ProcessMessage: "
-                      << buf[0] << "\n";
-
-        }
-
         // get outbox
         else if (buf[0] == 'o') {
             otOut << "(User has instructed to send a getOutbox command to "
