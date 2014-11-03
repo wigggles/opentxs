@@ -2208,24 +2208,6 @@ int32_t main(int32_t argc, char* argv[])
 
         }
 
-        // Set a Server Contract's client-side name (merely a label.)
-        else if (!strcmp(buf, "setservername\n")) {
-            otOut << "(User wants to set a Server Contract's "
-                     "client-side name...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::setServerName, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                //     bSendCommand = true; //
-                // No
-                // message needed. Local data only.
-            }
-        }
-
         // Set an Asset Contract's client-side name (merely a label.)
         else if (!strcmp(buf, "setassetname\n")) {
             otOut << "(User wants to set an Asset Contract's "

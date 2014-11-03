@@ -9204,41 +9204,6 @@ int32_t OTClient::ProcessUserCommand(
             otOut << "No Asset Contract found with that ID. Try 'load'.\n";
         }
     } break;
-    case OTClient::setServerName: // SET SERVER CONTRACT NAME (wallet label
-                                  // only)
-        {
-            OT_ASSERT(nullptr != m_pWallet);
-
-            otOut << "Please enter a Server ID: ";
-            // User input.
-            // I need a server ID
-            OTString strContractID;
-            strContractID.OTfgets(std::cin);
-
-            const OTIdentifier theTargetID(strContractID);
-
-            OTServerContract* pTargetContract =
-                m_pWallet->GetServerContract(theTargetID);
-
-            if (nullptr != pTargetContract) {
-                otOut << "Enter the new client-side \"name\" label for that "
-                         "transaction server: ";
-                // User input.
-                // I need a name
-                OTString strNewName;
-                strNewName.OTfgets(std::cin);
-
-                pTargetContract->SetName(strNewName);
-
-                m_pWallet->SaveWallet(); // Only 'cause the server's name is
-                                         // stored
-                                         // here.
-            }
-            else {
-                otOut << "No Server Contract found with that ID. Try 'load'.\n";
-            }
-        }
-        break;
     case OTClient::setNymName: // SET NYM NAME (wallet label only)
     {
         OT_ASSERT(nullptr != m_pWallet);
