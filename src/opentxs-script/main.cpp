@@ -2246,24 +2246,6 @@ int32_t main(int32_t argc, char* argv[])
 
         }
 
-        // get outbox
-        else if (buf[0] == 'o') {
-            otOut << "(User has instructed to send a getOutbox command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getOutbox, theMessage, *pMyNym,
-                        *pServerContract, nullptr)) {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing getOutbox command in "
-                         "ProcessMessage: " << buf[0] << "\n";
-
-        }
-
         // deposit cheque
         else if (buf[0] == 'q') {
             otOut << "User has instructed to deposit a cheque...\n";

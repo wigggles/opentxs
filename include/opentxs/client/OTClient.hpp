@@ -290,8 +290,6 @@ public:
         getTransactionNum, // Every transaction requires a transaction number.
                            // If your wallet doesn't have one,
         // then here it can request the server to send one over. (Or several.)
-        getOutbox, // Grab a copy of my outbox from the server so I can decide
-                   // what to do with it.
         processNymbox,       // Used by AcceptEntireNymbox() as it's setting
                              // everything up.
         processEntireNymbox, // Instruct the server what to do with the various

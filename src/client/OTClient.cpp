@@ -9172,86 +9172,6 @@ int32_t OTClient::ProcessUserCommand(
         bSendCommand = true;
         lReturnValue = lRequestNumber;
     } break;
-    case OTClient::getOutbox: // GET OUTBOX
-    {
-
-        OTString strFromAcct;
-
-        if (nullptr == pAccount) {
-            otOut << "Please enter an asset Account ID (to get its OUTBOX): ";
-            // User input.
-            // I need a from account
-            strFromAcct.OTfgets(std::cin);
-
-            if (strFromAcct.GetLength() < 2) return (-1);
-
-            const OTIdentifier ACCOUNT_ID(strFromAcct);
-
-            if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
-                pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetAssetTypeID();
-                CONTRACT_ID.GetString(strContractID);
-            }
-            else if ((pAccount = m_pWallet->GetAccountPartialMatch(
-                            strFromAcct.Get())) != nullptr) {
-                pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetAssetTypeID();
-                CONTRACT_ID.GetString(strContractID);
-            }
-            else {
-                otErr << "Unable to download outbox without account ID. Try "
-                         "adding:  --myacct ACCOUNT_ID\n";
-                return (-1);
-            }
-        }
-        else {
-            pAccount->GetIdentifier(strFromAcct);
-            CONTRACT_ID = pAccount->GetAssetTypeID();
-            CONTRACT_ID.GetString(strContractID);
-        }
-
-        if (pAccount->GetPurportedServerID() != SERVER_ID) {
-            otErr << "OTClient::ProcessUserCommand: "
-                     "pAccount->GetPurportedServerID() doesn't match "
-                     "SERVER_ID.\n(Try adding:  --server SERVER_ID)\n";
-            return (-1);
-        }
-
-        OTString strAcctID;
-        OTIdentifier theAccountID;
-
-        pAccount->GetIdentifier(theAccountID);
-        theAccountID.GetString(strAcctID);
-
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
-
-        // (1) Set up member variables
-        theMessage.m_strCommand = "getOutbox";
-        theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strServerID is
-                                               // already set. (It uses it.)
-
-        theMessage.m_strAcctID = strAcctID;
-
-        // (2) Sign the Message
-        theMessage.SignContract(theNym);
-
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
-
-        bSendCommand = true;
-        lReturnValue = lRequestNumber;
-    }
-
     /*
     bool OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE
     requestedCommand, OTMessage& theMessage, OTPseudonym& theNym,
@@ -9263,7 +9183,8 @@ int32_t OTClient::ProcessUserCommand(
     OTIdentifier * pHisNymID=nullptr,
     OTIdentifier * pHisAcctID=nullptr)
     {
-    // This is all preparatory work to get the various pieces of data together
+    // This is all preparatory work to get the various pieces of data
+    together
     -- only
     // then can we put those pieces into a message.
     OTIdentifier CONTRACT_ID;
@@ -9277,8 +9198,6 @@ int32_t OTClient::ProcessUserCommand(
     const OTIdentifier SERVER_ID(strServerID);
     */
 
-    // This is called by the command line user.
-    break;
     case OTClient::processEntireNymbox: // PROCESS ENTIRE NYMBOX
     {
         const OTIdentifier MY_NYM_ID(theNym);

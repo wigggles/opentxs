@@ -12640,6 +12640,9 @@ int32_t OT_API::getOutbox(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& USER_ID,
                           const OTIdentifier& ACCT_ID) const
 {
+    // Grab a copy of my outbox from the server so I can decide
+    // what to do with it.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
