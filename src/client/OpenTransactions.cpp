@@ -8763,6 +8763,12 @@ int32_t OT_API::issueBasket(const OTIdentifier& SERVER_ID,
                             const OTIdentifier& USER_ID,
                             const OTString& BASKET_INFO) const
 {
+    // Create a basket account, which is like an issuer
+    // account, but based on a basket of
+    // other asset types. This way, users can trade with what is apparently
+    // a single currency,
+    // when in fact the issuence is delegated and distributed across
+    // multiple issuers.
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -8775,6 +8781,22 @@ int32_t OT_API::issueBasket(const OTIdentifier& SERVER_ID,
 
     OTMessage theMessage;
     int64_t lRequestNumber = 0;
+
+    // The user signs and saves the contract, but once the server gets it,
+    // the server releases signatures and signs it, calculating the hash
+    // from the result,
+    // in order to form the ID.
+    //
+    // The result is the same as any other currency contract, but with the
+    // server's signature
+    // on it (and thus it must store the server's public key).  The server
+    // handles all
+    // transactions in and out of the basket currency based upon the rules
+    // set up by the user.
+    //
+    // The user who created the currency has no more control over it. The
+    // server reserves the
+    // right to exchange out to the various users and close the basket.
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strServerID, lRequestNumber);

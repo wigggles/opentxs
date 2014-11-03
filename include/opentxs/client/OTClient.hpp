@@ -287,12 +287,6 @@ public:
                     // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
-        issueBasket, // Create a basket account, which is like an issuer
-                     // account, but based on a basket of
-        // other asset types. This way, users can trade with what is apparently
-        // a single currency,
-        // when in fact the issuence is delegated and distributed across
-        // multiple issuers.
         getTransactionNum, // Every transaction requires a transaction number.
                            // If your wallet doesn't have one,
         // then here it can request the server to send one over. (Or several.)

@@ -2215,25 +2215,6 @@ int32_t main(int32_t argc, char* argv[])
         // EXPECT THE SERVER TO PROCESS THEM.
         // (Handled inside ProcessUserCommand)
 
-        // issue a new basket asset type
-        else if (!strcmp(buf, "basket\n")) {
-            otOut << "(User has instructed to send an issueBasket command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::issueBasket, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing issueBasket command in "
-                         "ProcessMessage: " << buf << "\n";
-
-        }
         // make an offer and put it onto a market.
         else if (!strcmp(buf, "offer\n")) {
             otOut << "(User has instructed to send a marketOffer command to "
