@@ -136,6 +136,8 @@
 
 #include <cppzmq/zmq.hpp>
 
+#include <string>
+
 namespace opentxs
 {
 
@@ -291,14 +293,10 @@ bool OTSocket_ZMQ_4::Connect()
         OT_FAIL;
     }
 
-    if (!m_strConnectPath.Exists()) {
-        OT_FAIL;
-    }
-
     if (!NewSocket(true)) return false; // NewSocket(true), Request Socket.
 
     try {
-        m_pzmq->socket_zmq->connect(m_strConnectPath.Get());
+        m_pzmq->socket_zmq->connect(connectPath_.c_str());
     }
     catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
@@ -329,17 +327,10 @@ bool OTSocket_ZMQ_4::Listen()
         OT_FAIL;
     }
 
-    if (!m_strBindingPath.Exists()) {
-        OT_FAIL;
-    }
-
     if (!NewSocket(false)) return false; // NewSocket(false), Responce Socket.
 
     try {
-        m_pzmq->socket_zmq->bind(m_strBindingPath.Get()); // since
-                                                          // m_strBindingPath
-                                                          // was checked and set
-                                                          // above.
+        m_pzmq->socket_zmq->bind(bindingPath_.c_str());
     }
     catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
@@ -350,38 +341,28 @@ bool OTSocket_ZMQ_4::Listen()
     return true;
 }
 
-bool OTSocket_ZMQ_4::Connect(const OTString& strConnectPath)
+bool OTSocket_ZMQ_4::Connect(const std::string& connectPath)
 {
-    if (!strConnectPath.Exists()) {
-        OTLog::vError("%s: Error: %s dosn't exist!\n", __FUNCTION__,
-                      "strConnectPath");
-        OT_FAIL;
-    }
-    if (5 > strConnectPath.GetLength()) {
+    if (5 > connectPath.size()) {
         OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__,
-                      "strConnectPath");
+                      "connectPath");
         OT_FAIL;
     }
 
-    m_strConnectPath = strConnectPath; // set the connection path.
+    connectPath_ = connectPath;
 
     return (Connect());
 }
 
-bool OTSocket_ZMQ_4::Listen(const OTString& strBindingPath)
+bool OTSocket_ZMQ_4::Listen(const std::string& bindingPath)
 {
-    if (!strBindingPath.Exists()) {
-        OTLog::vError("%s: Error: %s dosn't exist!\n", __FUNCTION__,
-                      "strBindingPath");
-        OT_FAIL;
-    }
-    if (5 > strBindingPath.GetLength()) {
+    if (5 > bindingPath.size()) {
         OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__,
-                      "strBindingPath");
+                      "bindingPath");
         OT_FAIL;
     }
 
-    m_strBindingPath = strBindingPath;
+    bindingPath_ = bindingPath;
 
     return (Listen());
 }
@@ -488,18 +469,16 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
 }
 
 bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope,
-                          const OTString& strConnectPath)
+                          const std::string& connectPath)
 {
-    const bool bNewPath = m_strConnectPath.Compare(strConnectPath);
-
-    if (!bNewPath) Connect(strConnectPath);
+    if (connectPath_ != connectPath) Connect(connectPath);
 
     if (!m_bConnected) OT_FAIL;
 
     return Send(ascEnvelope);
 }
 
-bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
+bool OTSocket_ZMQ_4::Receive(std::string& serverReply)
 {
     if (!m_bInitialized) {
         OT_FAIL;
@@ -591,9 +570,12 @@ bool OTSocket_ZMQ_4::Receive(OTString& strServerReply)
         }
     }
 
-    if (bSuccessReceiving && (zmq_message.size() > 0))
-        strServerReply.MemSet(static_cast<const char*>(zmq_message.data()),
-                              static_cast<uint32_t>(zmq_message.size()));
+    if (bSuccessReceiving && (zmq_message.size() > 0)) {
+        serverReply = std::string(static_cast<const char*>(zmq_message.data()),
+                                  zmq_message.size());
+        // serverReply.MemSet(static_cast<const char*>(zmq_message.data()),
+        //                       static_cast<uint32_t>(zmq_message.size()));
+    }
 
     return (bSuccessReceiving && (zmq_message.size() > 0));
 }

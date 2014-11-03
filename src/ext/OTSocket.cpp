@@ -159,8 +159,8 @@ OTSocket::OTSocket()
     , m_HasContext(false)
     , m_bConnected(false)
     , m_bListening(false)
-    , m_strConnectPath("")
-    , m_strBindingPath("")
+    , connectPath_("")
+    , bindingPath_("")
 {
 }
 

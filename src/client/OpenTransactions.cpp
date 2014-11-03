@@ -1188,7 +1188,7 @@ bool OT_API::TransportFunction(const OTServerContract& theServerContract,
                               // already made.
 
         bool bSuccessSending =
-            m_pSocket->Send(ascEnvelope, strConnectPath); // <========
+            m_pSocket->Send(ascEnvelope, strConnectPath.Get()); // <========
 
         if (!bSuccessSending) {
             otErr << __FUNCTION__
@@ -1196,16 +1196,17 @@ bool OT_API::TransportFunction(const OTServerContract& theServerContract,
                      "while trying to send message to server.";
         }
         else {
-            OTString strRawServerReply;
+            std::string rawServerReply;
             bool bSuccessReceiving =
-                m_pSocket->Receive(strRawServerReply); // <========
+                m_pSocket->Receive(rawServerReply); // <========
 
-            if (!bSuccessReceiving || !strRawServerReply.Exists()) {
+            if (!bSuccessReceiving) {
                 otErr << __FUNCTION__
                       << ": Failed trying to receive expected reply "
                          "from server.\n";
             }
             else {
+                OTString strRawServerReply(rawServerReply);
                 OTASCIIArmor ascServerReply;
                 const bool bLoaded =
                     strRawServerReply.Exists() &&

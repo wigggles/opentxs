@@ -134,6 +134,7 @@
 #define OPENTXS_EXT_SOCKET_ZMQ4_HPP
 
 #include <opentxs/ext/OTSocket.hpp>
+#include <string>
 
 namespace opentxs
 {
@@ -159,13 +160,13 @@ public:
     EXPORT bool Connect();
     EXPORT bool Listen();
 
-    EXPORT bool Connect(const OTString& strConnectPath);
-    EXPORT bool Listen(const OTString& strBindingPath);
+    EXPORT bool Connect(const std::string& connectPath);
+    EXPORT bool Listen(const std::string& bindingPath);
 
     EXPORT bool Send(const OTASCIIArmor& ascEnvelope);
     EXPORT bool Send(const OTASCIIArmor& ascEnvelope,
-                     const OTString& strConnectPath);
-    EXPORT bool Receive(OTString& strServerReply);
+                     const std::string& connectPath);
+    EXPORT bool Receive(std::string& serverReply);
 
 private:
     bool HandlePollingError();

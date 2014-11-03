@@ -134,9 +134,9 @@
 #define OPENTXS_EXT_OTSOCKET_HPP
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/OTString.hpp>
 
 #include <mutex>
+#include <string>
 
 namespace opentxs
 {
@@ -195,8 +195,8 @@ protected:
     bool m_bConnected;
     bool m_bListening;
 
-    OTString m_strConnectPath;
-    OTString m_strBindingPath;
+    std::string connectPath_;
+    std::string bindingPath_;
 
     OTASCIIArmor m_ascLastMsgSent;
 
@@ -223,13 +223,13 @@ public:
     EXPORT virtual bool Connect() = 0;
     EXPORT virtual bool Listen() = 0;
 
-    EXPORT virtual bool Connect(const OTString& strConnectPath) = 0;
-    EXPORT virtual bool Listen(const OTString& strBindingPath) = 0;
+    EXPORT virtual bool Connect(const std::string& connectPath) = 0;
+    EXPORT virtual bool Listen(const std::string& bindingPath) = 0;
 
     EXPORT virtual bool Send(const OTASCIIArmor& ascEnvelope) = 0;
     EXPORT virtual bool Send(const OTASCIIArmor& ascEnvelope,
-                             const OTString& strConnectPath) = 0;
-    EXPORT virtual bool Receive(OTString& strServerReply) = 0;
+                             const std::string& strConnectPath) = 0;
+    EXPORT virtual bool Receive(std::string& serverReply) = 0;
 };
 
 } // namespace opentxs
