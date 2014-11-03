@@ -8331,31 +8331,6 @@ int32_t OTClient::ProcessUserCommand(
 
         lReturnValue = lRequestNumber;
     } break;
-    /*
-    bool OTClient::ProcessUserCommand(OTClient::OT_CLIENT_CMD_TYPE
-    requestedCommand, OTMessage& theMessage, OTPseudonym& theNym,
-    //                                  OTAssetContract& theContract,
-    OTServerContract& theServer,
-    OTAccount * pAccount=nullptr,
-    int64_t lTransactionAmount=0,
-    OTAssetContract * pMyAssetContract=nullptr,
-    OTIdentifier * pHisNymID=nullptr,
-    OTIdentifier * pHisAcctID=nullptr)
-    {
-    // This is all preparatory work to get the various pieces of data
-    together
-    -- only
-    // then can we put those pieces into a message.
-    OTIdentifier CONTRACT_ID;
-    OTString strNymID, strContractID, strServerID, strNymPublicKey,
-    strAccountID;
-    int64_t lRequestNumber = 0;
-
-    theNym.GetIdentifier(strNymID);
-    theServer.GetIdentifier(strServerID);
-
-    const OTIdentifier SERVER_ID(strServerID);
-    */
     case OTClient::processNymbox: // PROCESS NYMBOX
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
