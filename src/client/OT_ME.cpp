@@ -188,7 +188,7 @@ typedef std::map<std::string, std::string> mapOfArguments;
 //
 int32_t OT_CLI_GetArgsCount(const std::string& str_Args)
 {
-    const OTString strArgs(str_Args);
+    const String strArgs(str_Args);
     int32_t nRetVal = 0;
     mapOfArguments map_values;
     const bool bTokenized = strArgs.TokenizeIntoKeyValuePairs(map_values);
@@ -203,7 +203,7 @@ int32_t OT_CLI_GetArgsCount(const std::string& str_Args)
 std::string OT_CLI_GetValueByKey(const std::string& str_Args,
                                  const std::string& str_key)
 {
-    const OTString strArgs(str_Args);
+    const String strArgs(str_Args);
     std::string str_retval = "";
     mapOfArguments map_values;
     const bool bTokenized = strArgs.TokenizeIntoKeyValuePairs(map_values);
@@ -223,7 +223,7 @@ std::string OT_CLI_GetValueByKey(const std::string& str_Args,
 //
 std::string OT_CLI_GetValueByIndex(const std::string& str_Args, int32_t nIndex)
 {
-    const OTString strArgs(str_Args);
+    const String strArgs(str_Args);
     std::string str_retval = "";
     mapOfArguments map_values;
     const bool bTokenized = strArgs.TokenizeIntoKeyValuePairs(map_values);
@@ -254,7 +254,7 @@ std::string OT_CLI_GetValueByIndex(const std::string& str_Args, int32_t nIndex)
 //
 std::string OT_CLI_GetKeyByIndex(const std::string& str_Args, int32_t nIndex)
 {
-    const OTString strArgs(str_Args);
+    const String strArgs(str_Args);
     std::string str_retval = "";
     mapOfArguments map_values;
     const bool bTokenized = strArgs.TokenizeIntoKeyValuePairs(map_values);
@@ -1210,7 +1210,7 @@ void OT_ME::ExecuteScript_ReturnVoid(const std::string& str_Code,
 #ifdef OT_USE_SCRIPT_CHAI
 bool OT_ME::SetupScriptObject()
 {
-    OTString strDataPath;
+    String strDataPath;
     {
         bool bGetDataPathSuccess = OTDataFolder::Get(strDataPath);
         OT_ASSERT_MSG(bGetDataPathSuccess,
@@ -2476,8 +2476,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 // (In D, this would be a nested function, but C++ doesn't support that
 // without using a nested class as a kludge.)
 //
-bool OT_ME::NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
-                            OTString& out_ScriptFilepath) const
+bool OT_ME::NewScriptExists(const String& strScriptFilename, bool bIsHeader,
+                            String& out_ScriptFilepath) const
 {
     //
     // "so $(prefix)/lib/opentxs for the headers,
@@ -2495,9 +2495,9 @@ bool OT_ME::NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
         OT_FAIL;
     }
 
-    OTString strScriptsFolder(OTPaths::ScriptsFolder()); //    /usr/local / lib
-                                                         // / opentxs  OR
-                                                         // (android) res/raw
+    String strScriptsFolder(OTPaths::ScriptsFolder()); //    /usr/local / lib
+                                                       // / opentxs  OR
+                                                       // (android) res/raw
     {
         bool bGetFolderSuccess =
             strScriptsFolder.Exists() && 3 < strScriptsFolder.GetLength();
@@ -2518,7 +2518,7 @@ bool OT_ME::NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
         return OTPaths::FileExists(out_ScriptFilepath, lFileLength);
     }
     else {
-        OTString strDataFolder(OTDataFolder::Get()), strDataScriptsFolder;
+        String strDataFolder(OTDataFolder::Get()), strDataScriptsFolder;
 
         {
             bool bGetFolderSuccess =
@@ -2546,7 +2546,7 @@ bool OT_ME::NewScriptExists(const OTString& strScriptFilename, bool bIsHeader,
         if (OTPaths::FileExists(out_ScriptFilepath, lFileLength))
             return true;
         else {
-            OTString strGlobalScriptsFolder;
+            String strGlobalScriptsFolder;
 
             {
                 bool bBuildScriptPath = OTPaths::RelativeToCanonical(
@@ -2639,7 +2639,7 @@ bool OT_ME::Register_Headers_With_Script_Chai(
 
         otWarn << "\n" << __FUNCTION__ << ": Using Script Headers:\n";
 
-        OTString strHeaderFilePath_01;
+        String strHeaderFilePath_01;
         if (NewScriptExists("ot_utility.ot", true, strHeaderFilePath_01)) {
             otWarn << " " << strHeaderFilePath_01 << "\n";
         }
@@ -2650,7 +2650,7 @@ bool OT_ME::Register_Headers_With_Script_Chai(
             return false;
         }
 
-        OTString strHeaderFilePath_02;
+        String strHeaderFilePath_02;
         if (NewScriptExists("otapi.ot", true, strHeaderFilePath_02)) {
             otWarn << " " << strHeaderFilePath_02 << "\n";
         }

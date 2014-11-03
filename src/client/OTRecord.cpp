@@ -179,7 +179,7 @@ bool OTRecord::FormatMailSubject(std::string& str_output) const
             }
             // Trim it, since there is probably a space after "Subject:"
             // (Plus we want it trimmed anyway.)
-            std::string str_contents = OTString::trim(str_temp_contents);
+            std::string str_contents = String::trim(str_temp_contents);
             // Cut the string at the first newline.
             //
             std::string::size_type pos_start = 0;
@@ -190,21 +190,21 @@ bool OTRecord::FormatMailSubject(std::string& str_output) const
             if (std::string::npos != pos) // We found a newline.
                 str_contents.erase(pos, std::string::npos);
             // Trim it again, just for good measure.
-            str_output = OTString::trim(str_contents);
+            str_output = String::trim(str_contents);
         }
     }
     return (!str_output.empty());
 }
 bool OTRecord::FormatShortMailDescription(std::string& str_output) const
 {
-    OTString strDescription;
+    String strDescription;
 
     if (IsMail()) {
         if (!HasContents())
             strDescription.Set("(empty message)");
         else {
             std::string str_temp_contents = GetContents();
-            std::string str_contents = OTString::trim(str_temp_contents);
+            std::string str_contents = String::trim(str_temp_contents);
 
             if (str_contents.compare(0, 8, "Subject:") == 0) {
                 // Make the replacement.
@@ -225,7 +225,7 @@ bool OTRecord::FormatShortMailDescription(std::string& str_output) const
             // str_contents.end(), '\n'), str_contents.end());
             //          str_contents.erase(std::remove(str_contents.begin(),
             // str_contents.end(), '\r'), str_contents.end());
-            strDescription.Format("%s%s", OTString::trim(str_contents).c_str(),
+            strDescription.Format("%s%s", String::trim(str_contents).c_str(),
                                   bTruncated ? "..." : "");
         }
     }
@@ -234,7 +234,7 @@ bool OTRecord::FormatShortMailDescription(std::string& str_output) const
 }
 bool OTRecord::FormatDescription(std::string& str_output) const
 {
-    OTString strDescription, strStatus, strKind;
+    String strDescription, strStatus, strKind;
 
     if (IsRecord()) {
         if (IsExpired())
@@ -277,7 +277,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                                      ? "incoming "
                                      : (IsReceipt() ? "" : "received "));
     }
-    OTString strTransNumForDisplay;
+    String strTransNumForDisplay;
 
     if (!IsCash())
         strTransNumForDisplay.Format(" #%" PRId64, GetTransNumForDisplay());
@@ -433,7 +433,7 @@ bool OTRecord::HasInitialPayment() const
     if (!IsPaymentPlan()) return false;
 
     OTPaymentPlan thePlan;
-    const OTString strPlan(GetContents().c_str());
+    const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasInitialPayment())
         return true;
@@ -445,7 +445,7 @@ bool OTRecord::HasPaymentPlan() const
     if (!IsPaymentPlan()) return false;
 
     OTPaymentPlan thePlan;
-    const OTString strPlan(GetContents().c_str());
+    const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
         return true;
@@ -457,7 +457,7 @@ time64_t OTRecord::GetInitialPaymentDate() const
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
     OTPaymentPlan thePlan;
-    const OTString strPlan(GetContents().c_str());
+    const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasInitialPayment())
         return thePlan.GetInitialPaymentDate();
@@ -469,7 +469,7 @@ int64_t OTRecord::GetInitialPaymentAmount() const
     if (!IsPaymentPlan()) return 0;
 
     OTPaymentPlan thePlan;
-    const OTString strPlan(GetContents().c_str());
+    const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasInitialPayment())
         return thePlan.GetInitialPaymentAmount();
@@ -481,7 +481,7 @@ time64_t OTRecord::GetPaymentPlanStartDate() const
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
     OTPaymentPlan thePlan;
-    const OTString strPlan(GetContents().c_str());
+    const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
         return thePlan.GetPaymentPlanStartDate();
@@ -493,7 +493,7 @@ time64_t OTRecord::GetTimeBetweenPayments() const
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
     OTPaymentPlan thePlan;
-    const OTString strPlan(GetContents().c_str());
+    const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
         return thePlan.GetTimeBetweenPayments();
@@ -505,7 +505,7 @@ int64_t OTRecord::GetPaymentPlanAmount() const
     if (!IsPaymentPlan()) return 0;
 
     OTPaymentPlan thePlan;
-    const OTString strPlan(GetContents().c_str());
+    const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
         return thePlan.GetPaymentPlanAmount();
@@ -517,7 +517,7 @@ int32_t OTRecord::GetMaximumNoPayments() const
     if (!IsPaymentPlan()) return 0;
 
     OTPaymentPlan thePlan;
-    const OTString strPlan(GetContents().c_str());
+    const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
         return thePlan.GetMaximumNoPayments();
@@ -833,7 +833,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
         }
         // Accept it.
         //
-        OTString strIndices;
+        String strIndices;
         strIndices.Format("%d", nIndex);
         const std::string str_indices(strIndices.Get());
 
@@ -898,7 +898,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
         }
         // Accept it.
         //
-        OTString strIndices;
+        String strIndices;
         strIndices.Format("%d", nIndex);
         const std::string str_indices(strIndices.Get());
 
@@ -964,7 +964,7 @@ bool OTRecord::DiscardIncoming() const
         }
         // Accept it.
         //
-        OTString strIndices;
+        String strIndices;
         strIndices.Format("%d", nIndex);
         const std::string str_indices(strIndices.Get());
 
@@ -1055,7 +1055,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can
                           << "\n";
                     return false;
                 }
-                OTString strPayment(strOutpayment);
+                String strPayment(strOutpayment);
                 OTPayment thePayment(strPayment);
 
                 if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
@@ -1070,7 +1070,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can
                 if (0 == lTransNum) // Found it.
                 {
                     int32_t lIndex = GetBoxIndex();
-                    OTString strIndices;
+                    String strIndices;
                     strIndices.Format("%d", lIndex);
                     const std::string str_indices(strIndices.Get());
                     OT_ME madeEasy;
@@ -1109,7 +1109,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can
                       << nIndex << "\n";
                 return false;
             }
-            OTString strPayment(strOutpayment);
+            String strPayment(strOutpayment);
             OTPayment thePayment(strPayment);
 
             if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
@@ -1121,7 +1121,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can
             thePayment.GetOpeningNum(lTransNum, theNymID);
             if (lTransNum == m_lTransactionNum) // Found it.
             {
-                OTString strIndices;
+                String strIndices;
                 strIndices.Format("%d", nIndex);
                 const std::string str_indices(strIndices.Get());
                 OT_ME madeEasy;
@@ -1335,7 +1335,7 @@ void OTRecord::SetContents(const std::string& str_contents)
     m_str_contents = str_contents;
 
     if (!m_str_contents.empty() && (OTRecord::Instrument == GetRecordType())) {
-        OTString strPayment(m_str_contents);
+        String strPayment(m_str_contents);
         OTPayment thePayment(strPayment);
 
         if (thePayment.IsValid() && thePayment.SetTempValues()) {

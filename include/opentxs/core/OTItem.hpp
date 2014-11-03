@@ -163,7 +163,7 @@ private: // Private prevents erroneous use by other classes.
     typedef OTTransactionType ot_super;
 
     friend OTTransactionType* OTTransactionType::TransactionFactory(
-        OTString strInput);
+        String strInput);
 
 public:
     enum itemType {
@@ -480,10 +480,10 @@ public:
     {
         m_lAmount = lAmount;
     }
-    EXPORT void GetNote(OTString& theStr) const;
-    EXPORT void SetNote(const OTString& theStr);
-    EXPORT void GetAttachment(OTString& theStr) const;
-    EXPORT void SetAttachment(const OTString& theStr);
+    EXPORT void GetNote(String& theStr) const;
+    EXPORT void SetNote(const String& theStr);
+    EXPORT void GetAttachment(String& theStr) const;
+    EXPORT void SetAttachment(const String& theStr);
     inline const OTIdentifier& GetDestinationAcctID() const
     {
         return m_AcctToID;
@@ -492,7 +492,7 @@ public:
     {
         m_AcctToID = theID;
     }
-    EXPORT static OTItem* CreateItemFromString(const OTString& strItem,
+    EXPORT static OTItem* CreateItemFromString(const String& strItem,
                                                const OTIdentifier& theServerID,
                                                int64_t lTransactionNumber);
 
@@ -500,8 +500,8 @@ public:
         const OTTransaction& theOwner, OTItem::itemType theType,
         const OTIdentifier* pDestinationAcctID = nullptr);
     EXPORT static void GetStringFromType(OTItem::itemType theType,
-                                         OTString& strType);
-    inline void GetTypeString(OTString& strType) const
+                                         String& strType);
+    inline void GetTypeString(String& strType) const
     {
         GetStringFromType(GetType(), strType);
     }
@@ -520,7 +520,7 @@ public:
     void InitItem();
 
 private:
-    OTItem::itemType GetItemTypeFromString(const OTString& strType);
+    OTItem::itemType GetItemTypeFromString(const String& strType);
 };
 
 } // namespace opentxs

@@ -188,7 +188,7 @@ int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // As I do in the case of OTAccount.
     if (retval != 0) return retval;
 
-    OTString nodeName(xml->getNodeName());
+    String nodeName(xml->getNodeName());
     if (nodeName.Compare("keyCredential")) {
         m_strNymID = xml->getAttributeValue("nymID");
         m_strMasterCredID = xml->getAttributeValue("masterCredentialID");

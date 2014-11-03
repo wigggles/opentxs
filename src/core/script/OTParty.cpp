@@ -187,7 +187,7 @@ int32_t OTParty::GetAccountCount(std::string str_agent_name) const
         OT_ASSERT_MSG(nullptr != pAcct,
                       "Unexpected nullptr partyaccount pointer in party map.");
 
-        const OTString& strAgentName = pAcct->GetAgentName();
+        const String& strAgentName = pAcct->GetAgentName();
 
         if (strAgentName.Compare(str_agent_name.c_str())) nCount++;
     }
@@ -235,7 +235,7 @@ OTParty::OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
     m_pstr_party_name = new std::string(szName != nullptr ? szName : "");
 
     if (bCreateAgent) {
-        const OTString strName(m_str_authorizing_agent.c_str()), strNymID(""),
+        const String strName(m_str_authorizing_agent.c_str()), strNymID(""),
             strRoleID(""), strGroupName("");
         OTAgent* pAgent =
             new OTAgent(true /*bNymRepresentsSelf*/, true /*bIsAnIndividual*/,
@@ -268,7 +268,7 @@ OTParty::OTParty(std::string str_PartyName,
     // for this Nym automatically (that's why it was passed in.)
     // This code won't compile until you do.  :-)
 
-    OTString strNymID;
+    String strNymID;
     theNym.GetIdentifier(strNymID);
     m_str_owner_id = strNymID.Get();
 
@@ -339,9 +339,8 @@ bool OTParty::AddAgent(OTAgent& theAgent)
     return false;
 }
 
-bool OTParty::AddAccount(const OTString& strAgentName, const OTString& strName,
-                         const OTString& strAcctID,
-                         const OTString& strAssetTypeID,
+bool OTParty::AddAccount(const String& strAgentName, const String& strName,
+                         const String& strAcctID, const String& strAssetTypeID,
                          int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
@@ -356,7 +355,7 @@ bool OTParty::AddAccount(const OTString& strAgentName, const OTString& strName,
     return true;
 }
 
-bool OTParty::AddAccount(const OTString& strAgentName, const char* szAcctName,
+bool OTParty::AddAccount(const String& strAgentName, const char* szAcctName,
                          OTAccount& theAccount, int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
@@ -965,9 +964,9 @@ bool OTParty::VerifyOwnershipOfAccount(const OTAccount& theAccount) const
 // This is only for SmartContracts, NOT all scriptables.
 //
 bool OTParty::DropFinalReceiptToInboxes(
-    mapOfNyms* pNymMap, const OTString& strServerID, OTPseudonym& theServerNym,
-    const int64_t& lNewTransactionNumber, const OTString& strOrigCronItem,
-    OTString* pstrNote, OTString* pstrAttachment)
+    mapOfNyms* pNymMap, const String& strServerID, OTPseudonym& theServerNym,
+    const int64_t& lNewTransactionNumber, const String& strOrigCronItem,
+    String* pstrNote, String* pstrAttachment)
 {
     bool bSuccess = true; // Success is defined as "all inboxes were notified"
     const char* szFunc = "OTParty::DropFinalReceiptToInboxes";
@@ -1012,9 +1011,9 @@ bool OTParty::DropFinalReceiptToInboxes(
 // This is only for SmartContracts, NOT all scriptables.
 //
 bool OTParty::DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
-                                         const OTString& strOrigCronItem,
-                                         OTString* pstrNote,
-                                         OTString* pstrAttachment,
+                                         const String& strOrigCronItem,
+                                         String* pstrNote,
+                                         String* pstrAttachment,
                                          OTPseudonym* pActualNym)
 {
     bool bSuccess =
@@ -1057,9 +1056,8 @@ bool OTParty::DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
 bool OTParty::SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
                                 const OTIdentifier& theServerID,
                                 const int64_t& lNewTransactionNumber,
-                                const OTString& strReference,
-                                OTString* pstrNote, OTString* pstrAttachment,
-                                OTPseudonym* pActualNym)
+                                const String& strReference, String* pstrNote,
+                                String* pstrAttachment, OTPseudonym* pActualNym)
 {
     bool bSuccess =
         false; // Success is defined as "at least one agent was notified"
@@ -1092,7 +1090,7 @@ bool OTParty::SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
 }
 
 bool OTParty::LoadAndVerifyAssetAccounts(
-    OTPseudonym& theServerNym, const OTString& strServerID,
+    OTPseudonym& theServerNym, const String& strServerID,
     mapOfAccounts& map_Accts_Already_Loaded, mapOfAccounts& map_NewlyLoaded)
 {
     std::set<std::string> theAcctIDSet; // Make sure all the acct IDs are
@@ -1106,7 +1104,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         bool bHadToLoadtheAcctMyself = true;
         OTAccount* pAccount = nullptr;
 
-        const OTString& strAcctID = pPartyAcct->GetAcctID();
+        const String& strAcctID = pPartyAcct->GetAcctID();
 
         if (!strAcctID.Exists()) {
             otOut << "OTParty::LoadAndVerifyAssetAccounts: Bad: Acct ID is "
@@ -1228,7 +1226,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
         &bGotPartyNymID); // str_owner_id  is the NymID of the party OWNER.
     OT_ASSERT(bGotPartyNymID);
 
-    const OTString strServerNymID(theServerNym);
+    const String strServerNymID(theServerNym);
 
     for (auto& it_agent : m_mapAgents) {
         OTAgent* pAgent = it_agent.second;
@@ -1245,7 +1243,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
 
         OTIdentifier theNymID;
         bool bGotAgentNymID = pAgent->GetNymID(theNymID);
-        const OTString strNymID(theNymID);
+        const String strNymID(theNymID);
         const std::string str_agent_id =
             bGotAgentNymID ? strNymID.Get()
                            : ""; // str_agent_id is the NymID of the AGENT.
@@ -1368,7 +1366,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
 // internal pointers to them available.
 //
 bool OTParty::VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
-                                            const OTString& strServerID,
+                                            const String& strServerID,
                                             bool bBurnTransNo)
 {
     OT_ASSERT(nullptr != m_pOwnerAgreement);
@@ -1446,7 +1444,7 @@ bool OTParty::SignContract(OTContract& theInput) const
 // harvest the closing trans#s.
 // Calls OTAgent::HarvestTransactionNumber
 //
-void OTParty::HarvestClosingNumbers(const OTString& strServerID, bool bSave,
+void OTParty::HarvestClosingNumbers(const String& strServerID, bool bSave,
                                     OTPseudonym* pSignerNym)
 {
 
@@ -1482,7 +1480,7 @@ void OTParty::HarvestClosingNumbers(const OTString& strServerID, bool bSave,
 // Calls OTAgent::HarvestTransactionNumber
 //
 void OTParty::HarvestClosingNumbers(OTAgent& theAgent,
-                                    const OTString& strServerID)
+                                    const String& strServerID)
 {
     for (auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
@@ -1515,7 +1513,7 @@ void OTParty::HarvestClosingNumbers(OTAgent& theAgent,
 // If he is NOT one of my agents, then do nothing.
 //
 void OTParty::HarvestClosingNumbers(OTPseudonym& theNym,
-                                    const OTString& strServerID)
+                                    const String& strServerID)
 {
     OTAgent* pAgent = nullptr;
 
@@ -1531,7 +1529,7 @@ void OTParty::HarvestClosingNumbers(OTPseudonym& theNym,
 // If he is NOT one of my agents, then do nothing.
 //
 void OTParty::HarvestOpeningNumber(OTPseudonym& theNym,
-                                   const OTString& strServerID)
+                                   const String& strServerID)
 {
     OTAgent* pAgent = nullptr;
 
@@ -1545,8 +1543,7 @@ void OTParty::HarvestOpeningNumber(OTPseudonym& theNym,
 // Done
 // Calls OTAgent::HarvestTransactionNumber
 //
-void OTParty::HarvestOpeningNumber(OTAgent& theAgent,
-                                   const OTString& strServerID)
+void OTParty::HarvestOpeningNumber(OTAgent& theAgent, const String& strServerID)
 {
     if (!(GetAuthorizingAgentName().compare(theAgent.GetName().Get()) == 0))
         otErr << "OTParty::" << __FUNCTION__
@@ -1565,7 +1562,7 @@ void OTParty::HarvestOpeningNumber(OTAgent& theAgent,
 
 // Done.
 // The function below me, calls the one above.
-void OTParty::HarvestOpeningNumber(const OTString& strServerID)
+void OTParty::HarvestOpeningNumber(const String& strServerID)
 {
     if (GetAuthorizingAgentName().size() <= 0) {
         otErr << "OTParty::" << __FUNCTION__
@@ -1584,7 +1581,7 @@ void OTParty::HarvestOpeningNumber(const OTString& strServerID)
 }
 
 // Done
-void OTParty::HarvestAllTransactionNumbers(const OTString& strServerID)
+void OTParty::HarvestAllTransactionNumbers(const String& strServerID)
 {
     HarvestOpeningNumber(strServerID);
     HarvestClosingNumbers(strServerID);
@@ -1592,7 +1589,7 @@ void OTParty::HarvestAllTransactionNumbers(const OTString& strServerID)
 
 // Calls OTAgent::RemoveIssuedNumber (above)
 //
-void OTParty::CloseoutOpeningNumber(const OTString& strServerID, bool bSave,
+void OTParty::CloseoutOpeningNumber(const String& strServerID, bool bSave,
                                     OTPseudonym* pSignerNym)
 {
     if (GetAuthorizingAgentName().size() <= 0) {
@@ -1628,7 +1625,7 @@ void OTParty::CloseoutOpeningNumber(const OTString& strServerID, bool bSave,
 // to reserve
 // those. Client-side.
 //
-bool OTParty::ReserveTransNumsForConfirm(const OTString& strServerID)
+bool OTParty::ReserveTransNumsForConfirm(const String& strServerID)
 {
 
     // RESERVE THE OPENING TRANSACTION NUMBER, LOCATED ON THE AUTHORIZING AGENT
@@ -1728,7 +1725,7 @@ bool OTParty::ReserveTransNumsForConfirm(const OTString& strServerID)
     return true;
 }
 
-void OTParty::Serialize(OTString& strAppend, bool bCalculatingID,
+void OTParty::Serialize(String& strAppend, bool bCalculatingID,
                         bool bSpecifyAssetID, bool bSpecifyParties) const
 {
     strAppend.Concatenate(

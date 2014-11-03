@@ -165,10 +165,10 @@ public:
 
     EXPORT void Release_AcctList();
 
-    EXPORT void Serialize(OTString& append) const;
+    EXPORT void Serialize(String& append) const;
     EXPORT int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                   const OTString& acctType,
-                                   const OTString& acctCount);
+                                   const String& acctType,
+                                   const String& acctCount);
 
     void SetType(OTAccount::AccountType acctType)
     {
@@ -188,7 +188,7 @@ private:
 private:
     OTAccount::AccountType acctType_;
     // AcctIDs as second mapped by ASSET TYPE ID as first.
-    OTString::Map mapAcctIDs_;
+    String::Map mapAcctIDs_;
     // If someone calls GetOrCreateAccount(), we pass them a shared pointer. We
     // store the weak pointer here only to make sure accounts don't get loaded
     // twice.

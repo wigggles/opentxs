@@ -144,24 +144,24 @@ private: // Private prevents erroneous use by other classes.
     typedef OTContract ot_super;
 
 protected:
-    OTString m_strSignedFilePayload; // This class exists to wrap another and
-                                     // save it in signed form.
+    String m_strSignedFilePayload; // This class exists to wrap another and
+                                   // save it in signed form.
     // The "payload" (the wrapped contents) are stored in this member.
 
-    OTString m_strLocalDir; // The local subdirectory where the file is, such as
-                            // "nyms" or "certs"
-    OTString m_strSignedFilename; // The file stores its own name. Later, when
-                                  // loading it back up, you can
+    String m_strLocalDir; // The local subdirectory where the file is, such as
+                          // "nyms" or "certs"
+    String m_strSignedFilename; // The file stores its own name. Later, when
+                                // loading it back up, you can
     // see that the name matches internally, and that the signature matches,
     // therefore, no one has switched the file or meddled with its contents.
 
-    OTString m_strPurportedLocalDir; // This is the subdirectory according to
-                                     // the file.
-    OTString m_strPurportedFilename; // This is the filename according to the
-                                     // file.
+    String m_strPurportedLocalDir; // This is the subdirectory according to
+                                   // the file.
+    String m_strPurportedFilename; // This is the filename according to the
+                                   // file.
 
-    OTString m_strSignerNymID; // Optional. Here in case you ever
-                               // want to use it.
+    String m_strSignerNymID; // Optional. Here in case you ever
+                             // want to use it.
 
     // THOUGHT: What if someone switched the file for an older version of
     // itself? Seems to me that he could
@@ -184,8 +184,8 @@ public:
     // or at least one of the constructors that uses it.
     //
     EXPORT OTSignedFile();
-    OTSignedFile(const OTString& LOCAL_SUBDIR, const OTString& FILE_NAME);
-    OTSignedFile(const char* LOCAL_SUBDIR, const OTString& FILE_NAME);
+    OTSignedFile(const String& LOCAL_SUBDIR, const String& FILE_NAME);
+    OTSignedFile(const char* LOCAL_SUBDIR, const String& FILE_NAME);
     EXPORT OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME);
     EXPORT bool LoadFile();
     EXPORT bool SaveFile();
@@ -193,11 +193,11 @@ public:
                        // matches purported subdir/file.
     // (You should still verify the signature on it as well, if you are doing
     // this.)
-    void SetFilename(const OTString& LOCAL_SUBDIR, const OTString& FILE_NAME);
-    EXPORT OTString& GetFilePayload();
-    EXPORT void SetFilePayload(const OTString& strArg);
-    EXPORT OTString& GetSignerNymID();
-    EXPORT void SetSignerNymID(const OTString& strArg);
+    void SetFilename(const String& LOCAL_SUBDIR, const String& FILE_NAME);
+    EXPORT String& GetFilePayload();
+    EXPORT void SetFilePayload(const String& strArg);
+    EXPORT String& GetSignerNymID();
+    EXPORT void SetSignerNymID(const String& strArg);
     EXPORT virtual ~OTSignedFile();
     virtual void Release();
     void Release_SignedFile();

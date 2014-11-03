@@ -144,7 +144,7 @@ class Mint;
 class OTNym_or_SymmetricKey;
 class OTPseudonym;
 class Purse;
-class OTString;
+class String;
 
 typedef std::map<int32_t, OTASCIIArmor*> mapOfPrototokens;
 
@@ -284,16 +284,16 @@ public:
     // which
     // OTToken subclass we're dealing with.
     //
-    EXPORT static Token* TokenFactory(OTString strInput);
-    EXPORT static Token* TokenFactory(OTString strInput, const Purse& thePurse);
-    EXPORT static Token* TokenFactory(OTString strInput,
+    EXPORT static Token* TokenFactory(String strInput);
+    EXPORT static Token* TokenFactory(String strInput, const Purse& thePurse);
+    EXPORT static Token* TokenFactory(String strInput,
                                       const OTIdentifier& SERVER_ID,
                                       const OTIdentifier& ASSET_ID);
     EXPORT static Token* LowLevelInstantiate(const Purse& thePurse);
-    EXPORT static Token* LowLevelInstantiate(const OTString& strFirstLine);
-    EXPORT static Token* LowLevelInstantiate(const OTString& strFirstLine,
+    EXPORT static Token* LowLevelInstantiate(const String& strFirstLine);
+    EXPORT static Token* LowLevelInstantiate(const String& strFirstLine,
                                              const Purse& thePurse);
-    EXPORT static Token* LowLevelInstantiate(const OTString& strFirstLine,
+    EXPORT static Token* LowLevelInstantiate(const String& strFirstLine,
                                              const OTIdentifier& SERVER_ID,
                                              const OTIdentifier& ASSET_ID);
     EXPORT virtual ~Token();
@@ -336,13 +336,13 @@ public:
     }
 
     EXPORT bool GetSpendableString(OTNym_or_SymmetricKey theOwner,
-                                   OTString& theString) const; // todo
-                                                               // potentially
-                                                               // return
-                                                               // OTPassword
-                                                               // here instead
-                                                               // of OTString
-                                                               // (more secure.)
+                                   String& theString) const; // todo
+                                                             // potentially
+                                                             // return
+                                                             // OTPassword
+                                                             // here instead
+                                                             // of OTString
+                                                             // (more secure.)
 
     inline Token::tokenState GetState() const
     {
@@ -384,10 +384,10 @@ public:
     // Lucre step 5: token verifies when it is redeemed by merchant.
     //                 Now including spent token database!
     EXPORT bool VerifyToken(OTPseudonym& theNotary, Mint& theMint);
-    EXPORT bool IsTokenAlreadySpent(OTString& theCleartextToken); // Spent Token
-                                                                  // Database
-    EXPORT bool RecordTokenAsSpent(OTString& theCleartextToken);  // Spent Token
-                                                                  // Database
+    EXPORT bool IsTokenAlreadySpent(String& theCleartextToken); // Spent Token
+                                                                // Database
+    EXPORT bool RecordTokenAsSpent(String& theCleartextToken);  // Spent Token
+                                                                // Database
     EXPORT void SetSignature(const OTASCIIArmor& theSignature,
                              int32_t nTokenIndex);
     EXPORT bool GetSignature(OTASCIIArmor& theSignature) const;

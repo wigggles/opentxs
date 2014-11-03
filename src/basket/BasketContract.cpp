@@ -153,7 +153,7 @@ BasketContract::BasketContract(Basket& theBasket, OTPseudonym& theSigner)
     // Grab a string copy of the basket information.
     theBasket.SaveContractRaw(m_strBasketInfo);
 
-    OTString strTemplate;
+    String strTemplate;
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
@@ -208,7 +208,7 @@ int32_t BasketContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     if (nReturnVal == 1 || nReturnVal == (-1)) return nReturnVal;
 
-    OTString strNodeName(xml->getNodeName());
+    String strNodeName(xml->getNodeName());
 
     if (strNodeName.Compare("basketContract")) {
         m_strVersion = xml->getAttributeValue("version");

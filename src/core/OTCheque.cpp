@@ -148,7 +148,7 @@ namespace opentxs
 
 void OTCheque::UpdateContents()
 {
-    OTString ASSET_TYPE_ID(GetAssetID()), SERVER_ID(GetServerID()),
+    String ASSET_TYPE_ID(GetAssetID()), SERVER_ID(GetServerID()),
         SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
         RECIPIENT_USER_ID(GetRecipientUserID()),
         REMITTER_USER_ID(GetRemitterUserID()),
@@ -211,25 +211,25 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (!strcmp("cheque", xml->getNodeName())) {
-        OTString strHasRecipient = xml->getAttributeValue("hasRecipient");
+        String strHasRecipient = xml->getAttributeValue("hasRecipient");
         m_bHasRecipient = strHasRecipient.Compare("true");
 
-        OTString strHasRemitter = xml->getAttributeValue("hasRemitter");
+        String strHasRemitter = xml->getAttributeValue("hasRemitter");
         m_bHasRemitter = strHasRemitter.Compare("true");
 
         m_strVersion = xml->getAttributeValue("version");
-        m_lAmount = OTString::StringToLong(xml->getAttributeValue("amount"));
+        m_lAmount = String::StringToLong(xml->getAttributeValue("amount"));
 
         SetTransactionNum(
-            OTString::StringToLong(xml->getAttributeValue("transactionNum")));
+            String::StringToLong(xml->getAttributeValue("transactionNum")));
 
-        const OTString str_valid_from = xml->getAttributeValue("validFrom");
-        const OTString str_valid_to = xml->getAttributeValue("validTo");
+        const String str_valid_from = xml->getAttributeValue("validFrom");
+        const String str_valid_to = xml->getAttributeValue("validTo");
 
         SetValidFrom(OTTimeGetTimeFromSeconds(str_valid_from.ToLong()));
         SetValidTo(OTTimeGetTimeFromSeconds(str_valid_to.ToLong()));
 
-        OTString strAssetTypeID(xml->getAttributeValue("assetTypeID")),
+        String strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strServerID(xml->getAttributeValue("serverID")),
             strSenderAcctID(xml->getAttributeValue("senderAcctID")),
             strSenderUserID(xml->getAttributeValue("senderUserID")),
@@ -331,7 +331,7 @@ bool OTCheque::IssueCheque(
     const OTIdentifier& SENDER_USER_ID, // This ID must match the user ID on the
                                         // asset account,
     // AND must verify the cheque signature with that user's key.
-    const OTString& strMemo,                // Optional memo field.
+    const String& strMemo,                  // Optional memo field.
     const OTIdentifier* pRECIPIENT_USER_ID) // Recipient optional.
                                             // (Might be a blank
                                             // cheque.)

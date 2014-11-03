@@ -200,7 +200,7 @@ bool OTAgent::VerifySignature(const OTContract& theContract) const
     //    }
     //    else
     if (nullptr == m_pNym) {
-        OTString strTemp(theContract);
+        String strTemp(theContract);
         otErr << "OTAgent::VerifySignature: Attempted to verify signature on "
                  "contract, "
                  "but no Nym had ever been loaded for this agent:\n\n"
@@ -233,7 +233,7 @@ OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
         pNym->SetIdentifier(theAgentNymID);
 
         if (!pNym->LoadPublicKey()) {
-            OTString strNymID(theAgentNymID);
+            String strNymID(theAgentNymID);
             otErr << "OTAgent::LoadNym: Failure loading "
                      "agent's public key:\n" << strNymID << "\n";
             delete pNym;
@@ -249,7 +249,7 @@ OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
                          // to call ClearTemporaryPointers().
         }
         else {
-            OTString strNymID(theAgentNymID);
+            String strNymID(theAgentNymID);
             otErr << "OTAgent::LoadNym: Failure verifying agent's public key "
                      "or loading signed nymfile: " << strNymID << "\n";
             delete pNym;
@@ -272,8 +272,8 @@ OTAgent::OTAgent()
 }
 
 OTAgent::OTAgent(bool bNymRepresentsSelf, bool bIsAnIndividual,
-                 const OTString& strName, const OTString& strNymID,
-                 const OTString& strRoleID, const OTString& strGroupName)
+                 const String& strName, const String& strNymID,
+                 const String& strRoleID, const String& strGroupName)
     : m_bNymRepresentsSelf(bNymRepresentsSelf)
     , m_bIsAnIndividual(bIsAnIndividual)
     , m_pNym(nullptr)
@@ -608,7 +608,7 @@ bool OTAgent::GetEntityID(OTIdentifier& theOutput) const
         std::string str_entity_id = m_pForParty->GetEntityID(&bSuccessEntityID);
 
         if (bSuccessEntityID && (str_entity_id.size() > 0)) {
-            OTString strEntityID(str_entity_id.c_str());
+            String strEntityID(str_entity_id.c_str());
             theOutput.SetString(strEntityID);
 
             return true;
@@ -647,7 +647,7 @@ int32_t OTAgent::GetCountAuthorizedAccts()
 // For when the agent is a voting group:
 // If !IsGroup() aka IsIndividual(), then this will return false.
 //
-bool OTAgent::GetGroupName(OTString& strGroupName)
+bool OTAgent::GetGroupName(String& strGroupName)
 {
     if (IsAGroup()) {
         strGroupName.Set(m_strGroupName);
@@ -715,11 +715,10 @@ bool OTAgent::VerifyAgencyOfAccount(const OTAccount& theAccount) const
 }
 
 bool OTAgent::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap, const OTString& strServerID, OTPseudonym& theServerNym,
+    mapOfNyms* pNymMap, const String& strServerID, OTPseudonym& theServerNym,
     OTSmartContract& theSmartContract, const OTIdentifier& theAccountID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
-    const OTString& strOrigCronItem, OTString* pstrNote,
-    OTString* pstrAttachment)
+    const String& strOrigCronItem, String* pstrNote, String* pstrAttachment)
 {
     // TODO: When entites and ROLES are added, this function may change a bit to
     // accommodate them.
@@ -742,7 +741,7 @@ bool OTAgent::DropFinalReceiptToInbox(
         // ours.
         //
         if (nullptr != pNymMap) {
-            const OTString strNymID(theAgentNymID);
+            const String strNymID(theAgentNymID);
             OT_ASSERT(strNymID.Exists());
 
             auto ittt = pNymMap->find(strNymID.Get());
@@ -809,8 +808,7 @@ bool OTAgent::DropFinalReceiptToInbox(
 
 bool OTAgent::DropFinalReceiptToNymbox(
     OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
-    const OTString& strOrigCronItem, OTString* pstrNote,
-    OTString* pstrAttachment,
+    const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
     OTPseudonym* pActualNym) // IF the Nym was already loaded, then I
                              // HAD to pass it here. But it may not be
                              // here. Also: It may not be the right
@@ -844,7 +842,7 @@ bool OTAgent::DropServerNoticeToNymbox(
                       // it FAILS to activate.
     OTPseudonym& theServerNym, const OTIdentifier& theServerID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
-    const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
+    const String& strReference, String* pstrNote, String* pstrAttachment,
     OTPseudonym* pActualNym)
 {
     OTIdentifier theAgentNymID;
@@ -890,7 +888,7 @@ bool OTAgent::SignContract(OTContract& theInput) const
 }
 
 bool OTAgent::VerifyIssuedNumber(const int64_t& lNumber,
-                                 const OTString& strServerID)
+                                 const String& strServerID)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -909,7 +907,7 @@ bool OTAgent::VerifyIssuedNumber(const int64_t& lNumber,
 }
 
 bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
-                                      const OTString& strServerID)
+                                      const String& strServerID)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -931,7 +929,7 @@ bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
 // ASSUMES m_pNym is set already -- doesn't bother loading the nym!
 //
 bool OTAgent::HarvestTransactionNumber(
-    const int64_t& lNumber, const OTString& strServerID,
+    const int64_t& lNumber, const String& strServerID,
     bool bSave, // Each agent's nym is used if pSignerNym is nullptr,
                 // whereas the server
     OTPseudonym* pSignerNym) // uses this optional arg to substitute
@@ -1004,7 +1002,7 @@ bool OTAgent::HarvestTransactionNumber(
 // keeps track of (for opening AND closing numbers.)
 //
 bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
-                                      const OTString& strServerID,
+                                      const String& strServerID,
                                       OTPseudonym& SIGNER_NYM, bool bSave)
 {
     // Todo: this function may change when entities / roles are added.
@@ -1049,7 +1047,7 @@ bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
 // keeps track of (for opening AND closing numbers.)
 //
 bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
-                                 const OTString& strServerID, bool bSave,
+                                 const String& strServerID, bool bSave,
                                  OTPseudonym* pSignerNym)
 {
     // Todo: this function may change when entities / roles are added.
@@ -1099,7 +1097,7 @@ bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
 }
 
 // Done
-bool OTAgent::ReserveClosingTransNum(const OTString& strServerID,
+bool OTAgent::ReserveClosingTransNum(const String& strServerID,
                                      OTPartyAccount& thePartyAcct)
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
@@ -1152,7 +1150,7 @@ bool OTAgent::ReserveClosingTransNum(const OTString& strServerID,
 }
 
 // Done
-bool OTAgent::ReserveOpeningTransNum(const OTString& strServerID)
+bool OTAgent::ReserveOpeningTransNum(const String& strServerID)
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
         int64_t lTransactionNumber = 0;
@@ -1208,7 +1206,7 @@ bool OTAgent::ReserveOpeningTransNum(const OTString& strServerID)
     return false;
 }
 
-void OTAgent::Serialize(OTString& strAppend) const
+void OTAgent::Serialize(String& strAppend) const
 {
     //    strAppend.Concatenate("<agent>\n\n");
 

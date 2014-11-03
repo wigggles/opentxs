@@ -219,17 +219,17 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int64_t& lNumberOfOrigin,
                               int64_t& lTransactionNum, int64_t& lInRefTo,
                               int64_t& lInRefDisplay, time64_t& the_DATE_SIGNED,
-                              int& theType, OTString& strHash,
+                              int& theType, String& strHash,
                               int64_t& lAdjustment, int64_t& lDisplayValue,
                               int64_t& lClosingNum, int64_t& lRequestNum,
                               bool& bReplyTransSuccess, OTNumList* pNumList)
 {
 
-    const OTString strOrigin = xml->getAttributeValue("numberOfOrigin");
-    const OTString strTransNum = xml->getAttributeValue("transactionNum");
-    const OTString strInRefTo = xml->getAttributeValue("inReferenceTo");
-    const OTString strInRefDisplay = xml->getAttributeValue("inRefDisplay");
-    const OTString strDateSigned = xml->getAttributeValue("dateSigned");
+    const String strOrigin = xml->getAttributeValue("numberOfOrigin");
+    const String strTransNum = xml->getAttributeValue("transactionNum");
+    const String strInRefTo = xml->getAttributeValue("inReferenceTo");
+    const String strInRefDisplay = xml->getAttributeValue("inRefDisplay");
+    const String strDateSigned = xml->getAttributeValue("dateSigned");
 
     if (!strTransNum.Exists() || !strInRefTo.Exists() ||
         !strInRefDisplay.Exists() || !strDateSigned.Exists()) {
@@ -252,7 +252,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 
     // Transaction TYPE for the abbreviated record...
     theType = OTTransaction::error_state; // default
-    const OTString strAbbrevType =
+    const String strAbbrevType =
         xml->getAttributeValue("type"); // the type of inbox receipt, or outbox
                                         // receipt, or nymbox receipt.
                                         // (Transaction type.)
@@ -293,17 +293,16 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
     lDisplayValue = 0;
     lClosingNum = 0;
 
-    const OTString strAbbrevAdjustment = xml->getAttributeValue("adjustment");
+    const String strAbbrevAdjustment = xml->getAttributeValue("adjustment");
     if (strAbbrevAdjustment.Exists())
         lAdjustment = strAbbrevAdjustment.ToLong();
     // -------------------------------------
-    const OTString strAbbrevDisplayValue =
-        xml->getAttributeValue("displayValue");
+    const String strAbbrevDisplayValue = xml->getAttributeValue("displayValue");
     if (strAbbrevDisplayValue.Exists())
         lDisplayValue = strAbbrevDisplayValue.ToLong();
 
     if (OTTransaction::replyNotice == theType) {
-        const OTString strRequestNum = xml->getAttributeValue("requestNumber");
+        const String strRequestNum = xml->getAttributeValue("requestNumber");
 
         if (!strRequestNum.Exists()) {
             otOut << "OTTransaction::LoadAbbreviatedRecord: Failed loading "
@@ -315,7 +314,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
         }
         lRequestNum = strRequestNum.ToLong();
 
-        const OTString strTransSuccess = xml->getAttributeValue("transSuccess");
+        const String strTransSuccess = xml->getAttributeValue("transSuccess");
 
         bReplyTransSuccess = strTransSuccess.Compare("true");
     } // if replyNotice (expecting request Number)
@@ -326,8 +325,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
     //
     if ((OTTransaction::finalReceipt == theType) ||
         (OTTransaction::basketReceipt == theType)) {
-        const OTString strAbbrevClosingNum =
-            xml->getAttributeValue("closingNum");
+        const String strAbbrevClosingNum = xml->getAttributeValue("closingNum");
 
         if (!strAbbrevClosingNum.Exists()) {
             otOut << "OTTransaction::LoadAbbreviatedRecord: Failed loading "
@@ -343,8 +341,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
     //
     if ((nullptr != pNumList) && ((OTTransaction::blank == theType) ||
                                   (OTTransaction::successNotice == theType))) {
-        const OTString strNumbers =
-            xml->getAttributeValue("totalListOfNumbers");
+        const String strNumbers = xml->getAttributeValue("totalListOfNumbers");
         pNumList->Release();
 
         if (strNumbers.Exists()) pNumList->Add(strNumbers);
@@ -365,14 +362,14 @@ bool VerifyBoxReceiptExists(
 {
     const int64_t lLedgerType = static_cast<int64_t>(nBoxType);
 
-    const OTString strServerID(SERVER_ID),
+    const String strServerID(SERVER_ID),
         strUserOrAcctID(0 == lLedgerType ? USER_ID : ACCOUNT_ID); // (For Nymbox
                                                                   // aka type 0,
                                                                   // the UserID
                                                                   // will be
                                                                   // here.)
     // --------------------------------------------------------------------
-    OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
+    String strFolder1name, strFolder2name, strFolder3name, strFilename;
 
     if (!SetupBoxReceiptFilename(lLedgerType, // nBoxType is lLedgerType
                                  strUserOrAcctID, strServerID, lTransactionNum,
@@ -423,7 +420,7 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
     // Next, see if the appropriate file exists, and load it up from
     // local storage, into a string.
 
-    OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
+    String strFolder1name, strFolder2name, strFolder3name, strFilename;
 
     if (!SetupBoxReceiptFilename(
             lLedgerType, theAbbrev,
@@ -456,7 +453,7 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
         return nullptr;
     }
 
-    OTString strRawFile(strFileContents.c_str());
+    String strRawFile(strFileContents.c_str());
 
     if (!strRawFile.Exists()) {
         otErr << __FUNCTION__ << ": Error reading file (resulting output "
@@ -538,13 +535,12 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
     return pBoxReceipt;
 }
 
-bool SetupBoxReceiptFilename(int64_t lLedgerType,
-                             const OTString& strUserOrAcctID,
-                             const OTString& strServerID,
+bool SetupBoxReceiptFilename(int64_t lLedgerType, const String& strUserOrAcctID,
+                             const String& strServerID,
                              const int64_t& lTransactionNum,
-                             const char* szCaller, OTString& strFolder1name,
-                             OTString& strFolder2name, OTString& strFolder3name,
-                             OTString& strFilename)
+                             const char* szCaller, String& strFolder1name,
+                             String& strFolder2name, String& strFolder3name,
+                             String& strFilename)
 {
     OT_ASSERT(nullptr != szCaller);
 
@@ -590,14 +586,14 @@ bool SetupBoxReceiptFilename(int64_t lLedgerType,
 }
 
 bool SetupBoxReceiptFilename(int64_t lLedgerType, OTTransaction& theTransaction,
-                             const char* szCaller, OTString& strFolder1name,
-                             OTString& strFolder2name, OTString& strFolder3name,
-                             OTString& strFilename)
+                             const char* szCaller, String& strFolder1name,
+                             String& strFolder2name, String& strFolder3name,
+                             String& strFilename)
 {
-    OTString strUserOrAcctID;
+    String strUserOrAcctID;
     theTransaction.GetIdentifier(strUserOrAcctID);
 
-    const OTString strServerID(theTransaction.GetRealServerID());
+    const String strServerID(theTransaction.GetRealServerID());
 
     return SetupBoxReceiptFilename(lLedgerType, strUserOrAcctID, strServerID,
                                    theTransaction.GetTransactionNum(), szCaller,
@@ -606,9 +602,9 @@ bool SetupBoxReceiptFilename(int64_t lLedgerType, OTTransaction& theTransaction,
 }
 
 bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
-                             const char* szCaller, OTString& strFolder1name,
-                             OTString& strFolder2name, OTString& strFolder3name,
-                             OTString& strFilename)
+                             const char* szCaller, String& strFolder1name,
+                             String& strFolder2name, String& strFolder3name,
+                             String& strFilename)
 {
     int64_t lLedgerType = 0;
 

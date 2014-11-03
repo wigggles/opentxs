@@ -233,7 +233,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
                 pWallet->GetServerContractPartialMatch(str_ServerID);
 
         if (nullptr != pServerContract) {
-            OTString strTemp;
+            String strTemp;
             pServerContract->GetIdentifier(strTemp);
 
             str_ServerID = strTemp.Get();
@@ -265,7 +265,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
             pMyNym = pWallet->GetNymByIDPartialMatch(str_MyNym);
 
         if (nullptr != pMyNym) {
-            OTString strTemp;
+            String strTemp;
             pMyNym->GetIdentifier(strTemp);
 
             str_MyNym = strTemp.Get();
@@ -294,7 +294,7 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
 {
     if (nullptr == opt) return;
 
-    OTString strConfigPath(OTPaths::AppDataFolder());
+    String strConfigPath(OTPaths::AppDataFolder());
     {
         bool GetConfigPathSuccess =
             strConfigPath.Exists() && 3 < strConfigPath.GetLength();
@@ -486,7 +486,7 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
     /* read options from a option/resource file with ':' separated options or
      * flags, one per line */
 
-    OTString strOptionsFile(OT_OPTIONS_FILE_DEFAULT), strIniFileExact;
+    String strOptionsFile(OT_OPTIONS_FILE_DEFAULT), strIniFileExact;
     {
         bool bBuildFullPathSuccess = OTPaths::RelativeToCanonical(
             strIniFileExact, strConfigPath, strOptionsFile);
@@ -648,7 +648,7 @@ int32_t main(int32_t argc, char* argv[])
     if (nullptr == OTAPI_Wrap::OTAPI())
         return -1; // error out if we don't have the API.
 
-    OTString strConfigPath(OTPaths::AppDataFolder());
+    String strConfigPath(OTPaths::AppDataFolder());
     bool bConfigPathFound =
         strConfigPath.Exists() && 3 < strConfigPath.GetLength();
 
@@ -877,7 +877,7 @@ int32_t main(int32_t argc, char* argv[])
         }
 
         OTIdentifier theServerID;
-        OTString strServerID;
+        String strServerID;
 
         if (nullptr != pServerContract) {
             pServerContract->GetIdentifier(theServerID);
@@ -918,7 +918,7 @@ int32_t main(int32_t argc, char* argv[])
                 pMyAccount = pWallet->GetAccountPartialMatch(str_MyAcct);
 
             if (nullptr != pMyAccount) {
-                OTString strTemp;
+                String strTemp;
                 pMyAccount->GetPurportedAccountID().GetString(strTemp);
 
                 str_MyAcct = strTemp.Get();
@@ -948,7 +948,7 @@ int32_t main(int32_t argc, char* argv[])
             if (nullptr == pHisAccount)
                 pHisAccount = pWallet->GetAccountPartialMatch(str_HisAcct);
             if (nullptr != pHisAccount) {
-                OTString strTemp;
+                String strTemp;
                 pHisAccount->GetPurportedAccountID().GetString(strTemp);
 
                 str_HisAcct = strTemp.Get();
@@ -1008,7 +1008,7 @@ int32_t main(int32_t argc, char* argv[])
             if (nullptr == pHisNym)
                 pHisNym = pWallet->GetNymByIDPartialMatch(str_HisNym);
             if (nullptr != pHisNym) {
-                OTString strTemp;
+                String strTemp;
                 pHisNym->GetIdentifier(strTemp);
 
                 str_HisNym = strTemp.Get();
@@ -1039,7 +1039,7 @@ int32_t main(int32_t argc, char* argv[])
                     pWallet->GetAssetContractPartialMatch(str_MyPurse);
 
             if (nullptr != pMyAssetContract) {
-                OTString strTemp;
+                String strTemp;
                 pMyAssetContract->GetIdentifier(strTemp);
 
                 str_MyPurse = strTemp.Get();
@@ -1057,7 +1057,7 @@ int32_t main(int32_t argc, char* argv[])
         else if (nullptr != pMyAccount)
             thePurseAssetTypeID = pMyAccount->GetAssetTypeID();
         if (!thePurseAssetTypeID.IsEmpty()) {
-            OTString strTempAssetType(thePurseAssetTypeID);
+            String strTempAssetType(thePurseAssetTypeID);
             str_MyPurse = strTempAssetType.Get();
         }
         // BELOW THIS POINT, pMyAssetContract MIGHT be nullptr, or MIGHT be an
@@ -1079,7 +1079,7 @@ int32_t main(int32_t argc, char* argv[])
                     pWallet->GetAssetContractPartialMatch(str_HisPurse);
 
             if (nullptr != pHisAssetContract) {
-                OTString strTemp;
+                String strTemp;
                 pHisAssetContract->GetIdentifier(strTemp);
 
                 str_HisPurse = strTemp.Get();
@@ -1093,7 +1093,7 @@ int32_t main(int32_t argc, char* argv[])
         else if (nullptr != pHisAccount)
             hisPurseAssetTypeID = pHisAccount->GetAssetTypeID();
         if (!hisPurseAssetTypeID.IsEmpty()) {
-            OTString strTempAssetType(hisPurseAssetTypeID);
+            String strTempAssetType(hisPurseAssetTypeID);
             str_HisPurse = strTempAssetType.Get();
         }
 
@@ -1445,7 +1445,7 @@ int32_t main(int32_t argc, char* argv[])
                    opt->getValue("cheque") != nullptr) {
             otOut << "(User has instructed to write a cheque...)\n";
 
-            const int64_t lAmount = OTString::StringToLong(opt->getValue('c'));
+            const int64_t lAmount = String::StringToLong(opt->getValue('c'));
 
             OTIdentifier HIS_NYM_ID((str_HisNym.size() > 0)
                                         ? str_HisNym.c_str()
@@ -1517,7 +1517,7 @@ int32_t main(int32_t argc, char* argv[])
         else if (opt->getFlag("stat")) {
             otOut << "User has instructed to display wallet contents...\n";
 
-            OTString strStat;
+            String strStat;
             pWallet->DisplayStatistics(strStat);
             otOut << strStat << "\n";
         }
@@ -1548,7 +1548,7 @@ int32_t main(int32_t argc, char* argv[])
         //
 
         if (bSendCommand && pServerNym->VerifyPseudonym()) {
-            OTString strEnvelopeContents(theMessage);
+            String strEnvelopeContents(theMessage);
             OTEnvelope theEnvelope; // Seal the string up into an encrypted
                                     // Envelope
             theEnvelope.Seal(*pServerNym, strEnvelopeContents);
@@ -1715,7 +1715,7 @@ int32_t main(int32_t argc, char* argv[])
                 continue;
             }
 
-            OTString strServerID;
+            String strServerID;
             pServerContract->GetIdentifier(strServerID);
 
             otOut << "You are trying to mess around with your (clear your) "
@@ -1724,9 +1724,9 @@ int32_t main(int32_t argc, char* argv[])
 
             std::string str_ServerID = OT_CLI_ReadLine();
 
-            const OTString strReqNumServerID((str_ServerID.size() > 0)
-                                                 ? str_ServerID.c_str()
-                                                 : strServerID.Get());
+            const String strReqNumServerID((str_ServerID.size() > 0)
+                                               ? str_ServerID.c_str()
+                                               : strServerID.Get());
 
             pMyNym->RemoveReqNumbers(&strReqNumServerID);
 
@@ -1742,7 +1742,7 @@ int32_t main(int32_t argc, char* argv[])
                 continue;
             }
 
-            OTString strServerID;
+            String strServerID;
             pServerContract->GetIdentifier(strServerID);
 
             otOut << "You are trying to mess around with your (clear your) "
@@ -1751,9 +1751,9 @@ int32_t main(int32_t argc, char* argv[])
 
             std::string str_ServerID = OT_CLI_ReadLine();
 
-            const OTString strTransNumServerID((str_ServerID.size() > 0)
-                                                   ? str_ServerID.c_str()
-                                                   : strServerID.Get());
+            const String strTransNumServerID((str_ServerID.size() > 0)
+                                                 ? str_ServerID.c_str()
+                                                 : strServerID.Get());
 
             pMyNym->RemoveAllNumbers(&strTransNumServerID,
                                      true); // bRemoveHighestNum = true.
@@ -1788,7 +1788,7 @@ int32_t main(int32_t argc, char* argv[])
             } while (strlen(decode_buffer) > 1);
 
             OTEnvelope theEnvelope(theArmoredText);
-            OTString strDecodedText;
+            String strDecodedText;
 
             theEnvelope.Open(*pMyNym, strDecodedText);
 
@@ -1815,7 +1815,7 @@ int32_t main(int32_t argc, char* argv[])
 
             } while (strlen(decode_buffer) > 1);
 
-            OTString strDecodedText(theArmoredText);
+            String strDecodedText(theArmoredText);
 
             otOut << "\n\nDECODED TEXT:\n\n" << strDecodedText << "\n\n";
 
@@ -1825,7 +1825,7 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "Enter text to be ascii-encoded (terminate with ~ on a "
                      "new line):\n> ";
 
-            OTString strDecodedText;
+            String strDecodedText;
             char decode_buffer[200]; // Safe since we only read sizeof - 1.
 
             do {
@@ -1853,7 +1853,7 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "Enter text to be hashed (terminate with ~ on a "
                      "new line):\n> ";
 
-            OTString strDecodedText;
+            String strDecodedText;
             char decode_buffer[200]; // Safe since we only read sizeof - 1.
 
             do {
@@ -1872,13 +1872,13 @@ int32_t main(int32_t argc, char* argv[])
             } while (decode_buffer[0] != '~');
 
             std::string str_Trim(strDecodedText.Get());
-            std::string str_Trim2 = OTString::trim(str_Trim);
+            std::string str_Trim2 = String::trim(str_Trim);
             strDecodedText.Set(str_Trim2.c_str());
 
             OTIdentifier theIdentifier;
             theIdentifier.CalculateDigest(strDecodedText);
 
-            OTString strHash(theIdentifier);
+            String strHash(theIdentifier);
 
             otOut << "\n\nMESSAGE DIGEST:\n\n" << strHash << "\n\n";
 
@@ -1888,7 +1888,7 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "User has instructed to display wallet contents...\n";
 
             if (pWallet) {
-                OTString strStat;
+                String strStat;
                 pWallet->DisplayStatistics(strStat);
                 otOut << strStat << "\n";
             }
@@ -2150,10 +2150,10 @@ int32_t main(int32_t argc, char* argv[])
             // having to re-create my data each time -- speeds up debugging.
             //
             int64_t lTransactionNumber =
-                ((strlen(buf) > 2) ? OTString::StringToLong(&(buf[2])) : 0);
+                ((strlen(buf) > 2) ? String::StringToLong(&(buf[2])) : 0);
 
             if (lTransactionNumber > 0) {
-                OTString strServerID;
+                String strServerID;
                 pServerContract->GetIdentifier(strServerID);
 
                 otOut << "You are trying to mess around with your (add to "
@@ -2163,9 +2163,9 @@ int32_t main(int32_t argc, char* argv[])
 
                 std::string str_ServerID = OT_CLI_ReadLine();
 
-                const OTString strTransNumServerID((str_ServerID.size() > 0)
-                                                       ? str_ServerID.c_str()
-                                                       : strServerID.Get());
+                const String strTransNumServerID((str_ServerID.size() > 0)
+                                                     ? str_ServerID.c_str()
+                                                     : strServerID.Get());
 
                 pMyNym->AddTransactionNum(*pMyNym, strTransNumServerID,
                                           lTransactionNumber,
@@ -2209,7 +2209,7 @@ int32_t main(int32_t argc, char* argv[])
 
         if (bSendCommand && (nullptr != pServerNym) &&
             pServerNym->VerifyPseudonym()) {
-            OTString strEnvelopeContents(theMessage);
+            String strEnvelopeContents(theMessage);
             OTEnvelope theEnvelope;
             theEnvelope.Seal(*pServerNym, strEnvelopeContents);
 

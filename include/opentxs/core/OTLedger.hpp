@@ -143,7 +143,7 @@ class OTCheque;
 class OTIdentifier;
 class OTItem;
 class OTPseudonym;
-class OTString;
+class String;
 
 // transaction ID is a int64_t, assigned by the server. Each transaction has
 // one.
@@ -163,7 +163,7 @@ private: // Private prevents erroneous use by other classes.
     typedef OTTransactionType ot_super;
 
     friend OTTransactionType* OTTransactionType::TransactionFactory(
-        OTString strInput);
+        String strInput);
 
 private:
     mapOfTransactions m_mapTransactions; // a ledger contains a map of
@@ -205,7 +205,7 @@ public:
                               // more.)
 
 protected:
-    bool LoadGeneric(ledgerType theType, const OTString* pString = nullptr);
+    bool LoadGeneric(ledgerType theType, const String* pString = nullptr);
     bool SaveGeneric(ledgerType theType);
 
 public:
@@ -319,15 +319,15 @@ public:
 
     EXPORT bool SaveExpiredBox();
     EXPORT bool LoadExpiredBox();
-    EXPORT bool LoadLedgerFromString(const OTString& theStr); // Auto-detects
-                                                              // ledger type.
+    EXPORT bool LoadLedgerFromString(const String& theStr); // Auto-detects
+                                                            // ledger type.
     // (message/nymbox/inbox/outbox)
-    EXPORT bool LoadInboxFromString(const OTString& strBox);
-    EXPORT bool LoadOutboxFromString(const OTString& strBox);
-    EXPORT bool LoadNymboxFromString(const OTString& strBox);
-    EXPORT bool LoadPaymentInboxFromString(const OTString& strBox);
-    EXPORT bool LoadRecordBoxFromString(const OTString& strBox);
-    EXPORT bool LoadExpiredBoxFromString(const OTString& strBox);
+    EXPORT bool LoadInboxFromString(const String& strBox);
+    EXPORT bool LoadOutboxFromString(const String& strBox);
+    EXPORT bool LoadNymboxFromString(const String& strBox);
+    EXPORT bool LoadPaymentInboxFromString(const String& strBox);
+    EXPORT bool LoadRecordBoxFromString(const String& strBox);
+    EXPORT bool LoadExpiredBoxFromString(const String& strBox);
     // inline for the top one only.
     inline int32_t GetTransactionCount() const
     {

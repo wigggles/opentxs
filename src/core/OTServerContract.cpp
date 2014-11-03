@@ -150,8 +150,8 @@ OTServerContract::OTServerContract()
     m_nPort = 0;
 }
 
-OTServerContract::OTServerContract(OTString& name, OTString& foldername,
-                                   OTString& filename, OTString& strID)
+OTServerContract::OTServerContract(String& name, String& foldername,
+                                   String& filename, String& strID)
     : OTContract(name, foldername, filename, strID)
 {
     m_nPort = 0;
@@ -161,8 +161,7 @@ OTServerContract::~OTServerContract()
 {
 }
 
-bool OTServerContract::GetConnectInfo(OTString& strHostname,
-                                      int32_t& nPort) const
+bool OTServerContract::GetConnectInfo(String& strHostname, int32_t& nPort) const
 {
     if (m_strHostname.GetLength()) {
         strHostname = m_strHostname;
@@ -172,9 +171,9 @@ bool OTServerContract::GetConnectInfo(OTString& strHostname,
     return false;
 }
 
-bool OTServerContract::DisplayStatistics(OTString& strContents) const
+bool OTServerContract::DisplayStatistics(String& strContents) const
 {
-    const OTString strID(m_ID);
+    const String strID(m_ID);
 
     strContents.Concatenate(" Notary Provider: %s\n"
                             " ServerID: %s\n"
@@ -184,9 +183,9 @@ bool OTServerContract::DisplayStatistics(OTString& strContents) const
     return true;
 }
 
-bool OTServerContract::SaveContractWallet(OTString& strContents) const
+bool OTServerContract::SaveContractWallet(String& strContents) const
 {
-    const OTString strID(m_ID);
+    const String strID(m_ID);
     OTASCIIArmor ascName;
 
     if (m_strName.Exists()) // name is in the clear in memory, and base64 in

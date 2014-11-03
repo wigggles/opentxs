@@ -298,10 +298,10 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
                 OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_DATA)));
 
         const OTIdentifier MARKET_ID(*pMarket);
-        const OTString str_MARKET_ID(MARKET_ID);
-        const OTString str_ServerID(pMarket->GetServerID());
-        const OTString str_ASSET_ID(pMarket->GetAssetID());
-        const OTString str_CURRENCY_ID(pMarket->GetCurrencyID());
+        const String str_MARKET_ID(MARKET_ID);
+        const String str_ServerID(pMarket->GetServerID());
+        const String str_ASSET_ID(pMarket->GetAssetID());
+        const String str_CURRENCY_ID(pMarket->GetCurrencyID());
 
         pMarketData->server_id = str_ServerID.Get();
         pMarketData->market_id = str_MARKET_ID.Get();
@@ -451,7 +451,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (!strcmp("cron", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
 
-        const OTString strServerID(xml->getAttributeValue("serverID"));
+        const String strServerID(xml->getAttributeValue("serverID"));
 
         m_SERVER_ID.SetString(strServerID);
 
@@ -461,7 +461,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (!strcmp("transactionNum", xml->getNodeName())) {
         const int64_t lTransactionNum =
-            OTString::StringToLong(xml->getAttributeValue("value"));
+            String::StringToLong(xml->getAttributeValue("value"));
 
         otWarn << "Transaction Number " << lTransactionNum
                << " available for Cron.\n";
@@ -473,12 +473,12 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (!strcmp("cronItem", xml->getNodeName())) {
-        const OTString str_date_added = xml->getAttributeValue("dateAdded");
+        const String str_date_added = xml->getAttributeValue("dateAdded");
         const int64_t lDateAdded =
             (!str_date_added.Exists() ? 0 : str_date_added.ToLong());
         const time64_t tDateAdded = OTTimeGetTimeFromSeconds(lDateAdded);
 
-        OTString strData;
+        String strData;
 
         if (!OTContract::LoadEncodedTextField(xml, strData) ||
             !strData.Exists()) {
@@ -540,12 +540,12 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (!strcmp("market", xml->getNodeName())) {
-        const OTString strMarketID(xml->getAttributeValue("marketID"));
-        const OTString strAssetID(xml->getAttributeValue("assetID"));
-        const OTString strCurrencyID(xml->getAttributeValue("currencyID"));
+        const String strMarketID(xml->getAttributeValue("marketID"));
+        const String strAssetID(xml->getAttributeValue("assetID"));
+        const String strCurrencyID(xml->getAttributeValue("currencyID"));
 
         const int64_t lScale =
-            OTString::StringToLong(xml->getAttributeValue("marketScale"));
+            String::StringToLong(xml->getAttributeValue("marketScale"));
 
         const OTIdentifier ASSET_ID(strAssetID), CURRENCY_ID(strCurrencyID);
 
@@ -590,7 +590,7 @@ void OTCron::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const OTString SERVER_ID(m_SERVER_ID);
+    const String SERVER_ID(m_SERVER_ID);
 
     m_xmlUnsigned.Concatenate("<cron\n version=\"%s\"\n"
                               " serverID=\"%s\""
@@ -604,10 +604,10 @@ void OTCron::UpdateContents()
         OT_ASSERT(nullptr != pMarket);
 
         OTIdentifier MARKET_ID(*pMarket);
-        OTString str_MARKET_ID(MARKET_ID);
+        String str_MARKET_ID(MARKET_ID);
 
-        OTString str_ASSET_ID(pMarket->GetAssetID());
-        OTString str_CURRENCY_ID(pMarket->GetCurrencyID());
+        String str_ASSET_ID(pMarket->GetAssetID());
+        String str_CURRENCY_ID(pMarket->GetCurrencyID());
 
         m_xmlUnsigned.Concatenate("<market\n marketID=\"%s\"\n"
                                   " assetID=\"%s\"\n"
@@ -626,7 +626,7 @@ void OTCron::UpdateContents()
         time64_t tDateAdded = it.first;
         int64_t lDateAdded = OTTimeGetSecondsFromTime(tDateAdded);
 
-        OTString strItem(
+        String strItem(
             *pItem); // Extract the cron item contract into string form.
         OTASCIIArmor ascItem(strItem); // Base64-encode that for storage.
 
@@ -1013,7 +1013,7 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
         *this); // This way every Market has a pointer to Cron.
 
     OTIdentifier MARKET_ID(theMarket);
-    OTString str_MARKET_ID(MARKET_ID);
+    String str_MARKET_ID(MARKET_ID);
     std::string std_MARKET_ID = str_MARKET_ID.Get();
 
     // See if there's something else already there with the same market ID.
@@ -1111,7 +1111,7 @@ OTMarket* OTCron::GetOrCreateMarket(const OTIdentifier& ASSET_ID,
 // If it is, return a pointer to it, otherwise return nullptr.
 OTMarket* OTCron::GetMarket(const OTIdentifier& MARKET_ID)
 {
-    OTString str_MARKET_ID(MARKET_ID);
+    String str_MARKET_ID(MARKET_ID);
     std::string std_MARKET_ID = str_MARKET_ID.Get();
 
     // See if there's something there with that transaction number.
@@ -1128,7 +1128,7 @@ OTMarket* OTCron::GetMarket(const OTIdentifier& MARKET_ID)
         OT_ASSERT((nullptr != pMarket));
 
         const OTIdentifier LOOP_MARKET_ID(*pMarket);
-        const OTString str_LOOP_MARKET_ID(LOOP_MARKET_ID);
+        const String str_LOOP_MARKET_ID(LOOP_MARKET_ID);
 
         if (MARKET_ID == LOOP_MARKET_ID)
             return pMarket;

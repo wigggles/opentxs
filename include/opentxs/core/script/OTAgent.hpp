@@ -190,22 +190,22 @@ private:
      that controls this agent.
      */
 
-    OTString m_strName; // agent name (accessible within script language.)
+    String m_strName; // agent name (accessible within script language.)
 
     // info about agent.
     //
-    OTString m_strNymID; // If agent is a Nym, then this is the NymID of that
-                         // Nym (whether that Nym is owner or not.)
+    String m_strNymID; // If agent is a Nym, then this is the NymID of that
+                       // Nym (whether that Nym is owner or not.)
     // If agent is a group (IsAGroup()) then this will be blank. This is
     // different than the
     // Nym stored in OTParty, which if present ALWAYS refers to the OWNER Nym
     // (Though this Nym
     // MAY ALSO be the owner, that fact is purely incidental here AND this NymID
     // could be blank.)
-    OTString m_strRoleID; // If agent is Nym working in a role on behalf of an
-                          // entity, then this is its RoleID in Entity.
-    OTString m_strGroupName; // If agent is a voting group in an Entity, this is
-                             // group's Name (inside Entity.)
+    String m_strRoleID;    // If agent is Nym working in a role on behalf of an
+                           // entity, then this is its RoleID in Entity.
+    String m_strGroupName; // If agent is a voting group in an Entity, this is
+                           // group's Name (inside Entity.)
 
 public:
     OTAgent();
@@ -217,12 +217,12 @@ public:
     // instantiating with an Entity/Group instead of with a Nym.
 
     OTAgent(bool bNymRepresentsSelf, bool bIsAnIndividual,
-            const OTString& strName, const OTString& strNymID,
-            const OTString& strRoleID, const OTString& strGroupName);
+            const String& strName, const String& strNymID,
+            const String& strRoleID, const String& strGroupName);
 
     virtual ~OTAgent();
 
-    void Serialize(OTString& strAppend) const;
+    void Serialize(String& strAppend) const;
 
     // For pointers I don't own, but store for convenience.
     // This clears them once we're done processing, so I don't
@@ -236,28 +236,27 @@ public:
     // NOTE: Current iteration, these functions ASSUME that m_pNym is loaded.
     // They will definitely fail if you haven't already loaded the Nym.
     //
-    bool VerifyIssuedNumber(const int64_t& lNumber,
-                            const OTString& strServerID);
+    bool VerifyIssuedNumber(const int64_t& lNumber, const String& strServerID);
     bool VerifyTransactionNumber(const int64_t& lNumber,
-                                 const OTString& strServerID);
+                                 const String& strServerID);
 
-    bool RemoveIssuedNumber(const int64_t& lNumber, const OTString& strServerID,
+    bool RemoveIssuedNumber(const int64_t& lNumber, const String& strServerID,
                             bool bSave = false,
                             OTPseudonym* pSignerNym = nullptr);
     bool RemoveTransactionNumber(const int64_t& lNumber,
-                                 const OTString& strServerID,
+                                 const String& strServerID,
                                  OTPseudonym& SIGNER_NYM, bool bSave = true);
 
     bool HarvestTransactionNumber(
-        const int64_t& lNumber, const OTString& strServerID,
+        const int64_t& lNumber, const String& strServerID,
         bool bSave = false, // Each agent's nym is used if pSignerNym is
                             // nullptr,
                             // whereas the server
         OTPseudonym* pSignerNym = nullptr); // uses this optional arg to
                                             // substitute serverNym as signer.
 
-    bool ReserveOpeningTransNum(const OTString& strServerID);
-    bool ReserveClosingTransNum(const OTString& strServerID,
+    bool ReserveOpeningTransNum(const String& strServerID);
+    bool ReserveClosingTransNum(const String& strServerID,
                                 OTPartyAccount& thePartyAcct);
     EXPORT bool SignContract(OTContract& theInput) const;
 
@@ -385,14 +384,14 @@ public:
                                                      // this is its ID. Else
                                                      // fail.
 
-    EXPORT const OTString& GetName()
+    EXPORT const String& GetName()
     {
         return m_strName;
     } // agent's name as used in a script.
     // For when the agent is a voting group:
     //
-    bool GetGroupName(OTString& strGroupName); // The GroupName group will be
-                                               // found in the EntityID entity.
+    bool GetGroupName(String& strGroupName); // The GroupName group will be
+                                             // found in the EntityID entity.
     //
     // If !IsGroup() aka IsIndividual(), then this will return false.
     //
@@ -440,24 +439,24 @@ public:
 
     bool DropFinalReceiptToNymbox(OTSmartContract& theSmartContract,
                                   const int64_t& lNewTransactionNumber,
-                                  const OTString& strOrigCronItem,
-                                  OTString* pstrNote = nullptr,
-                                  OTString* pstrAttachment = nullptr,
+                                  const String& strOrigCronItem,
+                                  String* pstrNote = nullptr,
+                                  String* pstrAttachment = nullptr,
                                   OTPseudonym* pActualNym = nullptr);
 
     bool DropFinalReceiptToInbox(
-        mapOfNyms* pNymMap, const OTString& strServerID,
+        mapOfNyms* pNymMap, const String& strServerID,
         OTPseudonym& theServerNym, OTSmartContract& theSmartContract,
         const OTIdentifier& theAccountID, const int64_t& lNewTransactionNumber,
-        const int64_t& lClosingNumber, const OTString& strOrigCronItem,
-        OTString* pstrNote = nullptr, OTString* pstrAttachment = nullptr);
+        const int64_t& lClosingNumber, const String& strOrigCronItem,
+        String* pstrNote = nullptr, String* pstrAttachment = nullptr);
 
     bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // the notice can be "acknowledgment" or "rejection"
         OTPseudonym& theServerNym, const OTIdentifier& theServerID,
         const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
-        const OTString& strReference, OTString* pstrNote = nullptr,
-        OTString* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
+        const String& strReference, String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
 };
 
 } // namespace opentxs

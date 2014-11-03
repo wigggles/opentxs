@@ -199,11 +199,11 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         tradesAlreadyDone_ = atoi(xml->getAttributeValue("completedNoTrades"));
 
         SetTransactionNum(
-            OTString::StringToLong(xml->getAttributeValue("transactionNum")));
+            String::StringToLong(xml->getAttributeValue("transactionNum")));
 
-        const OTString creationStr = xml->getAttributeValue("creationDate");
-        const OTString validFromStr = xml->getAttributeValue("validFrom");
-        const OTString validToStr = xml->getAttributeValue("validTo");
+        const String creationStr = xml->getAttributeValue("creationDate");
+        const String validFromStr = xml->getAttributeValue("validFrom");
+        const String validToStr = xml->getAttributeValue("validTo");
 
         int64_t creation = creationStr.ToLong();
         int64_t validFrom = validFromStr.ToLong();
@@ -213,14 +213,14 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetValidFrom(OTTimeGetTimeFromSeconds(validFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(validTo));
 
-        OTString activated(xml->getAttributeValue("hasActivated"));
+        String activated(xml->getAttributeValue("hasActivated"));
 
         if (activated.Compare("true"))
             hasTradeActivated_ = true;
         else
             hasTradeActivated_ = false;
 
-        const OTString serverID(xml->getAttributeValue("serverID")),
+        const String serverID(xml->getAttributeValue("serverID")),
             userID(xml->getAttributeValue("userID")),
             assetTypeID(xml->getAttributeValue("assetTypeID")),
             assetAcctID(xml->getAttributeValue("assetAcctID")),
@@ -256,7 +256,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
 
     if (!strcmp("stopOrder", xml->getNodeName())) {
-        OTString sign(xml->getAttributeValue("sign"));
+        String sign(xml->getAttributeValue("sign"));
 
         if (sign.Compare("0")) {
             stopSign_ = 0; // Zero means it isn't a stop order. So why is the
@@ -279,9 +279,9 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // Now we know the sign is properly formed, let's grab the price value.
 
-        stopPrice_ = OTString::StringToLong(xml->getAttributeValue("price"));
+        stopPrice_ = String::StringToLong(xml->getAttributeValue("price"));
 
-        OTString activated(xml->getAttributeValue("hasActivated"));
+        String activated(xml->getAttributeValue("hasActivated"));
 
         if (activated.Compare("true"))
             stopActivated_ = true;
@@ -316,7 +316,7 @@ void OTTrade::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const OTString SERVER_ID(GetServerID()), USER_ID(GetSenderUserID()),
+    const String SERVER_ID(GetServerID()), USER_ID(GetSenderUserID()),
         ASSET_TYPE_ID(GetAssetID()), ASSET_ACCT_ID(GetSenderAcctID()),
         CURRENCY_TYPE_ID(GetCurrencyID()),
         CURRENCY_ACCT_ID(GetCurrencyAcctID());
@@ -841,7 +841,7 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& nym)
         return false;
     }
 
-    const OTString serverID(GetServerID());
+    const String serverID(GetServerID());
 
     if (!nym.VerifyIssuedNum(serverID, GetAssetAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
@@ -923,7 +923,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
             ? origCronItem.GetClosingTransactionNoAt(1)
             : 0;
 
-    const OTString serverID(GetServerID());
+    const String serverID(GetServerID());
 
     // The marketReceipt ITEM's NOTE contains the UPDATED TRADE.
     // And the **UPDATED OFFER** is stored on the ATTACHMENT on the **ITEM.**
@@ -963,17 +963,17 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
     //
-    OTString updatedCronItem(*this);
-    OTString* attachment = &updatedCronItem; // the Updated TRADE.
-    OTString updatedOffer;
-    OTString* note = nullptr; // the updated Offer (if available.)
+    String updatedCronItem(*this);
+    String* attachment = &updatedCronItem; // the Updated TRADE.
+    String updatedOffer;
+    String* note = nullptr; // the updated Offer (if available.)
 
     if (offer_) {
         offer_->SaveContractRaw(updatedOffer);
         note = &updatedOffer;
     }
 
-    const OTString strOrigCronItem(origCronItem);
+    const String strOrigCronItem(origCronItem);
 
     OTPseudonym theActualNym; // unused unless it's really not already loaded.
                               // (use actualNym.)
@@ -1021,7 +1021,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
                                                // are only updating his
                                                // Nymfile, not his key.
             {
-                OTString strNymID(actualNymId);
+                String strNymID(actualNymId);
                 otErr << szFunc
                       << ": Failure loading public key for Nym : " << strNymID
                       << ". "
@@ -1041,7 +1041,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
                 actualNym = &theActualNym; //  <=====
             }
             else {
-                OTString strNymID(actualNymId);
+                String strNymID(actualNymId);
                 otErr
                     << szFunc
                     << ": Failure loading or verifying Actual Nym public key: "
@@ -1309,7 +1309,7 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, int64_t stopPrice)
     SetTransactionNum(offer.GetTransactionNum());
 
     // Save a copy of the offer, in XML form, here on this Trade.
-    OTString strOffer(offer);
+    String strOffer(offer);
     marketOffer_.Set(strOffer);
 
     return true;

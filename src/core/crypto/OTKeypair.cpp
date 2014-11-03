@@ -240,13 +240,12 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
     return (*m_pkeyPrivate);
 }
 
-bool OTKeypair::SaveCertToString(OTString& strOutput,
-                                 const OTString* pstrReason,
+bool OTKeypair::SaveCertToString(String& strOutput, const String* pstrReason,
                                  const OTPassword* pImportPassword) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    OTString strCert,
+    String strCert,
         strReason(nullptr == pstrReason ? "OTKeypair::SaveCertToString"
                                         : pstrReason->Get());
 
@@ -258,13 +257,13 @@ bool OTKeypair::SaveCertToString(OTString& strOutput,
     return bSaved;
 }
 
-bool OTKeypair::SavePrivateKeyToString(OTString& strOutput,
-                                       const OTString* pstrReason,
+bool OTKeypair::SavePrivateKeyToString(String& strOutput,
+                                       const String* pstrReason,
                                        const OTPassword* pImportPassword) const
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 
-    OTString strPrivateKey;
+    String strPrivateKey;
 
     const bool bSaved = m_pkeyPrivate->SavePrivateKeyToString(
         strPrivateKey, pstrReason, pImportPassword);
@@ -274,11 +273,11 @@ bool OTKeypair::SavePrivateKeyToString(OTString& strOutput,
     return bSaved;
 }
 
-bool OTKeypair::SaveCertAndPrivateKeyToString(OTString& strOutput,
-                                              const OTString* pstrReason,
+bool OTKeypair::SaveCertAndPrivateKeyToString(String& strOutput,
+                                              const String* pstrReason,
                                               const OTPassword* pImportPassword)
 {
-    OTString strCert, strPrivateKey;
+    String strCert, strPrivateKey;
 
     const bool bSaved1 = SaveCertToString(strCert, pstrReason, pImportPassword);
     const bool bSaved2 =
@@ -292,7 +291,7 @@ bool OTKeypair::SaveCertAndPrivateKeyToString(OTString& strOutput,
 }
 
 bool OTKeypair::LoadCertAndPrivateKeyFromString(
-    const OTString& strInput, const OTString* pstrReason,
+    const String& strInput, const String* pstrReason,
     const OTPassword* pImportPassword)
 {
     OT_ASSERT(strInput.Exists());
@@ -331,22 +330,22 @@ bool OTKeypair::LoadCertAndPrivateKeyFromString(
 }
 
 bool OTKeypair::SaveAndReloadBothKeysFromTempFile(
-    OTString* pstrOutputCert, const OTString* pstrReason,
+    String* pstrOutputCert, const String* pstrReason,
     const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    OTString strOutput;
+    String strOutput;
     const bool bSuccess =
         SaveCertAndPrivateKeyToString(strOutput, pstrReason, pImportPassword);
 
     if (bSuccess) {
         // todo security. Revisit this part during security audit.
         //
-        const OTString strFilename("temp.nym"); // todo stop hardcoding. Plus
-                                                // this maybe should select a
-                                                // random number too.
+        const String strFilename("temp.nym"); // todo stop hardcoding. Plus
+                                              // this maybe should select a
+                                              // random number too.
 
         if (!OTDB::StorePlainString(strOutput.Get(), OTFolders::Cert().Get(),
                                     strFilename.Get())) // temp.nym
@@ -370,9 +369,9 @@ bool OTKeypair::SaveAndReloadBothKeysFromTempFile(
 }
 
 // Load from local storage.
-bool OTKeypair::LoadPrivateKey(const OTString& strFoldername,
-                               const OTString& strFilename,
-                               const OTString* pstrReason,
+bool OTKeypair::LoadPrivateKey(const String& strFoldername,
+                               const String& strFilename,
+                               const String* pstrReason,
                                const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
@@ -381,8 +380,8 @@ bool OTKeypair::LoadPrivateKey(const OTString& strFoldername,
                                          pImportPassword);
 }
 
-bool OTKeypair::LoadPublicKey(const OTString& strFoldername,
-                              const OTString& strFilename)
+bool OTKeypair::LoadPublicKey(const String& strFoldername,
+                              const String& strFilename)
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
@@ -393,9 +392,9 @@ bool OTKeypair::LoadPublicKey(const OTString& strFoldername,
 //
 // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
 //
-bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
+bool OTKeypair::LoadPrivateKeyFromCertString(const String& strCert,
                                              bool bEscaped,
-                                             const OTString* pstrReason,
+                                             const String* pstrReason,
                                              const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
@@ -407,7 +406,7 @@ bool OTKeypair::LoadPrivateKeyFromCertString(const OTString& strCert,
 // Load Public Key from Cert (file or string)
 //
 bool OTKeypair::LoadPublicKeyFromCertString(
-    const OTString& strCert, bool bEscaped, const OTString* pstrReason,
+    const String& strCert, bool bEscaped, const String* pstrReason,
     const OTPassword* pImportPassword) // DOES handle bookends, AND escapes.
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
@@ -417,8 +416,8 @@ bool OTKeypair::LoadPublicKeyFromCertString(
 }
 
 bool OTKeypair::LoadPublicKeyFromCertFile(
-    const OTString& strFoldername, const OTString& strFilename,
-    const OTString* pstrReason,
+    const String& strFoldername, const String& strFilename,
+    const String* pstrReason,
     const OTPassword* pImportPassword) // DOES handle bookends.
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
@@ -453,9 +452,9 @@ bool OTKeypair::MakeNewKeypair(int32_t nBits)
     // performed in OTPseudonym::GenerateNym().
 }
 
-bool OTKeypair::LoadBothKeysFromCertFile(const OTString& strFoldername,
-                                         const OTString& strFilename,
-                                         const OTString* pstrReason,
+bool OTKeypair::LoadBothKeysFromCertFile(const String& strFoldername,
+                                         const String& strFilename,
+                                         const String* pstrReason,
                                          const OTPassword* pImportPassword)
 {
     const char* szFunc = "OTKeypair::LoadBothKeysFromCertFile";
@@ -513,7 +512,7 @@ bool OTKeypair::GetPublicKey(OTASCIIArmor& strKey) const
     return m_pkeyPublic->GetPublicKey(strKey);
 }
 
-bool OTKeypair::GetPublicKey(OTString& strKey, bool bEscaped) const
+bool OTKeypair::GetPublicKey(String& strKey, bool bEscaped) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
@@ -535,14 +534,14 @@ bool OTKeypair::SetPublicKey(const OTASCIIArmor& strKey)
 // This is the version that will handle the bookends ( -----BEGIN PUBLIC
 // KEY-----)
 //
-bool OTKeypair::SetPublicKey(const OTString& strKey, bool bEscaped)
+bool OTKeypair::SetPublicKey(const String& strKey, bool bEscaped)
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
     if (strKey.Contains("PGP PUBLIC KEY")) {
         OTASCIIArmor theArmor;
 
-        if (theArmor.LoadFromString(const_cast<OTString&>(strKey), bEscaped)) {
+        if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped)) {
             // This function expects that the bookends are already removed.
             // The ascii-armor loading code removes them and handles the escapes
             // also.
@@ -565,7 +564,7 @@ bool OTKeypair::SetPublicKey(const OTString& strKey, bool bEscaped)
 // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
 // Notice the "- " before the rest of the bookend starts.
 //
-bool OTKeypair::GetPrivateKey(OTString& strKey, bool bEscaped) const
+bool OTKeypair::GetPrivateKey(String& strKey, bool bEscaped) const
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 
@@ -585,7 +584,7 @@ bool OTKeypair::GetPrivateKey(OTASCIIArmor& strKey) const // Get the private key
 // and sets that as the m_pPrivateKey on this object.
 // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
 // PRIVATE KEY-----)
-bool OTKeypair::SetPrivateKey(const OTString& strKey, bool bEscaped)
+bool OTKeypair::SetPrivateKey(const String& strKey, bool bEscaped)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 
@@ -594,7 +593,7 @@ bool OTKeypair::SetPrivateKey(const OTString& strKey, bool bEscaped)
     if (strKey.Contains(szOverride)) {
         OTASCIIArmor theArmor;
 
-        if (theArmor.LoadFromString(const_cast<OTString&>(strKey), bEscaped,
+        if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped,
                                     szOverride)) // szOverride == "PGP PRIVATE
                                                  // KEY"
         {
@@ -690,7 +689,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
 // Used when importing/exporting a Nym to/from the wallet.
 //
 bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
-                          OTString& strOutput)
+                          String& strOutput)
 {
 
     OT_ASSERT(nullptr != m_pkeyPublic);
@@ -709,13 +708,13 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
     // re-encrypted to the
     // export format. So we'd want to pass the export passphrase when saving.
     //
-    const OTString strReasonAbove(
+    const String strReasonAbove(
         bImporting ? "Enter the new export passphrase. (Above "
                      "ReEncryptPrivateKey in OTKeypair::ReEncrypt)"
                    : "Enter your wallet's master passphrase. (Above "
                      "ReEncryptPrivateKey in OTKeypair::ReEncrypt)");
 
-    const OTString strReasonBelow(
+    const String strReasonBelow(
         bImporting ? "Enter your wallet's master passphrase. (Below "
                      "ReEncryptPrivateKey in OTKeypair::ReEncrypt)"
                    : "Enter the new export passphrase. (Below "

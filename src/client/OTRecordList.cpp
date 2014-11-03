@@ -452,7 +452,7 @@ void OTRecordList::AddAssetID(std::string str_id)
         __FUNCTION__); // This logs and ASSERTs already.
     OT_ASSERT_MSG(nullptr != pWallet,
                   "Wallet was nullptr. Should never happen.");
-    const OTString strAssetTypeID(str_id);
+    const String strAssetTypeID(str_id);
     const OTIdentifier theAssetTypeID(strAssetTypeID);
     std::string str_asset_name;
     // Name is dollars, fraction is cents, TLA is USD and
@@ -577,7 +577,7 @@ bool OTRecordList::PerformAutoAccept()
                                          "Nyms...\n";
             const std::string& str_nym_id(it_nym);
             const OTIdentifier theNymID(str_nym_id);
-            const OTString strNymID(theNymID);
+            const String strNymID(theNymID);
             OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
             if (nullptr == pNym) continue;
             // LOOP SERVERS
@@ -592,7 +592,7 @@ bool OTRecordList::PerformAutoAccept()
                 OTServerContract* pServer =
                     pWallet->GetServerContract(theServerID);
                 OT_ASSERT(nullptr != pServer);
-                const OTString strServerID(theServerID);
+                const String strServerID(theServerID);
                 otOut << __FUNCTION__ << ": Server " << nServerIndex
                       << ", ID: " << strServerID.Get() << "\n";
                 mapOfPayments thePaymentMap;
@@ -645,7 +645,7 @@ bool OTRecordList::PerformAutoAccept()
                             OTIdentifier theAssetTypeID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
-                                OTString strTemp(theAssetTypeID);
+                                String strTemp(theAssetTypeID);
                                 const std::string str_inpmt_asset(
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
@@ -751,7 +751,7 @@ bool OTRecordList::PerformAutoAccept()
                                      "Skipping.\n";
                             continue;
                         }
-                        OTString payment;
+                        String payment;
                         if (!pPayment->GetPaymentContents(payment)) {
                             otErr << __FUNCTION__
                                   << ": Error: Failed while trying to "
@@ -766,7 +766,7 @@ bool OTRecordList::PerformAutoAccept()
                         std::string str_asset_type_id;
 
                         if (bGotAsset) {
-                            const OTString strAssetTypeID(paymentAssetType);
+                            const String strAssetTypeID(paymentAssetType);
                             str_asset_type_id = strAssetTypeID.Get();
                         }
                         if (str_asset_type_id.empty()) {
@@ -793,8 +793,8 @@ bool OTRecordList::PerformAutoAccept()
                                 pAccount->GetTypeString();
                             //                      const OTString
                             // strAcctNymID   (theAcctNymID);
-                            const OTString strAcctServerID(theAcctServerID);
-                            const OTString strAcctAssetID(theAcctAssetID);
+                            const String strAcctServerID(theAcctServerID);
+                            const String strAcctAssetID(theAcctAssetID);
                             // If the current account is owned by the Nym, AND
                             // it has the same asset type ID
                             // as the cheque being deposited, then let's deposit
@@ -817,7 +817,7 @@ bool OTRecordList::PerformAutoAccept()
                             {
                                 // Accept it.
                                 //
-                                OTString strIndices;
+                                String strIndices;
                                 strIndices.Format("%d", lIndex);
                                 const std::string str_indices(strIndices.Get());
 
@@ -867,9 +867,9 @@ bool OTRecordList::PerformAutoAccept()
             const OTIdentifier& theNymID = pAccount->GetUserID();
             const OTIdentifier& theServerID = pAccount->GetPurportedServerID();
             const OTIdentifier& theAssetID = pAccount->GetAssetTypeID();
-            const OTString strNymID(theNymID);
-            const OTString strServerID(theServerID);
-            const OTString strAssetID(theAssetID);
+            const String strNymID(theNymID);
+            const String strServerID(theServerID);
+            const String strAssetID(theAssetID);
             otOut << "------------\n" << __FUNCTION__
                   << ": Account: " << nAccountIndex
                   << ", ID: " << str_account_id.c_str() << "\n";
@@ -925,7 +925,7 @@ bool OTRecordList::PerformAutoAccept()
                          "the latest one?)\n";
                 continue;
             }
-            const OTString strInbox(*pInbox);
+            const String strInbox(*pInbox);
             const std::string str_inbox(strInbox.Get());
             bool bFoundAnyToAccept = false;
             std::string strResponseLedger;
@@ -985,7 +985,7 @@ bool OTRecordList::PerformAutoAccept()
                             continue;
                         }
                     }
-                    const OTString strTrans(*pBoxTrans);
+                    const String strTrans(*pBoxTrans);
                     const std::string str_trans(strTrans.Get());
                     std::string strNEW_ResponseLEDGER =
                         OTAPI_Wrap::It()->Transaction_CreateResponse(
@@ -1094,7 +1094,7 @@ bool OTRecordList::Populate()
                   << ": Beginning loop through Nyms...\n";
         const std::string& str_nym_id(it_nym);
         const OTIdentifier theNymID(str_nym_id);
-        const OTString strNymID(theNymID);
+        const String strNymID(theNymID);
         OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
         if (nullptr == pNym) continue;
         // For each Nym, loop through his OUTPAYMENTS box.
@@ -1109,7 +1109,7 @@ bool OTRecordList::Populate()
              nCurrentOutpayment < nOutpaymentsCount; ++nCurrentOutpayment) {
             otOut << __FUNCTION__
                   << ": Outpayment instrument: " << nCurrentOutpayment << "\n";
-            const OTString strOutpayment(
+            const String strOutpayment(
                 OTAPI_Wrap::GetNym_OutpaymentsContentsByIndex(
                     str_nym_id, nCurrentOutpayment));
             std::string str_memo;
@@ -1136,7 +1136,7 @@ bool OTRecordList::Populate()
                     (lAmount < 0))
                     lAmount *= (-1);
 
-                OTString strTemp;
+                String strTemp;
                 strTemp.Format("%" PRId64 "", lAmount);
                 str_amount = strTemp.Get();
             }
@@ -1149,7 +1149,7 @@ bool OTRecordList::Populate()
                                           // payment (if we found anything.)
 
             if (theOutPayment.GetAssetTypeID(theAssetTypeID)) {
-                OTString strTemp(theAssetTypeID);
+                String strTemp(theAssetTypeID);
                 str_outpmt_asset = strTemp.Get();
                 auto it_asset = m_assets.find(str_outpmt_asset);
                 if (it_asset != m_assets.end()) // Found it on the map of asset
@@ -1192,7 +1192,7 @@ bool OTRecordList::Populate()
                     theAccountID)) // Since Nym is ME, the Account must be MY
                                    // acct.
             { // (In Outpayments, the SENDER's account is MY acct.)
-                OTString strTemp(theAccountID);
+                String strTemp(theAccountID);
                 str_outpmt_account = strTemp.Get();
                 auto it_acct = std::find(m_accounts.begin(), m_accounts.end(),
                                          str_outpmt_account);
@@ -1254,8 +1254,8 @@ bool OTRecordList::Populate()
                 // and add the Nym's name as the second item in the map's pair.
                 // (Just like I already did with the asset type.)
                 //
-                OTString strName(m_pLookup->GetNymName(str_outpmt_recipientID,
-                                                       &(*it_server))),
+                String strName(m_pLookup->GetNymName(str_outpmt_recipientID,
+                                                     &(*it_server))),
                     strNameTemp;
                 std::string str_name;
 
@@ -1266,7 +1266,7 @@ bool OTRecordList::Populate()
                                        str_outpmt_recipientID.c_str());
 
                 str_name = strNameTemp.Get();
-                OTString strMemo;
+                String strMemo;
                 if (theOutPayment.GetMemo(strMemo)) {
                     str_memo = strMemo.Get();
                 }
@@ -1278,7 +1278,7 @@ bool OTRecordList::Populate()
 
                 if (theOutPayment.GetValidFrom(tFrom)) {
                     const uint64_t lFrom = OTTimeGetSecondsFromTime(tFrom);
-                    OTString strFrom;
+                    String strFrom;
                     strFrom.Format("%" PRIu64 "", lFrom);
                     str_date = strFrom.Get();
                 }
@@ -1369,7 +1369,7 @@ bool OTRecordList::Populate()
                 // and add the Nym's name as the second item in the map's pair.
                 // (Just like I already did with the asset type.)
                 //
-                OTString strName(
+                String strName(
                     m_pLookup->GetNymName(str_mail_senderID, &(*it_server))),
                     strNameTemp;
                 std::string str_name;
@@ -1392,7 +1392,7 @@ bool OTRecordList::Populate()
                                         // leave this empty.)
 
                 uint64_t lDate = pMsg->m_lTime;
-                OTString strDate;
+                String strDate;
                 strDate.Format("%" PRIu64 "", lDate);
                 const std::string str_date(strDate.Get());
                 // CREATE A OTRecord AND POPULATE IT...
@@ -1421,7 +1421,7 @@ bool OTRecordList::Populate()
                     false, // IsRecord
                     false, // IsReceipt
                     OTRecord::Mail));
-                const OTString strMail(OTAPI_Wrap::GetNym_MailContentsByIndex(
+                const String strMail(OTAPI_Wrap::GetNym_MailContentsByIndex(
                     str_nym_id, nCurrentMail));
                 sp_Record->SetContents(strMail.Get());
                 sp_Record->SetOtherNymID(str_mail_senderID);
@@ -1466,7 +1466,7 @@ bool OTRecordList::Populate()
                 // and add the Nym's name as the second item in the map's pair.
                 // (Just like I already did with the asset type.)
                 //
-                OTString strName(
+                String strName(
                     m_pLookup->GetNymName(str_mail_recipientID, &(*it_server))),
                     strNameTemp;
                 std::string str_name;
@@ -1489,7 +1489,7 @@ bool OTRecordList::Populate()
                                         // leave this empty.)
 
                 uint64_t lDate = pMsg->m_lTime;
-                OTString strDate;
+                String strDate;
                 strDate.Format("%" PRIu64 "", lDate);
                 const std::string str_date(strDate.Get());
                 // CREATE A OTRecord AND POPULATE IT...
@@ -1517,7 +1517,7 @@ bool OTRecordList::Populate()
                     false, // IsRecord (it's not in the record box.)
                     false, // IsReceipt
                     OTRecord::Mail));
-                const OTString strOutmail(
+                const String strOutmail(
                     OTAPI_Wrap::GetNym_OutmailContentsByIndex(str_nym_id,
                                                               nCurrentOutmail));
                 sp_Record->SetContents(strOutmail.Get());
@@ -1538,7 +1538,7 @@ bool OTRecordList::Populate()
             const OTIdentifier theServerID(it_server);
             OTServerContract* pServer = pWallet->GetServerContract(theServerID);
             OT_ASSERT(nullptr != pServer);
-            const OTString strServerID(theServerID);
+            const String strServerID(theServerID);
             otOut << __FUNCTION__ << ": Server " << nServerIndex
                   << ", ID: " << strServerID.Get() << "\n";
             // OPTIMIZE FYI:
@@ -1574,10 +1574,10 @@ bool OTRecordList::Populate()
                         OTIdentifier theSenderID;
 
                         if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
-                            const OTString strSenderID(theSenderID);
+                            const String strSenderID(theSenderID);
                             str_sender_nym_id = strSenderID.Get();
 
-                            OTString strName(m_pLookup->GetNymName(
+                            String strName(m_pLookup->GetNymName(
                                 str_sender_nym_id, &it_server)),
                                 strNameTemp;
 
@@ -1594,7 +1594,7 @@ bool OTRecordList::Populate()
                         theSenderID.Release();
 
                         if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderID)) {
-                            const OTString strSenderID(theSenderID);
+                            const String strSenderID(theSenderID);
                             str_sender_acct_id = strSenderID.Get();
                         }
                     }
@@ -1607,7 +1607,7 @@ bool OTRecordList::Populate()
                         tValidFrom = tDateSigned;
                         const uint64_t lDateSigned =
                             OTTimeGetSecondsFromTime(tDateSigned);
-                        OTString strDateSigned;
+                        String strDateSigned;
                         strDateSigned.Format("%" PRIu64 "", lDateSigned);
                         str_date = strDateSigned.Get();
                     }
@@ -1618,7 +1618,7 @@ bool OTRecordList::Populate()
                     std::string str_amount;     // <========== AMOUNT
                     std::string str_type;       // Instrument type.
                     std::string str_memo;
-                    OTString strContents; // Instrument contents.
+                    String strContents; // Instrument contents.
 
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -1627,7 +1627,7 @@ bool OTRecordList::Populate()
                         int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                         if (0 != lAmount) {
-                            OTString strTemp;
+                            String strTemp;
                             strTemp.Format("%" PRId64 "", lAmount);
                             str_amount = strTemp.Get();
                         }
@@ -1651,7 +1651,7 @@ bool OTRecordList::Populate()
                             if (0 == lAmount)
                                 lAmount = pBoxTrans->GetReceiptAmount();
                             if (0 != lAmount) {
-                                OTString strTemp;
+                                String strTemp;
                                 strTemp.Format("%" PRId64 "", lAmount);
                                 str_amount = strTemp.Get();
                             }
@@ -1666,11 +1666,11 @@ bool OTRecordList::Populate()
                             if (tValidFrom > OT_TIME_ZERO) {
                                 const uint64_t lFrom =
                                     OTTimeGetSecondsFromTime(tValidFrom);
-                                OTString strFrom;
+                                String strFrom;
                                 strFrom.Format("%" PRIu64 "", lFrom);
                                 str_date = strFrom.Get();
                             }
-                            OTString strMemo;
+                            String strMemo;
                             if (pPayment->GetMemo(strMemo)) {
                                 str_memo = strMemo.Get();
                             }
@@ -1678,7 +1678,7 @@ bool OTRecordList::Populate()
                             OTIdentifier theAssetTypeID, theSenderAcctID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
-                                OTString strTemp(theAssetTypeID);
+                                String strTemp(theAssetTypeID);
                                 const std::string str_inpmt_asset(
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
@@ -1715,7 +1715,7 @@ bool OTRecordList::Populate()
                             if (str_sender_acct_id.empty() &&
                                 pPayment->GetSenderAcctIDForDisplay(
                                     theSenderAcctID)) {
-                                OTString strTemp(theSenderAcctID);
+                                String strTemp(theSenderAcctID);
                                 str_sender_acct_id = strTemp.Get();
                             }
                             // By this point, p_str_asset_type and
@@ -1742,7 +1742,7 @@ bool OTRecordList::Populate()
                             int64_t lAmount = 0;
 
                             if (pPayment->GetAmount(lAmount)) {
-                                OTString strTemp;
+                                String strTemp;
                                 strTemp.Format("%" PRId64 "", lAmount);
                                 str_amount = strTemp.Get();
                             }
@@ -1830,7 +1830,7 @@ bool OTRecordList::Populate()
                         OTIdentifier theRecipientID, theRecipientAcctID;
 
                         if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
-                            const OTString strSenderID(theSenderID);
+                            const String strSenderID(theSenderID);
                             const std::string str_sender_id(strSenderID.Get());
 
                             // Usually, Nym is the RECIPIENT. Sometimes he's the
@@ -1854,12 +1854,11 @@ bool OTRecordList::Populate()
 
                                 if (pBoxTrans->GetRecipientUserIDForDisplay(
                                         theRecipientID)) {
-                                    const OTString strRecipientID(
-                                        theRecipientID);
+                                    const String strRecipientID(theRecipientID);
                                     const std::string str_recipient_id(
                                         strRecipientID.Get());
 
-                                    OTString strName(m_pLookup->GetNymName(
+                                    String strName(m_pLookup->GetNymName(
                                         str_recipient_id, &it_server)),
                                         strNameTemp;
 
@@ -1876,7 +1875,7 @@ bool OTRecordList::Populate()
                                     str_other_nym_id = str_recipient_id;
                                     if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                             theRecipientAcctID)) {
-                                        const OTString strRecipientAcctID(
+                                        const String strRecipientAcctID(
                                             theRecipientAcctID);
                                         str_other_acct_id =
                                             strRecipientAcctID.Get();
@@ -1889,7 +1888,7 @@ bool OTRecordList::Populate()
                                 // it must have been incoming. (And bOutgoing is
                                 // already false.)
 
-                                OTString strName(m_pLookup->GetNymName(
+                                String strName(m_pLookup->GetNymName(
                                     str_sender_id, &it_server)),
                                     strNameTemp;
 
@@ -1904,7 +1903,7 @@ bool OTRecordList::Populate()
                                 str_other_nym_id = str_sender_id;
                                 if (pBoxTrans->GetSenderAcctIDForDisplay(
                                         theSenderAcctID)) {
-                                    const OTString strSenderAcctID(
+                                    const String strSenderAcctID(
                                         theSenderAcctID);
                                     str_other_acct_id = strSenderAcctID.Get();
                                 }
@@ -1915,7 +1914,7 @@ bool OTRecordList::Populate()
                         // (So it's "recipient or bust.")
                         else if (pBoxTrans->GetRecipientUserIDForDisplay(
                                      theRecipientID)) {
-                            const OTString strRecipientID(theRecipientID);
+                            const String strRecipientID(theRecipientID);
                             const std::string str_recipient_id(
                                 strRecipientID.Get());
 
@@ -1931,7 +1930,7 @@ bool OTRecordList::Populate()
                                 // (Therefore it must be outgoing.)
                                 bOutgoing = true;
 
-                                OTString strName(m_pLookup->GetNymName(
+                                String strName(m_pLookup->GetNymName(
                                     str_recipient_id, &it_server)),
                                     strNameTemp;
 
@@ -1947,7 +1946,7 @@ bool OTRecordList::Populate()
                                 str_other_nym_id = str_recipient_id;
                                 if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                         theRecipientAcctID)) {
-                                    const OTString strRecipientAcctID(
+                                    const String strRecipientAcctID(
                                         theRecipientAcctID);
                                     str_other_acct_id =
                                         strRecipientAcctID.Get();
@@ -1964,7 +1963,7 @@ bool OTRecordList::Populate()
                         tValidFrom = tDateSigned;
                         const uint64_t lDateSigned =
                             OTTimeGetSecondsFromTime(tDateSigned);
-                        OTString strDateSigned;
+                        String strDateSigned;
                         strDateSigned.Format("%" PRIu64 "", lDateSigned);
                         str_date = strDateSigned.Get();
                     }
@@ -1977,7 +1976,7 @@ bool OTRecordList::Populate()
                     std::string str_amount;     // <========== AMOUNT
                     std::string str_type;       // Instrument type.
                     std::string str_memo; // Instrument memo (if applicable.)
-                    OTString strContents; // Instrument contents.
+                    String strContents;   // Instrument contents.
 
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -1986,7 +1985,7 @@ bool OTRecordList::Populate()
                         int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                         if (0 != lAmount) {
-                            OTString strTemp;
+                            String strTemp;
                             strTemp.Format("%" PRId64 "", lAmount);
                             str_amount = strTemp.Get();
                         }
@@ -2009,7 +2008,7 @@ bool OTRecordList::Populate()
                                 pBoxTrans->GetAbbrevDisplayAmount();
 
                             if (0 != lAmount) {
-                                OTString strTemp;
+                                String strTemp;
                                 strTemp.Format("%" PRId64 "", lAmount);
                                 str_amount = strTemp.Get();
                             }
@@ -2023,7 +2022,7 @@ bool OTRecordList::Populate()
                             if (tValidFrom > OT_TIME_ZERO) {
                                 const uint64_t lFrom =
                                     OTTimeGetSecondsFromTime(tValidFrom);
-                                OTString strFrom;
+                                String strFrom;
                                 strFrom.Format("%" PRIu64 "", lFrom);
                                 str_date = strFrom.Get();
                             }
@@ -2038,7 +2037,7 @@ bool OTRecordList::Populate()
                                                        // acct.
                                 { // (If this record was originally OUTgoing,
                                     // then the SENDER's account is MY acct.)
-                                    OTString strTemp(theAccountID);
+                                    String strTemp(theAccountID);
                                     std::string str_outpmt_account =
                                         strTemp.Get(); // The accountID we found
                                                        // on the payment (only
@@ -2098,7 +2097,7 @@ bool OTRecordList::Populate()
                                 if (str_other_acct_id.empty() &&
                                     (pPayment->GetSenderAcctIDForDisplay(
                                         theAccountID))) {
-                                    OTString strTemp(theAccountID);
+                                    String strTemp(theAccountID);
                                     str_other_acct_id = strTemp.Get();
                                 }
                             }
@@ -2112,7 +2111,7 @@ bool OTRecordList::Populate()
                             OTIdentifier theAssetTypeID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
-                                OTString strTemp(theAssetTypeID);
+                                String strTemp(theAssetTypeID);
                                 const std::string str_inpmt_asset(
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
@@ -2162,7 +2161,7 @@ bool OTRecordList::Populate()
                             // the asset
                             // types we
                             // care about.
-                            OTString strMemo;
+                            String strMemo;
                             if (pPayment->GetMemo(strMemo)) {
                                 str_memo = strMemo.Get();
                             }
@@ -2174,7 +2173,7 @@ bool OTRecordList::Populate()
                             int64_t lAmount = 0;
 
                             if (pPayment->GetAmount(lAmount)) {
-                                OTString strTemp;
+                                String strTemp;
                                 strTemp.Format("%" PRId64 "", lAmount);
                                 str_amount = strTemp.Get();
                             }
@@ -2262,7 +2261,7 @@ bool OTRecordList::Populate()
                         OTIdentifier theRecipientID, theRecipientAcctID;
 
                         if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
-                            const OTString strSenderID(theSenderID);
+                            const String strSenderID(theSenderID);
                             const std::string str_sender_id(strSenderID.Get());
 
                             // Usually, Nym is the RECIPIENT. Sometimes he's the
@@ -2286,12 +2285,11 @@ bool OTRecordList::Populate()
 
                                 if (pBoxTrans->GetRecipientUserIDForDisplay(
                                         theRecipientID)) {
-                                    const OTString strRecipientID(
-                                        theRecipientID);
+                                    const String strRecipientID(theRecipientID);
                                     const std::string str_recipient_id(
                                         strRecipientID.Get());
 
-                                    OTString strName(m_pLookup->GetNymName(
+                                    String strName(m_pLookup->GetNymName(
                                         str_recipient_id, &it_server)),
                                         strNameTemp;
 
@@ -2308,7 +2306,7 @@ bool OTRecordList::Populate()
                                     str_other_nym_id = str_recipient_id;
                                     if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                             theRecipientAcctID)) {
-                                        const OTString strRecipientAcctID(
+                                        const String strRecipientAcctID(
                                             theRecipientAcctID);
                                         str_other_acct_id =
                                             strRecipientAcctID.Get();
@@ -2321,7 +2319,7 @@ bool OTRecordList::Populate()
                                 // it must have been incoming. (And bOutgoing is
                                 // already false.)
 
-                                OTString strName(m_pLookup->GetNymName(
+                                String strName(m_pLookup->GetNymName(
                                     str_sender_id, &it_server)),
                                     strNameTemp;
 
@@ -2336,7 +2334,7 @@ bool OTRecordList::Populate()
                                 str_other_nym_id = str_sender_id;
                                 if (pBoxTrans->GetSenderAcctIDForDisplay(
                                         theSenderAcctID)) {
-                                    const OTString strSenderAcctID(
+                                    const String strSenderAcctID(
                                         theSenderAcctID);
                                     str_other_acct_id = strSenderAcctID.Get();
                                 }
@@ -2347,7 +2345,7 @@ bool OTRecordList::Populate()
                         // (So it's "recipient or bust.")
                         else if (pBoxTrans->GetRecipientUserIDForDisplay(
                                      theRecipientID)) {
-                            const OTString strRecipientID(theRecipientID);
+                            const String strRecipientID(theRecipientID);
                             const std::string str_recipient_id(
                                 strRecipientID.Get());
 
@@ -2363,7 +2361,7 @@ bool OTRecordList::Populate()
                                 // (Therefore it must be outgoing.)
                                 bOutgoing = true;
 
-                                OTString strName(m_pLookup->GetNymName(
+                                String strName(m_pLookup->GetNymName(
                                     str_recipient_id, &it_server)),
                                     strNameTemp;
 
@@ -2379,7 +2377,7 @@ bool OTRecordList::Populate()
                                 str_other_nym_id = str_recipient_id;
                                 if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                         theRecipientAcctID)) {
-                                    const OTString strRecipientAcctID(
+                                    const String strRecipientAcctID(
                                         theRecipientAcctID);
                                     str_other_acct_id =
                                         strRecipientAcctID.Get();
@@ -2396,7 +2394,7 @@ bool OTRecordList::Populate()
                         tValidFrom = tDateSigned;
                         const uint64_t lDateSigned =
                             OTTimeGetSecondsFromTime(tDateSigned);
-                        OTString strDateSigned;
+                        String strDateSigned;
                         strDateSigned.Format("%" PRIu64 "", lDateSigned);
                         str_date = strDateSigned.Get();
                     }
@@ -2409,7 +2407,7 @@ bool OTRecordList::Populate()
                     std::string str_amount;     // <========== AMOUNT
                     std::string str_type;       // Instrument type.
                     std::string str_memo; // Instrument memo (if applicable.)
-                    OTString strContents; // Instrument contents.
+                    String strContents;   // Instrument contents.
 
                     if (pBoxTrans->IsAbbreviated()) {
                         str_type =
@@ -2418,7 +2416,7 @@ bool OTRecordList::Populate()
                         int64_t lAmount = pBoxTrans->GetAbbrevDisplayAmount();
 
                         if (0 != lAmount) {
-                            OTString strTemp;
+                            String strTemp;
                             strTemp.Format("%" PRId64 "", lAmount);
                             str_amount = strTemp.Get();
                         }
@@ -2441,7 +2439,7 @@ bool OTRecordList::Populate()
                                 pBoxTrans->GetAbbrevDisplayAmount();
 
                             if (0 != lAmount) {
-                                OTString strTemp;
+                                String strTemp;
                                 strTemp.Format("%" PRId64 "", lAmount);
                                 str_amount = strTemp.Get();
                             }
@@ -2455,7 +2453,7 @@ bool OTRecordList::Populate()
                             if (tValidFrom > OT_TIME_ZERO) {
                                 const uint64_t lFrom =
                                     OTTimeGetSecondsFromTime(tValidFrom);
-                                OTString strFrom;
+                                String strFrom;
                                 strFrom.Format("%" PRIu64 "", lFrom);
                                 str_date = strFrom.Get();
                             }
@@ -2470,7 +2468,7 @@ bool OTRecordList::Populate()
                                                        // acct.
                                 { // (If this record was originally OUTgoing,
                                     // then the SENDER's account is MY acct.)
-                                    OTString strTemp(theAccountID);
+                                    String strTemp(theAccountID);
                                     std::string str_outpmt_account =
                                         strTemp.Get(); // The accountID we found
                                                        // on the payment (only
@@ -2531,7 +2529,7 @@ bool OTRecordList::Populate()
                                 if (str_other_acct_id.empty() &&
                                     (pPayment->GetSenderAcctIDForDisplay(
                                         theAccountID))) {
-                                    OTString strTemp(theAccountID);
+                                    String strTemp(theAccountID);
                                     str_other_acct_id = strTemp.Get();
                                 }
                             }
@@ -2545,7 +2543,7 @@ bool OTRecordList::Populate()
                             OTIdentifier theAssetTypeID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
-                                OTString strTemp(theAssetTypeID);
+                                String strTemp(theAssetTypeID);
                                 const std::string str_inpmt_asset(
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
@@ -2596,7 +2594,7 @@ bool OTRecordList::Populate()
                             // the asset
                             // types we
                             // care about.
-                            OTString strMemo;
+                            String strMemo;
                             if (pPayment->GetMemo(strMemo)) {
                                 str_memo = strMemo.Get();
                             }
@@ -2608,7 +2606,7 @@ bool OTRecordList::Populate()
                             int64_t lAmount = 0;
 
                             if (pPayment->GetAmount(lAmount)) {
-                                OTString strTemp;
+                                String strTemp;
                                 strTemp.Format("%" PRId64 "", lAmount);
                                 str_amount = strTemp.Get();
                             }
@@ -2682,9 +2680,9 @@ bool OTRecordList::Populate()
         const OTIdentifier& theNymID = pAccount->GetUserID();
         const OTIdentifier& theServerID = pAccount->GetPurportedServerID();
         const OTIdentifier& theAssetID = pAccount->GetAssetTypeID();
-        const OTString strNymID(theNymID);
-        const OTString strServerID(theServerID);
-        const OTString strAssetID(theAssetID);
+        const String strNymID(theNymID);
+        const String strServerID(theServerID);
+        const String strAssetID(theAssetID);
         otOut << "------------\n" << __FUNCTION__
               << ": Account: " << nAccountIndex
               << ", ID: " << str_account_id.c_str() << "\n";
@@ -2763,7 +2761,7 @@ bool OTRecordList::Populate()
                 std::string str_memo;
 
                 if (!pBoxTrans->IsAbbreviated()) {
-                    OTString strMemo;
+                    String strMemo;
 
                     if (pBoxTrans->GetMemo(strMemo)) str_memo = strMemo.Get();
                     if (OTTransaction::pending == pBoxTrans->GetType()) {
@@ -2783,16 +2781,16 @@ bool OTRecordList::Populate()
                         {
                             if (pBoxTrans->GetSenderUserIDForDisplay(
                                     theSenderID)) {
-                                const OTString strSenderID(theSenderID);
+                                const String strSenderID(theSenderID);
                                 str_other_nym_id = strSenderID.Get();
                             }
-                            const OTString strSenderAcctID(theSenderAcctID);
+                            const String strSenderAcctID(theSenderAcctID);
                             const std::string str_sender_acct_id(
                                 strSenderAcctID.Get());
 
                             str_other_acct_id = str_sender_acct_id;
 
-                            OTString strName(m_pLookup->GetAcctName(
+                            String strName(m_pLookup->GetAcctName(
                                 str_other_acct_id,
                                 str_other_nym_id.empty()
                                     ? nullptr
@@ -2807,7 +2805,7 @@ bool OTRecordList::Populate()
                                 str_name = strNameTemp.Get();
                             }
                             else if (!str_other_nym_id.empty()) {
-                                OTString strNymName(m_pLookup->GetNymName(
+                                String strNymName(m_pLookup->GetNymName(
                                     str_other_nym_id, &(*it_server))),
                                     strNymNameTemp;
 
@@ -2827,10 +2825,10 @@ bool OTRecordList::Populate()
                         else if (pBoxTrans->GetSenderUserIDForDisplay(
                                        theSenderID)) // NYM name.
                         {
-                            const OTString strSenderID(theSenderID);
+                            const String strSenderID(theSenderID);
                             const std::string str_sender_id(strSenderID.Get());
 
-                            OTString strName(m_pLookup->GetNymName(
+                            String strName(m_pLookup->GetNymName(
                                 str_sender_id, &(*it_server))),
                                 strNameTemp;
 
@@ -2845,7 +2843,7 @@ bool OTRecordList::Populate()
                             str_other_nym_id = str_sender_id;
                         }
                         else {
-                            OTString strName(OTAPI_Wrap::GetAccountWallet_Name(
+                            String strName(OTAPI_Wrap::GetAccountWallet_Name(
                                 str_account_id)),
                                 strNameTemp;
 
@@ -2863,11 +2861,11 @@ bool OTRecordList::Populate()
 
                         if (pBoxTrans->GetRecipientUserIDForDisplay(
                                 theRecipientID)) {
-                            const OTString strRecipientID(theRecipientID);
+                            const String strRecipientID(theRecipientID);
                             const std::string str_recipient_user_id(
                                 strRecipientID.Get());
 
-                            OTString strName(m_pLookup->GetNymName(
+                            String strName(m_pLookup->GetNymName(
                                 str_recipient_user_id, &(*it_server))),
                                 strNameTemp;
 
@@ -2883,19 +2881,18 @@ bool OTRecordList::Populate()
                             str_other_nym_id = str_recipient_user_id;
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                     theRecipientAcctID)) {
-                                const OTString strRecipientAcctID(
+                                const String strRecipientAcctID(
                                     theRecipientAcctID);
                                 str_other_acct_id = strRecipientAcctID.Get();
                             }
                         }
                         else if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                        theRecipientAcctID)) {
-                            const OTString strRecipientAcctID(
-                                theRecipientAcctID);
+                            const String strRecipientAcctID(theRecipientAcctID);
                             const std::string str_recipient_acct_id(
                                 strRecipientAcctID.Get());
 
-                            OTString strName(m_pLookup->GetAcctName(
+                            String strName(m_pLookup->GetAcctName(
                                 str_recipient_acct_id,
                                 nullptr,         // nym ID if known
                                 pstr_server_id,  // server ID if known.
@@ -2925,7 +2922,7 @@ bool OTRecordList::Populate()
                     tValidFrom = tDateSigned;
                     const uint64_t lDateSigned =
                         OTTimeGetSecondsFromTime(tDateSigned);
-                    OTString strDateSigned;
+                    String strDateSigned;
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
                     str_date = strDateSigned.Get();
                 }
@@ -2934,7 +2931,7 @@ bool OTRecordList::Populate()
 
                 if (0 == lAmount) lAmount = pBoxTrans->GetReceiptAmount();
                 if (0 != lAmount) {
-                    OTString strTemp;
+                    String strTemp;
                     strTemp.Format("%" PRId64 "", lAmount);
                     str_amount = strTemp.Get();
                 }
@@ -2973,7 +2970,7 @@ bool OTRecordList::Populate()
                     (OTTransaction::pending == pBoxTrans->GetType())
                         ? OTRecord::Transfer
                         : OTRecord::Receipt));
-                const OTString strContents(*pBoxTrans);
+                const String strContents(*pBoxTrans);
                 sp_Record->SetContents(strContents.Get());
                 sp_Record->SetDateRange(tValidFrom, tValidTo);
                 sp_Record->SetBoxIndex(nInboxIndex);
@@ -3028,12 +3025,12 @@ bool OTRecordList::Populate()
 
                     if (pBoxTrans->GetRecipientUserIDForDisplay(
                             theRecipientID)) {
-                        const OTString strRecipientID(theRecipientID);
+                        const String strRecipientID(theRecipientID);
                         const std::string str_recipient_id(
                             strRecipientID.Get());
 
-                        OTString strName(m_pLookup->GetNymName(str_recipient_id,
-                                                               &(*it_server))),
+                        String strName(m_pLookup->GetNymName(str_recipient_id,
+                                                             &(*it_server))),
                             strNameTemp;
 
                         if (strName.Exists())
@@ -3047,18 +3044,17 @@ bool OTRecordList::Populate()
                         str_other_nym_id = str_recipient_id;
                         if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                 theRecipientAcctID)) {
-                            const OTString strRecipientAcctID(
-                                theRecipientAcctID);
+                            const String strRecipientAcctID(theRecipientAcctID);
                             str_other_acct_id = strRecipientAcctID.Get();
                         }
                     }
                     else if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                    theRecipientAcctID)) {
-                        const OTString strRecipientAcctID(theRecipientAcctID);
+                        const String strRecipientAcctID(theRecipientAcctID);
                         const std::string str_recipient_acct_id(
                             strRecipientAcctID.Get());
 
-                        OTString strName(m_pLookup->GetAcctName(
+                        String strName(m_pLookup->GetAcctName(
                             str_recipient_acct_id, nullptr, // nym ID if known
                             pstr_server_id,  // server ID if known.
                             pstr_asset_id)), // asset ID if known.
@@ -3075,7 +3071,7 @@ bool OTRecordList::Populate()
                         str_other_acct_id = str_recipient_acct_id;
                     }
                     if (OTTransaction::pending == pBoxTrans->GetType()) {
-                        OTString strMemo;
+                        String strMemo;
 
                         if (pBoxTrans->GetMemo(strMemo))
                             str_memo = strMemo.Get();
@@ -3099,7 +3095,7 @@ bool OTRecordList::Populate()
                     tValidFrom = tDateSigned;
                     const uint64_t lDateSigned =
                         OTTimeGetSecondsFromTime(tDateSigned);
-                    OTString strDateSigned;
+                    String strDateSigned;
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
                     str_date = strDateSigned.Get();
                 }
@@ -3111,7 +3107,7 @@ bool OTRecordList::Populate()
                     0) // Outgoing transfer should display with negative amount
                     lAmount *= (-1);
                 if (0 != lAmount) {
-                    OTString strTemp;
+                    String strTemp;
                     strTemp.Format("%" PRId64 "", lAmount);
                     str_amount = strTemp.Get();
                 }
@@ -3143,7 +3139,7 @@ bool OTRecordList::Populate()
                     false, // IsRecord
                     false, // IsReceipt
                     OTRecord::Transfer));
-                const OTString strContents(*pBoxTrans);
+                const String strContents(*pBoxTrans);
                 sp_Record->SetContents(strContents.Get());
                 sp_Record->SetDateRange(tValidFrom, tValidTo);
                 sp_Record->SetBoxIndex(nOutboxIndex);
@@ -3199,7 +3195,7 @@ bool OTRecordList::Populate()
                     OTIdentifier theRecipientID, theRecipientAcctID;
 
                     if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderAcctID)) {
-                        const OTString strSenderAcctID(theSenderAcctID);
+                        const String strSenderAcctID(theSenderAcctID);
                         const std::string str_sender_acct_id(
                             strSenderAcctID.Get());
 
@@ -3228,12 +3224,12 @@ bool OTRecordList::Populate()
 
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                     theRecipientAcctID)) {
-                                const OTString strRecipientAcctID(
+                                const String strRecipientAcctID(
                                     theRecipientAcctID);
                                 const std::string str_recip_acct_id(
                                     strRecipientAcctID.Get());
 
-                                OTString strRecipientUserID("");
+                                String strRecipientUserID("");
                                 std::string str_recip_user_id("");
 
                                 if (bGotRecipientUserIDForDisplay) {
@@ -3253,7 +3249,7 @@ bool OTRecordList::Populate()
                                 // by the recipient, obviously...)
                                 //
                                 if (!pBoxTrans->IsCancelled()) {
-                                    OTString strName(m_pLookup->GetAcctName(
+                                    String strName(m_pLookup->GetAcctName(
                                         str_recip_acct_id,
                                         // NOTE: we CANNOT pass
                                         // str_recip_user_id here with
@@ -3293,14 +3289,14 @@ bool OTRecordList::Populate()
                                 str_other_acct_id = str_recip_acct_id;
                             }
                             if (bGotRecipientUserIDForDisplay) {
-                                const OTString strRecipientID(theRecipientID);
+                                const String strRecipientID(theRecipientID);
                                 const std::string str_recipient_id(
                                     strRecipientID.Get());
 
                                 str_other_nym_id = str_recipient_id;
 
                                 if (str_name.empty()) {
-                                    OTString strName(m_pLookup->GetNymName(
+                                    String strName(m_pLookup->GetNymName(
                                         str_recipient_id, &(*it_server))),
                                         strNameTemp;
 
@@ -3326,10 +3322,10 @@ bool OTRecordList::Populate()
 
                             if (pBoxTrans->GetSenderUserIDForDisplay(
                                     theSenderID)) {
-                                const OTString strSenderUserID(theSenderID);
+                                const String strSenderUserID(theSenderID);
                                 str_other_nym_id = strSenderUserID.Get();
                             }
-                            OTString strName(m_pLookup->GetAcctName(
+                            String strName(m_pLookup->GetAcctName(
                                 str_sender_acct_id,
                                 str_other_nym_id.empty()
                                     ? nullptr
@@ -3356,13 +3352,13 @@ bool OTRecordList::Populate()
                                  theRecipientAcctID)) {
                         if (pBoxTrans->GetRecipientUserIDForDisplay(
                                 theRecipientID)) {
-                            const OTString strRecipientID(theRecipientID);
+                            const String strRecipientID(theRecipientID);
                             const std::string str_recipient_user_id(
                                 strRecipientID.Get());
 
                             str_other_nym_id = str_recipient_user_id;
                         }
-                        const OTString strRecipientAcctID(theRecipientAcctID);
+                        const String strRecipientAcctID(theRecipientAcctID);
                         const std::string str_recipient_acct_id(
                             strRecipientAcctID.Get());
 
@@ -3378,7 +3374,7 @@ bool OTRecordList::Populate()
                             // (Therefore it must be outgoing.)
                             bOutgoing = true;
 
-                            OTString strName(m_pLookup->GetAcctName(
+                            String strName(m_pLookup->GetAcctName(
                                 str_recipient_acct_id,
                                 str_other_nym_id.empty()
                                     ? nullptr
@@ -3401,7 +3397,7 @@ bool OTRecordList::Populate()
                     }
                     else if (pBoxTrans->GetSenderUserIDForDisplay(
                                    theSenderID)) {
-                        const OTString strSenderID(theSenderID);
+                        const String strSenderID(theSenderID);
                         const std::string str_sender_id(strSenderID.Get());
 
                         // Usually, Nym is the RECIPIENT. Sometimes he's the
@@ -3425,11 +3421,11 @@ bool OTRecordList::Populate()
 
                             if (pBoxTrans->GetRecipientUserIDForDisplay(
                                     theRecipientID)) {
-                                const OTString strRecipientID(theRecipientID);
+                                const String strRecipientID(theRecipientID);
                                 const std::string str_recipient_id(
                                     strRecipientID.Get());
 
-                                OTString strName(m_pLookup->GetNymName(
+                                String strName(m_pLookup->GetNymName(
                                     str_recipient_id, &(*it_server))),
                                     strNameTemp;
 
@@ -3445,7 +3441,7 @@ bool OTRecordList::Populate()
                                 str_other_nym_id = str_recipient_id;
                                 if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                         theRecipientAcctID)) {
-                                    const OTString strRecipientAcctID(
+                                    const String strRecipientAcctID(
                                         theRecipientAcctID);
                                     str_other_acct_id =
                                         strRecipientAcctID.Get();
@@ -3459,7 +3455,7 @@ bool OTRecordList::Populate()
                             // already
                             // false.)
 
-                            OTString strName(m_pLookup->GetNymName(
+                            String strName(m_pLookup->GetNymName(
                                 str_sender_id, &(*it_server))),
                                 strNameTemp;
 
@@ -3474,7 +3470,7 @@ bool OTRecordList::Populate()
                             str_other_nym_id = str_sender_id;
                             if (pBoxTrans->GetSenderAcctIDForDisplay(
                                     theSenderAcctID)) {
-                                const OTString strSenderAcctID(theSenderAcctID);
+                                const String strSenderAcctID(theSenderAcctID);
                                 str_other_acct_id = strSenderAcctID.Get();
                             }
                         }
@@ -3484,7 +3480,7 @@ bool OTRecordList::Populate()
                     // (So it's "recipient or bust.")
                     else if (pBoxTrans->GetRecipientUserIDForDisplay(
                                  theRecipientID)) {
-                        const OTString strRecipientID(theRecipientID);
+                        const String strRecipientID(theRecipientID);
                         const std::string str_recipient_id(
                             strRecipientID.Get());
 
@@ -3500,7 +3496,7 @@ bool OTRecordList::Populate()
                             // (Therefore it must be outgoing.)
                             bOutgoing = true;
 
-                            OTString strName(m_pLookup->GetNymName(
+                            String strName(m_pLookup->GetNymName(
                                 str_recipient_id, &(*it_server))),
                                 strNameTemp;
 
@@ -3515,7 +3511,7 @@ bool OTRecordList::Populate()
                             str_other_nym_id = str_recipient_id;
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                     theRecipientAcctID)) {
-                                const OTString strRecipientAcctID(
+                                const String strRecipientAcctID(
                                     theRecipientAcctID);
                                 str_other_acct_id = strRecipientAcctID.Get();
                             }
@@ -3524,7 +3520,7 @@ bool OTRecordList::Populate()
                     // Get the Memo field for a transferReceipt and also for
                     // other receipts.
                     //
-                    OTString strMemo;
+                    String strMemo;
 
                     if (pBoxTrans->GetMemo(strMemo)) str_memo = strMemo.Get();
 
@@ -3539,7 +3535,7 @@ bool OTRecordList::Populate()
                     tValidFrom = tDateSigned;
                     const uint64_t lDateSigned =
                         OTTimeGetSecondsFromTime(tDateSigned);
-                    OTString strDateSigned;
+                    String strDateSigned;
                     strDateSigned.Format("%" PRIu64 "", lDateSigned);
                     str_date = strDateSigned.Get();
                 }
@@ -3571,7 +3567,7 @@ bool OTRecordList::Populate()
                     // str_type.compare("transferReceipt")) && (lAmount > 0))
                     //                    lAmount *= (-1);
 
-                    OTString strTemp;
+                    String strTemp;
                     strTemp.Format("%" PRId64 "", lAmount);
                     str_amount = strTemp.Get();
                 }
@@ -3611,7 +3607,7 @@ bool OTRecordList::Populate()
                     pBoxTrans->GetType() == OTTransaction::pending
                         ? OTRecord::Transfer
                         : OTRecord::Receipt));
-                const OTString strContents(*pBoxTrans);
+                const String strContents(*pBoxTrans);
                 sp_Record->SetContents(strContents.Get());
                 if (bCanceled) sp_Record->SetCanceled();
                 sp_Record->SetDateRange(tValidFrom, tValidTo);
@@ -3687,7 +3683,7 @@ void OTRecordList::AddSpecialMsg(
 
     if (!str_other_address.empty())
         str_other_name = m_pLookup->GetAddressName(str_other_address);
-    OTString strNameTemp;
+    String strNameTemp;
     std::string str_name("");
 
     if (!str_other_name.empty())
@@ -3709,7 +3705,7 @@ void OTRecordList::AddSpecialMsg(
                             // empty.)
     // ---------------------------------------------------
     uint64_t lDate = static_cast<uint64_t>(tDate);
-    OTString strDate;
+    String strDate;
     strDate.Format("%" PRIu64 "", lDate);
     const std::string str_date(strDate.Get());
     // CREATE AN OTRecord AND POPULATE IT...

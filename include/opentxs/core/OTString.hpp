@@ -168,43 +168,42 @@ class OTIdentifier;
 class OTPseudonym;
 class OTSignature;
 
-class OTString
+class String
 {
 public:
     typedef std::list<std::string> List;
     typedef std::map<std::string, std::string> Map;
 
 public:
-    EXPORT friend std::ostream& operator<<(std::ostream& os,
-                                           const OTString& obj);
+    EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
-    EXPORT OTString();
-    EXPORT OTString(const OTString& value);
-    EXPORT OTString(const OTASCIIArmor& value);
-    OTString(const OTSignature& value);
-    EXPORT OTString(const OTContract& value);
-    EXPORT OTString(const OTIdentifier& value);
-    OTString(OTPseudonym& value);
-    EXPORT OTString(const char* value);
-    OTString(const char* value, size_t size);
-    EXPORT OTString(const std::string& value);
-    EXPORT virtual ~OTString();
+    EXPORT String();
+    EXPORT String(const String& value);
+    EXPORT String(const OTASCIIArmor& value);
+    String(const OTSignature& value);
+    EXPORT String(const OTContract& value);
+    EXPORT String(const OTIdentifier& value);
+    String(OTPseudonym& value);
+    EXPORT String(const char* value);
+    String(const char* value, size_t size);
+    EXPORT String(const std::string& value);
+    EXPORT virtual ~String();
 
     EXPORT virtual void Release();
 
     void Initialize();
 
-    EXPORT OTString& operator=(OTString rhs);
+    EXPORT String& operator=(String rhs);
 
     static bool vformat(const char* fmt, std::va_list* pvl, std::string& s)
         ATTR_PRINTF(1, 0);
 
-    void swap(OTString& rhs);
-    bool operator>(const OTString& rhs) const;
-    bool operator<(const OTString& rhs) const;
-    bool operator<=(const OTString& rhs) const;
-    bool operator>=(const OTString& rhs) const;
-    EXPORT bool operator==(const OTString& rhs) const;
+    void swap(String& rhs);
+    bool operator>(const String& rhs) const;
+    bool operator<(const String& rhs) const;
+    bool operator<=(const String& rhs) const;
+    bool operator>=(const String& rhs) const;
+    EXPORT bool operator==(const String& rhs) const;
 
     EXPORT static std::string& trim(std::string& str);
     EXPORT static std::string replace_chars(const std::string& str,
@@ -231,10 +230,10 @@ public:
     EXPORT bool DecodeIfArmored(bool escapedIsAllowed = true);
     EXPORT uint32_t GetLength() const;
     EXPORT bool Compare(const char* compare) const;
-    EXPORT bool Compare(const OTString& compare) const;
+    EXPORT bool Compare(const String& compare) const;
 
     EXPORT bool Contains(const char* compare) const;
-    bool Contains(const OTString& compare) const;
+    bool Contains(const String& compare) const;
 
     EXPORT const char* Get() const;
     // new_string MUST be at least nEnforcedMaxLength in size if
@@ -246,12 +245,12 @@ public:
     // nullptr terminator goes.
     //
     EXPORT void Set(const char* data, uint32_t enforcedMaxLength = 0);
-    EXPORT void Set(const OTString& data);
+    EXPORT void Set(const String& data);
     // For a straight-across, exact-size copy of bytes.
     // Source not expected to be null-terminated.
     EXPORT bool MemSet(const char* mem, uint32_t size);
     EXPORT void Concatenate(const char* arg, ...) ATTR_PRINTF(2, 3);
-    void Concatenate(const OTString& data);
+    void Concatenate(const String& data);
     void Truncate(uint32_t index);
     EXPORT void Format(const char* fmt, ...) ATTR_PRINTF(2, 3);
     void ConvertToUpperCase() const;
@@ -272,7 +271,7 @@ public:
 private:
     // You better have called Initialize() or Release() before you dare call
     // this.
-    void LowLevelSetStr(const OTString& buffer);
+    void LowLevelSetStr(const String& buffer);
 
     // Only call this right after calling Initialize() or Release().
     // Also, this function ASSUMES the new_string pointer is good.

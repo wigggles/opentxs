@@ -235,7 +235,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTPseudonym& theNym,
-    const OTString* pstrDisplay) // construct with nym
+    const String* pstrDisplay) // construct with nym
     : m_pNym(const_cast<OTPseudonym*>(&theNym)),
       m_pKey(nullptr),
       m_pPassword(nullptr),
@@ -246,7 +246,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTSymmetricKey& theKey,
-    const OTString* pstrDisplay) // construct with key
+    const String* pstrDisplay) // construct with key
     : m_pNym(nullptr),
       m_pKey(const_cast<OTSymmetricKey*>(&theKey)),
       m_pPassword(nullptr),
@@ -258,7 +258,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const OTSymmetricKey& theKey,
     const OTPassword& thePassword, // construct with key and password.
-    const OTString* pstrDisplay)
+    const String* pstrDisplay)
     : m_pNym(nullptr)
     , m_pKey(const_cast<OTSymmetricKey*>(&theKey))
     , m_pPassword(const_cast<OTPassword*>(&thePassword))
@@ -347,7 +347,7 @@ void OTNym_or_SymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
     }
 }
 
-void OTNym_or_SymmetricKey::GetIdentifier(OTString& strIdentifier) const
+void OTNym_or_SymmetricKey::GetIdentifier(String& strIdentifier) const
 {
     if (IsNym()) {
         m_pNym->GetIdentifier(strIdentifier);
@@ -361,8 +361,8 @@ void OTNym_or_SymmetricKey::GetIdentifier(OTString& strIdentifier) const
 }
 
 bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
-                                            OTString& strOutput,
-                                            const OTString* pstrDisplay)
+                                            String& strOutput,
+                                            const String* pstrDisplay)
 {
     const char* szFunc = "OTNym_or_SymmetricKey::Open_or_Decrypt";
 
@@ -385,7 +385,7 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
             pPassword = GetPassword();
         else // NO PASSWORD already? let's collect it from the user...
         {
-            const OTString strDisplay(
+            const String strDisplay(
                 (nullptr == pstrDisplay) ? szFunc : pstrDisplay->Get());
             // NOTE: m_pstrDisplay overrides this below.
 
@@ -436,8 +436,8 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(const OTEnvelope& inputEnvelope,
 }
 
 bool OTNym_or_SymmetricKey::Seal_or_Encrypt(OTEnvelope& outputEnvelope,
-                                            const OTString& strInput,
-                                            const OTString* pstrDisplay)
+                                            const String& strInput,
+                                            const String* pstrDisplay)
 {
     const char* szFunc = "OTNym_or_SymmetricKey::Seal_or_Encrypt";
 
@@ -456,7 +456,7 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(OTEnvelope& outputEnvelope,
             pPassword = GetPassword();
         else // no password? let's collect it from the user...
         {
-            const OTString strDisplay(
+            const String strDisplay(
                 (nullptr == pstrDisplay) ? szFunc : pstrDisplay->Get());
             // NOTE: m_pstrDisplay overrides this below.
 

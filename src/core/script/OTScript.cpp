@@ -278,7 +278,7 @@ OTScript::OTScript()
 {
 }
 
-OTScript::OTScript(const OTString& strValue)
+OTScript::OTScript(const String& strValue)
     : m_str_script(strValue.Get())
 {
 }
@@ -317,7 +317,7 @@ OTScript::~OTScript()
     }
 }
 
-void OTScript::SetScript(const OTString& strValue)
+void OTScript::SetScript(const String& strValue)
 {
     if (strValue.Exists()) m_str_script = strValue.Get();
 }

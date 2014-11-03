@@ -162,27 +162,27 @@ public:
 };
 
 OTStringXML::OTStringXML()
-    : OTString()
+    : String()
     , pvt_(new OTStringXMLPvt(this))
 {
 }
 
-OTStringXML::OTStringXML(const OTString& value)
-    : OTString(value)
+OTStringXML::OTStringXML(const String& value)
+    : String(value)
     , pvt_(new OTStringXMLPvt(this))
 {
 }
 
 OTStringXML::OTStringXML(const OTStringXML& value)
-    : OTString(value)
+    : String(value)
     , pvt_(new OTStringXMLPvt(this))
 {
 }
 
-OTStringXML& OTStringXML::operator=(const OTString& rhs)
+OTStringXML& OTStringXML::operator=(const String& rhs)
 {
-    if ((&rhs) != (&(dynamic_cast<const OTString&>(*this)))) {
-        OTString::operator=(rhs);
+    if ((&rhs) != (&(dynamic_cast<const String&>(*this)))) {
+        String::operator=(rhs);
     }
     return *this;
 }
@@ -190,7 +190,7 @@ OTStringXML& OTStringXML::operator=(const OTString& rhs)
 OTStringXML& OTStringXML::operator=(const OTStringXML& rhs)
 {
     if ((&rhs) != this) {
-        OTString::operator=(dynamic_cast<const OTString&>(rhs));
+        String::operator=(dynamic_cast<const String&>(rhs));
     }
     return *this;
 }

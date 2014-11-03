@@ -169,7 +169,7 @@ void OTSymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
     theIdentifier.CalculateDigest(m_dataEncryptedKey);
 }
 
-void OTSymmetricKey::GetIdentifier(OTString& strIdentifier) const
+void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
 {
     OTIdentifier theIdentifier;
     const bool bCalc = theIdentifier.CalculateDigest(m_dataEncryptedKey);
@@ -601,7 +601,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(const OTPassword& theDerivedKey,
 // The highest-level possible interface (used by the API)
 //
 // static  NOTE: this version circumvents the master key.
-OTPassword* OTSymmetricKey::GetPassphraseFromUser(const OTString* pstrDisplay,
+OTPassword* OTSymmetricKey::GetPassphraseFromUser(const String* pstrDisplay,
                                                   bool bAskTwice) // returns a
                                                                   // text
                                                                   // OTPassword,
@@ -648,16 +648,15 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(const OTString* pstrDisplay,
 }
 
 // static
-bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
-                                  const OTString* pstrDisplay,
+bool OTSymmetricKey::CreateNewKey(String& strOutput, const String* pstrDisplay,
                                   const OTPassword* pAlreadyHavePW)
 {
     std::unique_ptr<OTPassword> pPassUserInput;
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Creating new symmetric key.";
-        const OTString strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+        const String strDisplay((nullptr == pstrDisplay) ? szDisplay
+                                                         : pstrDisplay->Get());
 
         pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
             &strDisplay, true)); // bAskTwice=false by default.
@@ -692,10 +691,9 @@ bool OTSymmetricKey::CreateNewKey(OTString& strOutput,
 }
 
 // static
-bool OTSymmetricKey::Encrypt(const OTString& strKey,
-                             const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay, bool bBookends,
-                             const OTPassword* pAlreadyHavePW)
+bool OTSymmetricKey::Encrypt(const String& strKey, const String& strPlaintext,
+                             String& strOutput, const String* pstrDisplay,
+                             bool bBookends, const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
         otWarn << __FUNCTION__ << ": Nonexistent: either the key or the "
@@ -719,8 +717,8 @@ bool OTSymmetricKey::Encrypt(const OTString& strKey,
 
 // static
 bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
-                             const OTString& strPlaintext, OTString& strOutput,
-                             const OTString* pstrDisplay, bool bBookends,
+                             const String& strPlaintext, String& strOutput,
+                             const String* pstrDisplay, bool bBookends,
                              const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
@@ -742,8 +740,8 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Password-protecting a plaintext.";
-        const OTString strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+        const String strDisplay((nullptr == pstrDisplay) ? szDisplay
+                                                         : pstrDisplay->Get());
 
         pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
             &strDisplay)); // bAskTwice=false by default.
@@ -787,8 +785,8 @@ bool OTSymmetricKey::Encrypt(const OTSymmetricKey& theKey,
 }
 
 // static
-bool OTSymmetricKey::Decrypt(const OTString& strKey, OTString& strCiphertext,
-                             OTString& strOutput, const OTString* pstrDisplay,
+bool OTSymmetricKey::Decrypt(const String& strKey, String& strCiphertext,
+                             String& strOutput, const String* pstrDisplay,
                              const OTPassword* pAlreadyHavePW)
 {
 
@@ -815,8 +813,8 @@ bool OTSymmetricKey::Decrypt(const OTString& strKey, OTString& strCiphertext,
 
 // static
 bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
-                             const OTString& strCiphertext, OTString& strOutput,
-                             const OTString* pstrDisplay,
+                             const String& strCiphertext, String& strOutput,
+                             const String* pstrDisplay,
                              const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
@@ -842,8 +840,8 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Decrypting a password-protected ciphertext.";
-        const OTString strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+        const String strDisplay((nullptr == pstrDisplay) ? szDisplay
+                                                         : pstrDisplay->Get());
 
         pPassUserInput.reset(OTSymmetricKey::GetPassphraseFromUser(
             &strDisplay)); // bAskTwice=false by default.
@@ -873,7 +871,7 @@ bool OTSymmetricKey::Decrypt(const OTSymmetricKey& theKey,
     return bSuccess;
 }
 
-bool OTSymmetricKey::SerializeTo(OTString& strOutput, bool bEscaped) const
+bool OTSymmetricKey::SerializeTo(String& strOutput, bool bEscaped) const
 {
     OTASCIIArmor ascOutput;
 
@@ -884,12 +882,12 @@ bool OTSymmetricKey::SerializeTo(OTString& strOutput, bool bEscaped) const
     return false;
 }
 
-bool OTSymmetricKey::SerializeFrom(const OTString& strInput, bool bEscaped)
+bool OTSymmetricKey::SerializeFrom(const String& strInput, bool bEscaped)
 {
     OTASCIIArmor ascInput;
 
     if (strInput.Exists() &&
-        ascInput.LoadFromString(const_cast<OTString&>(strInput), bEscaped,
+        ascInput.LoadFromString(const_cast<String&>(strInput), bEscaped,
                                 "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
         return SerializeFrom(ascInput);
     }

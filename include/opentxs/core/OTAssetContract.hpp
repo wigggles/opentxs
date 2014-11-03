@@ -142,14 +142,14 @@ class OTAccount;
 class AccountVisitor;
 class OTIdentifier;
 class OTPseudonym;
-class OTString;
+class String;
 
 class OTAssetContract : public OTContract
 {
 public:
     EXPORT OTAssetContract();
-    EXPORT OTAssetContract(const OTString& name, const OTString& foldername,
-                           const OTString& filename, const OTString& strID);
+    EXPORT OTAssetContract(const String& name, const String& foldername,
+                           const String& filename, const String& strID);
     EXPORT virtual ~OTAssetContract();
 
     EXPORT virtual void CreateContents(); // Only used when first generating an
@@ -196,30 +196,30 @@ public:
     EXPORT bool StringToAmount(int64_t& amount,
                                const std::string& str_input) const;
 
-    EXPORT const OTString& GetBasketInfo() const
+    EXPORT const String& GetBasketInfo() const
     {
         return m_strBasketInfo;
     }
 
-    EXPORT const OTString& GetCurrencyName() const
+    EXPORT const String& GetCurrencyName() const
     {
         return m_strCurrencyName;
     } // "dollars"  (for example)
-    EXPORT const OTString& GetCurrencyFraction() const
+    EXPORT const String& GetCurrencyFraction() const
     {
         return m_strCurrencyFraction;
     } // "cents"    (for example)
-    EXPORT const OTString& GetCurrencySymbol() const
+    EXPORT const String& GetCurrencySymbol() const
     {
         return m_strCurrencySymbol;
     } // "$"        (for example)
-    EXPORT const OTString& GetCurrencyTLA() const
+    EXPORT const String& GetCurrencyTLA() const
     {
         return m_strCurrencyTLA;
     } // "USD""     (for example)
 
-    EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
-    EXPORT virtual bool DisplayStatistics(OTString& strContents) const;
+    EXPORT virtual bool SaveContractWallet(String& strContents) const;
+    EXPORT virtual bool DisplayStatistics(String& strContents) const;
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -227,33 +227,33 @@ protected:
 
 protected:
     // baskets
-    OTString m_strBasketInfo;
+    String m_strBasketInfo;
 
     // currencies and shares:
-    OTString m_strIssueCompany;
-    OTString m_strIssueEmail;
-    OTString m_strIssueContractURL;
-    OTString m_strIssueType; // A vs B. Voting / non-voting...
+    String m_strIssueCompany;
+    String m_strIssueEmail;
+    String m_strIssueContractURL;
+    String m_strIssueType; // A vs B. Voting / non-voting...
 
     // shares only:
-    OTString m_strIssueDate;
+    String m_strIssueDate;
 
     // currencies and shares:
-    OTString m_strCurrencyName;   //  "dollars", not cents. The name used in
-                                  // normal conversation.
-    OTString m_strCurrencyType;   //  "decimal" (Versus? Floating point? Int?)
-    OTString m_strCurrencySymbol; //  "$"
+    String m_strCurrencyName;   //  "dollars", not cents. The name used in
+                                // normal conversation.
+    String m_strCurrencyType;   //  "decimal" (Versus? Floating point? Int?)
+    String m_strCurrencySymbol; //  "$"
 
     // currencies only:
-    OTString m_strCurrencyTLA; // ISO-4217. E.g., USD, AUG, PSE. Take as hint,
-                               // not as contract.
-    OTString m_strCurrencyFactor; // A dollar is 100 cents. Therefore factor ==
-                                  // 100.
-    OTString m_strCurrencyDecimalPower; // If value is 103, decimal power of 0
-                                        // displays 103 (actual value.) Whereas
-                                        // decimal power of 2 displays 1.03 and
-                                        // 4 displays .0103
-    OTString m_strCurrencyFraction;     // "cents"
+    String m_strCurrencyTLA;    // ISO-4217. E.g., USD, AUG, PSE. Take as hint,
+                                // not as contract.
+    String m_strCurrencyFactor; // A dollar is 100 cents. Therefore factor ==
+                                // 100.
+    String m_strCurrencyDecimalPower; // If value is 103, decimal power of 0
+                                      // displays 103 (actual value.) Whereas
+                                      // decimal power of 2 displays 1.03 and
+                                      // 4 displays .0103
+    String m_strCurrencyFraction;     // "cents"
 
     bool m_bIsCurrency; // default: true.  (default.)
     bool m_bIsShares;   // default: false. (defaults to currency, not shares.)

@@ -162,7 +162,7 @@ OTPartyAccount::OTPartyAccount()
 // provided, for the finalReceipt for that account.
 //
 OTPartyAccount::OTPartyAccount(std::string str_account_name,
-                               const OTString& strAgentName,
+                               const String& strAgentName,
                                OTAccount& theAccount, int64_t lClosingTransNo)
     : m_pForParty(nullptr)
     , // This gets set when this partyaccount is added to its party.
@@ -175,10 +175,10 @@ OTPartyAccount::OTPartyAccount(std::string str_account_name,
 {
 }
 
-OTPartyAccount::OTPartyAccount(const OTString& strName,
-                               const OTString& strAgentName,
-                               const OTString& strAcctID,
-                               const OTString& strAssetTypeID,
+OTPartyAccount::OTPartyAccount(const String& strName,
+                               const String& strAgentName,
+                               const String& strAcctID,
+                               const String& strAssetTypeID,
                                int64_t lClosingTransNo)
     : m_pForParty(nullptr)
     , // This gets set when this partyaccount is added to its party.
@@ -239,7 +239,7 @@ bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
 
     const OTIdentifier theMemberAcctID(m_strAcctID);
     if (!(theAcctID == theMemberAcctID)) {
-        OTString strRHS(theAcctID);
+        String strRHS(theAcctID);
         otLog4 << "OTPartyAccount::IsAccountByID: Account IDs don't match: "
                << m_strAcctID << " / " << strRHS << " \n";
         // I set output to 4 because it's normal to call IsAccountByID() even
@@ -266,7 +266,7 @@ bool OTPartyAccount::IsAccount(OTAccount& theAccount)
 
     const OTIdentifier theAcctID(m_strAcctID);
     if (!(theAccount.GetRealAccountID() == theAcctID)) {
-        OTString strRHS(theAccount.GetRealAccountID());
+        String strRHS(theAccount.GetRealAccountID());
         otLog4 << "OTPartyAccount::IsAccount: Account IDs don't match: "
                << m_strAcctID << " / " << strRHS
                << " \n"; // I set output to 4 because it's normal to call
@@ -276,7 +276,7 @@ bool OTPartyAccount::IsAccount(OTAccount& theAccount)
 
     const OTIdentifier theAssetTypeID(m_strAssetTypeID);
     if (!(theAccount.GetAssetTypeID() == theAssetTypeID)) {
-        OTString strRHS(theAccount.GetAssetTypeID());
+        String strRHS(theAccount.GetAssetTypeID());
         otOut << "OTPartyAccount::IsAccount: Asset Type IDs don't match ( "
               << m_strAssetTypeID << " / " << strRHS
               << " ) for Acct ID: " << m_strAcctID << " \n";
@@ -343,10 +343,9 @@ bool OTPartyAccount::VerifyAgency()
 }
 
 bool OTPartyAccount::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap, const OTString& strServerID, OTPseudonym& theServerNym,
+    mapOfNyms* pNymMap, const String& strServerID, OTPseudonym& theServerNym,
     OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
-    const OTString& strOrigCronItem, OTString* pstrNote,
-    OTString* pstrAttachment)
+    const String& strOrigCronItem, String* pstrNote, String* pstrAttachment)
 {
     const char* szFunc = "OTPartyAccount::DropFinalReceiptToInbox";
 
@@ -392,7 +391,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 // appropriate in certain cases.
 //
 OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
-                                       const OTString& strServerID)
+                                       const String& strServerID)
 {
     if (!m_strAcctID.Exists()) {
         otOut << "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for "
@@ -439,7 +438,7 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
     return pAccount;
 }
 
-void OTPartyAccount::Serialize(OTString& strAppend, bool bCalculatingID,
+void OTPartyAccount::Serialize(String& strAppend, bool bCalculatingID,
                                bool bSpecifyAssetID) const
 {
     strAppend.Concatenate(

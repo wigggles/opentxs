@@ -157,7 +157,7 @@ public:
     }
 };
 
-bool OTSettings::Load(const OTString& strConfigurationFileExactPath)
+bool OTSettings::Load(const String& strConfigurationFileExactPath)
 {
     if (!strConfigurationFileExactPath.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -200,7 +200,7 @@ bool OTSettings::Load(const OTString& strConfigurationFileExactPath)
         return true;
 }
 
-bool OTSettings::Save(const OTString& strConfigurationFileExactPath)
+bool OTSettings::Save(const String& strConfigurationFileExactPath)
 {
     if (!strConfigurationFileExactPath.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -216,8 +216,8 @@ bool OTSettings::Save(const OTString& strConfigurationFileExactPath)
         return true;
 }
 
-bool OTSettings::LogChange_str(const OTString& strSection,
-                               const OTString& strKey, const OTString& strValue)
+bool OTSettings::LogChange_str(const String& strSection, const String& strKey,
+                               const String& strValue)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -236,7 +236,7 @@ bool OTSettings::LogChange_str(const OTString& strSection,
                                     ? strValue.Get()
                                     : "nullptr";
 
-    OTString strCategory, strOption;
+    String strCategory, strOption;
     if (!OTLog::StringFill(strCategory, strSection.Get(), 12)) return false;
     if (!OTLog::StringFill(strOption, strKey.Get(), 30, " to:")) return false;
 
@@ -245,7 +245,7 @@ bool OTSettings::LogChange_str(const OTString& strSection,
     return true;
 }
 
-OTSettings::OTSettings(const OTString& strConfigFilePath)
+OTSettings::OTSettings(const String& strConfigFilePath)
     : pvt(new OTSettingsPvt())
     , b_Loaded(false)
     , m_strConfigurationFileExactPath(strConfigFilePath)
@@ -258,7 +258,7 @@ OTSettings::OTSettings(const OTString& strConfigFilePath)
     }
 }
 
-void OTSettings::SetConfigFilePath(const OTString& strConfigFilePath)
+void OTSettings::SetConfigFilePath(const String& strConfigFilePath)
 {
     m_strConfigurationFileExactPath.Set(strConfigFilePath.Get());
 }
@@ -312,8 +312,8 @@ bool OTSettings::IsEmpty() const
     return pvt->iniSimple.IsEmpty();
 }
 
-bool OTSettings::Check_str(const OTString& strSection, const OTString& strKey,
-                           OTString& out_strResult, bool& out_bKeyExist) const
+bool OTSettings::Check_str(const String& strSection, const String& strKey,
+                           String& out_strResult, bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -343,7 +343,7 @@ bool OTSettings::Check_str(const OTString& strSection, const OTString& strKey,
 
     const char* szVar =
         pvt->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
-    OTString strVar(szVar);
+    String strVar(szVar);
 
     if (strVar.Exists() && !strVar.Compare("")) {
         out_bKeyExist = true;
@@ -357,7 +357,7 @@ bool OTSettings::Check_str(const OTString& strSection, const OTString& strKey,
     return true;
 }
 
-bool OTSettings::Check_long(const OTString& strSection, const OTString& strKey,
+bool OTSettings::Check_long(const String& strSection, const String& strKey,
                             int64_t& out_lResult, bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
@@ -388,7 +388,7 @@ bool OTSettings::Check_long(const OTString& strSection, const OTString& strKey,
 
     const char* szVar =
         pvt->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
-    OTString strVar(szVar);
+    String strVar(szVar);
 
     if (strVar.Exists() && !strVar.Compare("")) {
         out_bKeyExist = true;
@@ -403,7 +403,7 @@ bool OTSettings::Check_long(const OTString& strSection, const OTString& strKey,
     return true;
 }
 
-bool OTSettings::Check_bool(const OTString& strSection, const OTString& strKey,
+bool OTSettings::Check_bool(const String& strSection, const String& strKey,
                             bool& out_bResult, bool& out_bKeyExist) const
 {
     if (!strSection.Exists()) {
@@ -434,7 +434,7 @@ bool OTSettings::Check_bool(const OTString& strSection, const OTString& strKey,
 
     const char* szVar =
         pvt->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
-    OTString strVar(szVar);
+    String strVar(szVar);
 
     if (strVar.Exists() &&
         (strVar.Compare("false") || strVar.Compare("true"))) {
@@ -452,9 +452,9 @@ bool OTSettings::Check_bool(const OTString& strSection, const OTString& strKey,
     return true;
 }
 
-bool OTSettings::Set_str(const OTString& strSection, const OTString& strKey,
-                         const OTString& strValue, bool& out_bNewOrUpdate,
-                         const OTString& strComment)
+bool OTSettings::Set_str(const String& strSection, const String& strKey,
+                         const String& strValue, bool& out_bNewOrUpdate,
+                         const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -491,7 +491,7 @@ bool OTSettings::Set_str(const OTString& strSection, const OTString& strKey,
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()
                                                          : nullptr;
 
-    OTString strOldValue, strNewValue;
+    String strOldValue, strNewValue;
     bool bOldKeyExist, bNewKeyExist;
 
     // Check if Old Key exists.
@@ -537,9 +537,9 @@ bool OTSettings::Set_str(const OTString& strSection, const OTString& strKey,
     OT_FAIL;
 }
 
-bool OTSettings::Set_long(const OTString& strSection, const OTString& strKey,
+bool OTSettings::Set_long(const String& strSection, const String& strKey,
                           const int64_t& lValue, bool& out_bNewOrUpdate,
-                          const OTString& strComment)
+                          const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -567,14 +567,14 @@ bool OTSettings::Set_long(const OTString& strSection, const OTString& strKey,
         OT_FAIL;
     }
 
-    OTString strValue;
+    String strValue;
     strValue.Format("%" PRId64, lValue);
 
     const char* const szComment =
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()
                                                          : nullptr;
 
-    OTString strOldValue, strNewValue;
+    String strOldValue, strNewValue;
     bool bOldKeyExist, bNewKeyExist;
 
     // Check if Old Key exists.
@@ -610,9 +610,9 @@ bool OTSettings::Set_long(const OTString& strSection, const OTString& strKey,
     OT_FAIL;
 }
 
-bool OTSettings::Set_bool(const OTString& strSection, const OTString& strKey,
+bool OTSettings::Set_bool(const String& strSection, const String& strKey,
                           const bool& bValue, bool& out_bNewOrUpdate,
-                          const OTString& strComment)
+                          const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -626,13 +626,13 @@ bool OTSettings::Set_bool(const OTString& strSection, const OTString& strKey,
               << " is Empty!\n";
         OT_FAIL;
     }
-    const OTString strValue(bValue ? "true" : "false");
+    const String strValue(bValue ? "true" : "false");
 
     return Set_str(strSection, strKey, strValue, out_bNewOrUpdate, strComment);
 }
 
-bool OTSettings::CheckSetSection(const OTString& strSection,
-                                 const OTString& strComment,
+bool OTSettings::CheckSetSection(const String& strSection,
+                                 const String& strComment,
                                  bool& out_bIsNewSection)
 {
     if (!strSection.Exists()) {
@@ -667,11 +667,9 @@ bool OTSettings::CheckSetSection(const OTString& strSection,
     return true;
 }
 
-bool OTSettings::CheckSet_str(const OTString& strSection,
-                              const OTString& strKey,
-                              const OTString& strDefault,
-                              OTString& out_strResult, bool& out_bIsNew,
-                              const OTString& strComment)
+bool OTSettings::CheckSet_str(const String& strSection, const String& strKey,
+                              const String& strDefault, String& out_strResult,
+                              bool& out_bIsNew, const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -690,7 +688,7 @@ bool OTSettings::CheckSet_str(const OTString& strSection,
         (strDefault.Exists() && !strDefault.Compare("")) ? strDefault.Get()
                                                          : nullptr;
 
-    OTString strTempResult;
+    String strTempResult;
     bool bKeyExist;
     if (!Check_str(strSection, strKey, strTempResult, bKeyExist)) return false;
 
@@ -725,10 +723,9 @@ bool OTSettings::CheckSet_str(const OTString& strSection,
     OT_FAIL;
 }
 
-bool OTSettings::CheckSet_long(const OTString& strSection,
-                               const OTString& strKey, const int64_t& lDefault,
-                               int64_t& out_lResult, bool& out_bIsNew,
-                               const OTString& strComment)
+bool OTSettings::CheckSet_long(const String& strSection, const String& strKey,
+                               const int64_t& lDefault, int64_t& out_lResult,
+                               bool& out_bIsNew, const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -769,10 +766,9 @@ bool OTSettings::CheckSet_long(const OTString& strSection,
     OT_FAIL;
 }
 
-bool OTSettings::CheckSet_bool(const OTString& strSection,
-                               const OTString& strKey, const bool& bDefault,
-                               bool& out_bResult, bool& out_bIsNew,
-                               const OTString& strComment)
+bool OTSettings::CheckSet_bool(const String& strSection, const String& strKey,
+                               const bool& bDefault, bool& out_bResult,
+                               bool& out_bIsNew, const String& strComment)
 {
     if (!strSection.Exists()) {
         otErr << __FUNCTION__ << ": Error: "
@@ -812,8 +808,8 @@ bool OTSettings::CheckSet_bool(const OTString& strSection,
     OT_FAIL;
 }
 
-bool OTSettings::SetOption_bool(const OTString& strSection,
-                                const OTString& strKey, bool& bVariableName)
+bool OTSettings::SetOption_bool(const String& strSection, const String& strKey,
+                                bool& bVariableName)
 {
     bool bNewOrUpdate;
     return CheckSet_bool(strSection, strKey, bVariableName, bVariableName,

@@ -206,8 +206,8 @@ bool OTLedger::VerifyAccount(const OTPseudonym& theNym)
     default: {
         const int32_t nLedgerType = static_cast<int32_t>(GetType());
         const OTIdentifier theNymID(theNym);
-        const OTString strNymID(theNymID);
-        OTString strAccountID;
+        const String strNymID(theNymID);
+        String strAccountID;
         GetIdentifier(strAccountID);
         otErr << "OTLedger::VerifyAccount: Failure: Bad ledger type: "
               << nLedgerType << ", UserID: " << strNymID
@@ -484,17 +484,17 @@ bool OTLedger::LoadNymbox()
     return LoadGeneric(OTLedger::nymbox);
 }
 
-bool OTLedger::LoadInboxFromString(const OTString& strBox)
+bool OTLedger::LoadInboxFromString(const String& strBox)
 {
     return LoadGeneric(OTLedger::inbox, &strBox);
 }
 
-bool OTLedger::LoadOutboxFromString(const OTString& strBox)
+bool OTLedger::LoadOutboxFromString(const String& strBox)
 {
     return LoadGeneric(OTLedger::outbox, &strBox);
 }
 
-bool OTLedger::LoadNymboxFromString(const OTString& strBox)
+bool OTLedger::LoadNymboxFromString(const String& strBox)
 {
     return LoadGeneric(OTLedger::nymbox, &strBox);
 }
@@ -514,17 +514,17 @@ bool OTLedger::LoadExpiredBox()
     return LoadGeneric(OTLedger::expiredBox);
 }
 
-bool OTLedger::LoadPaymentInboxFromString(const OTString& strBox)
+bool OTLedger::LoadPaymentInboxFromString(const String& strBox)
 {
     return LoadGeneric(OTLedger::paymentInbox, &strBox);
 }
 
-bool OTLedger::LoadRecordBoxFromString(const OTString& strBox)
+bool OTLedger::LoadRecordBoxFromString(const String& strBox)
 {
     return LoadGeneric(OTLedger::recordBox, &strBox);
 }
 
-bool OTLedger::LoadExpiredBoxFromString(const OTString& strBox)
+bool OTLedger::LoadExpiredBoxFromString(const String& strBox)
 {
     return LoadGeneric(OTLedger::expiredBox, &strBox);
 }
@@ -536,8 +536,7 @@ bool OTLedger::LoadExpiredBoxFromString(const OTString& strBox)
   pString -- optional argument, for when  you prefer to load from a string
   instead of from a file.
  */
-bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
-                           const OTString* pString)
+bool OTLedger::LoadGeneric(OTLedger::ledgerType theType, const String* pString)
 {
     m_Type = theType;
 
@@ -571,16 +570,16 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
     }
     m_strFoldername = pszFolder;
 
-    OTString strID;
+    String strID;
     GetIdentifier(strID);
 
-    const OTString strServerID(GetRealServerID());
+    const String strServerID(GetRealServerID());
 
     if (!m_strFilename.Exists())
         m_strFilename.Format("%s%s%s", strServerID.Get(),
                              OTLog::PathSeparator(), strID.Get());
 
-    OTString strFilename;
+    String strFilename;
     strFilename = strID.Get();
 
     const char* szFolder1name =
@@ -591,7 +590,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType,
     // or
     // "outbox/SERVER_ID/ACCT_ID")
 
-    OTString strRawFile;
+    String strRawFile;
 
     if (nullptr != pString) // Loading FROM A STRING.
         strRawFile.Set(*pString);
@@ -687,15 +686,15 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
 
     m_strFoldername = pszFolder; // <=======
 
-    OTString strID;
+    String strID;
     GetIdentifier(strID);
-    const OTString strServerID(GetRealServerID());
+    const String strServerID(GetRealServerID());
 
     if (!m_strFilename.Exists())
         m_strFilename.Format("%s%s%s", strServerID.Get(),
                              OTLog::PathSeparator(), strID.Get());
 
-    OTString strFilename;
+    String strFilename;
     strFilename = strID.Get();
 
     const char* szFolder1name =
@@ -709,7 +708,7 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
     OT_ASSERT(m_strFoldername.GetLength() > 2);
     OT_ASSERT(m_strFilename.GetLength() > 2);
 
-    OTString strRawFile;
+    String strRawFile;
 
     if (!SaveContractRaw(strRawFile)) {
         otErr << "OTLedger::SaveGeneric: Error saving " << pszType
@@ -718,7 +717,7 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
         return false;
     }
 
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp(strRawFile);
 
     if (false ==
@@ -964,7 +963,7 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
 {
     // First we set the "Safe" ID and try to load the file, to make sure it
     // doesn't already exist.
-    OTString strID(theAcctID), strServerID(theServerID);
+    String strID(theAcctID), strServerID(theServerID);
 
     switch (theType) {
     case OTLedger::nymbox: // stored by NymID ONLY.
@@ -1025,7 +1024,7 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
 
     if (bCreateFile) {
 
-        OTString strFilename;
+        String strFilename;
         strFilename = strID.Get();
 
         const char* szFolder1name =
@@ -1333,7 +1332,7 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
         OT_ASSERT(nullptr != pTransaction);
 
         if (OTTransaction::transferReceipt == pTransaction->GetType()) {
-            OTString strReference;
+            String strReference;
             pTransaction->GetReferenceString(strReference);
 
             std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
@@ -1412,7 +1411,7 @@ OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
             (pCurrentReceipt->GetType() != OTTransaction::voucherReceipt))
             continue;
 
-        OTString strDepositChequeMsg;
+        String strDepositChequeMsg;
         pCurrentReceipt->GetReferenceString(strDepositChequeMsg);
 
         std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
@@ -1426,7 +1425,7 @@ OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
                      "(but failed to load it...)\n";
         }
         else if (OTItem::depositCheque != pOriginalItem->GetType()) {
-            OTString strItemType;
+            String strItemType;
             pOriginalItem->GetTypeString(strItemType);
             otErr << __FUNCTION__
                   << ": Expected original depositCheque request item to be "
@@ -1437,7 +1436,7 @@ OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
         else {
             // Get the cheque from the Item and load it up into a Cheque object.
             //
-            OTString strCheque;
+            String strCheque;
             pOriginalItem->GetAttachment(strCheque);
 
             OTCheque* pCheque = new OTCheque;
@@ -1632,8 +1631,8 @@ OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
         break;
     }
 
-    OTString strMessageNym(theMessageNym); // Okay now we have the transaction
-                                           // numbers in this MessageNym string.
+    String strMessageNym(theMessageNym); // Okay now we have the transaction
+                                         // numbers in this MessageNym string.
 
     pBalanceItem->SetAttachment(strMessageNym); // <======== This is where the
                                                 // server will read the
@@ -1749,7 +1748,7 @@ void OTLedger::ProduceOutboxReport(OTItem& theBalanceItem)
 // for when you don't know their type already.)
 // Otherwise if you know the type, then use LoadNymboxFromString() etc.
 //
-bool OTLedger::LoadLedgerFromString(const OTString& theStr)
+bool OTLedger::LoadLedgerFromString(const String& theStr)
 {
     bool bLoaded = false;
 
@@ -1826,7 +1825,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
     // So if there's a bad one in there when I read it, THAT's the one that I
     // write as well!
     //
-    OTString strType(GetTypeString()), strLedgerAcctID(GetPurportedAccountID()),
+    String strType(GetTypeString()), strLedgerAcctID(GetPurportedAccountID()),
         strLedgerAcctServerID(GetPurportedServerID()), strUserID(GetUserID());
 
     // I release this because I'm about to repopulate it.
@@ -1834,7 +1833,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
 
     //    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    OTString strLedgerContents = "";
+    String strLedgerContents = "";
 
     int32_t nPartialACTUALCount = 0;
 
@@ -1843,7 +1842,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
         OTTransaction* pTransaction = it.second;
         OT_ASSERT(nullptr != pTransaction);
 
-        OTString strTransaction;
+        String strTransaction;
 
         if (false ==
             bSavingAbbreviated) // only OTLedger::message uses this block.
@@ -1923,10 +1922,10 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const char* szFunc = "OTLedger::ProcessXMLNode";
 
-    const OTString strNodeName = xml->getNodeName();
+    const String strNodeName = xml->getNodeName();
 
     if (strNodeName.Compare("accountLedger")) {
-        OTString strType,                    // ledger type
+        String strType,                      // ledger type
             strLedgerAcctID,                 // purported
             strLedgerAcctServerID,           // purported
             strUserID, strNumPartialRecords; // Ledger contains either full
@@ -2006,8 +2005,8 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             (strNumPartialRecords.Exists() ? atoi(strNumPartialRecords.Get())
                                            : 0);
 
-        OTString strExpected; // The record type has a different name for each
-                              // box.
+        String strExpected; // The record type has a different name for each
+                            // box.
         OTNumList theNumList;
         OTNumList* pNumList = nullptr;
         switch (m_Type) {
@@ -2078,7 +2077,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // We're loading here either a nymboxRecord, inboxRecord, or
                 // outboxRecord...
                 //
-                const OTString strLoopNodeName = xml->getNodeName();
+                const String strLoopNodeName = xml->getNodeName();
 
                 if (strLoopNodeName.Exists() &&
                     (xml->getNodeType() == irr::io::EXN_ELEMENT) &&
@@ -2090,7 +2089,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     time64_t the_DATE_SIGNED = OT_TIME_ZERO;
                     int theType = OTTransaction::error_state; // default
-                    OTString strHash;
+                    String strHash;
 
                     int64_t lAdjustment = 0;
                     int64_t lDisplayValue = 0;
@@ -2263,7 +2262,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // should save it again at this point.
     //
     else if (strNodeName.Compare("transaction")) {
-        OTString strTransaction;
+        String strTransaction;
         OTASCIIArmor ascTransaction;
 
         // go to the next node and read the text.
@@ -2278,7 +2277,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (irr::io::EXN_TEXT == xml->getNodeType()) {
             // the ledger contains a series of transactions.
             // Each transaction is initially stored as an OTASCIIArmor string.
-            const OTString strLoopNodeData = xml->getNodeData();
+            const String strLoopNodeData = xml->getNodeData();
 
             if (strLoopNodeData.Exists())
                 ascTransaction.Set(strLoopNodeData); // Put the ascii-armored
@@ -2344,7 +2343,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     GetTransaction(pTransaction->GetTransactionNum());
                 if (nullptr != pExistingTrans) // Uh-oh, it's already there!
                 {
-                    const OTString strPurportedAcctID(GetPurportedAccountID());
+                    const String strPurportedAcctID(GetPurportedAccountID());
                     otOut
                         << szFunc << ": Error loading full transaction "
                         << pTransaction->GetTransactionNum()

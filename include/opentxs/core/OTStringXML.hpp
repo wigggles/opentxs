@@ -146,18 +146,18 @@ class IFileReadCallBack;
 namespace opentxs
 {
 
-class OTStringXML : public OTString
+class OTStringXML : public String
 {
 public:
     EXPORT OTStringXML();
-    EXPORT OTStringXML(const OTString& value);
+    EXPORT OTStringXML(const String& value);
     EXPORT OTStringXML(const OTStringXML& value);
 
     EXPORT virtual ~OTStringXML();
 
     EXPORT operator irr::io::IFileReadCallBack*();
 
-    EXPORT OTStringXML& operator=(const OTString& rhs);
+    EXPORT OTStringXML& operator=(const String& rhs);
     EXPORT OTStringXML& operator=(const OTStringXML& rhs);
 
     int32_t read(void* buffer, uint32_t sizeToRead);

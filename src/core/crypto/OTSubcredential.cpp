@@ -205,14 +205,14 @@ void OTSubcredential::Release_Subcredential()
 }
 
 // virtual
-bool OTSubcredential::SetPublicContents(const OTString::Map& mapPublic)
+bool OTSubcredential::SetPublicContents(const String::Map& mapPublic)
 {
     m_mapPublicInfo = mapPublic;
     return true;
 }
 
 // virtual
-bool OTSubcredential::SetPrivateContents(const OTString::Map& mapPrivate,
+bool OTSubcredential::SetPrivateContents(const String::Map& mapPrivate,
                                          const OTPassword*) // if not nullptr,
                                                             // it means to
                                                             // use this
@@ -223,20 +223,20 @@ bool OTSubcredential::SetPrivateContents(const OTString::Map& mapPrivate,
     return true;
 }
 
-void OTSubcredential::SetMasterCredID(const OTString& strMasterCredID)
+void OTSubcredential::SetMasterCredID(const String& strMasterCredID)
 {
     m_strMasterCredID = strMasterCredID;
 }
 
-void OTSubcredential::SetNymIDandSource(const OTString& strNymID,
-                                        const OTString& strSourceForNymID)
+void OTSubcredential::SetNymIDandSource(const String& strNymID,
+                                        const String& strSourceForNymID)
 {
     m_strNymID = strNymID;
     m_strSourceForNymID = strSourceForNymID;
 }
 
 void OTSubcredential::UpdateMasterPublicToString(
-    OTString& strAppendTo) // Used in UpdateContents.
+    String& strAppendTo) // Used in UpdateContents.
 {
     OT_ASSERT(nullptr != m_pOwner);
     OTASCIIArmor ascMaster(m_pOwner->GetPubCredential());
@@ -245,14 +245,14 @@ void OTSubcredential::UpdateMasterPublicToString(
 }
 
 void OTSubcredential::UpdatePublicContentsToString(
-    OTString& strAppendTo) // Used in UpdateContents.
+    String& strAppendTo) // Used in UpdateContents.
 {
     if (!m_mapPublicInfo.empty()) {
         strAppendTo.Concatenate("<publicContents count=\"%" PRI_SIZE "\">\n\n",
                                 m_mapPublicInfo.size());
 
         for (auto& it : m_mapPublicInfo) {
-            OTString strInfo(it.second);
+            String strInfo(it.second);
             OTASCIIArmor ascInfo(strInfo);
             strAppendTo.Concatenate(
                 "<publicInfo key=\"%s\">\n%s</publicInfo>\n\n",
@@ -264,7 +264,7 @@ void OTSubcredential::UpdatePublicContentsToString(
 }
 
 void OTSubcredential::UpdatePublicCredentialToString(
-    OTString& strAppendTo) // Used in UpdateContents.
+    String& strAppendTo) // Used in UpdateContents.
 {
     if (GetContents().Exists()) {
         OTASCIIArmor ascContents(GetContents());
@@ -276,14 +276,14 @@ void OTSubcredential::UpdatePublicCredentialToString(
 }
 
 void OTSubcredential::UpdatePrivateContentsToString(
-    OTString& strAppendTo) // Used in UpdateContents.
+    String& strAppendTo) // Used in UpdateContents.
 {
     if (!m_mapPrivateInfo.empty()) {
         strAppendTo.Concatenate("<privateContents count=\"%" PRI_SIZE "\">\n\n",
                                 m_mapPrivateInfo.size());
 
         for (auto& it : m_mapPrivateInfo) {
-            OTString strInfo(it.second);
+            String strInfo(it.second);
             OTASCIIArmor ascInfo(strInfo);
             strAppendTo.Concatenate(
                 "<privateInfo key=\"%s\">\n%s</privateInfo>\n\n",
@@ -345,7 +345,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     int32_t nReturnVal = 0;
 
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -381,7 +381,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("masterPublic")) {
-        OTString strMasterPublicCredential;
+        String strMasterPublicCredential;
 
         if (false ==
             OTContract::LoadEncodedTextField(xml, strMasterPublicCredential)) {
@@ -408,17 +408,17 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("publicContents")) {
-        OTString strCount;
+        String strCount;
         strCount = xml->getAttributeValue("count");
         const int32_t nCount = strCount.Exists() ? atoi(strCount.Get()) : 0;
         if (nCount > 0) {
             int32_t nTempCount = nCount;
-            OTString::Map mapPublic;
+            String::Map mapPublic;
 
             while (nTempCount-- > 0) {
 
                 const char* pElementExpected = "publicInfo";
-                OTString strPublicInfo;
+                String strPublicInfo;
 
                 // This map contains values we will also want, when we read the
                 // info...
@@ -426,7 +426,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // all the values
                 // as specified in this map.)
                 //
-                OTString::Map temp_MapAttributes;
+                String::Map temp_MapAttributes;
                 temp_MapAttributes.insert(std::pair<std::string, std::string>(
                     "key",
                     "")); // Value should be "A" or "E" or "S" after reading.
@@ -507,17 +507,17 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("privateContents")) {
-        OTString strCount;
+        String strCount;
         strCount = xml->getAttributeValue("count");
         const int32_t nCount = strCount.Exists() ? atoi(strCount.Get()) : 0;
         if (nCount > 0) {
             int32_t nTempCount = nCount;
-            OTString::Map mapPrivate;
+            String::Map mapPrivate;
 
             while (nTempCount-- > 0) {
 
                 const char* pElementExpected = "privateInfo";
-                OTString strPrivateInfo;
+                String strPrivateInfo;
 
                 // This map contains values we will also want, when we read the
                 // info...
@@ -525,7 +525,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // all the values
                 // as specified in this map.)
                 //
-                OTString::Map temp_MapAttributes;
+                String::Map temp_MapAttributes;
                 temp_MapAttributes.insert(std::pair<std::string, std::string>(
                     "key",
                     "")); // Value should be "A" or "E" or "S" after reading.
@@ -639,7 +639,7 @@ bool OTSubcredential::VerifyNymID() const
     const bool bCalculate = theTempID.CalculateDigest(m_strSourceForNymID);
     OT_ASSERT(bCalculate);
 
-    const OTString strNymID(theTempID);
+    const String strNymID(theTempID);
     if (!m_strNymID.Compare(strNymID)) {
         otOut << __FUNCTION__
               << ": Failure: When the NymID's source is hashed, the result "
@@ -686,7 +686,7 @@ bool OTSubcredential::VerifyInternally()
     const bool bCalcMasterCredID =
         theActualMasterID.CalculateDigest(m_pOwner->GetPubCredential());
     OT_ASSERT(bCalcMasterCredID);
-    const OTString strActualMasterID(theActualMasterID);
+    const String strActualMasterID(theActualMasterID);
 
     if (!m_strMasterCredID.Compare(strActualMasterID)) {
         otOut << __FUNCTION__
@@ -758,7 +758,7 @@ void OTSubcredential::CalculateContractID(OTIdentifier& newID) const
 }
 
 // I needed this for exporting a Nym (with credentials) from the wallet.
-const OTString& OTSubcredential::GetPriCredential() const
+const String& OTSubcredential::GetPriCredential() const
 {
     OT_ASSERT_MSG(!m_mapPrivateInfo.empty(), "ASSERT: GetPriCredential can "
                                              "only be called on private "
@@ -771,10 +771,10 @@ const OTString& OTSubcredential::GetPriCredential() const
 // credential, so we just
 // call this function wherever we need to get the public credential.
 //
-const OTString& OTSubcredential::GetPubCredential() const // More intelligent
-                                                          // version of
-                                                          // GetContents. Higher
-                                                          // level.
+const String& OTSubcredential::GetPubCredential() const // More intelligent
+                                                        // version of
+                                                        // GetContents. Higher
+                                                        // level.
 {
     // If this is a private (client-side) credential containing private keys,
     // then the public version is stored in GetContents(), and return that.

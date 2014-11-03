@@ -206,7 +206,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
     if (nullptr == pNym)
         pNym = &theNym;
     else if (!pNym->CompareID(theNym)) {
-        OTString strTempNymID;
+        String strTempNymID;
         pNym->GetIdentifier(strTempNymID);
         OTLog::vError(
             "UserCommandProcessor::ProcessUserCommand: NymID on the optional "
@@ -231,7 +231,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
 
     if (bNymIsServerNym) pNym = &server_->m_nymServer;
 
-    OTString strMsgNymID;
+    String strMsgNymID;
     pNym->GetIdentifier(strMsgNymID);
 
     if (theMessage.m_strCommand.Compare("checkServerID")) {
@@ -299,7 +299,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
         // First try to get Credentials, if there are any.
         const bool bHasCredentials = (ascArmor.Exists() && ascArmor2.Exists());
         if (bHasCredentials) {
-            OTString strCredentialList(ascArmor);
+            String strCredentialList(ascArmor);
 
             if (strCredentialList.Exists()) {
                 std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
@@ -385,11 +385,11 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                         // things are verified.
                         //
                         std::string str_nym_id = theMessage.m_strNymID.Get();
-                        OTString strFilename;
+                        String strFilename;
                         strFilename.Format("%s.cred", str_nym_id.c_str());
 
                         bool bStoredList = false;
-                        OTString strOutput;
+                        String strOutput;
 
                         if (ascArmor.Exists() &&
                             ascArmor.WriteArmoredString(
@@ -413,7 +413,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                            str_nym_id.c_str());
                             for (auto& it : theMap) {
                                 std::string str_cred_id = it.first;
-                                OTString strCredential(it.second);
+                                String strCredential(it.second);
                                 bool bStoredCredential = false;
                                 strOutput.Release();
                                 OTASCIIArmor ascLoopArmor(strCredential);
@@ -444,7 +444,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                         }
                         // Make sure we are encrypting the message we send
                         // back, if possible.
-                        OTString strPublicEncrKey, strPublicSignKey;
+                        String strPublicEncrKey, strPublicSignKey;
                         OTAsymmetricKey& thePublicEncrKey =
                             const_cast<OTAsymmetricKey&>(
                                 pNym->GetPublicEncrKey());
@@ -503,7 +503,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                         // We send the user's message back to him,
                         // ascii-armored,
                         // as part of our response.
-                        OTString tempInMessage;
+                        String tempInMessage;
                         theMessage.SaveContractRaw(tempInMessage);
                         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
@@ -523,7 +523,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                    "exists: %s\n",
                                 theMessage.m_strNymID.Get());
 
-                            OTString strNymContents;
+                            String strNymContents;
                             pNym->SavePseudonym(strNymContents);
                             OTIdentifier theNewNymID,
                                 SERVER_ID(server_->m_strServerID);
@@ -659,7 +659,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
                                               "account fully "
                                               "created.)\n");
 
-                            OTString strNymContents;
+                            String strNymContents;
                             pNym->SavePseudonym(strNymContents);
                             msgOut.m_ascPayload.SetString(strNymContents);
                             msgOut.m_bSuccess = true;
@@ -1446,7 +1446,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
         OTLog::vError("Unknown command type in the XML, or missing payload, in "
                       "ProcessMessage.\n");
 
-        OTString strTemp;
+        String strTemp;
         strTemp.Format("@%s", theMessage.m_strCommand.Get()); // Todo security.
                                                               // Review this.
 
@@ -1457,7 +1457,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
 
         msgOut.m_bSuccess = false;
 
-        OTString strRef(theMessage);
+        String strRef(theMessage);
 
         msgOut.m_ascInReferenceTo.SetString(strRef);
 
@@ -1487,14 +1487,14 @@ void UserCommandProcessor::UserCmdGetMarketList(OTPseudonym&, OTMessage& MsgIn,
     if ((true == msgOut.m_bSuccess) && (nMarketCount > 0)) {
         msgOut.m_ascPayload.Set(ascOutput);
 
-        OTString strCount;
+        String strCount;
         strCount.Format("%d", nMarketCount);
         msgOut.m_lDepth = strCount.ToLong();
     }
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
     else if (!msgOut.m_bSuccess) {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -1547,7 +1547,7 @@ void UserCommandProcessor::UserCmdGetMarketOffers(OTPseudonym&,
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
     if (!msgOut.m_bSuccess) {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -1598,7 +1598,7 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(OTPseudonym&,
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
     if (!msgOut.m_bSuccess) {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -1641,7 +1641,7 @@ void UserCommandProcessor::UserCmdGetNym_MarketOffers(OTPseudonym& theNym,
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
     if (!msgOut.m_bSuccess) {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -1972,7 +1972,7 @@ void UserCommandProcessor::UserCmdSendUserMessage(OTPseudonym& theNym,
     msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2;   // UserID of recipient pubkey
 
-    const OTString strInMessage(MsgIn);
+    const String strInMessage(MsgIn);
     const OTIdentifier SENDER_USER_ID(theNym),
         RECIPIENT_USER_ID(MsgIn.m_strNymID2), SERVER_ID(server_->m_strServerID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
@@ -2011,7 +2011,7 @@ void UserCommandProcessor::UserCmdSendUserInstrument(OTPseudonym& theNym,
     msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2;      // UserID of recipient pubkey
 
-    const OTString strInMessage(MsgIn);
+    const String strInMessage(MsgIn);
     const OTIdentifier SENDER_USER_ID(theNym),
         RECIPIENT_USER_ID(MsgIn.m_strNymID2), SERVER_ID(server_->m_strServerID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
@@ -2079,7 +2079,7 @@ void UserCommandProcessor::UserCmdCheckUser(OTPseudonym&, OTMessage& MsgIn,
                 msgOut.m_bSuccess = false;
             }
             else {
-                OTString strCredList;
+                String strCredList;
                 auto& theMap = pMap->the_map;
 
                 nym2.GetPublicCredentials(strCredList, &theMap);
@@ -2105,7 +2105,7 @@ void UserCommandProcessor::UserCmdCheckUser(OTPseudonym&, OTMessage& MsgIn,
     // if Failed, we send the user's message back to him, ascii-armored as part
     // of response.
     else {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -2370,10 +2370,10 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
     }
     else {
         // Pull the contract out of the message and verify it.
-        OTString strFoldername(OTFolders::Contract().Get()),
+        String strFoldername(OTFolders::Contract().Get()),
             strFilename(MsgIn.m_strAssetID.Get());
 
-        OTString strContract(MsgIn.m_ascPayload);
+        String strContract(MsgIn.m_ascPayload);
         pAssetContract = new OTAssetContract(MsgIn.m_strAssetID, strFoldername,
                                              strFilename, MsgIn.m_strAssetID);
 
@@ -2460,7 +2460,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                         pNewAccount) // This last parameter generates an
                                      // ISSUER account
                     {                // instead of the default SIMPLE.
-                        OTString tempPayload(*pNewAccount);
+                        String tempPayload(*pNewAccount);
                         msgOut.m_ascPayload.SetString(tempPayload);
 
                         // Attach the new account number to the outgoing
@@ -2552,7 +2552,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                             }
                         }
                         if (!bSuccessLoadingInbox) {
-                            OTString strNewAcctID(theNewAccountID);
+                            String strNewAcctID(theNewAccountID);
 
                             OTLog::vError("ERROR generating inbox ledger in "
                                           "UserCommandProcessor::"
@@ -2561,7 +2561,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                                           strNewAcctID.Get());
                         }
                         else if (!bSuccessLoadingOutbox) {
-                            OTString strNewAcctID(theNewAccountID);
+                            String strNewAcctID(theNewAccountID);
 
                             OTLog::vError("ERROR generating outbox ledger in "
                                           "UserCommandProcessor::"
@@ -2604,7 +2604,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                         "UserCommandProcessor::UserCmdIssueAssetType.\n");
             }
             else {
-                OTString strAssetUserID(ASSET_USER_ID), strUserID;
+                String strAssetUserID(ASSET_USER_ID), strUserID;
                 theNym.GetIdentifier(strUserID);
                 OTLog::vError(
                     "User ID on this user account (%s) does NOT match User ID "
@@ -2626,7 +2626,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
 
     // Either way, we need to send the user's command back to him as well.
     {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -2656,7 +2656,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
     // it. (And thus never get out of sync.)
     //
     if (msgOut.m_bSuccess) {
-        const OTString strReplyMessage(msgOut);
+        const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(SERVER_ID, USER_ID, strReplyMessage, lReqNum,
@@ -2677,14 +2677,14 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
 
     // Either way, we need to send the user's command back to him as well.
     {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
     const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
         SERVER_USER_ID(server_->m_nymServer);
 
-    OTString strBasket(MsgIn.m_ascPayload);
+    String strBasket(MsgIn.m_ascPayload);
     Basket theBasket;
 
     if (!theBasket.LoadContractFromString(strBasket)) {
@@ -2744,7 +2744,7 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                         pItem->SUB_CONTRACT_ID)) // Sub-currency
                                                  // not found.
                 {
-                    const OTString strSubID(pItem->SUB_CONTRACT_ID);
+                    const String strSubID(pItem->SUB_CONTRACT_ID);
                     OTLog::vError("%s: Failed: Sub-currency for basket is not "
                                   "issued on this server: %s\n",
                                   __FUNCTION__, strSubID.Get());
@@ -2861,14 +2861,14 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
 
                     // Grab the new asset ID for the new basket currency
                     pBasketContract->GetIdentifier(BASKET_CONTRACT_ID);
-                    OTString STR_BASKET_CONTRACT_ID(BASKET_CONTRACT_ID);
+                    String STR_BASKET_CONTRACT_ID(BASKET_CONTRACT_ID);
 
                     // set the new Asset Type ID, aka ContractID, onto the
                     // outgoing message.
                     msgOut.m_strAssetID = STR_BASKET_CONTRACT_ID;
 
                     // Save the new Asset Contract to disk
-                    const OTString strFoldername(OTFolders::Contract().Get()),
+                    const String strFoldername(OTFolders::Contract().Get()),
                         strFilename(STR_BASKET_CONTRACT_ID.Get());
 
                     // Save the new basket contract to the contracts folder
@@ -2970,7 +2970,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
 
     // Either way, we need to send the user's command back to him as well.
-    OTString tempInMessage(MsgIn);
+    String tempInMessage(MsgIn);
     msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
     const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID);
@@ -2986,7 +2986,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
             pNewAccount->GetAssetTypeID());
 
         if (nullptr == pContract) {
-            const OTString strAssetID(pNewAccount->GetAssetTypeID());
+            const String strAssetID(pNewAccount->GetAssetTypeID());
             OTLog::vError(
                 "%s: Error: Unable to get AssetContract for asset type: %s\n",
                 szFunc, strAssetID.Get());
@@ -2997,7 +2997,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
             //
             const bool bAdded = pContract->AddAccountRecord(*pNewAccount);
             if (!bAdded) {
-                const OTString strAssetID(pNewAccount->GetAssetTypeID());
+                const String strAssetID(pNewAccount->GetAssetTypeID());
                 OTLog::vError(
                     "%s: ERROR Adding Account Record: %s ... Aborting.\n",
                     __FUNCTION__, strAssetID.Get());
@@ -3063,13 +3063,13 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
         }
 
         if (!bSuccessLoadingInbox) {
-            const OTString strNewAcctID(theNewAccountID);
+            const String strNewAcctID(theNewAccountID);
 
             OTLog::vError("%s: ERROR generating inbox ledger: %s\n", szFunc,
                           strNewAcctID.Get());
         }
         else if (!bSuccessLoadingOutbox) {
-            const OTString strNewAcctID(theNewAccountID);
+            const String strNewAcctID(theNewAccountID);
 
             OTLog::vError("%s: ERROR generating outbox ledger: %s\n", szFunc,
                           strNewAcctID.Get());
@@ -3087,7 +3087,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
 
             theNym.SaveSignedNymfile(server_->m_nymServer);
 
-            OTString tempPayload(*pNewAccount);
+            String tempPayload(*pNewAccount);
             msgOut.m_ascPayload.SetString(tempPayload);
         }
     }
@@ -3118,7 +3118,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
     // it. (And thus never get out of sync.)
     //
     if (msgOut.m_bSuccess) {
-        const OTString strReplyMessage(msgOut);
+        const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
@@ -3150,8 +3150,7 @@ void UserCommandProcessor::UserCmdGetAccount(OTPseudonym&, OTMessage& MsgIn,
     if (bSuccessLoadingAccount && (pAccount->GetUserID() == USER_ID)) {
         msgOut.m_bSuccess = true;
         // extract the account in ascii-armored form on the outgoing message
-        OTString strPayload(
-            *pAccount); // first grab it in plaintext string form
+        String strPayload(*pAccount); // first grab it in plaintext string form
         msgOut.m_ascPayload.SetString(strPayload); // now the outgoing message
                                                    // has the account in its
                                                    // payload in base64 form.
@@ -3159,7 +3158,7 @@ void UserCommandProcessor::UserCmdGetAccount(OTPseudonym&, OTMessage& MsgIn,
     // Send the user's command back to him if failure.
     else {
         msgOut.m_bSuccess = false;
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -3192,7 +3191,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&,
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);
 
-    OTString strAccount, strInbox, strOutbox, strInboxHash, strOutboxHash;
+    String strAccount, strInbox, strOutbox, strInboxHash, strOutboxHash;
     OTAccount* pAccount = OTAccount::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
     bool bSuccessLoadingAccount = ((pAccount != nullptr) ? true : false);
     bool bSuccessLoadingInbox = false;
@@ -3341,7 +3340,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&,
         // FAILURE: (Send the user's command back to him.)
         //
         msgOut.m_bSuccess = false;
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -3463,8 +3462,7 @@ void UserCommandProcessor::UserCmdGetInbox(OTPseudonym&, OTMessage& MsgIn,
 
     if (msgOut.m_bSuccess) {
         // extract the ledger in ascii-armored form on the outgoing message
-        OTString strPayload(
-            theLedger); // first grab it in plaintext string form
+        String strPayload(theLedger); // first grab it in plaintext string form
         msgOut.m_ascPayload.SetString(strPayload); // now the outgoing message
                                                    // has the inbox ledger in
                                                    // its payload in base64
@@ -3476,7 +3474,7 @@ void UserCommandProcessor::UserCmdGetInbox(OTPseudonym&, OTMessage& MsgIn,
     }
     // Send the user's command back to him if failure.
     else {
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -3554,8 +3552,7 @@ void UserCommandProcessor::UserCmdGetOutbox(OTPseudonym&, OTMessage& MsgIn,
 
     if (msgOut.m_bSuccess) {
         // extract the ledger in ascii-armored form on the outgoing message
-        OTString strPayload(
-            theLedger); // first grab it in plaintext string form
+        String strPayload(theLedger); // first grab it in plaintext string form
         msgOut.m_ascPayload.SetString(strPayload); // now the outgoing message
                                                    // has the outbox ledger in
                                                    // its payload in base64
@@ -3567,7 +3564,7 @@ void UserCommandProcessor::UserCmdGetOutbox(OTPseudonym&, OTMessage& MsgIn,
     }
     // Send the user's command back to him if failure.
     else {
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -3598,8 +3595,7 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&,
     msgOut.m_bSuccess = false;
 
     // Send the user's command back to him whether success or failure.
-    OTString tempInMessage(
-        MsgIn); // Grab the incoming message in plaintext form
+    String tempInMessage(MsgIn); // Grab the incoming message in plaintext form
     msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                         // base64-encoded object
                                                         // on the outgoing
@@ -3699,8 +3695,7 @@ void UserCommandProcessor::UserCmdGetContract(OTMessage& MsgIn,
     if (bSuccessLoadingContract) {
         msgOut.m_bSuccess = true;
         // extract the account in ascii-armored form on the outgoing message
-        OTString strPayload(
-            *pContract); // first grab it in plaintext string form
+        String strPayload(*pContract); // first grab it in plaintext string form
         msgOut.m_ascPayload.SetString(strPayload); // now the outgoing message
                                                    // has the contract in its
                                                    // payload in base64 form.
@@ -3708,7 +3703,7 @@ void UserCommandProcessor::UserCmdGetContract(OTMessage& MsgIn,
     // Send the user's command back to him if failure.
     else {
         msgOut.m_bSuccess = false;
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -3733,7 +3728,7 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
                                                 OTMessage& MsgIn,
                                                 OTMessage& msgOut)
 {
-    OTString strInReferenceTo(
+    String strInReferenceTo(
         MsgIn); // Grab the incoming message in plaintext form
     msgOut.m_ascInReferenceTo.SetString(strInReferenceTo);
     // (1) set up member variables
@@ -3891,7 +3886,7 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, OTMessage& MsgIn,
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 
     const OTIdentifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
-    const OTString ASSET_ID_STR(ASSET_TYPE_ID);
+    const String ASSET_ID_STR(ASSET_TYPE_ID);
     bool bSuccessLoadingMint = false;
 
     std::unique_ptr<Mint> pMint(
@@ -3911,8 +3906,7 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, OTMessage& MsgIn,
             msgOut.m_bSuccess = true;
 
             // extract the account in ascii-armored form on the outgoing message
-            OTString strPayload(
-                *pMint); // first grab it in plaintext string form
+            String strPayload(*pMint); // first grab it in plaintext string form
             msgOut.m_ascPayload.SetString(strPayload); // now the outgoing
                                                        // message has the inbox
                                                        // ledger in its payload
@@ -3923,7 +3917,7 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, OTMessage& MsgIn,
 
     if (!bSuccessLoadingMint) {
         msgOut.m_bSuccess = false;
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -4045,7 +4039,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
 
     // Send the user's command back to him (success or failure.)
     {
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -4081,7 +4075,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
     // it. (And thus never get out of sync.)
     //
     if (msgOut.m_bSuccess) {
-        const OTString strReplyMessage(msgOut);
+        const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
@@ -4238,7 +4232,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
                 // it's definitely not abbreviated by this point. Success!
                 // LoadBoxReceipt() already calls VerifyBoxReceipt(), FYI.
                 //
-                const OTString strBoxReceipt(*pTransaction);
+                const String strBoxReceipt(*pTransaction);
                 OT_ASSERT(strBoxReceipt.Exists());
 
                 msgOut.m_ascPayload.SetString(strBoxReceipt);
@@ -4294,7 +4288,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
     // Send the user's command back to him (success or failure.)
     //  if (!msgOut.m_bSuccess)
     {
-        const OTString tempInMessage(
+        const String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -4385,7 +4379,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
                 pAccount->GetAssetTypeID());
 
             if (nullptr == pContract) {
-                const OTString strAssetID(pAccount->GetAssetTypeID());
+                const String strAssetID(pAccount->GetAssetTypeID());
                 OTLog::vError("%s: Error: Unable to get AssetContract for "
                               "asset type: %s\n",
                               szFunc, strAssetID.Get());
@@ -4397,7 +4391,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
                 const bool bErased =
                     pContract->EraseAccountRecord(pAccount->GetAssetTypeID());
                 if (!bErased) {
-                    const OTString strAssetID(pAccount->GetAssetTypeID());
+                    const String strAssetID(pAccount->GetAssetTypeID());
                     OTLog::vError(
                         "%s: ERROR Erasing Account Record: %s ... Aborting.\n",
                         __FUNCTION__, strAssetID.Get());
@@ -4420,7 +4414,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
 
     // Send the user's command back to him (success or failure.)
     {
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -4453,7 +4447,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     // it. (And thus never get out of sync.)
     //
     if (msgOut.m_bSuccess) {
-        const OTString strReplyMessage(msgOut);
+        const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
@@ -4523,8 +4517,7 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym,
 
     if (true == msgOut.m_bSuccess) {
         // extract the ledger in ascii-armored form on the outgoing message
-        OTString strPayload(
-            theLedger); // first grab it in plaintext string form
+        String strPayload(theLedger); // first grab it in plaintext string form
         msgOut.m_ascPayload.SetString(strPayload); // now the outgoing message
                                                    // has the nymbox ledger in
                                                    // its payload in base64
@@ -4532,7 +4525,7 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym,
     }
     // Send the user's command back to him if failure.
     else {
-        OTString tempInMessage(
+        String tempInMessage(
             MsgIn); // Grab the incoming message in plaintext form
         msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
                                                             // base64-encoded
@@ -4603,7 +4596,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
 
     // Grab the string (containing the request ledger) out of ascii-armored
     // form.
-    OTString strLedger(MsgIn.m_ascPayload);
+    String strLedger(MsgIn.m_ascPayload);
 
     bool bTransSuccess = false;
 
@@ -4743,7 +4736,7 @@ send_message:
     pResponseLedger->SignContract(server_->m_nymServer);
     pResponseLedger->SaveContract();
     // extract the ledger in ascii-armored form
-    OTString strPayload(*pResponseLedger);
+    String strPayload(*pResponseLedger);
     // now the outgoing message has the response ledger in its payload.
     msgOut.m_ascPayload.SetString(strPayload);
 
@@ -4755,7 +4748,7 @@ send_message:
     //
     // Send the user's command back to him as well.
     {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -4800,7 +4793,7 @@ send_message:
     // it. (And thus never get out of sync.)
     //
     if (msgOut.m_bSuccess) {
-        const OTString strReplyMessage(msgOut);
+        const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
@@ -4843,7 +4836,7 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
 
     // Grab the string (containing the request ledger) out of ascii-armored
     // form.
-    OTString strLedger(MsgIn.m_ascPayload);
+    String strLedger(MsgIn.m_ascPayload);
 
     bool bTransSuccess = false;
     const OTIdentifier theMsgNymboxHash(
@@ -4889,7 +4882,7 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
 
         // Make sure the "from" account even exists...
         if (!theAccount.LoadContract()) {
-            const OTString strAcctID(ACCOUNT_ID);
+            const String strAcctID(ACCOUNT_ID);
             OTLog::vOutput(0, "UserCommandProcessor::UserCmdProcessInbox: "
                               "Failed loading account: %s\n",
                            strAcctID.Get());
@@ -5075,7 +5068,7 @@ send_message:
     pResponseLedger->SignContract(server_->m_nymServer);
     pResponseLedger->SaveContract();
     // extract the ledger in ascii-armored form
-    OTString strPayload(*pResponseLedger);
+    String strPayload(*pResponseLedger);
     // now the outgoing message has the response ledger in its payload.
     msgOut.m_ascPayload.SetString(strPayload);
 
@@ -5087,7 +5080,7 @@ send_message:
     //
     // Send the user's command back to him as well.
     {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -5132,7 +5125,7 @@ send_message:
     // it. (And thus never get out of sync.)
     //
     if (msgOut.m_bSuccess) {
-        const OTString strReplyMessage(msgOut);
+        const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
@@ -5181,7 +5174,7 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(OTPseudonym& theNym,
     // don't
     // have to generate it again. We just load it.
 
-    OTString strLedger(MsgIn.m_ascPayload);
+    String strLedger(MsgIn.m_ascPayload);
 
     const OTIdentifier theMsgNymboxHash(
         MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash sent by the
@@ -5339,7 +5332,7 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(OTPseudonym& theNym,
         pResponseLedger->SaveContract();
 
         // extract the ledger in ascii-armored form
-        OTString strPayload(*pResponseLedger);
+        String strPayload(*pResponseLedger);
 
         msgOut.m_ascPayload.SetString(strPayload); // now the outgoing message
                                                    // has the response ledger in
@@ -5359,7 +5352,7 @@ send_message:
     //
     // Send the user's command back to him as well.
     {
-        OTString tempInMessage(MsgIn);
+        String tempInMessage(MsgIn);
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
@@ -5404,7 +5397,7 @@ send_message:
     // it. (And thus never get out of sync.)
     //
     if (msgOut.m_bSuccess) {
-        const OTString strReplyMessage(msgOut);
+        const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
@@ -5438,13 +5431,13 @@ send_message:
 bool UserCommandProcessor::SendMessageToNym(
     const OTIdentifier& SERVER_ID, const OTIdentifier& SENDER_USER_ID,
     const OTIdentifier& RECIPIENT_USER_ID,
-    OTMessage* pMsg, // the request msg from payer, which is attached
-                     // WHOLE to the Nymbox receipt. contains message
-                     // already.
-    const OTString* pstrMessage) // or pass this instead: we will
-                                 // create our own msg here (with
-                                 // message inside) to be attached to
-                                 // the receipt.
+    OTMessage* pMsg,           // the request msg from payer, which is attached
+                               // WHOLE to the Nymbox receipt. contains message
+                               // already.
+    const String* pstrMessage) // or pass this instead: we will
+                               // create our own msg here (with
+                               // message inside) to be attached to
+                               // the receipt.
 {
     return server_->DropMessageToNymbox(
         SERVER_ID, SENDER_USER_ID, RECIPIENT_USER_ID, OTTransaction::message,
@@ -5459,7 +5452,7 @@ bool UserCommandProcessor::SendMessageToNym(
 //
 void UserCommandProcessor::DropReplyNoticeToNymbox(
     const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
-    const OTString& strMessage, const int64_t& lRequestNum,
+    const String& strMessage, const int64_t& lRequestNum,
     const bool bReplyTransSuccess, OTPseudonym* pActualNym)
 {
     OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
@@ -5472,7 +5465,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
              theNymbox.VerifySignature(server_->m_nymServer));
 
     if (!bSuccessLoadingNymbox) {
-        const OTString strNymID(USER_ID);
+        const String strNymID(USER_ID);
         OTLog::vOutput(0, "OTServer::DropReplyNoticeToNymbox: Failed loading "
                           "or verifying Nymbox for user: %s\n",
                        strNymID.Get());

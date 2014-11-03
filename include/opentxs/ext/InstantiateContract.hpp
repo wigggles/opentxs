@@ -160,11 +160,11 @@
 namespace
 {
 
-opentxs::OTContract* InstantiateContract(opentxs::OTString strInput)
+opentxs::OTContract* InstantiateContract(opentxs::String strInput)
 {
 
     using namespace opentxs;
-    OTString strContract, strFirstLine; // output for the below function.
+    String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
 

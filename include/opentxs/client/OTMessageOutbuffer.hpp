@@ -170,9 +170,8 @@ public:
     EXPORT OTMessageOutbuffer();
     EXPORT ~OTMessageOutbuffer();
 
-    EXPORT void Clear(const OTString* serverId = nullptr,
-                      const OTString* nymId = nullptr,
-                      OTPseudonym* nym = nullptr,
+    EXPORT void Clear(const String* serverId = nullptr,
+                      const String* nymId = nullptr, OTPseudonym* nym = nullptr,
                       const bool* harvestingForRetry = nullptr);
     // Allocate theMsg on the heap (takes ownership.) Mapped by request num.
     // Note: AddSentMessage, if it finds a message already on the map with the
@@ -182,12 +181,11 @@ public:
     EXPORT void AddSentMessage(OTMessage& message);
     // null == not found. caller NOT responsible to delete.
     EXPORT OTMessage* GetSentMessage(const int64_t& requestNum,
-                                     const OTString& serverId,
-                                     const OTString& nymId);
+                                     const String& serverId,
+                                     const String& nymId);
     // true == it was removed. false == it wasn't found.
     EXPORT bool RemoveSentMessage(const int64_t& requestNum,
-                                  const OTString& serverId,
-                                  const OTString& nymId);
+                                  const String& serverId, const String& nymId);
     // null == not found. caller NOT responsible to delete.
     EXPORT OTMessage* GetSentMessage(const OTTransaction& transaction);
     // true == it was removed. false == it wasn't found.
@@ -199,7 +197,7 @@ private:
 
 private:
     mapOfMessages messagesMap_;
-    OTString dataFolder_;
+    String dataFolder_;
 };
 
 } // namespace opentxs

@@ -695,12 +695,12 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
                                                             // one.
 
         if (thePassword.isPassword())
-            thePassword.setPassword(szDefault,
-                                    static_cast<int32_t>(OTString::safe_strlen(
-                                        szDefault, _PASSWORD_LEN)));
+            thePassword.setPassword(
+                szDefault, static_cast<int32_t>(
+                               String::safe_strlen(szDefault, _PASSWORD_LEN)));
         else
             thePassword.setMemory(static_cast<const void*>(szDefault),
-                                  static_cast<uint32_t>(OTString::safe_strlen(
+                                  static_cast<uint32_t>(String::safe_strlen(
                                       szDefault, _PASSWORD_LEN)) +
                                       1); // setMemory doesn't assume the null
                                           // terminator like setPassword does.
@@ -776,7 +776,7 @@ bool OTAsymmetricKey::CalculateID(OTIdentifier& theOutput) const // Only works
         return false;
     }
 
-    OTString strPublicKey;
+    String strPublicKey;
     bool bGotPublicKey = GetPublicKey(strPublicKey);
 
     if (!bGotPublicKey) {
@@ -799,7 +799,7 @@ bool OTAsymmetricKey::CalculateID(OTIdentifier& theOutput) const // Only works
 // PUBLIC KEY --------
 // This version, so far, is escaped-only. Notice the "- " before the rest of the
 // bookend starts.
-bool OTAsymmetricKey::GetPublicKey(OTString& strKey, bool bEscaped) const
+bool OTAsymmetricKey::GetPublicKey(String& strKey, bool bEscaped) const
 {
     OTASCIIArmor theArmor;
 
@@ -860,7 +860,7 @@ bool OTAsymmetricKey::GetPublicKey(OTASCIIArmor& ascKey) const
 // SetPublicKey
 // (the one that takes an OTASCIIArmor object.)
 //
-bool OTAsymmetricKey::SetPublicKey(const OTString& strKey, bool bEscaped)
+bool OTAsymmetricKey::SetPublicKey(const String& strKey, bool bEscaped)
 {
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
@@ -869,7 +869,7 @@ bool OTAsymmetricKey::SetPublicKey(const OTString& strKey, bool bEscaped)
     // BEGIN ...)
     OTASCIIArmor theArmor;
 
-    if (theArmor.LoadFromString(const_cast<OTString&>(strKey), bEscaped)) {
+    if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped)) {
         return SetPublicKey(theArmor);
     }
     else
@@ -907,7 +907,7 @@ bool OTAsymmetricKey::SetPublicKey(const OTASCIIArmor& ascKey)
 // This version, so far, is escaped-only. Notice the "- " before the rest of the
 // bookend starts.
 //
-bool OTAsymmetricKey::GetPrivateKey(OTString& strKey, bool bEscaped) const
+bool OTAsymmetricKey::GetPrivateKey(String& strKey, bool bEscaped) const
 {
     OTASCIIArmor theArmor;
 
@@ -952,7 +952,7 @@ bool OTAsymmetricKey::GetPrivateKey(OTASCIIArmor& ascKey) const // (ascKey is
 // and sets that as the keypointer on this object.
 // This is the version that will handle the bookends ( --------- BEGIN ENCRYPTED
 // PRIVATE KEY -------)
-bool OTAsymmetricKey::SetPrivateKey(const OTString& strKey, bool bEscaped)
+bool OTAsymmetricKey::SetPrivateKey(const String& strKey, bool bEscaped)
 {
     m_bIsPublicKey = false;
     m_bIsPrivateKey = true;
@@ -962,7 +962,7 @@ bool OTAsymmetricKey::SetPrivateKey(const OTString& strKey, bool bEscaped)
     //
     OTASCIIArmor theArmor;
     const char* szPrivateKeyStarts = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
-    if (theArmor.LoadFromString(const_cast<OTString&>(strKey), bEscaped,
+    if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped,
                                 szPrivateKeyStarts)) // This last param causes
                                                      // OTASCIIArmor to only
                                                      // "start loading" when it
@@ -1174,8 +1174,8 @@ void OTAsymmetricKey::Release()
 
 // Load the private key from a .pem file
 bool OTAsymmetricKey::LoadPrivateKey(
-    const OTString& strFoldername, const OTString& strFilename,
-    const OTString* pstrReason,
+    const String& strFoldername, const String& strFilename,
+    const String* pstrReason,
     const OTPassword* pImportPassword) // This reason
                                        // is what
                                        // displays on
@@ -1213,7 +1213,7 @@ bool OTAsymmetricKey::LoadPrivateKey(
         return false;
     }
 
-    const OTString strCert(strFileContents),
+    const String strCert(strFileContents),
         strReason(nullptr == pstrReason ? "OTAsymmetricKey::LoadPrivateKey"
                                         : *pstrReason);
 
@@ -1223,8 +1223,8 @@ bool OTAsymmetricKey::LoadPrivateKey(
 }
 
 // Load the public key from a .pem file
-bool OTAsymmetricKey::LoadPublicKey(const OTString& strFoldername,
-                                    const OTString& strFilename)
+bool OTAsymmetricKey::LoadPublicKey(const String& strFoldername,
+                                    const String& strFilename)
 {
     // Already done in SetPublicKey()
     //    m_bIsPublicKey    = true;
@@ -1258,8 +1258,8 @@ bool OTAsymmetricKey::LoadPublicKey(const OTString& strFoldername,
 
 // Load the public key from a x509 stored in a .pem file
 bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
-    const OTString& strFoldername, const OTString& strFilename,
-    const OTString* pstrReason, const OTPassword* pImportPassword)
+    const String& strFoldername, const String& strFilename,
+    const String* pstrReason, const OTPassword* pImportPassword)
 {
     Release();
 
@@ -1288,7 +1288,7 @@ bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
         return false;
     }
 
-    const OTString strCert(strFileContents);
+    const String strCert(strFileContents);
 
     return LoadPublicKeyFromCertString(
         strCert, false, pstrReason,

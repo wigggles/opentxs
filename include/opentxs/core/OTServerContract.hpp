@@ -138,34 +138,34 @@
 namespace opentxs
 {
 
-class OTString;
+class String;
 
 class OTServerContract : public OTContract
 {
 public:
     EXPORT OTServerContract();
-    EXPORT OTServerContract(OTString& name, OTString& foldername,
-                            OTString& filename, OTString& strID);
+    EXPORT OTServerContract(String& name, String& foldername, String& filename,
+                            String& strID);
     EXPORT virtual ~OTServerContract();
 
-    EXPORT bool GetConnectInfo(OTString& strHostname, int32_t& nPort) const;
+    EXPORT bool GetConnectInfo(String& strHostname, int32_t& nPort) const;
     EXPORT virtual void CreateContents(); // Only used when first generating an
                                           // asset or server contract. Meant for
                                           // contracts which never change after
                                           // that point.  Otherwise does the
                                           // same thing as UpdateContents. (But
                                           // meant for a different purpose.)
-    virtual bool SaveContractWallet(OTString& strContents) const;
-    virtual bool DisplayStatistics(OTString& strContents) const;
+    virtual bool SaveContractWallet(String& strContents) const;
+    virtual bool DisplayStatistics(String& strContents) const;
 
 protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
 protected:
-    OTString m_strHostname;
+    String m_strHostname;
     int32_t m_nPort;
-    OTString m_strURL;
+    String m_strURL;
 };
 
 } // namespace opentxs

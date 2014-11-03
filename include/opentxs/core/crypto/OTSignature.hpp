@@ -141,7 +141,7 @@
 namespace opentxs
 {
 
-class OTString;
+class String;
 
 class OTSignature : public OTASCIIArmor
 {
@@ -155,7 +155,7 @@ public:
     {
     }
 
-    OTSignature(const OTString& value)
+    OTSignature(const String& value)
         : OTASCIIArmor(value)
     {
     }

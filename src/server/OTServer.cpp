@@ -370,10 +370,10 @@ OTServer::~OTServer()
     //    OTLog::vError("m_strDataPath: %s\n", m_strDataPath.Get());
     //    OTLog::vError("SERVER_PID_FILENAME: %s\n", SERVER_PID_FILENAME);
 
-    OTString strDataPath;
+    String strDataPath;
     const bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
     if (!m_bReadOnly && bGetDataFolderSuccess) {
-        OTString strPIDPath;
+        String strPIDPath;
         OTPaths::AppendFile(strPIDPath, strDataPath, SERVER_PID_FILENAME);
 
         std::ofstream pid_outfile(strPIDPath.Get());
@@ -403,7 +403,7 @@ void OTServer::Init(bool readOnly)
         OT_FAIL;
     }
 
-    OTString dataPath;
+    String dataPath;
     bool bGetDataFolderSuccess = OTDataFolder::Get(dataPath);
 
     // PID -- Make sure we're not running two copies of OT on the same data
@@ -423,7 +423,7 @@ void OTServer::Init(bool readOnly)
             // OT again. (This is all for the purpose of preventing two copies
             // of OT running at the same time and corrupting the data folder.)
             //
-            OTString strPIDPath;
+            String strPIDPath;
             OTPaths::AppendFile(strPIDPath, dataPath, SERVER_PID_FILENAME);
 
             std::ifstream pid_infile(strPIDPath.Get());
@@ -554,7 +554,7 @@ bool OTServer::SendInstrumentToNym(
     // If a payment was passed in (for us to use it to construct pMsg, which is
     // nullptr in the case where payment isn't nullptr)
     // Then we grab it in string form, so we can pass it on...
-    OTString strPayment;
+    String strPayment;
     if (nullptr != pPayment) {
         const bool bGotPaymentContents =
             pPayment->GetPaymentContents(strPayment);
@@ -634,7 +634,7 @@ bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& SENDER_USER_ID,
                                    const OTIdentifier& RECIPIENT_USER_ID,
                                    OTTransaction::transactionType theType,
-                                   OTMessage* pMsg, const OTString* pstrMessage,
+                                   OTMessage* pMsg, const String* pstrMessage,
                                    const char* szCommand) // If you pass
                                                           // something here, it
                                                           // will
@@ -765,7 +765,7 @@ bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
     //  }
     // Grab a string copy of pMsg.
     //
-    const OTString strInMessage(*pMsg);
+    const String strInMessage(*pMsg);
     OTLedger theLedger(RECIPIENT_USER_ID, RECIPIENT_USER_ID,
                        SERVER_ID); // The recipient's Nymbox.
     // Drop in the Nymbox
@@ -829,7 +829,7 @@ bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
         }
         else // should never happen
         {
-            const OTString strRecipientUserID(RECIPIENT_USER_ID);
+            const String strRecipientUserID(RECIPIENT_USER_ID);
             OTLog::vError(
                 "%s: Failed while trying to generate transaction in order to "
                 "add a message to Nymbox: %s\n",
@@ -837,7 +837,7 @@ bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
         }
     }
     else {
-        const OTString strRecipientUserID(RECIPIENT_USER_ID);
+        const String strRecipientUserID(RECIPIENT_USER_ID);
         OTLog::vError("%s: Failed while trying to load or verify Nymbox: %s\n",
                       szFunc, strRecipientUserID.Get());
     }
@@ -845,7 +845,7 @@ bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
     return false;
 }
 
-bool OTServer::GetConnectInfo(OTString& strHostname, int32_t& nPort) const
+bool OTServer::GetConnectInfo(String& strHostname, int32_t& nPort) const
 {
     if (!m_pServerContract) return false;
 

@@ -158,9 +158,9 @@ typedef std::multimap<std::string, std::string> mapOfHooks;
 //
 class OTBylaw
 {
-    OTString m_strName;     // Name of this Bylaw.
-    OTString m_strLanguage; // Language that the scripts are written in, for
-                            // this bylaw.
+    String m_strName;     // Name of this Bylaw.
+    String m_strLanguage; // Language that the scripts are written in, for
+                          // this bylaw.
 
     mapOfVariables m_mapVariables; // constant, persistant, and important
                                    // variables (strings and longs)
@@ -174,7 +174,7 @@ class OTBylaw
     OTScriptable* m_pOwnerAgreement; // This Bylaw is owned by an agreement
                                      // (OTScriptable-derived.)
 public:
-    EXPORT const OTString& GetName() const
+    EXPORT const String& GetName() const
     {
         return m_strName;
     }
@@ -271,8 +271,7 @@ public:
 
     EXPORT bool Compare(OTBylaw& rhs);
 
-    EXPORT void Serialize(OTString& strAppend,
-                          bool bCalculatingID = false) const;
+    EXPORT void Serialize(String& strAppend, bool bCalculatingID = false) const;
 };
 
 } // namespace opentxs

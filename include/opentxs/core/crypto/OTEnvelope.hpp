@@ -147,7 +147,7 @@ class OTAsymmetricKey;
 class OTPassword;
 class OTPasswordData;
 class OTPseudonym;
-class OTString;
+class String;
 class OTSymmetricKey;
 
 typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
@@ -162,14 +162,14 @@ class OTEnvelope
 public:
     EXPORT OTEnvelope();
     EXPORT OTEnvelope(const OTASCIIArmor& theArmoredText);
-    EXPORT OTEnvelope(const OTString& strArmorWithBookends);
+    EXPORT OTEnvelope(const String& strArmorWithBookends);
     EXPORT virtual ~OTEnvelope();
 
     // SYMMETRIC CRYPTO  (AES)
 
-    EXPORT bool Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
+    EXPORT bool Encrypt(const String& theInput, OTSymmetricKey& theKey,
                         const OTPassword& thePassword);
-    EXPORT bool Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
+    EXPORT bool Decrypt(String& theOutput, const OTSymmetricKey& theKey,
                         const OTPassword& thePassword);
 
     // ASYMMETRIC CRYPTO (RSA / AES)
@@ -177,24 +177,24 @@ public:
     // Single recipient:
     //
     EXPORT bool Seal(const OTPseudonym& theRecipient,
-                     const OTString& theInput); // Put data into this object
-                                                // with Seal().
+                     const String& theInput); // Put data into this object
+                                              // with Seal().
     EXPORT bool Seal(const OTAsymmetricKey& RecipPubKey,
-                     const OTString& theInput); // Currently supports strings
-                                                // only.
+                     const String& theInput); // Currently supports strings
+                                              // only.
 
     // Multiple recipients:
     //
     EXPORT bool Seal(setOfNyms& theRecipients,
-                     const OTString& theInput); // Same as above, except
-                                                // supports multiple recipients.
+                     const String& theInput); // Same as above, except
+                                              // supports multiple recipients.
     EXPORT bool Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                     const OTString& theInput); // Same as above, except
-                                                // supports multiple recipients.
+                     const String& theInput); // Same as above, except
+                                              // supports multiple recipients.
 
     // (Opposite of Seal.)
     //
-    EXPORT bool Open(const OTPseudonym& theRecipient, OTString& theOutput,
+    EXPORT bool Open(const OTPseudonym& theRecipient, String& theOutput,
                      const OTPasswordData* pPWData = nullptr);
 
     // Should be called "Get Envelope's binary Ciphertext data into an
@@ -207,7 +207,7 @@ public:
     //
     EXPORT bool GetAsciiArmoredData(OTASCIIArmor& theArmoredText,
                                     bool bLineBreaks = true) const;
-    EXPORT bool GetAsBookendedString(OTString& strArmorWithBookends,
+    EXPORT bool GetAsBookendedString(String& strArmorWithBookends,
                                      bool bEscaped = false) const;
 
     // Should be called "Set This Envelope's binary ciphertext data, from an
@@ -223,7 +223,7 @@ public:
     //
     EXPORT bool SetAsciiArmoredData(const OTASCIIArmor& theArmoredText,
                                     bool bLineBreaks = true);
-    EXPORT bool SetFromBookendedString(const OTString& strArmorWithBookends,
+    EXPORT bool SetFromBookendedString(const String& strArmorWithBookends,
                                        bool bEscaped = false);
 };
 

@@ -200,7 +200,7 @@ bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
     // Balance Agreement is always the user signing WHAT THE NEW VERSION WILL BE
     // AFTER THE TRANSACTION IS PROCESSED.)
     //
-    const OTString SERVER_ID(GetPurportedServerID());
+    const String SERVER_ID(GetPurportedServerID());
 
     OTPseudonym theRemovedNym;
 
@@ -279,7 +279,7 @@ bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
 
     bool bSuccess = false;
 
-    OTString strMessageNym;
+    String strMessageNym;
 
     GetAttachment(strMessageNym);
     OTPseudonym theMessageNym;
@@ -434,7 +434,7 @@ bool OTItem::VerifyBalanceStatement(
         case OTItem::transfer:
             break;
         default: {
-            OTString strItemType;
+            String strItemType;
             GetTypeString(strItemType);
             otWarn << "OTItem::" << __FUNCTION__ << ": Ignoring " << strItemType
                    << " item in balance statement while verifying it against "
@@ -757,7 +757,7 @@ bool OTItem::VerifyBalanceStatement(
 
     OTPseudonym theRemovedNym;
 
-    OTString SERVER_ID(GetPurportedServerID());
+    String SERVER_ID(GetPurportedServerID());
 
     // GetTransactionNum() is the ID for this balance agreement, THUS it's also
     // the ID
@@ -840,7 +840,7 @@ bool OTItem::VerifyBalanceStatement(
     int32_t nNumberOfTransactionNumbers1 = 0; // The Nym on this side
     int32_t nNumberOfTransactionNumbers2 = 0; // The Message Nym.
 
-    OTString strMessageNym;
+    String strMessageNym;
 
     // First, loop through the Nym on my side, and count how many numbers total
     // he has...
@@ -874,7 +874,7 @@ bool OTItem::VerifyBalanceStatement(
             OT_ASSERT(nullptr != pDeque);
 
             const OTIdentifier theServerID(strServerID.c_str());
-            const OTString OTstrServerID(theServerID);
+            const String OTstrServerID(theServerID);
 
             if (!(pDeque->empty()) && (theServerID == GetPurportedServerID())) {
                 nNumberOfTransactionNumbers2 +=
@@ -1258,7 +1258,7 @@ void OTItem::CalculateNumberOfOrigin()
     case depositCheque: // this item is a request to deposit a cheque.
     {
         OTCheque theCheque;
-        OTString strAttachment;
+        String strAttachment;
         GetAttachment(strAttachment);
 
         if (!theCheque.LoadContractFromString(strAttachment))
@@ -1280,7 +1280,7 @@ void OTItem::CalculateNumberOfOrigin()
     case atDisputeFinalReceipt:  // server reply
     case atDisputeBasketReceipt: // server reply
     {
-        OTString strReference;
+        String strReference;
         GetReferenceString(strReference);
 
         // "In reference to" number is my original deposit trans#, which I use
@@ -1315,7 +1315,7 @@ void OTItem::CalculateNumberOfOrigin()
              (OTItem::disputeFinalReceipt != pOriginalItem->GetType())) ||
             ((m_Type == atDisputeBasketReceipt) &&
              (OTItem::disputeBasketReceipt != pOriginalItem->GetType()))) {
-            OTString strType;
+            String strType;
             pOriginalItem->GetTypeString(strType);
             otErr << __FUNCTION__
                   << ": ERROR: Wrong item type as 'in reference to' string on "
@@ -1396,12 +1396,12 @@ void OTItem::CalculateNumberOfOrigin()
     } // switch
 }
 
-void OTItem::GetAttachment(OTString& theStr) const
+void OTItem::GetAttachment(String& theStr) const
 {
     m_ascAttachment.GetString(theStr);
 }
 
-void OTItem::SetAttachment(const OTString& theStr)
+void OTItem::SetAttachment(const String& theStr)
 {
     m_ascAttachment.SetString(theStr);
 }
@@ -1412,12 +1412,12 @@ void OTItem::SetAttachment(const OTString& theStr)
     " IGNORE -- NOTE PADDING -- IGNORE -- NOTE PADDING \nIGNORE -- NOTE "      \
     "PADDING -- IGNORE -- NOTE PADDING \n"
 
-void OTItem::SetNote(const OTString& theStr)
+void OTItem::SetNote(const String& theStr)
 {
     if (theStr.Exists() && theStr.GetLength() > 2) {
-        OTString theString(theStr);
+        String theString(theStr);
         if (theStr.GetLength() < MINIMUM_CLEARTEXT_SIZE_OTASCIIARMOR) {
-            OTString strPadding(OTASSCIIARMOR_PADDING_TEXT);
+            String strPadding(OTASSCIIARMOR_PADDING_TEXT);
 
             theString.Concatenate(strPadding);
         }
@@ -1429,7 +1429,7 @@ void OTItem::SetNote(const OTString& theStr)
     }
 }
 
-void OTItem::GetNote(OTString& theStr) const
+void OTItem::GetNote(String& theStr) const
 {
     if (m_ascNote.GetLength() > 2) {
         m_ascNote.GetString(theStr);
@@ -1472,7 +1472,7 @@ OTItem* OTItem::CreateItemFromTransaction(
 // of time, sometimes. In those cases, we set the values appropriately but then
 // we need
 // to verify that the user ID is actually the owner of the AccountID. TOdo that.
-OTItem* OTItem::CreateItemFromString(const OTString& strItem,
+OTItem* OTItem::CreateItemFromString(const String& strItem,
                                      const OTIdentifier& theServerID,
                                      int64_t lTransactionNumber)
 {
@@ -1638,7 +1638,7 @@ void OTItem::ReleaseItems()
     }
 }
 
-OTItem::itemType OTItem::GetItemTypeFromString(const OTString& strType)
+OTItem::itemType OTItem::GetItemTypeFromString(const String& strType)
 {
     OTItem::itemType theType = OTItem::error_state;
 
@@ -1805,7 +1805,7 @@ OTItem::itemType OTItem::GetItemTypeFromString(const OTString& strType)
 int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     if (!strcmp("item", xml->getNodeName())) {
-        OTString strType, strStatus;
+        String strType, strStatus;
 
         strType = xml->getAttributeValue("type");
         strStatus = xml->getAttributeValue("status");
@@ -1823,7 +1823,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             m_Status = OTItem::error_status;
 
-        OTString strAcctFromID, strAcctToID, strServerID, strUserID,
+        String strAcctFromID, strAcctToID, strServerID, strUserID,
             strOutboxNewTransNum;
 
         strAcctFromID = xml->getAttributeValue("fromAccountID");
@@ -1841,7 +1841,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // otherwise you haven't actually SIGNED for the list, have you!
         //
         if (OTItem::acceptTransaction == m_Type) {
-            const OTString strTotalList =
+            const String strTotalList =
                 xml->getAttributeValue("totalListOfNumbers");
             m_Numlist.Release();
 
@@ -1865,7 +1865,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetRealServerID(SERVER_ID);
         }
 
-        OTString strTemp;
+        String strTemp;
 
         strTemp = xml->getAttributeValue("numberOfOrigin");
         if (strTemp.Exists()) SetNumberOfOrigin(strTemp.ToLong());
@@ -1876,7 +1876,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strTemp = xml->getAttributeValue("inReferenceTo");
         if (strTemp.Exists()) SetReferenceToNum(strTemp.ToLong());
 
-        m_lAmount = OTString::StringToLong(xml->getAttributeValue("amount"));
+        m_lAmount = String::StringToLong(xml->getAttributeValue("amount"));
 
         otLog3 << "Loaded transaction Item, transaction num "
                << GetTransactionNum()
@@ -1933,7 +1933,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                          // REPRESENT an inbox transaction
 
             // Type
-            OTString strType;
+            String strType;
             strType = xml->getAttributeValue(
                 "type"); // it's reading a TRANSACTION type: chequeReceipt,
                          // voucherReceipt, marketReceipt, or paymentReceipt.
@@ -1946,7 +1946,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                            // agreements.)
 
             pItem->SetAmount(
-                OTString::StringToLong(xml->getAttributeValue("adjustment")));
+                String::StringToLong(xml->getAttributeValue("adjustment")));
 
             // Status
             pItem->SetStatus(OTItem::acknowledgement); // I don't need this, but
@@ -1956,7 +1956,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                        // error_state later, I
                                                        // know I had a problem.
 
-            OTString strAccountID, strServerID, strUserID;
+            String strAccountID, strServerID, strUserID;
 
             strAccountID = xml->getAttributeValue("accountID");
             strServerID = xml->getAttributeValue("serverID");
@@ -1973,7 +1973,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             // Server ID
             pItem->SetUserID(USER_ID);
 
-            OTString strTemp;
+            String strTemp;
 
             strTemp = xml->getAttributeValue("numberOfOrigin");
             if (strTemp.Exists()) pItem->SetNumberOfOrigin(strTemp.ToLong());
@@ -2022,7 +2022,7 @@ void OTItem::SetClosingNum(int64_t lClosingNum)
     m_lClosingTransactionNo = lClosingNum;
 }
 
-void OTItem::GetStringFromType(OTItem::itemType theType, OTString& strType)
+void OTItem::GetStringFromType(OTItem::itemType theType, String& strType)
 {
     switch (theType) {
     case OTItem::transfer:
@@ -2254,17 +2254,17 @@ void OTItem::GetStringFromType(OTItem::itemType theType, OTString& strType)
 void OTItem::UpdateContents() // Before transmission or serialization, this is
                               // where the ledger saves its contents
 {
-    OTString strListOfBlanks; // IF this item is "acceptTransaction" then this
-                              // will serialize the list of transaction numbers
-                              // being accepted. (They now support multiple
-                              // numbers.)
+    String strListOfBlanks; // IF this item is "acceptTransaction" then this
+                            // will serialize the list of transaction numbers
+                            // being accepted. (They now support multiple
+                            // numbers.)
 
     switch (m_Type) {
     case OTItem::acceptTransaction: {
         if (m_Numlist.Count() >
             0) // This is always 0, except for OTItem::acceptTransaction.
         {
-            OTString strNumbers;
+            String strNumbers;
             if (true == m_Numlist.Output(strNumbers))
                 strListOfBlanks.Format(" totalListOfNumbers=\"%s\"\n",
                                        strNumbers.Get());
@@ -2276,7 +2276,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
         break;
     }
 
-    OTString strFromAcctID(GetPurportedAccountID()),
+    String strFromAcctID(GetPurportedAccountID()),
         strToAcctID(GetDestinationAcctID()),
         strServerID(GetPurportedServerID()), strType, strStatus,
         strUserID(GetUserID());
@@ -2370,11 +2370,11 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
             OTItem* pItem = it;
             OT_ASSERT(nullptr != pItem);
 
-            OTString acctID(pItem->GetPurportedAccountID()),
+            String acctID(pItem->GetPurportedAccountID()),
                 serverID(pItem->GetPurportedServerID()),
                 userID(pItem->GetUserID());
 
-            OTString receiptType;
+            String receiptType;
             GetStringFromType(pItem->GetType(), receiptType);
 
             m_xmlUnsigned.Concatenate(

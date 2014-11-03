@@ -221,9 +221,9 @@ public:
 protected:
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the object saves its contents
-    OTString m_strPayment; // Contains the cheque / payment plan / etc in string
-                           // form.
-    paymentType m_Type;    // Default value is ERROR_STATE
+    String m_strPayment; // Contains the cheque / payment plan / etc in string
+                         // form.
+    paymentType m_Type;  // Default value is ERROR_STATE
     // Once the actual instrument is loaded up, we copy some temp values to
     // *this
     // object. Until then, this bool (m_bAreTempValuesSet) is set to false.
@@ -244,7 +244,7 @@ protected:
     int64_t m_lTransactionNum; // Contains 0 by default. This is set by
                                // SetPayment() along with other useful values.
 
-    OTString m_strMemo; // Memo, Consideration, Subject, etc.
+    String m_strMemo; // Memo, Consideration, Subject, etc.
 
     OTIdentifier m_AssetTypeID; // These are for convenience only, for caching
                                 // once they happen to be loaded.
@@ -272,7 +272,7 @@ protected:
     time64_t m_VALID_FROM;          // Temporary values. Not always available.
     time64_t m_VALID_TO;            // Temporary values. Not always available.
 public:
-    EXPORT bool SetPayment(const OTString& strPayment);
+    EXPORT bool SetPayment(const String& strPayment);
 
     EXPORT bool IsCheque() const
     {
@@ -308,19 +308,19 @@ public:
         return m_Type;
     }
     EXPORT OTTrackable* Instantiate() const;
-    EXPORT OTTrackable* Instantiate(const OTString& strPayment);
+    EXPORT OTTrackable* Instantiate(const String& strPayment);
     EXPORT Purse* InstantiatePurse() const;
     //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID) const;
     //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID, const
     // OTIdentifier& ASSET_ID) const;
 
-    EXPORT Purse* InstantiatePurse(const OTString& strPayment);
+    EXPORT Purse* InstantiatePurse(const String& strPayment);
     //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID,
     //                                   const OTString& strPayment);
     //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID, const
     // OTIdentifier& ASSET_ID,
     //                                   const OTString& strPayment);
-    EXPORT bool GetPaymentContents(OTString& strOutput) const
+    EXPORT bool GetPaymentContents(String& strOutput) const
     {
         strOutput = m_strPayment;
         return true;
@@ -355,7 +355,7 @@ public:
                               const OTIdentifier& theAcctID) const;
     EXPORT bool GetAllTransactionNumbers(OTNumList& numlistOutput) const;
     EXPORT bool HasTransactionNum(const int64_t& lInput) const;
-    EXPORT bool GetMemo(OTString& strOutput) const;
+    EXPORT bool GetMemo(String& strOutput) const;
     EXPORT bool GetAssetTypeID(OTIdentifier& theOutput) const;
     EXPORT bool GetServerID(OTIdentifier& theOutput) const;
     EXPORT bool GetSenderUserID(OTIdentifier& theOutput) const;
@@ -375,7 +375,7 @@ public:
     EXPORT bool IsExpired(bool& bExpired); // Verify whether the CURRENT date is
                                            // AFTER the the "VALID TO" date.
     EXPORT OTPayment();
-    EXPORT OTPayment(const OTString& strPayment);
+    EXPORT OTPayment(const String& strPayment);
     EXPORT virtual ~OTPayment();
     EXPORT void InitPayment();
     EXPORT virtual void Release();
@@ -387,7 +387,7 @@ public:
     {
         return _GetTypeString(m_Type);
     }
-    EXPORT static paymentType GetTypeFromString(const OTString& strType);
+    EXPORT static paymentType GetTypeFromString(const String& strType);
 };
 
 } // namespace opentxs

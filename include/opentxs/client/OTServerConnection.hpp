@@ -194,8 +194,8 @@ public:
 
     // Connect() is for TCP / SSL mode.
     EXPORT inline bool Connect(const OTPseudonym&, const OTServerContract&,
-                               const OTString&, const OTString&,
-                               const OTString&) const
+                               const String&, const String&,
+                               const String&) const
     {
         return false;
     }

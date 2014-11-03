@@ -147,7 +147,7 @@ protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
     int64_t m_lAmount;
-    OTString m_strMemo;
+    String m_strMemo;
     OTIdentifier m_RECIPIENT_USER_ID; // Optional. If present, must match
                                       // depositor's user ID.
     bool m_bHasRecipient;
@@ -165,7 +165,7 @@ public:
         m_bHasRemitter = true;
         m_strContractType = "VOUCHER";
     }
-    inline const OTString& GetMemo() const
+    inline const String& GetMemo() const
     {
         return m_strMemo;
     }
@@ -210,7 +210,7 @@ public:
         const OTIdentifier& SENDER_USER_ID, // This ID must match the user ID on
                                             // the asset account,
         // AND must verify the cheque signature with that user's key.
-        const OTString& strMemo, // Optional memo field.
+        const String& strMemo, // Optional memo field.
         const OTIdentifier* pRECIPIENT_USER_ID = nullptr); // Recipient
                                                            // optional. (Might
                                                            // be a blank

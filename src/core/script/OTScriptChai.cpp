@@ -480,7 +480,7 @@ OTScriptChai::OTScriptChai()
 {
 }
 
-OTScriptChai::OTScriptChai(const OTString& strValue)
+OTScriptChai::OTScriptChai(const String& strValue)
     : OTScript(strValue)
     , chai(new chaiscript::ChaiScript(chaiscript::Std_Lib::library()))
 {

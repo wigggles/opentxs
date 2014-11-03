@@ -173,7 +173,7 @@
 namespace opentxs
 {
 
-OTScriptable* OTScriptable::InstantiateScriptable(const OTString& strInput)
+OTScriptable* OTScriptable::InstantiateScriptable(const String& strInput)
 {
     static char buf[45] = "";
 
@@ -182,7 +182,7 @@ OTScriptable* OTScriptable::InstantiateScriptable(const OTString& strInput)
         return nullptr;
     }
 
-    OTString strContract(strInput);
+    String strContract(strInput);
 
     if (!strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true
                                              // by default.
@@ -205,7 +205,7 @@ OTScriptable* OTScriptable::InstantiateScriptable(const OTString& strInput)
 
     OTCronItem* pItem = nullptr;
 
-    OTString strFirstLine(buf);
+    String strFirstLine(buf);
     strContract.reset(); // set the "file" pointer within this string back to
                          // index 0.
 
@@ -308,7 +308,7 @@ std::string OTScriptable::GetTime() // Returns a string, containing seconds as
     const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
     const int64_t lTime = OTTimeGetSecondsFromTime(CURRENT_TIME);
 
-    OTString strTime;
+    String strTime;
     strTime.Format("%" PRId64, lTime);
     return strTime.Get();
 }
@@ -663,7 +663,7 @@ bool OTScriptable::SendNoticeToAllParties(
     const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
     // const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
-    const OTString& strReference, OTString* pstrNote, OTString* pstrAttachment,
+    const String& strReference, String* pstrNote, String* pstrAttachment,
     OTPseudonym* pActualNym) const
 {
     bool bSuccess =
@@ -963,10 +963,10 @@ void OTScriptable::RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded)
 bool OTScriptable::VerifyPartyAuthorization(
     OTParty& theParty, // The party that supposedly is authorized for this
                        // supposedly executed agreement.
-    OTPseudonym& theSignerNym,   // For verifying signature on the authorizing
-                                 // Nym, when loading it
-    const OTString& strServerID, // For verifying issued num, need the serverID
-                                 // the # goes with.
+    OTPseudonym& theSignerNym, // For verifying signature on the authorizing
+                               // Nym, when loading it
+    const String& strServerID, // For verifying issued num, need the serverID
+                               // the # goes with.
     mapOfNyms* pmap_ALREADY_LOADED, // If some nyms are already
                                     // loaded, pass them here so we
                                     // don't load them twice on
@@ -1496,7 +1496,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
                                   // already via VerifyPartyAuthorization()
     OTPseudonym& theSignerNym,    // For verifying signature on the authorizing
                                   // Nym.
-    const OTString& strServerID,  // For verifying issued num, need the serverID
+    const String& strServerID,    // For verifying issued num, need the serverID
                                   // the # goes with.
     const bool bBurnTransNo)      // In OTServer::VerifySmartContract(),
                                   // it not only wants to verify the
@@ -2101,7 +2101,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty)
                                            // IDs now, etc.
 
         // Sign it and save it,
-        OTString strNewSignedCopy;
+        String strNewSignedCopy;
         ReleaseSignatures();
         bool bSuccess = theParty.SignContract(*this);
         if (bSuccess) {
@@ -2286,7 +2286,7 @@ void OTScriptable::CalculateContractID(OTIdentifier& newID) const
     newID.CalculateDigest(xmlUnsigned);
 }
 
-void OTScriptable::UpdateContentsToString(OTString& strAppend,
+void OTScriptable::UpdateContentsToString(String& strAppend,
                                           bool bCalculatingID) const
 {
     if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
@@ -2355,18 +2355,18 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    if (nReturnVal == 1 || nReturnVal == (-1))
     //        return nReturnVal;
 
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     //    otErr << "OTScriptable::ProcessXMLNode:  strNodeName: %s \n",
     // strNodeName.Get());
 
     if (strNodeName.Compare("scriptableContract")) {
         const char* szFunc = "OTScriptable::ProcessXMLNode";
-        const OTString strSpecify1 = xml->getAttributeValue("specifyAssetID");
-        const OTString strSpecify2 = xml->getAttributeValue("specifyParties");
+        const String strSpecify1 = xml->getAttributeValue("specifyAssetID");
+        const String strSpecify2 = xml->getAttributeValue("specifyParties");
 
-        OTString strNumParties = xml->getAttributeValue("numParties");
-        OTString strNumBylaws = xml->getAttributeValue("numBylaws");
+        String strNumParties = xml->getAttributeValue("numParties");
+        String strNumBylaws = xml->getAttributeValue("numBylaws");
 
         // These determine whether asset IDs and/or party owner IDs
         // are used on the template for any given smart contract.
@@ -2394,29 +2394,29 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // currently on: %s \n", szFunc, xml->getNodeName());
 
                 if ((!strcmp("party", xml->getNodeName()))) {
-                    OTString strName = xml->getAttributeValue(
+                    String strName = xml->getAttributeValue(
                         "name"); // Party name (in script code)
-                    OTString strOwnerType = xml->getAttributeValue(
+                    String strOwnerType = xml->getAttributeValue(
                         "ownerType"); // "nym" or "entity"
-                    OTString strOwnerID = xml->getAttributeValue(
+                    String strOwnerID = xml->getAttributeValue(
                         "ownerID"); // Nym or Entity ID. todo security probably
                                     // make these separate variables.
 
-                    OTString strOpeningTransNo = xml->getAttributeValue(
+                    String strOpeningTransNo = xml->getAttributeValue(
                         "openingTransNo"); // the closing #s are on the asset
                                            // accounts.
 
-                    OTString strAuthAgent = xml->getAttributeValue(
+                    String strAuthAgent = xml->getAttributeValue(
                         "authorizingAgent"); // When an agent activates this
                                              // contract, it's HIS opening
                                              // trans# that's used.
 
-                    OTString strNumAgents = xml->getAttributeValue(
+                    String strNumAgents = xml->getAttributeValue(
                         "numAgents"); // number of agents on this party.
-                    OTString strNumAccounts = xml->getAttributeValue(
+                    String strNumAccounts = xml->getAttributeValue(
                         "numAccounts"); // number of accounts for this party.
 
-                    OTString strIsCopyProvided =
+                    String strIsCopyProvided =
                         xml->getAttributeValue("signedCopyProvided");
 
                     bool bIsCopyProvided = false; // default
@@ -2462,19 +2462,18 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("agent", xml->getNodeName()))) {
-                                OTString strAgentName = xml->getAttributeValue(
+                                String strAgentName = xml->getAttributeValue(
                                     "name"); // Agent name (if needed in script
                                              // code)
-                                OTString strAgentRepSelf =
-                                    xml->getAttributeValue(
-                                        "doesAgentRepresentHimself"); // Agent
-                                                                      // might
+                                String strAgentRepSelf = xml->getAttributeValue(
+                                    "doesAgentRepresentHimself"); // Agent
+                                                                  // might
                                 // also BE the
                                 // party, and
                                 // not just
                                 // party's
                                 // employee.
-                                OTString strAgentIndividual =
+                                String strAgentIndividual =
                                     xml->getAttributeValue(
                                         "isAgentAnIndividual"); // Is the agent
                                                                 // a voting
@@ -2483,13 +2482,13 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                                 // nym? (whether
                                                                 // employee or
                                                                 // not)
-                                OTString strNymID = xml->getAttributeValue(
+                                String strNymID = xml->getAttributeValue(
                                     "nymID"); // Nym ID if Nym in role for
                                               // entity, or if representing
                                               // himself.
-                                OTString strRoleID = xml->getAttributeValue(
+                                String strRoleID = xml->getAttributeValue(
                                     "roleID"); // Role ID if Nym in Role.
-                                OTString strGroupName = xml->getAttributeValue(
+                                String strGroupName = xml->getAttributeValue(
                                     "groupName"); // Group name if voting group.
                                                   // (Relative to entity.)
 
@@ -2605,18 +2604,17 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("assetAccount", xml->getNodeName()))) {
-                                OTString strAcctName = xml->getAttributeValue(
+                                String strAcctName = xml->getAttributeValue(
                                     "name"); // Acct name (if needed in script
                                              // code)
-                                OTString strAcctID = xml->getAttributeValue(
+                                String strAcctID = xml->getAttributeValue(
                                     "acctID"); // Asset Acct ID
-                                OTString strAssetTypeID =
-                                    xml->getAttributeValue(
-                                        "assetTypeID"); // Asset Type ID
-                                OTString strAgentName = xml->getAttributeValue(
+                                String strAssetTypeID = xml->getAttributeValue(
+                                    "assetTypeID"); // Asset Type ID
+                                String strAgentName = xml->getAttributeValue(
                                     "agentName"); // Name of agent who controls
                                                   // this account.
-                                OTString strClosingTransNo =
+                                String strClosingTransNo =
                                     xml->getAttributeValue(
                                         "closingTransNo"); // the closing #s are
                                                            // on the asset
@@ -2709,7 +2707,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     if (bIsCopyProvided) {
                         const char* pElementExpected = "mySignedCopy";
-                        OTString strTextExpected; // signed copy will go here.
+                        String strTextExpected; // signed copy will go here.
 
                         if (false ==
                             OTContract::LoadEncodedTextFieldByName(
@@ -2757,18 +2755,18 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 }
 
                 if (!strcmp("bylaw", xml->getNodeName())) {
-                    OTString strName =
+                    String strName =
                         xml->getAttributeValue("name"); // bylaw name
-                    OTString strLanguage = xml->getAttributeValue(
+                    String strLanguage = xml->getAttributeValue(
                         "language"); // The script language used in this bylaw.
 
-                    OTString strNumVariable = xml->getAttributeValue(
+                    String strNumVariable = xml->getAttributeValue(
                         "numVariables"); // number of variables on this bylaw.
-                    OTString strNumClauses = xml->getAttributeValue(
+                    String strNumClauses = xml->getAttributeValue(
                         "numClauses"); // number of clauses on this bylaw.
-                    OTString strNumHooks = xml->getAttributeValue(
+                    String strNumHooks = xml->getAttributeValue(
                         "numHooks"); // hooks to server events.
-                    OTString strNumCallbacks = xml->getAttributeValue(
+                    String strNumCallbacks = xml->getAttributeValue(
                         "numCallbacks"); // Callbacks the server may initiate,
                                          // when it needs answers.
 
@@ -2795,18 +2793,18 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("variable", xml->getNodeName()))) {
-                                OTString strVarName = xml->getAttributeValue(
+                                String strVarName = xml->getAttributeValue(
                                     "name"); // Variable name (if needed in
                                              // script code)
-                                OTString strVarValue = xml->getAttributeValue(
+                                String strVarValue = xml->getAttributeValue(
                                     "value"); // Value stored in variable (If
                                               // this is "true" then a real
                                               // value is expected in a text
                                               // field below. Otherwise, it's
                                               // assumed to be a BLANK STRING.)
-                                OTString strVarType = xml->getAttributeValue(
+                                String strVarType = xml->getAttributeValue(
                                     "type"); // string or int64_t
-                                OTString strVarAccess = xml->getAttributeValue(
+                                String strVarAccess = xml->getAttributeValue(
                                     "access"); // constant, persistent, or
                                                // important.
 
@@ -3006,10 +3004,10 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     if (nCount > 0) {
                         while (nCount-- > 0) {
                             const char* pElementExpected = "clause";
-                            OTString strTextExpected; // clause's script code
-                                                      // will go here.
+                            String strTextExpected; // clause's script code
+                                                    // will go here.
 
-                            OTString::Map temp_MapAttributes;
+                            String::Map temp_MapAttributes;
                             //
                             // This map contains values we will also want, when
                             // we read the clause...
@@ -3120,11 +3118,11 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("hook", xml->getNodeName()))) {
-                                OTString strHookName = xml->getAttributeValue(
+                                String strHookName = xml->getAttributeValue(
                                     "name"); // Name of standard hook such as
                                              // hook_activate or cron_process,
                                              // etc
-                                OTString strClause = xml->getAttributeValue(
+                                String strClause = xml->getAttributeValue(
                                     "clause"); // Name of clause on this Bylaw
                                                // that should trigger when that
                                                // callback occurs.
@@ -3177,12 +3175,11 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("callback", xml->getNodeName()))) {
-                                OTString strCallbackName =
-                                    xml->getAttributeValue(
-                                        "name"); // Name of standard callback
-                                                 // such as OnActivate,
-                                                 // OnDeactivate, etc
-                                OTString strClause = xml->getAttributeValue(
+                                String strCallbackName = xml->getAttributeValue(
+                                    "name"); // Name of standard callback
+                                             // such as OnActivate,
+                                             // OnDeactivate, etc
+                                String strClause = xml->getAttributeValue(
                                     "clause"); // Name of clause on this Bylaw
                                                // that should trigger when that
                                                // hook occurs.

@@ -192,17 +192,17 @@ public:
     virtual bool RandomizeMemory(uint8_t* szDestination,
                                  uint32_t nNewSize) const;
     // HASHING
-    virtual bool CalculateDigest(const OTString& strInput,
-                                 const OTString& strHashAlgorithm,
+    virtual bool CalculateDigest(const String& strInput,
+                                 const String& strHashAlgorithm,
                                  OTIdentifier& theOutput) const;
     virtual bool CalculateDigest(const OTData& dataInput,
-                                 const OTString& strHashAlgorithm,
+                                 const String& strHashAlgorithm,
                                  OTIdentifier& theOutput) const;
     // BASE 62 ENCODING  (for IDs)
-    virtual void SetIDFromEncoded(const OTString& strInput,
+    virtual void SetIDFromEncoded(const String& strInput,
                                   OTIdentifier& theOutput) const;
     virtual void EncodeID(const OTIdentifier& theInput,
-                          OTString& strOutput) const;
+                          String& strOutput) const;
     // BASE 64 ENCODING
     // Lower-level version:
     // Caller is responsible to delete. Todo: return a unqiue pointer.
@@ -240,34 +240,34 @@ public:
                // OTData& here (either will work.)
     // SEAL / OPEN
     // Asymmetric (public key) encryption / decryption
-    virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                      const OTString& theInput, OTData& dataOutput) const;
+    virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
+                      OTData& dataOutput) const;
 
     virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
-                      OTString& theOutput,
+                      String& theOutput,
                       const OTPasswordData* pPWData = nullptr) const;
     // SIGN / VERIFY
     // Sign or verify using the Asymmetric Key itself.
-    virtual bool SignContract(const OTString& strContractUnsigned,
+    virtual bool SignContract(const String& strContractUnsigned,
                               const OTAsymmetricKey& theKey,
                               OTSignature& theSignature, // output
-                              const OTString& strHashType,
+                              const String& strHashType,
                               const OTPasswordData* pPWData = nullptr);
 
-    virtual bool VerifySignature(const OTString& strContractToVerify,
+    virtual bool VerifySignature(const String& strContractToVerify,
                                  const OTAsymmetricKey& theKey,
                                  const OTSignature& theSignature,
-                                 const OTString& strHashType,
+                                 const String& strHashType,
                                  const OTPasswordData* pPWData = nullptr) const;
     // Sign or verify using the contents of a Certfile.
-    virtual bool SignContract(const OTString& strContractUnsigned,
-                              const OTString& strSigHashType,
+    virtual bool SignContract(const String& strContractUnsigned,
+                              const String& strSigHashType,
                               const std::string& strCertFileContents,
                               OTSignature& theSignature, // output
                               const OTPasswordData* pPWData = nullptr);
 
-    virtual bool VerifySignature(const OTString& strContractToVerify,
-                                 const OTString& strSigHashType,
+    virtual bool VerifySignature(const String& strContractToVerify,
+                                 const String& strSigHashType,
                                  const std::string& strCertFileContents,
                                  const OTSignature& theSignature,
                                  const OTPasswordData* pPWData = nullptr) const;

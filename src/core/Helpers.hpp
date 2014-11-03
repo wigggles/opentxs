@@ -137,7 +137,7 @@ namespace
 {
 
 opentxs::OTAccount::AccountType TranslateAccountTypeStringToEnum(
-    const opentxs::OTString& acctTypeString)
+    const opentxs::String& acctTypeString)
 {
     opentxs::OTAccount::AccountType acctType = opentxs::OTAccount::err_acct;
 
@@ -163,7 +163,7 @@ opentxs::OTAccount::AccountType TranslateAccountTypeStringToEnum(
 }
 
 void TranslateAccountTypeToString(opentxs::OTAccount::AccountType type,
-                                  opentxs::OTString& acctType)
+                                  opentxs::String& acctType)
 {
     switch (type) {
     case opentxs::OTAccount::simple:

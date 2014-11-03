@@ -136,11 +136,11 @@
 namespace opentxs
 {
 
-class OTString;
+class String;
 
 struct ConfigLoader
 {
-    static bool load(OTString& walletFilename);
+    static bool load(String& walletFilename);
 };
 
 } // namespace opentxs

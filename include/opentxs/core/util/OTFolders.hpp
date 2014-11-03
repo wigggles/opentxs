@@ -152,7 +152,7 @@ private:
     static inline bool GetSetFolderName(OTSettings& config,
                                         std::string strKeyName,
                                         std::string strDefaultName,
-                                        OTString& ret_strName)
+                                        String& ret_strName)
     {
         if (ret_strName.Exists())
             return true;
@@ -161,7 +161,7 @@ private:
             if (3 > strKeyName.size() || 3 > strDefaultName.size())
                 return false;
 
-            OTString strResult("");
+            String strResult("");
             bool bIsNew(false);
 
             config.CheckSet_str("folders", strKeyName, strDefaultName,
@@ -176,7 +176,7 @@ private:
         }
     }
 
-    static inline const OTString& GetFolder(const OTString& strFolder)
+    static inline const String& GetFolder(const String& strFolder)
     {
         if (!strFolder.Exists()) {
             if (!GetSetAll()) {
@@ -186,52 +186,52 @@ private:
         return strFolder;
     }
 
-    static OTString s_strAccount;
-    static OTString s_strCert;
-    static OTString s_strContract;
-    static OTString s_strCredential;
-    static OTString s_strCron;
-    static OTString s_strInbox;
-    static OTString s_strMarket;
-    static OTString s_strMint;
-    static OTString s_strNym;
-    static OTString s_strNymbox;
-    static OTString s_strOutbox;
-    static OTString s_strPaymentInbox;
-    static OTString s_strPubcred;
-    static OTString s_strPubkey;
-    static OTString s_strPurse;
-    static OTString s_strReceipt;
-    static OTString s_strRecordBox;
-    static OTString s_strExpiredBox;
-    static OTString s_strScript;
-    static OTString s_strSmartContracts;
-    static OTString s_strSpent;
-    static OTString s_strUserAcct;
+    static String s_strAccount;
+    static String s_strCert;
+    static String s_strContract;
+    static String s_strCredential;
+    static String s_strCron;
+    static String s_strInbox;
+    static String s_strMarket;
+    static String s_strMint;
+    static String s_strNym;
+    static String s_strNymbox;
+    static String s_strOutbox;
+    static String s_strPaymentInbox;
+    static String s_strPubcred;
+    static String s_strPubkey;
+    static String s_strPurse;
+    static String s_strReceipt;
+    static String s_strRecordBox;
+    static String s_strExpiredBox;
+    static String s_strScript;
+    static String s_strSmartContracts;
+    static String s_strSpent;
+    static String s_strUserAcct;
 
 public:
-    EXPORT static const OTString& Account();
-    EXPORT static const OTString& Cert();
-    EXPORT static const OTString& Contract();
-    EXPORT static const OTString& Credential();
-    EXPORT static const OTString& Cron();
-    EXPORT static const OTString& Inbox();
-    EXPORT static const OTString& Market();
-    EXPORT static const OTString& Mint();
-    EXPORT static const OTString& Nym();
-    EXPORT static const OTString& Nymbox();
-    EXPORT static const OTString& Outbox();
-    EXPORT static const OTString& PaymentInbox();
-    EXPORT static const OTString& Pubcred();
-    EXPORT static const OTString& Pubkey();
-    EXPORT static const OTString& Purse();
-    EXPORT static const OTString& Receipt();
-    EXPORT static const OTString& RecordBox();
-    EXPORT static const OTString& ExpiredBox();
-    EXPORT static const OTString& Script();
-    EXPORT static const OTString& SmartContracts();
-    EXPORT static const OTString& Spent();
-    EXPORT static const OTString& UserAcct();
+    EXPORT static const String& Account();
+    EXPORT static const String& Cert();
+    EXPORT static const String& Contract();
+    EXPORT static const String& Credential();
+    EXPORT static const String& Cron();
+    EXPORT static const String& Inbox();
+    EXPORT static const String& Market();
+    EXPORT static const String& Mint();
+    EXPORT static const String& Nym();
+    EXPORT static const String& Nymbox();
+    EXPORT static const String& Outbox();
+    EXPORT static const String& PaymentInbox();
+    EXPORT static const String& Pubcred();
+    EXPORT static const String& Pubkey();
+    EXPORT static const String& Purse();
+    EXPORT static const String& Receipt();
+    EXPORT static const String& RecordBox();
+    EXPORT static const String& ExpiredBox();
+    EXPORT static const String& Script();
+    EXPORT static const String& SmartContracts();
+    EXPORT static const String& Spent();
+    EXPORT static const String& UserAcct();
 };
 
 } // namespace opentxs

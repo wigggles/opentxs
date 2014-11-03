@@ -176,11 +176,11 @@ private:
     OTIdentifier m_RECIPIENT_USER_ID;
 
 protected:
-    OTString m_strConsideration; // Presumably an agreement is in return for
-                                 // some consideration. Memo here.
+    String m_strConsideration; // Presumably an agreement is in return for
+                               // some consideration. Memo here.
 
-    OTString m_strMerchantSignedCopy; // The merchant sends it over, then the
-                                      // payer confirms it, which adds
+    String m_strMerchantSignedCopy; // The merchant sends it over, then the
+                                    // payer confirms it, which adds
     // his own transaction numbers and signs it. This, unfortunately,
     // invalidates the merchant's version, so we store
     // a copy of the merchant's signed agreement INSIDE our own. The server can
@@ -200,15 +200,15 @@ protected:
                                                         // (finalReceipt.)
 
 public:
-    const OTString& GetConsideration() const
+    const String& GetConsideration() const
     {
         return m_strConsideration;
     }
-    void SetMerchantSignedCopy(const OTString& strMerchantCopy)
+    void SetMerchantSignedCopy(const String& strMerchantCopy)
     {
         m_strMerchantSignedCopy = strMerchantCopy;
     }
-    const OTString& GetMerchantSignedCopy() const
+    const String& GetMerchantSignedCopy() const
     {
         return m_strMerchantSignedCopy;
     }
@@ -221,7 +221,7 @@ public:
     // VALID_TO=0);
 
     EXPORT bool SetProposal(OTPseudonym& MERCHANT_NYM,
-                            const OTString& strConsideration,
+                            const String& strConsideration,
                             time64_t VALID_FROM = OT_TIME_ZERO,
                             time64_t VALID_TO = OT_TIME_ZERO);
 
@@ -474,8 +474,8 @@ public:
         const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
-        const OTString& strReference, OTString* pstrNote = nullptr,
-        OTString* pstrAttachment = nullptr,
+        const String& strReference, String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr,
         OTPseudonym* pActualNym = nullptr) const;
 
     EXPORT static bool DropServerNoticeToNymbox(
@@ -483,8 +483,8 @@ public:
                           // OTItem::rejection.
         OTPseudonym& theServerNym, const OTIdentifier& SERVER_ID,
         const OTIdentifier& USER_ID, const int64_t& lNewTransactionNumber,
-        const int64_t& lInReferenceTo, const OTString& strReference,
-        OTString* pstrNote = nullptr, OTString* pstrAttachment = nullptr,
+        const int64_t& lInReferenceTo, const String& strReference,
+        String* pstrNote = nullptr, String* pstrAttachment = nullptr,
         OTPseudonym* pActualNym = nullptr);
     OTAgreement();
     OTAgreement(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);

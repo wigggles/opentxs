@@ -155,20 +155,18 @@ private: // Private prevents erroneous use by other classes.
     friend class Mint; // for the factory.
 protected:
     MintLucre();
-    EXPORT MintLucre(const OTString& strServerID,
-                     const OTString& strAssetTypeID);
-    EXPORT MintLucre(const OTString& strServerID,
-                     const OTString& strServerNymID,
-                     const OTString& strAssetTypeID);
+    EXPORT MintLucre(const String& strServerID, const String& strAssetTypeID);
+    EXPORT MintLucre(const String& strServerID, const String& strServerNymID,
+                     const String& strAssetTypeID);
 
 public:
     virtual bool AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
                                  int32_t nPrimeLength = 1024);
 
     EXPORT virtual bool SignToken(OTPseudonym& theNotary, Token& theToken,
-                                  OTString& theOutput, int32_t nTokenIndex);
+                                  String& theOutput, int32_t nTokenIndex);
     EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
-                                    OTString& theCleartextToken,
+                                    String& theCleartextToken,
                                     int64_t lDenomination);
 
     EXPORT virtual ~MintLucre();

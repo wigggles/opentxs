@@ -684,7 +684,7 @@ bool OTTransaction::HarvestOpeningNumber(
                             // Also load up the Payment Plan from inside the
                             // transaction item.
                             //
-                            OTString strPaymentPlan;
+                            String strPaymentPlan;
                             OTPaymentPlan thePlan;
                             pItem->GetAttachment(strPaymentPlan);
 
@@ -817,7 +817,7 @@ bool OTTransaction::HarvestOpeningNumber(
             }
             else // Load up the smart contract...
             {
-                OTString strSmartContract;
+                String strSmartContract;
                 OTSmartContract theSmartContract(GetPurportedServerID());
                 pItem->GetAttachment(strSmartContract);
 
@@ -938,7 +938,7 @@ bool OTTransaction::HarvestClosingNumbers(
             else // pItem is good. Let's load up the OTCronIteam object...
             {
                 OTCronItem theTrade;
-                OTString strTrade;
+                String strTrade;
                 pItem->GetAttachment(strTrade);
 
                 // First load the Trade up...
@@ -1048,7 +1048,7 @@ bool OTTransaction::HarvestClosingNumbers(
             }
             else // pItem is good. Let's load up the OTPaymentPlan object...
             {
-                OTString strPaymentPlan;
+                String strPaymentPlan;
                 OTPaymentPlan thePlan;
                 pItem->GetAttachment(strPaymentPlan);
 
@@ -1153,7 +1153,7 @@ bool OTTransaction::HarvestClosingNumbers(
             }
             else // Load up the smart contract...
             {
-                OTString strSmartContract;
+                String strSmartContract;
                 OTSmartContract theSmartContract(GetPurportedServerID());
                 pItem->GetAttachment(strSmartContract);
 
@@ -1468,7 +1468,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     OTIdentifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
 
-    const OTString strServerID(GetRealServerID()), strReceiptID(USER_ID);
+    const String strServerID(GetRealServerID()), strReceiptID(USER_ID);
 
     //    if (USER_ID != GetUserID())
     //    {
@@ -1480,7 +1480,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // Load the last TRANSACTION STATEMENT as well...
 
-    OTString strFilename;
+    String strFilename;
     strFilename.Format("%s.success", strReceiptID.Get());
 
     const char* szFolder1name = OTFolders::Receipt().Get(); // receipts
@@ -1507,7 +1507,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         return false;
     }
 
-    OTString strTransaction(strFileContents.c_str());
+    String strTransaction(strFileContents.c_str());
 
     //    OTTransaction tranOut(SERVER_USER_ID, USER_ID, GetRealServerID());
     std::unique_ptr<OTTransactionType> pContents(
@@ -1596,7 +1596,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         // LOAD "TRANSACTION STATEMENT" (ITEM) from within the above item we
         // got.
 
-        OTString strBalanceItem;
+        String strBalanceItem;
         pResponseTransactionItem->GetReferenceString(strBalanceItem);
 
         if (!strBalanceItem.Exists()) {
@@ -1699,7 +1699,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     OTItem* pBalanceItem = nullptr;
 
-    OTString strBalanceItem;
+    String strBalanceItem;
     pResponseBalanceItem->GetReferenceString(strBalanceItem);
 
     if (!strBalanceItem.Exists()) {
@@ -1732,8 +1732,8 @@ bool OTTransaction::VerifyBalanceReceipt(
     // LOAD MESSAGE NYM (THE LIST OF ISSUED NUMBERS ACCORDING TO THE RECEIPT.)
 
     OTPseudonym theMessageNym;
-    OTString strMessageNym; // Okay now we have the transaction numbers in this
-                            // MessageNym string.
+    String strMessageNym; // Okay now we have the transaction numbers in this
+                          // MessageNym string.
 
     //
     if ((nullptr != pTransactionItem) &&
@@ -1908,7 +1908,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             break; // we'll handle this in the next switch.
 
         default: {
-            OTString strItemType;
+            String strItemType;
             pSubItem->GetTypeString(strItemType);
             otLog3
                 << "OTTransaction::VerifyBalanceReceipt: Ignoring "
@@ -2571,7 +2571,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         // I found in my inbox, by looking up the number from within the
         // receipt...
         //
-        OTString strRespTo;
+        String strRespTo;
         int64_t lIssuedNum = 0; // The number that must STILL be signed out to
                                 // me, in order for this receipt not be warrant
                                 // disputing.
@@ -2936,7 +2936,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 //
 bool OTTransaction::DeleteBoxReceipt(OTLedger& theLedger)
 {
-    OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
+    String strFolder1name, strFolder2name, strFolder3name, strFilename;
 
     if (!SetupBoxReceiptFilename(
             theLedger, *this, "OTTransaction::DeleteBoxReceipt", strFolder1name,
@@ -2956,7 +2956,7 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger& theLedger)
         return false;
     }
 
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp;
 
     if (m_strRawFile.Exists()) {
@@ -2980,7 +2980,7 @@ bool OTTransaction::DeleteBoxReceipt(OTLedger& theLedger)
     //
     // Try to save the deleted box receipt to local storage.
     //
-    OTString strOutput;
+    String strOutput;
 
     if (m_strRawFile.Exists())
         strOutput.Format("%s\n\n%s\n", strFinal.Get(),
@@ -3018,7 +3018,7 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
         return false;
     }
 
-    OTString strFolder1name, strFolder2name, strFolder3name, strFilename;
+    String strFolder1name, strFolder2name, strFolder3name, strFilename;
 
     if (!SetupBoxReceiptFilename(
             lLedgerType, *this, "OTTransaction::SaveBoxReceipt", strFolder1name,
@@ -3039,7 +3039,7 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
 
     // Try to save the box receipt to local storage.
     //
-    OTString strFinal;
+    String strFinal;
     OTASCIIArmor ascTemp(m_strRawFile);
 
     if (false ==
@@ -3347,10 +3347,9 @@ OTTransaction::OTTransaction(
     const OTIdentifier& theServerID, const int64_t& lNumberOfOrigin,
     const int64_t& lTransactionNum, const int64_t& lInRefTo,
     const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
-    transactionType theType, const OTString& strHash,
-    const int64_t& lAdjustment, const int64_t& lDisplayValue,
-    const int64_t& lClosingNum, const int64_t& lRequestNum,
-    bool bReplyTransSuccess, OTNumList* pNumList)
+    transactionType theType, const String& strHash, const int64_t& lAdjustment,
+    const int64_t& lDisplayValue, const int64_t& lClosingNum,
+    const int64_t& lRequestNum, bool bReplyTransSuccess, OTNumList* pNumList)
     : OTTransactionType(theUserID, theAccountID, theServerID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(true)
@@ -3965,7 +3964,7 @@ bool OTTransaction::GetSuccess()
 //
 // static
 OTTransaction::transactionType OTTransaction::GetTypeFromString(
-    const OTString& strType)
+    const String& strType)
 {
     OTTransaction::transactionType theType = OTTransaction::error_state;
 
@@ -4057,7 +4056,7 @@ OTTransaction::transactionType OTTransaction::GetTypeFromString(
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    const OTString strNodeName = xml->getNodeName();
+    const String strNodeName = xml->getNodeName();
 
     OTNumList* pNumList = nullptr;
     if (strNodeName.Compare("nymboxRecord")) {
@@ -4077,7 +4076,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         time64_t the_DATE_SIGNED = OT_TIME_ZERO;
         int theType = OTTransaction::error_state; // default
-        OTString strHash;
+        String strHash;
 
         int64_t lAdjustment = 0;
         int64_t lDisplayValue = 0;
@@ -4129,7 +4128,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                  // fixed here.)
     {
 
-        const OTString strType = xml->getAttributeValue("type");
+        const String strType = xml->getAttributeValue("type");
 
         if (strType.Exists())
             m_Type = OTTransaction::GetTypeFromString(strType);
@@ -4139,20 +4138,20 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        OTString strCancelled = xml->getAttributeValue("cancelled");
+        String strCancelled = xml->getAttributeValue("cancelled");
         if (strCancelled.Exists() && strCancelled.Compare("true"))
             m_bCancelled = true;
         else
             m_bCancelled = false;
 
-        OTString strDateSigned = xml->getAttributeValue("dateSigned");
+        String strDateSigned = xml->getAttributeValue("dateSigned");
         const int64_t lDateSigned =
             strDateSigned.Exists() ? strDateSigned.ToLong() : 0;
         m_DATE_SIGNED = OTTimeGetTimeFromSeconds(lDateSigned); // Todo casting ?
 
-        const OTString strAcctID = xml->getAttributeValue("accountID");
-        const OTString strServerID = xml->getAttributeValue("serverID");
-        const OTString strUserID = xml->getAttributeValue("userID");
+        const String strAcctID = xml->getAttributeValue("accountID");
+        const String strServerID = xml->getAttributeValue("serverID");
+        const String strUserID = xml->getAttributeValue("userID");
 
         if (!strAcctID.Exists() || !strServerID.Exists() ||
             !strUserID.Exists()) {
@@ -4163,9 +4162,9 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        const OTString strOrigin = xml->getAttributeValue("numberOfOrigin");
-        const OTString strTransNum = xml->getAttributeValue("transactionNum");
-        const OTString strInRefTo = xml->getAttributeValue("inReferenceTo");
+        const String strOrigin = xml->getAttributeValue("numberOfOrigin");
+        const String strTransNum = xml->getAttributeValue("transactionNum");
+        const String strInRefTo = xml->getAttributeValue("inReferenceTo");
 
         if (!strTransNum.Exists() || !strInRefTo.Exists()) {
             otOut << "OTTransaction::ProcessXMLNode: Failure: missing "
@@ -4180,13 +4179,13 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // it is in reply to.
         //
         if (OTTransaction::replyNotice == m_Type) {
-            const OTString strRequestNum =
+            const String strRequestNum =
                 xml->getAttributeValue("requestNumber");
 
             if (strRequestNum.Exists())
                 m_lRequestNumber = strRequestNum.ToLong();
 
-            const OTString strTransSuccess =
+            const String strTransSuccess =
                 xml->getAttributeValue("transSuccess");
 
             m_bReplyTransSuccess = strTransSuccess.Compare("true");
@@ -4194,7 +4193,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if ((OTTransaction::blank == m_Type) ||
             (OTTransaction::successNotice == m_Type)) {
-            const OTString strTotalList =
+            const String strTotalList =
                 xml->getAttributeValue("totalListOfNumbers");
             m_Numlist.Release();
 
@@ -4252,7 +4251,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (!strcmp("closingTransactionNumber", xml->getNodeName())) {
-        OTString strClosingNumber = xml->getAttributeValue("value");
+        String strClosingNumber = xml->getAttributeValue("value");
 
         if (strClosingNumber.Exists() &&
             ((OTTransaction::finalReceipt == m_Type) ||
@@ -4289,7 +4288,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (!strcmp("item", xml->getNodeName())) {
-        OTString strData;
+        String strData;
 
         if (!OTContract::LoadEncodedTextField(xml, strData) ||
             !strData.Exists()) {
@@ -4351,17 +4350,17 @@ bool OTTransaction::AddNumbersToTransaction(const OTNumList& theAddition)
 //
 void OTTransaction::UpdateContents()
 {
-    OTString strCancelled;
+    String strCancelled;
 
     if (m_bCancelled) {
         strCancelled.Format(" cancelled=\"%s\"\n", "true");
     }
 
-    OTString strListOfBlanks; // IF this transaction is "blank" or
-                              // "successNotice" this will serialize the list of
-                              // transaction numbers for it. (They now support
-                              // multiple numbers.)
-    OTString strRequestNum;   // Used by replyNotice only.
+    String strListOfBlanks; // IF this transaction is "blank" or
+                            // "successNotice" this will serialize the list of
+                            // transaction numbers for it. (They now support
+                            // multiple numbers.)
+    String strRequestNum;   // Used by replyNotice only.
 
     switch (m_Type) {
     case OTTransaction::replyNotice:
@@ -4378,7 +4377,7 @@ void OTTransaction::UpdateContents()
             if (m_Numlist.Count() >
                 0) // This is always 0, except for blanks and successNotices.
             {
-                OTString strNumbers;
+                String strNumbers;
                 if (true == m_Numlist.Output(strNumbers))
                     strListOfBlanks.Format(" totalListOfNumbers=\"%s\"\n",
                                            strNumbers.Get());
@@ -4391,7 +4390,7 @@ void OTTransaction::UpdateContents()
     }
 
     const char* pTypeStr = GetTypeString(); // TYPE
-    const OTString strType((nullptr != pTypeStr) ? pTypeStr : "error_state"),
+    const String strType((nullptr != pTypeStr) ? pTypeStr : "error_state"),
         strAcctID(GetPurportedAccountID()), strServerID(GetPurportedServerID()),
         strUserID(GetUserID());
 
@@ -4483,7 +4482,7 @@ void OTTransaction::UpdateContents()
             OTItem* pItem = it;
             OT_ASSERT(nullptr != pItem);
 
-            OTString strItem;
+            String strItem;
             pItem->SaveContractRaw(strItem);
 
             OTASCIIArmor ascItem;
@@ -4563,7 +4562,7 @@ paymentInbox, you get one of these in YOUR paymentInbox.
     "instrumentRejection",    // When someone rejects your invoice from his
   paymentInbox, you get one of these in YOUR paymentInbox.
  */
-void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString& strOutput)
+void OTTransaction::SaveAbbrevPaymentInboxRecord(String& strOutput)
 {
     int64_t lDisplayValue = 0;
 
@@ -4595,7 +4594,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType;
+    String strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -4608,7 +4607,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString& strOutput)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    OTString strHash;
+    String strHash;
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash.GetString(strHash);
@@ -4634,7 +4633,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(OTString& strOutput)
                           GetReferenceNumForDisplay(), GetReferenceToNum());
 }
 
-void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
+void OTTransaction::SaveAbbrevExpiredBoxRecord(String& strOutput)
 {
     int64_t lDisplayValue = 0;
 
@@ -4678,7 +4677,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType;
+    String strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -4691,7 +4690,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(OTString& strOutput)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    OTString strHash;
+    String strHash;
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash.GetString(strHash);
@@ -4758,7 +4757,7 @@ payments inbox or outpayments box.)
  Except it's used for expired payments, instead of completed / canceled
 payments.
  */
-void OTTransaction::SaveAbbrevRecordBoxRecord(OTString& strOutput)
+void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
 {
     // Have some kind of check in here, whether the AcctID and UserID match.
     // Some recordBoxes DO, and some DON'T (the different kinds store different
@@ -4887,7 +4886,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType;
+    String strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -4900,7 +4899,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString& strOutput)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    OTString strHash;
+    String strHash;
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash.GetString(strHash);
@@ -4954,19 +4953,19 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(OTString& strOutput)
 // way, each message cannot be too large to download, such as
 // a giant inbox can be with 400000 receipts inside of it.
 //
-void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
+void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
 {
     int64_t lDisplayValue = 0;
 
-    OTString strDisplayValue; // IF this transaction is passing through on its
-                              // way to the paymentInbox, it will have a
-                              // displayValue.
-    OTString strListOfBlanks; // IF this transaction is "blank" or
-                              // "successNotice" this will serialize the list of
-                              // transaction numbers for it. (They now support
-                              // multiple numbers.)
-    OTString strRequestNum;   // ONLY replyNotice transactions carry a request
-                              // Num.
+    String strDisplayValue; // IF this transaction is passing through on its
+                            // way to the paymentInbox, it will have a
+                            // displayValue.
+    String strListOfBlanks; // IF this transaction is "blank" or
+                            // "successNotice" this will serialize the list of
+                            // transaction numbers for it. (They now support
+                            // multiple numbers.)
+    String strRequestNum;   // ONLY replyNotice transactions carry a request
+                            // Num.
 
     switch (m_Type) {
     case OTTransaction::blank:         // freshly issued transaction number, not
@@ -4977,7 +4976,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
             if (m_Numlist.Count() >
                 0) // This is always 0, except for blanks and successNotices.
             {
-                OTString strNumbers;
+                String strNumbers;
                 if (true == m_Numlist.Output(strNumbers))
                     strListOfBlanks.Format(" totalListOfNumbers=\"%s\"\n",
                                            strNumbers.Get());
@@ -5037,7 +5036,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType;
+    String strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5050,7 +5049,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    OTString strHash;
+    String strHash;
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash.GetString(strHash);
@@ -5100,7 +5099,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(OTString& strOutput)
             GetReferenceNumForDisplay(), GetReferenceToNum());
 }
 
-void OTTransaction::SaveAbbreviatedOutboxRecord(OTString& strOutput)
+void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
 {
     int64_t lAdjustment = 0, lDisplayValue = 0;
 
@@ -5138,7 +5137,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType;
+    String strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5151,7 +5150,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString& strOutput)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    OTString strHash;
+    String strHash;
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash.GetString(strHash);
@@ -5180,7 +5179,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(OTString& strOutput)
                           GetReferenceToNum());
 }
 
-void OTTransaction::SaveAbbreviatedInboxRecord(OTString& strOutput)
+void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
 {
     // This is the actual amount that your account is changed BY this receipt.
     // Versus the useful amount the user will want to see (lDisplayValue.) For
@@ -5292,7 +5291,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString& strOutput)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    OTString strType;
+    String strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
@@ -5305,7 +5304,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(OTString& strOutput)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    OTString strHash;
+    String strHash;
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash.GetString(strHash);
@@ -5593,7 +5592,7 @@ int64_t OTTransaction::GetReceiptAmount()
     case OTTransaction::transferReceipt: // amount is stored on ** acceptPending
                                          // ITEM **, (here as reference string.)
         {
-            OTString strReference;
+            String strReference;
             GetReferenceString(strReference);
 
             pOriginalItem = OTItem::CreateItemFromString(
@@ -5630,7 +5629,7 @@ int64_t OTTransaction::GetReceiptAmount()
                 return 0;
             }
 
-            OTString strAttachment;
+            String strAttachment;
             OTCheque theCheque;
 
             // Get the cheque from the Item and load it up into a Cheque object.
@@ -5639,7 +5638,7 @@ int64_t OTTransaction::GetReceiptAmount()
                 theCheque.LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
-                OTString strCheque(theCheque);
+                String strCheque(theCheque);
 
                 otErr << "ERROR loading cheque from string in OTTransaction::"
                       << __FUNCTION__ << ":\n" << strCheque << "\n";
@@ -5840,7 +5839,7 @@ void OTTransaction::CalculateNumberOfOrigin()
     case voucherReceipt: // the server drops this into your inbox, when someone
                          // deposits your voucher.
         {
-            OTString strReference;
+            String strReference;
             GetReferenceString(strReference);
 
             // "In reference to" is the depositor's trans#, which I use here to
@@ -6033,7 +6032,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
 
-    OTString strReference;
+    String strReference;
     GetReferenceString(strReference);
 
     if (strReference.GetLength() < 2) return false;
@@ -6043,7 +6042,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
                                         // (If the smart contract does a
         // payment, it leaves a paymentReceipt...)
         {
-            OTString strUpdatedCronItem;
+            String strUpdatedCronItem;
             OTItem* pItem = GetItem(OTItem::paymentReceipt);
 
             if (nullptr != pItem)
@@ -6173,7 +6172,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
             }
 
             OTCheque theCheque;
-            OTString strAttachment;
+            String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
             pOriginalItem->GetAttachment(strAttachment);
@@ -6181,7 +6180,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
                 theCheque.LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
-                OTString strCheque(theCheque);
+                String strCheque(theCheque);
 
                 otErr << "ERROR loading cheque or voucher from string in "
                          "OTTransaction::" << __FUNCTION__ << ":\n" << strCheque
@@ -6224,14 +6223,14 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
 
-    OTString strReference;
+    String strReference;
     GetReferenceString(strReference);
 
     switch (GetType()) {
     case OTTransaction::paymentReceipt: // Used for paymentPlans AND for smart
                                         // contracts...
         {
-            OTString strUpdatedCronItem;
+            String strUpdatedCronItem;
             OTItem* pItem = GetItem(OTItem::paymentReceipt);
 
             if (nullptr != pItem)
@@ -6373,7 +6372,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
             }
 
             OTCheque theCheque;
-            OTString strAttachment;
+            String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
             pOriginalItem->GetAttachment(strAttachment);
@@ -6381,7 +6380,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
                 theCheque.LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
-                OTString strCheque(theCheque);
+                String strCheque(theCheque);
 
                 otErr << "ERROR loading cheque or voucher from string in "
                          "OTTransaction::" << __FUNCTION__ << ":\n" << strCheque
@@ -6418,14 +6417,14 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
 
-    OTString strReference;
+    String strReference;
     GetReferenceString(strReference);
 
     if (strReference.GetLength() < 2) return false;
 
     switch (GetType()) {
     case OTTransaction::paymentReceipt: {
-        OTString strUpdatedCronItem;
+        String strUpdatedCronItem;
         OTItem* pItem = GetItem(OTItem::paymentReceipt);
 
         if (nullptr != pItem)
@@ -6504,7 +6503,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
             }
 
             OTCheque theCheque;
-            OTString strAttachment;
+            String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
             pOriginalItem->GetAttachment(strAttachment);
@@ -6512,7 +6511,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
                 theCheque.LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
-                OTString strCheque(theCheque);
+                String strCheque(theCheque);
 
                 otErr << "ERROR loading cheque from string in OTTransaction::"
                       << __FUNCTION__ << ":\n" << strCheque << "\n";
@@ -6555,12 +6554,12 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
 
-    OTString strReference;
+    String strReference;
     GetReferenceString(strReference);
 
     switch (GetType()) {
     case OTTransaction::paymentReceipt: {
-        OTString strUpdatedCronItem;
+        String strUpdatedCronItem;
         OTItem* pItem = GetItem(OTItem::paymentReceipt);
 
         if (nullptr != pItem)
@@ -6621,7 +6620,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
                       // on the transaction type.
 
     OTCheque theCheque; // allocated on the stack :-)
-    OTString strAttachment;
+    String strAttachment;
 
     switch (GetType()) {
     case OTTransaction::transferReceipt: {
@@ -6676,7 +6675,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetMemo(OTString& strMemo)
+bool OTTransaction::GetMemo(String& strMemo)
 {
     if (IsAbbreviated()) return false;
 
@@ -6685,12 +6684,12 @@ bool OTTransaction::GetMemo(OTString& strMemo)
     OTItem* pOriginalItem = nullptr;
     std::unique_ptr<OTItem> theItemAngel;
 
-    OTString strReference;
+    String strReference;
     GetReferenceString(strReference);
 
     switch (GetType()) {
     case OTTransaction::paymentReceipt: {
-        OTString strUpdatedCronItem;
+        String strUpdatedCronItem;
         OTItem* pItem = GetItem(OTItem::paymentReceipt);
 
         if (nullptr != pItem)
@@ -6775,7 +6774,7 @@ bool OTTransaction::GetMemo(OTString& strMemo)
         }
         else {
             OTCheque theCheque;
-            OTString strCheque;
+            String strCheque;
             pOriginalItem->GetAttachment(strCheque);
 
             if (!((strCheque.GetLength() > 2) &&

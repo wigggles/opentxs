@@ -141,7 +141,7 @@ namespace opentxs
 class OTASCIIArmor;
 class OTIdentifier;
 class OTPassword;
-class OTString;
+class String;
 
 class OTSymmetricKey
 {
@@ -171,7 +171,7 @@ public:
 
     // Caller must delete.
     EXPORT static OTPassword* GetPassphraseFromUser(
-        const OTString* pstrDisplay = nullptr,
+        const String* pstrDisplay = nullptr,
         bool bAskTwice = false); // returns a text OTPassword, or nullptr.
 
     // If you already have the passphrase, you can pass it in as an optional
@@ -180,32 +180,29 @@ public:
     // actually have
     // to TYPE it 100 times in a row.
     //
-    EXPORT static bool CreateNewKey(OTString& strOutput,
-                                    const OTString* pstrDisplay = nullptr,
+    EXPORT static bool CreateNewKey(String& strOutput,
+                                    const String* pstrDisplay = nullptr,
                                     const OTPassword* pAlreadyHavePW = nullptr);
-    EXPORT static bool Encrypt(const OTString& strKey,
-                               const OTString& strPlaintext,
-                               OTString& strOutput,
-                               const OTString* pstrDisplay = nullptr,
+    EXPORT static bool Encrypt(const String& strKey, const String& strPlaintext,
+                               String& strOutput,
+                               const String* pstrDisplay = nullptr,
                                bool bBookends = true,
                                const OTPassword* pAlreadyHavePW = nullptr);
 
-    EXPORT static bool Decrypt(const OTString& strKey, OTString& strCiphertext,
-                               OTString& strOutput,
-                               const OTString* pstrDisplay = nullptr,
+    EXPORT static bool Decrypt(const String& strKey, String& strCiphertext,
+                               String& strOutput,
+                               const String* pstrDisplay = nullptr,
                                const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Encrypt(const OTSymmetricKey& theKey,
-                               const OTString& strPlaintext,
-                               OTString& strOutput,
-                               const OTString* pstrDisplay = nullptr,
+                               const String& strPlaintext, String& strOutput,
+                               const String* pstrDisplay = nullptr,
                                bool bBookends = true,
                                const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Decrypt(const OTSymmetricKey& theKey,
-                               const OTString& strCiphertext,
-                               OTString& strOutput,
-                               const OTString* pstrDisplay = nullptr,
+                               const String& strCiphertext, String& strOutput,
+                               const String* pstrDisplay = nullptr,
                                const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT bool SerializeTo(OTData& theOutput) const;
@@ -214,8 +211,8 @@ public:
     EXPORT bool SerializeTo(OTASCIIArmor& ascOutput) const;
     EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);
 
-    EXPORT bool SerializeTo(OTString& strOutput, bool bEscaped = false) const;
-    EXPORT bool SerializeFrom(const OTString& strInput, bool bEscaped = false);
+    EXPORT bool SerializeTo(String& strOutput, bool bEscaped = false) const;
+    EXPORT bool SerializeFrom(const String& strInput, bool bEscaped = false);
     inline bool IsGenerated() const
     {
         return m_bIsGenerated;
@@ -225,7 +222,7 @@ public:
         return m_bHasHashCheck;
     }
     EXPORT void GetIdentifier(OTIdentifier& theIdentifier) const;
-    EXPORT void GetIdentifier(OTString& strIdentifier) const;
+    EXPORT void GetIdentifier(String& strIdentifier) const;
     // The derived key is used for decrypting the actual symmetric key.
     // It's called the derived key because it is derived from the passphrase.
     //

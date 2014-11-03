@@ -164,7 +164,7 @@ namespace opentxs
 
 OTDataFolder* OTDataFolder::pDataFolder;
 
-bool OTDataFolder::Init(const OTString& strThreadContext)
+bool OTDataFolder::Init(const String& strThreadContext)
 {
     if (nullptr != pDataFolder)
         return true; // we already have a data dir setup.
@@ -192,12 +192,12 @@ bool OTDataFolder::Init(const OTString& strThreadContext)
     if (!pSettings->Load()) return false;
 
     // setup the RelativeKey
-    OTString l_strRelativeKey("");
+    String l_strRelativeKey("");
     l_strRelativeKey.Format("%s%s", strThreadContext.Get(),
                             OT_CONFIG_ISRELATIVE);
 
     bool l_IsRelative(false), l_Exist(false);
-    OTString l_strFolderName(""), l_strDataConifgFilename("");
+    String l_strFolderName(""), l_strDataConifgFilename("");
 
     // check the config for an existing configuration.
     if (!pSettings->Check_bool("data_path", l_strRelativeKey, l_IsRelative,
@@ -306,13 +306,13 @@ bool OTDataFolder::Cleanup()
     }
 }
 
-OTString OTDataFolder::Get()
+String OTDataFolder::Get()
 {
     if (!OTDataFolder::IsInitialized()) {
         OT_FAIL;
     }
 
-    OTString strDataFolder = "";
+    String strDataFolder = "";
     if (OTDataFolder::Get(strDataFolder)) {
         return strDataFolder;
     }
@@ -322,7 +322,7 @@ OTString OTDataFolder::Get()
     }
 }
 
-bool OTDataFolder::Get(OTString& strDataFolder)
+bool OTDataFolder::Get(String& strDataFolder)
 {
     if (nullptr != pDataFolder) {
         if (true == pDataFolder->m_bInitialized) {
@@ -336,7 +336,7 @@ bool OTDataFolder::Get(OTString& strDataFolder)
     return false;
 }
 
-bool OTDataFolder::GetConfigFilePath(OTString& strConfigFilePath)
+bool OTDataFolder::GetConfigFilePath(String& strConfigFilePath)
 {
     if (nullptr != pDataFolder) {
         if (true == pDataFolder->m_bInitialized) {

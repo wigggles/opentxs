@@ -169,7 +169,7 @@ OTIdentifier::OTIdentifier(const std::string& theStr)
     SetString(theStr.c_str());
 }
 
-OTIdentifier::OTIdentifier(const OTString& theStr)
+OTIdentifier::OTIdentifier(const String& theStr)
     : OTData()
 {
     SetString(theStr);
@@ -213,43 +213,43 @@ OTIdentifier::OTIdentifier(const OTCachedKey& theKey)
 void OTIdentifier::SetString(const char* szString)
 {
     OT_ASSERT(nullptr != szString);
-    const OTString theStr(szString);
+    const String theStr(szString);
     SetString(theStr);
 }
 
 bool OTIdentifier::operator==(const OTIdentifier& s2) const
 {
-    const OTString ots1(*this), ots2(s2);
+    const String ots1(*this), ots2(s2);
     return ots1.Compare(ots2);
 }
 
 bool OTIdentifier::operator!=(const OTIdentifier& s2) const
 {
-    const OTString ots1(*this), ots2(s2);
+    const String ots1(*this), ots2(s2);
     return !(ots1.Compare(ots2));
 }
 
 bool OTIdentifier::operator>(const OTIdentifier& s2) const
 {
-    const OTString ots1(*this), ots2(s2);
+    const String ots1(*this), ots2(s2);
     return ots1.operator>(ots2);
 }
 
 bool OTIdentifier::operator<(const OTIdentifier& s2) const
 {
-    const OTString ots1(*this), ots2(s2);
+    const String ots1(*this), ots2(s2);
     return ots1.operator<(ots2);
 }
 
 bool OTIdentifier::operator<=(const OTIdentifier& s2) const
 {
-    const OTString ots1(*this), ots2(s2);
+    const String ots1(*this), ots2(s2);
     return ots1.operator<=(ots2);
 }
 
 bool OTIdentifier::operator>=(const OTIdentifier& s2) const
 {
-    const OTString ots1(*this), ots2(s2);
+    const String ots1(*this), ots2(s2);
     return ots1.operator>=(ots2);
 }
 
@@ -266,9 +266,9 @@ OTIdentifier::~OTIdentifier()
 // onto it.
 //
 
-const OTString OTIdentifier::DefaultHashAlgorithm("SAMY");
-const OTString OTIdentifier::HashAlgorithm1("SHA256");
-const OTString OTIdentifier::HashAlgorithm2("WHIRLPOOL");
+const String OTIdentifier::DefaultHashAlgorithm("SAMY");
+const String OTIdentifier::HashAlgorithm1("SHA256");
+const String OTIdentifier::HashAlgorithm2("WHIRLPOOL");
 
 bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
 {
@@ -282,7 +282,7 @@ bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
 
 // This method implements the (ripemd160 . sha256) hash,
 // so the result is 20 bytes long.
-bool OTIdentifier::CalculateDigest(const OTString& strInput)
+bool OTIdentifier::CalculateDigest(const String& strInput)
 {
     return CalculateDigest(
         reinterpret_cast<const unsigned char*>(strInput.Get()),
@@ -305,8 +305,8 @@ bool OTIdentifier::CalculateDigest(const OTData& dataInput)
 // internal handling. If not, then I return false and the caller knows to use
 // OpenSSL
 // instead.
-bool OTIdentifier::CalculateDigestInternal(const OTString& strInput,
-                                           const OTString& strHashAlgorithm)
+bool OTIdentifier::CalculateDigestInternal(const String& strInput,
+                                           const String& strHashAlgorithm)
 {
     // See if they wanted to use the SAMY hash
     if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) {
@@ -327,7 +327,7 @@ bool OTIdentifier::CalculateDigestInternal(const OTString& strInput,
 // instead.
 
 bool OTIdentifier::CalculateDigestInternal(const OTData& dataInput,
-                                           const OTString& strHashAlgorithm)
+                                           const String& strHashAlgorithm)
 {
     // See if they wanted to use the SAMY hash
     if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) {
@@ -341,14 +341,14 @@ bool OTIdentifier::CalculateDigestInternal(const OTData& dataInput,
 // (For example, if you read "SHA-256" out of a signed file and you
 // needed to get the hash function based on that string, you could use this.)
 //
-bool OTIdentifier::CalculateDigest(const OTString& strInput,
-                                   const OTString& strHashAlgorithm)
+bool OTIdentifier::CalculateDigest(const String& strInput,
+                                   const String& strHashAlgorithm)
 {
     return OTCrypto::It()->CalculateDigest(strInput, strHashAlgorithm, *this);
 }
 
 bool OTIdentifier::CalculateDigest(const OTData& dataInput,
-                                   const OTString& strHashAlgorithm)
+                                   const String& strHashAlgorithm)
 {
     return OTCrypto::It()->CalculateDigest(dataInput, strHashAlgorithm, *this);
 }
@@ -428,7 +428,7 @@ bool OTIdentifier::XOR(const OTIdentifier& theInput) const
 
 // SET (binary id) FROM ENCODED STRING
 //
-void OTIdentifier::SetString(const OTString& theStr)
+void OTIdentifier::SetString(const String& theStr)
 {
     OTCrypto::It()->SetIDFromEncoded(theStr, *this);
 }
@@ -437,7 +437,7 @@ void OTIdentifier::SetString(const OTString& theStr)
 // But what if you want a pretty string version of it?
 // Just call this function.
 //
-void OTIdentifier::GetString(OTString& theStr) const
+void OTIdentifier::GetString(String& theStr) const
 {
     OTCrypto::It()->EncodeID(*this, theStr); // *this input, theStr output.
 }

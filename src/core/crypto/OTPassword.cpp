@@ -698,8 +698,8 @@ int32_t OTPassword::setPassword_uint8(const uint8_t* szInput,
     // be a different size than what is passed in. For example it shouldn't
     // be SMALLER than what the user claims either. If it is, we error out.
     //
-    if (OTString::safe_strlen(reinterpret_cast<const char*>(szInput),
-                              static_cast<size_t>(nInputSize)) <
+    if (String::safe_strlen(reinterpret_cast<const char*>(szInput),
+                            static_cast<size_t>(nInputSize)) <
         static_cast<size_t>(nInputSize)) {
         otErr
             << szFunc

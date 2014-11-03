@@ -182,7 +182,7 @@ bool OTEnvelope::SetAsciiArmoredData(const OTASCIIArmor& theArmoredText,
 }
 
 bool OTEnvelope::GetAsBookendedString(
-    OTString& strArmorWithBookends, // output (if successful.)
+    String& strArmorWithBookends, // output (if successful.)
     bool bEscaped) const
 {
     OTASCIIArmor theArmoredText;
@@ -210,12 +210,12 @@ bool OTEnvelope::GetAsBookendedString(
 }
 
 bool OTEnvelope::SetFromBookendedString(
-    const OTString& strArmorWithBookends, // input
+    const String& strArmorWithBookends, // input
     bool bEscaped)
 {
     OTASCIIArmor theArmoredText;
     const bool bLoaded = theArmoredText.LoadFromString(
-        const_cast<OTString&>(strArmorWithBookends),
+        const_cast<String&>(strArmorWithBookends),
         bEscaped); // std::string str_override="-----BEGIN");
 
     if (bLoaded) {
@@ -242,7 +242,7 @@ bool OTEnvelope::SetFromBookendedString(
 // kept encrypted in an OTSymmetricKey (encrypted using another key derived from
 // thePassword.)
 
-bool OTEnvelope::Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
+bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
                          const OTPassword& thePassword)
 {
     OT_ASSERT(
@@ -360,7 +360,7 @@ bool OTEnvelope::Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
     return true;
 }
 
-bool OTEnvelope::Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
+bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
                          const OTPassword& thePassword)
 {
     const char* szFunc = "OTEnvelope::Decrypt";
@@ -515,9 +515,9 @@ bool OTEnvelope::Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
 
 // RSA / AES
 
-bool OTEnvelope::Seal(const OTPseudonym& theRecipient, const OTString& theInput)
+bool OTEnvelope::Seal(const OTPseudonym& theRecipient, const String& theInput)
 {
-    OTString strNymID;
+    String strNymID;
     mapOfAsymmetricKeys theKeys;
     theRecipient.GetIdentifier(strNymID);
     theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
@@ -527,7 +527,7 @@ bool OTEnvelope::Seal(const OTPseudonym& theRecipient, const OTString& theInput)
     return Seal(theKeys, theInput);
 }
 
-bool OTEnvelope::Seal(setOfNyms& theRecipients, const OTString& theInput)
+bool OTEnvelope::Seal(setOfNyms& theRecipients, const String& theInput)
 {
     mapOfAsymmetricKeys RecipPubKeys;
 
@@ -538,7 +538,7 @@ bool OTEnvelope::Seal(setOfNyms& theRecipients, const OTString& theInput)
         OT_ASSERT_MSG(nullptr != pNym,
                       "OTEnvelope::Seal: Assert: nullptr pseudonym pointer.");
 
-        OTString strNymID;
+        String strNymID;
         pNym->GetIdentifier(strNymID);
         RecipPubKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
             strNymID.Get(),
@@ -551,7 +551,7 @@ bool OTEnvelope::Seal(setOfNyms& theRecipients, const OTString& theInput)
 }
 
 bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
-                      const OTString& theInput)
+                      const String& theInput)
 {
     mapOfAsymmetricKeys theKeys;
     theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
@@ -564,8 +564,7 @@ bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
 
 // Seal up as envelope (Asymmetric, using public key and then AES key.)
 
-bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                      const OTString& theInput)
+bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput)
 {
     OT_ASSERT_MSG(!RecipPubKeys.empty(),
                   "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
@@ -575,7 +574,7 @@ bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys,
 
 // RSA / AES
 
-bool OTEnvelope::Open(const OTPseudonym& theRecipient, OTString& theOutput,
+bool OTEnvelope::Open(const OTPseudonym& theRecipient, String& theOutput,
                       const OTPasswordData* pPWData)
 {
     return OTCrypto::It()->Open(m_dataContents, theRecipient, theOutput,

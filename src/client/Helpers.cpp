@@ -241,7 +241,7 @@ OTPayment* GetInstrument(const OTPseudonym& theNym, const int32_t& nIndex,
     if ((OTTransaction::instrumentNotice ==
          pTransaction->GetType()) || // It's encrypted.
         (OTTransaction::payDividend == pTransaction->GetType())) {
-        OTString strMsg;
+        String strMsg;
         pTransaction->GetReferenceString(strMsg);
 
         if (!strMsg.Exists()) {
@@ -280,7 +280,7 @@ OTPayment* GetInstrument(const OTPseudonym& theNym, const int32_t& nIndex,
         // INSTRUMENT: pMsg->m_ascPayload (in an OTEnvelope)
         //
         OTEnvelope theEnvelope;
-        OTString strEnvelopeContents;
+        String strEnvelopeContents;
 
         // Decrypt the Envelope.
         if (!theEnvelope.SetAsciiArmoredData(pMsg->m_ascPayload))
@@ -331,7 +331,7 @@ int32_t GetOutpaymentsIndexByTransNum(const OTPseudonym& nym, int64_t lTransNum)
         OTMessage* pOutpaymentMsg =
             nym.GetOutpaymentsByIndex(lOutpaymentsIndex);
         if (nullptr != pOutpaymentMsg) {
-            OTString strPayment;
+            String strPayment;
 
             // There isn't any encrypted envelope this time, since it's my
             // outPayments box.

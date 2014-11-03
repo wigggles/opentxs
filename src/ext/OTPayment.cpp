@@ -174,7 +174,7 @@ const char* OTPayment::_GetTypeString(paymentType theType)
     return __TypeStringsPayment[nType];
 }
 
-OTPayment::paymentType OTPayment::GetTypeFromString(const OTString& strType)
+OTPayment::paymentType OTPayment::GetTypeFromString(const String& strType)
 {
 #define OT_NUM_ELEM(blah) (sizeof(blah) / sizeof(*(blah)))
     for (uint32_t i = 0; i < (OT_NUM_ELEM(__TypeStringsPayment) - 1); i++) {
@@ -465,7 +465,7 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
     return false;
 }
 
-bool OTPayment::GetMemo(OTString& strOutput) const
+bool OTPayment::GetMemo(String& strOutput) const
 {
     strOutput.Release();
 
@@ -1236,7 +1236,7 @@ OTPayment::OTPayment()
     InitPayment();
 }
 
-OTPayment::OTPayment(const OTString& strPayment)
+OTPayment::OTPayment(const String& strPayment)
     : ot_super()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
@@ -1344,7 +1344,7 @@ OTTrackable* OTPayment::Instantiate() const
     return pTrackable;
 }
 
-OTTrackable* OTPayment::Instantiate(const OTString& strPayment)
+OTTrackable* OTPayment::Instantiate(const String& strPayment)
 {
     if (SetPayment(strPayment)) return Instantiate();
 
@@ -1400,7 +1400,7 @@ NOT contain a purse. "
 }
 */
 
-Purse* OTPayment::InstantiatePurse(const OTString& strPayment)
+Purse* OTPayment::InstantiatePurse(const String& strPayment)
 {
     if (!SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the "
@@ -1453,11 +1453,11 @@ the "
 }
 */
 
-bool OTPayment::SetPayment(const OTString& strPayment)
+bool OTPayment::SetPayment(const String& strPayment)
 {
     if (!strPayment.Exists()) return false;
 
-    OTString strContract(strPayment);
+    String strContract(strPayment);
 
     if (!strContract.DecodeIfArmored(false)) // bEscapedIsAllowed=true
                                              // by default.
@@ -1581,12 +1581,12 @@ void OTPayment::UpdateContents() // Before transmission or serialization, this
 
 int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    const OTString strNodeName(xml->getNodeName());
+    const String strNodeName(xml->getNodeName());
 
     if (strNodeName.Compare("payment")) {
         m_strVersion = xml->getAttributeValue("version");
 
-        const OTString strPaymentType = xml->getAttributeValue("type");
+        const String strPaymentType = xml->getAttributeValue("type");
 
         if (strPaymentType.Exists())
             m_Type = OTPayment::GetTypeFromString(strPaymentType);
@@ -1599,7 +1599,7 @@ int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return (OTPayment::ERROR_STATE == m_Type) ? (-1) : 1;
     }
     else if (strNodeName.Compare("contents")) {
-        OTString strContents;
+        String strContents;
 
         if (!OTContract::LoadEncodedTextField(xml, strContents) ||
             !strContents.Exists() || !SetPayment(strContents)) {

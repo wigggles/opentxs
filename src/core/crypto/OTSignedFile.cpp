@@ -144,22 +144,22 @@
 namespace opentxs
 {
 
-OTString& OTSignedFile::GetFilePayload()
+String& OTSignedFile::GetFilePayload()
 {
     return m_strSignedFilePayload;
 }
 
-void OTSignedFile::SetFilePayload(const OTString& strArg)
+void OTSignedFile::SetFilePayload(const String& strArg)
 {
     m_strSignedFilePayload = strArg;
 }
 
-OTString& OTSignedFile::GetSignerNymID()
+String& OTSignedFile::GetSignerNymID()
 {
     return m_strSignerNymID;
 }
 
-void OTSignedFile::SetSignerNymID(const OTString& strArg)
+void OTSignedFile::SetSignerNymID(const String& strArg)
 {
     m_strSignerNymID = strArg;
 }
@@ -167,7 +167,7 @@ void OTSignedFile::SetSignerNymID(const OTString& strArg)
 void OTSignedFile::UpdateContents()
 {
 
-    OTString strSignerNym("");
+    String strSignerNym("");
     if (m_strSignerNymID.Exists()) {
         strSignerNym.Format("\n signer=\"%s\"", m_strSignerNymID.Get());
     }
@@ -255,8 +255,7 @@ bool OTSignedFile::VerifyFile()
     return false;
 }
 
-OTSignedFile::OTSignedFile(const OTString& LOCAL_SUBDIR,
-                           const OTString& FILE_NAME)
+OTSignedFile::OTSignedFile(const String& LOCAL_SUBDIR, const String& FILE_NAME)
     : ot_super()
 {
     m_strContractType.Set("FILE");
@@ -264,12 +263,12 @@ OTSignedFile::OTSignedFile(const OTString& LOCAL_SUBDIR,
     SetFilename(LOCAL_SUBDIR, FILE_NAME);
 }
 
-OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const OTString& FILE_NAME)
+OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const String& FILE_NAME)
     : ot_super()
 {
     m_strContractType.Set("FILE");
 
-    OTString strLocalSubdir(LOCAL_SUBDIR);
+    String strLocalSubdir(LOCAL_SUBDIR);
 
     SetFilename(strLocalSubdir, FILE_NAME);
 }
@@ -279,7 +278,7 @@ OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME)
 {
     m_strContractType.Set("FILE");
 
-    OTString strLocalSubdir(LOCAL_SUBDIR), strFile_Name(FILE_NAME);
+    String strLocalSubdir(LOCAL_SUBDIR), strFile_Name(FILE_NAME);
 
     SetFilename(strLocalSubdir, strFile_Name);
 }
@@ -291,8 +290,8 @@ OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME)
 // this method assumes has already been set (using SetFilename())
 bool OTSignedFile::SaveFile()
 {
-    const OTString strTheFileName(m_strFilename);
-    const OTString strTheFolderName(m_strFoldername);
+    const String strTheFileName(m_strFilename);
+    const String strTheFolderName(m_strFoldername);
 
     // OTContract doesn't natively make it easy to save a contract to its own
     // filename.
@@ -319,8 +318,8 @@ bool OTSignedFile::LoadFile()
     return false;
 }
 
-void OTSignedFile::SetFilename(const OTString& LOCAL_SUBDIR,
-                               const OTString& FILE_NAME)
+void OTSignedFile::SetFilename(const String& LOCAL_SUBDIR,
+                               const String& FILE_NAME)
 {
     // OTSignedFile specific variables.
     m_strLocalDir = LOCAL_SUBDIR;

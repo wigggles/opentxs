@@ -188,7 +188,7 @@ OTDB::OTPacker* OTASCIIArmor::GetPacker()
 //
 // static
 bool OTASCIIArmor::LoadFromString(OTASCIIArmor& ascArmor,
-                                  const OTString& strInput,
+                                  const String& strInput,
                                   std::string str_bookend)
 {
 
@@ -198,7 +198,7 @@ bool OTASCIIArmor::LoadFromString(OTASCIIArmor& ascArmor,
 
         const bool bEscaped = strInput.Contains(str_escaped);
 
-        OTString strLoadFrom(strInput);
+        String strLoadFrom(strInput);
 
         if (!ascArmor.LoadFromString(strLoadFrom, bEscaped)) // removes the
                                                              // bookends so we
@@ -219,41 +219,41 @@ bool OTASCIIArmor::LoadFromString(OTASCIIArmor& ascArmor,
 
 // initializes blank.
 OTASCIIArmor::OTASCIIArmor()
-    : OTString()
+    : String()
 {
 }
 
 // encodes
-OTASCIIArmor::OTASCIIArmor(const OTString& strValue)
-    : OTString(/*Don't pass here, since we're encoding.*/)
+OTASCIIArmor::OTASCIIArmor(const String& strValue)
+    : String(/*Don't pass here, since we're encoding.*/)
 {
     SetString(strValue);
 }
 
 // encodes
 OTASCIIArmor::OTASCIIArmor(const OTData& theValue)
-    : OTString()
+    : String()
 {
     SetData(theValue);
 }
 
 // Copies (already encoded)
 OTASCIIArmor::OTASCIIArmor(const OTASCIIArmor& strValue)
-    : OTString(dynamic_cast<const OTString&>(strValue))
+    : String(dynamic_cast<const String&>(strValue))
 {
 }
 
 // assumes envelope contains encrypted data;
 // grabs that data in base64-form onto *this.
 OTASCIIArmor::OTASCIIArmor(const OTEnvelope& theEnvelope)
-    : OTString()
+    : String()
 {
     theEnvelope.GetAsciiArmoredData(*this);
 }
 
 // copies (already encoded)
 OTASCIIArmor::OTASCIIArmor(const char* szValue)
-    : OTString(szValue)
+    : String(szValue)
 {
 }
 
@@ -265,9 +265,9 @@ OTASCIIArmor& OTASCIIArmor::operator=(const char* szValue)
 }
 
 // encodes
-OTASCIIArmor& OTASCIIArmor::operator=(const OTString& strValue)
+OTASCIIArmor& OTASCIIArmor::operator=(const String& strValue)
 {
-    if ((&strValue) != (&(dynamic_cast<const OTString&>(*this)))) {
+    if ((&strValue) != (&(dynamic_cast<const String&>(*this)))) {
         SetString(strValue);
     }
     return *this;
@@ -285,7 +285,7 @@ OTASCIIArmor& OTASCIIArmor::operator=(const OTASCIIArmor& strValue)
 {
     if ((&strValue) != this) // prevent self-assignment
     {
-        OTString::operator=(dynamic_cast<const OTString&>(strValue));
+        String::operator=(dynamic_cast<const String&>(strValue));
     }
     return *this;
 }
@@ -390,7 +390,7 @@ std::string OTASCIIArmor::decompress_string(const std::string& str) const
 /// to solve any issues of binary compatibility across various platforms.
 //
 bool OTASCIIArmor::GetAndUnpackString(
-    OTString& strData, bool bLineBreaks) const // bLineBreaks=true
+    String& strData, bool bLineBreaks) const // bLineBreaks=true
 {
     size_t outSize = 0;
     uint8_t* pData = nullptr;
@@ -475,7 +475,7 @@ bool OTASCIIArmor::GetAndUnpackString(
 // then switch the, (though that seems to make less logical sense to me.)
 // Maybe have to pack before both? Seems crazy.
 
-bool OTASCIIArmor::GetString(OTString& strData,
+bool OTASCIIArmor::GetString(String& strData,
                              bool bLineBreaks) const // bLineBreaks=true
 {
     return GetAndUnpackString(strData, bLineBreaks);
@@ -632,7 +632,7 @@ bool OTASCIIArmor::SetAndPackData(const OTData& theData, bool bLineBreaks)
 /// Then they were not binary compatible across various platforms, so I added
 /// the packing.
 //
-bool OTASCIIArmor::SetAndPackString(const OTString& strData,
+bool OTASCIIArmor::SetAndPackString(const String& strData,
                                     bool bLineBreaks) //=true
 {
     Release();
@@ -706,7 +706,7 @@ bool OTASCIIArmor::SetAndPackString(const OTString& strData,
 // This version is fully functional, and performs compression in addition to
 // base64-encoding.
 //
-bool OTASCIIArmor::SetString(const OTString& strData, bool bLineBreaks) //=true
+bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks) //=true
 {
 
     return SetAndPackString(strData, bLineBreaks);
@@ -714,8 +714,8 @@ bool OTASCIIArmor::SetString(const OTString& strData, bool bLineBreaks) //=true
 
 // This code reads up the file, discards the bookends, and saves only the
 // gibberish itself.
-bool OTASCIIArmor::LoadFromFile(const OTString& foldername,
-                                const OTString& filename)
+bool OTASCIIArmor::LoadFromFile(const String& foldername,
+                                const String& filename)
 {
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
@@ -727,7 +727,7 @@ bool OTASCIIArmor::LoadFromFile(const OTString& foldername,
         return false;
     }
 
-    OTString strFileContents(OTDB::QueryPlainString(
+    String strFileContents(OTDB::QueryPlainString(
         foldername.Get(), filename.Get())); // <=== LOADING FROM DATA STORE.
 
     if (strFileContents.GetLength() < 2) {
@@ -761,7 +761,7 @@ bool OTASCIIArmor::LoadFrom_ifstream(std::ifstream& fin)
 
     std::string contents(buffer.str());
 
-    OTString theString;
+    String theString;
     theString.Set(contents.c_str());
 
     return LoadFromString(theString);
@@ -782,7 +782,7 @@ bool OTASCIIArmor::SaveToExactPath(const std::string& filename)
 
 bool OTASCIIArmor::SaveTo_ofstream(std::ofstream& fout)
 {
-    OTString strOutput;
+    String strOutput;
     std::string str_type("DATA"); // -----BEGIN OT ARMORED DATA-----
 
     if (WriteArmoredString(strOutput, str_type) && strOutput.Exists()) {
@@ -806,7 +806,7 @@ bool OTASCIIArmor::SaveTo_ofstream(std::ofstream& fout)
 // const char * OT_END_ARMORED     =   "-----END OT ARMORED";
 
 bool OTASCIIArmor::WriteArmoredFile(
-    const OTString& foldername, const OTString& filename,
+    const String& foldername, const String& filename,
     const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
     std::string str_type, // There's no default, to force you to enter the right
                           // string.
@@ -815,7 +815,7 @@ bool OTASCIIArmor::WriteArmoredFile(
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
 
-    OTString strOutput;
+    String strOutput;
 
     if (WriteArmoredString(strOutput, str_type, bEscaped) &&
         strOutput.Exists()) {
@@ -845,7 +845,7 @@ bool OTASCIIArmor::WriteArmoredFile(
 // const char * OT_END_ARMORED     =   "-----END OT ARMORED";
 
 bool OTASCIIArmor::WriteArmoredString(
-    OTString& strOutput,
+    String& strOutput,
     const // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
     std::string str_type, // There's no default, to force you to enter the right
                           // string.
@@ -853,7 +853,7 @@ bool OTASCIIArmor::WriteArmoredString(
 {
     const char* szEscape = "- ";
 
-    OTString strTemp;
+    String strTemp;
     strTemp.Format(
         "%s%s %s-----\n" // "%s-----BEGIN OT ARMORED %s-----\n"
         "Version: Open Transactions %s\n"
@@ -885,7 +885,7 @@ bool OTASCIIArmor::WriteArmoredString(
 // the public keys
 // are escaped with a "- " before the rest of the ------- starts.)
 //
-bool OTASCIIArmor::LoadFromString(OTString& theStr, // input
+bool OTASCIIArmor::LoadFromString(String& theStr, // input
                                   bool bEscaped,
                                   const // This szOverride sub-string determines
                                   // where the content starts, when loading.

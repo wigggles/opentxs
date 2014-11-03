@@ -138,7 +138,7 @@ namespace opentxs
 
 class OTAsymmetricKey;
 class OTMessage;
-class OTString;
+class String;
 class OTEnvelope;
 
 class ClientConnection
@@ -147,7 +147,7 @@ public:
     ClientConnection();
     ~ClientConnection();
 
-    void SetPublicKey(const OTString& publicKey);
+    void SetPublicKey(const String& publicKey);
     void SetPublicKey(const OTAsymmetricKey& publicKey);
 
     bool SealMessageForRecipient(OTMessage& msg, OTEnvelope& envelope);

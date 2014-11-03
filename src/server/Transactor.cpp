@@ -296,8 +296,8 @@ bool Transactor::verifyTransactionNumber(
     if (pNym->VerifyTransactionNum(server_->m_strServerID, lTransactionNumber))
         return true;
     else {
-        const OTString strNymID(NYM_ID);
-        const OTString strIssued(
+        const String strNymID(NYM_ID);
+        const String strIssued(
             pNym->VerifyIssuedNum(server_->m_strServerID, lTransactionNumber)
                 ? "(However, that number IS issued to that Nym... He must have "
                   "already used it.)\n"
@@ -412,7 +412,7 @@ bool Transactor::addAssetContract(OTAssetContract& theContract)
 {
     OTAssetContract* pContract = nullptr;
 
-    OTString STR_CONTRACT_ID;
+    String STR_CONTRACT_ID;
     OTIdentifier CONTRACT_ID;
     theContract.GetIdentifier(STR_CONTRACT_ID);
     theContract.GetIdentifier(CONTRACT_ID);
@@ -440,7 +440,7 @@ bool Transactor::addBasketAccountID(const OTIdentifier& BASKET_ID,
         return false;
     }
 
-    OTString strBasketID(BASKET_ID), strBasketAcctID(BASKET_ACCOUNT_ID),
+    String strBasketID(BASKET_ID), strBasketAcctID(BASKET_ACCOUNT_ID),
         strBasketContractID(BASKET_CONTRACT_ID);
 
     idToBasketMap_[strBasketID.Get()] = strBasketAcctID.Get();
@@ -460,8 +460,8 @@ bool Transactor::lookupBasketAccountIDByContractID(
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
     for (auto& it : contractIdToBasketAccountId_) {
-        OTString strBasketContractID = it.first.c_str();
-        OTString strBasketAcctID = it.second.c_str();
+        String strBasketContractID = it.first.c_str();
+        String strBasketAcctID = it.second.c_str();
 
         OTIdentifier id_BASKET_CONTRACT(strBasketContractID),
             id_BASKET_ACCT(strBasketAcctID);
@@ -487,8 +487,8 @@ bool Transactor::lookupBasketContractIDByAccountID(
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
     for (auto& it : contractIdToBasketAccountId_) {
-        OTString strBasketContractID = it.first.c_str();
-        OTString strBasketAcctID = it.second.c_str();
+        String strBasketContractID = it.first.c_str();
+        String strBasketAcctID = it.second.c_str();
 
         OTIdentifier id_BASKET_CONTRACT(strBasketContractID),
             id_BASKET_ACCT(strBasketAcctID);
@@ -514,8 +514,8 @@ bool Transactor::lookupBasketAccountID(const OTIdentifier& BASKET_ID,
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
     for (auto& it : idToBasketMap_) {
-        OTString strBasketID = it.first.c_str();
-        OTString strBasketAcctID = it.second.c_str();
+        String strBasketID = it.first.c_str();
+        String strBasketAcctID = it.second.c_str();
 
         OTIdentifier id_BASKET(strBasketID), id_BASKET_ACCT(strBasketAcctID);
 
@@ -544,9 +544,9 @@ std::shared_ptr<OTAccount> Transactor::getVoucherAccount(
         server_->m_nymServer, SERVER_USER_ID, ASSET_TYPE_ID, SERVER_ID,
         bWasAcctCreated);
     if (bWasAcctCreated) {
-        OTString strAcctID;
+        String strAcctID;
         pAccount->GetIdentifier(strAcctID);
-        const OTString strAssetTypeID(ASSET_TYPE_ID);
+        const String strAssetTypeID(ASSET_TYPE_ID);
 
         OTLog::vOutput(0, "OTServer::GetVoucherAccount: Successfully created "
                           "voucher account ID: %s Asset Type ID: %s\n",
@@ -582,9 +582,9 @@ Mint* Transactor::getMint(const OTIdentifier& ASSET_TYPE_ID,
             return pMint; // return the pointer right here, we're done.
     }
     // The mint isn't in memory for the series requested.
-    const OTString ASSET_ID_STR(ASSET_TYPE_ID);
+    const String ASSET_ID_STR(ASSET_TYPE_ID);
 
-    OTString strMintFilename;
+    String strMintFilename;
     strMintFilename.Format("%s%s%s%s%d", server_->m_strServerID.Get(),
                            OTLog::PathSeparator(), ASSET_ID_STR.Get(), ".",
                            nSeries);
@@ -602,7 +602,7 @@ Mint* Transactor::getMint(const OTIdentifier& ASSET_TYPE_ID,
 
     OT_ASSERT_MSG(nullptr != pMint,
                   "Error allocating memory for Mint in Transactor::getMint");
-    OTString strSeries;
+    String strSeries;
     strSeries.Format("%s%d", ".", nSeries);
     //
     if (pMint->LoadMint(strSeries.Get())) {

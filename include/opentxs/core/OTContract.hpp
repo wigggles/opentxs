@@ -165,18 +165,18 @@ class OTContract
     friend class OTData;
 
 protected:
-    OTString m_strName;       // Contract name as shown in the wallet.
-    OTString m_strFoldername; // Foldername for this contract (nyms, contracts,
-                              // accounts, etc)
-    OTString m_strFilename;   // Filename for this contract (usually an ID.)
+    String m_strName;       // Contract name as shown in the wallet.
+    String m_strFoldername; // Foldername for this contract (nyms, contracts,
+                            // accounts, etc)
+    String m_strFilename;   // Filename for this contract (usually an ID.)
     OTIdentifier m_ID; // Hash of the contract, including signatures. (the "raw
                        // file")
-    OTStringXML m_xmlUnsigned;  // The Unsigned Clear Text (XML contents without
-                                // signatures.)
-    OTString m_strRawFile;      // The complete raw file including signatures.
-    OTString m_strSigHashType;  // The Hash algorithm used for the signature
-    OTString m_strContractType; // CONTRACT, MESSAGE, TRANSACTION, LEDGER,
-                                // TRANSACTION ITEM
+    OTStringXML m_xmlUnsigned; // The Unsigned Clear Text (XML contents without
+                               // signatures.)
+    String m_strRawFile;       // The complete raw file including signatures.
+    String m_strSigHashType;   // The Hash algorithm used for the signature
+    String m_strContractType;  // CONTRACT, MESSAGE, TRANSACTION, LEDGER,
+                               // TRANSACTION ITEM
 
     mapOfNyms m_mapNyms; // The default behavior for a contract, though
                          // occasionally overridden,
@@ -198,17 +198,17 @@ protected:
     // THAT CONTRACT.
     listOfSignatures m_listSignatures; // The PGP signatures at the bottom of
                                        // the XML file.
-    OTString m_strVersion; // The version of this Contract file, in case the
-                           // format changes in the future.
+    String m_strVersion; // The version of this Contract file, in case the
+                         // format changes in the future.
     // todo: perhaps move these to a common ancestor for OTServerContract and
     // OTAssetContract.
     // Maybe call it OTHardContract (since it should never change.)
     //
-    OTString m_strEntityShortName;
-    OTString m_strEntityLongName;
-    OTString m_strEntityEmail;
-    OTString::Map m_mapConditions; // The legal conditions, usually
-                                   // human-readable, on a contract.
+    String m_strEntityShortName;
+    String m_strEntityLongName;
+    String m_strEntityEmail;
+    String::Map m_mapConditions; // The legal conditions, usually
+                                 // human-readable, on a contract.
     bool LoadContractXML(); // The XML file is in m_xmlUnsigned. Load it from
                             // there into members here.
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -235,29 +235,28 @@ public:
     // On success, bool is returned, and strFirstLine contains the first line
     // from strOutput.
     //
-    EXPORT static bool DearmorAndTrim(const OTString& strInput,
-                                      OTString& strOutput,
-                                      OTString& strFirstLine);
+    EXPORT static bool DearmorAndTrim(const String& strInput, String& strOutput,
+                                      String& strFirstLine);
 
     // The Method "RewriteContract" calls this. I put the meat into a static
     // method so I could use it from outside OTContract as well.
     //
     static bool AddBookendsAroundContent(
-        OTString& strOutput, const OTString& strContents,
-        const OTString& strContractType, const OTString& strHashType,
+        String& strOutput, const String& strContents,
+        const String& strContractType, const String& strHashType,
         const listOfSignatures& listSignatures);
 
     EXPORT static bool LoadEncodedTextField(irr::io::IrrXMLReader*& xml,
                                             OTASCIIArmor& ascOutput);
     EXPORT static bool LoadEncodedTextField(irr::io::IrrXMLReader*& xml,
-                                            OTString& strOutput);
+                                            String& strOutput);
 
     static bool LoadEncodedTextFieldByName(
         irr::io::IrrXMLReader*& xml, OTASCIIArmor& ascOutput,
-        const char*& szName, OTString::Map* pmapExtraVars = nullptr);
+        const char*& szName, String::Map* pmapExtraVars = nullptr);
     static bool LoadEncodedTextFieldByName(
-        irr::io::IrrXMLReader*& xml, OTString& strOutput, const char*& szName,
-        OTString::Map* pmapExtraVars = nullptr);
+        irr::io::IrrXMLReader*& xml, String& strOutput, const char*& szName,
+        String::Map* pmapExtraVars = nullptr);
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
@@ -270,9 +269,9 @@ public:
         m_ID = theID;
     }
     EXPORT OTContract();
-    EXPORT OTContract(const OTString& name, const OTString& foldername,
-                      const OTString& filename, const OTString& strID);
-    EXPORT OTContract(const OTString& strID);
+    EXPORT OTContract(const String& name, const String& foldername,
+                      const String& filename, const String& strID);
+    EXPORT OTContract(const String& strID);
     EXPORT OTContract(const OTIdentifier& theID);
     void Initialize();
 
@@ -337,7 +336,7 @@ public:
     // of the contract, and you have the signer, and you just want to sign it
     // and
     // calculate its new ID from the finished result.
-    EXPORT virtual bool CreateContract(const OTString& strContract,
+    EXPORT virtual bool CreateContract(const String& strContract,
                                        const OTPseudonym& theSigner);
 
     // CreateContract is great if you already know what kind of contract to
@@ -350,18 +349,17 @@ public:
     // only contracts.
     //
     EXPORT static bool SignFlatText(
-        OTString& strFlatText,
-        const OTString& strContractType, // "LEDGER" or "PURSE" etc.
-        const OTPseudonym& theSigner, OTString& strOutput);
+        String& strFlatText,
+        const String& strContractType, // "LEDGER" or "PURSE" etc.
+        const OTPseudonym& theSigner, String& strOutput);
 
-    EXPORT bool InsertNym(const OTString& strKeyName,
-                          const OTString& strKeyValue);
+    EXPORT bool InsertNym(const String& strKeyName, const String& strKeyValue);
 
-    EXPORT inline void GetName(OTString& strName) const
+    EXPORT inline void GetName(String& strName) const
     {
         strName = m_strName;
     }
-    EXPORT inline void SetName(const OTString& strName)
+    EXPORT inline void SetName(const String& strName)
     {
         m_strName = strName;
     }
@@ -379,8 +377,8 @@ public:
     // You can get it in string or binary form.
     EXPORT virtual void GetIdentifier(OTIdentifier& theIdentifier) const;
     // The Contract ID is a hash of the contract raw file.
-    EXPORT void GetIdentifier(OTString& theIdentifier) const;
-    EXPORT void GetFilename(OTString& strFilename) const;
+    EXPORT void GetIdentifier(String& theIdentifier) const;
+    EXPORT void GetFilename(String& strFilename) const;
 
     // assumes m_strFilename is already set. Then it reads that file into a
     // string.
@@ -388,10 +386,10 @@ public:
     EXPORT virtual bool LoadContract();
     EXPORT bool LoadContract(const char* szFoldername, const char* szFilename);
 
-    EXPORT bool LoadContractFromString(const OTString& theStr); // Just like it
-                                                                // says. If you
-                                                                // have a
-                                                                // contract in
+    EXPORT bool LoadContractFromString(const String& theStr); // Just like it
+                                                              // says. If you
+                                                              // have a
+                                                              // contract in
     // string form, pass it in here to import it.
     bool LoadContractRawFile(); // fopens m_strFilename and reads it off the
                                 // disk into m_strRawFile
@@ -402,13 +400,13 @@ public:
 
     EXPORT bool SaveToContractFolder(); // data_folder/contracts/Contract-ID
 
-    EXPORT bool SaveContractRaw(OTString& strOutput) const; // Saves the raw
-                                                            // (pre-existing)
-                                                            // contract text to
-                                                            // any string you
-                                                            // want to pass in.
-    EXPORT bool RewriteContract(OTString& strOutput) const; // Takes the
-                                                            // pre-existing
+    EXPORT bool SaveContractRaw(String& strOutput) const; // Saves the raw
+                                                          // (pre-existing)
+                                                          // contract text to
+                                                          // any string you
+                                                          // want to pass in.
+    EXPORT bool RewriteContract(String& strOutput) const; // Takes the
+                                                          // pre-existing
     // XML contents (WITHOUT
     // signatures) and
     // re-writes the Raw data,
@@ -443,12 +441,12 @@ public:
     EXPORT virtual bool SaveContents(std::ofstream& ofs) const;
 
     // Saves the entire contract to a file that's already open (like a wallet).
-    EXPORT virtual bool SaveContractWallet(OTString& strContents) const;
+    EXPORT virtual bool SaveContractWallet(String& strContents) const;
 
-    EXPORT virtual bool DisplayStatistics(OTString& strContents) const;
+    EXPORT virtual bool DisplayStatistics(String& strContents) const;
 
     // Save m_xmlUnsigned to a string that's passed in
-    EXPORT virtual bool SaveContents(OTString& strContents) const;
+    EXPORT virtual bool SaveContents(String& strContents) const;
     EXPORT virtual bool SignContract(const OTPseudonym& theNym,
                                      const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContractAuthent(const OTPseudonym& theNym,
@@ -466,7 +464,7 @@ public:
                                     const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(const OTAsymmetricKey& theKey,
                              OTSignature& theSignature,
-                             const OTString& strHashType,
+                             const String& strHashType,
                              const OTPasswordData* pPWData = nullptr);
 
     EXPORT bool SignContract(
@@ -523,7 +521,7 @@ public:
 
     EXPORT bool VerifySignature(const OTAsymmetricKey& theKey,
                                 const OTSignature& theSignature,
-                                const OTString& strHashType,
+                                const String& strHashType,
                                 const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifySignature(

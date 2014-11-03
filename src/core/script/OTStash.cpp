@@ -146,7 +146,7 @@
 namespace opentxs
 {
 
-void OTStash::Serialize(OTString& strAppend) const
+void OTStash::Serialize(String& strAppend) const
 {
     strAppend.Concatenate("<stash name=\"%s\" count=\"%" PRI_SIZE "\" >\n\n",
                           m_str_stash_name.c_str(), m_mapStashItems.size());
@@ -165,8 +165,8 @@ void OTStash::Serialize(OTString& strAppend) const
 }
 
 int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
-                                 const OTString& strStashName,
-                                 const OTString& strItemCount)
+                                 const String& strStashName,
+                                 const String& strItemCount)
 {
     if (!strStashName.Exists()) {
         otErr << "OTStash::ReadFromXMLNode: Failed: Empty stash 'name' "
@@ -191,9 +191,9 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
 
             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                 (!strcmp("stashItem", xml->getNodeName()))) {
-                OTString strAssetTypeID = xml->getAttributeValue(
+                String strAssetTypeID = xml->getAttributeValue(
                     "assetTypeID"); // Asset Type ID of this account.
-                OTString strAmount = xml->getAttributeValue(
+                String strAmount = xml->getAttributeValue(
                     "balance"); // Account ID for this account.
 
                 if (!strAssetTypeID.Exists() || !strAmount.Exists()) {
@@ -240,7 +240,7 @@ OTStash::OTStash()
     // m_mapStashItems
 }
 
-OTStash::OTStash(const OTString& strAssetTypeID, int64_t lAmount)
+OTStash::OTStash(const String& strAssetTypeID, int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(strAssetTypeID, lAmount);
     OT_ASSERT(nullptr != pItem);
@@ -254,7 +254,7 @@ OTStash::OTStash(const OTIdentifier& theAssetTypeID, int64_t lAmount)
     OTStashItem* pItem = new OTStashItem(theAssetTypeID, lAmount);
     OT_ASSERT(nullptr != pItem);
 
-    OTString strAssetTypeID(theAssetTypeID);
+    String strAssetTypeID(theAssetTypeID);
 
     m_mapStashItems.insert(
         std::pair<std::string, OTStashItem*>(strAssetTypeID.Get(), pItem));
@@ -281,7 +281,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
     if (m_mapStashItems.end() ==
         it) // It's not already there for this asset type.
     {
-        const OTString strAssetTypeID(str_asset_type_id.c_str());
+        const String strAssetTypeID(str_asset_type_id.c_str());
         OTStashItem* pStashItem = new OTStashItem(strAssetTypeID);
         OT_ASSERT(nullptr != pStashItem);
 

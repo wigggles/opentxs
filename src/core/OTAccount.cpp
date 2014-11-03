@@ -194,7 +194,7 @@ OTAccount::OTAccount()
 }
 
 OTAccount::OTAccount(const OTIdentifier& userId, const OTIdentifier& accountId,
-                     const OTIdentifier& serverId, const OTString& name)
+                     const OTIdentifier& serverId, const String& name)
     : OTTransactionType(userId, accountId, serverId)
     , stashTransNum_(0)
     , markForDeletion_(false)
@@ -234,7 +234,7 @@ OTLedger* OTAccount::LoadInbox(OTPseudonym& nym) const
         return box;
     }
 
-    OTString strUserID(GetUserID()), strAcctID(GetRealAccountID());
+    String strUserID(GetUserID()), strAcctID(GetRealAccountID());
     otInfo << "Unable to load or verify inbox:\n" << strAcctID
            << "\n For user:\n" << strUserID << "\n";
     return nullptr;
@@ -251,7 +251,7 @@ OTLedger* OTAccount::LoadOutbox(OTPseudonym& nym) const
         return box;
     }
 
-    OTString strUserID(GetUserID()), strAcctID(GetRealAccountID());
+    String strUserID(GetUserID()), strAcctID(GetRealAccountID());
     otInfo << "Unable to load or verify outbox:\n" << strAcctID
            << "\n For user:\n" << strUserID << "\n";
     return nullptr;
@@ -262,10 +262,10 @@ OTLedger* OTAccount::LoadOutbox(OTPseudonym& nym) const
 bool OTAccount::SaveInbox(OTLedger& box, OTIdentifier* hash)
 {
     if (!IsSameAccount(box)) {
-        OTString strAcctID(GetRealAccountID());
-        OTString strServerID(GetRealServerID());
-        OTString strBoxAcctID(box.GetRealAccountID());
-        OTString strBoxSvrID(box.GetRealServerID());
+        String strAcctID(GetRealAccountID());
+        String strServerID(GetRealServerID());
+        String strBoxAcctID(box.GetRealAccountID());
+        String strBoxSvrID(box.GetRealServerID());
         otErr << "OTAccount::SaveInbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
                  "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
@@ -289,10 +289,10 @@ bool OTAccount::SaveInbox(OTLedger& box, OTIdentifier* hash)
 bool OTAccount::SaveOutbox(OTLedger& box, OTIdentifier* hash)
 {
     if (!IsSameAccount(box)) {
-        OTString strAcctID(GetRealAccountID());
-        OTString strServerID(GetRealServerID());
-        OTString strBoxAcctID(box.GetRealAccountID());
-        OTString strBoxSvrID(box.GetRealServerID());
+        String strAcctID(GetRealAccountID());
+        String strServerID(GetRealServerID());
+        String strBoxAcctID(box.GetRealAccountID());
+        String strBoxSvrID(box.GetRealServerID());
         otErr << "OTAccount::SaveOutbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
                  "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
@@ -373,14 +373,14 @@ bool OTAccount::GetOutboxHash(OTIdentifier& output)
 // Overriding this so I can set the filename automatically inside based on ID.
 bool OTAccount::LoadContract()
 {
-    OTString id;
+    String id;
     GetIdentifier(id);
     return OTContract::LoadContract(OTFolders::Account().Get(), id.Get());
 }
 
 bool OTAccount::SaveAccount()
 {
-    OTString id;
+    String id;
     GetIdentifier(id);
     return SaveContract(OTFolders::Account().Get(), id.Get());
 }
@@ -495,8 +495,8 @@ OTAccount* OTAccount::LoadExistingAccount(const OTIdentifier& accountId,
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
 
-    OTString strDataFolder = "";
-    OTString strAccountPath = "";
+    String strDataFolder = "";
+    String strAccountPath = "";
     if (!OTDataFolder::Get(strDataFolder)) {
         OT_FAIL;
     }
@@ -518,7 +518,7 @@ OTAccount* OTAccount::LoadExistingAccount(const OTIdentifier& accountId,
     account->SetRealAccountID(accountId);
     account->SetRealServerID(serverId);
 
-    OTString strAcctID(accountId);
+    String strAcctID(accountId);
 
     account->m_strFoldername = OTFolders::Account().Get();
     account->m_strFilename = strAcctID.Get();
@@ -593,7 +593,7 @@ bool OTAccount::GenerateNewAccount(const OTPseudonym& server,
     // Next we get that digest (which is a binary hash number)
     // and extract a human-readable standard string format of that hash,
     // into an OTString.
-    OTString strID(newID);
+    String strID(newID);
 
     // Set the account number based on what we just generated.
     SetRealAccountID(newID);
@@ -681,14 +681,14 @@ int64_t OTAccount::GetBalance() const
     return 0;
 }
 
-bool OTAccount::DisplayStatistics(OTString& contents) const
+bool OTAccount::DisplayStatistics(String& contents) const
 {
-    OTString strAccountID(GetPurportedAccountID());
-    OTString strServerID(GetPurportedServerID());
-    OTString strUserID(GetUserID());
-    OTString strAssetTypeID(acctAssetTypeId_);
+    String strAccountID(GetPurportedAccountID());
+    String strServerID(GetPurportedServerID());
+    String strUserID(GetUserID());
+    String strAssetTypeID(acctAssetTypeId_);
 
-    OTString acctType;
+    String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
     contents.Concatenate(" Asset Account (%s) Name: %s\n"
@@ -706,14 +706,14 @@ bool OTAccount::DisplayStatistics(OTString& contents) const
     return true;
 }
 
-bool OTAccount::SaveContractWallet(OTString& contents) const
+bool OTAccount::SaveContractWallet(String& contents) const
 {
-    OTString strAccountID(GetPurportedAccountID());
-    OTString strServerID(GetPurportedServerID());
-    OTString strUserID(GetUserID());
-    OTString strAssetTypeID(acctAssetTypeId_);
+    String strAccountID(GetPurportedAccountID());
+    String strServerID(GetPurportedServerID());
+    String strUserID(GetUserID());
+    String strAssetTypeID(acctAssetTypeId_);
 
-    OTString acctType;
+    String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
     OTASCIIArmor ascName;
@@ -748,13 +748,13 @@ bool OTAccount::SaveContractWallet(OTString& contents) const
 // signatures valid.
 void OTAccount::UpdateContents()
 {
-    OTString strAssetTYPEID(acctAssetTypeId_);
+    String strAssetTYPEID(acctAssetTypeId_);
 
-    OTString ACCOUNT_ID(GetPurportedAccountID());
-    OTString SERVER_ID(GetPurportedServerID());
-    OTString USER_ID(GetUserID());
+    String ACCOUNT_ID(GetPurportedAccountID());
+    String SERVER_ID(GetPurportedServerID());
+    String USER_ID(GetUserID());
 
-    OTString acctType;
+    String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
     // I release this because I'm about to repopulate it.
@@ -773,12 +773,12 @@ void OTAccount::UpdateContents()
             "<stashinfo cronItemNum=\"%" PRId64 "\"/>\n\n", stashTransNum_);
     }
     if (!inboxHash_.IsEmpty()) {
-        OTString strHash(inboxHash_);
+        String strHash(inboxHash_);
         m_xmlUnsigned.Concatenate("<inboxHash value=\"%s\"/>\n\n",
                                   strHash.Get());
     }
     if (!outboxHash_.IsEmpty()) {
-        OTString strHash(outboxHash_);
+        String strHash(outboxHash_);
         m_xmlUnsigned.Concatenate("<outboxHash value=\"%s\"/>\n\n",
                                   strHash.Get());
     }
@@ -800,7 +800,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
 {
     int32_t retval = 0;
 
-    OTString strNodeName(xml->getNodeName());
+    String strNodeName(xml->getNodeName());
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -814,7 +814,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
     //    return retval;
 
     if (strNodeName.Compare("assetAccount")) {
-        OTString acctType;
+        String acctType;
 
         m_strVersion = xml->getAttributeValue("version");
         acctType = xml->getAttributeValue("type");
@@ -833,14 +833,14 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
             return -1;
         }
 
-        OTString strAcctAssetType = xml->getAttributeValue("assetTypeID");
+        String strAcctAssetType = xml->getAttributeValue("assetTypeID");
 
         if (strAcctAssetType.Exists()) {
             acctAssetTypeId_.SetString(strAcctAssetType);
         }
-        OTString strAccountID(xml->getAttributeValue("accountID"));
-        OTString strServerID(xml->getAttributeValue("serverID"));
-        OTString strAcctUserID(xml->getAttributeValue("userID"));
+        String strAccountID(xml->getAttributeValue("accountID"));
+        String strServerID(xml->getAttributeValue("serverID"));
+        String strAcctUserID(xml->getAttributeValue("userID"));
 
         OTIdentifier ACCOUNT_ID(strAccountID);
         OTIdentifier SERVER_ID(strServerID);
@@ -850,7 +850,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         SetPurportedServerID(SERVER_ID);
         SetUserID(USER_ID);
 
-        OTString strAssetTypeID(acctAssetTypeId_);
+        String strAssetTypeID(acctAssetTypeId_);
         otLog3 << "\n\nAccount Type: " << acctType
                << "\nAccountID: " << strAccountID
                << "\nUserID: " << strAcctUserID
@@ -862,7 +862,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
     }
     else if (strNodeName.Compare("inboxHash")) {
 
-        OTString strHash = xml->getAttributeValue("value");
+        String strHash = xml->getAttributeValue("value");
         if (strHash.Exists()) {
             inboxHash_.SetString(strHash);
         }
@@ -872,7 +872,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
     }
     else if (strNodeName.Compare("outboxHash")) {
 
-        OTString strHash = xml->getAttributeValue("value");
+        String strHash = xml->getAttributeValue("value");
         if (strHash.Exists()) {
             outboxHash_.SetString(strHash);
         }
@@ -913,7 +913,7 @@ int32_t OTAccount::ProcessXMLNode(IrrXMLReader*& xml)
         }
 
         int64_t lTransNum = 0;
-        OTString strStashTransNum = xml->getAttributeValue("cronItemNum");
+        String strStashTransNum = xml->getAttributeValue("cronItemNum");
         if (!strStashTransNum.Exists() ||
             ((lTransNum = strStashTransNum.ToLong()) <= 0)) {
             stashTransNum_ = 0;

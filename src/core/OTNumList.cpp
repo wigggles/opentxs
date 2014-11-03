@@ -162,7 +162,7 @@ OTNumList::OTNumList(int64_t lInput)
 //    Add(szNumbers);
 //}
 
-OTNumList::OTNumList(const OTString& strNumbers)
+OTNumList::OTNumList(const String& strNumbers)
 {
     Add(strNumbers);
 }
@@ -180,9 +180,9 @@ OTNumList::~OTNumList()
 {
 }
 
-bool OTNumList::Add(const OTString& strNumbers) // if false, means the numbers
-                                                // were already there. (At least
-                                                // one of them.)
+bool OTNumList::Add(const String& strNumbers) // if false, means the numbers
+                                              // were already there. (At least
+                                              // one of them.)
 {
     return Add(strNumbers.Get());
 }
@@ -439,8 +439,8 @@ bool OTNumList::Output(std::set<int64_t>& theOutput) const // returns false if
 
 // Outputs the numlist as a comma-separated string (for serialization, usually.)
 //
-bool OTNumList::Output(OTString& strOutput) const // returns false if the
-                                                  // numlist was empty.
+bool OTNumList::Output(String& strOutput) const // returns false if the
+                                                // numlist was empty.
 {
     int32_t nIterationCount = 0;
 

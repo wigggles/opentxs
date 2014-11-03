@@ -142,9 +142,9 @@ class OTBylaw;
 
 class OTClause
 {
-    OTString m_strName; // Name of this Clause.
-    OTString m_strCode; // script code.
-    OTBylaw* m_pBylaw;  // the Bylaw that this clause belongs to.
+    String m_strName;  // Name of this Clause.
+    String m_strCode;  // script code.
+    OTBylaw* m_pBylaw; // the Bylaw that this clause belongs to.
 
 public:
     void SetBylaw(OTBylaw& theBylaw)
@@ -152,7 +152,7 @@ public:
         m_pBylaw = &theBylaw;
     }
 
-    EXPORT const OTString& GetName() const
+    EXPORT const String& GetName() const
     {
         return m_strName;
     }
@@ -170,7 +170,7 @@ public:
     OTClause(const char* szName, const char* szCode);
     virtual ~OTClause();
 
-    void Serialize(OTString& strAppend) const;
+    void Serialize(String& strAppend) const;
 };
 
 } // namespace opentxs

@@ -177,7 +177,7 @@ class OTContract;
 class OTCredential;
 class OTIdentifier;
 class OTPassword;
-class OTString;
+class String;
 
 // This is stored as an OTContract, and it must be signed by the
 // master key. (which is also an OTSubcredential.)
@@ -201,58 +201,58 @@ protected:
     };
     CredStoreAs m_StoreAs; // Not serialized.
 protected:
-    OTCredential* m_pOwner; // a pointer for convenience only. Do not cleanup.
-    OTString m_strMasterCredID; // All subcredentials within the same
-                                // OTCredential share the same
-                                // m_strMasterCredID. It's a hash of the signed
-                                // master credential.
-    OTString m_strNymID; // All subcredentials within the same OTCredential
-                         // (including m_MasterKey) must have
-    OTString m_strSourceForNymID;   // the same NymID and source.
-    OTString::Map m_mapPublicInfo;  // A map of strings containing the
-                                    // credential's public info. This was
-                                    // originally 1 string but subclasses ended
-                                    // up needing a map of them. Who'da thought.
-    OTString::Map m_mapPrivateInfo; // A map of strings containing the
-                                    // credential's private info. This was
-                                    // originally 1 string but subclasses ended
-                                    // up needing a map of them. Who'da thought.
-    OTString m_strMasterSigned; // A public version of the credential with the
-                                // master credential's signature on it. (The
-                                // final public version will contain the
-                                // subkey's own signature on top of that.)
-    OTString m_strContents; // The actual final public credential as sent to the
-                            // server. Does not include private keys, even on
-                            // client side.
-    void UpdateMasterPublicToString(OTString& strAppendTo);   // Used in
+    OTCredential* m_pOwner;   // a pointer for convenience only. Do not cleanup.
+    String m_strMasterCredID; // All subcredentials within the same
+                              // OTCredential share the same
+                              // m_strMasterCredID. It's a hash of the signed
+                              // master credential.
+    String m_strNymID;        // All subcredentials within the same OTCredential
+                              // (including m_MasterKey) must have
+    String m_strSourceForNymID;   // the same NymID and source.
+    String::Map m_mapPublicInfo;  // A map of strings containing the
+                                  // credential's public info. This was
+                                  // originally 1 string but subclasses ended
+                                  // up needing a map of them. Who'da thought.
+    String::Map m_mapPrivateInfo; // A map of strings containing the
+                                  // credential's private info. This was
+                                  // originally 1 string but subclasses ended
+                                  // up needing a map of them. Who'da thought.
+    String m_strMasterSigned;     // A public version of the credential with the
+                                  // master credential's signature on it. (The
+                                  // final public version will contain the
+                                  // subkey's own signature on top of that.)
+    String m_strContents; // The actual final public credential as sent to the
+                          // server. Does not include private keys, even on
+                          // client side.
+    void UpdateMasterPublicToString(String& strAppendTo);     // Used in
                                                               // UpdateContents.
-    void UpdatePublicContentsToString(OTString& strAppendTo); // Used in
+    void UpdatePublicContentsToString(String& strAppendTo);   // Used in
                                                               // UpdateContents.
-    void UpdatePublicCredentialToString(
-        OTString& strAppendTo); // Used in UpdateContents.
-    void UpdatePrivateContentsToString(
-        OTString& strAppendTo); // Used in UpdateContents.
-    inline void SetMasterSigned(const OTString& strMasterSigned)
+    void UpdatePublicCredentialToString(String& strAppendTo); // Used in
+                                                              // UpdateContents.
+    void UpdatePrivateContentsToString(String& strAppendTo);  // Used in
+                                                              // UpdateContents.
+    inline void SetMasterSigned(const String& strMasterSigned)
     {
         m_strMasterSigned = strMasterSigned;
     }
-    inline void SetContents(const OTString& strContents)
+    inline void SetContents(const String& strContents)
     {
         m_strContents = strContents;
     }
-    void SetNymIDandSource(const OTString& strNymID,
-                           const OTString& strSourceForNymID);
-    void SetMasterCredID(const OTString& strMasterCredID); // Used in all
-                                                           // subclasses except
-                                                           // OTMasterkey. (It
-                                                           // can't contain its
-                                                           // own ID, since it
-                                                           // is signed, and the
-                                                           // ID is its hash
-                                                           // AFTER it's signed.
-                                                           // So it could never
-                                                           // contain its own
-                                                           // ID.)
+    void SetNymIDandSource(const String& strNymID,
+                           const String& strSourceForNymID);
+    void SetMasterCredID(const String& strMasterCredID); // Used in all
+                                                         // subclasses except
+                                                         // OTMasterkey. (It
+                                                         // can't contain its
+                                                         // own ID, since it
+                                                         // is signed, and the
+                                                         // ID is its hash
+                                                         // AFTER it's signed.
+                                                         // So it could never
+                                                         // contain its own
+                                                         // ID.)
     inline void StoreAsMasterSigned()
     {
         m_StoreAs = credMasterSigned;
@@ -261,47 +261,47 @@ protected:
     {
         m_StoreAs = credPublicInfo;
     } // Upon signing, the credential reverts to credPrivateInfo again.
-    virtual bool SetPublicContents(const OTString::Map& mapPublic);
+    virtual bool SetPublicContents(const String::Map& mapPublic);
     virtual bool SetPrivateContents(
-        const OTString::Map& mapPrivate,
+        const String::Map& mapPrivate,
         const OTPassword* pImportPassword = nullptr); // if not nullptr, it
                                                       // means to
                                                       // use
     // this password by default.
 public:
-    const OTString::Map& GetPublicMap() const
+    const String::Map& GetPublicMap() const
     {
         return m_mapPublicInfo;
     }
-    const OTString::Map& GetPrivateMap() const
+    const String::Map& GetPrivateMap() const
     {
         return m_mapPrivateInfo;
     }
-    const OTString& GetMasterCredID() const
+    const String& GetMasterCredID() const
     {
         return m_strMasterCredID;
     } // MasterCredentialID (usually applicable.) OTMasterkey doesn't use this.
-    const OTString& GetNymID() const
+    const String& GetNymID() const
     {
         return m_strNymID;
     } // NymID for this credential.
-    const OTString& GetNymIDSource() const
+    const String& GetNymIDSource() const
     {
         return m_strSourceForNymID;
     } // Source for NymID for this credential. (Hash it to get ID.)
-    const OTString& GetContents() const
+    const String& GetContents() const
     {
         return m_strContents;
     } // The actual, final, signed public credential. Public keys only.
 
-    EXPORT const OTString& GetPubCredential() const; // More intelligent version
-                                                     // of GetContents. Higher
-                                                     // level.
-    const OTString& GetPriCredential() const; // I needed this for exporting a
-                                              // Nym (with credentials) from the
-                                              // wallet.
+    EXPORT const String& GetPubCredential() const; // More intelligent version
+                                                   // of GetContents. Higher
+                                                   // level.
+    const String& GetPriCredential() const; // I needed this for exporting a
+                                            // Nym (with credentials) from the
+                                            // wallet.
 
-    const OTString& GetMasterSigned() const
+    const String& GetMasterSigned() const
     {
         return m_strMasterSigned;
     } // For subkeys, the master credential signs first, then the subkey signs a

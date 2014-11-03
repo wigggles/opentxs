@@ -228,8 +228,7 @@ OTPasswordData::OTPasswordData(const std::string& str_Display,
               ((nullptr != pMasterPW) && (pCachedKey)));
 }
 
-OTPasswordData::OTPasswordData(const OTString& strDisplay,
-                               OTPassword* pMasterPW,
+OTPasswordData::OTPasswordData(const String& strDisplay, OTPassword* pMasterPW,
                                std::shared_ptr<OTCachedKey> pCachedKey)
     : m_pMasterPW(pMasterPW)
     , m_strDisplay(strDisplay.Get())

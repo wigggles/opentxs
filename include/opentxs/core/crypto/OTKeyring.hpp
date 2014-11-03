@@ -150,7 +150,7 @@
 namespace opentxs
 {
 
-class OTString;
+class String;
 class OTPassword;
 
 class OTKeyring
@@ -189,15 +189,15 @@ public:
     //
     // INTERFACE:
     //
-    EXPORT static bool StoreSecret(const OTString& strUser,
+    EXPORT static bool StoreSecret(const String& strUser,
                                    const OTPassword& thePassword,
                                    const std::string& str_display);
 
-    EXPORT static bool RetrieveSecret(const OTString& strUser,
+    EXPORT static bool RetrieveSecret(const String& strUser,
                                       OTPassword& thePassword,
                                       const std::string& str_display);
 
-    EXPORT static bool DeleteSecret(const OTString& strUser,
+    EXPORT static bool DeleteSecret(const String& strUser,
                                     const std::string& str_display);
 
 private:

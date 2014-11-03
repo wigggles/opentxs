@@ -146,7 +146,7 @@ namespace opentxs
 class OTCachedKey;
 class OTContract;
 class OTPseudonym;
-class OTString;
+class String;
 class OTSymmetricKey;
 
 class OTIdentifier : public OTData
@@ -155,24 +155,23 @@ private:
     bool CalculateDigest(const unsigned char* data, size_t len);
 
 public:
-    EXPORT friend std::ostream& operator<<(std::ostream& os,
-                                           const OTString& obj);
+    EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
     // Some digests are handled in special ways before they can call OpenSSL.
     // They are internal, like SAMY hash.
-    EXPORT bool CalculateDigestInternal(const OTString& strInput,
-                                        const OTString& strHashAlgorithm);
+    EXPORT bool CalculateDigestInternal(const String& strInput,
+                                        const String& strHashAlgorithm);
     EXPORT bool CalculateDigestInternal(const OTData& dataInput,
-                                        const OTString& strHashAlgorithm);
-    EXPORT static const OTString DefaultHashAlgorithm;
-    EXPORT static const OTString HashAlgorithm1;
-    EXPORT static const OTString HashAlgorithm2;
+                                        const String& strHashAlgorithm);
+    EXPORT static const String DefaultHashAlgorithm;
+    EXPORT static const String HashAlgorithm1;
+    EXPORT static const String HashAlgorithm2;
     EXPORT OTIdentifier();
 
     EXPORT OTIdentifier(const OTIdentifier& theID);
     EXPORT OTIdentifier(const char* szStr);
     EXPORT OTIdentifier(const std::string& szStr);
-    EXPORT OTIdentifier(const OTString& theStr);
+    EXPORT OTIdentifier(const String& theStr);
     EXPORT OTIdentifier(const OTPseudonym& theNym);
     EXPORT OTIdentifier(const OTContract& theContract);
     EXPORT OTIdentifier(const OTSymmetricKey& theKey);
@@ -189,19 +188,19 @@ public:
     EXPORT bool operator<=(const OTIdentifier& s2) const;
     EXPORT bool operator>=(const OTIdentifier& s2) const;
     EXPORT bool CalculateDigest(const OTData& dataInput);
-    EXPORT bool CalculateDigest(const OTString& strInput);
+    EXPORT bool CalculateDigest(const String& strInput);
 
-    EXPORT bool CalculateDigest(const OTString& strInput,
-                                const OTString& strHashAlgorithm);
+    EXPORT bool CalculateDigest(const String& strInput,
+                                const String& strHashAlgorithm);
     EXPORT bool CalculateDigest(const OTData& dataInput,
-                                const OTString& strHashAlgorithm);
+                                const String& strHashAlgorithm);
     EXPORT bool XOR(const OTIdentifier& theInput) const;
     // If someone passes in the pretty string of hex digits,
     // convert it to the actual binary hash and set it internally.
     EXPORT void SetString(const char* szString);
-    EXPORT void SetString(const OTString& theStr);
+    EXPORT void SetString(const String& theStr);
     // theStr will contain pretty hex string after call.
-    EXPORT void GetString(OTString& theStr) const;
+    EXPORT void GetString(String& theStr) const;
 };
 
 } // namespace opentxs

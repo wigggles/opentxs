@@ -190,14 +190,14 @@ private:
     int64_t m_lMostRecentRequestNumber;
 
     void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
-                                      const OTString& str_trans,
-                                      OTString str_box_type,
+                                      const String& str_trans,
+                                      String str_box_type,
                                       const int64_t& lTransNum,
                                       OTPseudonym& the_nym,
                                       OTLedger& ledger) const;
 
     struct ProcessServerReplyArgs;
-    void setRecentHash(const OTMessage& theReply, const OTString& strServerID,
+    void setRecentHash(const OTMessage& theReply, const String& strServerID,
                        OTPseudonym* pNym, bool setNymboxHash);
     bool processServerReplyTriggerClause(const OTMessage& theReply,
                                          ProcessServerReplyArgs& args);
