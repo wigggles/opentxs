@@ -9204,44 +9204,6 @@ int32_t OTClient::ProcessUserCommand(
             otOut << "No Asset Contract found with that ID. Try 'load'.\n";
         }
     } break;
-    case OTClient::setNymName: // SET NYM NAME (wallet label only)
-    {
-        OT_ASSERT(nullptr != m_pWallet);
-
-        otOut << "Please enter a Nym ID: ";
-        // User input.
-        // I need a nym ID
-        OTString strNymID;
-        strNymID.OTfgets(std::cin);
-
-        const OTIdentifier theTargetNymID(strNymID);
-
-        OTPseudonym* pTargetNym = m_pWallet->GetNymByID(theTargetNymID);
-
-        if (nullptr != pTargetNym) {
-            otOut << "Enter the new client-side \"name\" label for that Nym: ";
-            // User input.
-            // I need a name
-            OTString strNewName;
-            strNewName.OTfgets(std::cin);
-
-            OTString strOldName(pTargetNym->GetNymName()); // just in case.
-
-            pTargetNym->SetNymName(strNewName);
-
-            if (pTargetNym->SaveSignedNymfile(theNym)) // theNym is signer on
-                                                       // this file.
-            {
-                m_pWallet->SaveWallet(); // Only 'cause the nym's name is stored
-                                         // here, too.
-            }
-            else
-                pTargetNym->SetNymName(strOldName);
-        }
-        else {
-            otOut << "No Nym found with that ID. Try 'load'.\n";
-        }
-    } break;
     case OTClient::setAccountName: // SET ACCOUNT NAME (wallet label only)
     {
         OT_ASSERT(nullptr != m_pWallet);

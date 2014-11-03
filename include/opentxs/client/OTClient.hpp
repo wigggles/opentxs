@@ -344,7 +344,6 @@ public:
         // to sign it and submit it to the server.
         setAccountName, // For setting the client-side label on an asset
                         // account.
-        setNymName,     // For setting the client-side label on a Nym.
         setAssetName, // For setting the client-side label on an asset contract.
         badID
     };
