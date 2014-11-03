@@ -294,9 +294,6 @@ public:
                        // everything up.
         writeCheque, // Write a cheque. (Actually sends no message to the server
                      // -- returns false.)
-        notarizeWithdrawal, // Request the server to withdraw from an asset
-                            // account and return digital cash tokens to the
-                            // wallet.
         notarizePurse, // Same as the above, but sends an entire purse of tokens
                        // at once instead of sending individual tokens.
         notarizeCheque, // Deposit like the above, but deposits a cheque instead

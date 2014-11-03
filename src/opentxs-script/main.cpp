@@ -1441,23 +1441,6 @@ int32_t main(int32_t argc, char* argv[])
                   << ((nullptr == pServerContract) ? "pServerContract" : "")
                   << " " << ((nullptr == pMyNym) ? "pMyNym" : "") << "\n";
         }
-        else if (opt->getValue('w') != nullptr ||
-                   opt->getValue("withdraw") != nullptr) {
-            const int64_t lAmount = OTString::StringToLong(opt->getValue('w'));
-
-            otOut << "(User has instructed to withdraw cash...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizeWithdrawal, theMessage, *pMyNym,
-                        *pServerContract, pMyAccount, lAmount)) {
-                bSendCommand = true;
-            }
-            else
-                otErr
-                    << "Error processing withdraw command in ProcessMessage.\n";
-        }
         else if (opt->getValue('c') != nullptr ||
                    opt->getValue("cheque") != nullptr) {
             otOut << "(User has instructed to write a cheque...)\n";
@@ -2093,25 +2076,6 @@ int32_t main(int32_t argc, char* argv[])
             }
             else
                 otErr << "Error processing deposit command in ProcessMessage: "
-                      << buf[0] << "\n";
-
-        }
-
-        // withdraw cash
-        else if (buf[0] == 'w') {
-            otOut << "(User has instructed to withdraw cash...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizeWithdrawal, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing withdraw command in ProcessMessage: "
                       << buf[0] << "\n";
 
         }
