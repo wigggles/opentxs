@@ -9285,43 +9285,6 @@ int32_t OTClient::ProcessUserCommand(
         bSendCommand = true;
         lReturnValue = lRequestNumber;
     } break;
-    case OTClient::createAccount: // CREATE ACCOUNT
-    {
-        otOut << "Please enter an asset type (contract ID): ";
-        // User input.
-        // I need a from account
-        OTString strAssetID;
-        strAssetID.OTfgets(std::cin);
-
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
-
-        // (1) Set up member variables
-        theMessage.m_strCommand = "createAccount";
-        theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strServerID is
-                                               // already set. (It uses it.)
-
-        theMessage.m_strAssetID =
-            strAssetID; // the hash of the contract is the AssetID
-
-        // (2) Sign the Message
-        theMessage.SignContract(theNym);
-
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
-
-        bSendCommand = true;
-        lReturnValue = lRequestNumber;
-    } break;
     case OTClient::notarizeTransfer: // NOTARIZE TRANSFER
     {
         OTString strFromAcct;

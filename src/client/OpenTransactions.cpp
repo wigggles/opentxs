@@ -13206,6 +13206,16 @@ int32_t OT_API::createAssetAccount(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& USER_ID,
                                    const OTIdentifier& ASSET_ID) const
 {
+    // Create an asset account for a certain serverID,
+    // UserID, and Asset Type ID.
+    // These accounts are where users actually store their digital assets of
+    // various
+    // types. Account files are stored on user's computer, signed by notary
+    // server.
+    // Server also maintains its own copy. Users can create an unlimited
+    // number of accounts
+    // for any asset type that they choose.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.

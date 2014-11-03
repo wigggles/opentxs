@@ -287,15 +287,6 @@ public:
                     // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
-        createAccount, // Create an asset account for a certain serverID,
-                       // UserID, and Asset Type ID.
-        // These accounts are where users actually store their digital assets of
-        // various
-        // types. Account files are stored on user's computer, signed by notary
-        // server.
-        // Server also maintains its own copy. Users can create an unlimited
-        // number of accounts
-        // for any asset type that they choose.
         issueBasket, // Create a basket account, which is like an issuer
                      // account, but based on a basket of
         // other asset types. This way, users can trade with what is apparently
