@@ -287,73 +287,17 @@ public:
                     // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
-        createAccount, // Create an asset account for a certain serverID,
-                       // UserID, and Asset Type ID.
-        // These accounts are where users actually store their digital assets of
-        // various
-        // types. Account files are stored on user's computer, signed by notary
-        // server.
-        // Server also maintains its own copy. Users can create an unlimited
-        // number of accounts
-        // for any asset type that they choose.
-        issueBasket, // Create a basket account, which is like an issuer
-                     // account, but based on a basket of
-        // other asset types. This way, users can trade with what is apparently
-        // a single currency,
-        // when in fact the issuence is delegated and distributed across
-        // multiple issuers.
-        exchangeBasket,    // Use this to exchange assets in and out of a basket
-                           // currency.
         getTransactionNum, // Every transaction requires a transaction number.
                            // If your wallet doesn't have one,
         // then here it can request the server to send one over. (Or several.)
-        getNymbox, // Grab a copy of my nymbox (contains messages and new
-                   // transaction numbers)
-        getInbox,  // Grab a copy of my inbox from the server so I can decide
-                   // what to do with it.
-        getOutbox, // Grab a copy of my outbox from the server so I can decide
-                   // what to do with it.
-        processNymbox,       // Used by AcceptEntireNymbox() as it's setting
-                             // everything up.
-        processEntireNymbox, // Instruct the server what to do with the various
-                             // items sitting in my nymbox. (per user)
-        processInbox, // Instruct the server what to do with the various items
-                      // sitting in my inbox. (per asset acct)
-        processEntireInbox, // Just accept everything in the server (used in the
-                            // command line test client.)
-        getAccount,  // Grab the server's copy of my asset account file, in case
-                     // mine is lost.
-        getContract, // Grab the server's copy of any asset contract. Input is
-                     // the asset type ID.
-        getMint, // Grab the server's copy of any mint based on Asset ID. (For
-                 // blinded tokens.)
+        processNymbox, // Used by AcceptEntireNymbox() as it's setting
+                       // everything up.
         writeCheque, // Write a cheque. (Actually sends no message to the server
                      // -- returns false.)
-        signContract, // Sign a contract. (Sends no message to the server.)
-        proposePaymentPlan, // (Merchant) Propose a payment plan. (Sends no
-                            // message to the server.)
-        confirmPaymentPlan, // (Customer) Confirm a payment plan. (Sends no
-                            // message to the server.)
-        notarizeTransfer, // Request the server to transfer from one account to
-                          // another.
-        notarizeWithdrawal, // Request the server to withdraw from an asset
-                            // account and return digital cash tokens to the
-                            // wallet.
-        withdrawVoucher, // Request the server to withdraw from an asset account
-                         // and issue a voucher (cashier's cheque)
-        notarizeDeposit, // Request the server to accept some digital cash and
-                         // deposit it to an asset account.
         notarizePurse, // Same as the above, but sends an entire purse of tokens
                        // at once instead of sending individual tokens.
         notarizeCheque, // Deposit like the above, but deposits a cheque instead
                         // of cash tokens.
-        marketOffer, // Create an Offer object and add it to one of the server's
-                     // Market objects.
-        // This will also create a Trade object and add it to the server's Cron
-        // object.
-        // (The Trade provides the payment authorization for the Offer, as well
-        // as the rules
-        // for processing and expiring it.)
         paymentPlan, // Send a payment plan to the server (request to activate
                      // one onto yourself, basically.)
         // The test client will ask you to input the plan, which you must
@@ -361,12 +305,6 @@ public:
         // The Payee must create it and sign it, then he sends it to the Payer,
         // who uses this command
         // to sign it and submit it to the server.
-        setAccountName, // For setting the client-side label on an asset
-                        // account.
-        setNymName,     // For setting the client-side label on a Nym.
-        setServerName,  // For setting the client-side label on a server
-                        // contract.
-        setAssetName, // For setting the client-side label on an asset contract.
         badID
     };
 
@@ -452,15 +390,8 @@ public:
                                     const OTServerConnection& theConnection,
                                     const OTMessage& theReply) const;
 
-    //  void AcceptEntireInbox (OTLedger& theInbox,  OTServerConnection&
-    // theConnection);
     //  void AcceptEntireNymbox(OTLedger& theNymbox, OTServerConnection&
     // theConnection);
-
-    bool AcceptEntireInbox(OTLedger& theInbox, const OTIdentifier& theServerID,
-                           const OTServerContract& theServerContract,
-                           OTPseudonym& theNym, const OTMessage& theMessage,
-                           const OTAccount& theAccount);
 
     bool AcceptEntireNymbox(OTLedger& theNymbox,
                             const OTIdentifier& theServerID,

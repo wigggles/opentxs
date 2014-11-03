@@ -8763,6 +8763,12 @@ int32_t OT_API::issueBasket(const OTIdentifier& SERVER_ID,
                             const OTIdentifier& USER_ID,
                             const OTString& BASKET_INFO) const
 {
+    // Create a basket account, which is like an issuer
+    // account, but based on a basket of
+    // other asset types. This way, users can trade with what is apparently
+    // a single currency,
+    // when in fact the issuence is delegated and distributed across
+    // multiple issuers.
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -8775,6 +8781,22 @@ int32_t OT_API::issueBasket(const OTIdentifier& SERVER_ID,
 
     OTMessage theMessage;
     int64_t lRequestNumber = 0;
+
+    // The user signs and saves the contract, but once the server gets it,
+    // the server releases signatures and signs it, calculating the hash
+    // from the result,
+    // in order to form the ID.
+    //
+    // The result is the same as any other currency contract, but with the
+    // server's signature
+    // on it (and thus it must store the server's public key).  The server
+    // handles all
+    // transactions in and out of the basket currency based upon the rules
+    // set up by the user.
+    //
+    // The user who created the currency has no more control over it. The
+    // server reserves the
+    // right to exchange out to the various users and close the basket.
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
@@ -9107,6 +9129,9 @@ int32_t OT_API::exchangeBasket(
     bool bExchangeInOrOut // exchanging in == true, out == false.
     ) const
 {
+    // Use this to exchange assets in and out of a basket
+    // currency.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
@@ -9640,6 +9665,8 @@ int32_t OT_API::notarizeDeposit(const OTIdentifier& SERVER_ID,
                                 const OTIdentifier& ACCT_ID,
                                 const OTString& THE_PURSE) const
 {
+    // Request the server to accept some digital cash and
+    // deposit it to an asset account.
     OTString strPurseReason(
         "Depositing a cash purse. Enter passphrase for the purse.");
     OTPasswordData thePWDataWallet(
@@ -10249,6 +10276,9 @@ int32_t OT_API::withdrawVoucher(const OTIdentifier& SERVER_ID,
                                 const OTString& CHEQUE_MEMO,
                                 const int64_t& AMOUNT) const
 {
+    // Request the server to withdraw from an asset account
+    // and issue a voucher (cashier's cheque)
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
@@ -11732,6 +11762,14 @@ int32_t OT_API::issueMarketOffer(
     int64_t ACTIVATION_PRICE) const       // For stop orders, this is
                                           // threshhold price.
 {
+    // Create an Offer object and add it to one of the server's
+    // Market objects.
+    // This will also create a Trade object and add it to the server's Cron
+    // object.
+    // (The Trade provides the payment authorization for the Offer, as well
+    // as the rules
+    // for processing and expiring it.)
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
@@ -12303,6 +12341,9 @@ int32_t OT_API::notarizeTransfer(const OTIdentifier& SERVER_ID,
                                  const int64_t& AMOUNT,
                                  const OTString& NOTE) const
 {
+    // Request the server to transfer from one account to
+    // another.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12504,6 +12545,9 @@ int32_t OT_API::notarizeTransfer(const OTIdentifier& SERVER_ID,
 int32_t OT_API::getNymbox(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& USER_ID) const
 {
+    // Grab a copy of my nymbox (contains messages and new
+    // transaction numbers)
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12552,6 +12596,9 @@ int32_t OT_API::getInbox(const OTIdentifier& SERVER_ID,
                          const OTIdentifier& USER_ID,
                          const OTIdentifier& ACCT_ID) const
 {
+    // Grab a copy of my inbox from the server so I can decide
+    // what to do with it.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12606,6 +12653,9 @@ int32_t OT_API::getOutbox(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& USER_ID,
                           const OTIdentifier& ACCT_ID) const
 {
+    // Grab a copy of my outbox from the server so I can decide
+    // what to do with it.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12787,6 +12837,18 @@ int32_t OT_API::processInbox(const OTIdentifier& SERVER_ID,
 
     OTString strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
 
+    // Normally processInbox command is sent with a transaction ledger
+    // in the payload, accepting or rejecting various transactions in
+    // my inbox.
+    // If pAccount was passed in, that means somewhere else in the code
+    // a ledger is being added to this message after this point, and it
+    // is being re-signed and sent out.
+    // That's why you don't see a ledger being constructed and added to
+    // the payload here. Because it's being done somewhere else, and that
+    // same place is what passed the account pointer in here.
+    // I only put this block here for now because I'd rather have it with
+    // all the others.
+
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
@@ -12963,6 +13025,9 @@ int32_t OT_API::getContract(const OTIdentifier& SERVER_ID,
                             const OTIdentifier& USER_ID,
                             const OTIdentifier& ASSET_ID) const
 {
+    // Grab the server's copy of any asset contract. Input is
+    // the asset type ID.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13013,6 +13078,9 @@ int32_t OT_API::getMint(const OTIdentifier& SERVER_ID,
                         const OTIdentifier& USER_ID,
                         const OTIdentifier& ASSET_ID) const
 {
+    // Grab the server's copy of any mint based on Asset ID. (For
+    // blinded tokens.)
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13203,6 +13271,16 @@ int32_t OT_API::createAssetAccount(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& USER_ID,
                                    const OTIdentifier& ASSET_ID) const
 {
+    // Create an asset account for a certain serverID,
+    // UserID, and Asset Type ID.
+    // These accounts are where users actually store their digital assets of
+    // various
+    // types. Account files are stored on user's computer, signed by notary
+    // server.
+    // Server also maintains its own copy. Users can create an unlimited
+    // number of accounts
+    // for any asset type that they choose.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13399,6 +13477,9 @@ int32_t OT_API::getAccount(const OTIdentifier& SERVER_ID,
                            const OTIdentifier& USER_ID,
                            const OTIdentifier& ACCT_ID) const
 {
+    // Grab the server's copy of my asset account file, in case
+    // mine is lost.
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
