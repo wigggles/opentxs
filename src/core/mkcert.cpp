@@ -70,6 +70,7 @@ extern "C" {
 
 int32_t add_ext(X509* cert, int32_t nid, char* value);
 
+#ifndef ANDROID
 static void callback(int32_t p, int32_t, void*)
 {
     char c = 'B';
@@ -80,6 +81,7 @@ static void callback(int32_t p, int32_t, void*)
     if (p == 3) c = '\n';
     fputc(c, stderr);
 }
+#endif
 
 int32_t mkcert(X509** x509p, EVP_PKEY** pkeyp, int32_t bits, int32_t serial,
                int32_t days)

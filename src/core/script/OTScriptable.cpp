@@ -274,7 +274,8 @@ bool OTScriptable::ValidateName(std::string str_name)
 // OTSmartContract::RegisterOTNativeCallsWithScript OVERRIDES this, but
 // also calls it.
 //
-void OTScriptable::RegisterOTNativeCallsWithScript(OTScript& theScript)
+void OTScriptable::RegisterOTNativeCallsWithScript(
+    ANDROID_UNUSED OTScript& theScript)
 {
 #ifdef OT_USE_SCRIPT_CHAI
     using namespace chaiscript;

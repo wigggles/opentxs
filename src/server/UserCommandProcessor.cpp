@@ -800,8 +800,8 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
         // read out of the file...
         if (lRequestNumber != theMessage.m_strRequestNum.ToLong()) {
             OTLog::vOutput(0, "Request number sent in this message "
-                              "%ld does not match the one in the "
-                              "file! (%ld)\n",
+                              "%" PRId64 " does not match the one in the "
+                              "file! (%" PRId64 ")\n",
                            theMessage.m_strRequestNum.ToLong(), lRequestNumber);
             return false;
         }
