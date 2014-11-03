@@ -9204,42 +9204,6 @@ int32_t OTClient::ProcessUserCommand(
             otOut << "No Asset Contract found with that ID. Try 'load'.\n";
         }
     } break;
-    case OTClient::setAccountName: // SET ACCOUNT NAME (wallet label only)
-    {
-        OT_ASSERT(nullptr != m_pWallet);
-
-        otOut << "Please enter an asset account ID: ";
-        // User input.
-        // I need an account
-        OTString strAcctID;
-        strAcctID.OTfgets(std::cin);
-
-        if (strAcctID.GetLength() < 2) return (-1);
-
-        const OTIdentifier theAccountID(strAcctID);
-
-        OTAccount* pTheAccount = m_pWallet->GetAccount(theAccountID);
-
-        if (nullptr != pTheAccount) {
-            otOut << "Enter the new client-side \"name\" label for that "
-                     "Account: ";
-            // User input.
-            // I need a name
-            OTString strNewName;
-            strNewName.OTfgets(std::cin);
-
-            pTheAccount->SetName(strNewName);
-            pTheAccount->ReleaseSignatures();
-
-            pTheAccount->SignContract(theNym);
-            pTheAccount->SaveAccount();
-
-            m_pWallet->SaveWallet();
-        }
-        else {
-            otOut << "No account found with that ID. Try 'load'.\n";
-        }
-    } break;
     case OTClient::getNymbox: // GET NYMBOX
     {
 

@@ -2226,25 +2226,6 @@ int32_t main(int32_t argc, char* argv[])
             }
         }
 
-        // Set an Asset Account's client-side name (merely a label.)
-        else if (!strcmp(buf, "setaccountname\n")) {
-            otOut << "(User wants to set an Asset Account's client-side "
-                     "name...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::setAccountName, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                //     bSendCommand = true; //
-                // No
-                // message needed. Local data only.
-            }
-
-        }
-
         // sign contract
         // This doesn't message the server, but it DOES require the user's Nym
         // to be loaded.
