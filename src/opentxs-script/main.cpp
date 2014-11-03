@@ -1473,14 +1473,6 @@ int32_t main(int32_t argc, char* argv[])
                 pMyAccount, lAmount, nullptr, // asset contract
                 (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr);
         }
-        else if (opt->getFlag("confirmpaymentplan")) {
-            otOut << "(User has instructed to confirm a payment plan...)\n";
-
-            OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                OTClient::confirmPaymentPlan, theMessage, *pMyNym,
-                *pServerContract,
-                nullptr); // the account info is already on the plan, right?
-        }
         else if (opt->getFlag("activatepaymentplan")) {
             otOut << "(User has instructed to activate a payment plan...)\n";
 
@@ -2141,15 +2133,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing payment plan command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
-        }
-        else if (!strcmp(buf, "confirm\n")) {
-            otOut << "(User has instructed to confirm a payment plan...)\n";
-
-            OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                OTClient::confirmPaymentPlan, theMessage, *pMyNym,
-                *pServerContract,
-                nullptr); // the account info is already on the plan, right?
-            continue;
         }
         else if (!strcmp(buf, "cheque\n")) {
             otOut << "(User has instructed to write a cheque...)\n";
