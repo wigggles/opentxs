@@ -12824,6 +12824,18 @@ int32_t OT_API::processInbox(const OTIdentifier& SERVER_ID,
 
     OTString strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
 
+    // Normally processInbox command is sent with a transaction ledger
+    // in the payload, accepting or rejecting various transactions in
+    // my inbox.
+    // If pAccount was passed in, that means somewhere else in the code
+    // a ledger is being added to this message after this point, and it
+    // is being re-signed and sent out.
+    // That's why you don't see a ledger being constructed and added to
+    // the payload here. Because it's being done somewhere else, and that
+    // same place is what passed the account pointer in here.
+    // I only put this block here for now because I'd rather have it with
+    // all the others.
+
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
     theMessage.m_strRequestNum.Format(

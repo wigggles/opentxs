@@ -292,8 +292,6 @@ public:
         // then here it can request the server to send one over. (Or several.)
         processNymbox, // Used by AcceptEntireNymbox() as it's setting
                        // everything up.
-        processInbox,  // Instruct the server what to do with the various items
-                       // sitting in my inbox. (per asset acct)
         getAccount,  // Grab the server's copy of my asset account file, in case
                      // mine is lost.
         getContract, // Grab the server's copy of any asset contract. Input is
@@ -417,15 +415,8 @@ public:
                                     const OTServerConnection& theConnection,
                                     const OTMessage& theReply) const;
 
-    //  void AcceptEntireInbox (OTLedger& theInbox,  OTServerConnection&
-    // theConnection);
     //  void AcceptEntireNymbox(OTLedger& theNymbox, OTServerConnection&
     // theConnection);
-
-    bool AcceptEntireInbox(OTLedger& theInbox, const OTIdentifier& theServerID,
-                           const OTServerContract& theServerContract,
-                           OTPseudonym& theNym, const OTMessage& theMessage,
-                           const OTAccount& theAccount);
 
     bool AcceptEntireNymbox(OTLedger& theNymbox,
                             const OTIdentifier& theServerID,
