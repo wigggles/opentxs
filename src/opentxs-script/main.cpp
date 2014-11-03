@@ -1593,21 +1593,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing deposit purse command in "
                          "ProcessMessage.\n";
         }
-        else if (opt->getFlag("deposittokens")) {
-            otOut << "(User has instructed to deposit individual cash "
-                     "tokens...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizeDeposit, theMessage, *pMyNym,
-                        *pServerContract, pMyAccount)) {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing deposit cash tokens command in "
-                         "ProcessMessage.\n";
-        }
         else if (opt->getFlag('i') || opt->getFlag("inbox")) {
             cerr << "DISPLAY INBOX CONTENTS HERE... (When I code this. What "
                     "can I "
@@ -2218,23 +2203,6 @@ int32_t main(int32_t argc, char* argv[])
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                         OTClient::notarizePurse, theMessage, *pMyNym,
-                        *pServerContract, nullptr)) {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing deposit command in ProcessMessage: "
-                      << buf[0] << "\n";
-
-        }
-
-        // deposit tokens
-        else if (buf[0] == 'd') {
-            otOut << "(User has instructed to deposit cash tokens...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::notarizeDeposit, theMessage, *pMyNym,
                         *pServerContract, nullptr)) {
                 bSendCommand = true;
             }

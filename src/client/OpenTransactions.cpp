@@ -9665,6 +9665,8 @@ int32_t OT_API::notarizeDeposit(const OTIdentifier& SERVER_ID,
                                 const OTIdentifier& ACCT_ID,
                                 const OTString& THE_PURSE) const
 {
+    // Request the server to accept some digital cash and
+    // deposit it to an asset account.
     OTString strPurseReason(
         "Depositing a cash purse. Enter passphrase for the purse.");
     OTPasswordData thePWDataWallet(
