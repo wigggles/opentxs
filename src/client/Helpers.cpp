@@ -137,7 +137,7 @@
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTMessage.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/OTLog.hpp>
 
 namespace opentxs

@@ -134,7 +134,7 @@
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
 #include <opentxs/core/util/Common.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 #include <memory>
 

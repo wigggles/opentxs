@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTSTRINGXML_HPP
 #define OPENTXS_CORE_OTSTRINGXML_HPP
 
-#include "OTString.hpp"
+#include "String.hpp"
 
 namespace irr
 {

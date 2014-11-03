@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 #define OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {

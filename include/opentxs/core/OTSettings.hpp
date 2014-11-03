@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTSETTINGS_HPP
 #define OPENTXS_CORE_OTSETTINGS_HPP
 
-#include "OTString.hpp"
+#include "String.hpp"
 
 namespace opentxs
 {

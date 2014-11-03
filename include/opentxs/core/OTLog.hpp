@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTLOG_HPP
 #define OPENTXS_CORE_OTLOG_HPP
 
-#include "OTString.hpp"
+#include "String.hpp"
 #include "util/Assert.hpp"
 
 #include <deque>

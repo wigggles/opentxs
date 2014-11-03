@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASCIIARMOR_HPP
 #define OPENTXS_CORE_CRYPTO_OTASCIIARMOR_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 
 #include <memory>
 

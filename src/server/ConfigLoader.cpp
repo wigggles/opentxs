@@ -132,7 +132,7 @@
 
 #include <opentxs/server/ConfigLoader.hpp>
 #include <opentxs/server/ServerSettings.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/cron/OTCron.hpp>

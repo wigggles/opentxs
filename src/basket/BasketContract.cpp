@@ -135,7 +135,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/OTContract.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/OTLog.hpp>
 
 #include <irrxml/irrXML.hpp>

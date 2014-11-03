@@ -143,7 +143,7 @@
 #include <opentxs/core/OTMessage.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/util/OTFolders.hpp>

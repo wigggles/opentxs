@@ -135,7 +135,7 @@
 
 #include "OTCrypto.hpp"
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 #include <mutex>

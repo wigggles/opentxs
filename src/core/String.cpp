@@ -130,7 +130,7 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/OTContract.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>

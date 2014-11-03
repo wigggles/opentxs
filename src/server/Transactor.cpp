@@ -138,7 +138,7 @@
 #include <opentxs/core/OTAccount.hpp>
 #include <opentxs/core/OTIdentifier.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/OTLog.hpp>
 

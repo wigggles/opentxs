@@ -132,7 +132,7 @@
 
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/OTLedger.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTStorage.hpp>

@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
 
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 #include <mutex>

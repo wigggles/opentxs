@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTAGENT_HPP
 #define OPENTXS_CORE_SCRIPT_OTAGENT_HPP
 
-#include <opentxs/core/OTString.hpp>
+#include <opentxs/core/String.hpp>
 #include <map>
 
 namespace opentxs
