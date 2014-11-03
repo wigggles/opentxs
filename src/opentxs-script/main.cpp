@@ -1665,21 +1665,6 @@ int32_t main(int32_t argc, char* argv[])
                 otErr << "Error processing getAccount command in "
                          "ProcessMessage.\n";
         }
-        else if (opt->getFlag("refreshnym")) {
-            otOut << "(User has instructed to download intermediary files "
-                     "for a Nym...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getNymbox, theMessage, *pMyNym,
-                        *pServerContract, nullptr)) {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing getNymbox command in "
-                         "ProcessMessage.\n";
-        }
 
         //
         const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
@@ -2236,26 +2221,6 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error in processNymbox command in ProcessMessage: "
                       << strLine << "\n";
-
-        }
-
-        // get nymbox
-        else if (buf[0] == 'y') {
-            otOut << "(User has instructed to send a getNymbox command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getNymbox, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing getNymbox command in "
-                         "ProcessMessage: " << buf[0] << "\n";
 
         }
 

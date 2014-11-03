@@ -9172,35 +9172,6 @@ int32_t OTClient::ProcessUserCommand(
         bSendCommand = true;
         lReturnValue = lRequestNumber;
     } break;
-    case OTClient::getNymbox: // GET NYMBOX
-    {
-
-        // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
-        theMessage.m_strRequestNum.Format(
-            "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
-                                                         // a server request, I
-                                                         // have to increment it
-
-        // (1) Set up member variables
-        theMessage.m_strCommand = "getNymbox";
-        theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
-        theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strServerID is
-                                               // already set. (It uses it.)
-
-        // (2) Sign the Message
-        theMessage.SignContract(theNym);
-
-        // (3) Save the Message (with signatures and all, back to its internal
-        // member m_strRawFile.)
-        theMessage.SaveContract();
-
-        bSendCommand = true;
-        lReturnValue = lRequestNumber;
-    } break;
     case OTClient::getInbox: // GET INBOX
     {
 

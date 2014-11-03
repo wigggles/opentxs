@@ -12532,6 +12532,9 @@ int32_t OT_API::notarizeTransfer(const OTIdentifier& SERVER_ID,
 int32_t OT_API::getNymbox(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& USER_ID) const
 {
+    // Grab a copy of my nymbox (contains messages and new
+    // transaction numbers)
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
