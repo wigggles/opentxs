@@ -10276,6 +10276,9 @@ int32_t OT_API::withdrawVoucher(const OTIdentifier& SERVER_ID,
                                 const OTString& CHEQUE_MEMO,
                                 const int64_t& AMOUNT) const
 {
+    // Request the server to withdraw from an asset account
+    // and issue a voucher (cashier's cheque)
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);

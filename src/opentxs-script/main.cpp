@@ -1473,27 +1473,6 @@ int32_t main(int32_t argc, char* argv[])
                 pMyAccount, lAmount, nullptr, // asset contract
                 (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr);
         }
-        else if (opt->getValue('v') != nullptr ||
-                   opt->getValue("voucher") != nullptr) {
-            otOut << "(User has instructed to withdraw a voucher...)\n";
-
-            const int64_t lAmount = OTString::StringToLong(opt->getValue('v'));
-
-            OTIdentifier HIS_NYM_ID((str_HisNym.size() > 0) ? str_HisNym.c_str()
-                                                            : "aaaaaaaa");
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::withdrawVoucher, theMessage, *pMyNym,
-                        *pServerContract, pMyAccount, lAmount,
-                        nullptr, // asset contract
-                        (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr)) {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing withdraw voucher command in "
-                         "ProcessMessage.\n";
-
-        }
 
         // make an offer and put it onto a market.
         else if (opt->getValue("marketoffer") != nullptr) {
@@ -2209,26 +2188,6 @@ int32_t main(int32_t argc, char* argv[])
             else
                 otErr << "Error processing deposit command in ProcessMessage: "
                       << buf[0] << "\n";
-
-        }
-
-        // withdraw voucher
-        else if (buf[0] == 'v') {
-            otOut << "User has instructed to withdraw a voucher (like a "
-                     "cashier's cheque)...\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::withdrawVoucher, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing withdraw voucher command in "
-                         "ProcessMessage: " << buf[0] << "\n";
 
         }
 
