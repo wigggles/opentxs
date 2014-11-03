@@ -8101,7 +8101,6 @@ int32_t OTClient::ProcessUserCommand(
         }
     }
 
-    bool bSendCommand = false;
     int64_t lReturnValue = 0;
 
     // THE BIG SWITCH (inside a code block for neatness
@@ -8143,7 +8142,6 @@ int32_t OTClient::ProcessUserCommand(
         // version to its member, m_strRawFile
         theMessage.SaveContract();
 
-        bSendCommand = true;
         lReturnValue = 1;
 
     } break;
@@ -8250,7 +8248,6 @@ int32_t OTClient::ProcessUserCommand(
             // internal member m_strRawFile.)
             theMessage.SaveContract();
 
-            bSendCommand = true;
             lReturnValue = 1;
         }
     } break;
@@ -8273,7 +8270,6 @@ int32_t OTClient::ProcessUserCommand(
         // member m_strRawFile.)
         theMessage.SaveContract();
 
-        bSendCommand = true;
         lReturnValue = 1;
     }
 
@@ -8333,7 +8329,6 @@ int32_t OTClient::ProcessUserCommand(
         // member m_strRawFile.)
         theMessage.SaveContract();
 
-        bSendCommand = true;
         lReturnValue = lRequestNumber;
     } break;
     /*
@@ -8395,7 +8390,6 @@ int32_t OTClient::ProcessUserCommand(
         // member m_strRawFile.)
         theMessage.SaveContract();
 
-        bSendCommand = true;
         lReturnValue = lRequestNumber;
     }
 
@@ -8757,7 +8751,6 @@ int32_t OTClient::ProcessUserCommand(
             // internal member m_strRawFile.)
             theMessage.SaveContract();
 
-            bSendCommand = true;
             lReturnValue = lRequestNumber;
         } // bSuccess
         else {
@@ -9001,7 +8994,6 @@ int32_t OTClient::ProcessUserCommand(
                     // its internal member m_strRawFile.)
                     theMessage.SaveContract();
 
-                    bSendCommand = true;
                     lReturnValue = lRequestNumber;
 
                 } // inbox/outbox loaded
@@ -9293,7 +9285,6 @@ int32_t OTClient::ProcessUserCommand(
             // internal member m_strRawFile.)
             theMessage.SaveContract();
 
-            bSendCommand = true;
             lReturnValue = lRequestNumber;
         }
         else {
@@ -9340,332 +9331,8 @@ int32_t OTClient::ProcessUserCommand(
         // member m_strRawFile.)
         theMessage.SaveContract();
 
-        bSendCommand = true;
         lReturnValue = lRequestNumber;
     } break;
-    case OTClient::marketOffer: // PUT AN OFFER ON A MARKET
-    {
-        if (theNym.GetTransactionNumCount(strServerID) < 3) {
-            otOut << "You need at least 3 transaction numbers to do this (You "
-                     "don't have enough.)\n";
-        }
-        else {
-            int64_t lStoredTransactionNumber = 0,
-                    lClosingTransactionNoAssetAcct = 0,
-                    lClosingTransactionNoCurrencyAcct = 0;
-            bool bGotTransNum = theNym.GetNextTransactionNum(
-                theNym, strServerID, lStoredTransactionNumber, false);
-            bool bGotClosingNumAssetAcct = theNym.GetNextTransactionNum(
-                theNym, strServerID, lClosingTransactionNoAssetAcct, false);
-            bool bGotClosingNumCurrencyAcct = theNym.GetNextTransactionNum(
-                theNym, strServerID, lClosingTransactionNoCurrencyAcct, true);
-
-            if (!bGotTransNum || !bGotClosingNumAssetAcct ||
-                !bGotClosingNumCurrencyAcct) {
-                otOut << "Strange... had enough transcation numbers, but error "
-                         "trying to get one (or both.)\n";
-
-                if (bGotTransNum)
-                    theNym.AddTransactionNum(theNym, strServerID,
-                                             lStoredTransactionNumber, false);
-
-                if (bGotClosingNumAssetAcct)
-                    theNym.AddTransactionNum(theNym, strServerID,
-                                             lClosingTransactionNoAssetAcct,
-                                             false);
-
-                if (bGotClosingNumCurrencyAcct)
-                    theNym.AddTransactionNum(theNym, strServerID,
-                                             lClosingTransactionNoCurrencyAcct,
-                                             false);
-
-                if (bGotTransNum || bGotClosingNumAssetAcct ||
-                    bGotClosingNumCurrencyAcct)
-                    theNym.SaveSignedNymfile(theNym);
-            }
-            else {
-                OTString str_ASSET_TYPE_ID, str_CURRENCY_TYPE_ID,
-                    str_ASSET_ACCT_ID, str_CURRENCY_ACCT_ID;
-
-                // FIRST get the Asset Type ID
-                otOut << "Enter the Asset Type ID of the market you want to "
-                         "trade in: ";
-                str_ASSET_TYPE_ID.OTfgets(std::cin);
-
-                // THEN GET AN ACCOUNT ID FOR THAT ASSET TYPE
-                otOut << "Enter an ACCOUNT ID of yours for an account of the "
-                         "same asset type: ";
-                str_ASSET_ACCT_ID.OTfgets(std::cin);
-
-                // NEXT get the Currency Type ID (which is also an asset type
-                // ID, FYI.)
-                // The trader just chooses one of them to be the "asset" and the
-                // other, the "currency".
-                otOut << "Enter the Currency Type ID of the market you want to "
-                         "trade in: ";
-                str_CURRENCY_TYPE_ID.OTfgets(std::cin);
-
-                // THEN GET AN ACCOUNT ID FOR THAT CURRENCY TYPE
-                otOut << "Enter an ACCOUNT ID of yours, for an account of that "
-                         "same currency type: ";
-                str_CURRENCY_ACCT_ID.OTfgets(std::cin);
-
-                // Get a few int64_t integers that we need...
-
-                OTString strTemp;
-                int64_t lTotalAssetsOnOffer = 0, lMinimumIncrement = 0,
-                        lPriceLimit = 0;
-
-                otOut << "What is the market granularity (or 'scale')? [1]: ";
-                strTemp.Release();
-                strTemp.OTfgets(std::cin);
-                int64_t lMarketScale = strTemp.ToLong();
-
-                if (lMarketScale < 1) lMarketScale = 1;
-
-                otOut << "What is the minimum increment per trade? (will be "
-                         "multiplied by the scale) [1]: ";
-                strTemp.Release();
-                strTemp.OTfgets(std::cin);
-                lMinimumIncrement = strTemp.ToLong();
-
-                lMinimumIncrement *= lMarketScale;
-
-                // In case they entered 0.
-                if (lMinimumIncrement < 1) lMinimumIncrement = lMarketScale;
-
-                otOut << "How many assets total do you have available for sale "
-                         "or purchase?\n(Will be multiplied by minimum "
-                         "increment) [1]: ";
-                strTemp.Release();
-                strTemp.OTfgets(std::cin);
-                lTotalAssetsOnOffer = strTemp.ToLong();
-
-                //              lTotalAssetsOnOffer *= lMinimumIncrement;  //
-                // this was a bug.
-
-                if (lTotalAssetsOnOffer < 1)
-                    lTotalAssetsOnOffer = lMinimumIncrement;
-
-                for (;;) {
-                    otOut << "The Market Scale is: " << lMarketScale
-                          << "\nWhat is your price limit, in currency, PER "
-                             "SCALE of assets?\nThat is, what is the lowest "
-                             "amount of currency you'd sell for, (if "
-                             "selling)\nOr the highest amount you'd pay (if "
-                             "you are buying).\nAgain, PER SCALE: ";
-                    strTemp.Release();
-                    strTemp.OTfgets(std::cin);
-                    lPriceLimit = strTemp.ToLong();
-
-                    if (lPriceLimit < 1)
-                        otOut << "Price must be at least 1.\n\n";
-                    else
-                        break;
-                }
-
-                // which direction is the offer? Buy or sell?
-                bool bBuyingOrSelling;
-                OTString strDirection;
-                otOut << "Are you in the market to buy the asset type, or to "
-                         "sell? [buy]: ";
-                strDirection.OTfgets(std::cin);
-
-                if (strDirection.Compare("sell") ||
-                    strDirection.Compare("Sell"))
-                    bBuyingOrSelling = true;
-                else
-                    bBuyingOrSelling = false;
-
-                OTIdentifier USER_ID(strNymID),
-                    ASSET_TYPE_ID(str_ASSET_TYPE_ID),
-                    CURRENCY_TYPE_ID(str_CURRENCY_TYPE_ID),
-                    ASSET_ACCT_ID(str_ASSET_ACCT_ID),
-                    CURRENCY_ACCT_ID(str_CURRENCY_ACCT_ID);
-
-                OTOffer theOffer(SERVER_ID, ASSET_TYPE_ID, CURRENCY_TYPE_ID,
-                                 lMarketScale);
-
-                bool bCreateOffer = theOffer.MakeOffer(
-                    bBuyingOrSelling,    // True == SELLING, False == BUYING
-                    lPriceLimit,         // Per Minimum Increment...
-                    lTotalAssetsOnOffer, // Total assets available for sale or
-                                         // purchase.
-                    lMinimumIncrement,   // The minimum increment that must be
-                                         // bought or sold for each transaction
-                    lStoredTransactionNumber); // Transaction number matches on
-                                               // transaction, item, offer, and
-                                               // trade.
-
-                if (bCreateOffer) {
-                    bCreateOffer = theOffer.SignContract(theNym);
-
-                    if (bCreateOffer) bCreateOffer = theOffer.SaveContract();
-                }
-
-                OTTrade theTrade(SERVER_ID, ASSET_TYPE_ID, ASSET_ACCT_ID,
-                                 USER_ID, CURRENCY_TYPE_ID, CURRENCY_ACCT_ID);
-
-                bool bIssueTrade = theTrade.IssueTrade(theOffer);
-
-                if (bIssueTrade) {
-                    theTrade.AddClosingTransactionNo(
-                        lClosingTransactionNoAssetAcct);
-                    theTrade.AddClosingTransactionNo(
-                        lClosingTransactionNoCurrencyAcct);
-
-                    bIssueTrade = theTrade.SignContract(theNym);
-
-                    if (bIssueTrade) bIssueTrade = theTrade.SaveContract();
-                }
-
-                if (bCreateOffer && bIssueTrade) {
-                    // Create a transaction
-                    OTTransaction* pTransaction =
-                        OTTransaction::GenerateTransaction(
-                            USER_ID, ASSET_ACCT_ID, SERVER_ID,
-                            OTTransaction::marketOffer,
-                            lStoredTransactionNumber);
-
-                    // set up the transaction item (each transaction may have
-                    // multiple items...)
-                    OTItem* pItem = OTItem::CreateItemFromTransaction(
-                        *pTransaction, OTItem::marketOffer,
-                        &CURRENCY_ACCT_ID); // the "To" account (normally used
-                                            // for a TRANSFER transaction) is
-                                            // used here
-                    // storing the Currency Acct ID. The Server will expect the
-                    // Trade object bundled
-                    // within this item to have an Asset Acct ID and "Currency"
-                    // Acct ID that match
-                    // those on this Item. Otherwise it will reject the offer.
-
-                    OT_ASSERT(nullptr != pItem);
-
-                    OTString strTrade;
-                    theTrade.SaveContractRaw(strTrade);
-
-                    // Add the trade string as the attachment on the transaction
-                    // item.
-                    pItem->SetAttachment(strTrade); // The trade is contained in
-                                                    // the attachment string.
-                                                    // (The offer is within the
-                                                    // trade.)
-
-                    // sign the item
-                    pItem->SignContract(theNym);
-                    pItem->SaveContract();
-
-                    // the Transaction "owns" the item now and will handle
-                    // cleaning it up.
-                    pTransaction->AddItem(*pItem); // the Transaction's
-                                                   // destructor will cleanup
-                                                   // the item. It "owns" it
-                                                   // now.
-
-                    // TRANSACTION AGREEMENT
-
-                    // pBalanceItem is signed and saved within this call. No
-                    // need to do that again.
-                    OTItem* pStatementItem =
-                        theNym.GenerateTransactionStatement(*pTransaction);
-
-                    if (nullptr !=
-                        pStatementItem) // will never be nullptr. Will
-                                        // assert above before it gets
-                                        // here.
-                        pTransaction->AddItem(*pStatementItem); // Better not be
-                                                                // nullptr...
-                                                                // message will
-                                                                // fail... But
-                                                                // better check
-                                                                // anyway.
-
-                    // sign the transaction
-                    pTransaction->SignContract(theNym);
-                    pTransaction->SaveContract();
-
-                    // set up the ledger
-                    OTLedger theLedger(USER_ID, ASSET_ACCT_ID, SERVER_ID);
-                    theLedger.GenerateLedger(
-                        ASSET_ACCT_ID, SERVER_ID,
-                        OTLedger::message); // bGenerateLedger defaults to
-                                            // false, which is correct.
-                    theLedger.AddTransaction(*pTransaction); // now the ledger
-                                                             // "owns" and will
-                                                             // handle cleaning
-                                                             // up the
-                                                             // transaction.
-
-                    // sign the ledger
-                    theLedger.SignContract(theNym);
-                    theLedger.SaveContract();
-
-                    // extract the ledger in ascii-armored form... encoding...
-                    OTString strLedger(theLedger);
-                    OTASCIIArmor ascLedger(strLedger);
-
-                    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-                    theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
-                    theMessage.m_strRequestNum.Format(
-                        "%" PRId64 "",
-                        lRequestNumber); // Always have to send this.
-                    theNym.IncrementRequestNum(
-                        theNym, strServerID); // since I used it for a server
-                                              // request, I have to increment it
-
-                    // (1) Set up member variables
-                    theMessage.m_strCommand = "notarizeTransactions";
-                    theMessage.m_strNymID = strNymID;
-                    theMessage.m_strServerID = strServerID;
-                    theMessage.SetAcknowledgments(
-                        theNym); // Must be called AFTER
-                                 // theMessage.m_strServerID is already set. (It
-                                 // uses it.)
-
-                    theMessage.m_strAcctID = str_ASSET_ACCT_ID;
-                    theMessage.m_ascPayload = ascLedger;
-
-                    OTIdentifier NYMBOX_HASH;
-                    const std::string str_server(strServerID.Get());
-                    const bool bNymboxHash =
-                        theNym.GetNymboxHash(str_server, NYMBOX_HASH);
-
-                    if (bNymboxHash)
-                        NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
-                    else
-                        otErr
-                            << "Failed getting NymboxHash from Nym for server: "
-                            << str_server << "\n";
-
-                    // (2) Sign the Message
-                    theMessage.SignContract(theNym);
-
-                    // (3) Save the Message (with signatures and all, back to
-                    // its internal member m_strRawFile.)
-                    theMessage.SaveContract();
-
-                    bSendCommand = true;
-                    lReturnValue = lRequestNumber;
-                }
-
-                if (!bSendCommand) {
-                    // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
-                    // AVAILABLE NUMBERS.
-                    theNym.AddTransactionNum(theNym, strServerID,
-                                             lStoredTransactionNumber,
-                                             false); // bSave=true
-                    theNym.AddTransactionNum(theNym, strServerID,
-                                             lClosingTransactionNoAssetAcct,
-                                             false); // bSave=true
-                    theNym.AddTransactionNum(theNym, strServerID,
-                                             lClosingTransactionNoCurrencyAcct,
-                                             true); // bSave=true
-                }
-            } // Got Transaction Num
-        }
-    } // else if (OTClient::marketOffer == requestedCommand) // MARKET OFFER
-    break;
     case OTClient::signContract: // Sign a CONTRACT. (Sends no message to
                                  // server.)
         {

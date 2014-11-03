@@ -1473,39 +1473,6 @@ int32_t main(int32_t argc, char* argv[])
                 pMyAccount, lAmount, nullptr, // asset contract
                 (str_HisNym.size() > 0) ? &HIS_NYM_ID : nullptr);
         }
-
-        // make an offer and put it onto a market.
-        else if (opt->getValue("marketoffer") != nullptr) {
-            otOut << "(User has instructed to send a marketOffer command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::marketOffer, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // for now, keeping it simple.
-                                  // Can add options later.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing marketOffer command in "
-                         "ProcessMessage.\n";
-        }
-
-        /*
-                bool ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
-                  OTMessage & theMessage,
-                  OTPseudonym & theNym,
-      //          OTAssetContract & theContract,
-                  OTServerContract & theServer,
-                  OTAccount * pAccount=nullptr,
-                  int64_t lTransactionAmount = 0,
-                  OTAssetContract * pMyAssetType=nullptr,
-                  OTIdentifier * pHisAcctID=nullptr,
-                  OTIdentifier * pHisNymID=nullptr);
-                */
         else if (opt->getFlag("proposepaymentplan")) {
             otOut << "(User has instructed to propose a payment plan...)\n";
 
@@ -2121,26 +2088,6 @@ int32_t main(int32_t argc, char* argv[])
         // ALL MESSAGES BELOW THIS POINT SHOULD ATTACH A REQUEST NUMBER IF THEY
         // EXPECT THE SERVER TO PROCESS THEM.
         // (Handled inside ProcessUserCommand)
-
-        // make an offer and put it onto a market.
-        else if (!strcmp(buf, "offer\n")) {
-            otOut << "(User has instructed to send a marketOffer command to "
-                     "the server...)\n";
-
-            // if successful setting up the command payload...
-
-            if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::marketOffer, theMessage, *pMyNym,
-                        *pServerContract,
-                        nullptr)) // nullptr pAccount on this command.
-            {
-                bSendCommand = true;
-            }
-            else
-                otErr << "Error processing marketOffer command in "
-                         "ProcessMessage: " << buf << "\n";
-
-        }
 
         // sign contract
         // This doesn't message the server, but it DOES require the user's Nym

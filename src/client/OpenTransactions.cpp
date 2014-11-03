@@ -11762,6 +11762,14 @@ int32_t OT_API::issueMarketOffer(
     int64_t ACTIVATION_PRICE) const       // For stop orders, this is
                                           // threshhold price.
 {
+    // Create an Offer object and add it to one of the server's
+    // Market objects.
+    // This will also create a Trade object and add it to the server's Cron
+    // object.
+    // (The Trade provides the payment authorization for the Offer, as well
+    // as the rules
+    // for processing and expiring it.)
+
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);

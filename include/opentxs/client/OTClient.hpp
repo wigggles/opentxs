@@ -306,13 +306,6 @@ public:
                        // at once instead of sending individual tokens.
         notarizeCheque, // Deposit like the above, but deposits a cheque instead
                         // of cash tokens.
-        marketOffer, // Create an Offer object and add it to one of the server's
-                     // Market objects.
-        // This will also create a Trade object and add it to the server's Cron
-        // object.
-        // (The Trade provides the payment authorization for the Offer, as well
-        // as the rules
-        // for processing and expiring it.)
         paymentPlan, // Send a payment plan to the server (request to activate
                      // one onto yourself, basically.)
         // The test client will ask you to input the plan, which you must
