@@ -1544,13 +1544,6 @@ int32_t main(int32_t argc, char* argv[])
                     "can I "
                     "say? Use the GUI.)" << endl;
         }
-        else if (opt->getFlag('s') || opt->getFlag("sign")) {
-            otOut << "(User has instructed to sign a contract...)\n";
-
-            OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                OTClient::signContract, theMessage, *pMyNym, *pServerContract,
-                nullptr);
-        }
         else if (opt->getFlag('p') || opt->getFlag("purse")) {
             cerr << "User wants to display purse contents (not coded yet here.)"
                  << endl;
@@ -2088,18 +2081,6 @@ int32_t main(int32_t argc, char* argv[])
         // ALL MESSAGES BELOW THIS POINT SHOULD ATTACH A REQUEST NUMBER IF THEY
         // EXPECT THE SERVER TO PROCESS THEM.
         // (Handled inside ProcessUserCommand)
-
-        // sign contract
-        // This doesn't message the server, but it DOES require the user's Nym
-        // to be loaded.
-        else if (!strcmp(buf, "signcontract\n")) {
-            otOut << "(User has instructed to sign a contract...)\n";
-
-            OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                OTClient::signContract, theMessage, *pMyNym, *pServerContract,
-                nullptr);
-            continue;
-        }
 
         // Nym, Account, Server ID, Server Contract
 
