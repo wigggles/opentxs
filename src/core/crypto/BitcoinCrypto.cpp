@@ -138,9 +138,13 @@
 namespace opentxs
 {
 
+// Rationale for prefix "ot" (and not "OT"):
+// part of the base58 alphabet, like the string that follows.
+// The chosen version byte, 137, is unused by Bitcoin, so the part
+// following the prefix is not a valid BTC address.
 IdentifierFormat::IdentifierFormat()
-    : prefix_("OT-")
-    , versionByte_(0)
+    : prefix_("ot")
+    , versionByte_(137)
 {
 }
 
@@ -151,7 +155,6 @@ bool IdentifierFormat::SetString(const std::string& str)
         // Prefix does not match.
         return false;
     }
-
     // The base function does base58 check decoding and checksum checking.
     return CBase58Data::SetString(str.substr(prefix_.size()));
 }
