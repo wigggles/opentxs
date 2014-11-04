@@ -937,7 +937,7 @@ bool OTCrypto_OpenSSL::GetPasswordFromConsoleLowLevel(
                 if (wstrENTER == wstrCH) break;
                 wstrPass.append(wstrCH);
             }
-            strPassword = OTString::ws2s(wstrPass);
+            strPassword = String::ws2s(wstrPass);
 
 #else
 

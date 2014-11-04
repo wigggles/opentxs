@@ -239,7 +239,7 @@ public:
 #ifdef _WIN32
 
     EXPORT static bool Win_GetInstallFolderFromRegistry(
-        OTString& out_InstallFolderPath);
+        String& out_InstallFolderPath);
 
 #endif
 

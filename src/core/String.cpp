@@ -356,7 +356,7 @@ std::string String::replace_chars(const std::string& str,
 
 #ifdef _WIN32
 
-std::wstring OTString::s2ws(const std::string& s)
+std::wstring String::s2ws(const std::string& s)
 {
     int32_t len;
     int32_t slength = (int32_t)s.length() + 1;
@@ -366,7 +366,7 @@ std::wstring OTString::s2ws(const std::string& s)
     return r;
 }
 
-std::string OTString::ws2s(const std::wstring& s)
+std::string String::ws2s(const std::wstring& s)
 {
     int32_t len;
     int32_t slength = (int32_t)s.length() + 1;
