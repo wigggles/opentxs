@@ -378,7 +378,7 @@ bool OTPaths::LoadSetPrefixFolder  // eg. /usr/local/
             }
 
 #ifdef _WIN32
-            OTString strTemp;
+            String strTemp;
             if (OTPaths::Win_GetInstallFolderFromRegistry(strTemp)) {
                 strDefaultPrefixPath = strTemp;
             }
@@ -1117,7 +1117,7 @@ bool OTPaths::GetHomeFromSystem(String& out_strHomeFolder)
 #ifdef _WIN32
 
 // static
-bool OTPaths::Win_GetInstallFolderFromRegistry(OTString& out_InstallFolderPath)
+bool OTPaths::Win_GetInstallFolderFromRegistry(String& out_InstallFolderPath)
 {
     WindowsRegistryTools windowsRegistryTools;
 
@@ -1132,7 +1132,7 @@ bool OTPaths::Win_GetInstallFolderFromRegistry(OTString& out_InstallFolderPath)
                                          L"bad");
 
     if (bExistsAndSuccess && !bDoesNotExistsSpecifically) {
-        std::string strInstallPath(OTString::ws2s(strValueOfBinDir));
+        std::string strInstallPath(String::ws2s(strValueOfBinDir));
         out_InstallFolderPath.Set(strInstallPath.c_str());
 
         return true;

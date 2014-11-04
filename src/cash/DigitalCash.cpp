@@ -185,7 +185,7 @@ LucreDumper::LucreDumper()
 {
 #ifdef _WIN32
 #ifdef _DEBUG
-    OTString strOpenSSLDumpFilename("openssl.dumpfile"), strOpenSSLDumpFilePath,
+    String strOpenSSLDumpFilename("openssl.dumpfile"), strOpenSSLDumpFilePath,
         strDataPath; // todo security. We shouldn't necessarily be dumping this
                      // info to file AT ALL.
     bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);

@@ -147,7 +147,9 @@
 #include <opentxs/core/util/stacktrace.h>
 
 // BIO_get_mem_data() macro from OpenSSL uses old style cast
+#ifndef _WIN32
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 namespace opentxs
 {

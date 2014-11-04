@@ -218,7 +218,7 @@ public:                                           // PASSWORD CALLBACK
     {
         return (nullptr == s_pwCallback) ? false : true;
     }
-    static bool SetPasswordCaller(OTCaller& theCaller);
+    EXPORT static bool SetPasswordCaller(OTCaller& theCaller);
     static OTCaller* GetPasswordCaller();
 
 protected: // PASSWORD CALLBACK
