@@ -910,6 +910,13 @@ static const bool SET_TERMINATE = std::set_terminate(ot_terminate);
 // This is our custom std::terminate(). Also called for uncaught exceptions.
 void ot_terminate()
 {
+// exception header is needed, on latter android NDK the header is not available
+// see https://code.google.com/p/android/issues/detail?id=62648
+#ifndef _EXCEPTION_PTR_H
+#ifndef ANDROID
+#error "it is expected that only android is missing exception header"
+#endif
+#else
     if (auto e = std::current_exception()) {
         try {
             std::rethrow_exception(e);
@@ -925,7 +932,7 @@ void ot_terminate()
                       << " caught unknown/unhandled exception." << std::endl;
         }
     }
-
+#endif
     print_stacktrace();
 
     // Call the default std::terminate() handler.
