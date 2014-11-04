@@ -539,10 +539,14 @@ char* OTCrypto_OpenSSL::Base64Encode(const uint8_t* input, int32_t in_len,
 
         if (BIO_write(b64join, input, in_len) == in_len) {
             (void)BIO_flush(b64join);
+#ifndef _WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
             BIO_get_mem_ptr(b64join, &bptr);
+#ifndef _WIN32
 #pragma GCC diagnostic pop
+#endif
             //    otLog5 << "DEBUG base64_encode size: %" PRId64 ",  in_len:
             // %" PRId64 "\n", bptr->length+1, in_len);
             buf = new char[bptr->length + 1];

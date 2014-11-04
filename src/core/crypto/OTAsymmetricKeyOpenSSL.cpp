@@ -149,7 +149,9 @@
 
 // BIO_get_mem_ptr() and BIO_get_mem_data() macros from OpenSSL
 // use old style cast
+#ifndef _WIN32
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 namespace
 {
