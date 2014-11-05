@@ -1325,8 +1325,8 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
 
     // Load up the party's account so we can get the balance.
     //
-    OTAccount* pPartyAssetAcct =
-        OTAccount::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+    Account* pPartyAssetAcct =
+        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::GetAcctBalance: ERROR verifying existence "
@@ -1347,7 +1347,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
         return 0;
     }
     // Past this point we know pPartyAssetAcct is good and will clean itself up.
-    std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pPartyAssetAcct);
+    std::unique_ptr<Account> theSourceAcctSmrtPtr(pPartyAssetAcct);
 
     String strBalance;
     strBalance.Format("%" PRId64, pPartyAssetAcct->GetBalance());
@@ -1542,8 +1542,8 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
 
     // Load up the party's account and get the asset type.
     //
-    OTAccount* pPartyAssetAcct =
-        OTAccount::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+    Account* pPartyAssetAcct =
+        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::GetAssetTypeIDofAcct: ERROR verifying "
@@ -1564,7 +1564,7 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
         return str_return_value;
     }
     // Past this point we know pPartyAssetAcct is good and will clean itself up.
-    std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pPartyAssetAcct);
+    std::unique_ptr<Account> theSourceAcctSmrtPtr(pPartyAssetAcct);
 
     const String strAssetTypeID(pPartyAssetAcct->GetAssetTypeID());
     str_return_value = strAssetTypeID.Get();
@@ -2278,8 +2278,8 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     // Load up the party's account and get the asset type, so we know which
     // stash to get off the stash.
     //
-    OTAccount* pPartyAssetAcct =
-        OTAccount::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+    Account* pPartyAssetAcct =
+        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::StashFunds: ERROR verifying existence of "
@@ -2300,7 +2300,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
     // Past this point we know pPartyAssetAcct is good and will clean itself up.
-    std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pPartyAssetAcct);
+    std::unique_ptr<Account> theSourceAcctSmrtPtr(pPartyAssetAcct);
 
     //
     // There could be many stashes, each with a name. (One was passed in
@@ -2364,7 +2364,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     bool bWasAcctCreated = false; // GetOrCreateAccount() will verifyContractID
                                   // and verifySignature on the account
                                   // internally.
-    std::shared_ptr<OTAccount> pStashAccount = m_StashAccts.GetOrCreateAccount(
+    std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrCreateAccount(
         *pServerNym, SERVER_USER_ID, pPartyAssetAcct->GetAssetTypeID(),
         SERVER_ID, bWasAcctCreated, GetTransactionNum());
 
@@ -4352,8 +4352,7 @@ bool OTSmartContract::CanRemoveItemFromCron(OTPseudonym& theNym)
 // must be recorded. (Set bBurnTransNo to true if you want to enforce the stuff
 // about the opening and closing #s)
 //
-bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
-                                          OTAccount& theAcct,
+bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym, Account& theAcct,
                                           OTPseudonym& theServerNym,
                                           bool bBurnTransNo)
 {
@@ -4397,7 +4396,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym,
                                             // already instantiated before this
                                             // function was called.
     const String strAcctID(theAcct.GetRealAccountID());
-    map_Accts_Already_Loaded.insert(std::pair<std::string, OTAccount*>(
+    map_Accts_Already_Loaded.insert(std::pair<std::string, Account*>(
         strAcctID.Get(), &theAcct)); // now theAcct is on this map.
 
     mapOfAccounts map_Accts_Loaded_In_This_Function; // The total list of Accts
@@ -5129,7 +5128,7 @@ void OTSmartContract::CleanupAccts(mapOfAccounts& theMap)
 {
 
     while (!theMap.empty()) {
-        OTAccount* pAcct = theMap.begin()->second;
+        Account* pAcct = theMap.begin()->second;
         OT_ASSERT(nullptr != pAcct);
 
         delete pAcct;
@@ -5298,7 +5297,7 @@ OTStash* OTSmartContract::GetStash(std::string str_stash_name)
 
 OTSmartContract::OTSmartContract()
     : ot_super()
-    , m_StashAccts(OTAccount::stash)
+    , m_StashAccts(Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
     InitSmartContract();
@@ -5306,7 +5305,7 @@ OTSmartContract::OTSmartContract()
 
 OTSmartContract::OTSmartContract(const OTIdentifier& SERVER_ID)
     : ot_super()
-    , m_StashAccts(OTAccount::stash)
+    , m_StashAccts(Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
     OTInstrument::SetServerID(SERVER_ID);
@@ -6134,8 +6133,8 @@ bool OTSmartContract::MoveFunds(
 
     // LOAD THE ACCOUNTS
     //
-    OTAccount* pSourceAcct =
-        OTAccount::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID);
+    Account* pSourceAcct =
+        Account::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID);
 
     if (nullptr == pSourceAcct) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of source "
@@ -6144,10 +6143,10 @@ bool OTSmartContract::MoveFunds(
         return false;
     }
     // Past this point we know pSourceAcct is good and will clean itself up.
-    std::unique_ptr<OTAccount> theSourceAcctSmrtPtr(pSourceAcct);
+    std::unique_ptr<Account> theSourceAcctSmrtPtr(pSourceAcct);
 
-    OTAccount* pRecipientAcct =
-        OTAccount::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID);
+    Account* pRecipientAcct =
+        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID);
 
     if (nullptr == pRecipientAcct) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of "
@@ -6156,7 +6155,7 @@ bool OTSmartContract::MoveFunds(
         return false;
     }
     // Past this point we know pRecipientAcct is good and will clean itself up.
-    std::unique_ptr<OTAccount> theRecipAcctSmrtPtr(pRecipientAcct);
+    std::unique_ptr<Account> theRecipAcctSmrtPtr(pRecipientAcct);
 
     // BY THIS POINT, both accounts are successfully loaded, and I don't have to
     // worry about

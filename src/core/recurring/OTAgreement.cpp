@@ -135,7 +135,7 @@
 #include <opentxs/core/recurring/OTAgreement.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
@@ -516,7 +516,7 @@ bool OTAgreement::VerifyNymAsAgent(OTPseudonym& theNym,
 // This is an override. See note above.
 //
 bool OTAgreement::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                             OTAccount& theAccount) const
+                                             Account& theAccount) const
 {
     return theAccount.VerifyOwner(theNym);
 }

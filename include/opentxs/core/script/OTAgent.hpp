@@ -139,7 +139,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTAgent;
 class OTIdentifier;
 class OTParty;
@@ -263,7 +263,7 @@ public:
     // Verify that this agent somehow has legitimate agency over this account.
     // (According to the account.)
     //
-    bool VerifyAgencyOfAccount(const OTAccount& theAccount) const;
+    bool VerifyAgencyOfAccount(const Account& theAccount) const;
     bool VerifySignature(const OTContract& theContract) const; // Have the agent
                                                                // try
                                                                // to

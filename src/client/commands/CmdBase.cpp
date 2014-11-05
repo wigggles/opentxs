@@ -139,7 +139,7 @@
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OTWallet.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
@@ -173,7 +173,7 @@ bool CmdBase::checkAccount(const char* name, string& account) const
     }
 
     OTWallet* wallet = getWallet();
-    OTAccount* theAccount = wallet->GetAccount(account);
+    Account* theAccount = wallet->GetAccount(account);
     if (theAccount == nullptr) {
         theAccount = wallet->GetAccountPartialMatch(account);
         if (theAccount == nullptr) {

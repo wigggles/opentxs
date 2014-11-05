@@ -136,7 +136,7 @@
 
 #include <opentxs/cash/Purse.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
@@ -209,7 +209,7 @@ void OTWallet::Release()
     // 4) Go through the map of Accounts and delete them. (They were dynamically
     // allocated.)
     while (!m_mapAccounts.empty()) {
-        OTAccount* pAccount = m_mapAccounts.begin()->second;
+        Account* pAccount = m_mapAccounts.begin()->second;
 
         OT_ASSERT(nullptr != pAccount);
 
@@ -435,7 +435,7 @@ bool OTWallet::GetAccount(int32_t iIndex, OTIdentifier& THE_ID,
         int32_t iCurrentIndex = (-1);
 
         for (auto& it : m_mapAccounts) {
-            OTAccount* pAccount = it.second;
+            Account* pAccount = it.second;
             OT_ASSERT(nullptr != pAccount);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
@@ -501,7 +501,7 @@ void OTWallet::DisplayStatistics(String& strOutput)
     strOutput.Concatenate("ACCOUNTS:\n\n");
 
     for (auto& it : m_mapAccounts) {
-        OTAccount* pAccount = it.second;
+        Account* pAccount = it.second;
         OT_ASSERT_MSG(nullptr != pAccount, "nullptr account pointer in "
                                            "OTWallet::m_mapAccounts, "
                                            "OTWallet::DisplayStatistics");
@@ -556,7 +556,7 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
         (const_cast<OTPseudonym&>(theNym)).SetNymName(strName);
 }
 
-void OTWallet::AddAccount(const OTAccount& theAcct)
+void OTWallet::AddAccount(const Account& theAcct)
 {
     const OTIdentifier ACCOUNT_ID(theAcct);
 
@@ -566,7 +566,7 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
     OTIdentifier anAccountID;
 
     for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
-        OTAccount* pAccount = it->second;
+        Account* pAccount = it->second;
         OT_ASSERT(nullptr != pAccount);
 
         pAccount->GetIdentifier(anAccountID);
@@ -576,7 +576,7 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
             pAccount->GetName(strName);
 
             if (strName.Exists()) {
-                const_cast<OTAccount&>(theAcct).SetName(strName);
+                const_cast<Account&>(theAcct).SetName(strName);
             }
 
             m_mapAccounts.erase(it);
@@ -588,17 +588,17 @@ void OTWallet::AddAccount(const OTAccount& theAcct)
     }
 
     const String strAcctID(ACCOUNT_ID);
-    m_mapAccounts[strAcctID.Get()] = const_cast<OTAccount*>(&theAcct);
+    m_mapAccounts[strAcctID.Get()] = const_cast<Account*>(&theAcct);
 }
 
 // Look up an account by ID and see if it is in the wallet.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTAccount* OTWallet::GetAccount(const OTIdentifier& theAccountID)
+Account* OTWallet::GetAccount(const OTIdentifier& theAccountID)
 {
     // loop through the accounts and find one with a specific ID.
     //
     for (auto& it : m_mapAccounts) {
-        OTAccount* pAccount = it.second;
+        Account* pAccount = it.second;
         OT_ASSERT(nullptr != pAccount);
 
         OTIdentifier anAccountID;
@@ -610,14 +610,14 @@ OTAccount* OTWallet::GetAccount(const OTIdentifier& theAccountID)
     return nullptr;
 }
 
-OTAccount* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
-                                                                    // with the
-                                                                    // name,
-                                                                    // too.
+Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
+                                                                  // with the
+                                                                  // name,
+                                                                  // too.
 {
     // loop through the accounts and find one with a specific ID.
     for (auto& it : m_mapAccounts) {
-        OTAccount* pAccount = it.second;
+        Account* pAccount = it.second;
         OT_ASSERT(nullptr != pAccount);
 
         OTIdentifier anAccountID;
@@ -632,7 +632,7 @@ OTAccount* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
     // Okay, let's try it by name, then...
     //
     for (auto& it : m_mapAccounts) {
-        OTAccount* pAccount = it.second;
+        Account* pAccount = it.second;
         OT_ASSERT(nullptr != pAccount);
 
         String strName;
@@ -646,13 +646,13 @@ OTAccount* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
     return nullptr;
 }
 
-OTAccount* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
+Account* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
 {
     // loop through the accounts and find one with a specific asset type ID.
     // (And with the issuer type set.)
     //
     for (auto& it : m_mapAccounts) {
-        OTAccount* pIssuerAccount = it.second;
+        Account* pIssuerAccount = it.second;
         OT_ASSERT(nullptr != pIssuerAccount);
 
         if ((pIssuerAccount->GetAssetTypeID() == theAssetTypeID) &&
@@ -774,7 +774,7 @@ void OTWallet::AddAssetContract(const OTAssetContract& theContract)
     }
 }
 
-bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
+bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
                                   const OTIdentifier& SERVER_ID,
                                   const String& strAcctID,
                                   const char* szFuncName)
@@ -819,17 +819,17 @@ bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
 
 // No need to cleanup the account returned, it's owned by the wallet.
 //
-OTAccount* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
-                                      const OTIdentifier& ACCT_ID,
-                                      const OTIdentifier& SERVER_ID,
-                                      const char* szFuncName)
+Account* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
+                                    const OTIdentifier& ACCT_ID,
+                                    const OTIdentifier& SERVER_ID,
+                                    const char* szFuncName)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::GetOrLoadAccount";
 
     const String strAcctID(ACCT_ID);
 
-    OTAccount* pAccount = GetAccount(ACCT_ID);
+    Account* pAccount = GetAccount(ACCT_ID);
 
     if (nullptr ==
         pAccount) // It wasn't there already, so we'll have to load it...
@@ -860,16 +860,16 @@ OTAccount* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
 // from the server, and the one in the wallet is old, so now this function
 // is being called to load the new one from storage and update the wallet.
 //
-OTAccount* OTWallet::LoadAccount(const OTPseudonym& theNym,
-                                 const OTIdentifier& ACCT_ID,
-                                 const OTIdentifier& SERVER_ID,
-                                 const char* szFuncName)
+Account* OTWallet::LoadAccount(const OTPseudonym& theNym,
+                               const OTIdentifier& ACCT_ID,
+                               const OTIdentifier& SERVER_ID,
+                               const char* szFuncName)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::LoadAccount";
 
     const String strAcctID(ACCT_ID);
-    OTAccount* pAccount = OTAccount::LoadExistingAccount(ACCT_ID, SERVER_ID);
+    Account* pAccount = Account::LoadExistingAccount(ACCT_ID, SERVER_ID);
 
     // It loaded successfully...
     //
@@ -1185,7 +1185,7 @@ bool OTWallet::RemoveAccount(const OTIdentifier& theTargetID)
     OTIdentifier anAccountID;
 
     for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
-        OTAccount* pAccount = it->second;
+        Account* pAccount = it->second;
         OT_ASSERT(nullptr != pAccount);
 
         pAccount->GetIdentifier(anAccountID);
@@ -2006,8 +2006,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                     const OTIdentifier ACCOUNT_ID(AcctID), SERVER_ID(ServerID);
 
-                    OTAccount* pAccount =
-                        OTAccount::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
+                    Account* pAccount =
+                        Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
 
                     if (pAccount) {
                         pAccount->SetName(AcctName);

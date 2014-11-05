@@ -147,7 +147,7 @@ class OTServer;
 class OTPseudonym;
 class OTAssetContract;
 class OTIdentifier;
-class OTAccount;
+class Account;
 class MainFile;
 
 class Transactor
@@ -212,8 +212,7 @@ public:
     // server operator is free to
     // remove that total from the Voucher Account once the cheque has expired:
     // it is his money now.
-    std::shared_ptr<OTAccount> getVoucherAccount(
-        const OTIdentifier& assetTypeId);
+    std::shared_ptr<Account> getVoucherAccount(const OTIdentifier& assetTypeId);
 
     // Each asset contract has its own series of Mints
     Mint* getMint(const OTIdentifier& assetTypeId, int32_t seriesCount);

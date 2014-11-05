@@ -1441,12 +1441,12 @@ OTAssetContract* OT_API::GetAssetType(const OTIdentifier& THE_ID,
     return nullptr;
 }
 
-OTAccount* OT_API::GetAccount(const OTIdentifier& THE_ID,
-                              const char* szFunc) const
+Account* OT_API::GetAccount(const OTIdentifier& THE_ID,
+                            const char* szFunc) const
 {
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
-        OTAccount* pAcct = pWallet->GetAccount(THE_ID);
+        Account* pAcct = pWallet->GetAccount(THE_ID);
         if ((nullptr == pAcct) &&
             (nullptr != szFunc)) // We only log if the caller asked us to.
         {
@@ -1492,8 +1492,8 @@ OTAssetContract* OT_API::GetAssetContractPartialMatch(
     return nullptr;
 }
 
-OTAccount* OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID,
-                                          const char* szFuncName) const
+Account* OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID,
+                                        const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
@@ -2147,7 +2147,7 @@ bool OT_API::Wallet_CanRemoveServer(const OTIdentifier& SERVER_ID) const
         OTIdentifier accountID;
 
         OTAPI_Wrap::OTAPI()->GetAccount(i, accountID, strName);
-        OTAccount* pAccount =
+        Account* pAccount =
             OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
 
         OTIdentifier purportedServerID(pAccount->GetPurportedServerID());
@@ -2213,7 +2213,7 @@ bool OT_API::Wallet_CanRemoveAssetType(const OTIdentifier& ASSET_ID) const
         OTIdentifier accountID;
 
         OTAPI_Wrap::OTAPI()->GetAccount(i, accountID, strName);
-        OTAccount* pAccount =
+        Account* pAccount =
             OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
         OTIdentifier theTYPE_ID(pAccount->GetAssetTypeID());
 
@@ -2266,7 +2266,7 @@ bool OT_API::Wallet_CanRemoveNym(const OTIdentifier& NYM_ID) const
         String strName;
 
         OTAPI_Wrap::OTAPI()->GetAccount(i, accountID, strName);
-        OTAccount* pAccount =
+        Account* pAccount =
             OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
         OTIdentifier theNYM_ID(pAccount->GetUserID());
 
@@ -2340,7 +2340,7 @@ bool OT_API::Wallet_CanRemoveAccount(const OTIdentifier& ACCOUNT_ID) const
 
     const String strAccountID(ACCOUNT_ID);
 
-    OTAccount* pAccount =
+    Account* pAccount =
         OTAPI_Wrap::OTAPI()->GetAccount(ACCOUNT_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
     // Balance must be zero in order to close an account!
@@ -3836,7 +3836,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     const OTIdentifier theAcctID(ACCT_ID);
-    OTAccount* pAccount = GetAccount(theAcctID, __FUNCTION__);
+    Account* pAccount = GetAccount(theAcctID, __FUNCTION__);
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -4476,7 +4476,7 @@ bool OT_API::SetAccount_Name(const OTIdentifier& ACCT_ID,
     OTPseudonym* pSignerNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pSignerNym) return false;
-    OTAccount* pAccount =
+    Account* pAccount =
         GetAccount(ACCT_ID, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pAccount) return false;
     if (!ACCT_NEW_NAME.Exists()) // Any other validation to do on the name?
@@ -4826,10 +4826,10 @@ OTPseudonym* OT_API::GetOrLoadNym(const OTIdentifier& NYM_ID, bool bChecking,
 /** Tries to get the account from the wallet.
  Otherwise loads it from local storage.
  */
-OTAccount* OT_API::GetOrLoadAccount(const OTPseudonym& theNym,
-                                    const OTIdentifier& ACCT_ID,
-                                    const OTIdentifier& SERVER_ID,
-                                    const char* szFuncName) const
+Account* OT_API::GetOrLoadAccount(const OTPseudonym& theNym,
+                                  const OTIdentifier& ACCT_ID,
+                                  const OTIdentifier& SERVER_ID,
+                                  const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
@@ -4842,10 +4842,10 @@ OTAccount* OT_API::GetOrLoadAccount(const OTPseudonym& theNym,
 /** Tries to get the account from the wallet.
  Otherwise loads it from local storage.
  */
-OTAccount* OT_API::GetOrLoadAccount(const OTIdentifier& NYM_ID,
-                                    const OTIdentifier& ACCT_ID,
-                                    const OTIdentifier& SERVER_ID,
-                                    const char* szFuncName) const
+Account* OT_API::GetOrLoadAccount(const OTIdentifier& NYM_ID,
+                                  const OTIdentifier& ACCT_ID,
+                                  const OTIdentifier& SERVER_ID,
+                                  const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTPseudonym* pNym = GetOrLoadPrivateNym(NYM_ID, false, szFunc);
@@ -4872,7 +4872,7 @@ OTCheque* OT_API::WriteCheque(
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, SENDER_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return nullptr;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -5013,7 +5013,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, RECIPIENT_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return nullptr;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -5168,7 +5168,7 @@ bool OT_API::ConfirmPaymentPlan(const OTIdentifier& SERVER_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, SENDER_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -6346,9 +6346,9 @@ OTAssetContract* OT_API::LoadAssetContract(const OTIdentifier& ASSET_ID) const
 //
 // See also: OT_API::GetOrLoadAccount()
 //
-OTAccount* OT_API::LoadAssetAccount(const OTIdentifier& SERVER_ID,
-                                    const OTIdentifier& USER_ID,
-                                    const OTIdentifier& ACCOUNT_ID) const
+Account* OT_API::LoadAssetAccount(const OTIdentifier& SERVER_ID,
+                                  const OTIdentifier& USER_ID,
+                                  const OTIdentifier& ACCOUNT_ID) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -8850,7 +8850,7 @@ Basket* OT_API::GenerateBasketExchange(const OTIdentifier& SERVER_ID,
     if (nullptr == pContract) return nullptr;
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, BASKET_ASSET_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return nullptr;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -8940,7 +8940,7 @@ bool OT_API::AddBasketExchangeItem(const OTIdentifier& SERVER_ID,
     if (nullptr == pContract) return false;
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ASSET_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -9153,8 +9153,8 @@ int32_t OT_API::exchangeBasket(
         theRequestBasket.LoadContractFromString(BASKET_INFO)) {
         const OTIdentifier& BASKET_ASSET_ACCT_ID(
             theRequestBasket.GetRequestAccountID());
-        OTAccount* pAccount = GetOrLoadAccount(*pNym, BASKET_ASSET_ACCT_ID,
-                                               SERVER_ID, __FUNCTION__);
+        Account* pAccount = GetOrLoadAccount(*pNym, BASKET_ASSET_ACCT_ID,
+                                             SERVER_ID, __FUNCTION__);
         if (nullptr == pAccount) return (-1);
 
         // By this point, pAccount is a good pointer, and is on the wallet. (No
@@ -9422,7 +9422,7 @@ int32_t OT_API::notarizeWithdrawal(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -9677,7 +9677,7 @@ int32_t OT_API::notarizeDeposit(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -9960,7 +9960,7 @@ int32_t OT_API::payDividend(
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pDividendSourceAccount =
+    Account* pDividendSourceAccount =
         GetOrLoadAccount(*pNym, DIVIDEND_FROM_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pDividendSourceAccount) return (-1);
     // By this point, pDividendSourceAccount is a good pointer, and is on the
@@ -9972,7 +9972,7 @@ int32_t OT_API::payDividend(
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return (-1);
-    OTAccount* pSharesIssuerAcct =
+    Account* pSharesIssuerAcct =
         pWallet->GetIssuerAccount(SHARES_ASSET_TYPE_ID);
 
     if (nullptr == pSharesIssuerAcct) {
@@ -10284,7 +10284,7 @@ int32_t OT_API::withdrawVoucher(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -10546,7 +10546,7 @@ bool OT_API::DiscardCheque(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return false;
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -10622,7 +10622,7 @@ int32_t OT_API::depositCheque(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -10958,7 +10958,7 @@ int32_t OT_API::depositPaymentPlan(const OTIdentifier& SERVER_ID,
                                                  ? thePlan.GetRecipientAcctID()
                                                  : thePlan.GetSenderAcctID());
         const String strDepositAcct(DEPOSITOR_ACCT_ID);
-        OTAccount* pAccount =
+        Account* pAccount =
             GetOrLoadAccount(*pNym, DEPOSITOR_ACCT_ID, SERVER_ID, __FUNCTION__);
         if (nullptr == pAccount) return (-1);
         // By this point, pAccount is a good pointer and in the wallet.
@@ -11775,11 +11775,11 @@ int32_t OT_API::issueMarketOffer(
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAssetAccount =
+    Account* pAssetAccount =
         GetOrLoadAccount(*pNym, ASSET_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAssetAccount) return (-1);
     // By this point, pAssetAccount is a good pointer.  (No need to cleanup.)
-    OTAccount* pCurrencyAccount =
+    Account* pCurrencyAccount =
         GetOrLoadAccount(*pNym, CURRENCY_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pCurrencyAccount) return (-1);
     // By this point, pCurrencyAccount is a good pointer.  (No need to cleanup.)
@@ -12348,7 +12348,7 @@ int32_t OT_API::notarizeTransfer(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_FROM, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
@@ -12603,7 +12603,7 @@ int32_t OT_API::getInbox(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
@@ -12660,7 +12660,7 @@ int32_t OT_API::getOutbox(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
@@ -12824,7 +12824,7 @@ int32_t OT_API::processInbox(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
@@ -13336,7 +13336,7 @@ int32_t OT_API::deleteAssetAccount(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCOUNT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -13413,7 +13413,7 @@ int32_t OT_API::getBoxReceipt(
     if (USER_ID != ACCOUNT_ID) // inbox/outbox (if it were nymbox, the USER_ID
                                // and ACCOUNT_ID would match)
     {
-        OTAccount* pAccount =
+        Account* pAccount =
             GetOrLoadAccount(*pNym, ACCOUNT_ID, SERVER_ID, __FUNCTION__);
         if (nullptr == pAccount) return (-1);
     }
@@ -13482,7 +13482,7 @@ int32_t OT_API::getAccount(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
@@ -13537,7 +13537,7 @@ int32_t OT_API::getAccountFiles(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTAccount* pAccount =
+    Account* pAccount =
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need

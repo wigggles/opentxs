@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -857,8 +857,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // deleting it, either.)
     // I know for a fact they have both signed pOrigCronItem...
 
-    std::unique_ptr<OTAccount> pSourceAcct(
-        OTAccount::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID));
+    std::unique_ptr<Account> pSourceAcct(
+        Account::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID));
 
     if (nullptr == pSourceAcct) {
         otOut << "ERROR verifying existence of source account during attempted "
@@ -867,8 +867,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         return false;
     }
 
-    std::unique_ptr<OTAccount> pRecipientAcct(
-        OTAccount::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID));
+    std::unique_ptr<Account> pRecipientAcct(
+        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID));
 
     if (nullptr == pRecipientAcct) {
         otOut << "ERROR verifying existence of recipient account during "

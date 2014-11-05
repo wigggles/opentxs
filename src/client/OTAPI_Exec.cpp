@@ -147,7 +147,7 @@
 #include <opentxs/basket/Basket.hpp>
 
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
@@ -1894,7 +1894,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
 
     const OTIdentifier theAccountID(ACCOUNT_ID);
 
-    OTAccount* pAccount = OTAPI()->GetAccount(theAccountID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theAccountID, __FUNCTION__);
     if (nullptr == pAccount) return false;
     // Balance must be zero in order to close an account!
     else if (pAccount->GetBalance() != 0) {
@@ -2493,7 +2493,7 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    OTAccount* pObject = OTAPI()->GetAccount(
+    Account* pObject = OTAPI()->GetAccount(
         thePartialID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
@@ -4185,7 +4185,7 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
     OTIdentifier theID(THE_ID);
 
     std::string strFunc = "OTAPI_Exec::GetAccountWallet_Name";
-    OTAccount* pAccount = OTAPI()->GetAccount(theID, strFunc.c_str());
+    Account* pAccount = OTAPI()->GetAccount(theID, strFunc.c_str());
     if (nullptr == pAccount) return "";
     String strName;
     pAccount->GetName(strName);
@@ -4207,7 +4207,7 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
 
     OTIdentifier theID(ACCOUNT_ID);
 
-    OTAccount* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
 
     OTIdentifier theOutput;
@@ -4235,7 +4235,7 @@ std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
 
     OTIdentifier theID(ACCOUNT_ID);
 
-    OTAccount* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
 
     OTIdentifier theOutput;
@@ -4788,7 +4788,7 @@ int64_t OTAPI_Exec::GetAccountWallet_Balance(const std::string& THE_ID) const
     }
 
     OTIdentifier theID(THE_ID);
-    OTAccount* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     return nullptr == pAccount ? OT_ERROR_AMOUNT : pAccount->GetBalance();
 }
 
@@ -4801,7 +4801,7 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
     }
 
     OTIdentifier theID(THE_ID);
-    OTAccount* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
     std::string pBuf = pAccount->GetTypeString();
 
@@ -4819,7 +4819,7 @@ std::string OTAPI_Exec::GetAccountWallet_AssetTypeID(
     }
 
     OTIdentifier theID(THE_ID);
-    OTAccount* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
     OTIdentifier theAssetID(pAccount->GetAssetTypeID());
 
@@ -4844,7 +4844,7 @@ std::string OTAPI_Exec::GetAccountWallet_ServerID(
     }
 
     OTIdentifier theID(THE_ID);
-    OTAccount* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
     OTIdentifier theServerID(pAccount->GetPurportedServerID());
     String strServerID(theServerID);
@@ -4865,7 +4865,7 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
 
     const OTIdentifier theID(THE_ID);
 
-    OTAccount* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
     OTIdentifier theUserID(pAccount->GetUserID());
     String strUserID(theUserID);
@@ -7475,7 +7475,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             // Now we need to find the account ID (so we can find the server
             // ID...)
             //
-            OTAccount* pAccount = OTAPI()->GetAccount(
+            Account* pAccount = OTAPI()->GetAccount(
                 theRequestBasket.GetRequestAccountID(), __FUNCTION__);
             if (nullptr == pAccount) {
                 const String strAcctID(theRequestBasket.GetRequestAccountID());
@@ -7888,7 +7888,7 @@ std::string OTAPI_Exec::LoadAssetAccount(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTAccount> pAccount(
+    std::unique_ptr<Account> pAccount(
         OTAPI()->LoadAssetAccount(theServerID, theUserID, theAccountID));
 
     if (nullptr == pAccount) {
@@ -9871,7 +9871,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
         return "";
     }
     // Get the account.
-    OTAccount* pAccount = OTAPI()->GetAccount(theAcctID, __FUNCTION__);
+    Account* pAccount = OTAPI()->GetAccount(theAcctID, __FUNCTION__);
     if (nullptr == pAccount) return "";
     // Load the inbox and outbox.
 

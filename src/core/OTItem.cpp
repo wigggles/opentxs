@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/OTItem.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -358,7 +358,7 @@ bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
 //
 bool OTItem::VerifyBalanceStatement(
     int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
-    OTLedger& THE_OUTBOX, const OTAccount& THE_ACCOUNT,
+    OTLedger& THE_OUTBOX, const Account& THE_ACCOUNT,
     OTTransaction& TARGET_TRANSACTION,
     int64_t lOutboxTrnsNum) // Only used in the case of transfer,
                             // where the user

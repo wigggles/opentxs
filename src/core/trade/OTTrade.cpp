@@ -135,7 +135,7 @@
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 
@@ -173,7 +173,7 @@ bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
 // This is an override. See note above.
 //
 bool OTTrade::VerifyNymAsAgentForAccount(OTPseudonym& nym,
-                                         OTAccount& account) const
+                                         Account& account) const
 {
     return account.VerifyOwner(nym);
 }

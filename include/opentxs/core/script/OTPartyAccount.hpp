@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTAgent;
 class OTIdentifier;
 class OTParty;
@@ -188,7 +188,7 @@ class OTPartyAccount
                           // set.
     // NOTE: each party needs to have a list of partyaccounts, AND each account
     // on that list needs to have a CLOSING #!!! Ahh...
-    OTAccount* m_pAccount;
+    Account* m_pAccount;
     int64_t m_lClosingTransNo; // Any account that is party to an agreement,
                                // must have a closing transaction # for
                                // finalReceipt.
@@ -254,9 +254,8 @@ public:
         m_strAcctID = strAccountID;
     }
     EXPORT OTAgent* GetAuthorizedAgent();
-    OTAccount* LoadAccount(OTPseudonym& theSignerNym,
-                           const String& strServerID);
-    bool IsAccount(OTAccount& theAccount);
+    Account* LoadAccount(OTPseudonym& theSignerNym, const String& strServerID);
+    bool IsAccount(Account& theAccount);
     bool IsAccountByID(const OTIdentifier& theAcctID) const;
     bool VerifyOwnership() const; // I have a ptr to my owner (party), as well
                                   // as to the actual account. I will ask him to
@@ -282,7 +281,7 @@ public:
                                  String* pstrAttachment = nullptr);
     OTPartyAccount();
     OTPartyAccount(std::string str_account_name, const String& strAgentName,
-                   OTAccount& theAccount, int64_t lClosingTransNo);
+                   Account& theAccount, int64_t lClosingTransNo);
     OTPartyAccount(const String& strName, const String& strAgentName,
                    const String& strAcctID, const String& strAssetTypeID,
                    int64_t lClosingTransNo);

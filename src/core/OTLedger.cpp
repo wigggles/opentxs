@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/OTLedger.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -1050,8 +1050,8 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
     if ((OTLedger::inbox == theType) || (OTLedger::outbox == theType)) {
         // Have to look up the UserID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        std::unique_ptr<OTAccount> pAccount(
-            OTAccount::LoadExistingAccount(theAcctID, theServerID));
+        std::unique_ptr<Account> pAccount(
+            Account::LoadExistingAccount(theAcctID, theServerID));
 
         if (nullptr != pAccount)
             SetUserID(pAccount->GetUserID());
@@ -1065,8 +1065,8 @@ bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
         // RecordBox COULD be by NymID OR AcctID.
         // So we TRY to lookup the acct.
         //
-        std::unique_ptr<OTAccount> pAccount(
-            OTAccount::LoadExistingAccount(theAcctID, theServerID));
+        std::unique_ptr<Account> pAccount(
+            Account::LoadExistingAccount(theAcctID, theServerID));
 
         if (nullptr != pAccount) // Found it!
             SetUserID(pAccount->GetUserID());
@@ -1531,7 +1531,7 @@ OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
 OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
                                            const OTTransaction& theOwner,
                                            OTPseudonym& theNym,
-                                           const OTAccount& theAccount,
+                                           const Account& theAccount,
                                            OTLedger& theOutbox)
 {
     if (OTLedger::inbox != GetType()) {

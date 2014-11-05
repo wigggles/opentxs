@@ -207,7 +207,7 @@ public:
         const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
         const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
         const String& strOrigCronItem, String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr, OTAccount* pActualAcct = nullptr);
+        String* pstrAttachment = nullptr, Account* pActualAcct = nullptr);
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.

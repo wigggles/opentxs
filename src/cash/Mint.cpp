@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTMessage.hpp>
@@ -751,7 +751,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // for transactions.
         if (strCashAcctID.Exists())
             m_pReserveAcct =
-                OTAccount::LoadExistingAccount(m_CashAccountID, m_ServerID);
+                Account::LoadExistingAccount(m_CashAccountID, m_ServerID);
 
         int64_t nValidFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
         int64_t nValidTo = OTTimeGetSecondsFromTime(m_VALID_TO);
@@ -913,8 +913,8 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
      theMessage,
                         const AccountType eAcctType=simple);
      */
-    m_pReserveAcct = OTAccount::GenerateNewAccount(
-        SERVER_NYM_ID, theServerID, theNotary, theMessage, OTAccount::mint);
+    m_pReserveAcct = Account::GenerateNewAccount(
+        SERVER_NYM_ID, theServerID, theNotary, theMessage, Account::mint);
 
     if (m_pReserveAcct) {
         m_pReserveAcct->GetIdentifier(m_CashAccountID);

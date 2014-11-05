@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTAgent;
 class OTIdentifier;
 class OTNumList;
@@ -147,7 +147,7 @@ class OTPseudonym;
 class OTScript;
 class OTScriptable;
 
-typedef std::map<std::string, OTAccount*> mapOfAccounts;
+typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, OTAgent*> mapOfAgents;
 typedef std::map<std::string, OTPseudonym*> mapOfNyms;
 typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
@@ -213,7 +213,7 @@ public:
     EXPORT OTParty(std::string str_PartyName,
                    OTPseudonym& theNym, // Nym is BOTH owner AND agent, when
                                         // using this constructor.
-                   std::string str_agent_name, OTAccount* pAccount = nullptr,
+                   std::string str_agent_name, Account* pAccount = nullptr,
                    const std::string* pstr_account_name = nullptr,
                    int64_t lClosingTransNo = 0);
     virtual ~OTParty();
@@ -394,7 +394,7 @@ public:
                            const String& strAssetTypeID,
                            int64_t lClosingTransNo);
     EXPORT bool AddAccount(const String& strAgentName, const char* szAcctName,
-                           OTAccount& theAccount, int64_t lClosingTransNo);
+                           Account& theAccount, int64_t lClosingTransNo);
 
     int32_t GetAccountCount() const
     {
@@ -412,11 +412,11 @@ public:
     // If account is present for Party, set account's pointer to theAccount and
     // return true.
     //
-    bool HasAccount(OTAccount& theAccount,
+    bool HasAccount(Account& theAccount,
                     OTPartyAccount** ppPartyAccount = nullptr) const;
     bool HasAccountByID(const OTIdentifier& theAcctID,
                         OTPartyAccount** ppPartyAccount = nullptr) const;
-    bool VerifyOwnershipOfAccount(const OTAccount& theAccount) const;
+    bool VerifyOwnershipOfAccount(const Account& theAccount) const;
     bool VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
                                        const String& strServerID,
                                        bool bBurnTransNo = false);

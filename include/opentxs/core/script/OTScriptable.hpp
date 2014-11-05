@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTAgent;
 class OTBylaw;
 class OTClause;
@@ -268,7 +268,7 @@ public:
     EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(
         OTPseudonym& theNym, OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccount(
-        OTAccount& theAccount, OTPartyAccount** ppPartyAccount = nullptr) const;
+        Account& theAccount, OTPartyAccount** ppPartyAccount = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAgent(const OTIdentifier& theNymID,
                                           OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAuthAgent(
@@ -308,7 +308,7 @@ public:
     // ACCOUNT.
     //
     EXPORT virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                                   OTAccount& theAccount) const;
+                                                   Account& theAccount) const;
     bool VerifyPartyAuthorization(
         OTParty& theParty, // The party that supposedly is authorized for this
                            // supposedly executed agreement.

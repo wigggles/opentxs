@@ -136,25 +136,25 @@
 namespace
 {
 
-opentxs::OTAccount::AccountType TranslateAccountTypeStringToEnum(
+opentxs::Account::AccountType TranslateAccountTypeStringToEnum(
     const opentxs::String& acctTypeString)
 {
-    opentxs::OTAccount::AccountType acctType = opentxs::OTAccount::err_acct;
+    opentxs::Account::AccountType acctType = opentxs::Account::err_acct;
 
     if (acctTypeString.Compare("simple"))
-        acctType = opentxs::OTAccount::simple;
+        acctType = opentxs::Account::simple;
     else if (acctTypeString.Compare("issuer"))
-        acctType = opentxs::OTAccount::issuer;
+        acctType = opentxs::Account::issuer;
     else if (acctTypeString.Compare("basket"))
-        acctType = opentxs::OTAccount::basket;
+        acctType = opentxs::Account::basket;
     else if (acctTypeString.Compare("basketsub"))
-        acctType = opentxs::OTAccount::basketsub;
+        acctType = opentxs::Account::basketsub;
     else if (acctTypeString.Compare("mint"))
-        acctType = opentxs::OTAccount::mint;
+        acctType = opentxs::Account::mint;
     else if (acctTypeString.Compare("voucher"))
-        acctType = opentxs::OTAccount::voucher;
+        acctType = opentxs::Account::voucher;
     else if (acctTypeString.Compare("stash"))
-        acctType = opentxs::OTAccount::stash;
+        acctType = opentxs::Account::stash;
     else
         opentxs::otErr << "Error: Unknown account type: " << acctTypeString
                        << "\n";
@@ -162,29 +162,29 @@ opentxs::OTAccount::AccountType TranslateAccountTypeStringToEnum(
     return acctType;
 }
 
-void TranslateAccountTypeToString(opentxs::OTAccount::AccountType type,
+void TranslateAccountTypeToString(opentxs::Account::AccountType type,
                                   opentxs::String& acctType)
 {
     switch (type) {
-    case opentxs::OTAccount::simple:
+    case opentxs::Account::simple:
         acctType.Set("simple");
         break;
-    case opentxs::OTAccount::issuer:
+    case opentxs::Account::issuer:
         acctType.Set("issuer");
         break;
-    case opentxs::OTAccount::basket:
+    case opentxs::Account::basket:
         acctType.Set("basket");
         break;
-    case opentxs::OTAccount::basketsub:
+    case opentxs::Account::basketsub:
         acctType.Set("basketsub");
         break;
-    case opentxs::OTAccount::mint:
+    case opentxs::Account::mint:
         acctType.Set("mint");
         break;
-    case opentxs::OTAccount::voucher:
+    case opentxs::Account::voucher:
         acctType.Set("voucher");
         break;
-    case opentxs::OTAccount::stash:
+    case opentxs::Account::stash:
         acctType.Set("stash");
         break;
     default:

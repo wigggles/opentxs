@@ -139,12 +139,12 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTParty;
 class OTPseudonym;
 class OTStash;
 
-typedef std::map<std::string, OTAccount*> mapOfAccounts;
+typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, OTStash*> mapOfStashes;
 
 class OTSmartContract : public OTCronItem
@@ -329,7 +329,7 @@ public:
     // Returns true if it was empty (and thus successfully set).
     EXPORT bool SetServerIDIfEmpty(const OTIdentifier& theID);
 
-    EXPORT bool VerifySmartContract(OTPseudonym& theNym, OTAccount& theAcct,
+    EXPORT bool VerifySmartContract(OTPseudonym& theNym, Account& theAcct,
                                     OTPseudonym& theServerNym,
                                     bool bBurnTransNo = false);
 

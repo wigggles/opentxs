@@ -134,7 +134,7 @@
 
 #include <opentxs/core/script/OTPartyAccount.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/script/OTParty.hpp>
@@ -162,8 +162,8 @@ OTPartyAccount::OTPartyAccount()
 // provided, for the finalReceipt for that account.
 //
 OTPartyAccount::OTPartyAccount(std::string str_account_name,
-                               const String& strAgentName,
-                               OTAccount& theAccount, int64_t lClosingTransNo)
+                               const String& strAgentName, Account& theAccount,
+                               int64_t lClosingTransNo)
     : m_pForParty(nullptr)
     , // This gets set when this partyaccount is added to its party.
     m_pAccount(&theAccount)
@@ -252,7 +252,7 @@ bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
     return true;
 }
 
-bool OTPartyAccount::IsAccount(OTAccount& theAccount)
+bool OTPartyAccount::IsAccount(Account& theAccount)
 {
     if (!m_strAcctID.Exists()) {
         otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAcctID.\n";
@@ -390,8 +390,8 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 // just load up its account directly.) But this is here because it is
 // appropriate in certain cases.
 //
-OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
-                                       const String& strServerID)
+Account* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
+                                     const String& strServerID)
 {
     if (!m_strAcctID.Exists()) {
         otOut << "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for "
@@ -401,8 +401,7 @@ OTAccount* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
 
     const OTIdentifier theAcctID(m_strAcctID), theServerID(strServerID);
 
-    OTAccount* pAccount =
-        OTAccount::LoadExistingAccount(theAcctID, theServerID);
+    Account* pAccount = Account::LoadExistingAccount(theAcctID, theServerID);
 
     if (nullptr == pAccount) {
         otOut << "OTPartyAccount::LoadAccount: Failed trying to load account: "

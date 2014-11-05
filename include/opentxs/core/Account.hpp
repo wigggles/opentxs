@@ -140,12 +140,12 @@ namespace opentxs
 {
 
 class String;
-class OTAccount;
+class Account;
 class OTLedger;
 class OTMessage;
 class OTPseudonym;
 
-class OTAccount : public OTTransactionType
+class Account : public OTTransactionType
 {
     friend OTTransactionType* OTTransactionType::TransactionFactory(
         String input);
@@ -169,12 +169,12 @@ public:
     };
 
 public:
-    EXPORT OTAccount(const OTIdentifier& userId, const OTIdentifier& accountId,
-                     const OTIdentifier& serverId, const String& name);
-    EXPORT OTAccount(const OTIdentifier& userId, const OTIdentifier& accountId,
-                     const OTIdentifier& serverId);
+    EXPORT Account(const OTIdentifier& userId, const OTIdentifier& accountId,
+                   const OTIdentifier& serverId, const String& name);
+    EXPORT Account(const OTIdentifier& userId, const OTIdentifier& accountId,
+                   const OTIdentifier& serverId);
 
-    EXPORT virtual ~OTAccount();
+    EXPORT virtual ~Account();
 
     EXPORT virtual void Release();
     // overriding this so I can set filename automatically inside based on ID.
@@ -219,12 +219,12 @@ public:
     EXPORT void InitAccount();
 
     EXPORT void Release_Account();
-    EXPORT static OTAccount* GenerateNewAccount(const OTIdentifier& userId,
-                                                const OTIdentifier& serverId,
-                                                const OTPseudonym& serverNym,
-                                                const OTMessage& message,
-                                                AccountType acctType = simple,
-                                                int64_t stashTransNum = 0);
+    EXPORT static Account* GenerateNewAccount(const OTIdentifier& userId,
+                                              const OTIdentifier& serverId,
+                                              const OTPseudonym& serverNym,
+                                              const OTMessage& message,
+                                              AccountType acctType = simple,
+                                              int64_t stashTransNum = 0);
 
     EXPORT bool GenerateNewAccount(const OTPseudonym& server,
                                    const OTMessage& message,
@@ -233,8 +233,8 @@ public:
     // Let's say you don't have or know the UserID, and you just want to load
     // the damn thing up.
     // Then call this function. It will set userID for you.
-    EXPORT static OTAccount* LoadExistingAccount(const OTIdentifier& accountId,
-                                                 const OTIdentifier& serverId);
+    EXPORT static Account* LoadExistingAccount(const OTIdentifier& accountId,
+                                               const OTIdentifier& serverId);
     // Caller responsible to delete.
     EXPORT OTLedger* LoadInbox(OTPseudonym& nym) const;
     // Caller responsible to delete.
@@ -273,8 +273,8 @@ public:
     }
 
 protected:
-    OTAccount(const OTIdentifier& userId, const OTIdentifier& serverId);
-    OTAccount();
+    Account(const OTIdentifier& userId, const OTIdentifier& serverId);
+    Account();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);

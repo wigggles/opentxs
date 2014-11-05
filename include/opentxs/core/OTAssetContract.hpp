@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class AccountVisitor;
 class OTIdentifier;
 class OTPseudonym;
@@ -173,7 +173,7 @@ public:
     // for the payment of dividends.)
 
     // adds the account to the list. (When account is created.)
-    EXPORT bool AddAccountRecord(const OTAccount& theAccount) const;
+    EXPORT bool AddAccountRecord(const Account& theAccount) const;
 
     // removes the account from the list. (When account is deleted.)
     EXPORT bool EraseAccountRecord(const OTIdentifier& theAcctID) const;

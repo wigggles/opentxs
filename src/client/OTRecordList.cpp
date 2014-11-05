@@ -142,7 +142,7 @@
 
 #include <opentxs/ext/OTPayment.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -780,7 +780,7 @@ bool OTRecordList::PerformAutoAccept()
                         for (auto& it_acct : m_accounts) {
                             const std::string& str_account_id(it_acct);
                             const OTIdentifier theAccountID(str_account_id);
-                            OTAccount* pAccount =
+                            Account* pAccount =
                                 pWallet->GetAccount(theAccountID);
                             OT_ASSERT(nullptr != pAccount);
                             const OTIdentifier& theAcctNymID =
@@ -862,7 +862,7 @@ bool OTRecordList::PerformAutoAccept()
             // For each account, loop through its inbox, outbox, and record box.
             const std::string& str_account_id(it_acct);
             const OTIdentifier theAccountID(str_account_id);
-            OTAccount* pAccount = pWallet->GetAccount(theAccountID);
+            Account* pAccount = pWallet->GetAccount(theAccountID);
             OT_ASSERT(nullptr != pAccount);
             const OTIdentifier& theNymID = pAccount->GetUserID();
             const OTIdentifier& theServerID = pAccount->GetPurportedServerID();
@@ -2675,7 +2675,7 @@ bool OTRecordList::Populate()
         //
         const std::string& str_account_id(it_acct);
         const OTIdentifier theAccountID(str_account_id);
-        OTAccount* pAccount = pWallet->GetAccount(theAccountID);
+        Account* pAccount = pWallet->GetAccount(theAccountID);
         OT_ASSERT(nullptr != pAccount);
         const OTIdentifier& theNymID = pAccount->GetUserID();
         const OTIdentifier& theServerID = pAccount->GetPurportedServerID();

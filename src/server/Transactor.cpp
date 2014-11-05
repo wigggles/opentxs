@@ -135,7 +135,7 @@
 
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTIdentifier.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/String.hpp>
@@ -533,10 +533,10 @@ bool Transactor::lookupBasketAccountID(const OTIdentifier& BASKET_ID,
 /// given asset type) return a pointer to the account.  Since it's SUPPOSED to
 /// exist, and since it's being requested, also will GENERATE it if it cannot
 /// be found, add it to the list, and return the pointer. Should always succeed.
-std::shared_ptr<OTAccount> Transactor::getVoucherAccount(
+std::shared_ptr<Account> Transactor::getVoucherAccount(
     const OTIdentifier& ASSET_TYPE_ID)
 {
-    std::shared_ptr<OTAccount> pAccount;
+    std::shared_ptr<Account> pAccount;
     const OTIdentifier SERVER_USER_ID(server_->m_nymServer),
         SERVER_ID(server_->m_strServerID);
     bool bWasAcctCreated = false;

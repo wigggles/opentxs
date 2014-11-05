@@ -133,7 +133,7 @@
 #include <opentxs/server/PayDividendVisitor.hpp>
 #include <opentxs/server/OTServer.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/String.hpp>
@@ -181,10 +181,11 @@ PayDividendVisitor::~PayDividendVisitor()
 // PayDividendVisitor::Trigger() is used in
 // OTAssetContract::VisitAccountRecords()
 // cppcheck-suppress unusedFunction
-bool PayDividendVisitor::Trigger(
-    OTAccount& theSharesAccount) // theSharesAccount is, say, a Pepsi shares
-                                 // account.  Here, we'll send a dollars voucher
-                                 // to its owner.
+bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
+                                                            // is, say, a Pepsi
+                                                            // shares
+// account.  Here, we'll send a dollars voucher
+// to its owner.
 {
     const int64_t lPayoutAmount =
         (theSharesAccount.GetBalance() * GetPayoutPerShare());

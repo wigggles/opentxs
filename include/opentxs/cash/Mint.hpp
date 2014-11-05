@@ -141,7 +141,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTASCIIArmor;
 class Token;
 
@@ -199,8 +199,8 @@ protected:
     OTIdentifier m_CashAccountID; // The Account ID for the cash reserve
                                   // account. (Pointer below.)
 
-    OTAccount* m_pReserveAcct; // When you withdraw cash, the Mint removes X
-                               // dollars from your account, then
+    Account* m_pReserveAcct; // When you withdraw cash, the Mint removes X
+                             // dollars from your account, then
     // it puts those X dollars into this reserve account, and then issues you
     // the
     // blinded tokens. When the tokens are deposited again, the money comes back
@@ -231,7 +231,7 @@ public:
     EXPORT bool Expired() const; // true or false. Expired?
     // Valid range is GetValidFrom() through GetExpiration().
     // Server-side only.
-    inline OTAccount* GetCashReserveAccount() const
+    inline Account* GetCashReserveAccount() const
     {
         return m_pReserveAcct;
     }
