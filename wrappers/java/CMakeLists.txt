@@ -5,14 +5,25 @@ message("** Java Wrapper")
 set(OTX_WRAPPER_NAME "JOpentxs")
 
 set(CMAKE_SWIG_FLAGS "")
-find_package(SWIG 3.0.0 REQUIRED)
+
+if(CMAKE_CROSSCOMPILING)
+  set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
+  set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER )
+  find_package(SWIG 3.0.0 REQUIRED)
+  set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
+  set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
+else()
+  find_package(SWIG 3.0.0 REQUIRED)
+endif()
+
+
 include(${SWIG_USE_FILE})
 
 include_directories(
   ${SWIG_INCLUDE_DIRS}
 )
 
-find_package(Java)
+find_package(JNI)
 
 include_directories(
   ${JAVA_INCLUDE_PATH})
