@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLedger.hpp>

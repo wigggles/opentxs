@@ -135,7 +135,7 @@
 
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTIdentifier.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/String.hpp>

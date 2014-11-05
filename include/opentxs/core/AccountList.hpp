@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_ACCOUNTLIST_HPP
 #define OPENTXS_CORE_ACCOUNTLIST_HPP
 
-#include "OTAccount.hpp" // only necessary because of OTAccount::AccountType
+#include "Account.hpp" // only necessary because of OTAccount::AccountType
 #include <string>
 #include <map>
 #include <memory>

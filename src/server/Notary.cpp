@@ -147,7 +147,7 @@
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/OTLedger.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/String.hpp>

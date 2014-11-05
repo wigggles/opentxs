@@ -133,7 +133,7 @@
 #include <opentxs/server/PayDividendVisitor.hpp>
 #include <opentxs/server/OTServer.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/String.hpp>

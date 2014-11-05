@@ -136,7 +136,7 @@
 
 #include <opentxs/cash/Purse.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>

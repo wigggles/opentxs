@@ -15,7 +15,7 @@ set(cxx-sources
   util/OTPaths.cpp
   transaction/Helpers.cpp
   mkcert.cpp
-  OTAccount.cpp
+  Account.cpp
   AccountList.cpp
   crypto/OTASCIIArmor.cpp
   OTAssetContract.cpp

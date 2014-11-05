@@ -142,7 +142,7 @@
 
 #include <opentxs/cash/Purse.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/OTLog.hpp>

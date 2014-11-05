@@ -134,7 +134,7 @@
 
 #include <opentxs/core/OTTransactionType.hpp>
 
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
 

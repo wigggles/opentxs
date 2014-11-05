@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/OTAssetContract.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/AccountVisitor.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>

@@ -146,7 +146,7 @@
 #include <opentxs/basket/Basket.hpp>
 
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
-#include <opentxs/core/OTAccount.hpp>
+#include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTAssetContract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/OTCheque.hpp>
