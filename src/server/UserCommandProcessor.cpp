@@ -2449,10 +2449,10 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
 
-                    std::unique_ptr<OTAccount> pNewAccount(
-                        OTAccount::GenerateNewAccount(
-                            USER_ID, SERVER_ID, server_->m_nymServer, MsgIn,
-                            OTAccount::issuer));
+                    std::unique_ptr<Account> pNewAccount(
+                        Account::GenerateNewAccount(USER_ID, SERVER_ID,
+                                                    server_->m_nymServer, MsgIn,
+                                                    Account::issuer));
 
                     // If we successfully create the account, then bundle it in
                     // the message XML payload
@@ -2775,16 +2775,16 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                     BasketItem* pItem = theBasket.At(i);
                     OT_ASSERT(nullptr != pItem);
 
-                    OTAccount* pNewAccount = nullptr;
+                    Account* pNewAccount = nullptr;
 
                     // GenerateNewAccount expects the Asset ID to be in MsgIn.
                     // So we'll just put it there to make things easy...
                     //
                     pItem->SUB_CONTRACT_ID.GetString(MsgIn.m_strAssetID);
 
-                    pNewAccount = OTAccount::GenerateNewAccount(
+                    pNewAccount = Account::GenerateNewAccount(
                         SERVER_USER_ID, SERVER_ID, server_->m_nymServer, MsgIn,
-                        OTAccount::basketsub);
+                        Account::basketsub);
 
                     // If we successfully create the account, then bundle it
                     // in the message XML payload
@@ -2900,15 +2900,15 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                     // OTAccount for EACH sub-contract, in order to store the
                     // reserves. That's what makes the basket work.
 
-                    OTAccount* pBasketAccount = nullptr;
+                    Account* pBasketAccount = nullptr;
 
                     // GenerateNewAccount expects the Asset ID to be in MsgIn.
                     // So we'll just put it there to make things easy...
                     MsgIn.m_strAssetID = STR_BASKET_CONTRACT_ID;
 
-                    pBasketAccount = OTAccount::GenerateNewAccount(
+                    pBasketAccount = Account::GenerateNewAccount(
                         SERVER_USER_ID, SERVER_ID, server_->m_nymServer, MsgIn,
-                        OTAccount::basket);
+                        Account::basket);
 
                     if (nullptr != pBasketAccount) {
                         msgOut.m_bSuccess = true;
@@ -2975,7 +2975,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
 
     const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID);
 
-    std::unique_ptr<OTAccount> pNewAccount(OTAccount::GenerateNewAccount(
+    std::unique_ptr<Account> pNewAccount(Account::GenerateNewAccount(
         USER_ID, SERVER_ID, server_->m_nymServer, MsgIn));
 
     // If we successfully create the account, then bundle it in the message XML
@@ -3143,7 +3143,7 @@ void UserCommandProcessor::UserCmdGetAccount(OTPseudonym&, OTMessage& MsgIn,
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);
 
-    OTAccount* pAccount = OTAccount::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
+    Account* pAccount = Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
     bool bSuccessLoadingAccount = ((pAccount != nullptr) ? true : false);
 
     // Yup the account exists. Yup it has the same user ID.
@@ -3192,7 +3192,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&,
         SERVER_ID(MsgIn.m_strServerID);
 
     String strAccount, strInbox, strOutbox, strInboxHash, strOutboxHash;
-    OTAccount* pAccount = OTAccount::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
+    Account* pAccount = Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
     bool bSuccessLoadingAccount = ((pAccount != nullptr) ? true : false);
     bool bSuccessLoadingInbox = false;
     bool bSuccessLoadingOutbox = false;
@@ -4327,8 +4327,8 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
         SERVER_ID(MsgIn.m_strServerID), ACCOUNT_ID(MsgIn.m_strAcctID);
 
-    std::unique_ptr<OTAccount> pAccount(
-        OTAccount::LoadExistingAccount(ACCOUNT_ID, SERVER_ID));
+    std::unique_ptr<Account> pAccount(
+        Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID));
 
     if (nullptr == pAccount || !pAccount->VerifyAccount(server_->m_nymServer)) {
         OTLog::vError("%s: Error loading or verifying account: %s\n", szFunc,
@@ -4878,7 +4878,7 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
     // Let's see if we can load it from the string that came in the message...
     msgOut.m_bSuccess = theLedger.LoadContractFromString(strLedger);
     if (msgOut.m_bSuccess) {
-        OTAccount theAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
+        Account theAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
 
         // Make sure the "from" account even exists...
         if (!theAccount.LoadContract()) {

@@ -143,7 +143,7 @@ namespace opentxs
 
 class TransportCallback;
 class OT_API;
-class OTAccount;
+class Account;
 class OTAssetContract;
 class Basket;
 class OTCheque;
@@ -261,8 +261,8 @@ public:
                                        const char* szFuncName = nullptr) const;
     EXPORT OTAssetContract* GetAssetType(
         const OTIdentifier& THE_ID, const char* szFuncName = nullptr) const;
-    EXPORT OTAccount* GetAccount(const OTIdentifier& THE_ID,
-                                 const char* szFuncName = nullptr) const;
+    EXPORT Account* GetAccount(const OTIdentifier& THE_ID,
+                               const char* szFuncName = nullptr) const;
 
     EXPORT OTPseudonym* GetNymByIDPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
@@ -270,7 +270,7 @@ public:
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT OTAssetContract* GetAssetContractPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
-    EXPORT OTAccount* GetAccountPartialMatch(
+    EXPORT Account* GetAccountPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT OTPseudonym* GetOrLoadPublicNym(
         const OTIdentifier& NYM_ID, const char* szFuncName = nullptr) const;
@@ -284,15 +284,15 @@ public:
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT OTAccount* GetOrLoadAccount(const OTPseudonym& theNym,
-                                       const OTIdentifier& ACCT_ID,
-                                       const OTIdentifier& SERVER_ID,
-                                       const char* szFuncName = nullptr) const;
+    EXPORT Account* GetOrLoadAccount(const OTPseudonym& theNym,
+                                     const OTIdentifier& ACCT_ID,
+                                     const OTIdentifier& SERVER_ID,
+                                     const char* szFuncName = nullptr) const;
 
-    EXPORT OTAccount* GetOrLoadAccount(const OTIdentifier& NYM_ID,
-                                       const OTIdentifier& ACCT_ID,
-                                       const OTIdentifier& SERVER_ID,
-                                       const char* szFuncName = nullptr) const;
+    EXPORT Account* GetOrLoadAccount(const OTIdentifier& NYM_ID,
+                                     const OTIdentifier& ACCT_ID,
+                                     const OTIdentifier& SERVER_ID,
+                                     const char* szFuncName = nullptr) const;
     // The name is basically just a client-side label.
     // This function lets you change it.
     EXPORT bool SetNym_Name(const OTIdentifier& NYM_ID,
@@ -646,9 +646,9 @@ public:
 
     EXPORT int64_t GetBasketMemberMinimumTransferAmount(
         const OTIdentifier& BASKET_ASSET_TYPE_ID, int32_t nIndex) const;
-    EXPORT OTAccount* LoadAssetAccount(const OTIdentifier& SERVER_ID,
-                                       const OTIdentifier& USER_ID,
-                                       const OTIdentifier& ACCOUNT_ID) const;
+    EXPORT Account* LoadAssetAccount(const OTIdentifier& SERVER_ID,
+                                     const OTIdentifier& USER_ID,
+                                     const OTIdentifier& ACCOUNT_ID) const;
     EXPORT OTLedger* LoadNymbox(const OTIdentifier& SERVER_ID,
                                 const OTIdentifier& USER_ID) const;
 

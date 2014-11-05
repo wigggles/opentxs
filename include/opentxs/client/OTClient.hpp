@@ -142,7 +142,7 @@ namespace opentxs
 {
 
 class TransportCallback;
-class OTAccount;
+class Account;
 class OTAssetContract;
 class OTLedger;
 class OTServerConnection;
@@ -367,7 +367,7 @@ public:
                            OTMessage& theMessage, OTPseudonym& theNym,
                            // OTAssetContract& theContract,
                            const OTServerContract& theServer,
-                           const OTAccount* pAccount = nullptr,
+                           const Account* pAccount = nullptr,
                            int64_t lTransactionAmount = 0,
                            OTAssetContract* pMyAssetContract = nullptr,
                            const OTIdentifier* pHisNymID = nullptr,

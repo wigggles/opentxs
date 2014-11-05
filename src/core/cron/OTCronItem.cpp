@@ -1162,14 +1162,14 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
-    OTAccount* pActualAcct)
+    Account* pActualAcct)
 {
     OTPseudonym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
 
-    std::unique_ptr<OTAccount> theDestAcctGuardian;
+    std::unique_ptr<Account> theDestAcctGuardian;
 
     // Load the inbox in case it already exists.
     OTLedger theInbox(USER_ID, ACCOUNT_ID, GetServerID());
@@ -1293,7 +1293,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
                                     // loaded, so let's load it ourselves then.
         {
             pActualAcct =
-                OTAccount::LoadExistingAccount(ACCOUNT_ID, GetServerID());
+                Account::LoadExistingAccount(ACCOUNT_ID, GetServerID());
             theDestAcctGuardian.reset(pActualAcct);
         }
 

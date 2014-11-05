@@ -153,7 +153,7 @@ class AccountList
 {
 public:
     EXPORT AccountList();
-    AccountList(OTAccount::AccountType acctType);
+    AccountList(Account::AccountType acctType);
     EXPORT ~AccountList();
 
     EXPORT int32_t GetCountAccountIDs() const
@@ -170,12 +170,12 @@ public:
                                    const String& acctType,
                                    const String& acctCount);
 
-    void SetType(OTAccount::AccountType acctType)
+    void SetType(Account::AccountType acctType)
     {
         acctType_ = acctType;
     }
 
-    EXPORT std::shared_ptr<OTAccount> GetOrCreateAccount(
+    EXPORT std::shared_ptr<Account> GetOrCreateAccount(
         OTPseudonym& serverNym, const OTIdentifier& ACCOUNT_OWNER_ID,
         const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
         bool& wasAcctCreated, // this will be set to true if the acct is
@@ -183,10 +183,10 @@ public:
         int64_t stashTransNum = 0);
 
 private:
-    typedef std::map<std::string, std::weak_ptr<OTAccount>> MapOfWeakAccounts;
+    typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;
 
 private:
-    OTAccount::AccountType acctType_;
+    Account::AccountType acctType_;
     // AcctIDs as second mapped by ASSET TYPE ID as first.
     String::Map mapAcctIDs_;
     // If someone calls GetOrCreateAccount(), we pass them a shared pointer. We

@@ -4269,8 +4269,8 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                         pData->completed_count =
                                             to_string<int32_t>(
                                                 theTrade.GetCompletedCount());
-                                        std::unique_ptr<OTAccount> pAccount(
-                                            OTAccount::LoadExistingAccount(
+                                        std::unique_ptr<Account> pAccount(
+                                            Account::LoadExistingAccount(
                                                 ACCOUNT_ID, SERVER_ID));
 
                                         bool bIsAsset =
@@ -6741,8 +6741,8 @@ bool OTClient::processServerReplyGetAccountFiles(const OTMessage& theReply,
                 strOutbox = it_outbox->second.c_str();
             if (strAccount.Exists()) {
                 // Load the account object from that string.
-                std::unique_ptr<OTAccount> pAccount(
-                    new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID));
+                std::unique_ptr<Account> pAccount(
+                    new Account(USER_ID, ACCOUNT_ID, SERVER_ID));
 
                 if (pAccount && pAccount->LoadContractFromString(strAccount) &&
                     pAccount->VerifyAccount(*pServerNym)) {
@@ -7407,7 +7407,7 @@ bool OTClient::processServerReplyDeleteAssetAccount(
 
         const OTIdentifier theAccountID(theReply.m_strAcctID);
 
-        OTAccount* pDeletedAcct = m_pWallet->GetAccount(theAccountID);
+        Account* pDeletedAcct = m_pWallet->GetAccount(theAccountID);
 
         if (nullptr != pDeletedAcct) {
             pDeletedAcct->MarkForDeletion();
@@ -7445,14 +7445,14 @@ bool OTClient::processServerReplyIssueAssetType(const OTMessage& theReply,
     const auto& pServerNym = args.pServerNym;
     const auto& pNym = args.pNym;
     if (theReply.m_ascPayload.GetLength()) {
-        OTAccount* pAccount = nullptr;
+        Account* pAccount = nullptr;
 
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
 
         // TODO check return value
-        pAccount = new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
+        pAccount = new Account(USER_ID, ACCOUNT_ID, SERVER_ID);
 
         if (pAccount->LoadContractFromString(strAcctContents) &&
             pAccount->VerifyAccount(*pServerNym)) {
@@ -7494,13 +7494,13 @@ bool OTClient::processServerReplyCreateAccount(const OTMessage& theReply,
     const auto& pServerNym = args.pServerNym;
     const auto& pNym = args.pNym;
     if (theReply.m_ascPayload.GetLength()) {
-        OTAccount* pAccount = nullptr;
+        Account* pAccount = nullptr;
 
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
 
-        pAccount = new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID);
+        pAccount = new Account(USER_ID, ACCOUNT_ID, SERVER_ID);
 
         if (pAccount && pAccount->LoadContractFromString(strAcctContents) &&
             pAccount->VerifyAccount(*pServerNym)) {
@@ -7781,8 +7781,8 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
         String strAccount(theReply.m_ascPayload);
 
         // Load the account object from that string.
-        std::unique_ptr<OTAccount> pAccount(
-            new OTAccount(USER_ID, ACCOUNT_ID, SERVER_ID));
+        std::unique_ptr<Account> pAccount(
+            new Account(USER_ID, ACCOUNT_ID, SERVER_ID));
 
         if (pAccount && pAccount->LoadContractFromString(strAccount) &&
             pAccount->VerifyAccount(*pServerNym)) {
@@ -8069,7 +8069,7 @@ int32_t OTClient::ProcessUserCommand(
     OTClient::OT_CLIENT_CMD_TYPE requestedCommand, OTMessage& theMessage,
     OTPseudonym& theNym,
     // OTAssetContract& theContract,
-    const OTServerContract& theServer, const OTAccount* pAccount,
+    const OTServerContract& theServer, const Account* pAccount,
     int64_t lTransactionAmount, OTAssetContract* pMyAssetContract,
     const OTIdentifier* pHisNymID, const OTIdentifier* pHisAcctID)
 {
@@ -9219,7 +9219,7 @@ int32_t OTClient::ProcessUserCommand(
         if (thePlan.LoadContractFromString(strPlan)) {
             const OTIdentifier ACCOUNT_ID(thePlan.GetSenderAcctID());
 
-            OTAccount* pSenderAccount = m_pWallet->GetAccount(ACCOUNT_ID);
+            Account* pSenderAccount = m_pWallet->GetAccount(ACCOUNT_ID);
 
             if (nullptr == pSenderAccount) {
                 otOut << "There is no account loaded on this wallet with that "

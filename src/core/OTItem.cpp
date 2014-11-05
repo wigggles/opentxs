@@ -358,7 +358,7 @@ bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
 //
 bool OTItem::VerifyBalanceStatement(
     int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
-    OTLedger& THE_OUTBOX, const OTAccount& THE_ACCOUNT,
+    OTLedger& THE_OUTBOX, const Account& THE_ACCOUNT,
     OTTransaction& TARGET_TRANSACTION,
     int64_t lOutboxTrnsNum) // Only used in the case of transfer,
                             // where the user

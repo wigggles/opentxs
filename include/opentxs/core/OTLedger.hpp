@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTCheque;
 class OTIdentifier;
 class OTItem;
@@ -235,7 +235,7 @@ public:
     EXPORT OTItem* GenerateBalanceStatement(int64_t lAdjustment,
                                             const OTTransaction& theOwner,
                                             OTPseudonym& theNym,
-                                            const OTAccount& theAccount,
+                                            const Account& theAccount,
                                             OTLedger& theOutbox);
 
     EXPORT void ProduceOutboxReport(OTItem& theBalanceItem);

@@ -173,7 +173,7 @@ bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
 // This is an override. See note above.
 //
 bool OTTrade::VerifyNymAsAgentForAccount(OTPseudonym& nym,
-                                         OTAccount& account) const
+                                         Account& account) const
 {
     return account.VerifyOwner(nym);
 }

@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTItem;
 class OTLedger;
 class OTPseudonym;
@@ -444,7 +444,7 @@ public:
     // and return with acknowledgement.)
     EXPORT bool VerifyBalanceStatement(
         int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
-        OTLedger& THE_OUTBOX, const OTAccount& THE_ACCOUNT,
+        OTLedger& THE_OUTBOX, const Account& THE_ACCOUNT,
         OTTransaction& TARGET_TRANSACTION,
         int64_t lOutboxTrnsNum = 0); // Used in special case of transfers (the
                                      // user

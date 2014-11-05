@@ -180,7 +180,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
                        "-----BEGIN SIGNED ACCOUNT-----")) // this string is 30
                                                           // chars long.
         {
-            pContract = new OTAccount();
+            pContract = new Account();
             OT_ASSERT(nullptr != pContract);
         }
 

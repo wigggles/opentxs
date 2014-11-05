@@ -1633,7 +1633,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // LOAD THE ACCOUNT
 
-    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealServerID());
+    Account THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealServerID());
 
     if (!THE_ACCOUNT.LoadContract() || !THE_ACCOUNT.VerifyAccount(THE_NYM)) {
         // error, return.

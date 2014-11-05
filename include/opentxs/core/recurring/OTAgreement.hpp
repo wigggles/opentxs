@@ -461,7 +461,7 @@ public:
         mapOfNyms* pmap_ALREADY_LOADED = nullptr) const;
 
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                            OTAccount& theAccount) const;
+                                            Account& theAccount) const;
 
     /*
      From OTContract, I have:

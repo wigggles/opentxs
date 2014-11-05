@@ -254,7 +254,7 @@ OTParty::OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
 OTParty::OTParty(std::string str_PartyName,
                  OTPseudonym& theNym, // Nym is BOTH owner AND agent, when using
                                       // this constructor.
-                 const std::string str_agent_name, OTAccount* pAccount,
+                 const std::string str_agent_name, Account* pAccount,
                  const std::string* pstr_account_name, int64_t lClosingTransNo)
     : m_pstr_party_name(new std::string(str_PartyName))
     , m_bPartyIsNym(true)
@@ -356,7 +356,7 @@ bool OTParty::AddAccount(const String& strAgentName, const String& strName,
 }
 
 bool OTParty::AddAccount(const String& strAgentName, const char* szAcctName,
-                         OTAccount& theAccount, int64_t lClosingTransNo)
+                         Account& theAccount, int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
         szAcctName, strAgentName, theAccount, lClosingTransNo);
@@ -751,7 +751,7 @@ bool OTParty::HasAccountByID(const OTIdentifier& theAcctID,
 
 // If account is present for Party, set account's pointer to theAccount and
 // return true.
-bool OTParty::HasAccount(OTAccount& theAccount,
+bool OTParty::HasAccount(Account& theAccount,
                          OTPartyAccount** ppPartyAccount) const
 {
     for (const auto& it : m_mapPartyAccounts) {
@@ -930,7 +930,7 @@ OTPseudonym* OTParty::LoadAuthorizingAgentNym(OTPseudonym& theSignerNym,
     return nullptr;
 }
 
-bool OTParty::VerifyOwnershipOfAccount(const OTAccount& theAccount) const
+bool OTParty::VerifyOwnershipOfAccount(const Account& theAccount) const
 {
     if (IsNym()) // For those cases where the party is actually just a
                  // solitary Nym (not an entity.)
@@ -1102,7 +1102,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         OT_ASSERT(pPartyAcct != nullptr);
 
         bool bHadToLoadtheAcctMyself = true;
-        OTAccount* pAccount = nullptr;
+        Account* pAccount = nullptr;
 
         const String& strAcctID = pPartyAcct->GetAcctID();
 
@@ -1180,7 +1180,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
             // Successfully loaded the Acct! We add to this map so it gets
             // cleaned-up properly later.
             map_NewlyLoaded.insert(
-                std::pair<std::string, OTAccount*>(strAcctID.Get(), pAccount));
+                std::pair<std::string, Account*>(strAcctID.Get(), pAccount));
         }
     }
 

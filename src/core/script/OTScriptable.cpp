@@ -896,7 +896,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym,
 }
 
 OTParty* OTScriptable::FindPartyBasedOnAccount(
-    OTAccount& theAccount, OTPartyAccount** ppPartyAccount) const
+    Account& theAccount, OTPartyAccount** ppPartyAccount) const
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -1641,7 +1641,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
 // aren't proving nearly as much. ALWAYS call it first.
 //
 bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                              OTAccount& theAccount) const
+                                              Account& theAccount) const
 {
 
     // Lookup the party via the ACCOUNT.

@@ -140,7 +140,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTIdentifier;
 class OTServer;
 class String;
@@ -212,7 +212,7 @@ public:
         return m_lAmountReturned;
     }
 
-    virtual bool Trigger(OTAccount& theAccount);
+    virtual bool Trigger(Account& theAccount);
 };
 
 } // namespace opentxs

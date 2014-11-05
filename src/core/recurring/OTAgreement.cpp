@@ -516,7 +516,7 @@ bool OTAgreement::VerifyNymAsAgent(OTPseudonym& theNym,
 // This is an override. See note above.
 //
 bool OTAgreement::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
-                                             OTAccount& theAccount) const
+                                             Account& theAccount) const
 {
     return theAccount.VerifyOwner(theNym);
 }

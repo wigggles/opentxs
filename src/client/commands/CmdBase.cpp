@@ -173,7 +173,7 @@ bool CmdBase::checkAccount(const char* name, string& account) const
     }
 
     OTWallet* wallet = getWallet();
-    OTAccount* theAccount = wallet->GetAccount(account);
+    Account* theAccount = wallet->GetAccount(account);
     if (theAccount == nullptr) {
         theAccount = wallet->GetAccountPartialMatch(account);
         if (theAccount == nullptr) {

@@ -140,9 +140,9 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 
-typedef std::map<std::string, OTAccount*> mapOfAccounts;
+typedef std::map<std::string, Account*> mapOfAccounts;
 
 class AccountVisitor
 {
@@ -168,7 +168,7 @@ public:
         return loadedAccounts_;
     }
 
-    EXPORT virtual bool Trigger(OTAccount& account) = 0;
+    EXPORT virtual bool Trigger(Account& account) = 0;
 
 protected:
     OTIdentifier serverId_;

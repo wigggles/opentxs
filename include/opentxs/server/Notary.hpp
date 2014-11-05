@@ -138,7 +138,7 @@ namespace opentxs
 
 class OTTransaction;
 class OTPseudonym;
-class OTAccount;
+class Account;
 class OTServer;
 
 class Notary
@@ -152,36 +152,36 @@ public:
     // and for each transaction within, it calls THIS method.
     void NotarizeTransaction(OTPseudonym& nym, OTTransaction& tranIn,
                              OTTransaction& tranOut, bool& outSuccess);
-    void NotarizeTransfer(OTPseudonym& nym, OTAccount& fromAccount,
+    void NotarizeTransfer(OTPseudonym& nym, Account& fromAccount,
                           OTTransaction& tranIn, OTTransaction& tranOut,
                           bool& outSuccess);
-    void NotarizeDeposit(OTPseudonym& nym, OTAccount& account,
+    void NotarizeDeposit(OTPseudonym& nym, Account& account,
                          OTTransaction& tranIn, OTTransaction& tranOut,
                          bool& outSuccess);
-    void NotarizeWithdrawal(OTPseudonym& nym, OTAccount& account,
+    void NotarizeWithdrawal(OTPseudonym& nym, Account& account,
                             OTTransaction& tranIn, OTTransaction& tranOut,
                             bool& outSuccess);
-    void NotarizeProcessInbox(OTPseudonym& nym, OTAccount& account,
+    void NotarizeProcessInbox(OTPseudonym& nym, Account& account,
                               OTTransaction& tranIn, OTTransaction& tranOut,
                               bool& outSuccess);
     void NotarizeProcessNymbox(OTPseudonym& nym, OTTransaction& tranIn,
                                OTTransaction& tranOut, bool& outSuccess);
-    void NotarizeMarketOffer(OTPseudonym& nym, OTAccount& assetAccount,
+    void NotarizeMarketOffer(OTPseudonym& nym, Account& assetAccount,
                              OTTransaction& tranIn, OTTransaction& tranOut,
                              bool& outSuccess);
-    void NotarizePaymentPlan(OTPseudonym& nym, OTAccount& depositorAccount,
+    void NotarizePaymentPlan(OTPseudonym& nym, Account& depositorAccount,
                              OTTransaction& tranIn, OTTransaction& tranOut,
                              bool& outSuccess);
-    void NotarizeSmartContract(OTPseudonym& nym, OTAccount& activatingAccount,
+    void NotarizeSmartContract(OTPseudonym& nym, Account& activatingAccount,
                                OTTransaction& tranIn, OTTransaction& tranOut,
                                bool& outSuccess);
-    void NotarizeCancelCronItem(OTPseudonym& nym, OTAccount& assetAccount,
+    void NotarizeCancelCronItem(OTPseudonym& nym, Account& assetAccount,
                                 OTTransaction& tranIn, OTTransaction& tranOut,
                                 bool& outSuccess);
-    void NotarizeExchangeBasket(OTPseudonym& nym, OTAccount& sourceAccount,
+    void NotarizeExchangeBasket(OTPseudonym& nym, Account& sourceAccount,
                                 OTTransaction& tranIn, OTTransaction& tranOut,
                                 bool& outSuccess);
-    void NotarizePayDividend(OTPseudonym& nym, OTAccount& account,
+    void NotarizePayDividend(OTPseudonym& nym, Account& account,
                              OTTransaction& tranIn, OTTransaction& tranOut,
                              bool& outSuccess);
 

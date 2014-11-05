@@ -157,11 +157,11 @@ namespace opentxs
 {
 
 AccountList::AccountList()
-    : acctType_(OTAccount::voucher)
+    : acctType_(Account::voucher)
 {
 }
 
-AccountList::AccountList(OTAccount::AccountType acctType)
+AccountList::AccountList(Account::AccountType acctType)
     : acctType_(acctType)
 {
 }
@@ -204,7 +204,7 @@ int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
 
     acctType_ = TranslateAccountTypeStringToEnum(acctType);
 
-    if (OTAccount::err_acct == acctType_) {
+    if (Account::err_acct == acctType_) {
         otErr << "AccountList::ReadFromXMLNode: Failed: accountList 'type' "
                  "attribute contains unknown value.\n";
         return -1;
@@ -268,17 +268,17 @@ void AccountList::Release()
     Release_AcctList();
 }
 
-std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
+std::shared_ptr<Account> AccountList::GetOrCreateAccount(
     OTPseudonym& serverNym, const OTIdentifier& accountOwnerId,
     const OTIdentifier& assetTypeId, const OTIdentifier& serverId,
     // this will be set to true if the acct is created here.
     // Otherwise set to false;
     bool& wasAcctCreated, int64_t stashTransNum)
 {
-    std::shared_ptr<OTAccount> account;
+    std::shared_ptr<Account> account;
     wasAcctCreated = false;
 
-    if (OTAccount::stash == acctType_) {
+    if (Account::stash == acctType_) {
         if (stashTransNum <= 0) {
             otErr
                 << "AccountList::GetOrCreateAccount: Failed attempt to create "
@@ -304,7 +304,7 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
         // FOUND the weak ptr to the account! Maybe it's already loaded
         if (mapWeakAccts_.end() != weakIt) {
             try {
-                std::shared_ptr<OTAccount> weakAccount(weakIt->second);
+                std::shared_ptr<Account> weakAccount(weakIt->second);
 
                 // If success, then we have a shared pointer. But it's worrying
                 // (TODO) because this should have
@@ -346,8 +346,8 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
 
         // The Account ID exists, but we don't have the pointer to a loaded
         // account for it. So, let's load it.
-        OTAccount* loadedAccount =
-            OTAccount::LoadExistingAccount(accountID, serverId);
+        Account* loadedAccount =
+            Account::LoadExistingAccount(accountID, serverId);
 
         if (!loadedAccount) {
             otErr << "Failed trying to load " << acctTypeString
@@ -367,11 +367,10 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
                    << " account ID: " << acctIDString
                    << " Asset Type ID: " << assetTypeIdString << "\n";
 
-            account = std::shared_ptr<OTAccount>(loadedAccount);
+            account = std::shared_ptr<Account>(loadedAccount);
             // save a weak pointer to the acct, so we'll never load it twice,
             // but we'll also know if it's been deleted.
-            mapWeakAccts_[acctIDString.Get()] =
-                std::weak_ptr<OTAccount>(account);
+            mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<Account>(account);
         }
         return account;
     }
@@ -383,7 +382,7 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
     assetTypeId.GetString(message.m_strAssetID);
     serverId.GetString(message.m_strServerID);
 
-    OTAccount* createdAccount = OTAccount::GenerateNewAccount(
+    Account* createdAccount = Account::GenerateNewAccount(
         accountOwnerId, serverId, serverNym, message, acctType_, stashTransNum);
 
     if (!createdAccount) {
@@ -399,11 +398,11 @@ std::shared_ptr<OTAccount> AccountList::GetOrCreateAccount(
               << " account ID: " << acctIDString
               << " Asset Type ID: " << assetTypeIdString << "\n";
 
-        account = std::shared_ptr<OTAccount>(createdAccount);
+        account = std::shared_ptr<Account>(createdAccount);
 
         // save a weak pointer to the acct, so we'll never load it twice,
         // but we'll also know if it's been deleted.
-        mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<OTAccount>(account);
+        mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<Account>(account);
         // Save the new acct ID in a map, keyed by asset type ID.
         mapAcctIDs_[message.m_strAssetID.Get()] = acctIDString.Get();
 

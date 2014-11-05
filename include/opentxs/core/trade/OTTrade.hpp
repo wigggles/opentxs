@@ -307,7 +307,7 @@ public:
                                   mapOfNyms* preloadedMap = nullptr) const;
 
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym& nym,
-                                            OTAccount& account) const;
+                                            Account& account) const;
     EXPORT OTTrade();
     EXPORT OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,
                    const OTIdentifier& assetAcctId, const OTIdentifier& userId,

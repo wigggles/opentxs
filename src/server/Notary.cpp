@@ -163,7 +163,7 @@
 namespace opentxs
 {
 
-typedef std::list<OTAccount*> listOfAccounts;
+typedef std::list<Account*> listOfAccounts;
 typedef std::deque<Token*> dequeOfTokenPtrs;
 
 Notary::Notary(OTServer* server)
@@ -171,7 +171,7 @@ Notary::Notary(OTServer* server)
 {
 }
 
-void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
+void Notary::NotarizeTransfer(OTPseudonym& theNym, Account& theFromAccount,
                               OTTransaction& tranIn, OTTransaction& tranOut,
                               bool& bOutSuccess)
 {
@@ -288,9 +288,8 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
 
         // Set the ID on the To Account based on what the transaction request
         // said. (So we can load it up.)
-        std::unique_ptr<OTAccount> pDestinationAcct(
-            OTAccount::LoadExistingAccount(pItem->GetDestinationAcctID(),
-                                           SERVER_ID));
+        std::unique_ptr<Account> pDestinationAcct(Account::LoadExistingAccount(
+            pItem->GetDestinationAcctID(), SERVER_ID));
 
         // Only accept transfers with positive amounts.
         if (0 > pItem->GetAmount()) {
@@ -659,7 +658,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, OTAccount& theFromAccount,
 ///                            tokens. Funds are transferred to the bank, who
 /// blind-signs the tokens.
 ///
-void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
+void Notary::NotarizeWithdrawal(OTPseudonym& theNym, Account& theAccount,
                                 OTTransaction& tranIn, OTTransaction& tranOut,
                                 bool& bOutSuccess)
 {
@@ -801,7 +800,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
 
         //        OTAccount * pVoucherReserveAcct    = nullptr;
         // contains the server's funds to back vouchers of a specific asset type
-        std::shared_ptr<OTAccount> pVoucherReserveAcct;
+        std::shared_ptr<Account> pVoucherReserveAcct;
         std::unique_ptr<OTLedger> pInbox(
             theAccount.LoadInbox(server_->m_nymServer));
         std::unique_ptr<OTLedger> pOutbox(
@@ -846,7 +845,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
             pItem->GetNote(strItemNote);
             pItem->GetAttachment(strVoucherRequest);
 
-            OTAccount& theVoucherReserveAcct = (*pVoucherReserveAcct);
+            Account& theVoucherReserveAcct = (*pVoucherReserveAcct);
             OTIdentifier VOUCHER_ACCOUNT_ID(theVoucherReserveAcct);
 
             OTCheque theVoucher(SERVER_ID, ASSET_TYPE_ID),
@@ -1065,7 +1064,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
             theAccount.LoadOutbox(server_->m_nymServer));
 
         Mint* pMint = nullptr;
-        OTAccount* pMintCashReserveAcct = nullptr;
+        Account* pMintCashReserveAcct = nullptr;
 
         if (0 > pItem->GetAmount()) {
             OTLog::Output(0, "Attempt to withdraw a negative amount.\n");
@@ -1461,8 +1460,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, OTAccount& theAccount,
 /// Phase 2: voting groups, hierarchical entities with agents, oversight,
 /// corporate asset accounts, etc.
 ///
-void Notary::NotarizePayDividend(OTPseudonym& theNym,
-                                 OTAccount& theSourceAccount,
+void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
                                  OTTransaction& tranIn, OTTransaction& tranOut,
                                  bool& bOutSuccess)
 {
@@ -1649,11 +1647,11 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
             const OTIdentifier SHARES_ASSET_ID = theVoucherRequest.GetAssetID();
             OTAssetContract* pSharesContract =
                 server_->transactor_.getAssetContract(SHARES_ASSET_ID);
-            OTAccount* pSharesIssuerAccount = nullptr;
-            std::unique_ptr<OTAccount> theAcctAngel;
+            Account* pSharesIssuerAccount = nullptr;
+            std::unique_ptr<Account> theAcctAngel;
 
             if (nullptr != pSharesContract) {
-                pSharesIssuerAccount = OTAccount::LoadExistingAccount(
+                pSharesIssuerAccount = Account::LoadExistingAccount(
                     SHARES_ISSUER_ACCT_ID, SERVER_ID);
                 theAcctAngel.reset(pSharesIssuerAccount);
             }
@@ -1755,7 +1753,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                     theSourceAccount.LoadOutbox(server_->m_nymServer));
                 // contains the server's funds to back vouchers of a specific
                 // asset type.
-                std::shared_ptr<OTAccount> pVoucherReserveAcct;
+                std::shared_ptr<Account> pVoucherReserveAcct;
                 //              OTAccount    *       pVoucherReserveAcct    =
                 // nullptr;
                 //
@@ -1804,7 +1802,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                 // that verifies with the server's
                 // nym...
                 {
-                    OTAccount& theVoucherReserveAcct = (*pVoucherReserveAcct);
+                    Account& theVoucherReserveAcct = (*pVoucherReserveAcct);
                     const OTIdentifier VOUCHER_ACCOUNT_ID(
                         theVoucherReserveAcct);
 
@@ -1951,14 +1949,14 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
                                 //
                                 mapOfAccounts theAccounts;
                                 theAccounts.insert(
-                                    std::pair<std::string, OTAccount*>(
+                                    std::pair<std::string, Account*>(
                                         strAccountID.Get(), &theSourceAccount));
                                 theAccounts.insert(
-                                    std::pair<std::string, OTAccount*>(
+                                    std::pair<std::string, Account*>(
                                         strSharesIssuerAcct.Get(),
                                         pSharesIssuerAccount));
                                 theAccounts.insert(
-                                    std::pair<std::string, OTAccount*>(
+                                    std::pair<std::string, Account*>(
                                         strVoucherAcctID.Get(),
                                         &theVoucherReserveAcct));
 
@@ -2264,7 +2262,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym,
 }
 
 /// for depositing a cheque or cash.
-void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
+void Notary::NotarizeDeposit(OTPseudonym& theNym, Account& theAccount,
                              OTTransaction& tranIn, OTTransaction& tranOut,
                              bool& bOutSuccess)
 {
@@ -2294,7 +2292,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
     const String strUserID(USER_ID), strAccountID(ACCOUNT_ID);
 
     Mint* pMint = nullptr; // the Mint itself.
-    OTAccount* pMintCashReserveAcct =
+    Account* pMintCashReserveAcct =
         nullptr; // the Mint's funds for cash withdrawals.
     // Here we find out if we're depositing cash, or a cheque
     //
@@ -2747,14 +2745,13 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                     SERVER_ID); // voucherReceipt goes here.
                 OTLedger* pSenderInbox = &theSenderInbox;
                 OTLedger* pRemitterInbox = &theRemitterInbox;
-                OTAccount* pRemitterAcct =
+                Account* pRemitterAcct =
                     nullptr; // Only used in the case of vouchers.
-                std::unique_ptr<OTAccount> theRemitterAcctGuardian;
-                OTAccount* pSourceAcct =
-                    nullptr; // We'll load this up and change
-                             // its balance, save it then
-                             // delete the instance.
-                std::unique_ptr<OTAccount> theSourceAcctGuardian;
+                std::unique_ptr<Account> theRemitterAcctGuardian;
+                Account* pSourceAcct = nullptr; // We'll load this up and change
+                                                // its balance, save it then
+                                                // delete the instance.
+                std::unique_ptr<Account> theSourceAcctGuardian;
                 // OTAccount::LoadExistingAccount().
                 OTPseudonym theRemitterNym(REMITTER_USER_ID);
                 OTPseudonym* pRemitterNym = &theRemitterNym;
@@ -3125,7 +3122,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                 // object onto this pointer.
                 else if (!bSourceAcctAlreadyLoaded &&
                          ((nullptr ==
-                           (pSourceAcct = OTAccount::LoadExistingAccount(
+                           (pSourceAcct = Account::LoadExistingAccount(
                                 SOURCE_ACCT_ID, SERVER_ID))) ||
                           (theSourceAcctGuardian.reset(pSourceAcct),
                            false // I want this to eval to false, but I want
@@ -3211,7 +3208,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                     //
                     if (bHasRemitter && !bRemitterAcctAlreadyLoaded &&
                         ((nullptr ==
-                          (pRemitterAcct = OTAccount::LoadExistingAccount(
+                          (pRemitterAcct = Account::LoadExistingAccount(
                                REMITTER_ACCT_ID, SERVER_ID))) ||
                          (theRemitterAcctGuardian.reset(pRemitterAcct),
                           false // I want this to eval to false, but I want
@@ -3424,7 +3421,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
                             // is. The debits and credits
                             // don't save unless everything is a success.
 
-                            OTAccount* pAcctWhereReceiptGoes = nullptr;
+                            Account* pAcctWhereReceiptGoes = nullptr;
                             OTLedger* pInboxWhereReceiptGoes = nullptr;
                             if (bHasRemitter) // voucher
                             {
@@ -4072,7 +4069,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, OTAccount& theAccount,
 ///
 ///
 void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
-                                 OTAccount& theDepositorAccount,
+                                 Account& theDepositorAccount,
                                  OTTransaction& tranIn, OTTransaction& tranOut,
                                  bool& bOutSuccess)
 {
@@ -4488,11 +4485,11 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                         else {
                             // Load up the recipient ACCOUNT and validate it.
                             //
-                            OTAccount* pRecipientAcct = nullptr;
-                            std::unique_ptr<OTAccount> theRecipientAcctGuardian;
+                            Account* pRecipientAcct = nullptr;
+                            std::unique_ptr<Account> theRecipientAcctGuardian;
                             if (!bCancelling) // ACTIVATING
                             {
-                                pRecipientAcct = OTAccount::LoadExistingAccount(
+                                pRecipientAcct = Account::LoadExistingAccount(
                                     RECIPIENT_ACCT_ID, SERVER_ID);
                                 theRecipientAcctGuardian.reset(pRecipientAcct);
                             }
@@ -4814,7 +4811,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
 }
 
 void Notary::NotarizeSmartContract(OTPseudonym& theNym,
-                                   OTAccount& theActivatingAccount,
+                                   Account& theActivatingAccount,
                                    OTTransaction& tranIn,
                                    OTTransaction& tranOut, bool& bOutSuccess)
 {
@@ -5548,7 +5545,7 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
 // the SAME closing numbers.
 //
 void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
-                                    OTAccount& theAssetAccount,
+                                    Account& theAssetAccount,
                                     OTTransaction& tranIn,
                                     OTTransaction& tranOut, bool& bOutSuccess)
 {
@@ -5737,7 +5734,7 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
 
 /// a user is exchanging in or out of a basket.  (Ex. He's trading 2 gold and 3
 /// silver for 10 baskets, or vice-versa.)
-void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
+void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, Account& theAccount,
                                     OTTransaction& tranIn,
                                     OTTransaction& tranOut, bool& bOutSuccess)
 {
@@ -5856,8 +5853,8 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
 
             OTIdentifier BASKET_ACCOUNT_ID;
 
-            OTAccount* pBasketAcct = nullptr;
-            std::unique_ptr<OTAccount> theBasketAcctGuardian;
+            Account* pBasketAcct = nullptr;
+            std::unique_ptr<Account> theBasketAcctGuardian;
 
             bool bLookup =
                 server_->transactor_.lookupBasketAccountIDByContractID(
@@ -5887,8 +5884,8 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
                              "available for use...\n");
             }
             else { // Load the basket account and make sure it exists.
-                pBasketAcct = OTAccount::LoadExistingAccount(BASKET_ACCOUNT_ID,
-                                                             SERVER_ID);
+                pBasketAcct =
+                    Account::LoadExistingAccount(BASKET_ACCOUNT_ID, SERVER_ID);
 
                 // If the pointer is nullptr, that works too. Otherwise it
                 // cleans
@@ -6006,8 +6003,8 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
 
                                     // Load up the two accounts and perform the
                                     // exchange...
-                                    OTAccount* pUserAcct =
-                                        OTAccount::LoadExistingAccount(
+                                    Account* pUserAcct =
+                                        Account::LoadExistingAccount(
                                             pRequestItem->SUB_ACCOUNT_ID,
                                             SERVER_ID);
 
@@ -6020,8 +6017,8 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
                                         bSuccess = false;
                                         break;
                                     }
-                                    OTAccount* pServerAcct =
-                                        OTAccount::LoadExistingAccount(
+                                    Account* pServerAcct =
+                                        Account::LoadExistingAccount(
                                             pBasketItem->SUB_ACCOUNT_ID,
                                             SERVER_ID);
 
@@ -6499,7 +6496,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
                             // ALL the relevant accounts.
                             // So now, let's Save them ALL to disk.. (and clean
                             // them up.)
-                            OTAccount* pAccount = nullptr;
+                            Account* pAccount = nullptr;
 
                             // empty the list of USER accounts (and save to
                             // disk, if everything was successful.)
@@ -6631,8 +6628,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, OTAccount& theAccount,
 // DONE:  Make sure a CLOSING TRANSACTION number is provided, and recorded for
 // use later in cron!
 
-void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
-                                 OTAccount& theAssetAccount,
+void Notary::NotarizeMarketOffer(OTPseudonym& theNym, Account& theAssetAccount,
                                  OTTransaction& tranIn, OTTransaction& tranOut,
                                  bool& bOutSuccess)
 {
@@ -6744,8 +6740,8 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym,
                                           // successful.
 
             // Load up the currency account and validate it.
-            std::unique_ptr<OTAccount> pCurrencyAcct(
-                OTAccount::LoadExistingAccount(CURRENCY_ACCT_ID, SERVER_ID));
+            std::unique_ptr<Account> pCurrencyAcct(
+                Account::LoadExistingAccount(CURRENCY_ACCT_ID, SERVER_ID));
 
             // Also load up the Trade from inside the transaction item.
             String strOffer;
@@ -7044,8 +7040,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     theNym.GetIdentifier(USER_ID);
     const String strIDNym(USER_ID);
 
-    OTAccount theFromAccount(USER_ID, tranIn.GetPurportedAccountID(),
-                             SERVER_ID);
+    Account theFromAccount(USER_ID, tranIn.GetPurportedAccountID(), SERVER_ID);
 
     // Make sure the "from" account even exists...
     if (!theFromAccount.LoadContract()) {
@@ -8100,7 +8095,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
 /// those transactions
 /// accordingly.
 /// (And each of those transactions must be accepted or rejected in whole.)
-void Notary::NotarizeProcessInbox(OTPseudonym& theNym, OTAccount& theAccount,
+void Notary::NotarizeProcessInbox(OTPseudonym& theNym, Account& theAccount,
                                   OTTransaction& tranIn, OTTransaction& tranOut,
                                   bool& bOutSuccess)
 {

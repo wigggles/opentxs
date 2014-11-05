@@ -905,8 +905,8 @@ int32_t main(int32_t argc, char* argv[])
         // UPDATE: Not necessarily... (pServerContract may be nullptr...)
         //
 
-        OTAccount* pMyAccount = nullptr;
-        OTAccount* pHisAccount = nullptr;
+        Account* pMyAccount = nullptr;
+        Account* pHisAccount = nullptr;
 
         if (str_MyAcct.size() > 0) {
             const OTIdentifier MY_ACCOUNT_ID(str_MyAcct.c_str());

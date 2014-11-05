@@ -143,7 +143,7 @@
 namespace opentxs
 {
 
-class OTAccount;
+class Account;
 class OTAssetContract;
 class OTContract;
 class OTIdentifier;
@@ -156,7 +156,7 @@ class OTServerContract;
 class String;
 class OTSymmetricKey;
 
-typedef std::map<std::string, OTAccount*> mapOfAccounts;
+typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, OTAssetContract*> mapOfContracts;
 typedef std::map<std::string, OTPseudonym*> mapOfNyms;
 typedef std::map<std::string, OTServerContract*> mapOfServers;
@@ -187,15 +187,15 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
-    EXPORT OTAccount* LoadAccount(const OTPseudonym& theNym,
-                                  const OTIdentifier& ACCT_ID,
-                                  const OTIdentifier& SERVER_ID,
-                                  const char* szFuncName = nullptr);
+    EXPORT Account* LoadAccount(const OTPseudonym& theNym,
+                                const OTIdentifier& ACCT_ID,
+                                const OTIdentifier& SERVER_ID,
+                                const char* szFuncName = nullptr);
 
-    EXPORT OTAccount* GetOrLoadAccount(const OTPseudonym& theNym,
-                                       const OTIdentifier& ACCT_ID,
-                                       const OTIdentifier& SERVER_ID,
-                                       const char* szFuncName = nullptr);
+    EXPORT Account* GetOrLoadAccount(const OTPseudonym& theNym,
+                                     const OTIdentifier& ACCT_ID,
+                                     const OTIdentifier& SERVER_ID,
+                                     const char* szFuncName = nullptr);
     // Used by high-level wrapper.
 
     EXPORT int32_t GetNymCount();
@@ -223,20 +223,23 @@ public:
         std::string PARTIAL_ID); // wallet name for server also accepted.
 
     EXPORT void AddNym(const OTPseudonym& theNym);
-    EXPORT void AddAccount(const OTAccount& theAcct);
+    EXPORT void AddAccount(const Account& theAcct);
 
     EXPORT void AddAssetContract(const OTAssetContract& theContract);
     EXPORT OTAssetContract* GetAssetContract(const OTIdentifier& theContractID);
     EXPORT OTAssetContract* GetAssetContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for asset also accepted.
-    bool VerifyAssetAccount(const OTPseudonym& theNym, OTAccount& theAcct,
+    bool VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
                             const OTIdentifier& SERVER_ID,
                             const String& strAcctID,
                             const char* szFuncName = nullptr);
-    EXPORT OTAccount* GetAccount(const OTIdentifier& theAccountID);
-    EXPORT OTAccount* GetAccountPartialMatch(
-        std::string PARTIAL_ID); // wallet name for account also accepted.
-    EXPORT OTAccount* GetIssuerAccount(const OTIdentifier& theAssetTypeID);
+    EXPORT Account* GetAccount(const OTIdentifier& theAccountID);
+    EXPORT Account* GetAccountPartialMatch(std::string PARTIAL_ID); // wallet
+                                                                    // name for
+                                                                    // account
+                                                                    // also
+                                                                    // accepted.
+    EXPORT Account* GetIssuerAccount(const OTIdentifier& theAssetTypeID);
     // While waiting on server response to a withdrawal, we keep the private
     // coin
     // data here so we can unblind the response.

@@ -963,8 +963,8 @@ int64_t OTMarket::GetLowestAskPrice()
 }
 
 // This utility function is used directly below (only).
-void OTMarket::cleanup_four_accounts(OTAccount* p1, OTAccount* p2,
-                                     OTAccount* p3, OTAccount* p4)
+void OTMarket::cleanup_four_accounts(Account* p1, Account* p2, Account* p3,
+                                     Account* p4)
 {
     if (p1) delete p1;
     if (p2) delete p2;
@@ -985,10 +985,10 @@ void OTMarket::cleanup_four_accounts(OTAccount* p1, OTAccount* p2,
 // NOT to try to credit the account again, since the money never left.  If b1 is
 // false, for each var, do nothing.
 // If true, try to roll it back.
-void OTMarket::rollback_four_accounts(OTAccount& p1, bool b1, const int64_t& a1,
-                                      OTAccount& p2, bool b2, const int64_t& a2,
-                                      OTAccount& p3, bool b3, const int64_t& a3,
-                                      OTAccount& p4, bool b4, const int64_t& a4)
+void OTMarket::rollback_four_accounts(Account& p1, bool b1, const int64_t& a1,
+                                      Account& p2, bool b2, const int64_t& a2,
+                                      Account& p3, bool b3, const int64_t& a3,
+                                      Account& p4, bool b4, const int64_t& a4)
 {
     if (b1) p1.Credit(a1);
     if (b2) p2.Credit(a2);
@@ -1226,14 +1226,14 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     // Make sure have ALL FOUR accounts loaded and checked out.
     // (first nym's asset/currency, and other nym's asset/currency.)
 
-    OTAccount* pFirstAssetAcct =
-        OTAccount::LoadExistingAccount(theTrade.GetSenderAcctID(), SERVER_ID);
-    OTAccount* pFirstCurrencyAcct =
-        OTAccount::LoadExistingAccount(theTrade.GetCurrencyAcctID(), SERVER_ID);
+    Account* pFirstAssetAcct =
+        Account::LoadExistingAccount(theTrade.GetSenderAcctID(), SERVER_ID);
+    Account* pFirstCurrencyAcct =
+        Account::LoadExistingAccount(theTrade.GetCurrencyAcctID(), SERVER_ID);
 
-    OTAccount* pOtherAssetAcct = OTAccount::LoadExistingAccount(
-        pOtherTrade->GetSenderAcctID(), SERVER_ID);
-    OTAccount* pOtherCurrencyAcct = OTAccount::LoadExistingAccount(
+    Account* pOtherAssetAcct =
+        Account::LoadExistingAccount(pOtherTrade->GetSenderAcctID(), SERVER_ID);
+    Account* pOtherCurrencyAcct = Account::LoadExistingAccount(
         pOtherTrade->GetCurrencyAcctID(), SERVER_ID);
 
     if ((nullptr == pFirstAssetAcct) || (nullptr == pFirstCurrencyAcct)) {
@@ -1577,10 +1577,10 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             // reached. The trade is complete,
             // from his side of it, anyway. Then the loop will be over for sure.
 
-            OTAccount* pAssetAccountToDebit = nullptr;
-            OTAccount* pAssetAccountToCredit = nullptr;
-            OTAccount* pCurrencyAccountToDebit = nullptr;
-            OTAccount* pCurrencyAccountToCredit = nullptr;
+            Account* pAssetAccountToDebit = nullptr;
+            Account* pAssetAccountToCredit = nullptr;
+            Account* pCurrencyAccountToDebit = nullptr;
+            Account* pCurrencyAccountToCredit = nullptr;
 
             if (theOffer.IsAsk()) // I'm selling, he's buying
             {

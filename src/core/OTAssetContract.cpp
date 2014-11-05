@@ -527,8 +527,8 @@ bool OTAssetContract::VisitAccountRecords(AccountVisitor& visitor) const
                       << ") when expecting: " << strAssetTypeID << "\n";
             }
             else {
-                OTAccount* pAccount = nullptr;
-                std::unique_ptr<OTAccount> theAcctAngel;
+                Account* pAccount = nullptr;
+                std::unique_ptr<Account> theAcctAngel;
 
                 const OTIdentifier theAccountID(str_acct_id.c_str());
 
@@ -562,8 +562,8 @@ bool OTAssetContract::VisitAccountRecords(AccountVisitor& visitor) const
                 // Let's try to load it.
                 //
                 if (nullptr == pAccount) {
-                    pAccount = OTAccount::LoadExistingAccount(theAccountID,
-                                                              *pServerID);
+                    pAccount =
+                        Account::LoadExistingAccount(theAccountID, *pServerID);
                     theAcctAngel.reset(pAccount);
                 }
 
@@ -584,15 +584,15 @@ bool OTAssetContract::VisitAccountRecords(AccountVisitor& visitor) const
     return true;
 }
 
-bool OTAssetContract::AddAccountRecord(
-    const OTAccount& theAccount) const // adds the
-                                       // account
-                                       // to the
-                                       // list.
-                                       // (When
-                                       // account
-                                       // is
-                                       // created.)
+bool OTAssetContract::AddAccountRecord(const Account& theAccount) const // adds
+                                                                        // the
+// account
+// to the
+// list.
+// (When
+// account
+// is
+// created.)
 {
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Add it otherwise.

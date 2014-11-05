@@ -696,7 +696,7 @@ void OTAgent::RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded)
     // is goood.
 }
 
-bool OTAgent::VerifyAgencyOfAccount(const OTAccount& theAccount) const
+bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 {
     OTIdentifier theSignerID;
 
