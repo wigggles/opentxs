@@ -1103,8 +1103,8 @@ bool OTPaths::GetHomeFromSystem(String& out_strHomeFolder)
 
 #elif defined(__APPLE__)
 
-    OTString home(getenv("HOME"));
-    OTString library = "";
+    String home(getenv("HOME"));
+    String library = "";
     AppendFolder(library, home, "Library");
     AppendFolder(out_strHomeFolder, library, "Application Support");
 
