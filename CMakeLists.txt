@@ -163,9 +163,7 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 #-----------------------------------------------------------------------------
 # Get submodules
 
-message("before update")
 execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-message("after update")
 
 
 #-----------------------------------------------------------------------------
