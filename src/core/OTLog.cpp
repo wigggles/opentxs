@@ -901,11 +901,7 @@ void ot_terminate()
 {
 // exception header is needed, on latter android NDK the header is not available
 // see https://code.google.com/p/android/issues/detail?id=62648
-#ifndef _EXCEPTION_PTR_H
-#if !defined(ANDROID) && !defined(__APPLE__)
-#error "it is expected that only android and OSX are missing exception_ptr.h"
-#endif
-#else
+#if !defined(ANDROID) || defined(_EXCEPTION_PTR_H)
     if (auto e = std::current_exception()) {
         try {
             std::rethrow_exception(e);
