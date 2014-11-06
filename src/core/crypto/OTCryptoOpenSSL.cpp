@@ -606,7 +606,7 @@ void OTCrypto_OpenSSL::SetIDFromEncoded(const String& strInput,
     theOutput.Release();
 
     // If it's short, no validate.
-    if (strInput.GetLength() < 3) return;
+    if (strInput.GetLength() < 4) return;
 
     std::vector<unsigned char> decoded;
     bool success = IdentifierFormat::decode(strInput.Get(), decoded);

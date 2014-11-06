@@ -160,6 +160,7 @@ bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
         return false;
     }
 
+    // Todo: really should verify base58 here now, instead of base62.
     std::string str_verify_base62;
 
     str_verify_base62 += metaNymID;
