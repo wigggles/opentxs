@@ -606,17 +606,18 @@ void OTCrypto_OpenSSL::SetIDFromEncoded(const String& strInput,
     theOutput.Release();
 
     // If it's short, no validate.
-    if (strInput.GetLength() < 3) return;
+    if (strInput.GetLength() < 4) return;
 
     std::vector<unsigned char> decoded;
     bool success = IdentifierFormat::decode(strInput.Get(), decoded);
 
-    OT_ASSERT(success);
-    // OTData will be gone soon, and then the following ugly lines
-    // can be improved.
-    theOutput.SetSize(decoded.size());
-    memcpy(const_cast<void*>(theOutput.GetPointer()), decoded.data(),
-           decoded.size());
+    if (success) {
+        // OTData will be gone soon, and then the following ugly lines
+        // can be improved.
+        theOutput.SetSize(decoded.size());
+        memcpy(const_cast<void*>(theOutput.GetPointer()), decoded.data(),
+               decoded.size());
+    }
 }
 
 // Encode binary hash ID to the formatted OT ID.

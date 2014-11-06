@@ -761,24 +761,31 @@ void OTKeyCredential::SetMetadata()
 {
     char cMetaKeyType;     // Can be A, E, or S (authentication, encryption, or
                            // signing. Also, E would be unusual.)
-    char cMetaNymID = '0'; // Can be any letter from base62 alphabet. Represents
-                           // first letter of a Nym's ID.
-    char cMetaMasterCredID = '0'; // Can be any letter from base62 alphabet.
-                                  // Represents first letter of a Master
+    char cMetaNymID = '0'; // Can be any letter from base58 alphabet. Represents
+                           // fourth letter of a Nym's ID.
+    char cMetaMasterCredID = '0'; // Can be any letter from base58 alphabet.
+                                  // Represents fourth letter of a Master
                                   // Credential ID (for that Nym.)
-    char cMetaSubCredID = '0';    // Can be any letter from base62 alphabet.
-    // Represents first letter of a SubCredential ID
-    // (signed by that Master.)
+    char cMetaSubCredID = '0';    // Can be any letter from base58 alphabet.
+                                  // Represents fourth letter of a SubCredential
+                                  // ID (signed by that Master.)
 
     String strSubcredID;
     GetIdentifier(strSubcredID);
 
-    const bool bNymID = GetNymID().At(0, cMetaNymID);
-    const bool bCredID = m_pOwner->GetMasterCredID().At(0, cMetaMasterCredID);
-    const bool bSubID =
-        strSubcredID.At(0, cMetaSubCredID); // In the case of the master
-                                            // credential, this will repeat the
-                                            // previous one.
+    // If the ID is otxBk69JB8oaGLo8U6UrC4ZxXoYcRBzUSc92
+    // then the character used for metadata would be 'B',
+    // the fourth one. (At index 3.)
+    //
+    const uint32_t uIndex = 3;
+
+    const bool bNymID = GetNymID().At(uIndex, cMetaNymID);
+    const bool bCredID =
+        m_pOwner->GetMasterCredID().At(uIndex, cMetaMasterCredID);
+    const bool bSubID = strSubcredID.At(uIndex, cMetaSubCredID);
+    // In the case of the master
+    // credential, this will repeat the
+    // previous one.
 
     if (!bNymID || !bCredID || !bSubID) {
         otWarn << __FUNCTION__ << ": No metadata available:\n "

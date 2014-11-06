@@ -749,16 +749,16 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
     String strNymID;
     theNym.GetIdentifier(strNymID);
     char cNymID = '0';
-    uint32_t nIndex = 0;
-    const bool bNymID = strNymID.At(nIndex, cNymID);
+    uint32_t uIndex = 3;
+    const bool bNymID = strNymID.At(uIndex, cNymID);
 
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
         OT_ASSERT(nullptr != pSig);
 
         if (bNymID && pSig->getMetaData().HasMetadata()) {
-            // If the signature has metadata, then it knows the first character
-            // of the NymID that signed it. We know the first character of the
+            // If the signature has metadata, then it knows the fourth character
+            // of the NymID that signed it. We know the fourth character of the
             // NymID
             // who's trying to verify it. Thus, if they don't match, we can skip
             // this
@@ -779,8 +779,8 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
     String strNymID;
     theNym.GetIdentifier(strNymID);
     char cNymID = '0';
-    uint32_t nIndex = 0;
-    const bool bNymID = strNymID.At(nIndex, cNymID);
+    uint32_t uIndex = 3;
+    const bool bNymID = strNymID.At(uIndex, cNymID);
 
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
