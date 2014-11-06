@@ -140,7 +140,6 @@ namespace opentxs
 {
 
 class String;
-class Account;
 class OTLedger;
 class OTMessage;
 class OTPseudonym;
