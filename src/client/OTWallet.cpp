@@ -1687,15 +1687,12 @@ bool OTWallet::LoadWallet(const char* szFilename)
             String NymID;
 
             String AssetName;
-            String AssetContract;
             String AssetID;
 
             String ServerName;
-            String ServerContract;
             String ServerID;
 
             String AcctName;
-            String AcctFile;
             String AcctID;
 
             const String strNodeName(xml->getNodeName());

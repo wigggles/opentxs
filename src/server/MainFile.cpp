@@ -426,7 +426,6 @@ bool MainFile::LoadMainFile(bool bReadOnly)
             // strings for storing the data that we want to read out of the file
 
             String AssetName;
-            String AssetContract;
             String AssetID;
 
             const String strNodeName(xml->getNodeName());
