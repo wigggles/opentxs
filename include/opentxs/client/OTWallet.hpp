@@ -144,7 +144,7 @@ namespace opentxs
 {
 
 class Account;
-class OTAssetContract;
+class AssetContract;
 class OTContract;
 class OTIdentifier;
 class OTMessage;
@@ -157,7 +157,7 @@ class String;
 class OTSymmetricKey;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
-typedef std::map<std::string, OTAssetContract*> mapOfContracts;
+typedef std::map<std::string, AssetContract*> mapOfContracts;
 typedef std::map<std::string, OTPseudonym*> mapOfNyms;
 typedef std::map<std::string, OTServerContract*> mapOfServers;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
@@ -225,9 +225,9 @@ public:
     EXPORT void AddNym(const OTPseudonym& theNym);
     EXPORT void AddAccount(const Account& theAcct);
 
-    EXPORT void AddAssetContract(const OTAssetContract& theContract);
-    EXPORT OTAssetContract* GetAssetContract(const OTIdentifier& theContractID);
-    EXPORT OTAssetContract* GetAssetContractPartialMatch(
+    EXPORT void AddAssetContract(const AssetContract& theContract);
+    EXPORT AssetContract* GetAssetContract(const OTIdentifier& theContractID);
+    EXPORT AssetContract* GetAssetContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for asset also accepted.
     bool VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
                             const OTIdentifier& SERVER_ID,

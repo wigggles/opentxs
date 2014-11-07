@@ -144,7 +144,7 @@ namespace opentxs
 class TransportCallback;
 class OT_API;
 class Account;
-class OTAssetContract;
+class AssetContract;
 class Basket;
 class OTCheque;
 class OTClient;
@@ -259,8 +259,8 @@ public:
                                const char* szFuncName = nullptr) const;
     EXPORT OTServerContract* GetServer(const OTIdentifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
-    EXPORT OTAssetContract* GetAssetType(
-        const OTIdentifier& THE_ID, const char* szFuncName = nullptr) const;
+    EXPORT AssetContract* GetAssetType(const OTIdentifier& THE_ID,
+                                       const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccount(const OTIdentifier& THE_ID,
                                const char* szFuncName = nullptr) const;
 
@@ -268,7 +268,7 @@ public:
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT OTServerContract* GetServerContractPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
-    EXPORT OTAssetContract* GetAssetContractPartialMatch(
+    EXPORT AssetContract* GetAssetContractPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccountPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
@@ -627,8 +627,7 @@ public:
         const String* pstrDisplay = nullptr) const;
     EXPORT Mint* LoadMint(const OTIdentifier& SERVER_ID,
                           const OTIdentifier& ASSET_ID) const;
-    EXPORT OTAssetContract* LoadAssetContract(
-        const OTIdentifier& ASSET_ID) const;
+    EXPORT AssetContract* LoadAssetContract(const OTIdentifier& ASSET_ID) const;
     EXPORT OTServerContract* LoadServerContract(
         const OTIdentifier& SERVER_ID) const;
     EXPORT bool IsBasketCurrency(
@@ -1125,7 +1124,7 @@ public:
                                   const int64_t& lTransactionNum) const;
 
     EXPORT void AddServerContract(const OTServerContract& pContract) const;
-    EXPORT void AddAssetContract(const OTAssetContract& theContract) const;
+    EXPORT void AddAssetContract(const AssetContract& theContract) const;
 };
 
 } // namespace opentxs

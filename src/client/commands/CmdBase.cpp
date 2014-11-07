@@ -327,7 +327,7 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
     }
 
     OTWallet* wallet = getWallet();
-    OTAssetContract* thePurse = wallet->GetAssetContract(purse);
+    AssetContract* thePurse = wallet->GetAssetContract(purse);
     if (thePurse == nullptr) {
         thePurse = wallet->GetAssetContractPartialMatch(purse);
         if (thePurse == nullptr) {

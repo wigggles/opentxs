@@ -1027,7 +1027,7 @@ int32_t main(int32_t argc, char* argv[])
         // based on the ID that the user has entered here.
 
         OTIdentifier thePurseAssetTypeID;
-        OTAssetContract* pMyAssetContract = nullptr;
+        AssetContract* pMyAssetContract = nullptr;
 
         if (str_MyPurse.size() > 0) {
             const OTIdentifier MY_ASSET_TYPE_ID(str_MyPurse.c_str());
@@ -1070,7 +1070,7 @@ int32_t main(int32_t argc, char* argv[])
 
         if (str_HisPurse.size() > 0) {
             const OTIdentifier HIS_ASSET_TYPE_ID(str_HisPurse.c_str());
-            OTAssetContract* pHisAssetContract =
+            AssetContract* pHisAssetContract =
                 pWallet->GetAssetContract(HIS_ASSET_TYPE_ID);
 
             // If failure, then we try PARTIAL match.

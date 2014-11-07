@@ -183,7 +183,7 @@ void OTWallet::Release()
     // 2) Go through the map of Contracts and delete them. (They were
     // dynamically allocated.)
     while (!m_mapContracts.empty()) {
-        OTAssetContract* pContract = m_mapContracts.begin()->second;
+        AssetContract* pContract = m_mapContracts.begin()->second;
 
         OT_ASSERT(nullptr != pContract);
 
@@ -408,7 +408,7 @@ bool OTWallet::GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
         int32_t iCurrentIndex = (-1);
 
         for (auto& it : m_mapContracts) {
-            OTAssetContract* pAssetType = it.second;
+            AssetContract* pAssetType = it.second;
             OT_ASSERT(nullptr != pAssetType);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
@@ -749,12 +749,12 @@ void OTWallet::AddServerContract(const OTServerContract& theContract)
 
 // The wallet "owns" theContract and will handle cleaning it up.
 // So make SURE you allocate it on the heap.
-void OTWallet::AddAssetContract(const OTAssetContract& theContract)
+void OTWallet::AddAssetContract(const AssetContract& theContract)
 {
     OTIdentifier CONTRACT_ID(theContract);
     String STR_CONTRACT_ID(CONTRACT_ID);
 
-    OTAssetContract* pContract = GetAssetContract(CONTRACT_ID);
+    AssetContract* pContract = GetAssetContract(CONTRACT_ID);
 
     if (pContract) {
         otErr << "Error: Attempt to add Asset Contract but it is already in "
@@ -765,10 +765,10 @@ void OTWallet::AddAssetContract(const OTAssetContract& theContract)
     }
     else {
         m_mapContracts[STR_CONTRACT_ID.Get()] =
-            &(const_cast<OTAssetContract&>(theContract));
+            &(const_cast<AssetContract&>(theContract));
 
         otInfo << "Saving asset contract to disk...\n";
-        (const_cast<OTAssetContract&>(theContract)).SaveToContractFolder();
+        (const_cast<AssetContract&>(theContract)).SaveToContractFolder();
 
         SaveWallet();
     }
@@ -1135,7 +1135,7 @@ bool OTWallet::RemoveAssetContract(const OTIdentifier& theTargetID)
     OTIdentifier aContractID;
 
     for (auto it(m_mapContracts.begin()); it != m_mapContracts.end(); ++it) {
-        OTAssetContract* pContract = it->second;
+        AssetContract* pContract = it->second;
         OT_ASSERT(nullptr != pContract);
 
         pContract->GetIdentifier(aContractID);
@@ -1200,10 +1200,10 @@ bool OTWallet::RemoveAccount(const OTIdentifier& theTargetID)
     return false;
 }
 
-OTAssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
+AssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
 {
     for (auto& it : m_mapContracts) {
-        OTAssetContract* pContract = it.second;
+        AssetContract* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
         OTIdentifier aContractID;
@@ -1215,11 +1215,11 @@ OTAssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
     return nullptr;
 }
 
-OTAssetContract* OTWallet::GetAssetContractPartialMatch(
+AssetContract* OTWallet::GetAssetContractPartialMatch(
     std::string PARTIAL_ID) // works with name, too.
 {
     for (auto& it : m_mapContracts) {
-        OTAssetContract* pContract = it.second;
+        AssetContract* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
         OTIdentifier aContractID;
@@ -1235,7 +1235,7 @@ OTAssetContract* OTWallet::GetAssetContractPartialMatch(
     // Okay, let's try it by the name, then...
     //
     for (auto& it : m_mapContracts) {
-        OTAssetContract* pContract = it.second;
+        AssetContract* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
         String strName;
@@ -1894,7 +1894,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                            << "\n Contract ID: " << AssetID << "\n";
 
                     String strContractPath(OTFolders::Contract());
-                    OTAssetContract* pContract = new OTAssetContract(
+                    AssetContract* pContract = new AssetContract(
                         AssetName, strContractPath, AssetID, AssetID);
 
                     OT_ASSERT_MSG(nullptr != pContract,

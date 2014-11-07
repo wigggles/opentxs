@@ -590,7 +590,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     String strContractPath;
                     strContractPath = OTFolders::Contract().Get();
 
-                    OTAssetContract* pContract = new OTAssetContract(
+                    AssetContract* pContract = new AssetContract(
                         AssetName, strContractPath, AssetID, AssetID);
 
                     OT_ASSERT_MSG(nullptr != pContract,

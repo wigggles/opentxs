@@ -1645,7 +1645,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
             // theSourceAccount.)
             //
             const OTIdentifier SHARES_ASSET_ID = theVoucherRequest.GetAssetID();
-            OTAssetContract* pSharesContract =
+            AssetContract* pSharesContract =
                 server_->transactor_.getAssetContract(SHARES_ASSET_ID);
             Account* pSharesIssuerAccount = nullptr;
             std::unique_ptr<Account> theAcctAngel;
@@ -5906,7 +5906,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, Account& theAccount,
                 }
                 else {
                     // Now we get a pointer to its asset contract...
-                    OTAssetContract* pContract =
+                    AssetContract* pContract =
                         server_->transactor_.getAssetContract(
                             BASKET_CONTRACT_ID);
 

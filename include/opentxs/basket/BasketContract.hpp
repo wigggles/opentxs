@@ -141,7 +141,7 @@ namespace opentxs
 class Basket;
 class OTPseudonym;
 
-class BasketContract : public OTAssetContract
+class BasketContract : public AssetContract
 {
 public:
     EXPORT BasketContract(Basket& basket, OTPseudonym& signer);

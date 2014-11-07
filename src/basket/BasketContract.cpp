@@ -148,7 +148,7 @@ namespace opentxs
 // creating a basket contract, we have to rewrite the contents, which is done
 // here.
 BasketContract::BasketContract(Basket& theBasket, OTPseudonym& theSigner)
-    : OTAssetContract()
+    : AssetContract()
 {
     // Grab a string copy of the basket information.
     theBasket.SaveContractRaw(m_strBasketInfo);

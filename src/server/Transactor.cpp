@@ -155,7 +155,7 @@ Transactor::~Transactor()
 {
     while (!contractsMap_.empty()) {
         auto it = contractsMap_.begin();
-        OTAssetContract* pContract = it->second;
+        AssetContract* pContract = it->second;
         OT_ASSERT(nullptr != pContract);
         contractsMap_.erase(it);
         delete pContract;
@@ -391,10 +391,10 @@ bool Transactor::removeIssuedNumber(OTPseudonym& theNym,
 /// this purpose. Right now I'm using the "contract" key which is already used
 /// to verify
 /// any asset or server contract.
-OTAssetContract* Transactor::getAssetContract(const OTIdentifier& ASSET_TYPE_ID)
+AssetContract* Transactor::getAssetContract(const OTIdentifier& ASSET_TYPE_ID)
 {
     for (auto& it : contractsMap_) {
-        OTAssetContract* pContract = it.second;
+        AssetContract* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
         OTIdentifier theContractID;
@@ -408,9 +408,9 @@ OTAssetContract* Transactor::getAssetContract(const OTIdentifier& ASSET_TYPE_ID)
 
 /// OTServer will take ownership of theContract from this point on,
 /// and will be responsible for deleting it. MUST be allocated on the heap.
-bool Transactor::addAssetContract(OTAssetContract& theContract)
+bool Transactor::addAssetContract(AssetContract& theContract)
 {
-    OTAssetContract* pContract = nullptr;
+    AssetContract* pContract = nullptr;
 
     String STR_CONTRACT_ID;
     OTIdentifier CONTRACT_ID;
