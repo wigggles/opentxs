@@ -139,7 +139,7 @@ namespace opentxs
 {
 
 class Account;
-class OTCheque;
+class Cheque;
 class OTIdentifier;
 class OTItem;
 class OTPseudonym;
@@ -254,9 +254,9 @@ public:
     EXPORT OTTransaction* GetTransferReceipt(int64_t lNumberOfOrigin);
     EXPORT OTTransaction* GetChequeReceipt(
         int64_t lChequeNum,
-        OTCheque** ppChequeOut = nullptr); // CALLER RESPONSIBLE
-                                           // TO
-                                           // DELETE.
+        Cheque** ppChequeOut = nullptr); // CALLER RESPONSIBLE
+                                         // TO
+                                         // DELETE.
     EXPORT int32_t GetTransactionIndex(int64_t lTransactionNum); // if not
                                                                  // found,
                                                                  // returns -1

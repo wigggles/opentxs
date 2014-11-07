@@ -221,7 +221,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
     // just having it get lost in the ether.)
     bool bReturnValue = false;
 
-    OTCheque theVoucher(theServerID, thePayoutAssetID);
+    Cheque theVoucher(theServerID, thePayoutAssetID);
 
     // 10 minutes ==    600 Seconds
     // 1 hour    ==     3600 Seconds
@@ -317,7 +317,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
         // came from.
         //
         if (!bSent) {
-            OTCheque theReturnVoucher(theServerID, thePayoutAssetID);
+            Cheque theReturnVoucher(theServerID, thePayoutAssetID);
 
             const bool bIssueReturnVoucher = theReturnVoucher.IssueCheque(
                 lPayoutAmount,         // The amount of the cheque.

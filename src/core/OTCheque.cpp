@@ -146,7 +146,7 @@ using namespace io;
 namespace opentxs
 {
 
-void OTCheque::UpdateContents()
+void Cheque::UpdateContents()
 {
     String ASSET_TYPE_ID(GetAssetID()), SERVER_ID(GetServerID()),
         SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
@@ -195,7 +195,7 @@ void OTCheque::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
+int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
 {
     int32_t nReturnVal = 0;
 
@@ -294,7 +294,7 @@ int32_t OTCheque::ProcessXMLNode(IrrXMLReader*& xml)
 }
 
 // You still need to re-sign the cheque after doing this.
-void OTCheque::CancelCheque()
+void Cheque::CancelCheque()
 {
     m_lAmount = 0;
 
@@ -321,7 +321,7 @@ void OTCheque::CancelCheque()
 // Imagine that you are actually writing a cheque.
 // That's basically what this function does.
 // Make sure to sign it afterwards.
-bool OTCheque::IssueCheque(
+bool Cheque::IssueCheque(
     const int64_t& lAmount, const int64_t& lTransactionNum,
     const time64_t& VALID_FROM,
     const time64_t& VALID_TO, // The expiration date (valid from/to dates) of
@@ -363,7 +363,7 @@ bool OTCheque::IssueCheque(
     return true;
 }
 
-void OTCheque::InitCheque()
+void Cheque::InitCheque()
 {
     m_strContractType.Set("CHEQUE");
 
@@ -372,7 +372,7 @@ void OTCheque::InitCheque()
     m_bHasRemitter = false;
 }
 
-OTCheque::OTCheque()
+Cheque::Cheque()
     : ot_super()
     , m_lAmount(0)
     , m_bHasRecipient(false)
@@ -381,7 +381,7 @@ OTCheque::OTCheque()
     InitCheque();
 }
 
-OTCheque::OTCheque(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
+Cheque::Cheque(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_lAmount(0)
     , m_bHasRecipient(false)
@@ -394,7 +394,7 @@ OTCheque::OTCheque(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
     // So they are initialized there now.
 }
 
-void OTCheque::Release_Cheque()
+void Cheque::Release_Cheque()
 {
     // If there were any dynamically allocated objects, clean them up here.
     m_strMemo.Release();
@@ -410,12 +410,12 @@ void OTCheque::Release_Cheque()
     InitCheque();
 }
 
-void OTCheque::Release()
+void Cheque::Release()
 {
     Release_Cheque();
 }
 
-OTCheque::~OTCheque()
+Cheque::~Cheque()
 {
     Release_Cheque();
 }

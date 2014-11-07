@@ -146,7 +146,7 @@ class OT_API;
 class Account;
 class AssetContract;
 class Basket;
-class OTCheque;
+class Cheque;
 class OTClient;
 class OTEnvelope;
 class OTLedger;
@@ -476,7 +476,7 @@ public:
 
     // Returns an OTCheque pointer, or nullptr.
     // (Caller responsible to delete.)
-    EXPORT OTCheque* WriteCheque(
+    EXPORT Cheque* WriteCheque(
         const OTIdentifier& SERVER_ID, const int64_t& CHEQUE_AMOUNT,
         const time64_t& VALID_FROM, const time64_t& VALID_TO,
         const OTIdentifier& SENDER_ACCT_ID, const OTIdentifier& SENDER_USER_ID,

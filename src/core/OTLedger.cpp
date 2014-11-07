@@ -1399,9 +1399,9 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
 // owned by the ledger.)
 //
 OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
-                                          OTCheque** ppChequeOut) // CALLER
-                                                                  // RESPONSIBLE
-                                                                  // TO DELETE.
+                                          Cheque** ppChequeOut) // CALLER
+                                                                // RESPONSIBLE
+                                                                // TO DELETE.
 {
     for (auto& it : m_mapTransactions) {
         OTTransaction* pCurrentReceipt = it.second;
@@ -1439,9 +1439,9 @@ OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
             String strCheque;
             pOriginalItem->GetAttachment(strCheque);
 
-            OTCheque* pCheque = new OTCheque;
+            Cheque* pCheque = new Cheque;
             OT_ASSERT(nullptr != pCheque);
-            std::unique_ptr<OTCheque> theChequeAngel(pCheque);
+            std::unique_ptr<Cheque> theChequeAngel(pCheque);
 
             if (!((strCheque.GetLength() > 2) &&
                   pCheque->LoadContractFromString(strCheque))) {

@@ -5630,7 +5630,7 @@ int64_t OTTransaction::GetReceiptAmount()
             }
 
             String strAttachment;
-            OTCheque theCheque;
+            Cheque theCheque;
 
             // Get the cheque from the Item and load it up into a Cheque object.
             pOriginalItem->GetAttachment(strAttachment);
@@ -6171,7 +6171,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
                 return false;
             }
 
-            OTCheque theCheque;
+            Cheque theCheque;
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
@@ -6371,7 +6371,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
                 return false;
             }
 
-            OTCheque theCheque;
+            Cheque theCheque;
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
@@ -6502,7 +6502,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
                 return false;
             }
 
-            OTCheque theCheque;
+            Cheque theCheque;
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque object.
@@ -6619,7 +6619,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
         return false; // Should never happen, since we always expect one based
                       // on the transaction type.
 
-    OTCheque theCheque; // allocated on the stack :-)
+    Cheque theCheque; // allocated on the stack :-)
     String strAttachment;
 
     switch (GetType()) {
@@ -6773,7 +6773,7 @@ bool OTTransaction::GetMemo(String& strMemo)
             return false;
         }
         else {
-            OTCheque theCheque;
+            Cheque theCheque;
             String strCheque;
             pOriginalItem->GetAttachment(strCheque);
 

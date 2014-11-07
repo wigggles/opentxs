@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTCheque : public OTTrackable
+class Cheque : public OTTrackable
 {
 private: // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
@@ -245,10 +245,9 @@ public:
      bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
      / TO dates.
      */
-    EXPORT OTCheque();
-    EXPORT OTCheque(const OTIdentifier& SERVER_ID,
-                    const OTIdentifier& ASSET_ID);
-    EXPORT virtual ~OTCheque();
+    EXPORT Cheque();
+    EXPORT Cheque(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
+    EXPORT virtual ~Cheque();
 
     void InitCheque();
     virtual void Release();

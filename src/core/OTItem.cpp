@@ -1257,7 +1257,7 @@ void OTItem::CalculateNumberOfOrigin()
 
     case depositCheque: // this item is a request to deposit a cheque.
     {
-        OTCheque theCheque;
+        Cheque theCheque;
         String strAttachment;
         GetAttachment(strAttachment);
 

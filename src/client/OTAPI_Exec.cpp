@@ -4951,7 +4951,7 @@ std::string OTAPI_Exec::WriteCheque(
 
     if (!CHEQUE_MEMO.empty()) strMemo.Set(CHEQUE_MEMO);
 
-    std::unique_ptr<OTCheque> pCheque(OTAPI()->WriteCheque(
+    std::unique_ptr<Cheque> pCheque(OTAPI()->WriteCheque(
         theServerID, static_cast<int64_t>(lAmount), time_From, time_To,
         theSenderAcctID, theSenderUserID, strMemo,
         bHasRecipient ? &(theRecipientUserID) : nullptr));
@@ -10030,7 +10030,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
                             String strCheque;
                             pOriginalItem->GetAttachment(strCheque);
 
-                            OTCheque theCheque; // allocated on the stack :-)
+                            Cheque theCheque; // allocated on the stack :-)
 
                             if (false ==
                                 ((strCheque.GetLength() > 2) &&
@@ -10570,7 +10570,7 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
             String strVoucher;
             pItem->GetAttachment(strVoucher);
 
-            OTCheque theVoucher;
+            Cheque theVoucher;
             if (theVoucher.LoadContractFromString(strVoucher)) // Todo
                                                                // additional
                                                                // verification

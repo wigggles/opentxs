@@ -199,15 +199,15 @@ opentxs::OTContract* InstantiateContract(opentxs::String strInput)
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED INVOICE-----")) {
-            pContract = new OTCheque();
+            pContract = new Cheque();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED VOUCHER-----")) {
-            pContract = new OTCheque();
+            pContract = new Cheque();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED CHEQUE-----")) {
-            pContract = new OTCheque();
+            pContract = new Cheque();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {

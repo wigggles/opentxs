@@ -848,7 +848,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, Account& theAccount,
             Account& theVoucherReserveAcct = (*pVoucherReserveAcct);
             OTIdentifier VOUCHER_ACCOUNT_ID(theVoucherReserveAcct);
 
-            OTCheque theVoucher(SERVER_ID, ASSET_TYPE_ID),
+            Cheque theVoucher(SERVER_ID, ASSET_TYPE_ID),
                 theVoucherRequest(SERVER_ID, ASSET_TYPE_ID);
 
             bool bLoadContractFromString =
@@ -1603,7 +1603,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
             pItem->GetTransactionNum()); // This response item is IN RESPONSE to
                                          // pItem and its Owner Transaction.
         const int64_t lTotalCostOfDividend = pItem->GetAmount();
-        OTCheque theVoucherRequest;
+        Cheque theVoucherRequest;
         String strVoucherRequest,
             strItemNote; // When paying a dividend, you create a voucher request
                          // (the same as in withdrawVoucher). It's just for
@@ -2054,8 +2054,8 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
                                         "(Returning them to sender...)\n",
                                         szFunc, lTotalCostOfDividend,
                                         lLeftovers);
-                                    OTCheque theVoucher(SERVER_ID,
-                                                        PAYOUT_ASSET_ID);
+                                    Cheque theVoucher(SERVER_ID,
+                                                      PAYOUT_ASSET_ID);
 
                                     // 10 minutes ==    600 Seconds
                                     // 1 hour    ==     3600 Seconds
@@ -2444,8 +2444,8 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, Account& theAccount,
             // Get the cheque from the Item and load it up into a Cheque object.
             String strCheque;
             pItem->GetAttachment(strCheque);
-            OTCheque theCheque(SERVER_ID,
-                               ASSET_TYPE_ID); // allocated on the stack :-)
+            Cheque theCheque(SERVER_ID,
+                             ASSET_TYPE_ID); // allocated on the stack :-)
             bool bLoadContractFromString =
                 theCheque.LoadContractFromString(strCheque);
 
@@ -8479,7 +8479,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, Account& theAccount,
                             String strCheque;
                             pOriginalItem->GetAttachment(strCheque);
 
-                            OTCheque theCheque; // allocated on the stack :-)
+                            Cheque theCheque; // allocated on the stack :-)
 
                             if (false ==
                                 ((strCheque.GetLength() > 2) &&

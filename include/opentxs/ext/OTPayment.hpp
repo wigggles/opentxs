@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTCheque;
+class Cheque;
 class OTNumList;
 class OTPaymentPlan;
 class Purse;
@@ -336,7 +336,7 @@ public:
     //
     EXPORT bool SetTempValues();
 
-    EXPORT bool SetTempValuesFromCheque(const OTCheque& theInput);
+    EXPORT bool SetTempValuesFromCheque(const Cheque& theInput);
     EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
     EXPORT bool SetTempValuesFromPurse(const Purse& theInput);
