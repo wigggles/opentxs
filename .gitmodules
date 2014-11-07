@@ -27,4 +27,4 @@
 	url = https://github.com/Open-Transactions/secp256k1.git
 [submodule "deps/bitcoin-base58"]
 	path = deps/bitcoin-base58
-	url = https://github.com/benma/libbitcoin-base58.git
+	url = https://github.com/benma/bitcoin-core-base58.git
