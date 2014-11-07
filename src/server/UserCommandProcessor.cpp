@@ -139,7 +139,7 @@
 #include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTMessage.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTLog.hpp>

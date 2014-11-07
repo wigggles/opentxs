@@ -166,7 +166,7 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>

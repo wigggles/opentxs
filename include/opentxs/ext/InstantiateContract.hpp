@@ -152,7 +152,7 @@
 #include <opentxs/core/util/Assert.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTContract.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/OTMessage.hpp>
 #include <opentxs/core/OTServerContract.hpp>

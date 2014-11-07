@@ -144,7 +144,7 @@
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/Account.hpp>

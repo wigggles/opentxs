@@ -140,7 +140,7 @@
 #include <opentxs/core/OTIdentifier.hpp>
 #include <opentxs/core/OTContract.hpp>
 #include <opentxs/core/OTServerContract.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTFolders.hpp>

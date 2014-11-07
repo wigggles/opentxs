@@ -147,7 +147,7 @@
 
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>

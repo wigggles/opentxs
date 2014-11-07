@@ -139,7 +139,7 @@
 #include <opentxs/core/OTIdentifier.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTLog.hpp>
 
 namespace opentxs

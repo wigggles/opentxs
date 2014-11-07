@@ -140,7 +140,7 @@
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
