@@ -149,7 +149,7 @@
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/script/OTBylaw.hpp>
 #include <opentxs/core/OTCheque.hpp>
@@ -1037,7 +1037,7 @@ std::string OTAPI_Exec::CalculateAssetContractID(
         otOut << __FUNCTION__ << ": Empty contract passed in!\n";
         return "";
     }
-    OTAssetContract theContract;
+    AssetContract theContract;
 
     if (theContract.LoadContractFromString(strContract)) {
         OTIdentifier idOutput;
@@ -1224,7 +1224,7 @@ std::string OTAPI_Exec::CreateAssetContract(
         otOut << __FUNCTION__ << ": Empty XML contents passed in! (Failure.)\n";
         return "";
     }
-    std::unique_ptr<OTAssetContract> pContract(new OTAssetContract);
+    std::unique_ptr<AssetContract> pContract(new AssetContract);
     pContract->CreateContract(
         strContract, *pNym); // <==========  **** CREATE CONTRACT!! ****
     // But does it meet our requirements?
@@ -1331,8 +1331,7 @@ int64_t OTAPI_Exec::StringToAmount(const std::string& ASSET_TYPE_ID,
         return OT_ERROR_AMOUNT;
     }
     const OTIdentifier theAssetID(ASSET_TYPE_ID);
-    OTAssetContract* pContract =
-        OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
+    AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
     if (nullptr == pContract) return OT_ERROR_AMOUNT;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     int64_t theResult;
@@ -1365,8 +1364,7 @@ std::string OTAPI_Exec::FormatAmount(const std::string& ASSET_TYPE_ID,
     //      OT_FAIL;
     //  }
     const OTIdentifier theAssetID(ASSET_TYPE_ID);
-    OTAssetContract* pContract =
-        OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
+    AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     const int64_t lAmount = THE_AMOUNT;
@@ -1398,8 +1396,7 @@ std::string OTAPI_Exec::GetAssetType_Contract(const std::string& ASSET_TYPE_ID)
     }
 
     const OTIdentifier theAssetID(ASSET_TYPE_ID);
-    OTAssetContract* pContract =
-        OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
+    AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     const String strOutput(*pContract);
@@ -1471,7 +1468,7 @@ bool OTAPI_Exec::AddAssetContract(const std::string& strContract) const
     std::string str_Trim2 = String::trim(str_Trim);
     String otstrContract(str_Trim2.c_str());
 
-    OTAssetContract* pContract = new OTAssetContract;
+    AssetContract* pContract = new AssetContract;
     OT_ASSERT(nullptr != pContract);
 
     // Check the server signature on the contract here. (Perhaps the message is
@@ -2440,7 +2437,7 @@ std::string OTAPI_Exec::Wallet_GetAssetIDFromPartial(
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    OTAssetContract* pObject = OTAPI()->GetAssetType(
+    AssetContract* pObject = OTAPI()->GetAssetType(
         thePartialID, "OTAPI_Exec::Wallet_GetAssetIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
@@ -4123,7 +4120,7 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
     }
 
     OTIdentifier theID(THE_ID);
-    OTAssetContract* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
+    AssetContract* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
     if (nullptr == pContract) return "";
     String strName;
     pContract->GetName(strName);
@@ -4141,7 +4138,7 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
     }
 
     OTIdentifier theID(THE_ID);
-    OTAssetContract* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
+    AssetContract* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
     if (nullptr == pContract) return "";
     String strTLA;
     strTLA = pContract->GetCurrencyTLA();
@@ -7814,7 +7811,7 @@ std::string OTAPI_Exec::LoadAssetContract(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTAssetContract> pContract(
+    std::unique_ptr<AssetContract> pContract(
         OTAPI()->LoadAssetContract(theAssetID));
 
     if (nullptr == pContract) {

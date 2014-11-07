@@ -143,7 +143,7 @@ namespace opentxs
 
 class TransportCallback;
 class Account;
-class OTAssetContract;
+class AssetContract;
 class OTLedger;
 class OTServerConnection;
 class OTServerContract;
@@ -362,16 +362,16 @@ public:
     bool ProcessInBuffer(const OTMessage& theServerReply) const;
     // These functions are for command processing:
 
-    EXPORT int32_t
-        ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
-                           OTMessage& theMessage, OTPseudonym& theNym,
-                           // OTAssetContract& theContract,
-                           const OTServerContract& theServer,
-                           const Account* pAccount = nullptr,
-                           int64_t lTransactionAmount = 0,
-                           OTAssetContract* pMyAssetContract = nullptr,
-                           const OTIdentifier* pHisNymID = nullptr,
-                           const OTIdentifier* pHisAcctID = nullptr);
+    EXPORT int32_t ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
+                                      OTMessage& theMessage,
+                                      OTPseudonym& theNym,
+                                      // OTAssetContract& theContract,
+                                      const OTServerContract& theServer,
+                                      const Account* pAccount = nullptr,
+                                      int64_t lTransactionAmount = 0,
+                                      AssetContract* pMyAssetContract = nullptr,
+                                      const OTIdentifier* pHisNymID = nullptr,
+                                      const OTIdentifier* pHisAcctID = nullptr);
 
     bool processServerReply(std::shared_ptr<OTMessage> theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is

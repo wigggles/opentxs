@@ -145,7 +145,7 @@ namespace opentxs
 class Mint;
 class OTServer;
 class OTPseudonym;
-class OTAssetContract;
+class AssetContract;
 class OTIdentifier;
 class Account;
 class MainFile;
@@ -185,8 +185,8 @@ public:
     // As long as the IDs are in the server file, it can look them up.
     // When a new asset type is added, a new Mint is added as well. It goes into
     // the mints folder.
-    bool addAssetContract(OTAssetContract& contract);
-    OTAssetContract* getAssetContract(const OTIdentifier& id);
+    bool addAssetContract(AssetContract& contract);
+    AssetContract* getAssetContract(const OTIdentifier& id);
 
     bool addBasketAccountID(const OTIdentifier& basketId,
                             const OTIdentifier& basketAccountId,
@@ -230,7 +230,7 @@ private:
     // accidentally remove one from the list every time another is added. Thus
     // multimap is employed.
     typedef std::multimap<std::string, Mint*> MintsMap;
-    typedef std::map<std::string, OTAssetContract*> ContractsMap;
+    typedef std::map<std::string, AssetContract*> ContractsMap;
     typedef std::map<std::string, std::string> BasketsMap;
 
 private:

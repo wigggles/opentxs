@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 #define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
 
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 
 namespace opentxs
 {
@@ -141,7 +141,7 @@ namespace opentxs
 class Basket;
 class OTPseudonym;
 
-class BasketContract : public OTAssetContract
+class BasketContract : public AssetContract
 {
 public:
     EXPORT BasketContract(Basket& basket, OTPseudonym& signer);

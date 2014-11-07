@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AccountVisitor.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -152,11 +152,11 @@ using namespace io;
 namespace opentxs
 {
 
-bool OTAssetContract::ParseFormatted(int64_t& lResult,
-                                     const std::string& str_input,
-                                     int32_t nFactor, int32_t nPower,
-                                     const char* szThousandSeparator,
-                                     const char* szDecimalPoint)
+bool AssetContract::ParseFormatted(int64_t& lResult,
+                                   const std::string& str_input,
+                                   int32_t nFactor, int32_t nPower,
+                                   const char* szThousandSeparator,
+                                   const char* szDecimalPoint)
 {
     OT_ASSERT(nullptr != szThousandSeparator);
     OT_ASSERT(nullptr != szDecimalPoint);
@@ -310,11 +310,11 @@ inline void separateThousands(std::stringstream& sss, int64_t value,
     sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
 }
 
-std::string OTAssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
-                                              int32_t nPower,
-                                              const char* szCurrencySymbol,
-                                              const char* szThousandSeparator,
-                                              const char* szDecimalPoint)
+std::string AssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
+                                            int32_t nPower,
+                                            const char* szCurrencySymbol,
+                                            const char* szThousandSeparator,
+                                            const char* szDecimalPoint)
 {
     std::stringstream sss;
 
@@ -346,9 +346,9 @@ std::string OTAssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
 // (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
 //  separator of "," and decimal point of ".")
 //
-bool OTAssetContract::FormatAmount(int64_t amount,
-                                   std::string& str_output) const // Convert 545
-                                                                  // to $5.45.
+bool AssetContract::FormatAmount(int64_t amount,
+                                 std::string& str_output) const // Convert 545
+                                                                // to $5.45.
 {
     int32_t nFactor = atoi(
         m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
@@ -381,7 +381,7 @@ bool OTAssetContract::FormatAmount(int64_t amount,
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    str_output = OTAssetContract::formatLongAmount(
+    str_output = AssetContract::formatLongAmount(
         amount, nFactor, nPower, m_strCurrencySymbol.Get(), strSeparator.Get(),
         strDecimalPoint.Get());
     return true;
@@ -392,7 +392,7 @@ bool OTAssetContract::FormatAmount(int64_t amount,
 // (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal
 // point of ".")
 //
-bool OTAssetContract::StringToAmount(
+bool AssetContract::StringToAmount(
     int64_t& amount,
     const std::string& str_input) const // Convert $5.45 to amount 545.
 {
@@ -424,33 +424,33 @@ bool OTAssetContract::StringToAmount(
     static String strSeparator(",");
     static String strDecimalPoint(".");
 
-    bool bSuccess = OTAssetContract::ParseFormatted(amount, str_input, nFactor,
-                                                    nPower, strSeparator.Get(),
-                                                    strDecimalPoint.Get());
+    bool bSuccess = AssetContract::ParseFormatted(amount, str_input, nFactor,
+                                                  nPower, strSeparator.Get(),
+                                                  strDecimalPoint.Get());
 
     return bSuccess;
 }
 
-OTAssetContract::OTAssetContract()
+AssetContract::AssetContract()
     : OTContract()
     , m_bIsCurrency(true)
     , m_bIsShares(false)
 {
 }
 
-OTAssetContract::OTAssetContract(const String& name, const String& foldername,
-                                 const String& filename, const String& strID)
+AssetContract::AssetContract(const String& name, const String& foldername,
+                             const String& filename, const String& strID)
     : OTContract(name, foldername, filename, strID)
     , m_bIsCurrency(true)
     , m_bIsShares(false)
 {
 }
 
-OTAssetContract::~OTAssetContract()
+AssetContract::~AssetContract()
 {
 }
 
-bool OTAssetContract::DisplayStatistics(String& strContents) const
+bool AssetContract::DisplayStatistics(String& strContents) const
 {
     const String strID(m_ID);
 
@@ -461,7 +461,7 @@ bool OTAssetContract::DisplayStatistics(String& strContents) const
     return true;
 }
 
-bool OTAssetContract::SaveContractWallet(String& strContents) const
+bool AssetContract::SaveContractWallet(String& strContents) const
 {
     const String strID(m_ID);
 
@@ -484,7 +484,7 @@ bool OTAssetContract::SaveContractWallet(String& strContents) const
 // currently only "simple" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.
-bool OTAssetContract::VisitAccountRecords(AccountVisitor& visitor) const
+bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
 {
     String strAssetTypeID, strAcctRecordFile;
     GetIdentifier(strAssetTypeID);
@@ -584,8 +584,8 @@ bool OTAssetContract::VisitAccountRecords(AccountVisitor& visitor) const
     return true;
 }
 
-bool OTAssetContract::AddAccountRecord(const Account& theAccount) const // adds
-                                                                        // the
+bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
+                                                                      // the
 // account
 // to the
 // list.
@@ -696,7 +696,7 @@ bool OTAssetContract::AddAccountRecord(const Account& theAccount) const // adds
     return true;
 }
 
-bool OTAssetContract::EraseAccountRecord(const OTIdentifier& theAcctID)
+bool AssetContract::EraseAccountRecord(const OTIdentifier& theAcctID)
     const // removes the account from the list. (When
           // account is deleted.)
 {
@@ -773,7 +773,7 @@ bool OTAssetContract::EraseAccountRecord(const OTIdentifier& theAcctID)
     return true;
 }
 
-void OTAssetContract::CreateContents()
+void AssetContract::CreateContents()
 {
     m_strVersion = "2.0"; // 2.0 since adding credentials.
 
@@ -825,7 +825,7 @@ void OTAssetContract::CreateContents()
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 //
-int32_t OTAssetContract::ProcessXMLNode(IrrXMLReader*& xml)
+int32_t AssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 {
     int32_t nReturnVal = OTContract::ProcessXMLNode(xml);
 

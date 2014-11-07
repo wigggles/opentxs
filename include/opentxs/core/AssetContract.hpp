@@ -144,13 +144,13 @@ class OTIdentifier;
 class OTPseudonym;
 class String;
 
-class OTAssetContract : public OTContract
+class AssetContract : public OTContract
 {
 public:
-    EXPORT OTAssetContract();
-    EXPORT OTAssetContract(const String& name, const String& foldername,
-                           const String& filename, const String& strID);
-    EXPORT virtual ~OTAssetContract();
+    EXPORT AssetContract();
+    EXPORT AssetContract(const String& name, const String& foldername,
+                         const String& filename, const String& strID);
+    EXPORT virtual ~AssetContract();
 
     EXPORT virtual void CreateContents(); // Only used when first generating an
                                           // asset

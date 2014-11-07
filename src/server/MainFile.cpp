@@ -140,7 +140,7 @@
 #include <opentxs/core/OTIdentifier.hpp>
 #include <opentxs/core/OTContract.hpp>
 #include <opentxs/core/OTServerContract.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -426,7 +426,6 @@ bool MainFile::LoadMainFile(bool bReadOnly)
             // strings for storing the data that we want to read out of the file
 
             String AssetName;
-            String AssetContract;
             String AssetID;
 
             const String strNodeName(xml->getNodeName());
@@ -591,7 +590,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     String strContractPath;
                     strContractPath = OTFolders::Contract().Get();
 
-                    OTAssetContract* pContract = new OTAssetContract(
+                    AssetContract* pContract = new AssetContract(
                         AssetName, strContractPath, AssetID, AssetID);
 
                     OT_ASSERT_MSG(nullptr != pContract,

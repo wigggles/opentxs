@@ -139,7 +139,7 @@
 #include <opentxs/basket/Basket.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTMessage.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -2357,7 +2357,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
     const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
         ASSET_TYPE_ID(MsgIn.m_strAssetID);
 
-    OTAssetContract* pAssetContract =
+    AssetContract* pAssetContract =
         server_->transactor_.getAssetContract(ASSET_TYPE_ID);
 
     // Make sure the contract isn't already available on this server.
@@ -2374,8 +2374,8 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
             strFilename(MsgIn.m_strAssetID.Get());
 
         String strContract(MsgIn.m_ascPayload);
-        pAssetContract = new OTAssetContract(MsgIn.m_strAssetID, strFoldername,
-                                             strFilename, MsgIn.m_strAssetID);
+        pAssetContract = new AssetContract(MsgIn.m_strAssetID, strFoldername,
+                                           strFilename, MsgIn.m_strAssetID);
 
         OTIdentifier ASSET_USER_ID;
         bool bSuccessCalculateDigest = false;
@@ -2856,7 +2856,7 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                     // This also updates the m_xmlUnsigned contents, signs the
                     // contract, saves it,
                     // and calculates the new ID.
-                    OTAssetContract* pBasketContract =
+                    AssetContract* pBasketContract =
                         new BasketContract(theBasket, server_->m_nymServer);
 
                     // Grab the new asset ID for the new basket currency
@@ -2982,7 +2982,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
     // payload
     if (nullptr != pNewAccount) {
         const char* szFunc = "UserCommandProcessor::UserCmdCreateAccount";
-        OTAssetContract* pContract = server_->transactor_.getAssetContract(
+        AssetContract* pContract = server_->transactor_.getAssetContract(
             pNewAccount->GetAssetTypeID());
 
         if (nullptr == pContract) {
@@ -3633,7 +3633,7 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&,
                     (str2.compare("exists") == 0)) // todo hardcoding
                 {
                     const OTIdentifier theAssetID(str1.c_str());
-                    OTAssetContract* pAssetContract =
+                    AssetContract* pAssetContract =
                         server_->transactor_.getAssetContract(theAssetID);
                     if (nullptr != pAssetContract) // Yes, it exists.
                         theNewMap[str1] = "true";
@@ -3686,7 +3686,7 @@ void UserCommandProcessor::UserCmdGetContract(OTMessage& MsgIn,
 
     const OTIdentifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
 
-    OTAssetContract* pContract =
+    AssetContract* pContract =
         server_->transactor_.getAssetContract(ASSET_TYPE_ID);
 
     bool bSuccessLoadingContract = ((pContract != nullptr) ? true : false);
@@ -4375,7 +4375,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
             theAccountSet.erase(MsgIn.m_strAcctID.Get());
 
             theNym.SaveSignedNymfile(server_->m_nymServer);
-            OTAssetContract* pContract = server_->transactor_.getAssetContract(
+            AssetContract* pContract = server_->transactor_.getAssetContract(
                 pAccount->GetAssetTypeID());
 
             if (nullptr == pContract) {

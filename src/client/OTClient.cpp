@@ -147,7 +147,7 @@
 
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/OTCheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
@@ -6981,9 +6981,9 @@ bool OTClient::processServerReplyGetContract(const OTMessage& theReply,
     // up correctly, rather than pass a blank. I'm just funny like that.
     strFilename = theReply.m_strAssetID.Get();
 
-    OTAssetContract* pContract =
-        new OTAssetContract(theReply.m_strAssetID, strFoldername, strFilename,
-                            theReply.m_strAssetID);
+    AssetContract* pContract =
+        new AssetContract(theReply.m_strAssetID, strFoldername, strFilename,
+                          theReply.m_strAssetID);
 
     OT_ASSERT(nullptr != pContract);
 
@@ -7827,7 +7827,7 @@ int32_t OTClient::ProcessUserCommand(
     OTPseudonym& theNym,
     // OTAssetContract& theContract,
     const OTServerContract& theServer, const Account* pAccount,
-    int64_t lTransactionAmount, OTAssetContract* pMyAssetContract,
+    int64_t lTransactionAmount, AssetContract* pMyAssetContract,
     const OTIdentifier* pHisNymID, const OTIdentifier* pHisAcctID)
 {
     // This is all preparatory work to get the various pieces of data together

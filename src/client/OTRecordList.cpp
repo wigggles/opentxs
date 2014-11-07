@@ -143,7 +143,7 @@
 #include <opentxs/ext/OTPayment.hpp>
 
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTAssetContract.hpp>
+#include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTMessage.hpp>
@@ -458,7 +458,7 @@ void OTRecordList::AddAssetID(std::string str_id)
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
-    OTAssetContract* pAssetContract = pWallet->GetAssetContract(theAssetTypeID);
+    AssetContract* pAssetContract = pWallet->GetAssetContract(theAssetTypeID);
     if (nullptr != pAssetContract) {
         str_asset_name =
             pAssetContract->GetCurrencyTLA().Get(); // This might be "USD" --
