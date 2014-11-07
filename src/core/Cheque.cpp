@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/Cheque.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/OTLog.hpp>

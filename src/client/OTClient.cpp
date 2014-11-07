@@ -149,7 +149,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTIdentifier.hpp>

@@ -152,7 +152,7 @@
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/script/OTBylaw.hpp>
-#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/script/OTClause.hpp>
 #include <opentxs/core/crypto/OTCredential.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>

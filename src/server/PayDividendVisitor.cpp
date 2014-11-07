@@ -134,7 +134,7 @@
 #include <opentxs/server/OTServer.hpp>
 
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/ext/OTPayment.hpp>
