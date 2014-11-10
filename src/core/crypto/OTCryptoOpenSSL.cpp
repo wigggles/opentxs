@@ -2655,44 +2655,8 @@ bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
     return bSetMem;
 }
 
-// If length is 10,
-// Then indices are 0..9
-// Therefore '9' is the 10th byte, starting from 0.
-// Therefore "GetSize()" would be 10,
-// and "GetSize()-1" would be 9, which is the 10th byte starting from 0.
-// Therefore if the string is 9 bytes int64_t, it will have data from 0 through
-// 8, with 9 being \0.
-// Normally you wouldn't expect a string to include the null terminator as part
-// of its length.
-// But for OTData, you WOULD expect the null 0 to be at the end.
-//
-
-// The default hashing algorithm in this software should be one that XOR
-// combines two other,
-// established and respected algorithms. In this case, we use the "SAMY" hash
-// which is actually
-// SHA512 XOR'd with WHIRLPOOL (also 512 in output). Credit to SAMY for the
-// idea.
-//
-// This way if one is ever cracked, our system is still strong, and we can swap
-// it out.
-// Thus, I had to write this special function so that if the Default hash
-// algorithm is the one
-// chosen, ("SAMY") then we have to hash it twice using Hash1 (SHA512) and Hash2
-// (Whirlpool)
-// before we encrypt it with the private key.
-//
-// Since the envelope (EVP) interface did not allow this, I had to Google
-// everywhere to find
-// lower-level code I could model.
-
 /*
  128 bytes * 8 bits == 1024 bits key.  (RSA)
-
- 64 bytes * 8 bits == 512 bits key (for WHIRLPOOL and SHA-512 message digests.)
-
- BUT--now I want to allow various key sizes (above 1024...)
- and I also have a smaller message digest now: 256 bits.
 
  */
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
@@ -2857,14 +2821,6 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
 
     return bReturnValue;
 }
-
-// Verify a contract that has been signed with our own default algorithm (aka
-// SAMY hash)
-// Basically we had to customize for that algorithm since, by default, it XORs
-// two different
-// algorithms together (SHA256 and WHIRLPOOL) in anticipation of the day that
-// one of them is
-// broken.
 
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     const String& strContractToVerify, const EVP_PKEY* pkey,
@@ -3445,19 +3401,10 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
         }
     };
 
-    // Moving this lower...
-
-    //  _OTCont_SignCont1 theInstance(szFunc, md_ctx);
-
-    //    OTString strDoubleHash;
-
-    // Are we using the special SAMY hash? In which case, we have to actually
-    // combine two signatures.
     const bool bUsesDefaultHashAlgorithm =
         strHashType.Compare(OTIdentifier::DefaultHashAlgorithm);
     EVP_MD* md = nullptr;
 
-    // SAMY hash. (The "default" hash.)
     if (bUsesDefaultHashAlgorithm) {
         return SignContractDefaultHash(strContractUnsigned, pkey, theSignature,
                                        pPWData);
@@ -3496,16 +3443,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
     //
     EVP_SignInit_ex(&md_ctx, md, nullptr);
 
-    //    if (bUsesDefaultHashAlgorithm)
-    //    {
-    //        EVP_SignUpdate (&md_ctx, strDoubleHash.Get(),
-    // strDoubleHash.GetLength());
-    //    }
-    //    else
-    {
-        EVP_SignUpdate(&md_ctx, strContractUnsigned.Get(),
-                       strContractUnsigned.GetLength());
-    }
+    EVP_SignUpdate(&md_ctx, strContractUnsigned.Get(),
+                   strContractUnsigned.GetLength());
 
     uint8_t sig_buf[4096]; // Safe since we pass the size when we use it.
 
@@ -3597,8 +3536,6 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
 
     const char* szFunc = "OTCrypto_OpenSSL::VerifySignature";
 
-    // Are we using the special SAMY hash? In which case, we have to actually
-    // combine two hashes.
     const bool bUsesDefaultHashAlgorithm =
         strHashType.Compare(OTIdentifier::DefaultHashAlgorithm);
     EVP_MD* md = nullptr;
@@ -3640,16 +3577,8 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     // Basically we are repeating similarly to the signing process in order to
     // verify.
 
-    //    if (bUsesDefaultHashAlgorithm)
-    //    {
-    //        EVP_VerifyUpdate(&ctx, strDoubleHash.Get(),
-    // strDoubleHash.GetLength());
-    //    }
-    //    else
-    {
-        EVP_VerifyUpdate(&ctx, strContractToVerify.Get(),
-                         strContractToVerify.GetLength());
-    }
+    EVP_VerifyUpdate(&ctx, strContractToVerify.Get(),
+                     strContractToVerify.GetLength());
 
     // Now we pass in the Signature
     // EVP_VerifyFinal() returns 1 for a correct signature,
