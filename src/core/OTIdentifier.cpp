@@ -270,6 +270,8 @@ const String OTIdentifier::DefaultHashAlgorithm("SAMY");
 const String OTIdentifier::HashAlgorithm1("SHA256");
 const String OTIdentifier::HashAlgorithm2("WHIRLPOOL");
 
+// This method implements the (ripemd160 . sha256) hash,
+// so the result is 20 bytes long.
 bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
 {
     // The Hash160 function comes from the Bitcoin reference client, where
@@ -280,8 +282,6 @@ bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
     return true;
 }
 
-// This method implements the (ripemd160 . sha256) hash,
-// so the result is 20 bytes long.
 bool OTIdentifier::CalculateDigest(const String& strInput)
 {
     return CalculateDigest(
@@ -289,7 +289,6 @@ bool OTIdentifier::CalculateDigest(const String& strInput)
         static_cast<size_t>(strInput.GetLength()));
 }
 
-// This method implements the SAMY hash
 bool OTIdentifier::CalculateDigest(const OTData& dataInput)
 {
     auto dataPtr = static_cast<const unsigned char*>(dataInput.GetPointer());
