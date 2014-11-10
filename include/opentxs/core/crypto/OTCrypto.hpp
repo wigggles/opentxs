@@ -256,14 +256,6 @@ public:
     //
     virtual bool RandomizeMemory(uint8_t* szDestination,
                                  uint32_t nNewSize) const = 0;
-    // HASHING
-    //
-    virtual bool CalculateDigest(const String& strInput,
-                                 const String& strHashAlgorithm,
-                                 OTIdentifier& theOutput) const = 0;
-    virtual bool CalculateDigest(const OTData& dataInput,
-                                 const String& strHashAlgorithm,
-                                 OTIdentifier& theOutput) const = 0;
     // BASE 62 ENCODING  (for IDs)
     //
     bool IsBase62(const std::string& str) const;

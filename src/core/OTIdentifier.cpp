@@ -296,63 +296,6 @@ bool OTIdentifier::CalculateDigest(const OTData& dataInput)
     return CalculateDigest(dataPtr, dataInput.GetSize());
 }
 
-// Some of the digest calculations are done by crypto++, instead of OpenSSL.
-// (UPDATE that is no longer true.)
-// Also, at least one of the algorithms (SAMY) is an internal name, and again
-// not
-// handled by OpenSSL.  So I call this function first to see if the hash type
-// requres
-// internal handling. If not, then I return false and the caller knows to use
-// OpenSSL
-// instead.
-bool OTIdentifier::CalculateDigestInternal(const String& strInput,
-                                           const String& strHashAlgorithm)
-{
-    // See if they wanted to use the SAMY hash
-    if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) {
-        return CalculateDigest(strInput);
-    }
-
-    return false;
-}
-
-// Some of the digest calculations are done by crypto++, instead of OpenSSL.
-// (UPDATE: above is no longer true...)
-// Also, at least one of the algorithms (SAMY) is an internal name, and again
-// not
-// handled by OpenSSL.  So I call this function first to see if the hash type
-// requres
-// internal handling. If not, then I return false and the caller knows to use
-// OpenSSL
-// instead.
-
-bool OTIdentifier::CalculateDigestInternal(const OTData& dataInput,
-                                           const String& strHashAlgorithm)
-{
-    // See if they wanted to use the SAMY hash
-    if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) {
-        return CalculateDigest(dataInput);
-    }
-
-    return false;
-}
-
-// This function lets you choose the hash algorithm by string.
-// (For example, if you read "SHA-256" out of a signed file and you
-// needed to get the hash function based on that string, you could use this.)
-//
-bool OTIdentifier::CalculateDigest(const String& strInput,
-                                   const String& strHashAlgorithm)
-{
-    return OTCrypto::It()->CalculateDigest(strInput, strHashAlgorithm, *this);
-}
-
-bool OTIdentifier::CalculateDigest(const OTData& dataInput,
-                                   const String& strHashAlgorithm)
-{
-    return OTCrypto::It()->CalculateDigest(dataInput, strHashAlgorithm, *this);
-}
-
 // So we can implement the SAMY hash, which is currently an XOR of SHA-256 with
 // WHRLPOOL
 //

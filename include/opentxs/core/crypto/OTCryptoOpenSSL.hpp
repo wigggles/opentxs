@@ -191,13 +191,7 @@ public:
     // RANDOM NUMBERS
     virtual bool RandomizeMemory(uint8_t* szDestination,
                                  uint32_t nNewSize) const;
-    // HASHING
-    virtual bool CalculateDigest(const String& strInput,
-                                 const String& strHashAlgorithm,
-                                 OTIdentifier& theOutput) const;
-    virtual bool CalculateDigest(const OTData& dataInput,
-                                 const String& strHashAlgorithm,
-                                 OTIdentifier& theOutput) const;
+
     // BASE 62 ENCODING  (for IDs)
     virtual void SetIDFromEncoded(const String& strInput,
                                   OTIdentifier& theOutput) const;
