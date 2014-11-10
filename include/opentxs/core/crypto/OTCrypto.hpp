@@ -174,8 +174,6 @@ private:
     static const int32_t* sp_nSymmetricBufferSize;
     static const int32_t* sp_nPublicKeysize;
     static const int32_t* sp_nPublicKeysizeMax;
-    static const int32_t* sp_nDigest1Size;
-    static const int32_t* sp_nDigest2Size;
 
 public:
     EXPORT static uint32_t IterationCount();
@@ -186,8 +184,6 @@ public:
     EXPORT static uint32_t SymmetricBufferSize();
     EXPORT static uint32_t PublicKeysize();
     EXPORT static uint32_t PublicKeysizeMax();
-    EXPORT static uint32_t Digest1Size();
-    EXPORT static uint32_t Digest2Size();
 };
 
 // Sometimes I want to decrypt into an OTPassword (for encrypted symmetric

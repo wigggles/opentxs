@@ -3459,19 +3459,6 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
 
     // SAMY hash. (The "default" hash.)
     if (bUsesDefaultHashAlgorithm) {
-        //        OTIdentifier hash1, hash2;
-        //
-        //        hash1.CalculateDigest(strContractUnsigned,
-        // OTIdentifier::HashAlgorithm1);
-        //        hash2.CalculateDigest(strContractUnsigned,
-        // OTIdentifier::HashAlgorithm2);
-        //
-        //        hash1.XOR(hash2);
-        //        hash1.GetString(strDoubleHash);
-        //
-        //        md = (EVP_MD
-        // *)OTCrypto_OpenSSL::GetOpenSSLDigestByName(OTIdentifier::HashAlgorithm1);
-
         return SignContractDefaultHash(strContractUnsigned, pkey, theSignature,
                                        pPWData);
     }
@@ -3617,19 +3604,6 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     EVP_MD* md = nullptr;
 
     if (bUsesDefaultHashAlgorithm) {
-        //        OTIdentifier hash1, hash2;
-        //
-        //        hash1.CalculateDigest(strContractToVerify,
-        // OTIdentifier::HashAlgorithm1);
-        //        hash2.CalculateDigest(strContractToVerify,
-        // OTIdentifier::HashAlgorithm2);
-        //
-        //        hash1.XOR(hash2);
-        //        hash1.GetString(strDoubleHash);
-        //
-        //        md = (EVP_MD
-        // *)OTCrypto_OpenSSL::GetOpenSSLDigestByName(OTIdentifier::HashAlgorithm1);
-
         return VerifyContractDefaultHash(strContractToVerify, pkey,
                                          theSignature, pPWData);
     }

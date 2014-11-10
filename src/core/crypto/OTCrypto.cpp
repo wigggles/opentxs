@@ -188,8 +188,6 @@ typedef OTCrypto_OpenSSL OTCryptoImpl;
 #define OT_DEFAULT_SYMMETRIC_BUFFER_SIZE 4096 // in bytes
 #define OT_DEFAULT_PUBLIC_KEYSIZE 128         // in bytes == 4096 bits
 #define OT_DEFAULT_PUBLIC_KEYSIZE_MAX 512     // in bytes == 1024 bits
-#define OT_DEFAULT_DIGEST_1_SIZE 32           // in bytes == 256 bits.
-#define OT_DEFAULT_DIGEST_2_SIZE 64           // in bytes == 512 bits.
 
 #define OT_KEY_ITERATION_COUNT "iteration_count"
 #define OT_KEY_SYMMETRIC_SALT_SIZE "symmetric_salt_size"
@@ -199,8 +197,6 @@ typedef OTCrypto_OpenSSL OTCryptoImpl;
 #define OT_KEY_SYMMETRIC_BUFFER_SIZE "symmetric_buffer_size"
 #define OT_KEY_PUBLIC_KEYSIZE "public_keysize"
 #define OT_KEY_PUBLIC_KEYSIZE_MAX "public_keysize_max"
-#define OT_KEY_DIGEST_1_SIZE "digest_1_size"
-#define OT_KEY_DIGEST_2_SIZE "digest_2_size"
 
 const int32_t* OTCryptoConfig::sp_nIterationCount = nullptr;
 const int32_t* OTCryptoConfig::sp_nSymmetricSaltSize = nullptr;
@@ -210,8 +206,6 @@ const int32_t* OTCryptoConfig::sp_nSymmetricIvSize = nullptr;
 const int32_t* OTCryptoConfig::sp_nSymmetricBufferSize = nullptr;
 const int32_t* OTCryptoConfig::sp_nPublicKeysize = nullptr;
 const int32_t* OTCryptoConfig::sp_nPublicKeysizeMax = nullptr;
-const int32_t* OTCryptoConfig::sp_nDigest1Size = nullptr;
-const int32_t* OTCryptoConfig::sp_nDigest2Size = nullptr;
 
 bool OTCryptoConfig::GetSetAll()
 {
@@ -245,12 +239,6 @@ bool OTCryptoConfig::GetSetAll()
         return false;
     if (!GetSetValue(config, OT_KEY_PUBLIC_KEYSIZE_MAX,
                      OT_DEFAULT_PUBLIC_KEYSIZE_MAX, sp_nPublicKeysizeMax))
-        return false;
-    if (!GetSetValue(config, OT_KEY_DIGEST_1_SIZE, OT_DEFAULT_DIGEST_1_SIZE,
-                     sp_nDigest1Size))
-        return false;
-    if (!GetSetValue(config, OT_KEY_DIGEST_2_SIZE, OT_DEFAULT_DIGEST_2_SIZE,
-                     sp_nDigest2Size))
         return false;
 
     if (!config.Save()) return false;
@@ -328,14 +316,6 @@ uint32_t OTCryptoConfig::PublicKeysize()
 uint32_t OTCryptoConfig::PublicKeysizeMax()
 {
     return GetValue(sp_nPublicKeysizeMax);
-}
-uint32_t OTCryptoConfig::Digest1Size()
-{
-    return GetValue(sp_nDigest1Size);
-}
-uint32_t OTCryptoConfig::Digest2Size()
-{
-    return GetValue(sp_nDigest2Size);
 }
 
 // static
