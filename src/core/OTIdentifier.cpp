@@ -257,16 +257,13 @@ OTIdentifier::~OTIdentifier()
 {
 }
 
-// On the advice of SAMY, our default hash algorithm will be an XOR
-// of two reputable algorithms. This way, if one of them gets broken,
-// our signatures are still safe.
-// Smart, eh?  So I named it in his honor.
-// Using SHA-256 and WHIRLPOOL
-// We now have 256-bit keysize, though half of WHIRLPOOL output is still XORed
-// onto it.
-//
-
-const String OTIdentifier::DefaultHashAlgorithm("SAMY");
+// When calling SignContract or VerifySignature with "HASH256" as the hash type,
+// the signature will use (sha256 . sha256) as a message digest.
+// In this case, SignContractDefaultHash and VerifyContractDefaultHash are used,
+// which resort to low level calls to accomplish non standard message digests.
+// Otherwise, it will use whatever OpenSSL provides by that name (see
+// GetOpenSSLDigestByName).
+const String OTIdentifier::DefaultHashAlgorithm("HASH256");
 const String OTIdentifier::HashAlgorithm1("SHA256");
 const String OTIdentifier::HashAlgorithm2("WHIRLPOOL");
 

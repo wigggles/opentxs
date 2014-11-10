@@ -134,6 +134,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <bitcoin-base58/hash.h> // for Hash()
 #include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -249,38 +250,6 @@ extern "C" {
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/conf.h>
-
-//#ifndef ANDROID // Android thus far only supports OpenSSL 0.9.8k
-#include <openssl/whrlpool.h>
-
-//    // Just trying to get Whirlpool working since they added it to OpenSSL
-//    //
-//    static int32_t init(EVP_MD_CTX* ctx)
-//    { return WHIRLPOOL_Init((WHIRLPOOL_CTX*)ctx->md_data); }
-//
-//    static int32_t update(EVP_MD_CTX* ctx, const void* data,size_t count)
-//    { return WHIRLPOOL_Update((WHIRLPOOL_CTX*)ctx->md_data,data,count); }
-//
-//    static int32_t final(EVP_MD_CTX* ctx, uint8_t* md)
-//    { return WHIRLPOOL_Final(md,(WHIRLPOOL_CTX*)ctx->md_data); }
-//
-//
-//    static const EVP_MD whirlpool_md =
-//    {
-//        NID_whirlpool,
-//        0,
-//        WHIRLPOOL_DIGEST_LENGTH,
-//        0,
-//        init,
-//        update,
-//        final,
-//        nullptr,
-//        nullptr,
-//        EVP_PKEY_nullptr_method,
-//        WHIRLPOOL_BBLOCK/8,
-//        sizeof(EVP_MD *)+sizeof(WHIRLPOOL_CTX),
-//    };
-//#endif // !ANDROID
 
 #include <openssl/opensslconf.h>
 #include <openssl/opensslv.h>
@@ -791,13 +760,6 @@ const EVP_MD* OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
         return EVP_sha384();
     else if (theName.Compare("SHA512"))
         return EVP_sha512();
-    //#ifndef ANDROID
-    else if (theName.Compare("WHIRLPOOL")) // Todo: follow up on any cleanup
-                                           // issues related to this. (Are the
-                                           // others dynamically allocated? This
-                                           // one isn't.)
-        return EVP_whirlpool();
-    //#endif
     return nullptr;
 }
 
@@ -2741,37 +2703,18 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
 
     bool bReturnValue = false;
 
-    // These two contain the output of the two message digest
-    // functions that we're using (SHA-256 and WHIRLPOOL.)
-    // the two output hashes are then merged together into this one.
-    std::vector<uint8_t> vOutputHash1(OTCryptoConfig::SymmetricKeySizeMax());
-    std::vector<uint8_t> vOutputHash2(OTCryptoConfig::SymmetricKeySizeMax());
-    std::vector<uint8_t> vDigest(OTCryptoConfig::SymmetricKeySizeMax());
-
+    // 32 bytes, double sha256
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
+    unsigned char* vDigest =
+        Hash(strContractUnsigned.Get(),
+             strContractUnsigned.Get() + strContractUnsigned.GetLength());
+
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
     std::vector<uint8_t> vEM(OTCryptoConfig::PublicKeysizeMax());
     std::vector<uint8_t> vpSignature(OTCryptoConfig::PublicKeysizeMax());
 
-    uint32_t uDigest1Len =
-        OTCryptoConfig::Digest1Size(); // 32 bytes == 256 bits. (These are used
-                                       // for function output below, not input.)
-    uint32_t uDigest2Len =
-        OTCryptoConfig::Digest2Size(); // 64 bytes == 512 bits. (These are used
-                                       // for function output below, not input.)
-
-    EVP_MD_CTX mdHash1_ctx, mdHash2_ctx;
-
-    //  OTPassword::zeroMemory(uint8_t* szMemory, uint32_t theSize);
-    //  OTPassword::zeroMemory(void* vMemory,     uint32_t theSize);
-    OTPassword::zeroMemory(&vOutputHash1.at(0),
-                           OTCryptoConfig::SymmetricKeySizeMax());
-    OTPassword::zeroMemory(&vOutputHash2.at(0),
-                           OTCryptoConfig::SymmetricKeySizeMax());
-    OTPassword::zeroMemory(&vDigest.at(0),
-                           OTCryptoConfig::SymmetricKeySizeMax());
     OTPassword::zeroMemory(&vEM.at(0), OTCryptoConfig::PublicKeysizeMax());
     OTPassword::zeroMemory(&vpSignature.at(0),
                            OTCryptoConfig::PublicKeysizeMax());
@@ -2786,83 +2729,6 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
               << ERR_error_string(ERR_get_error(), nullptr) << "\n";
         return false;
     }
-
-    // Since the idea of this special code is that we're using 2 hash
-    // algorithms,
-    // let's look them up and see what they are.
-    // addendum: unless we're on Android... then there's only 1 hash algorithm.
-    //
-    const EVP_MD* digest1 =
-        OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
-            OTIdentifier::HashAlgorithm1); // SHA-256
-
-    if (nullptr == digest1) {
-        otErr << szFunc << ": Failure to load message digest algorithm.\n";
-        RSA_free(pRsaKey);
-        pRsaKey = nullptr;
-        return false;
-    }
-
-    // hash the contents of the contract with HashAlgorithm1 (SHA-256)
-    EVP_MD_CTX_init(&mdHash1_ctx);
-    EVP_DigestInit(&mdHash1_ctx, digest1); // digest1 is the actual algorithm
-    EVP_DigestUpdate(&mdHash1_ctx, strContractUnsigned.Get(),
-                     strContractUnsigned.GetLength()); // input
-    EVP_DigestFinal(&mdHash1_ctx, &vOutputHash1.at(0),
-                    &uDigest1Len);    // output and length
-    EVP_MD_CTX_cleanup(&mdHash1_ctx); // cleanup
-
-    /*
-     TODO:
-     The functions EVP_DigestInit(), EVP_DigestFinal() and EVP_MD_CTX_copy() are
-     obsolete but are retained to maintain compatibility
-     with existing code. New applications should use EVP_DigestInit_ex(),
-     EVP_DigestFinal_ex() and EVP_MD_CTX_copy_ex() because they
-     can efficiently reuse a digest context instead of initializing and cleaning
-     it up on each call and allow non default implementations
-     of digests to be specified.
-     */
-    //#ifndef ANDROID
-    const EVP_MD* digest2 =
-        OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
-            OTIdentifier::HashAlgorithm2); // WHIRLPOOL (512)
-
-    if (nullptr == digest2) {
-        otErr << szFunc << ": Failure to load message digest algorithm.\n";
-        RSA_free(pRsaKey);
-        pRsaKey = nullptr;
-        return false;
-    }
-
-    // hash the same contents with HashAlgorithm2 (WHIRLPOOL)
-    EVP_MD_CTX_init(&mdHash2_ctx);
-    EVP_DigestInit(&mdHash2_ctx, digest2); // digest2 is the algorithm
-    EVP_DigestUpdate(&mdHash2_ctx, strContractUnsigned.Get(),
-                     strContractUnsigned.GetLength()); // Input
-    EVP_DigestFinal(&mdHash2_ctx, &vOutputHash2.at(0),
-                    &uDigest2Len);    // output and length
-    EVP_MD_CTX_cleanup(&mdHash2_ctx); // cleanup
-
-    // (Goes with the smaller size.)
-    const uint32_t uDigestMergedLength =
-        (uDigest1Len > uDigest2Len ? uDigest2Len : uDigest1Len);
-
-    // XOR the two together
-    //
-    for (uint32_t i = 0; i < uDigestMergedLength; i++) {
-        vDigest.at(i) = ((vOutputHash1.at(i)) ^ (vOutputHash2.at(i)));
-    }
-    //#else // ANDROID
-    //    const uint32_t uDigestMergedLength = uDigest1Len;
-    //
-    //    for (int32_t i = 0; i < uDigestMergedLength; i++)
-    //    {
-    //        pDigest[i] = (vOutputHash1.at(i));
-    //    }
-    //#endif // ANDROID
-
-    // pDigest is now set up.
-    // uDigestMergedLength contains its length in bytes.
 
     /*
      NOTE:
@@ -2902,20 +2768,17 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
 
     //   rsa    EM    mHash      Hash      sLen
     //      in    OUT      IN        in        in
+    const EVP_MD* md_sha256 = EVP_sha256();
     int32_t status =
-        RSA_padding_add_PKCS1_PSS(pRsaKey, &vEM.at(0), &vDigest.at(0), digest1,
+        RSA_padding_add_PKCS1_PSS(pRsaKey, &vEM.at(0), vDigest, md_sha256,
                                   -2); // maximum salt length
 
     // Above, pDigest is the input, but its length is not needed, since it is
     // determined
-    // by the digest algorithm (digest1.) In this case, that size is 32 bytes ==
+    // by the digest algorithm (md_sha256.) In this case, that size is 32 bytes
+    // ==
     // 256 bits.
 
-    // Also notice that digest1 and digest2 are both processed, and then digest1
-    // is used here
-    // again, since RSA_padding_add_PKCS1_PSS requires a digest. Might be
-    // optimization opportunities there.
-    //
     // More clearly: pDigest is 256 bits int64_t, aka 32 bytes. The call to
     // RSA_padding_add_PKCS1_PSS above
     // is transforming its contents based on digest1, into EM. Once this is
@@ -3009,38 +2872,17 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
 {
     const char* szFunc = "OTCrypto_OpenSSL::VerifyContractDefaultHash";
 
-    bool bReturnValue = false;
+    // 32 bytes, double sha256
+    unsigned char* vDigest =
+        Hash(strContractToVerify.Get(),
+             strContractToVerify.Get() + strContractToVerify.GetLength());
 
-    std::vector<uint8_t> vOutputHash1(
-        OTCryptoConfig::SymmetricKeySizeMax()); // These two contain the output
-                                                // of the two message digest
-    std::vector<uint8_t> vOutputHash2(
-        OTCryptoConfig::SymmetricKeySizeMax()); // functions that we're using
-                                                // (SHA-256 and WHIRLPOOL.)
-    std::vector<uint8_t> vDigest(
-        OTCryptoConfig::SymmetricKeySizeMax()); // the two output hashes are
-                                                // then merged together into
-                                                // this one.
+    bool bReturnValue = false;
 
     std::vector<uint8_t> vDecrypted(
         OTCryptoConfig::PublicKeysizeMax()); // Contains the decrypted
                                              // signature.
 
-    uint32_t uDigest1Len =
-        OTCryptoConfig::Digest1Size(); // 32 bytes == 256 bits. (These are used
-                                       // for function output below, not input.)
-    uint32_t uDigest2Len =
-        OTCryptoConfig::Digest2Size(); // 64 bytes == 512 bits. (These are used
-                                       // for function output below, not input.)
-
-    EVP_MD_CTX mdHash1_ctx, mdHash2_ctx;
-
-    OTPassword::zeroMemory(&vOutputHash1.at(0),
-                           OTCryptoConfig::SymmetricKeySizeMax());
-    OTPassword::zeroMemory(&vOutputHash2.at(0),
-                           OTCryptoConfig::SymmetricKeySizeMax());
-    OTPassword::zeroMemory(&vDigest.at(0),
-                           OTCryptoConfig::SymmetricKeySizeMax());
     OTPassword::zeroMemory(&vDecrypted.at(0),
                            OTCryptoConfig::PublicKeysizeMax());
 
@@ -3053,72 +2895,6 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
               << ERR_error_string(ERR_get_error(), nullptr) << "\n";
         return false;
     }
-
-    // Since the idea of this special code is that we're using 2 hash
-    // algorithms,
-    // let's look them up and see what they are.
-    const EVP_MD* digest1 =
-        OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
-            OTIdentifier::HashAlgorithm1); // SHA-256
-    if (nullptr == digest1) {
-        otErr << szFunc << ": Failure to load message digest algorithm.\n";
-        RSA_free(pRsaKey);
-        pRsaKey = nullptr;
-        return false;
-    }
-
-    // hash the contents of the contract with HashAlgorithm1 (SHA-256)
-    EVP_MD_CTX_init(&mdHash1_ctx);
-    EVP_DigestInit(&mdHash1_ctx, digest1); // digest1 is the algorithm itself
-    EVP_DigestUpdate(&mdHash1_ctx, strContractToVerify.Get(),
-                     strContractToVerify.GetLength()); // input
-    EVP_DigestFinal(&mdHash1_ctx, &vOutputHash1.at(0),
-                    &uDigest1Len);    // output and size
-    EVP_MD_CTX_cleanup(&mdHash1_ctx); // cleanup
-
-    //#ifndef ANDROID   // NOT Android.
-    const EVP_MD* digest2 =
-        OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::GetOpenSSLDigestByName(
-            OTIdentifier::HashAlgorithm2); // WHIRLPOOL
-    if (nullptr == digest2) {
-        otErr << szFunc << ": Failure to load message digest algorithm.\n";
-        RSA_free(pRsaKey);
-        pRsaKey = nullptr;
-        return false;
-    }
-
-    // hash the same contents with HashAlgorithm2 (WHIRLPOOL)
-    EVP_MD_CTX_init(&mdHash2_ctx);
-    EVP_DigestInit(&mdHash2_ctx, digest2); // digest2 is the algorithm itself
-    EVP_DigestUpdate(&mdHash2_ctx, strContractToVerify.Get(),
-                     strContractToVerify.GetLength()); // Input
-    EVP_DigestFinal(&mdHash2_ctx, &vOutputHash2.at(0),
-                    &uDigest2Len);    // output and size
-    EVP_MD_CTX_cleanup(&mdHash2_ctx); // cleanup
-
-    // (Goes with the smaller size.)
-    const uint32_t uDigestMergedLength =
-        (uDigest1Len > uDigest2Len ? uDigest2Len : uDigest1Len);
-
-    // XOR the two together
-    for (uint32_t i = 0; i < uDigestMergedLength; i++) {
-        vDigest.at(i) = ((vOutputHash1.at(i)) ^ (vOutputHash2.at(i)));
-    }
-    //#else // ** is ** ANDROID
-    //
-    //    // (Goes with the smaller size.)
-    //    const uint32_t uDigestMergedLength = uDigest1Len;
-    //
-    //    for (int32_t i = 0; i < uDigest1Len; i++)
-    //    {
-    //        pDigest[i] = (pOutputHash1[i]);
-    //    }
-    //#endif // ANDROID
-
-    // Now we have the exact content in pDigest that we should also see if we
-    // decrypt
-    // the signature that was passed in.
-    //
 
     OTData binSignature;
 
@@ -3211,9 +2987,11 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     /*
      int32_t RSA_verify_PKCS1_PSS(RSA* rsa, const uint8_t* mHash, const EVP_MD* Hash, const uint8_t* EM, int32_t sLen)
      */ // rsa        mHash    Hash alg.    EM         sLen
-    status = RSA_verify_PKCS1_PSS(pRsaKey, &vDigest.at(0), digest1,
-                                  &vDecrypted.at(0),
-                                  -2); // salt length recovered from signature
+
+    const EVP_MD* md_sha256 = EVP_sha256();
+    status =
+        RSA_verify_PKCS1_PSS(pRsaKey, vDigest, md_sha256, &vDecrypted.at(0),
+                             -2); // salt length recovered from signature
 
     if (status == 1) {
         otLog5 << "  *Signature verified*\n";
