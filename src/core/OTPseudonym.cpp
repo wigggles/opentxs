@@ -2982,9 +2982,9 @@ bool OTPseudonym::GetNextTransactionNum(OTPseudonym& SIGNER_NYM,
             OT_ASSERT(nullptr != pDeque);
 
             if (!(pDeque->empty())) {
-                lTransNum = pDeque->front();
+                lTransNum = pDeque->back();
 
-                pDeque->pop_front();
+                pDeque->pop_back();
 
                 // The call has succeeded
                 bRetVal = true;
