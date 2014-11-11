@@ -227,9 +227,7 @@ void OTClient::ProcessMessageOut(const Message& theMessage)
         nullptr != m_pConnection,
         "OTClient::ProcessMessageOut: ASSERT: nullptr != m_pConnection\n");
 
-    m_pConnection->ProcessMessageOut(theMessage); // <===========
-
-    //    otErr << "OTClient::ProcessMessageOut: FINISHED.\n";
+    m_pConnection->ProcessMessageOut(theMessage);
 }
 
 /// This is standard behavior for the Nymbox (NOT the inbox.)
@@ -7854,7 +7852,6 @@ int32_t OTClient::ProcessUserCommand(
 
     int64_t lReturnValue = 0;
 
-    // THE BIG SWITCH (inside a code block for neatness
     switch (requestedCommand) {
 
     case (OTClient::checkServerID): {
