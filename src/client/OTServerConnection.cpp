@@ -153,29 +153,6 @@ extern "C" {
 namespace opentxs
 {
 
-bool OTServerConnection::s_bInitialized = false;
-
-void OTServerConnection::Initialize()
-{
-    // We've already been initialized. We can just return
-    if (s_bInitialized) {
-        return;
-    }
-
-    // This is the first time this function has run.
-    s_bInitialized = true; // set this to true so the function can't run again.
-                           // It only runs the first time.
-
-    // Initialize SSL -- MUST happen before any Private keys are loaded, if you
-    // want it to work.
-    // Update: this no longer initializes OpenSSL, which I do in
-    // OTLog::OT_Init() now.
-    // Just make sure you call that early on.
-    //
-    //    SFSocketGlobalInit();
-}
-
-// Connect is used for SSL mode, but SetFocus is used for XmlRpc mode.
 // Everytime you send a message, it is a new connection -- and could be to
 // a different server! So it's important to switch focus each time so we
 // have the right server contract, etc.
@@ -189,17 +166,7 @@ bool OTServerConnection::SetFocus(OTPseudonym& theNym,
         OT_FAIL;
     };
 
-    // We're already connected! You can't use SetFocus if you're in connection
-    // mode (TCP instead of HTTP.)
-    // if (IsConnected())
-    //    return false;
-    //
-    // This call initializes OpenSSL (only the first time it's called.)
-    Initialize();
-
-    // The Client keeps an internal ServerConnection at all times.
-    // In SSL/TCP mode, you connect, and stay connected. But in RPC
-    // mode, you must call SetFocus before each time you prepare or
+    // In RPC mode, you must call SetFocus before each time you prepare or
     // process any server-related messages. Why? Since the Client normally
     // expects the connection to already be made, and therefore expects
     // to have access to the Nym and Server Contract (and server ID, etc)
