@@ -134,7 +134,7 @@
 
 #include <opentxs/core/OTItem.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
@@ -1257,7 +1257,7 @@ void OTItem::CalculateNumberOfOrigin()
 
     case depositCheque: // this item is a request to deposit a cheque.
     {
-        OTCheque theCheque;
+        Cheque theCheque;
         String strAttachment;
         GetAttachment(strAttachment);
 

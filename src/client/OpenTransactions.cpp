@@ -167,7 +167,7 @@
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/AssetContract.hpp>
-#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLedger.hpp>
@@ -4861,7 +4861,7 @@ Account* OT_API::GetOrLoadAccount(const OTIdentifier& NYM_ID,
 // Returns an OTCheque pointer, or nullptr.
 // (Caller responsible to delete.)
 //
-OTCheque* OT_API::WriteCheque(
+Cheque* OT_API::WriteCheque(
     const OTIdentifier& SERVER_ID, const int64_t& CHEQUE_AMOUNT,
     const time64_t& VALID_FROM, const time64_t& VALID_TO,
     const OTIdentifier& SENDER_ACCT_ID, const OTIdentifier& SENDER_USER_ID,
@@ -4899,8 +4899,8 @@ OTCheque* OT_API::WriteCheque(
         return nullptr;
     }
     // At this point, I know that lTransactionNumber contains one I can use.
-    OTCheque* pCheque =
-        new OTCheque(pAccount->GetRealServerID(), pAccount->GetAssetTypeID());
+    Cheque* pCheque =
+        new Cheque(pAccount->GetRealServerID(), pAccount->GetAssetTypeID());
     OT_ASSERT_MSG(
         nullptr != pCheque,
         "OT_API::WriteCheque: Error allocating memory in the OT API.");
@@ -10051,7 +10051,7 @@ int32_t OT_API::payDividend(
         // might be a hundred shareholders, so the server would create a hundred
         // vouchers in that case.
         //
-        OTCheque theRequestVoucher(
+        Cheque theRequestVoucher(
             SERVER_ID, SHARES_ASSET_TYPE_ID); // <====== Server needs this
                                               // (SHARES_ASSET_TYPE_ID)
 
@@ -10326,7 +10326,7 @@ int32_t OT_API::withdrawVoucher(const OTIdentifier& SERVER_ID,
     // The server only uses the memo, amount, and recipient from this cheque
     // when it
     // constructs the actual voucher.
-    OTCheque theRequestVoucher(SERVER_ID, CONTRACT_ID);
+    Cheque theRequestVoucher(SERVER_ID, CONTRACT_ID);
     bool bIssueCheque = theRequestVoucher.IssueCheque(
         lAmount, lVoucherTransNum, VALID_FROM, VALID_TO, ACCT_ID, USER_ID,
         strChequeMemo,
@@ -10555,7 +10555,7 @@ bool OT_API::DiscardCheque(const OTIdentifier& SERVER_ID,
     //
     const String strServerID(SERVER_ID), strNymID(USER_ID);
 
-    OTCheque theCheque(SERVER_ID, CONTRACT_ID);
+    Cheque theCheque(SERVER_ID, CONTRACT_ID);
 
     if (!theCheque.LoadContractFromString(THE_CHEQUE)) {
         otOut << __FUNCTION__ << ": Unable to load cheque from string. Sorry. "
@@ -10630,7 +10630,7 @@ int32_t OT_API::depositCheque(const OTIdentifier& SERVER_ID,
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strDepositAcct(ACCT_ID);
 
-    OTCheque theCheque(SERVER_ID, CONTRACT_ID);
+    Cheque theCheque(SERVER_ID, CONTRACT_ID);
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = pNym->GetNextTransactionNum(*pNym, strServerID,

@@ -139,7 +139,7 @@
 
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/OTLog.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -223,7 +223,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         // BELOW THIS POINT, MUST DELETE pTrackable!
         std::unique_ptr<OTTrackable> theTrackableAngel(pTrackable);
 
-        OTCheque* pCheque = nullptr;
+        Cheque* pCheque = nullptr;
         OTPaymentPlan* pPaymentPlan = nullptr;
         OTSmartContract* pSmartContract = nullptr;
 
@@ -231,7 +231,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
         case CHEQUE:
         case VOUCHER:
         case INVOICE:
-            pCheque = dynamic_cast<OTCheque*>(pTrackable);
+            pCheque = dynamic_cast<Cheque*>(pTrackable);
             if (nullptr == pCheque)
                 otErr << "OTPayment::SetTempValues: Failure: "
                          "dynamic_cast<OTCheque *>(pTrackable). Contents:\n\n"
@@ -276,7 +276,7 @@ bool OTPayment::SetTempValues() // this version for OTTrackable (all types
     return false; // Should never actually reach this point.
 }
 
-bool OTPayment::SetTempValuesFromCheque(const OTCheque& theInput)
+bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
 {
     switch (m_Type) {
     case OTPayment::CHEQUE:
@@ -1258,7 +1258,7 @@ OTTrackable* OTPayment::Instantiate() const
 {
     OTContract* pContract = nullptr;
     OTTrackable* pTrackable = nullptr;
-    OTCheque* pCheque = nullptr;
+    Cheque* pCheque = nullptr;
     OTPaymentPlan* pPaymentPlan = nullptr;
     OTSmartContract* pSmartContract = nullptr;
 
@@ -1269,7 +1269,7 @@ OTTrackable* OTPayment::Instantiate() const
         pContract = ::InstantiateContract(m_strPayment);
 
         if (nullptr != pContract) {
-            pCheque = dynamic_cast<OTCheque*>(pContract);
+            pCheque = dynamic_cast<Cheque*>(pContract);
 
             if (nullptr == pCheque) {
                 otErr << "OTPayment::Instantiate: Tried to instantiate cheque, "

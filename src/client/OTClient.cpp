@@ -149,7 +149,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/OTCheque.hpp>
+#include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTIdentifier.hpp>
@@ -2479,7 +2479,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                             String strCheque;
                             pOriginalItem->GetAttachment(strCheque);
 
-                            OTCheque theCheque;
+                            Cheque theCheque;
                             bool bLoadContractFromString =
                                 theCheque.LoadContractFromString(strCheque);
 
@@ -2729,7 +2729,7 @@ void OTClient::ProcessWithdrawalResponse(
         if ((OTItem::atWithdrawVoucher == pItem->GetType()) &&
             (OTItem::acknowledgement == pItem->GetStatus())) {
             String strVoucher;
-            OTCheque theVoucher;
+            Cheque theVoucher;
 
             pItem->GetAttachment(strVoucher);
 
@@ -4071,8 +4071,8 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                         String strCheque;
                                         pOriginalItem->GetAttachment(strCheque);
 
-                                        OTCheque theCheque; // allocated on
-                                                            // the stack :-)
+                                        Cheque theCheque; // allocated on
+                                                          // the stack :-)
 
                                         if (false ==
                                             ((strCheque.GetLength() > 2) &&
@@ -8541,7 +8541,7 @@ int32_t OTClient::ProcessUserCommand(
 
         const OTIdentifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
 
-        OTCheque theCheque(SERVER_ID, CONTRACT_ID);
+        Cheque theCheque(SERVER_ID, CONTRACT_ID);
 
         otOut << "Please enter plaintext cheque, terminate with ~ on a new "
                  "line:\n> ";
@@ -8881,8 +8881,8 @@ int32_t OTClient::ProcessUserCommand(
             return (-1);
         }
 
-        OTCheque theCheque(pAccount->GetRealServerID(),
-                           pAccount->GetAssetTypeID());
+        Cheque theCheque(pAccount->GetRealServerID(),
+                         pAccount->GetAssetTypeID());
 
         // Memo
         otOut << "Enter a memo for your check: ";
