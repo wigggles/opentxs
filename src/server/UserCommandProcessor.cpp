@@ -1272,7 +1272,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
         else
             bRunIt = false;
 
-        if (bRunIt) UserCmdGetBoxReceipt(*pNym, theMessage, msgOut);
+        if (bRunIt) UserCmdGetBoxReceipt(theMessage, msgOut);
 
         return true;
     }
@@ -4090,7 +4090,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
 // the Nymbox. Otherwise it will contain an AcctID if retrieving a boxreceipt
 // for an Asset Acct.
 //
-void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
+void UserCommandProcessor::UserCmdGetBoxReceipt(OTMessage& MsgIn,
                                                 OTMessage& msgOut)
 {
     // (1) set up member variables
