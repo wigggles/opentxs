@@ -14024,12 +14024,17 @@ void OT_API::SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
 }
 
 // Calls SendMessage() and does some request number magic
+// Returns the requestNumber parameter cast down to int32_t.
 int32_t OT_API::SendMessage(OTServerContract* pServerContract,
                             OTPseudonym* pNym, Message& message,
                             int64_t requestNumber) const
 {
     SendMessage(pServerContract, pNym, message);
-    return m_pClient->CalcReturnVal(requestNumber);
+
+    // We cast in order to satisfy the OTAPI_Exec return types.
+    // That will suffice for 2 billion request or 70 years if the client makes
+    // a request every second.
+    return static_cast<int32_t>(requestNumber);
 }
 
 } // namespace opentxs

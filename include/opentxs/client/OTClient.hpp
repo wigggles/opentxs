@@ -177,18 +177,6 @@ private:
     // wasn't used to startup, (which would mean we're executing a script) then
     // it's A-Okay to fire those auto messages.
 
-    /// Any time a message is sent to the server, its request number is copied
-    /// here.
-    /// Most server message functions return int32_t, but technically a request
-    /// number can
-    /// be int64_t. So if the number being returned is too large for that
-    /// int32_t, it will return
-    /// -2 instead, and then another function can be called that returns
-    /// lMostRecentRequestNumber
-    /// in string form, or whatever is easiest.
-    ///
-    int64_t m_lMostRecentRequestNumber;
-
     void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
                                       const String& str_trans,
                                       String str_box_type,
@@ -237,7 +225,6 @@ private:
                                          ProcessServerReplyArgs& args);
 
 public:
-    int32_t CalcReturnVal(const int64_t& lRequestNumber);
     bool IsRunningAsScript() const
     {
         return m_bRunningAsScript;
