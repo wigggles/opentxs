@@ -257,19 +257,16 @@ OTIdentifier::~OTIdentifier()
 {
 }
 
-// On the advice of SAMY, our default hash algorithm will be an XOR
-// of two reputable algorithms. This way, if one of them gets broken,
-// our signatures are still safe.
-// Smart, eh?  So I named it in his honor.
-// Using SHA-256 and WHIRLPOOL
-// We now have 256-bit keysize, though half of WHIRLPOOL output is still XORed
-// onto it.
-//
+// When calling SignContract or VerifySignature with "HASH256" as the hash type,
+// the signature will use (sha256 . sha256) as a message digest.
+// In this case, SignContractDefaultHash and VerifyContractDefaultHash are used,
+// which resort to low level calls to accomplish non standard message digests.
+// Otherwise, it will use whatever OpenSSL provides by that name (see
+// GetOpenSSLDigestByName).
+const String OTIdentifier::DefaultHashAlgorithm("HASH256");
 
-const String OTIdentifier::DefaultHashAlgorithm("SAMY");
-const String OTIdentifier::HashAlgorithm1("SHA256");
-const String OTIdentifier::HashAlgorithm2("WHIRLPOOL");
-
+// This method implements the (ripemd160 . sha256) hash,
+// so the result is 20 bytes long.
 bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
 {
     // The Hash160 function comes from the Bitcoin reference client, where
@@ -280,8 +277,6 @@ bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
     return true;
 }
 
-// This method implements the (ripemd160 . sha256) hash,
-// so the result is 20 bytes long.
 bool OTIdentifier::CalculateDigest(const String& strInput)
 {
     return CalculateDigest(
@@ -289,141 +284,10 @@ bool OTIdentifier::CalculateDigest(const String& strInput)
         static_cast<size_t>(strInput.GetLength()));
 }
 
-// This method implements the SAMY hash
 bool OTIdentifier::CalculateDigest(const OTData& dataInput)
 {
     auto dataPtr = static_cast<const unsigned char*>(dataInput.GetPointer());
     return CalculateDigest(dataPtr, dataInput.GetSize());
-}
-
-// Some of the digest calculations are done by crypto++, instead of OpenSSL.
-// (UPDATE that is no longer true.)
-// Also, at least one of the algorithms (SAMY) is an internal name, and again
-// not
-// handled by OpenSSL.  So I call this function first to see if the hash type
-// requres
-// internal handling. If not, then I return false and the caller knows to use
-// OpenSSL
-// instead.
-bool OTIdentifier::CalculateDigestInternal(const String& strInput,
-                                           const String& strHashAlgorithm)
-{
-    // See if they wanted to use the SAMY hash
-    if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) {
-        return CalculateDigest(strInput);
-    }
-
-    return false;
-}
-
-// Some of the digest calculations are done by crypto++, instead of OpenSSL.
-// (UPDATE: above is no longer true...)
-// Also, at least one of the algorithms (SAMY) is an internal name, and again
-// not
-// handled by OpenSSL.  So I call this function first to see if the hash type
-// requres
-// internal handling. If not, then I return false and the caller knows to use
-// OpenSSL
-// instead.
-
-bool OTIdentifier::CalculateDigestInternal(const OTData& dataInput,
-                                           const String& strHashAlgorithm)
-{
-    // See if they wanted to use the SAMY hash
-    if (strHashAlgorithm.Compare(DefaultHashAlgorithm)) {
-        return CalculateDigest(dataInput);
-    }
-
-    return false;
-}
-
-// This function lets you choose the hash algorithm by string.
-// (For example, if you read "SHA-256" out of a signed file and you
-// needed to get the hash function based on that string, you could use this.)
-//
-bool OTIdentifier::CalculateDigest(const String& strInput,
-                                   const String& strHashAlgorithm)
-{
-    return OTCrypto::It()->CalculateDigest(strInput, strHashAlgorithm, *this);
-}
-
-bool OTIdentifier::CalculateDigest(const OTData& dataInput,
-                                   const String& strHashAlgorithm)
-{
-    return OTCrypto::It()->CalculateDigest(dataInput, strHashAlgorithm, *this);
-}
-
-// So we can implement the SAMY hash, which is currently an XOR of SHA-256 with
-// WHRLPOOL
-//
-// Originally, it was SHA512 and WHRLPOOL, which both have a 512-bit
-// output-size.
-// I was then going to cut the result in half and XOR together again. But then I
-// though, for now, instead of doing all that extra work, I'll just change the
-// two "HashAlgorithms" from SHA512 and WHRLPOOL to SHA256 and WHIRLPOOL.
-//
-// This was very much easier, as I only had to change the little "512" to say
-// "256" instead, and basically the job was done. Of course, this means that OT
-// is generating a 256-bit hash in THIS object, and a 512-bit WHIRLPOOL hash in
-// the other object. i.e. There is still one 512-bit hash that you are forced to
-// calculate, even if you throw away half of it after the calculation is done.
-//
-// Since the main object has a 256-bit hash, the XOR() function below was
-// already
-// coded to XOR the minimum length based on the smallest of the two objects.
-// Therefore, it will XOR 256 bits of the WHRLPOOL output into the 256 bits of
-// the main output (SHA256) and stop there: we now have a 256 bit ID.
-//
-// The purpose here is to reduce the ID size so that it will work on Windows
-// with
-// the filenames. The current 512bit output is 64 bytes, or 128 characters when
-// exported to a hex string (in all the OT contracts for example, over and over
-// again.)
-//
-// The new size will be 256bit, which is 32 bytes of binary. In hex string that
-// would be 64 characters. But we're also converting from Hex to Base62, which
-// means we'll get it down to around 43 characters.
-//
-// This means our IDs are going to go from this:
-//
-//
-// To this:
-//
-//
-// You might ask: is 256 bits big enough of a hash size to be safe from
-// collisions?
-// Practically speaking, I believe so.  The IDs are used for accounts, servers,
-// asset types,
-// and users. How many different asset types do you expect there will be, where
-// changing the
-// contract to anything still intelligible would result in a still-valid
-// signature? To find
-// a collision in a contract, where the signature would still work, would you
-// expect the necessary
-// changed plaintext to be something that would still make sense in the
-// contract? Would such
-// a random piece of data turn out to form proper XML?
-//
-// 256bits is enough to store the number of atoms in the Universe. If we ever
-// need a bigger
-// hashsize, just go change the HashAlgorithm1 back to "SHA512" instead of
-// "SHA256", and you'll
-// instantly have a doubled hash output size  :-)
-//
-bool OTIdentifier::XOR(const OTIdentifier& theInput) const
-{
-    // Go with the smallest of the two
-    const int64_t lSize =
-        (GetSize() > theInput.GetSize() ? theInput.GetSize() : GetSize());
-
-    for (int32_t i = 0; i < lSize; i++) {
-        // When converting to BigInteger internally, this will be a bit more
-        // efficient.
-        (static_cast<char*>(const_cast<void*>(GetPointer())))[i] ^=
-            (static_cast<char*>(const_cast<void*>(theInput.GetPointer())))[i];
-    }
-
-    return true;
 }
 
 // SET (binary id) FROM ENCODED STRING

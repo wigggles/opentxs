@@ -174,8 +174,6 @@ private:
     static const int32_t* sp_nSymmetricBufferSize;
     static const int32_t* sp_nPublicKeysize;
     static const int32_t* sp_nPublicKeysizeMax;
-    static const int32_t* sp_nDigest1Size;
-    static const int32_t* sp_nDigest2Size;
 
 public:
     EXPORT static uint32_t IterationCount();
@@ -186,8 +184,6 @@ public:
     EXPORT static uint32_t SymmetricBufferSize();
     EXPORT static uint32_t PublicKeysize();
     EXPORT static uint32_t PublicKeysizeMax();
-    EXPORT static uint32_t Digest1Size();
-    EXPORT static uint32_t Digest2Size();
 };
 
 // Sometimes I want to decrypt into an OTPassword (for encrypted symmetric
@@ -256,14 +252,6 @@ public:
     //
     virtual bool RandomizeMemory(uint8_t* szDestination,
                                  uint32_t nNewSize) const = 0;
-    // HASHING
-    //
-    virtual bool CalculateDigest(const String& strInput,
-                                 const String& strHashAlgorithm,
-                                 OTIdentifier& theOutput) const = 0;
-    virtual bool CalculateDigest(const OTData& dataInput,
-                                 const String& strHashAlgorithm,
-                                 OTIdentifier& theOutput) const = 0;
     // BASE 62 ENCODING  (for IDs)
     //
     bool IsBase62(const std::string& str) const;

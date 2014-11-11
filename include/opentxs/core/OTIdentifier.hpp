@@ -157,15 +157,7 @@ private:
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
-    // Some digests are handled in special ways before they can call OpenSSL.
-    // They are internal, like SAMY hash.
-    EXPORT bool CalculateDigestInternal(const String& strInput,
-                                        const String& strHashAlgorithm);
-    EXPORT bool CalculateDigestInternal(const OTData& dataInput,
-                                        const String& strHashAlgorithm);
     EXPORT static const String DefaultHashAlgorithm;
-    EXPORT static const String HashAlgorithm1;
-    EXPORT static const String HashAlgorithm2;
     EXPORT OTIdentifier();
 
     EXPORT OTIdentifier(const OTIdentifier& theID);
@@ -190,11 +182,6 @@ public:
     EXPORT bool CalculateDigest(const OTData& dataInput);
     EXPORT bool CalculateDigest(const String& strInput);
 
-    EXPORT bool CalculateDigest(const String& strInput,
-                                const String& strHashAlgorithm);
-    EXPORT bool CalculateDigest(const OTData& dataInput,
-                                const String& strHashAlgorithm);
-    EXPORT bool XOR(const OTIdentifier& theInput) const;
     // If someone passes in the pretty string of hex digits,
     // convert it to the actual binary hash and set it internally.
     EXPORT void SetString(const char* szString);
