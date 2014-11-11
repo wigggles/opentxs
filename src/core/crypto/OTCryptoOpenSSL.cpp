@@ -2665,8 +2665,6 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
 {
     const char* szFunc = "OTCrypto_OpenSSL::SignContractDefaultHash";
 
-    bool bReturnValue = false;
-
     // 32 bytes, double sha256
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
@@ -2814,12 +2812,10 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContractDefaultHash(
     theSignature.SetData(binSignature, true); // true means, "yes, with newlines
                                               // in the b64-encoded output,
                                               // please."
-    bReturnValue = true;
-
     if (pRsaKey) RSA_free(pRsaKey);
     pRsaKey = nullptr;
 
-    return bReturnValue;
+    return true;
 }
 
 bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
@@ -2832,8 +2828,6 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     unsigned char* vDigest =
         Hash(strContractToVerify.Get(),
              strContractToVerify.Get() + strContractToVerify.GetLength());
-
-    bool bReturnValue = false;
 
     std::vector<uint8_t> vDecrypted(
         OTCryptoConfig::PublicKeysizeMax()); // Contains the decrypted
@@ -2949,17 +2943,15 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
         RSA_verify_PKCS1_PSS(pRsaKey, vDigest, md_sha256, &vDecrypted.at(0),
                              -2); // salt length recovered from signature
 
-    if (status == 1) {
-        otLog5 << "  *Signature verified*\n";
-        bReturnValue = true;
-    }
-    else {
+    if (!status) {
         otLog5 << szFunc << ": RSA_verify_PKCS1_PSS failed with error: "
                << ERR_error_string(ERR_get_error(), nullptr) << "\n";
         RSA_free(pRsaKey);
         pRsaKey = nullptr;
         return false;
     }
+
+    otLog5 << "  *Signature verified*\n";
 
     /*
 
@@ -3364,7 +3356,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
     if (pRsaKey) RSA_free(pRsaKey);
     pRsaKey = nullptr;
 
-    return bReturnValue;
+    return true;
 }
 
 // All the other various versions eventually call this one, where the actual
