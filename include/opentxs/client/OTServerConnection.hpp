@@ -147,9 +147,6 @@ class OTWallet;
 
 class OTServerConnection
 {
-    static void Initialize();
-    static bool s_bInitialized;
-
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 
