@@ -8815,10 +8815,7 @@ int32_t OT_API::issueBasket(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 // GENERATE BASKET EXCHANGE REQUEST
@@ -9337,11 +9334,8 @@ int32_t OT_API::exchangeBasket(
                     theMessage.SaveContract();
 
                     // (Send it)
-                    m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                                      m_pTransportCallback);
-                    m_pClient->ProcessMessageOut(theMessage);
-
-                    return m_pClient->CalcReturnVal(lRequestNumber);
+                    return SendMessage(pServer, pNym, theMessage,
+                                       lRequestNumber);
                 } // Inbox loaded.
             }     // successfully got first transaction number.
         }
@@ -9385,10 +9379,7 @@ int32_t OT_API::getTransactionNumber(const OTIdentifier& SERVER_ID,
         OTClient::getTransactionNum, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
+        SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
@@ -9635,11 +9626,7 @@ int32_t OT_API::notarizeWithdrawal(const OTIdentifier& SERVER_ID,
         theMessage.SaveContract();
 
         // (Send it)
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
-        return m_pClient->CalcReturnVal(lRequestNumber);
+        return SendMessage(pServer, pNym, theMessage, lRequestNumber);
     }
     else {
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
@@ -9901,12 +9888,7 @@ int32_t OT_API::notarizeDeposit(const OTIdentifier& SERVER_ID,
         theMessage.SaveContract();
 
         // (Send it)
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
-        return m_pClient->CalcReturnVal(lRequestNumber);
-
+        return SendMessage(pServer, pNym, theMessage, lRequestNumber);
     } // bSuccess
     else {
         delete pItem;
@@ -10244,11 +10226,7 @@ int32_t OT_API::payDividend(
             theMessage.SaveContract();
 
             // (Send it)
-            m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                              m_pTransportCallback);
-            m_pClient->ProcessMessageOut(theMessage);
-
-            return m_pClient->CalcReturnVal(lRequestNumber);
+            return SendMessage(pServer, pNym, theMessage, lRequestNumber);
         }
     }
     else
@@ -10458,11 +10436,7 @@ int32_t OT_API::withdrawVoucher(const OTIdentifier& SERVER_ID,
         theMessage.SaveContract();
 
         // (Send it)
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
-        return m_pClient->CalcReturnVal(lRequestNumber);
+        return SendMessage(pServer, pNym, theMessage, lRequestNumber);
     }
 
     return (-1);
@@ -10876,11 +10850,7 @@ int32_t OT_API::depositCheque(const OTIdentifier& SERVER_ID,
             theMessage.SaveContract();
 
             // (Send it)
-            m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                              m_pTransportCallback);
-            m_pClient->ProcessMessageOut(theMessage);
-
-            return m_pClient->CalcReturnVal(lRequestNumber);
+            return SendMessage(pServer, pNym, theMessage, lRequestNumber);
         }
     } // bSuccess
 
@@ -11066,11 +11036,7 @@ int32_t OT_API::depositPaymentPlan(const OTIdentifier& SERVER_ID,
         theMessage.SaveContract();
 
         // (Send it)
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
-        return m_pClient->CalcReturnVal(lRequestNumber);
+        return SendMessage(pServer, pNym, theMessage, lRequestNumber);
     } // thePlan.LoadContractFromString()
     else {
         otOut << "Unable to load payment plan from string, or verify it. "
@@ -11148,10 +11114,7 @@ int32_t OT_API::triggerClause(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::activateSmartContract(const OTIdentifier& SERVER_ID,
@@ -11519,11 +11482,7 @@ int32_t OT_API::activateSmartContract(const OTIdentifier& SERVER_ID,
         theMessage.SaveContract();
 
         // (Send it)
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-        return m_pClient->CalcReturnVal(lRequestNumber);
-
+        return SendMessage(pServer, pNym, theMessage, lRequestNumber);
     } // theContract.LoadContractFromString()
     else
         otOut << __FUNCTION__
@@ -11722,11 +11681,7 @@ int32_t OT_API::cancelCronItem(const OTIdentifier& SERVER_ID,
         theMessage.SaveContract();
 
         // (Send it)
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
-        return m_pClient->CalcReturnVal(lRequestNumber);
+        return SendMessage(pServer, pNym, theMessage, lRequestNumber);
     } // got transaction number.
 
     return (-1);
@@ -12053,12 +12008,7 @@ int32_t OT_API::issueMarketOffer(
             theMessage.SaveContract();
 
             // (Send it)
-            m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                              m_pTransportCallback);
-            m_pClient->ProcessMessageOut(theMessage);
-
-            return m_pClient->CalcReturnVal(lRequestNumber);
-
+            return SendMessage(pServer, pNym, theMessage, lRequestNumber);
         } // if (bCreateOffer && bIssueTrade)
         else {
             otOut << __FUNCTION__
@@ -12136,10 +12086,7 @@ int32_t OT_API::getMarketList(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 /// GET ALL THE OFFERS ON A SPECIFIC MARKET
@@ -12196,10 +12143,7 @@ int32_t OT_API::getMarketOffers(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 ///-------------------------------------------------------
@@ -12259,10 +12203,7 @@ int32_t OT_API::getMarketRecentTrades(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 ///-------------------------------------------------------
@@ -12316,10 +12257,7 @@ int32_t OT_API::getNym_MarketOffers(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 // ===============================================================
@@ -12512,11 +12450,7 @@ int32_t OT_API::notarizeTransfer(const OTIdentifier& SERVER_ID,
             theMessage.SaveContract();
 
             // (Send it)
-            m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                              m_pTransportCallback);
-            m_pClient->ProcessMessageOut(theMessage);
-
-            return m_pClient->CalcReturnVal(lRequestNumber);
+            return SendMessage(pServer, pNym, theMessage, lRequestNumber);
         }
     }
     else
@@ -12575,10 +12509,7 @@ int32_t OT_API::getNymbox(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 // NOTE: Deprecated. Replaced by getAccountFiles.
@@ -12632,10 +12563,7 @@ int32_t OT_API::getInbox(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 // NOTE: Deprecated. Replaced by getAccountFiles.
@@ -12689,10 +12617,7 @@ int32_t OT_API::getOutbox(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 // Returns:
@@ -12791,11 +12716,7 @@ int32_t OT_API::processNymbox(const OTIdentifier& SERVER_ID,
         //
         nRequestNum = atoi(theMessage.m_strRequestNum.Get());
 
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
-        return nRequestNum;
+        return SendMessage(pServer, pNym, theMessage, nRequestNum);
     }
     // if successful, ..., else if not successful--and wasn't empty--then error.
     else if (!bIsEmpty)
@@ -12879,10 +12800,7 @@ int32_t OT_API::processInbox(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::issueAssetType(const OTIdentifier& SERVER_ID,
@@ -13001,11 +12919,7 @@ int32_t OT_API::issueAssetType(const OTIdentifier& SERVER_ID,
         }
 
         // (Send it)
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
-        return m_pClient->CalcReturnVal(lRequestNumber);
+        return SendMessage(pServer, pNym, theMessage, lRequestNumber);
     }
 
     return -1;
@@ -13057,10 +12971,7 @@ int32_t OT_API::getContract(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::getMint(const OTIdentifier& SERVER_ID,
@@ -13113,10 +13024,7 @@ int32_t OT_API::getMint(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 // Sends a list of asset IDs to the server, which replies with a list of the
@@ -13249,10 +13157,7 @@ int32_t OT_API::queryAssetTypes(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::createAssetAccount(const OTIdentifier& SERVER_ID,
@@ -13312,10 +13217,7 @@ int32_t OT_API::createAssetAccount(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::deleteAssetAccount(const OTIdentifier& SERVER_ID,
@@ -13366,10 +13268,7 @@ int32_t OT_API::deleteAssetAccount(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 bool OT_API::DoesBoxReceiptExist(
@@ -13453,10 +13352,7 @@ int32_t OT_API::getBoxReceipt(
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 // NOTE: Deprecated. Replaced by getAccountFiles.
@@ -13512,10 +13408,7 @@ int32_t OT_API::getAccount(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::getAccountFiles(const OTIdentifier& SERVER_ID,
@@ -13567,10 +13460,7 @@ int32_t OT_API::getAccountFiles(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::getRequest(const OTIdentifier& SERVER_ID,
@@ -13591,10 +13481,7 @@ int32_t OT_API::getRequest(const OTIdentifier& SERVER_ID,
         OTClient::getRequest, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
+        SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
@@ -13651,10 +13538,7 @@ int32_t OT_API::usageCredits(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::checkUser(const OTIdentifier& SERVER_ID,
@@ -13706,10 +13590,7 @@ int32_t OT_API::checkUser(const OTIdentifier& SERVER_ID,
     theMessage.SaveContract();
 
     // (Send it)
-    m_pClient->SetFocusToServerAndNym(*pServer, *pNym, m_pTransportCallback);
-    m_pClient->ProcessMessageOut(theMessage);
-
-    return m_pClient->CalcReturnVal(lRequestNumber);
+    return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
 int32_t OT_API::sendUserMessage(const OTIdentifier& SERVER_ID,
@@ -13774,11 +13655,6 @@ int32_t OT_API::sendUserMessage(const OTIdentifier& SERVER_ID,
         // member m_strRawFile.)
         theMessage.SaveContract();
 
-        // (Send it)
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
         // store a copy in the outmail.
         // (not encrypted, since the Nymfile will be encrypted anyway.
         //
@@ -13802,7 +13678,7 @@ int32_t OT_API::sendUserMessage(const OTIdentifier& SERVER_ID,
         OTPseudonym* pSignerNym = pNym;
         pNym->SaveSignedNymfile(*pSignerNym); // commented out temp for testing.
 
-        nReturnValue = m_pClient->CalcReturnVal(lRequestNumber);
+        nReturnValue = SendMessage(pServer, pNym, theMessage, lRequestNumber);
     }
     else
         otOut << "OT_API::sendUserMessage: Failed sealing envelope.\n";
@@ -13973,10 +13849,8 @@ int32_t OT_API::sendUserInstrument(
             OTPseudonym* pSignerNym = pNym;
             pNym->SaveSignedNymfile(*pSignerNym); // <==== SAVED.
             // (Send it)
-            m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                              m_pTransportCallback);
-            m_pClient->ProcessMessageOut(theMessage);
-            nReturnValue = m_pClient->CalcReturnVal(lRequestNumber);
+            nReturnValue =
+                SendMessage(pServer, pNym, theMessage, lRequestNumber);
         }
         else
             otOut << __FUNCTION__ << ": Failed sealing envelope.\n";
@@ -14061,9 +13935,7 @@ int32_t OT_API::createUserAccount(const OTIdentifier& SERVER_ID,
         OTClient::createUserAccount, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
+        SendMessage(pServer, pNym, theMessage);
 
         return nReturnValue;
     }
@@ -14092,10 +13964,7 @@ int32_t OT_API::deleteUserAccount(const OTIdentifier& SERVER_ID,
         OTClient::deleteUserAccount, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
+        SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
@@ -14123,10 +13992,7 @@ int32_t OT_API::checkServerID(const OTIdentifier& SERVER_ID,
         OTClient::checkServerID, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
-        m_pClient->SetFocusToServerAndNym(*pServer, *pNym,
-                                          m_pTransportCallback);
-        m_pClient->ProcessMessageOut(theMessage);
-
+        SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
@@ -14144,6 +14010,26 @@ void OT_API::AddServerContract(const OTServerContract& pContract) const
 void OT_API::AddAssetContract(const AssetContract& theContract) const
 {
     m_pWallet->AddAssetContract(theContract);
+}
+
+// Sets the "focus" of the client member variable and calls the
+// ProcessMessageOut method.
+void OT_API::SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
+                         OTMessage& message) const
+{
+    m_pClient->SetFocusToServerAndNym(*pServerContract, *pNym,
+                                      m_pTransportCallback);
+
+    m_pClient->ProcessMessageOut(message);
+}
+
+// Calls SendMessage() and does some request number magic
+int32_t OT_API::SendMessage(OTServerContract* pServerContract,
+                            OTPseudonym* pNym, OTMessage& message,
+                            int64_t requestNumber) const
+{
+    SendMessage(pServerContract, pNym, message);
+    return m_pClient->CalcReturnVal(requestNumber);
 }
 
 } // namespace opentxs
