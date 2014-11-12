@@ -151,6 +151,10 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+#ifdef __APPLE__
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 namespace opentxs
 {
 
