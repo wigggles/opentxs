@@ -1778,43 +1778,39 @@ bool OTLedger::LoadLedgerFromString(const String& theStr)
 void OTLedger::UpdateContents() // Before transmission or serialization, this is
                                 // where the ledger saves its contents
 {
-    bool bSavingAbbreviated =
-        true; // The default. Only OTLedger::message changes this to false.
-    int32_t nPartialRecordCount = 0; // We store this, so we know how many
-                                     // abbreviated records to read back later.
 
     switch (GetType()) {
-    // a message ledger stores the full receipts directly inside itself. (No
-    // separate files.)
     case OTLedger::message:
-        bSavingAbbreviated = false;
-        nPartialRecordCount = 0; // In this case (OTLedger::message), they are
-                                 // all FULL records, not abbreviated.
-        break;
-
-    // These store abbreviated versions of themselves, with the actual receipts
-    // in separate files.
-    // Those separate files are created on server side when first added to the
-    // box, and on client
-    // side when downloaded from the server. They must match the hash that
-    // appears in the box.
     case OTLedger::nymbox:
     case OTLedger::inbox:
     case OTLedger::outbox:
     case OTLedger::paymentInbox:
     case OTLedger::recordBox:
     case OTLedger::expiredBox:
-        bSavingAbbreviated = true;
-        nPartialRecordCount = static_cast<int32_t>(
-            m_mapTransactions.size()); // We store this, so we know how many
-                                       // abbreviated records to read back
-                                       // later.
         break;
-
     default:
         otErr << "OTLedger::UpdateContents: Error: unexpected box type (1st "
                  "block). (This should never happen.)\n";
         return;
+    }
+
+    // Abbreviated for all types but OTLedger::message.
+    // A message ledger stores the full receipts directly inside itself. (No
+    // separate files.)
+    // For other types: These store abbreviated versions of themselves, with the
+    // actual receipts
+    // in separate files. Those separate files are created on server side when
+    // first added to the
+    // box, and on client side when downloaded from the server. They must match
+    // the hash that
+    // appears in the box.
+    bool bSavingAbbreviated = GetType() != OTLedger::message;
+
+    // We store this, so we know how many abbreviated records to read back
+    // later.
+    int32_t nPartialRecordCount = 0;
+    if (bSavingAbbreviated) {
+        nPartialRecordCount = static_cast<int32_t>(m_mapTransactions.size());
     }
 
     //
@@ -1834,8 +1830,6 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
     //    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
     String strLedgerContents = "";
-
-    int32_t nPartialACTUALCount = 0;
 
     // loop through the transactions and print them out here.
     for (auto& it : m_mapTransactions) {
@@ -1889,16 +1883,9 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
                 continue;
             }
 
-            nPartialACTUALCount++; // Just in case the number actually written
-                                   // matches the count in the map.
-
             strLedgerContents.Concatenate("%s", strTransaction.Get());
         }
     }
-
-    OT_ASSERT_MSG(nPartialACTUALCount == nPartialRecordCount,
-                  "ASSERT: OTLedger::UpdateContents: "
-                  "OT_ASSERT_MSG(nPartialACTUALCount == nPartialRecordCount)");
 
     // HERE IS WHERE WE ACTUALLY BUILD THE STRING:
     //
