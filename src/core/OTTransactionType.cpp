@@ -205,7 +205,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
         // values. This way you can load a transaction without knowing the
         // account in advance.
         //
-        pContract->m_bLoadSecurely = false;
+        pContract->SetLoadInsecure();
 
         // Does the contract successfully load from the string passed in?
         if (pContract->LoadContractFromString(strContract)) {
