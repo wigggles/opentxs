@@ -133,8 +133,19 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OT_ME.hpp>
+#include "ot_made_easy_ot.hpp"
 #include <opentxs/client/OTAPI.hpp>
-#include "OTMeCpp.hpp"
+
+#include "commands/CmdAcceptInbox.hpp"
+#include "commands/CmdAcceptPayments.hpp"
+#include "commands/CmdAcceptReceipts.hpp"
+#include "commands/CmdAcceptTransfers.hpp"
+#include "commands/CmdCancel.hpp"
+#include "commands/CmdDeposit.hpp"
+#include "commands/CmdDiscard.hpp"
+#include "commands/CmdExportCash.hpp"
+#include "commands/CmdSendCash.hpp"
+#include "commands/CmdWithdrawCash.hpp"
 
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -162,7 +173,6 @@ OT_ME::OT_ME()
 {
     r_pPrev = s_pMe;
     s_pMe = this;
-    m_pImplementation = new OTMeCpp;
 }
 
 OT_ME::~OT_ME()
@@ -368,7 +378,7 @@ std::string OT_CLI_ReadUntilEOF()
 // Note optimization:
 // Until the actual C++ high-level API is written, we'll just use this
 // as a C++ wrapper to the existing high-level API written in OT Script.
-// Tha way, all the other languages can wrap this using swig.
+// That way, all the other languages can wrap this using swig.
 //
 // Notice (for those languages) that if you make an instance of OT_ME
 // and keep it around (using it for all your server calls) notice that
@@ -385,8 +395,7 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
                                         const std::string& SERVER_ID,
                                         const std::string& NYM_ID) const
 {
-    return m_pImplementation->make_sure_enough_trans_nums(nNumberNeeded,
-                                                          SERVER_ID, NYM_ID);
+    return MadeEasy::insure_enough_nums(nNumberNeeded, SERVER_ID, NYM_ID);
 }
 
 // REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)
@@ -394,7 +403,7 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
 std::string OT_ME::register_nym(const std::string& SERVER_ID,
                                 const std::string& NYM_ID) const
 {
-    return m_pImplementation->register_nym(SERVER_ID, NYM_ID);
+    return MadeEasy::register_nym(SERVER_ID, NYM_ID);
 }
 
 // CHECK USER (download a public key)
@@ -403,7 +412,7 @@ std::string OT_ME::check_user(const std::string& SERVER_ID,
                               const std::string& NYM_ID,
                               const std::string& TARGET_NYM_ID) const
 {
-    return m_pImplementation->check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
+    return MadeEasy::check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
 }
 
 // CREATE NYM
@@ -413,7 +422,7 @@ std::string OT_ME::create_nym(int32_t nKeybits,
                               const std::string& NYM_ID_SOURCE,
                               const std::string& ALT_LOCATION) const
 {
-    return m_pImplementation->create_nym(nKeybits, NYM_ID_SOURCE, ALT_LOCATION);
+    return MadeEasy::create_nym(nKeybits, NYM_ID_SOURCE, ALT_LOCATION);
 }
 
 // ISSUE ASSET TYPE
@@ -422,7 +431,7 @@ std::string OT_ME::issue_asset_type(const std::string& SERVER_ID,
                                     const std::string& NYM_ID,
                                     const std::string& THE_CONTRACT) const
 {
-    return m_pImplementation->issue_asset_type(SERVER_ID, NYM_ID, THE_CONTRACT);
+    return MadeEasy::issue_asset_type(SERVER_ID, NYM_ID, THE_CONTRACT);
 }
 
 // ISSUE BASKET CURRENCY
@@ -431,8 +440,7 @@ std::string OT_ME::issue_basket_currency(const std::string& SERVER_ID,
                                          const std::string& NYM_ID,
                                          const std::string& THE_BASKET) const
 {
-    return m_pImplementation->issue_basket_currency(SERVER_ID, NYM_ID,
-                                                    THE_BASKET);
+    return MadeEasy::issue_basket_currency(SERVER_ID, NYM_ID, THE_BASKET);
 }
 
 // EXCHANGE BASKET CURRENCY
@@ -444,7 +452,7 @@ std::string OT_ME::exchange_basket_currency(const std::string& SERVER_ID,
                                             const std::string& ACCOUNT_ID,
                                             bool IN_OR_OUT) const
 {
-    return m_pImplementation->exchange_basket_currency(
+    return MadeEasy::exchange_basket_currency(
         SERVER_ID, NYM_ID, ASSET_TYPE_ID, THE_BASKET, ACCOUNT_ID, IN_OR_OUT);
 }
 
@@ -454,7 +462,7 @@ std::string OT_ME::retrieve_contract(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
                                      const std::string& CONTRACT_ID) const
 {
-    return m_pImplementation->retrieve_contract(SERVER_ID, NYM_ID, CONTRACT_ID);
+    return MadeEasy::retrieve_contract(SERVER_ID, NYM_ID, CONTRACT_ID);
 }
 
 // LOAD OR RETRIEVE CONTRACT
@@ -463,8 +471,7 @@ std::string OT_ME::load_or_retrieve_contract(
     const std::string& SERVER_ID, const std::string& NYM_ID,
     const std::string& CONTRACT_ID) const
 {
-    return m_pImplementation->load_or_retrieve_contract(SERVER_ID, NYM_ID,
-                                                        CONTRACT_ID);
+    return MadeEasy::load_or_retrieve_contract(SERVER_ID, NYM_ID, CONTRACT_ID);
 }
 
 // CREATE ASSET ACCOUNT
@@ -473,13 +480,12 @@ std::string OT_ME::create_asset_acct(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
                                      const std::string& ASSET_TYPE_ID) const
 {
-    return m_pImplementation->create_asset_acct(SERVER_ID, NYM_ID,
-                                                ASSET_TYPE_ID);
+    return MadeEasy::create_asset_acct(SERVER_ID, NYM_ID, ASSET_TYPE_ID);
 }
 
 std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
-    return m_pImplementation->stat_asset_account(ACCOUNT_ID);
+    return MadeEasy::stat_asset_account(ACCOUNT_ID);
 }
 
 // DOWNLOAD ACCOUNT FILES (account balance, inbox, outbox, etc)
@@ -489,14 +495,21 @@ bool OT_ME::retrieve_account(const std::string& SERVER_ID,
                              const std::string& ACCOUNT_ID,
                              bool bForceDownload) const
 {
-    return m_pImplementation->retrieve_account(SERVER_ID, NYM_ID, ACCOUNT_ID,
-                                               bForceDownload);
+    return MadeEasy::retrieve_account(SERVER_ID, NYM_ID, ACCOUNT_ID,
+                                      bForceDownload);
 }
 
 bool OT_ME::retrieve_nym(const std::string& SERVER_ID,
                          const std::string& NYM_ID, bool bForceDownload) const
 {
-    return m_pImplementation->retrieve_nym(SERVER_ID, NYM_ID, bForceDownload);
+    bool msgWasSent = false;
+    if (0 >
+        MadeEasy::retrieve_nym(SERVER_ID, NYM_ID, msgWasSent, bForceDownload)) {
+        otOut << "Error: cannot retrieve nym.\n";
+        return false;
+    }
+
+    return true;
 }
 
 // SEND TRANSFER -- TRANSACTION
@@ -507,8 +520,8 @@ std::string OT_ME::send_transfer(const std::string& SERVER_ID,
                                  const std::string& ACCT_TO, int64_t AMOUNT,
                                  const std::string& NOTE) const
 {
-    return m_pImplementation->send_transfer(SERVER_ID, NYM_ID, ACCT_FROM,
-                                            ACCT_TO, AMOUNT, NOTE);
+    return MadeEasy::send_transfer(SERVER_ID, NYM_ID, ACCT_FROM, ACCT_TO,
+                                   AMOUNT, NOTE);
 }
 
 // PROCESS INBOX -- TRANSACTION
@@ -518,39 +531,59 @@ std::string OT_ME::process_inbox(const std::string& SERVER_ID,
                                  const std::string& ACCOUNT_ID,
                                  const std::string& RESPONSE_LEDGER) const
 {
-    return m_pImplementation->process_inbox(SERVER_ID, NYM_ID, ACCOUNT_ID,
-                                            RESPONSE_LEDGER);
+    return MadeEasy::process_inbox(SERVER_ID, NYM_ID, ACCOUNT_ID,
+                                   RESPONSE_LEDGER);
 }
 
 bool OT_ME::accept_inbox_items(const std::string& ACCOUNT_ID, int32_t nItemType,
                                const std::string& INDICES) const
 {
-    return m_pImplementation->accept_inbox_items(ACCOUNT_ID, nItemType,
-                                                 INDICES);
+    switch (nItemType) {
+    case 0: {
+        CmdAcceptInbox acceptInbox;
+        return 1 == acceptInbox.run(ACCOUNT_ID, INDICES);
+    }
+
+    case 1: {
+        CmdAcceptTransfers acceptTransfers;
+        return 1 == acceptTransfers.run(ACCOUNT_ID, INDICES);
+    }
+
+    case 2: {
+        CmdAcceptReceipts acceptReceipts;
+        return 1 == acceptReceipts.run(ACCOUNT_ID, INDICES);
+    }
+
+    default:
+        otErr << __FUNCTION__ << ": Invalid nItemType.\n";
+        break;
+    }
+
+    return false;
 }
 
 bool OT_ME::discard_incoming_payments(const std::string& SERVER_ID,
                                       const std::string& NYM_ID,
                                       const std::string& INDICES) const
 {
-    return m_pImplementation->discard_incoming_payments(SERVER_ID, NYM_ID,
-                                                        INDICES);
+    CmdDiscard discard;
+    return 1 == discard.run(SERVER_ID, NYM_ID, INDICES);
 }
 
 bool OT_ME::cancel_outgoing_payments(const std::string& NYM_ID,
                                      const std::string& ACCOUNT_ID,
                                      const std::string& INDICES) const
 {
-    return m_pImplementation->cancel_outgoing_payments(NYM_ID, ACCOUNT_ID,
-                                                       INDICES);
+    CmdCancel cancel;
+    return 1 == cancel.run(NYM_ID, ACCOUNT_ID, INDICES);
 }
 
 bool OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
                                    const std::string& INDICES,
                                    const std::string& PAYMENT_TYPE) const
 {
-    return m_pImplementation->accept_from_paymentbox(ACCOUNT_ID, INDICES,
-                                                     PAYMENT_TYPE);
+    CmdAcceptPayments cmd;
+    return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE);
 }
 
 // load_public_key():
@@ -559,12 +592,12 @@ bool OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
 //
 std::string OT_ME::load_public_encryption_key(const std::string& NYM_ID) const
 {
-    return m_pImplementation->load_public_encryption_key(NYM_ID);
+    return MadeEasy::load_public_encryption_key(NYM_ID);
 }
 
 std::string OT_ME::load_public_signing_key(const std::string& NYM_ID) const
 {
-    return m_pImplementation->load_public_signing_key(NYM_ID);
+    return MadeEasy::load_public_signing_key(NYM_ID);
 }
 
 //
@@ -579,16 +612,16 @@ std::string OT_ME::load_or_retrieve_encrypt_key(
     const std::string& SERVER_ID, const std::string& NYM_ID,
     const std::string& TARGET_NYM_ID) const
 {
-    return m_pImplementation->load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID,
-                                                           TARGET_NYM_ID);
+    return MadeEasy::load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID,
+                                                  TARGET_NYM_ID);
 }
 
 std::string OT_ME::load_or_retrieve_signing_key(
     const std::string& SERVER_ID, const std::string& NYM_ID,
     const std::string& TARGET_NYM_ID) const
 {
-    return m_pImplementation->load_or_retrieve_signing_key(SERVER_ID, NYM_ID,
-                                                           TARGET_NYM_ID);
+    return MadeEasy::load_or_retrieve_signing_key(SERVER_ID, NYM_ID,
+                                                  TARGET_NYM_ID);
 }
 
 // SEND USER MESSAGE (requires recipient public key)
@@ -599,8 +632,8 @@ std::string OT_ME::send_user_msg_pubkey(const std::string& SERVER_ID,
                                         const std::string& RECIPIENT_PUBKEY,
                                         const std::string& THE_MESSAGE) const
 {
-    return m_pImplementation->send_user_msg_pubkey(
-        SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_MESSAGE);
+    return MadeEasy::send_user_msg_pubkey(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                          RECIPIENT_PUBKEY, THE_MESSAGE);
 }
 
 // SEND USER INSTRUMENT (requires recipient public key)
@@ -610,8 +643,8 @@ std::string OT_ME::send_user_pmnt_pubkey(
     const std::string& RECIPIENT_NYM_ID, const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_INSTRUMENT) const
 {
-    return m_pImplementation->send_user_pmnt_pubkey(
-        SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT);
+    return MadeEasy::send_user_pmnt_pubkey(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                           RECIPIENT_PUBKEY, THE_INSTRUMENT);
 }
 
 // SEND USER CASH (requires recipient public key)
@@ -622,9 +655,9 @@ std::string OT_ME::send_user_cash_pubkey(
     const std::string& THE_INSTRUMENT,
     const std::string& INSTRUMENT_FOR_SENDER) const
 {
-    return m_pImplementation->send_user_cash_pubkey(
-        SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT,
-        INSTRUMENT_FOR_SENDER);
+    return MadeEasy::send_user_cash_pubkey(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                           RECIPIENT_PUBKEY, THE_INSTRUMENT,
+                                           INSTRUMENT_FOR_SENDER);
 }
 
 // SEND USER MESSAGE (only requires recipient's ID, and retrieves pubkey
@@ -635,8 +668,8 @@ std::string OT_ME::send_user_msg(const std::string& SERVER_ID,
                                  const std::string& RECIPIENT_NYM_ID,
                                  const std::string& THE_MESSAGE) const
 {
-    return m_pImplementation->send_user_msg(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
-                                            THE_MESSAGE);
+    return MadeEasy::send_user_msg(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                   THE_MESSAGE);
 }
 
 // SEND USER PAYMENT (only requires recipient's ID, and retrieves pubkey
@@ -647,8 +680,8 @@ std::string OT_ME::send_user_payment(const std::string& SERVER_ID,
                                      const std::string& RECIPIENT_NYM_ID,
                                      const std::string& THE_PAYMENT) const
 {
-    return m_pImplementation->send_user_payment(SERVER_ID, NYM_ID,
-                                                RECIPIENT_NYM_ID, THE_PAYMENT);
+    return MadeEasy::send_user_payment(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                       THE_PAYMENT);
 }
 
 // SEND USER CASH (only requires recipient's ID, and retrieves pubkey
@@ -660,16 +693,18 @@ std::string OT_ME::send_user_cash(const std::string& SERVER_ID,
                                   const std::string& THE_PAYMENT,
                                   const std::string& SENDERS_COPY) const
 {
-    return m_pImplementation->send_user_cash(
-        SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, THE_PAYMENT, SENDERS_COPY);
+    return MadeEasy::send_user_cash(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                    THE_PAYMENT, SENDERS_COPY);
 }
 
 bool OT_ME::withdraw_and_send_cash(const std::string& ACCT_ID,
                                    const std::string& RECIPIENT_NYM_ID,
                                    int64_t AMOUNT) const
 {
-    return m_pImplementation->withdraw_and_send_cash(ACCT_ID, RECIPIENT_NYM_ID,
-                                                     AMOUNT);
+    CmdSendCash sendCash;
+    return 1 ==
+           sendCash.run("", "", ACCT_ID, "", RECIPIENT_NYM_ID,
+                        std::to_string(AMOUNT), "", "");
 }
 
 // GET PAYMENT INSTRUMENT (from payments inbox, by index.)
@@ -678,8 +713,8 @@ std::string OT_ME::get_payment_instrument(
     const std::string& SERVER_ID, const std::string& NYM_ID, int32_t nIndex,
     const std::string& PRELOADED_INBOX) const
 {
-    return m_pImplementation->get_payment_instrument(SERVER_ID, NYM_ID, nIndex,
-                                                     PRELOADED_INBOX);
+    return MadeEasy::get_payment_instrument(SERVER_ID, NYM_ID, nIndex,
+                                            PRELOADED_INBOX);
 }
 
 // GET BOX RECEIPT
@@ -694,8 +729,8 @@ std::string OT_ME::get_box_receipt(const std::string& SERVER_ID,
                                    const std::string& ACCT_ID, int32_t nBoxType,
                                    int64_t TRANS_NUM) const
 {
-    return m_pImplementation->get_box_receipt(SERVER_ID, NYM_ID, ACCT_ID,
-                                              nBoxType, TRANS_NUM);
+    return MadeEasy::get_box_receipt(SERVER_ID, NYM_ID, ACCT_ID, nBoxType,
+                                     std::to_string(TRANS_NUM));
 }
 
 // DOWNLOAD PUBLIC MINT
@@ -704,7 +739,7 @@ std::string OT_ME::retrieve_mint(const std::string& SERVER_ID,
                                  const std::string& NYM_ID,
                                  const std::string& ASSET_ID) const
 {
-    return m_pImplementation->retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
+    return MadeEasy::retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
 }
 
 // LOAD MINT (from local storage)
@@ -722,8 +757,7 @@ std::string OT_ME::load_or_retrieve_mint(const std::string& SERVER_ID,
                                          const std::string& NYM_ID,
                                          const std::string& ASSET_ID) const
 {
-    return m_pImplementation->load_or_retrieve_mint(SERVER_ID, NYM_ID,
-                                                    ASSET_ID);
+    return MadeEasy::load_or_retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
 }
 
 // QUERY ASSET TYPES
@@ -734,7 +768,7 @@ std::string OT_ME::query_asset_types(const std::string& SERVER_ID,
                                      const std::string& NYM_ID,
                                      const std::string& ENCODED_MAP) const
 {
-    return m_pImplementation->query_asset_types(SERVER_ID, NYM_ID, ENCODED_MAP);
+    return MadeEasy::query_asset_types(SERVER_ID, NYM_ID, ENCODED_MAP);
 }
 
 // CREATE MARKET OFFER -- TRANSACTION
@@ -745,9 +779,11 @@ std::string OT_ME::create_market_offer(
     bool bSelling, int64_t lLifespanInSeconds, const std::string& STOP_SIGN,
     int64_t ACTIVATION_PRICE) const
 {
-    return m_pImplementation->create_market_offer(
-        ASSET_ACCT_ID, CURRENCY_ACCT_ID, scale, minIncrement, quantity, price,
-        bSelling, lLifespanInSeconds, STOP_SIGN, ACTIVATION_PRICE);
+    return MadeEasy::create_market_offer(
+        ASSET_ACCT_ID, CURRENCY_ACCT_ID, std::to_string(scale),
+        std::to_string(minIncrement), std::to_string(quantity),
+        std::to_string(price), bSelling, std::to_string(lLifespanInSeconds),
+        STOP_SIGN, std::to_string(ACTIVATION_PRICE));
 }
 
 // KILL MARKET OFFER -- TRANSACTION
@@ -757,8 +793,8 @@ std::string OT_ME::kill_market_offer(const std::string& SERVER_ID,
                                      const std::string& ASSET_ACCT_ID,
                                      int64_t TRANS_NUM) const
 {
-    return m_pImplementation->kill_market_offer(SERVER_ID, NYM_ID,
-                                                ASSET_ACCT_ID, TRANS_NUM);
+    return MadeEasy::kill_market_offer(SERVER_ID, NYM_ID, ASSET_ACCT_ID,
+                                       std::to_string(TRANS_NUM));
 }
 
 // KILL (ACTIVE) PAYMENT PLAN -- TRANSACTION
@@ -768,8 +804,8 @@ std::string OT_ME::kill_payment_plan(const std::string& SERVER_ID,
                                      const std::string& ACCT_ID,
                                      int64_t TRANS_NUM) const
 {
-    return m_pImplementation->kill_payment_plan(SERVER_ID, NYM_ID, ACCT_ID,
-                                                TRANS_NUM);
+    return MadeEasy::kill_payment_plan(SERVER_ID, NYM_ID, ACCT_ID,
+                                       std::to_string(TRANS_NUM));
 }
 
 // CANCEL (NOT-YET-RUNNING) PAYMENT PLAN -- TRANSACTION
@@ -778,8 +814,7 @@ std::string OT_ME::cancel_payment_plan(
     const std::string& SERVER_ID, const std::string& NYM_ID,
     const std::string& THE_PAYMENT_PLAN) const
 {
-    return m_pImplementation->cancel_payment_plan(SERVER_ID, NYM_ID,
-                                                  THE_PAYMENT_PLAN);
+    return MadeEasy::cancel_payment_plan(SERVER_ID, NYM_ID, THE_PAYMENT_PLAN);
 }
 
 // ACTIVATE SMART CONTRACT -- TRANSACTION
@@ -789,8 +824,8 @@ std::string OT_ME::activate_smart_contract(
     const std::string& ACCT_ID, const std::string& AGENT_NAME,
     const std::string& THE_SMART_CONTRACT) const
 {
-    return m_pImplementation->activate_smart_contract(
-        SERVER_ID, NYM_ID, ACCT_ID, AGENT_NAME, THE_SMART_CONTRACT);
+    return MadeEasy::activate_smart_contract(SERVER_ID, NYM_ID, ACCT_ID,
+                                             AGENT_NAME, THE_SMART_CONTRACT);
 }
 
 // TRIGGER CLAUSE (on running smart contract) -- TRANSACTION
@@ -800,8 +835,8 @@ std::string OT_ME::trigger_clause(const std::string& SERVER_ID,
                                   const std::string& CLAUSE_NAME,
                                   const std::string& STR_PARAM) const
 {
-    return m_pImplementation->trigger_clause(SERVER_ID, NYM_ID, TRANS_NUM,
-                                             CLAUSE_NAME, STR_PARAM);
+    return MadeEasy::trigger_clause(
+        SERVER_ID, NYM_ID, std::to_string(TRANS_NUM), CLAUSE_NAME, STR_PARAM);
 }
 
 // WITHDRAW CASH -- TRANSACTION
@@ -811,7 +846,7 @@ std::string OT_ME::withdraw_cash(const std::string& SERVER_ID,
                                  const std::string& ACCT_ID,
                                  int64_t AMOUNT) const
 {
-    return m_pImplementation->withdraw_cash(SERVER_ID, NYM_ID, ACCT_ID, AMOUNT);
+    return MadeEasy::withdraw_cash(SERVER_ID, NYM_ID, ACCT_ID, AMOUNT);
 }
 
 // Difference between this function and the one above?
@@ -820,7 +855,8 @@ std::string OT_ME::withdraw_cash(const std::string& SERVER_ID,
 //
 bool OT_ME::easy_withdraw_cash(const std::string& ACCT_ID, int64_t AMOUNT) const
 {
-    return m_pImplementation->easy_withdraw_cash(ACCT_ID, AMOUNT);
+    CmdWithdrawCash cmd;
+    return 1 == cmd.withdrawCash(ACCT_ID, AMOUNT);
 }
 
 // EXPORT CASH (FROM PURSE)
@@ -833,9 +869,10 @@ std::string OT_ME::export_cash(const std::string& SERVER_ID,
                                bool bPasswordProtected,
                                std::string& STR_RETAINED_COPY) const
 {
-    return m_pImplementation->export_cash(
-        SERVER_ID, FROM_NYM_ID, ASSET_TYPE_ID, TO_NYM_ID, STR_INDICES,
-        bPasswordProtected, STR_RETAINED_COPY);
+    std::string to_nym_id = TO_NYM_ID;
+    CmdExportCash cmd;
+    return cmd.exportCash(SERVER_ID, FROM_NYM_ID, ASSET_TYPE_ID, to_nym_id,
+                          STR_INDICES, bPasswordProtected, STR_RETAINED_COPY);
 }
 
 // WITHDRAW VOUCHER -- TRANSACTION
@@ -847,8 +884,8 @@ std::string OT_ME::withdraw_voucher(const std::string& SERVER_ID,
                                     const std::string& STR_MEMO,
                                     int64_t AMOUNT) const
 {
-    return m_pImplementation->withdraw_voucher(SERVER_ID, NYM_ID, ACCT_ID,
-                                               RECIP_NYM_ID, STR_MEMO, AMOUNT);
+    return MadeEasy::withdraw_voucher(SERVER_ID, NYM_ID, ACCT_ID, RECIP_NYM_ID,
+                                      STR_MEMO, AMOUNT);
 }
 
 // PAY DIVIDEND -- TRANSACTION
@@ -860,9 +897,8 @@ std::string OT_ME::pay_dividend(const std::string& SERVER_ID,
                                 const std::string& STR_MEMO,
                                 int64_t AMOUNT_PER_SHARE) const
 {
-    return m_pImplementation->pay_dividend(SERVER_ID, NYM_ID, SOURCE_ACCT_ID,
-                                           SHARES_ASSET_ID, STR_MEMO,
-                                           AMOUNT_PER_SHARE);
+    return MadeEasy::pay_dividend(SERVER_ID, NYM_ID, SOURCE_ACCT_ID,
+                                  SHARES_ASSET_ID, STR_MEMO, AMOUNT_PER_SHARE);
 }
 
 std::string OT_ME::deposit_cheque(const std::string& SERVER_ID,
@@ -870,17 +906,15 @@ std::string OT_ME::deposit_cheque(const std::string& SERVER_ID,
                                   const std::string& ACCT_ID,
                                   const std::string& STR_CHEQUE) const
 {
-
-    return m_pImplementation->deposit_cheque(SERVER_ID, NYM_ID, ACCT_ID,
-                                             STR_CHEQUE);
+    return MadeEasy::deposit_cheque(SERVER_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
 }
 
 bool OT_ME::deposit_cash(const std::string& SERVER_ID,
                          const std::string& NYM_ID, const std::string& ACCT_ID,
                          const std::string& STR_PURSE) const
 {
-    return m_pImplementation->deposit_cash(SERVER_ID, NYM_ID, ACCT_ID,
-                                           STR_PURSE);
+    CmdDeposit cmd;
+    return 1 == cmd.depositPurse(SERVER_ID, ACCT_ID, NYM_ID, STR_PURSE, "");
 }
 
 bool OT_ME::deposit_local_purse(const std::string& SERVER_ID,
@@ -888,14 +922,14 @@ bool OT_ME::deposit_local_purse(const std::string& SERVER_ID,
                                 const std::string& ACCT_ID,
                                 const std::string& STR_INDICES) const
 {
-    return m_pImplementation->deposit_local_purse(SERVER_ID, NYM_ID, ACCT_ID,
-                                                  STR_INDICES);
+    CmdDeposit cmd;
+    return 1 == cmd.depositPurse(SERVER_ID, ACCT_ID, NYM_ID, "", STR_INDICES);
 }
 
 std::string OT_ME::get_market_list(const std::string& SERVER_ID,
                                    const std::string& NYM_ID) const
 {
-    return m_pImplementation->get_market_list(SERVER_ID, NYM_ID);
+    return MadeEasy::get_market_list(SERVER_ID, NYM_ID);
 }
 
 std::string OT_ME::get_market_offers(const std::string& SERVER_ID,
@@ -903,22 +937,20 @@ std::string OT_ME::get_market_offers(const std::string& SERVER_ID,
                                      const std::string& MARKET_ID,
                                      int64_t MAX_DEPTH) const
 {
-    return m_pImplementation->get_market_offers(SERVER_ID, NYM_ID, MARKET_ID,
-                                                MAX_DEPTH);
+    return MadeEasy::get_market_offers(SERVER_ID, NYM_ID, MARKET_ID, MAX_DEPTH);
 }
 
 std::string OT_ME::get_nym_market_offers(const std::string& SERVER_ID,
                                          const std::string& NYM_ID) const
 {
-    return m_pImplementation->get_nym_market_offers(SERVER_ID, NYM_ID);
+    return MadeEasy::get_nym_market_offers(SERVER_ID, NYM_ID);
 }
 
 std::string OT_ME::get_market_recent_trades(const std::string& SERVER_ID,
                                             const std::string& NYM_ID,
                                             const std::string& MARKET_ID) const
 {
-    return m_pImplementation->get_market_recent_trades(SERVER_ID, NYM_ID,
-                                                       MARKET_ID);
+    return MadeEasy::get_market_recent_trades(SERVER_ID, NYM_ID, MARKET_ID);
 }
 
 std::string OT_ME::adjust_usage_credits(const std::string& SERVER_ID,
@@ -926,8 +958,8 @@ std::string OT_ME::adjust_usage_credits(const std::string& SERVER_ID,
                                         const std::string& TARGET_NYM_ID,
                                         const std::string& ADJUSTMENT) const
 {
-    return m_pImplementation->adjust_usage_credits(SERVER_ID, USER_NYM_ID,
-                                                   TARGET_NYM_ID, ADJUSTMENT);
+    return MadeEasy::adjust_usage_credits(SERVER_ID, USER_NYM_ID, TARGET_NYM_ID,
+                                          ADJUSTMENT);
 }
 
 int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
