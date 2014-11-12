@@ -1991,8 +1991,6 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -2052,8 +2050,6 @@ int32_t OTAPI_Exec::getBoxReceipt(
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -4876,10 +4872,10 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
 
 WRITE A CHEQUE  --- (Returns the cheque in string form.)
 
-==> OTAPI_Exec::WriteCheque() internally constructs an OTCheque and issues it,
+==> OTAPI_Exec::WriteCheque() internally constructs an Cheque and issues it,
 like so:
 
-OTCheque theCheque( SERVER_ID, ASSET_TYPE_ID );
+Cheque theCheque( SERVER_ID, ASSET_TYPE_ID );
 
 theCheque.IssueCheque( AMOUNT // The amount of the cheque, in string form, which
 OTAPI
@@ -7240,8 +7236,6 @@ std::string OTAPI_Exec::Party_GetAgentID(const std::string& THE_CONTRACT,
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -7278,8 +7272,6 @@ int32_t OTAPI_Exec::activateSmartContract(
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -12585,8 +12577,6 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& SERVER_ID,
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13098,8 +13088,6 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13125,8 +13113,6 @@ int32_t OTAPI_Exec::checkServerID(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13152,8 +13138,6 @@ int32_t OTAPI_Exec::createUserAccount(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13243,8 +13227,6 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13289,8 +13271,6 @@ int32_t OTAPI_Exec::usageCredits(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13322,8 +13302,6 @@ int32_t OTAPI_Exec::checkUser(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13368,8 +13346,6 @@ int32_t OTAPI_Exec::sendUserMessage(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13494,8 +13470,6 @@ int32_t OTAPI_Exec::getRequest(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13528,8 +13502,6 @@ int32_t OTAPI_Exec::issueAssetType(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13561,8 +13533,6 @@ int32_t OTAPI_Exec::getContract(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13594,8 +13564,6 @@ int32_t OTAPI_Exec::getMint(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13628,8 +13596,6 @@ int32_t OTAPI_Exec::createAssetAccount(const std::string& SERVER_ID,
 // Sends a message to the server to retrieve latest copy of an asset acct.
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13662,8 +13628,6 @@ int32_t OTAPI_Exec::getAccount(const std::string& SERVER_ID,
 // Sends a message to the server to retrieve latest copy of an asset acct.
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13808,8 +13772,6 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -13972,8 +13934,6 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14020,8 +13980,6 @@ int32_t OTAPI_Exec::exchangeBasket(
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14047,8 +14005,6 @@ int32_t OTAPI_Exec::getTransactionNumber(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14085,8 +14041,6 @@ int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14124,8 +14078,6 @@ int32_t OTAPI_Exec::notarizeDeposit(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14173,8 +14125,6 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14205,8 +14155,6 @@ int32_t OTAPI_Exec::getInbox(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14232,8 +14180,6 @@ int32_t OTAPI_Exec::getNymbox(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14264,8 +14210,6 @@ int32_t OTAPI_Exec::getOutbox(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14339,8 +14283,6 @@ int32_t OTAPI_Exec::processNymbox(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14444,8 +14386,6 @@ int32_t OTAPI_Exec::payDividend(
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14487,8 +14427,6 @@ int32_t OTAPI_Exec::depositCheque(const std::string& SERVER_ID,
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14524,8 +14462,6 @@ int32_t OTAPI_Exec::depositPaymentPlan(
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14568,8 +14504,6 @@ int32_t OTAPI_Exec::killMarketOffer(const std::string& SERVER_ID,
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14611,8 +14545,6 @@ int32_t OTAPI_Exec::killPaymentPlan(const std::string& SERVER_ID,
 //
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14729,8 +14661,6 @@ int32_t OTAPI_Exec::issueMarketOffer(
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14756,8 +14686,6 @@ int32_t OTAPI_Exec::getMarketList(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14798,8 +14726,6 @@ int32_t OTAPI_Exec::getMarketOffers(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -14831,8 +14757,6 @@ int32_t OTAPI_Exec::getMarketRecentTrades(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...
@@ -15204,8 +15128,6 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
 
 // Returns int32_t:
 // -1 means error; no message was sent.
-// -2 means the message was sent, but the request number must be passed as a
-// string, so call OTAPI_Exec::GetLargeRequestNum.
 //  0 means NO error, but also: no message was sent.
 // >0 means NO error, and the message was sent, and the request number fits into
 // an integer...

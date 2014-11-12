@@ -1647,8 +1647,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -2451,8 +2449,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -2590,8 +2586,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -2639,8 +2633,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -2658,8 +2650,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -2675,8 +2665,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -2729,8 +2717,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -2771,8 +2757,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -2800,8 +2784,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -2848,8 +2830,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -2888,8 +2868,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -2917,8 +2895,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -2937,8 +2913,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -2955,8 +2929,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -2975,8 +2947,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -2994,8 +2964,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3014,8 +2982,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3086,8 +3052,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3159,8 +3123,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3198,8 +3160,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3221,8 +3181,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3249,8 +3207,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3333,8 +3289,6 @@ public:
 
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3348,8 +3302,6 @@ public:
 
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3364,8 +3316,6 @@ public:
     // from server (pop message buf for the response)
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3462,8 +3412,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3506,8 +3454,6 @@ public:
     */
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3549,8 +3495,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3596,8 +3540,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3616,8 +3558,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3635,8 +3575,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
@@ -3699,8 +3637,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3714,8 +3650,6 @@ public:
     // maximum depth)
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3731,8 +3665,6 @@ public:
     //! Gets all recent trades (up until maximum depth)
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3747,8 +3679,6 @@ public:
     // Market_GetOffers() call, which seems similar otherwise.
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3764,8 +3694,6 @@ public:
 
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3779,8 +3707,6 @@ public:
 
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    // string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     // into an integer...
@@ -3951,8 +3877,6 @@ public:
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
-    // -2 means the message was sent, but the request number must be passed as a
-    string, so call GetLargeRequestNum.
     // 0 means NO error, but also: no message was sent.
     // >0 means NO error, and the message was sent, and the request number fits
     into an integer...
