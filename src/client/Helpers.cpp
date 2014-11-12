@@ -252,7 +252,7 @@ OTPayment* GetInstrument(const OTPseudonym& theNym, const int32_t& nIndex,
             return nullptr;
         }
 
-        std::unique_ptr<OTMessage> pMsg(new OTMessage);
+        std::unique_ptr<Message> pMsg(new Message);
         if (nullptr == pMsg) {
             otErr << __FUNCTION__ << ": Null:  Assert while allocating memory "
                                      "for an OTMessage!\n";
@@ -328,8 +328,7 @@ int32_t GetOutpaymentsIndexByTransNum(const OTPseudonym& nym, int64_t lTransNum)
 
     for (int32_t lOutpaymentsIndex = 0; lOutpaymentsIndex < lOutpaymentsCount;
          ++lOutpaymentsIndex) {
-        OTMessage* pOutpaymentMsg =
-            nym.GetOutpaymentsByIndex(lOutpaymentsIndex);
+        Message* pOutpaymentMsg = nym.GetOutpaymentsByIndex(lOutpaymentsIndex);
         if (nullptr != pOutpaymentMsg) {
             String strPayment;
 

@@ -155,9 +155,9 @@
 namespace opentxs
 {
 
-OTMessageStrategyManager OTMessage::messageStrategyManager;
+OTMessageStrategyManager Message::messageStrategyManager;
 
-bool OTMessage::HarvestTransactionNumbers(
+bool Message::HarvestTransactionNumbers(
     OTPseudonym& theNym,
     bool bHarvestingForRetry,          // false until positively asserted.
     bool bReplyWasSuccess,             // false until positively asserted.
@@ -261,7 +261,7 @@ bool OTMessage::HarvestTransactionNumbers(
 // (It will
 // ASSERT if you don't...)
 //
-void OTMessage::SetAcknowledgments(OTPseudonym& theNym)
+void Message::SetAcknowledgments(OTPseudonym& theNym)
 {
     m_AcknowledgedReplies.Release();
 
@@ -295,7 +295,7 @@ void OTMessage::SetAcknowledgments(OTPseudonym& theNym)
 // Messages, obviously, are different every time, and this function will be
 // called
 // just prior to the signing of the message, in OTContract::SignContract.
-void OTMessage::UpdateContents()
+void Message::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -351,7 +351,7 @@ void OTMessage::UpdateContents()
     m_xmlUnsigned.Concatenate("</OTmessage>\n");
 }
 
-bool OTMessage::updateContentsByType()
+bool Message::updateContentsByType()
 {
     OTMessageStrategy* strategy =
         messageStrategyManager.findStrategy(m_strCommand.Get());
@@ -364,7 +364,7 @@ bool OTMessage::updateContentsByType()
 // are easier to match up to the requests. (Duh.)
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -395,8 +395,8 @@ int32_t OTMessage::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return strategy->processXml(*this, xml);
 }
 
-int32_t OTMessage::processXmlNodeAckReplies(OTMessage& m,
-                                            irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeAckReplies(Message& m,
+                                          irr::io::IrrXMLReader*& xml)
 {
     String strDepth;
     if (!OTContract::LoadEncodedTextField(xml, strDepth)) {
@@ -412,8 +412,8 @@ int32_t OTMessage::processXmlNodeAckReplies(OTMessage& m,
     return 1;
 }
 
-int32_t OTMessage::processXmlNodeAcknowledgedReplies(
-    OTMessage& m, irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeAcknowledgedReplies(Message& m,
+                                                   irr::io::IrrXMLReader*& xml)
 {
     otErr << "OTMessage::ProcessXMLNode: SKIPPING DEPRECATED FIELD: "
              "acknowledgedReplies\n";
@@ -425,8 +425,8 @@ int32_t OTMessage::processXmlNodeAcknowledgedReplies(
     return 1;
 }
 
-int32_t OTMessage::processXmlNodeOTmessage(OTMessage& m,
-                                           irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeOTmessage(Message& m,
+                                         irr::io::IrrXMLReader*& xml)
 {
     m_strVersion = xml->getAttributeValue("version");
 
@@ -473,8 +473,8 @@ int32_t OTMessage::processXmlNodeOTmessage(OTMessage& m,
 // their contents just before signing.
 // See OTMessage::UpdateContents near the top of this file for an example.
 //
-bool OTMessage::SignContract(const OTPseudonym& theNym,
-                             const OTPasswordData* pPWData)
+bool Message::SignContract(const OTPseudonym& theNym,
+                           const OTPasswordData* pPWData)
 {
     // I release these, I assume, because a message only has one signer.
     ReleaseSignatures(); // Note: this might change with credentials. We might
@@ -498,8 +498,8 @@ bool OTMessage::SignContract(const OTPseudonym& theNym,
 }
 
 // virtual (OTContract)
-bool OTMessage::VerifySignature(const OTPseudonym& theNym,
-                                const OTPasswordData* pPWData) const
+bool Message::VerifySignature(const OTPseudonym& theNym,
+                              const OTPasswordData* pPWData) const
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing
@@ -528,12 +528,12 @@ bool OTMessage::VerifySignature(const OTPseudonym& theNym,
 // So I will end up using it. But for now, VerifyContractID will always return
 // true.
 //
-bool OTMessage::VerifyContractID() const
+bool Message::VerifyContractID() const
 {
     return true;
 }
 
-OTMessage::OTMessage()
+Message::Message()
     : OTContract()
     , m_bIsSigned(false)
     , m_lNewRequestNum(0)
@@ -547,17 +547,17 @@ OTMessage::OTMessage()
     OTContract::m_strContractType.Set("MESSAGE");
 }
 
-OTMessage::~OTMessage()
+Message::~Message()
 {
 }
 
-void OTMessageStrategy::processXmlSuccess(OTMessage& m,
+void OTMessageStrategy::processXmlSuccess(Message& m,
                                           irr::io::IrrXMLReader*& xml)
 {
     m.m_bSuccess = String(xml->getAttributeValue("success")).Compare("true");
 }
 
-void OTMessage::registerStrategy(std::string name, OTMessageStrategy* strategy)
+void Message::registerStrategy(std::string name, OTMessageStrategy* strategy)
 {
     messageStrategyManager.registerStrategy(name, strategy);
 }
@@ -569,7 +569,7 @@ OTMessageStrategy::~OTMessageStrategy()
 class StrategyGetMarketOffers : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -588,7 +588,7 @@ public:
         return result;
     }
 
-    virtual int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -616,7 +616,7 @@ RegisterStrategy StrategyGetMarketOffers::reg("getMarketOffers",
 class StrategyAtGetMarketOffers : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -645,7 +645,7 @@ public:
         return result;
     }
 
-    virtual int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -708,7 +708,7 @@ RegisterStrategy StrategyAtGetMarketOffers::reg(
 class StrategyGetMarketRecentTrades : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -726,7 +726,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -750,7 +750,7 @@ RegisterStrategy StrategyGetMarketRecentTrades::reg(
 class StrategyAtGetMarketRecentTrades : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -779,7 +779,7 @@ public:
         return result;
     }
 
-    virtual int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -842,7 +842,7 @@ RegisterStrategy StrategyAtGetMarketRecentTrades::reg(
 class StrategyGetNymMarketOffers : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -857,7 +857,7 @@ public:
         return result;
     }
 
-    virtual int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -879,7 +879,7 @@ RegisterStrategy StrategyGetNymMarketOffers::reg(
 class StrategyAtGetNymMarketOffers : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -906,7 +906,7 @@ public:
         return result;
     }
 
-    virtual int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -966,7 +966,7 @@ RegisterStrategy StrategyAtGetNymMarketOffers::reg(
 class StrategyCheckServerID : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -987,7 +987,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1038,7 +1038,7 @@ RegisterStrategy StrategyCheckServerID::reg("checkServerID",
 class StrategyAtCheckServerID : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1055,7 +1055,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1080,7 +1080,7 @@ RegisterStrategy StrategyAtCheckServerID::reg("@checkServerID",
 class StrategyCreateUserAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1101,7 +1101,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1144,7 +1144,7 @@ RegisterStrategy StrategyCreateUserAccount::reg(
 class StrategyAtCreateUserAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1169,7 +1169,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1219,7 +1219,7 @@ RegisterStrategy StrategyAtCreateUserAccount::reg(
 class StrategyDeleteUserAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1234,7 +1234,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1255,7 +1255,7 @@ RegisterStrategy StrategyDeleteUserAccount::reg(
 class StrategyAtDeleteUserAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1276,7 +1276,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1312,7 +1312,7 @@ RegisterStrategy StrategyAtDeleteUserAccount::reg(
 class StrategyCheckUser : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1329,7 +1329,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1352,7 +1352,7 @@ RegisterStrategy StrategyCheckUser::reg("checkUser", new StrategyCheckUser());
 class StrategyAtCheckUser : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // This means new-style credentials are being sent, not just the public
@@ -1397,7 +1397,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1486,7 +1486,7 @@ RegisterStrategy StrategyAtCheckUser::reg("@checkUser",
 class StrategyUsageCredits : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1504,7 +1504,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1533,7 +1533,7 @@ RegisterStrategy StrategyUsageCredits::reg("usageCredits",
 class StrategyAtUsageCredits : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1553,7 +1553,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1585,7 +1585,7 @@ RegisterStrategy StrategyAtUsageCredits::reg("@usageCredits",
 class StrategyOutpaymentsMessageOrOutmailMessage : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // This one isn't part of the message protocol, but is used for outmail
@@ -1615,7 +1615,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1654,7 +1654,7 @@ RegisterStrategy StrategyOutpaymentsMessageOrOutmailMessage::reg2(
 class StrategySendUserMessage : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1675,7 +1675,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1711,7 +1711,7 @@ RegisterStrategy StrategySendUserMessage::reg("sendUserMessage",
 class StrategyAtSendUserMessage : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1730,7 +1730,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1757,7 +1757,7 @@ RegisterStrategy StrategyAtSendUserMessage::reg(
 class StrategySendUserInstrumentOrPayDividend : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // sendUserInstrument is sent from one user
@@ -1795,7 +1795,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -1834,7 +1834,7 @@ RegisterStrategy StrategySendUserInstrumentOrPayDividend::reg2(
 class StrategyAtSendUserInstrument : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1853,7 +1853,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1880,7 +1880,7 @@ RegisterStrategy StrategyAtSendUserInstrument::reg(
 class StrategyGetRequest : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -1895,7 +1895,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
@@ -1916,7 +1916,7 @@ RegisterStrategy StrategyGetRequest::reg("getRequest",
 class StrategyAtGetRequest : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // This is the ONE command where you see a request number coming back
@@ -1942,7 +1942,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -1974,7 +1974,7 @@ RegisterStrategy StrategyAtGetRequest::reg("@getRequest",
 class StrategyIssueAssetType : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -1995,7 +1995,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2032,7 +2032,7 @@ RegisterStrategy StrategyIssueAssetType::reg("issueAssetType",
 class StrategyAtIssueAssetType : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -2060,7 +2060,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2138,7 +2138,7 @@ RegisterStrategy StrategyAtIssueAssetType::reg("@issueAssetType",
 class StrategyQueryAssetTypes : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -2157,7 +2157,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2192,7 +2192,7 @@ RegisterStrategy StrategyQueryAssetTypes::reg("queryAssetTypes",
 class StrategyAtQueryAssetTypes : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -2217,7 +2217,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2286,7 +2286,7 @@ RegisterStrategy StrategyAtQueryAssetTypes::reg(
 class StrategyIssueBasket : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -2305,7 +2305,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2351,7 +2351,7 @@ RegisterStrategy StrategyIssueBasket::reg("issueBasket",
 class StrategyAtIssueBasket : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate(
@@ -2375,7 +2375,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2428,7 +2428,7 @@ RegisterStrategy StrategyAtIssueBasket::reg("@issueBasket",
 class StrategyCreateAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -2448,7 +2448,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2473,7 +2473,7 @@ RegisterStrategy StrategyCreateAccount::reg("createAccount",
 class StrategyAtCreateAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -2500,7 +2500,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2574,7 +2574,7 @@ RegisterStrategy StrategyAtCreateAccount::reg("@createAccount",
 class StrategyGetBoxReceipt : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate(
@@ -2598,7 +2598,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2647,7 +2647,7 @@ RegisterStrategy StrategyGetBoxReceipt::reg("getBoxReceipt",
 class StrategyAtGetBoxReceipt : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate(
@@ -2681,7 +2681,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2772,7 +2772,7 @@ RegisterStrategy StrategyAtGetBoxReceipt::reg("@getBoxReceipt",
 class StrategyDeleteAssetAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -2789,7 +2789,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2814,7 +2814,7 @@ RegisterStrategy StrategyDeleteAssetAccount::reg(
 class StrategyAtDeleteAssetAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -2837,7 +2837,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -2893,7 +2893,7 @@ RegisterStrategy StrategyAtDeleteAssetAccount::reg(
 class StrategyNotarizeTransactions : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTLedger object.
@@ -2918,7 +2918,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -2958,7 +2958,7 @@ RegisterStrategy StrategyNotarizeTransactions::reg(
 class StrategyAtNotarizeTransactions : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTLedger object.
@@ -2988,7 +2988,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3062,7 +3062,7 @@ RegisterStrategy StrategyAtNotarizeTransactions::reg(
 class StrategyGetTransactionNum : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -3079,7 +3079,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3103,7 +3103,7 @@ RegisterStrategy StrategyGetTransactionNum::reg(
 class StrategyAtGetTransactionNum : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -3122,7 +3122,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3148,7 +3148,7 @@ RegisterStrategy StrategyAtGetTransactionNum::reg(
 class StrategyGetNymbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -3163,7 +3163,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3184,7 +3184,7 @@ RegisterStrategy StrategyGetNymbox::reg("getNymbox", new StrategyGetNymbox());
 class StrategyAtGetNymbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTLedger object.
@@ -3214,7 +3214,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3262,7 +3262,7 @@ RegisterStrategy StrategyAtGetNymbox::reg("@getNymbox",
 class StrategyGetAccountFiles : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -3279,7 +3279,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3303,7 +3303,7 @@ RegisterStrategy StrategyGetAccountFiles::reg("getAccountFiles",
 class StrategyAtGetAccountFiles : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains a STRING_MAP containing the OTAccount,
@@ -3339,7 +3339,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3390,7 +3390,7 @@ RegisterStrategy StrategyAtGetAccountFiles::reg(
 class StrategyGetContract : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -3407,7 +3407,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3431,7 +3431,7 @@ RegisterStrategy StrategyGetContract::reg("getContract",
 class StrategyAtGetContract : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTAssetContract object.
@@ -3461,7 +3461,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3510,7 +3510,7 @@ RegisterStrategy StrategyAtGetContract::reg("@getContract",
 class StrategyGetMint : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n" // Command
@@ -3527,7 +3527,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3550,7 +3550,7 @@ RegisterStrategy StrategyGetMint::reg("getMint", new StrategyGetMint());
 class StrategyAtGetMint : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTMint object.
@@ -3579,7 +3579,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3627,7 +3627,7 @@ RegisterStrategy StrategyAtGetMint::reg("@getMint", new StrategyAtGetMint());
 class StrategyProcessInbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTLedger object.
@@ -3652,7 +3652,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3692,7 +3692,7 @@ RegisterStrategy StrategyProcessInbox::reg("processInbox",
 class StrategyAtProcessInbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTLedger object.
@@ -3722,7 +3722,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3793,7 +3793,7 @@ RegisterStrategy StrategyAtProcessInbox::reg("@processInbox",
 class StrategyProcessNymbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTLedger object.
@@ -3817,7 +3817,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -3855,7 +3855,7 @@ RegisterStrategy StrategyProcessNymbox::reg("processNymbox",
 class StrategyAtProcessNymbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTLedger object.
@@ -3883,7 +3883,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -3953,7 +3953,7 @@ RegisterStrategy StrategyAtProcessNymbox::reg("@processNymbox",
 class StrategyTriggerClause : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate(
@@ -3980,7 +3980,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -4028,7 +4028,7 @@ RegisterStrategy StrategyTriggerClause::reg("triggerClause",
 class StrategyAtTriggerClause : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         // the Payload contains an ascii-armored OTMint object.
@@ -4050,7 +4050,7 @@ public:
         return result;
     }
 
-    int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         processXmlSuccess(m, xml);
 
@@ -4089,7 +4089,7 @@ RegisterStrategy StrategyAtTriggerClause::reg("@triggerClause",
 class StrategyGetMarketList : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"
@@ -4104,7 +4104,7 @@ public:
         return result;
     }
 
-    virtual int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
@@ -4126,7 +4126,7 @@ RegisterStrategy StrategyGetMarketList::reg("getMarketList",
 class StrategyAtGetMarketList : public OTMessageStrategy
 {
 public:
-    virtual int32_t processXml(OTMessage& m, irr::io::IrrXMLReader*& xml)
+    virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
         //      std::cerr << m_xmlUnsigned << std::endl;
         processXmlSuccess(m, xml);
@@ -4180,7 +4180,7 @@ public:
         return 1;
     }
 
-    virtual String writeXml(OTMessage& m)
+    virtual String writeXml(Message& m)
     {
         String result;
         result.Concatenate("<%s\n"

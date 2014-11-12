@@ -1343,7 +1343,7 @@ bool OTRecordList::Populate()
         for (int32_t nCurrentMail = 0; nCurrentMail < nMailCount;
              ++nCurrentMail) {
             otOut << __FUNCTION__ << ": Mail index: " << nCurrentMail << "\n";
-            OTMessage* pMsg = pNym->GetMailByIndex(nCurrentMail);
+            Message* pMsg = pNym->GetMailByIndex(nCurrentMail);
             OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
                 OTAPI_Wrap::GetNym_MailServerIDByIndex(str_nym_id,
@@ -1440,7 +1440,7 @@ bool OTRecordList::Populate()
              ++nCurrentOutmail) {
             otOut << __FUNCTION__ << ": Outmail index: " << nCurrentOutmail
                   << "\n";
-            OTMessage* pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
+            Message* pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
             OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
                 OTAPI_Wrap::GetNym_OutmailServerIDByIndex(str_nym_id,

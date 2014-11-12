@@ -345,7 +345,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     // All decrypted--now let's load the results into an OTMessage.
     // No need to call message.ParseRawFile() after, since
     // LoadContractFromString handles it.
-    OTMessage message;
+    Message message;
     if (!envelopeContents.Exists() ||
         !message.LoadContractFromString(envelopeContents)) {
         OTLog::vError("Error loading message from envelope "
@@ -354,7 +354,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
         return true;
     }
 
-    OTMessage replyMessage;
+    Message replyMessage;
     replyMessage.m_strCommand.Format("@%s", message.m_strCommand.Get());
     // UserID
     replyMessage.m_strNymID = message.m_strNymID;

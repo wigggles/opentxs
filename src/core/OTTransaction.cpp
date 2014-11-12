@@ -6112,7 +6112,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
         //          OTString strReference;              // (Already done above.)
         //          GetReferenceString(strReference);   // (Already done above.)
 
-        OTMessage theSentMsg;
+        Message theSentMsg;
 
         if (strReference.Exists() &&
             theSentMsg.LoadContractFromString(strReference)) {
@@ -6301,7 +6301,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
          -------------------------------------------------------------------
          */
 
-        OTMessage theSentMsg;
+        Message theSentMsg;
 
         if (strReference.Exists() &&
             theSentMsg.LoadContractFromString(strReference)) {

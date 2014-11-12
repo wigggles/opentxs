@@ -377,7 +377,7 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
 
     // Not found. There's no account ID yet for that asset type ID. That means
     // we can create it.
-    OTMessage message;
+    Message message;
     accountOwnerId.GetString(message.m_strNymID);
     assetTypeId.GetString(message.m_strAssetID);
     serverId.GetString(message.m_strServerID);

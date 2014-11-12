@@ -168,7 +168,7 @@ void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
 // you know whether the message was successfully sealed into envelope.
 // (Based on the public key into cached in the ClientConnection...)
 // This is for XmlRpc / HTTP mode.
-bool ClientConnection::SealMessageForRecipient(OTMessage& msg,
+bool ClientConnection::SealMessageForRecipient(Message& msg,
                                                OTEnvelope& envelope)
 {
     OT_ASSERT(nullptr != publicKey_);

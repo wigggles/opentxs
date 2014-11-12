@@ -139,11 +139,11 @@
 namespace opentxs
 {
 
-class OTMessage;
+class Message;
 class OTPseudonym;
 class OTTransaction;
 
-typedef std::multimap<int64_t, OTMessage*> mapOfMessages;
+typedef std::multimap<int64_t, Message*> mapOfMessages;
 
 // OUTOING MESSAGES (from me--client--sent to server.)
 //
@@ -178,16 +178,15 @@ public:
     // same request number, deletes the old one before adding the new one. In
     // the future may contemplate using multimap here instead (if completeness
     // becomes desired over uniqueness.)
-    EXPORT void AddSentMessage(OTMessage& message);
+    EXPORT void AddSentMessage(Message& message);
     // null == not found. caller NOT responsible to delete.
-    EXPORT OTMessage* GetSentMessage(const int64_t& requestNum,
-                                     const String& serverId,
-                                     const String& nymId);
+    EXPORT Message* GetSentMessage(const int64_t& requestNum,
+                                   const String& serverId, const String& nymId);
     // true == it was removed. false == it wasn't found.
     EXPORT bool RemoveSentMessage(const int64_t& requestNum,
                                   const String& serverId, const String& nymId);
     // null == not found. caller NOT responsible to delete.
-    EXPORT OTMessage* GetSentMessage(const OTTransaction& transaction);
+    EXPORT Message* GetSentMessage(const OTTransaction& transaction);
     // true == it was removed. false == it wasn't found.
     EXPORT bool RemoveSentMessage(const OTTransaction& transaction);
 

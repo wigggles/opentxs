@@ -211,7 +211,7 @@ opentxs::OTContract* InstantiateContract(opentxs::String strInput)
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
-            pContract = new OTMessage();
+            pContract = new Message();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {

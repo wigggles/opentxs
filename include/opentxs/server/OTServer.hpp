@@ -148,7 +148,7 @@ namespace opentxs
 {
 
 class OTIdentifier;
-class OTMessage;
+class Message;
 class OTPayment;
 class OTServerContract;
 
@@ -180,7 +180,7 @@ private:
     bool SendInstrumentToNym(const OTIdentifier& serverId,
                              const OTIdentifier& senderUserId,
                              const OTIdentifier& recipientUserId,
-                             OTMessage* msg = nullptr,
+                             Message* msg = nullptr,
                              const OTPayment* payment = nullptr,
                              const char* command = nullptr);
 
@@ -190,7 +190,7 @@ private:
                              const OTIdentifier& senderUserId,
                              const OTIdentifier& recipientUserId,
                              OTTransaction::transactionType transactionType,
-                             OTMessage* msg = nullptr,
+                             Message* msg = nullptr,
                              const String* messageString = nullptr,
                              const char* command = nullptr);
 

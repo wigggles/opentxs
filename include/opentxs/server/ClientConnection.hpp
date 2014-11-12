@@ -137,7 +137,7 @@ namespace opentxs
 {
 
 class OTAsymmetricKey;
-class OTMessage;
+class Message;
 class String;
 class OTEnvelope;
 
@@ -150,7 +150,7 @@ public:
     void SetPublicKey(const String& publicKey);
     void SetPublicKey(const OTAsymmetricKey& publicKey);
 
-    bool SealMessageForRecipient(OTMessage& msg, OTEnvelope& envelope);
+    bool SealMessageForRecipient(Message& msg, OTEnvelope& envelope);
 
 private:
     OTAsymmetricKey* publicKey_;

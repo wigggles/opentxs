@@ -147,7 +147,7 @@
 namespace opentxs
 {
 
-void OTMessageBuffer::Push(std::shared_ptr<OTMessage> theMessage)
+void OTMessageBuffer::Push(std::shared_ptr<Message> theMessage)
 {
     messages_.push_back(theMessage);
 }
@@ -173,17 +173,17 @@ void OTMessageBuffer::Push(std::shared_ptr<OTMessage> theMessage)
 // Therefore, we do NOT want to discard THOSE replies, but put them back if
 // necessary -- only discarding the ones where the IDs match.
 //
-std::shared_ptr<OTMessage> OTMessageBuffer::Pop(const int64_t& lRequestNum,
-                                                const String& strServerID,
-                                                const String& strNymID)
+std::shared_ptr<Message> OTMessageBuffer::Pop(const int64_t& lRequestNum,
+                                              const String& strServerID,
+                                              const String& strNymID)
 {
-    std::shared_ptr<OTMessage> pReturnValue;
+    std::shared_ptr<Message> pReturnValue;
 
     Messages temp_list;
 
     while (!messages_.empty()) {
 
-        std::shared_ptr<OTMessage> pMsg = messages_.front();
+        std::shared_ptr<Message> pMsg = messages_.front();
 
         messages_.pop_front();
 
@@ -241,7 +241,7 @@ std::shared_ptr<OTMessage> OTMessageBuffer::Pop(const int64_t& lRequestNum,
     // Put the other messages back, in order...
     //
     while (!temp_list.empty()) {
-        std::shared_ptr<OTMessage> pMsg = temp_list.front();
+        std::shared_ptr<Message> pMsg = temp_list.front();
         temp_list.pop_front();
         messages_.push_front(pMsg);
     }

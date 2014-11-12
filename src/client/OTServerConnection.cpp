@@ -236,7 +236,7 @@ OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient)
     m_pClient = &theClient;
 }
 
-void OTServerConnection::ProcessMessageOut(const OTMessage& theMessage) const
+void OTServerConnection::ProcessMessageOut(const Message& theMessage) const
 {
     // todo SetMessagePayload?
 

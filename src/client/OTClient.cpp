@@ -188,7 +188,7 @@ int32_t OTClient::CalcReturnVal(const int64_t& lRequestNumber)
                  // if needed.
 }
 
-void OTClient::ProcessMessageOut(const OTMessage& theMessage)
+void OTClient::ProcessMessageOut(const Message& theMessage)
 {
     const String strMessage(theMessage);
     //    otErr << "OTClient::ProcessMessageOut: \n\n" << strMessage << "\n\n";
@@ -213,7 +213,7 @@ void OTClient::ProcessMessageOut(const OTMessage& theMessage)
     // my
     // fucking transaction numbers back again!
 
-    OTMessage* pMsg = new OTMessage; // a copy.
+    Message* pMsg = new Message; // a copy.
     OT_ASSERT(nullptr != pMsg);
 
     if (pMsg->LoadContractFromString(strMessage))
@@ -239,7 +239,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                   // OTServerConnection& theConnection,
                                   const OTIdentifier& theServerID,
                                   const OTServerContract& theServerContract,
-                                  OTPseudonym& theNym, OTMessage& theMessage)
+                                  OTPseudonym& theNym, Message& theMessage)
 {
     if (theNymbox.GetTransactionCount() < 1) {
         // If there aren't any notices in the nymbox, no point wasting a # to
@@ -417,7 +417,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             // always succeed and in the odd-event that it fails, I'll end up
             // with a duplicate message
             // in my mail. So what?
-            OTMessage* pMessage = new OTMessage;
+            Message* pMessage = new Message;
 
             OT_ASSERT(nullptr != pMessage);
 
@@ -659,7 +659,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                     }
                     else // strOriginalReply.Exists() == true.
                     {
-                        std::shared_ptr<OTMessage> pMessage(new OTMessage);
+                        std::shared_ptr<Message> pMessage(new Message);
                         OT_ASSERT_MSG(pMessage != nullptr,
                                       "OTClient::AcceptEntireNymbox: OTMessage "
                                       "* pMessage = new OTMessage;");
@@ -1184,7 +1184,7 @@ void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
 /// then skip it! I must have processed it already.
 ///
 void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
-                                           const OTMessage& theReply) const
+                                           const Message& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -1637,10 +1637,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     const int32_t nOutpaymentIndex =
                                         GetOutpaymentsIndexByTransNum(
                                             *pNym, lNymOpeningNumber);
-                                    std::unique_ptr<OTMessage> theMessageAngel;
+                                    std::unique_ptr<Message> theMessageAngel;
 
                                     if (nOutpaymentIndex >= 0) {
-                                        OTMessage* pMsg =
+                                        Message* pMsg =
                                             pNym->GetOutpaymentsByIndex(
                                                 nOutpaymentIndex);
 
@@ -2382,7 +2382,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
 void OTClient::ProcessPayDividendResponse(
     OTTransaction& theTransaction, const OTServerConnection& theConnection,
-    const OTMessage& theReply) const
+    const Message& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -2417,7 +2417,7 @@ void OTClient::ProcessPayDividendResponse(
 
 void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                       const OTServerConnection& theConnection,
-                                      const OTMessage& theReply) const
+                                      const Message& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -2694,7 +2694,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
 /// display any vouchers.
 void OTClient::ProcessWithdrawalResponse(
     OTTransaction& theTransaction, const OTServerConnection& theConnection,
-    const OTMessage& theReply) const
+    const Message& theReply) const
 {
     const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
     OTIdentifier SERVER_ID;
@@ -2884,9 +2884,8 @@ struct OTClient::ProcessServerReplyArgs
     OTPseudonym* pServerNym;
 };
 
-void OTClient::setRecentHash(const OTMessage& theReply,
-                             const String& strServerID, OTPseudonym* pNym,
-                             bool setNymboxHash)
+void OTClient::setRecentHash(const Message& theReply, const String& strServerID,
+                             OTPseudonym* pNym, bool setNymboxHash)
 {
     OTIdentifier NYMBOX_HASH, RECENT_HASH;
     const std::string str_server(strServerID.Get());
@@ -2919,7 +2918,7 @@ void OTClient::setRecentHash(const OTMessage& theReply,
     }
 }
 
-bool OTClient::processServerReplyTriggerClause(const OTMessage& theReply,
+bool OTClient::processServerReplyTriggerClause(const Message& theReply,
                                                ProcessServerReplyArgs& args)
 {
     setRecentHash(theReply, args.strServerID, args.pNym, false);
@@ -2927,7 +2926,7 @@ bool OTClient::processServerReplyTriggerClause(const OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetRequest(const OTMessage& theReply,
+bool OTClient::processServerReplyGetRequest(const Message& theReply,
                                             ProcessServerReplyArgs& args)
 {
 
@@ -2957,7 +2956,7 @@ bool OTClient::processServerReplyGetRequest(const OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
+bool OTClient::processServerReplyCheckUser(const Message& theReply,
                                            ProcessServerReplyArgs& args)
 {
     const String strNymID2(theReply.m_strNymID2),
@@ -3093,7 +3092,7 @@ bool OTClient::processServerReplyCheckUser(const OTMessage& theReply,
 }
 
 bool OTClient::processServerReplyNotarizeTransactions(
-    const OTMessage& theReply, ProcessServerReplyArgs& args)
+    const Message& theReply, ProcessServerReplyArgs& args)
 {
     otOut << "Received server response to notarize Transactions message.\n";
     //        otOut << "Received server response to notarize
@@ -3116,7 +3115,7 @@ bool OTClient::processServerReplyNotarizeTransactions(
     return true;
 }
 
-bool OTClient::processServerReplyGetTransactionNum(const OTMessage& theReply,
+bool OTClient::processServerReplyGetTransactionNum(const Message& theReply,
                                                    ProcessServerReplyArgs& args)
 {
 
@@ -3128,7 +3127,7 @@ bool OTClient::processServerReplyGetTransactionNum(const OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetNymBox(const OTMessage& theReply,
+bool OTClient::processServerReplyGetNymBox(const Message& theReply,
                                            OTLedger* pNymbox,
                                            ProcessServerReplyArgs& args)
 {
@@ -3211,7 +3210,7 @@ bool OTClient::processServerReplyGetNymBox(const OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetBoxReceipt(const OTMessage& theReply,
+bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                                                OTLedger* pNymbox,
                                                ProcessServerReplyArgs& args)
 {
@@ -3489,7 +3488,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
+bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                               OTLedger* pNymbox,
                                               ProcessServerReplyArgs& args)
 {
@@ -3526,7 +3525,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
     if (theReply.m_ascInReferenceTo.Exists())
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
 
-    OTMessage theOriginalMessage;
+    Message theOriginalMessage;
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
@@ -5459,11 +5458,11 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
                                             const int32_t nOutpaymentIndex =
                                                 GetOutpaymentsIndexByTransNum(
                                                     *pNym, lNymOpeningNumber);
-                                            std::unique_ptr<OTMessage>
+                                            std::unique_ptr<Message>
                                                 theMessageAngel;
 
                                             if (nOutpaymentIndex >= 0) {
-                                                OTMessage* pMsg =
+                                                Message* pMsg =
                                                     pNym->GetOutpaymentsByIndex(
                                                         nOutpaymentIndex);
 
@@ -6703,7 +6702,7 @@ bool OTClient::processServerReplyProcessInbox(const OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetAccountFiles(const OTMessage& theReply,
+bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
                                                  OTLedger* pNymbox,
                                                  ProcessServerReplyArgs& args)
 {
@@ -6967,7 +6966,7 @@ bool OTClient::processServerReplyGetAccountFiles(const OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetContract(const OTMessage& theReply,
+bool OTClient::processServerReplyGetContract(const Message& theReply,
                                              ProcessServerReplyArgs& args)
 {
     // base64-Decode the server reply's payload into strContract
@@ -7011,7 +7010,7 @@ bool OTClient::processServerReplyGetContract(const OTMessage& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetMint(const OTMessage& theReply)
+bool OTClient::processServerReplyGetMint(const Message& theReply)
 {
     // base64-Decode the server reply's payload into strMint
     String strMint(theReply.m_ascPayload);
@@ -7027,7 +7026,7 @@ bool OTClient::processServerReplyGetMint(const OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyGetMarketList(const OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketList(const Message& theReply)
 {
     String strMarketDatafile;
     strMarketDatafile.Format("%s", "market_data.bin");
@@ -7099,7 +7098,7 @@ bool OTClient::processServerReplyGetMarketList(const OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyGetMarketOffers(const OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
 {
 
     const String& strMarketID = theReply.m_strNymID2; // market ID stored here.
@@ -7179,8 +7178,7 @@ bool OTClient::processServerReplyGetMarketOffers(const OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyGetMarketRecentTrades(
-    const OTMessage& theReply)
+bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 {
     const String& strMarketID = theReply.m_strNymID2; // market ID stored here.
 
@@ -7259,7 +7257,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(
     return true;
 }
 
-bool OTClient::processServerReplyGetNymMarketOffers(const OTMessage& theReply)
+bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 {
     String strOfferDatafile;
     strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
@@ -7334,7 +7332,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const OTMessage& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyDeleteUserAccount(const OTMessage& theReply,
+bool OTClient::processServerReplyDeleteUserAccount(const Message& theReply,
                                                    ProcessServerReplyArgs& args)
 {
     const auto& pNym = args.pNym;
@@ -7344,7 +7342,7 @@ bool OTClient::processServerReplyDeleteUserAccount(const OTMessage& theReply,
     if (theReply.m_ascInReferenceTo.Exists())
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
 
-    OTMessage theOriginalMessage;
+    Message theOriginalMessage;
 
     const String strServerID(SERVER_ID);
 
@@ -7384,7 +7382,7 @@ bool OTClient::processServerReplyDeleteUserAccount(const OTMessage& theReply,
 }
 
 bool OTClient::processServerReplyDeleteAssetAccount(
-    const OTMessage& theReply, ProcessServerReplyArgs& args)
+    const Message& theReply, ProcessServerReplyArgs& args)
 {
     const auto& SERVER_ID = args.SERVER_ID;
     const auto& pNym = args.pNym;
@@ -7393,7 +7391,7 @@ bool OTClient::processServerReplyDeleteAssetAccount(
     if (theReply.m_ascInReferenceTo.Exists())
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
 
-    OTMessage theOriginalMessage;
+    Message theOriginalMessage;
 
     const String strServerID(SERVER_ID);
 
@@ -7436,7 +7434,7 @@ bool OTClient::processServerReplyDeleteAssetAccount(
     return true;
 }
 
-bool OTClient::processServerReplyIssueAssetType(const OTMessage& theReply,
+bool OTClient::processServerReplyIssueAssetType(const Message& theReply,
                                                 ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -7485,7 +7483,7 @@ bool OTClient::processServerReplyIssueAssetType(const OTMessage& theReply,
     return false;
 }
 
-bool OTClient::processServerReplyCreateAccount(const OTMessage& theReply,
+bool OTClient::processServerReplyCreateAccount(const Message& theReply,
                                                ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -7561,7 +7559,7 @@ bool OTClient::processServerReplyCreateAccount(const OTMessage& theReply,
 /// returns true/false on whether or not the reply was actually
 /// verified and processed, versus whether
 ///
-bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
+bool OTClient::processServerReply(std::shared_ptr<Message> reply,
                                   OTLedger* pNymbox) // IF the Nymbox
                                                      // is passed in,
                                                      // then use that
@@ -7571,7 +7569,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
                                                      // loading it
                                                      // internally.
 {
-    OTMessage& theReply = *reply;
+    Message& theReply = *reply;
     OT_ASSERT(nullptr != m_pConnection);
 
     OTServerConnection& theConnection = *m_pConnection;
@@ -7599,7 +7597,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
               << ": Error: Server reply signature failed to verify.\n";
         return false;
     }
-    OTMessage* pSentMsg = GetMessageOutbuffer().GetSentMessage(
+    Message* pSentMsg = GetMessageOutbuffer().GetSentMessage(
         theReply.m_strRequestNum.ToLong(), strServerID,
         strNymID); // doesn't delete.
     // We couldn't find it in the "sent message" outbuffer (todo: persist this
@@ -7823,7 +7821,7 @@ bool OTClient::processServerReply(std::shared_ptr<OTMessage> reply,
 /// returns >0 for nearly everything else, containing the request number itself.
 ///
 int32_t OTClient::ProcessUserCommand(
-    OTClient::OT_CLIENT_CMD_TYPE requestedCommand, OTMessage& theMessage,
+    OTClient::OT_CLIENT_CMD_TYPE requestedCommand, Message& theMessage,
     OTPseudonym& theNym,
     // OTAssetContract& theContract,
     const OTServerContract& theServer, const Account* pAccount,
