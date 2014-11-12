@@ -612,7 +612,7 @@ bool CmdBase::run(const map<string, string>& _options)
 {
     options = _options;
     int32_t returnValue = runWithOptions();
-    options.empty();
+    options.clear();
 
     switch (returnValue) {
     case 0: // no action performed, return success
