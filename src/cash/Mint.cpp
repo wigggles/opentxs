@@ -135,7 +135,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 #include <opentxs/cash/Mint.hpp>

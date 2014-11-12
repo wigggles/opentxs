@@ -154,7 +154,7 @@
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
 #include <opentxs/core/script/OTParty.hpp>

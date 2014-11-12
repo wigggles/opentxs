@@ -155,7 +155,7 @@
 #include <opentxs/core/OTIdentifier.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/OTPseudonym.hpp>

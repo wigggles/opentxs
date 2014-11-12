@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>

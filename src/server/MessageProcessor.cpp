@@ -136,7 +136,7 @@
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>

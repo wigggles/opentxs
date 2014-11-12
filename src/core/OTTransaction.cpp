@@ -139,7 +139,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <cstring>

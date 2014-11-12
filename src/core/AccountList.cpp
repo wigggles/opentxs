@@ -134,7 +134,7 @@
 
 #include <opentxs/core/AccountList.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 #include "Helpers.hpp"

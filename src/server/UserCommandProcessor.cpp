@@ -140,7 +140,7 @@
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/AssetContract.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/String.hpp>
