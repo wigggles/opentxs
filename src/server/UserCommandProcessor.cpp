@@ -1272,7 +1272,7 @@ bool UserCommandProcessor::ProcessUserCommand(OTMessage& theMessage,
         else
             bRunIt = false;
 
-        if (bRunIt) UserCmdGetBoxReceipt(*pNym, theMessage, msgOut);
+        if (bRunIt) UserCmdGetBoxReceipt(theMessage, msgOut);
 
         return true;
     }
@@ -4090,7 +4090,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
 // the Nymbox. Otherwise it will contain an AcctID if retrieving a boxreceipt
 // for an Asset Acct.
 //
-void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
+void UserCommandProcessor::UserCmdGetBoxReceipt(OTMessage& MsgIn,
                                                 OTMessage& msgOut)
 {
     // (1) set up member variables
@@ -4285,16 +4285,10 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(OTPseudonym&, OTMessage& MsgIn,
             MsgIn.m_strNymID.Get(), MsgIn.m_strAcctID.Get());
     }
 
-    // Send the user's command back to him (success or failure.)
-    //  if (!msgOut.m_bSuccess)
-    {
-        const String tempInMessage(
-            MsgIn); // Grab the incoming message in plaintext form
-        msgOut.m_ascInReferenceTo.SetString(tempInMessage); // Set it into the
-                                                            // base64-encoded
-                                                            // object on the
-                                                            // outgoing message
-    }
+    // Grab the incoming message in plaintext form
+    const String tempInMessage(MsgIn);
+    // Set it into the base64-encoded object on the outgoing message
+    msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
     // (2) Sign the Message
     msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));

@@ -182,8 +182,7 @@ private:
                                OTMessage& msgOut);
     void UserCmdIssueBasket(OTPseudonym& nym, OTMessage& msgIn,
                             OTMessage& msgOut);
-    void UserCmdGetBoxReceipt(OTPseudonym& nym, OTMessage& msgIn,
-                              OTMessage& msgOut);
+    void UserCmdGetBoxReceipt(OTMessage& msgIn, OTMessage& msgOut);
     void UserCmdDeleteUser(OTPseudonym& nym, OTMessage& msgIn,
                            OTMessage& msgOut);
     void UserCmdDeleteAssetAcct(OTPseudonym& nym, OTMessage& msgIn,
