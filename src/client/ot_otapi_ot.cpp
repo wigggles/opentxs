@@ -806,19 +806,6 @@ OT_OTAPI_OT int32_t
 
         theFunction.nRequestNum = 0;
     }
-    else if (nRun == (-2)) // -2 is also possible at some future date. (If the
-                             // request number won't fit in an int32_t, this is
-                             // returned and then you can retrieve the actual
-                             // number via a separate call.)
-    {
-        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
-
-        // TODO: Have an OT API call here, which retrieves the request number
-        // (It must be too large to fit into an integer, which is why this
-        // happened.)
-
-        theFunction.nRequestNum = -1;
-    }
     else {
         theFunction.nRequestNum = nRun;
     }

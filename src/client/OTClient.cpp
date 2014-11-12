@@ -171,23 +171,6 @@
 namespace opentxs
 {
 
-int32_t OTClient::CalcReturnVal(const int64_t& lRequestNumber)
-{
-    m_lMostRecentRequestNumber = lRequestNumber;
-    if ((-1) == lRequestNumber)
-        return (-1);
-    else if (0 == lRequestNumber)
-        return 0;
-
-    const int32_t nRequestNum = static_cast<int32_t>(lRequestNumber);
-
-    if (lRequestNumber == nRequestNum) // In this case, it works!
-        return nRequestNum;
-
-    return (-2); // some other call can return m_lMostRecentRequestNumber
-                 // if needed.
-}
-
 void OTClient::ProcessMessageOut(const Message& theMessage)
 {
     const String strMessage(theMessage);
@@ -227,9 +210,7 @@ void OTClient::ProcessMessageOut(const Message& theMessage)
         nullptr != m_pConnection,
         "OTClient::ProcessMessageOut: ASSERT: nullptr != m_pConnection\n");
 
-    m_pConnection->ProcessMessageOut(theMessage); // <===========
-
-    //    otErr << "OTClient::ProcessMessageOut: FINISHED.\n";
+    m_pConnection->ProcessMessageOut(theMessage);
 }
 
 /// This is standard behavior for the Nymbox (NOT the inbox.)
@@ -7847,14 +7828,13 @@ int32_t OTClient::ProcessUserCommand(
             otErr << "OTClient::ProcessUserCommand: "
                      "pAccount->GetPurportedServerID() doesn't match "
                      "SERVER_ID.\n(Try adding:  --server SERVER_ID)\n";
-            return CalcReturnVal(-1);
-            ;
+
+            return -1;
         }
     }
 
     int64_t lReturnValue = 0;
 
-    // THE BIG SWITCH (inside a code block for neatness
     switch (requestedCommand) {
 
     case (OTClient::checkServerID): {
@@ -9148,7 +9128,7 @@ int32_t OTClient::ProcessUserCommand(
     }
     } // Get out og the big switch statement!
 
-    return CalcReturnVal(lReturnValue);
+    return static_cast<int32_t>(lReturnValue);
 }
 
 /// Used in RPC mode (instead of Connect.)
@@ -9185,7 +9165,6 @@ bool OTClient::InitClient(OTWallet& theWallet)
 OTClient::OTClient()
     : m_pWallet(nullptr)
     , m_bRunningAsScript(false)
-    , m_lMostRecentRequestNumber(0)
     , m_pConnection(nullptr)
     , m_bInitialized(false)
 {

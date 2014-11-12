@@ -497,12 +497,6 @@ OT_UTILITY_OT int32_t Utility::getNymboxLowLevel(const string& serverID,
 
     int32_t nRequestNum = OTAPI_Wrap::getNymbox(
         serverID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-    if (-2 == nRequestNum) {
-        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
-        return -1; // -2 is also possible at some future date. (If the request
-                   // number won't fit in an int32_t, this is returned and then
-                   // you can retrieve the actual number via a separate call.);
-    }
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failed to send getNymbox message due to error.\n";
@@ -1887,13 +1881,6 @@ OT_UTILITY_OT bool Utility::getBoxReceiptLowLevel(
     int32_t nRequestNum = OTAPI_Wrap::getBoxReceipt(
         serverID, nymID, accountID, nBoxType,
         strTransactionNum); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-    if (-2 == nRequestNum) {
-        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
-        return false; // -2 is also possible at some future date. (If the
-                      // request number won't fit in an int32_t, this is
-                      // returned and then you can retrieve the actual number
-                      // via a separate call.);
-    }
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failed to send getNymbox message due to error.\n";
@@ -2380,12 +2367,6 @@ OT_UTILITY_OT int32_t
 
     int32_t nRequestNum = OTAPI_Wrap::getTransactionNumber(
         serverID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-    if (-2 == nRequestNum) {
-        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
-        return -1; // -2 is also possible at some future date. (If the request
-                   // number won't fit in an int32_t, this is returned and then
-                   // you can retrieve the actual number via a separate call.)
-    }
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failed to send getNymbox message due to error.\n";
@@ -3116,12 +3097,6 @@ OT_UTILITY_OT int32_t
 
     int32_t nRequestNum = OTAPI_Wrap::getAccountFiles(
         serverID, nymID, accountID); // <===== ATTEMPT TO SEND MESSAGE;
-    if (-2 == nRequestNum) {
-        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
-        return -1; // -2 is also possible at some future date. (If the request
-                   // number won't fit in an int32_t, this is returned and then
-                   // you can retrieve the actual number via a separate call.)
-    }
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failed to send getAccountFiles message due to error.\n";
@@ -3305,12 +3280,6 @@ OT_UTILITY_OT int32_t
         serverID, nymID,
         accountID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
-    if ((-2) == nRequestNum) {
-        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
-        return -1; // -2 is also possible at some future date. (If the request
-                   // number won't fit in an int32_t, this is returned and then
-                   // you can retrieve the actual number via a separate call.)
-    }
     if (-1 == nRequestNum) {
         otOut << strLocation
               << ": Failed to send getAccount message due to error.\n";
@@ -3470,12 +3439,6 @@ OT_UTILITY_OT int32_t
         serverID, nymID,
         accountID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
 
-    if ((-2) == nRequestNum) {
-        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
-        return -1; // -2 is also possible at some future date. (If the request
-                   // number won't fit in an int32_t, this is returned and then
-                   // you can retrieve the actual number via a separate call.)
-    }
     if (-1 == nRequestNum) // if the requestNumber returned by the send-attempt
                            // is -1, that means it DIDN'T SEND (error)
     {
@@ -3623,13 +3586,7 @@ OT_UTILITY_OT int32_t
 
     int32_t nRequestNum = OTAPI_Wrap::getOutbox(
         serverID, nymID,
-        accountID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
-    if (-2 == nRequestNum) {
-        otOut << strLocation << ": ERROR, not supported. (-2 was returned.)\n";
-        return -1; // -2 is also possible at some future date. (If the request
-                   // number won't fit in an int32_t, this is returned and then
-                   // you can retrieve the actual number via a separate call.)
-    }
+        accountID);        // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
     if (-1 == nRequestNum) // if the requestNumber returned by the send-attempt
                            // is -1, that means it DIDN'T SEND (error)
     {
