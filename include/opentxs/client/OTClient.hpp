@@ -197,44 +197,43 @@ private:
                                       OTLedger& ledger) const;
 
     struct ProcessServerReplyArgs;
-    void setRecentHash(const OTMessage& theReply, const String& strServerID,
+    void setRecentHash(const Message& theReply, const String& strServerID,
                        OTPseudonym* pNym, bool setNymboxHash);
-    bool processServerReplyTriggerClause(const OTMessage& theReply,
+    bool processServerReplyTriggerClause(const Message& theReply,
                                          ProcessServerReplyArgs& args);
-    bool processServerReplyGetRequest(const OTMessage& theReply,
+    bool processServerReplyGetRequest(const Message& theReply,
                                       ProcessServerReplyArgs& args);
-    bool processServerReplyCheckUser(const OTMessage& theReply,
+    bool processServerReplyCheckUser(const Message& theReply,
                                      ProcessServerReplyArgs& args);
-    bool processServerReplyNotarizeTransactions(const OTMessage& theReply,
+    bool processServerReplyNotarizeTransactions(const Message& theReply,
                                                 ProcessServerReplyArgs& args);
-    bool processServerReplyGetTransactionNum(const OTMessage& theReply,
+    bool processServerReplyGetTransactionNum(const Message& theReply,
                                              ProcessServerReplyArgs& args);
-    bool processServerReplyGetNymBox(const OTMessage& theReply,
-                                     OTLedger* pNymbox,
+    bool processServerReplyGetNymBox(const Message& theReply, OTLedger* pNymbox,
                                      ProcessServerReplyArgs& args);
-    bool processServerReplyGetBoxReceipt(const OTMessage& theReply,
+    bool processServerReplyGetBoxReceipt(const Message& theReply,
                                          OTLedger* pNymbox,
                                          ProcessServerReplyArgs& args);
-    bool processServerReplyProcessInbox(const OTMessage& theReply,
+    bool processServerReplyProcessInbox(const Message& theReply,
                                         OTLedger* pNymbox,
                                         ProcessServerReplyArgs& args);
-    bool processServerReplyGetAccountFiles(const OTMessage& theReply,
+    bool processServerReplyGetAccountFiles(const Message& theReply,
                                            OTLedger* pNymbox,
                                            ProcessServerReplyArgs& args);
-    bool processServerReplyGetContract(const OTMessage& theReply,
+    bool processServerReplyGetContract(const Message& theReply,
                                        ProcessServerReplyArgs& args);
-    bool processServerReplyGetMint(const OTMessage& theReply);
-    bool processServerReplyGetMarketList(const OTMessage& theReply);
-    bool processServerReplyGetMarketOffers(const OTMessage& theReply);
-    bool processServerReplyGetMarketRecentTrades(const OTMessage& theReply);
-    bool processServerReplyGetNymMarketOffers(const OTMessage& theReply);
-    bool processServerReplyDeleteUserAccount(const OTMessage& theReply,
+    bool processServerReplyGetMint(const Message& theReply);
+    bool processServerReplyGetMarketList(const Message& theReply);
+    bool processServerReplyGetMarketOffers(const Message& theReply);
+    bool processServerReplyGetMarketRecentTrades(const Message& theReply);
+    bool processServerReplyGetNymMarketOffers(const Message& theReply);
+    bool processServerReplyDeleteUserAccount(const Message& theReply,
                                              ProcessServerReplyArgs& args);
-    bool processServerReplyDeleteAssetAccount(const OTMessage& theReply,
+    bool processServerReplyDeleteAssetAccount(const Message& theReply,
                                               ProcessServerReplyArgs& args);
-    bool processServerReplyIssueAssetType(const OTMessage& theReply,
+    bool processServerReplyIssueAssetType(const Message& theReply,
                                           ProcessServerReplyArgs& args);
-    bool processServerReplyCreateAccount(const OTMessage& theReply,
+    bool processServerReplyCreateAccount(const Message& theReply,
                                          ProcessServerReplyArgs& args);
 
 public:
@@ -358,13 +357,12 @@ public:
     bool InitClient(OTWallet& theWallet); // Need to call this before using.
     bool m_bInitialized; // this will be false until InitClient() is called.
     // These functions manipulate the internal m_pConnection member:
-    void ProcessMessageOut(const OTMessage& theMessage);
-    bool ProcessInBuffer(const OTMessage& theServerReply) const;
+    void ProcessMessageOut(const Message& theMessage);
+    bool ProcessInBuffer(const Message& theServerReply) const;
     // These functions are for command processing:
 
     EXPORT int32_t ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
-                                      OTMessage& theMessage,
-                                      OTPseudonym& theNym,
+                                      Message& theMessage, OTPseudonym& theNym,
                                       // OTAssetContract& theContract,
                                       const OTServerContract& theServer,
                                       const Account* pAccount = nullptr,
@@ -373,22 +371,22 @@ public:
                                       const OTIdentifier* pHisNymID = nullptr,
                                       const OTIdentifier* pHisAcctID = nullptr);
 
-    bool processServerReply(std::shared_ptr<OTMessage> theReply,
+    bool processServerReply(std::shared_ptr<Message> theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
                                                           // passed in, then use
     // that one, where appropriate, instead
     // of loading it internally.
     void ProcessIncomingTransactions(OTServerConnection& theConnection,
-                                     const OTMessage& theReply) const;
+                                     const Message& theReply) const;
     void ProcessWithdrawalResponse(OTTransaction& theTransaction,
                                    const OTServerConnection& theConnection,
-                                   const OTMessage& theReply) const;
+                                   const Message& theReply) const;
     void ProcessDepositResponse(OTTransaction& theTransaction,
                                 const OTServerConnection& theConnection,
-                                const OTMessage& theReply) const;
+                                const Message& theReply) const;
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
                                     const OTServerConnection& theConnection,
-                                    const OTMessage& theReply) const;
+                                    const Message& theReply) const;
 
     //  void AcceptEntireNymbox(OTLedger& theNymbox, OTServerConnection&
     // theConnection);
@@ -396,7 +394,7 @@ public:
     bool AcceptEntireNymbox(OTLedger& theNymbox,
                             const OTIdentifier& theServerID,
                             const OTServerContract& theServerContract,
-                            OTPseudonym& theNym, OTMessage& theMessage);
+                            OTPseudonym& theNym, Message& theMessage);
 
     // void HarvestTransactionNumbers(OTTransaction& theTransaction,
     // OTPseudonym& theNym);

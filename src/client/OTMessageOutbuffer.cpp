@@ -134,7 +134,7 @@
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -166,8 +166,8 @@ OTMessageOutbuffer::OTMessageOutbuffer()
     OT_ASSERT(dataFolder_.Exists());
 }
 
-void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
-                                                               // allocated.
+void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
+                                                             // allocated.
 {
     int64_t lRequestNum = 0;
 
@@ -191,7 +191,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
             continue;
         }
 
-        OTMessage* pMsg = it->second;
+        Message* pMsg = it->second;
         OT_ASSERT(nullptr != pMsg);
 
         //
@@ -217,8 +217,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
     // server ID and Nym ID), we go ahead and add the new message to the map.
     // (And take ownership.)
     //
-    messagesMap_.insert(
-        std::pair<int64_t, OTMessage*>(lRequestNum, &theMessage));
+    messagesMap_.insert(std::pair<int64_t, Message*>(lRequestNum, &theMessage));
 
     //
     // Save it to local storage, in case we don't see the reply until the next
@@ -269,7 +268,7 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
 
             const int64_t& lTempReqNum = it->first;
 
-            OTMessage* pMsg = it->second;
+            Message* pMsg = it->second;
             OT_ASSERT(nullptr != pMsg);
 
             //
@@ -310,9 +309,9 @@ void OTMessageOutbuffer::AddSentMessage(OTMessage& theMessage) // must be heap
 // that comes back from this function. The buffer maintains
 // ownership until you call RemoveSentMessage().
 
-OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
-                                              const String& strServerID,
-                                              const String& strNymID)
+Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
+                                            const String& strServerID,
+                                            const String& strNymID)
 {
     auto it = messagesMap_.begin();
 
@@ -324,7 +323,7 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
             continue;
         }
 
-        OTMessage* pMsg = it->second;
+        Message* pMsg = it->second;
         OT_ASSERT(nullptr != pMsg);
 
         //
@@ -367,16 +366,16 @@ OTMessage* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
             // referenced
             // by that list.
 
-            OTMessage* pMsg = new OTMessage;
+            Message* pMsg = new Message;
             OT_ASSERT(nullptr != pMsg);
-            std::unique_ptr<OTMessage> theMsgAngel(pMsg);
+            std::unique_ptr<Message> theMsgAngel(pMsg);
 
             if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
                 pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
                 // Since we had to load it from local storage, let's add it to
                 // the list in RAM.
                 //
-                messagesMap_.insert(std::pair<int64_t, OTMessage*>(
+                messagesMap_.insert(std::pair<int64_t, Message*>(
                     lRequestNum, theMsgAngel.release()));
                 return pMsg;
             }
@@ -403,7 +402,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
     while (it != messagesMap_.end()) {
 
         const int64_t& lRequestNum = it->first;
-        OTMessage* pThisMsg = it->second;
+        Message* pThisMsg = it->second;
         OT_ASSERT(nullptr != pThisMsg);
 
         //
@@ -629,7 +628,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
 
                         const int64_t& lTempReqNum = it->first;
 
-                        OTMessage* pMsg = it->second;
+                        Message* pMsg = it->second;
                         OT_ASSERT(nullptr != pMsg);
 
                         //
@@ -674,9 +673,9 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                 // Now that we've updated the numlist in local storage, let's
                 // erase the sent message itself...
                 //
-                OTMessage* pMsg = new OTMessage;
+                Message* pMsg = new Message;
                 OT_ASSERT(nullptr != pMsg);
-                std::unique_ptr<OTMessage> theMsgAngel(pMsg);
+                std::unique_ptr<Message> theMsgAngel(pMsg);
 
                 if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
                     pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
@@ -713,7 +712,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
             continue;
         }
 
-        OTMessage* pMsg = it->second;
+        Message* pMsg = it->second;
         OT_ASSERT(nullptr != pMsg);
 
         //
@@ -764,7 +763,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
 
             const int64_t& lTempReqNum = it->first;
 
-            OTMessage* pMsg = it->second;
+            Message* pMsg = it->second;
             OT_ASSERT(nullptr != pMsg);
 
             //
@@ -805,9 +804,9 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     // Now that we've updated the numlist in local storage, let's
     // erase the sent message itself...
     //
-    OTMessage* pMsg = new OTMessage;
+    Message* pMsg = new Message;
     OT_ASSERT(nullptr != pMsg);
-    std::unique_ptr<OTMessage> theMsgAngel(pMsg);
+    std::unique_ptr<Message> theMsgAngel(pMsg);
 
     if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
         pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
@@ -818,8 +817,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     return bReturnValue;
 }
 
-OTMessage* OTMessageOutbuffer::GetSentMessage(
-    const OTTransaction& theTransaction)
+Message* OTMessageOutbuffer::GetSentMessage(const OTTransaction& theTransaction)
 {
     const int64_t& lRequestNum = theTransaction.GetRequestNum();
     const String strServerID(theTransaction.GetPurportedServerID());

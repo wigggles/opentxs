@@ -150,7 +150,7 @@ class Cheque;
 class OTClient;
 class OTEnvelope;
 class OTLedger;
-class OTMessage;
+class Message;
 class OTNumList;
 class OTNym_or_SymmetricKey;
 class OTPassword;
@@ -205,10 +205,10 @@ private:
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
 
     void SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
-                     OTMessage& message) const;
+                     Message& message) const;
 
     int32_t SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
-                        OTMessage& message, int64_t requestNum) const;
+                        Message& message, int64_t requestNum) const;
 
 public:
     EXPORT bool IsInitialized() const
@@ -727,14 +727,14 @@ public:
         int32_t nBoxType,               // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& lTransactionNum) const;
     // Incoming
-    EXPORT std::shared_ptr<OTMessage> PopMessageBuffer(
+    EXPORT std::shared_ptr<Message> PopMessageBuffer(
         const int64_t& lRequestNumber, const OTIdentifier& SERVER_ID,
         const OTIdentifier& USER_ID) const;
     void FlushMessageBuffer();
     // Outgoing
-    EXPORT OTMessage* GetSentMessage(const int64_t& lRequestNumber,
-                                     const OTIdentifier& SERVER_ID,
-                                     const OTIdentifier& USER_ID) const;
+    EXPORT Message* GetSentMessage(const int64_t& lRequestNumber,
+                                   const OTIdentifier& SERVER_ID,
+                                   const OTIdentifier& USER_ID) const;
     EXPORT bool RemoveSentMessage(const int64_t& lRequestNumber,
                                   const OTIdentifier& SERVER_ID,
                                   const OTIdentifier& USER_ID) const;
@@ -1076,7 +1076,7 @@ public:
                                     // that
                                     // party. (For now, until I code entities)
     EXPORT bool Msg_HarvestTransactionNumbers(
-        const OTMessage& theMsg, const OTIdentifier& USER_ID,
+        const Message& theMsg, const OTIdentifier& USER_ID,
         bool bHarvestingForRetry, bool bReplyWasSuccess, bool bReplyWasFailure,
         bool bTransactionWasSuccess, bool bTransactionWasFailure) const;
 

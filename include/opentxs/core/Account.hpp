@@ -141,7 +141,7 @@ namespace opentxs
 
 class String;
 class OTLedger;
-class OTMessage;
+class Message;
 class OTPseudonym;
 
 class Account : public OTTransactionType
@@ -221,12 +221,12 @@ public:
     EXPORT static Account* GenerateNewAccount(const OTIdentifier& userId,
                                               const OTIdentifier& serverId,
                                               const OTPseudonym& serverNym,
-                                              const OTMessage& message,
+                                              const Message& message,
                                               AccountType acctType = simple,
                                               int64_t stashTransNum = 0);
 
     EXPORT bool GenerateNewAccount(const OTPseudonym& server,
-                                   const OTMessage& message,
+                                   const Message& message,
                                    AccountType acctType = simple,
                                    int64_t stashTransNum = 0);
     // Let's say you don't have or know the UserID, and you just want to load

@@ -149,13 +149,13 @@ class OTCredential;
 class OTItem;
 class OTKeypair;
 class OTLedger;
-class OTMessage;
+class Message;
 class OTPassword;
 class OTPasswordData;
 class OTSubcredential;
 class OTTransaction;
 
-typedef std::deque<OTMessage*> dequeOfMail;
+typedef std::deque<Message*> dequeOfMail;
 typedef std::map<std::string, int64_t> mapOfRequestNums;
 typedef std::map<std::string, int64_t> mapOfHighestNums;
 typedef std::deque<int64_t> dequeOfTransNums;
@@ -992,14 +992,14 @@ public:
     // that processing will drop all mail messages into this deque for
     // safe-keeping, after Nymbox is cleared.
     //
-    EXPORT void AddMail(OTMessage& theMessage); // a mail message is the
-                                                // original OTMessage from the
-                                                // sender, transported via
-                                                // Nymbox of recipient (me).
+    EXPORT void AddMail(Message& theMessage); // a mail message is the
+                                              // original OTMessage from the
+                                              // sender, transported via
+                                              // Nymbox of recipient (me).
     EXPORT int32_t GetMailCount() const; // How many mail messages does this Nym
                                          // currently store?
-    EXPORT OTMessage* GetMailByIndex(int32_t nIndex) const; // Get a
-                                                            // specific
+    EXPORT Message* GetMailByIndex(int32_t nIndex) const; // Get a
+                                                          // specific
     // piece of mail, at
     // a specific index.
     EXPORT bool RemoveMailByIndex(int32_t nIndex); // if returns false,
@@ -1012,15 +1012,15 @@ public:
                              // messages from local storage.)
     // Whenever a Nym sends a message, a copy is dropped into his Outmail.
     //
-    EXPORT void AddOutmail(OTMessage& theMessage); // a mail message is the
-                                                   // original OTMessage that
-                                                   // this Nym sent.
+    EXPORT void AddOutmail(Message& theMessage); // a mail message is the
+                                                 // original OTMessage that
+                                                 // this Nym sent.
     EXPORT int32_t
         GetOutmailCount() const; // How many outmail messages does this Nym
                                  // currently store?
-    EXPORT OTMessage* GetOutmailByIndex(int32_t nIndex) const; // Get a
-                                                               // specific
-                                                               // piece of
+    EXPORT Message* GetOutmailByIndex(int32_t nIndex) const; // Get a
+                                                             // specific
+                                                             // piece of
     // outmail, at a
     // specific
     // index.
@@ -1036,15 +1036,18 @@ public:
     // Whenever a Nym sends a payment, a copy is dropped into his Outpayments.
     // (Payments screen.)
     //
-    EXPORT void AddOutpayments(OTMessage& theMessage); // a payments message is
-                                                       // the original OTMessage
-                                                       // that this Nym sent.
+    EXPORT void AddOutpayments(Message& theMessage); // a payments message is
+                                                     // the original OTMessage
+                                                     // that this Nym sent.
     EXPORT int32_t
         GetOutpaymentsCount() const; // How many outpayments messages does
                                      // this Nym currently store?
-    EXPORT OTMessage* GetOutpaymentsByIndex(
-        int32_t nIndex) const; // Get a specific piece of outpayments, at a
-                               // specific index.
+    EXPORT Message* GetOutpaymentsByIndex(int32_t nIndex) const; // Get a
+                                                                 // specific
+                                                                 // piece of
+                                                                 // outpayments,
+                                                                 // at a
+    // specific index.
     EXPORT bool RemoveOutpaymentsByIndex(int32_t nIndex,
                                          bool bDeleteIt = true); // if returns
                                                                  // false,

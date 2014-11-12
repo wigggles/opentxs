@@ -139,7 +139,7 @@
 namespace opentxs
 {
 
-class OTMessage;
+class Message;
 class String;
 
 class OTMessageBuffer
@@ -153,18 +153,18 @@ public:
 
     EXPORT void Clear();
     // message must be heap-allocated. Takes ownership.
-    EXPORT void Push(std::shared_ptr<OTMessage> message);
+    EXPORT void Push(std::shared_ptr<Message> message);
     // Caller IS responsible to delete.
-    EXPORT std::shared_ptr<OTMessage> Pop(const int64_t& requestNum,
-                                          const String& serverId,
-                                          const String& nymId);
+    EXPORT std::shared_ptr<Message> Pop(const int64_t& requestNum,
+                                        const String& serverId,
+                                        const String& nymId);
 
 private:
     OTMessageBuffer(const OTMessageBuffer&);
     OTMessageBuffer& operator=(const OTMessageBuffer&);
 
 private:
-    typedef std::list<std::shared_ptr<OTMessage>> Messages;
+    typedef std::list<std::shared_ptr<Message>> Messages;
 
 private:
     Messages messages_;

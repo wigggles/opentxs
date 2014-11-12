@@ -146,7 +146,7 @@
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
@@ -1115,7 +1115,7 @@ int32_t main(int32_t argc, char* argv[])
         bool bSendCommand = false; // Determines whether to actually send a
                                    // message to the server.
 
-        OTMessage theMessage;
+        Message theMessage;
 
         // If we can match the user's request to a client command,
         // AND theClient object is able to process that request into
@@ -1972,7 +1972,7 @@ int32_t main(int32_t argc, char* argv[])
         bool bSendCommand = false; // Determines whether to actually send a
                                    // message to the server.
 
-        OTMessage theMessage;
+        Message theMessage;
 
         // If we can match the user's request to a client command,
         // AND theClient object is able to process that request into

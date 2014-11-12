@@ -145,17 +145,17 @@ namespace opentxs
 
 class OTPasswordData;
 class OTPseudonym;
-class OTMessage;
+class Message;
 
 class OTMessageStrategy
 {
 public:
-    virtual int32_t processXml(OTMessage& message,
+    virtual int32_t processXml(Message& message,
                                irr::io::IrrXMLReader*& xml) = 0;
-    virtual String writeXml(OTMessage& message) = 0;
+    virtual String writeXml(Message& message) = 0;
     virtual ~OTMessageStrategy();
 
-    void processXmlSuccess(OTMessage& m, irr::io::IrrXMLReader*& xml);
+    void processXmlSuccess(Message& m, irr::io::IrrXMLReader*& xml);
 };
 
 class OTMessageStrategyManager
@@ -176,7 +176,7 @@ private:
     std::unordered_map<std::string, std::unique_ptr<OTMessageStrategy>> mapping;
 };
 
-class OTMessage : public OTContract
+class Message : public OTContract
 {
 protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
@@ -188,14 +188,14 @@ protected:
 private:
     bool updateContentsByType();
 
-    int32_t processXmlNodeAckReplies(OTMessage& m, irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeAcknowledgedReplies(OTMessage& m,
+    int32_t processXmlNodeAckReplies(Message& m, irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeAcknowledgedReplies(Message& m,
                                               irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeOTmessage(OTMessage& m, irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeOTmessage(Message& m, irr::io::IrrXMLReader*& xml);
 
 public:
-    EXPORT OTMessage();
-    EXPORT virtual ~OTMessage();
+    EXPORT Message();
+    EXPORT virtual ~Message();
 
     virtual bool VerifyContractID() const;
 
@@ -295,7 +295,7 @@ class RegisterStrategy
 public:
     RegisterStrategy(std::string name, OTMessageStrategy* strategy)
     {
-        OTMessage::registerStrategy(name, strategy);
+        Message::registerStrategy(name, strategy);
     }
 };
 

@@ -137,7 +137,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignedFile.hpp>
@@ -1075,9 +1075,9 @@ bool OTPseudonym::AddNewSubcredential(
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
 /// on the heap, NOT the stack, or you will corrupt memory with this call.
 ///
-void OTPseudonym::AddMail(OTMessage& theMessage) // a mail message is a form of
-                                                 // transaction, transported via
-                                                 // Nymbox
+void OTPseudonym::AddMail(Message& theMessage) // a mail message is a form of
+                                               // transaction, transported via
+                                               // Nymbox
 {
     m_dequeMail.push_front(&theMessage);
 }
@@ -1090,7 +1090,7 @@ int32_t OTPseudonym::GetMailCount() const
 
 // Look up a piece of mail by index.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetMailByIndex(int32_t nIndex) const
+Message* OTPseudonym::GetMailByIndex(int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1110,7 +1110,7 @@ bool OTPseudonym::RemoveMailByIndex(int32_t nIndex) // if false, mail
     if (m_dequeMail.empty() || (nIndex < 0) || (uIndex >= m_dequeMail.size()))
         return false;
 
-    OTMessage* pMessage = m_dequeMail.at(nIndex);
+    Message* pMessage = m_dequeMail.at(nIndex);
 
     OT_ASSERT(nullptr != pMessage);
 
@@ -1130,9 +1130,9 @@ void OTPseudonym::ClearMail()
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
 /// on the heap, NOT the stack, or you will corrupt memory with this call.
 ///
-void OTPseudonym::AddOutmail(OTMessage& theMessage) // a mail message is a form
-                                                    // of transaction,
-                                                    // transported via Nymbox
+void OTPseudonym::AddOutmail(Message& theMessage) // a mail message is a form
+                                                  // of transaction,
+                                                  // transported via Nymbox
 {
     m_dequeOutmail.push_front(&theMessage);
 }
@@ -1145,7 +1145,7 @@ int32_t OTPseudonym::GetOutmailCount() const
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetOutmailByIndex(int32_t nIndex) const
+Message* OTPseudonym::GetOutmailByIndex(int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1168,7 +1168,7 @@ bool OTPseudonym::RemoveOutmailByIndex(int32_t nIndex) // if false,
         (uIndex >= m_dequeOutmail.size()))
         return false;
 
-    OTMessage* pMessage = m_dequeOutmail.at(nIndex);
+    Message* pMessage = m_dequeOutmail.at(nIndex);
 
     OT_ASSERT(nullptr != pMessage);
 
@@ -1188,11 +1188,11 @@ void OTPseudonym::ClearOutmail()
 /// the Nym DOES take ownership of the object. Therefore it MUST be allocated
 /// on the heap, NOT the stack, or you will corrupt memory with this call.
 ///
-void OTPseudonym::AddOutpayments(OTMessage& theMessage) // a payments message is
-                                                        // a form of
-                                                        // transaction,
-                                                        // transported via
-                                                        // Nymbox
+void OTPseudonym::AddOutpayments(Message& theMessage) // a payments message is
+                                                      // a form of
+                                                      // transaction,
+                                                      // transported via
+                                                      // Nymbox
 {
     m_dequeOutpayments.push_front(&theMessage);
 }
@@ -1205,7 +1205,7 @@ int32_t OTPseudonym::GetOutpaymentsCount() const
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMessage* OTPseudonym::GetOutpaymentsByIndex(int32_t nIndex) const
+Message* OTPseudonym::GetOutpaymentsByIndex(int32_t nIndex) const
 {
     const uint32_t uIndex = nIndex;
 
@@ -1232,7 +1232,7 @@ bool OTPseudonym::RemoveOutpaymentsByIndex(int32_t nIndex, bool bDeleteIt)
         return false;
     }
 
-    OTMessage* pMessage = m_dequeOutpayments.at(nIndex);
+    Message* pMessage = m_dequeOutpayments.at(nIndex);
     OT_ASSERT(nullptr != pMessage);
 
     m_dequeOutpayments.erase(m_dequeOutpayments.begin() + uIndex);
@@ -4520,7 +4520,7 @@ bool OTPseudonym::SavePseudonym(String& strNym)
 
     if (!(m_dequeMail.empty())) {
         for (uint32_t i = 0; i < m_dequeMail.size(); i++) {
-            OTMessage* pMessage = m_dequeMail.at(i);
+            Message* pMessage = m_dequeMail.at(i);
             OT_ASSERT(nullptr != pMessage);
 
             String strMail(*pMessage);
@@ -4538,7 +4538,7 @@ bool OTPseudonym::SavePseudonym(String& strNym)
 
     if (!(m_dequeOutmail.empty())) {
         for (uint32_t i = 0; i < m_dequeOutmail.size(); i++) {
-            OTMessage* pMessage = m_dequeOutmail.at(i);
+            Message* pMessage = m_dequeOutmail.at(i);
             OT_ASSERT(nullptr != pMessage);
 
             String strOutmail(*pMessage);
@@ -4556,7 +4556,7 @@ bool OTPseudonym::SavePseudonym(String& strNym)
 
     if (!(m_dequeOutpayments.empty())) {
         for (uint32_t i = 0; i < m_dequeOutpayments.size(); i++) {
-            OTMessage* pMessage = m_dequeOutpayments.at(i);
+            Message* pMessage = m_dequeOutpayments.at(i);
             OT_ASSERT(nullptr != pMessage);
 
             String strOutpayments(*pMessage);
@@ -5527,7 +5527,7 @@ bool OTPseudonym::LoadFromString(
                                                 true); // linebreaks == true.
 
                             if (strMessage.GetLength() > 2) {
-                                OTMessage* pMessage = new OTMessage;
+                                Message* pMessage = new Message;
 
                                 OT_ASSERT(nullptr != pMessage);
 
@@ -5570,7 +5570,7 @@ bool OTPseudonym::LoadFromString(
                                                 true); // linebreaks == true.
 
                             if (strMessage.GetLength() > 2) {
-                                OTMessage* pMessage = new OTMessage;
+                                Message* pMessage = new Message;
                                 OT_ASSERT(nullptr != pMessage);
 
                                 if (pMessage->LoadContractFromString(
@@ -5612,7 +5612,7 @@ bool OTPseudonym::LoadFromString(
                                                 true); // linebreaks == true.
 
                             if (strMessage.GetLength() > 2) {
-                                OTMessage* pMessage = new OTMessage;
+                                Message* pMessage = new Message;
                                 OT_ASSERT(nullptr != pMessage);
 
                                 if (pMessage->LoadContractFromString(

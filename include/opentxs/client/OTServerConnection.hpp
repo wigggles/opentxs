@@ -199,7 +199,7 @@ public:
 
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
-    void ProcessMessageOut(const OTMessage& theMessage) const;
+    void ProcessMessageOut(const Message& theMessage) const;
 };
 
 } // namespace opentxs

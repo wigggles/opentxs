@@ -154,7 +154,7 @@
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
 #include <opentxs/core/script/OTParty.hpp>
@@ -528,7 +528,7 @@ void OTServer::Init(bool readOnly)
 bool OTServer::SendInstrumentToNym(
     const OTIdentifier& SERVER_ID, const OTIdentifier& SENDER_USER_ID,
     const OTIdentifier& RECIPIENT_USER_ID,
-    OTMessage* pMsg,           // the request msg from payer, which is attached
+    Message* pMsg,             // the request msg from payer, which is attached
                                // WHOLE to the Nymbox receipt. contains payment
                                // already.
     const OTPayment* pPayment, // or pass this instead: we will create
@@ -634,7 +634,7 @@ bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
                                    const OTIdentifier& SENDER_USER_ID,
                                    const OTIdentifier& RECIPIENT_USER_ID,
                                    OTTransaction::transactionType theType,
-                                   OTMessage* pMsg, const String* pstrMessage,
+                                   Message* pMsg, const String* pstrMessage,
                                    const char* szCommand) // If you pass
                                                           // something here, it
                                                           // will
@@ -677,11 +677,11 @@ bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
     // If pMsg was not already passed in here, then
     // create pMsg using pstrMessage.
     //
-    std::unique_ptr<OTMessage> theMsgAngel;
+    std::unique_ptr<Message> theMsgAngel;
 
     if (nullptr == pMsg) // we have to create it ourselves.
     {
-        pMsg = new OTMessage;
+        pMsg = new Message;
         theMsgAngel.reset(pMsg);
         if (nullptr != szCommand)
             pMsg->m_strCommand = szCommand;

@@ -137,7 +137,7 @@
 
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 
@@ -236,7 +236,7 @@ OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient)
     m_pClient = &theClient;
 }
 
-void OTServerConnection::ProcessMessageOut(const OTMessage& theMessage) const
+void OTServerConnection::ProcessMessageOut(const Message& theMessage) const
 {
     // todo SetMessagePayload?
 

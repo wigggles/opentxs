@@ -135,7 +135,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 #include <opentxs/cash/Mint.hpp>
@@ -901,7 +901,7 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     // Normally asset accounts are created based on an incoming message,
     // so I'm just simulating that in order to make sure it gets its
     // necessary input values, such as asset type, server ID, etc.
-    OTMessage theMessage;
+    Message theMessage;
     SERVER_NYM_ID.GetString(theMessage.m_strNymID);
     theAssetID.GetString(theMessage.m_strAssetID);
     theServerID.GetString(theMessage.m_strServerID);

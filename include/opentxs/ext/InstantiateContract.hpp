@@ -154,7 +154,7 @@
 #include <opentxs/core/OTContract.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 
 namespace
@@ -211,7 +211,7 @@ opentxs::OTContract* InstantiateContract(opentxs::String strInput)
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
-            pContract = new OTMessage();
+            pContract = new Message();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {

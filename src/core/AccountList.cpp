@@ -134,7 +134,7 @@
 
 #include <opentxs/core/AccountList.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 #include "Helpers.hpp"
@@ -377,7 +377,7 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
 
     // Not found. There's no account ID yet for that asset type ID. That means
     // we can create it.
-    OTMessage message;
+    Message message;
     accountOwnerId.GetString(message.m_strNymID);
     assetTypeId.GetString(message.m_strAssetID);
     serverId.GetString(message.m_strServerID);

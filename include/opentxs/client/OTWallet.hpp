@@ -147,7 +147,7 @@ class Account;
 class AssetContract;
 class OTContract;
 class OTIdentifier;
-class OTMessage;
+class Message;
 class OTPassword;
 class OTPasswordData;
 class OTPseudonym;

@@ -139,7 +139,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <cstring>
@@ -6112,7 +6112,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
         //          OTString strReference;              // (Already done above.)
         //          GetReferenceString(strReference);   // (Already done above.)
 
-        OTMessage theSentMsg;
+        Message theSentMsg;
 
         if (strReference.Exists() &&
             theSentMsg.LoadContractFromString(strReference)) {
@@ -6301,7 +6301,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
          -------------------------------------------------------------------
          */
 
-        OTMessage theSentMsg;
+        Message theSentMsg;
 
         if (strReference.Exists() &&
             theSentMsg.LoadContractFromString(strReference)) {

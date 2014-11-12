@@ -172,7 +172,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/OTIdentifier.hpp>
@@ -1270,7 +1270,7 @@ bool OT_API::TransportFunction(const OTServerContract& theServerContract,
                              "OF THE SERVER ????? \n\n";
                 }
                 // todo: use a unique_ptr  soon as feasible.
-                std::shared_ptr<OTMessage> pServerReply(new OTMessage());
+                std::shared_ptr<Message> pServerReply(new Message());
                 OT_ASSERT(nullptr != pServerReply);
 
                 if (bRetrievedReply && strServerReply.Exists() &&
@@ -4060,7 +4060,7 @@ bool OT_API::SmartContract_ConfirmParty(
     // have to track it until it's activated or until we cancel it.)
     //
     const String strInstrument(*pContract);
-    OTMessage* pMessage = new OTMessage;
+    Message* pMessage = new Message;
     OT_ASSERT(nullptr != pMessage);
 
     const String strNymID(NYM_ID);
@@ -4616,7 +4616,7 @@ OTPseudonym* OT_API::LoadPrivateNym(const OTIdentifier& NYM_ID, bool bChecking,
 // true == no errors. false == errors.
 //
 bool OT_API::Msg_HarvestTransactionNumbers(
-    const OTMessage& theMsg, const OTIdentifier& USER_ID,
+    const Message& theMsg, const OTIdentifier& USER_ID,
     bool bHarvestingForRetry,          // false until positively asserted.
     bool bReplyWasSuccess,             // false until positively asserted.
     bool bReplyWasFailure,             // false until positively asserted.
@@ -4928,7 +4928,7 @@ Cheque* OT_API::WriteCheque(
     // it.)
     //
     const String strInstrument(*pCheque);
-    OTMessage* pMessage = new OTMessage;
+    Message* pMessage = new Message;
     OT_ASSERT(nullptr != pMessage);
 
     const String strNymID(SENDER_USER_ID);
@@ -5121,7 +5121,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // have to track it until it's deposited or until we cancel it.)
     //
     const String strInstrument(*pPlan);
-    OTMessage* pMessage = new OTMessage;
+    Message* pMessage = new Message;
     OT_ASSERT(nullptr != pMessage);
 
     const String strNymID(RECIPIENT_USER_ID), strNymID2(SENDER_USER_ID);
@@ -5218,7 +5218,7 @@ bool OT_API::ConfirmPaymentPlan(const OTIdentifier& SERVER_ID,
     // have to track it until it's deposited or until we cancel it.)
     //
     const String strInstrument(thePlan);
-    OTMessage* pMessage = new OTMessage;
+    Message* pMessage = new Message;
     OT_ASSERT(nullptr != pMessage);
 
     const String strNymID(SENDER_USER_ID), strNymID2(RECIPIENT_USER_ID);
@@ -7072,7 +7072,7 @@ bool OT_API::RecordPayment(
     std::unique_ptr<OTTransaction> theTransactionAngel;
 
     // second block:
-    std::unique_ptr<OTMessage> theMessageAngel;
+    std::unique_ptr<Message> theMessageAngel;
 
     bool bRemoved = false, bNeedToSaveTheNym = false;
 
@@ -7144,7 +7144,7 @@ bool OT_API::RecordPayment(
                      "on index " << nIndex << ". (Out of bounds.)\n";
             return false;
         }
-        OTMessage* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
+        Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
 
         if (nullptr == pMessage) {
             otErr << __FUNCTION__
@@ -8298,7 +8298,7 @@ bool OT_API::ResyncNymWithServer(OTPseudonym& theNym, const OTLedger& theNymbox,
 // you receive the pointer that comes back from this function.
 // (It also might return nullptr, if there are none there.)
 //
-std::shared_ptr<OTMessage> OT_API::PopMessageBuffer(
+std::shared_ptr<Message> OT_API::PopMessageBuffer(
     const int64_t& lRequestNumber, const OTIdentifier& SERVER_ID,
     const OTIdentifier& USER_ID) const
 {
@@ -8335,9 +8335,9 @@ void OT_API::FlushMessageBuffer()
 // Use the "Remove" call if you want to remove it.
 //
 
-OTMessage* OT_API::GetSentMessage(const int64_t& lRequestNumber,
-                                  const OTIdentifier& SERVER_ID,
-                                  const OTIdentifier& USER_ID) const
+Message* OT_API::GetSentMessage(const int64_t& lRequestNumber,
+                                const OTIdentifier& SERVER_ID,
+                                const OTIdentifier& USER_ID) const
 {
     OT_ASSERT_MSG((m_bInitialized && (m_pClient != nullptr)),
                   "Not initialized; call OT_API::Init first.");
@@ -8467,7 +8467,7 @@ void OT_API::FlushSentMessages(bool bHarvestingForRetry,
         OT_ASSERT(nullptr != pTransaction);
 
         if (OTTransaction::replyNotice == pTransaction->GetType()) {
-            OTMessage* pMessage =
+            Message* pMessage =
                 m_pClient->GetMessageOutbuffer().GetSentMessage(*pTransaction);
 
             if (nullptr != pMessage) // It WAS there in my sent buffer!
@@ -8770,7 +8770,7 @@ int32_t OT_API::issueBasket(const OTIdentifier& SERVER_ID,
     // (see test client for example.)
     String strServerID(SERVER_ID), strNymID(USER_ID);
 
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     // The user signs and saves the contract, but once the server gets it,
@@ -9293,7 +9293,7 @@ int32_t OT_API::exchangeBasket(
                     // Encoding...
                     ascLedger.SetString(strLedger);
 
-                    OTMessage theMessage;
+                    Message theMessage;
 
                     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
                     int64_t lRequestNumber = 0;
@@ -9373,7 +9373,7 @@ int32_t OT_API::getTransactionNumber(const OTIdentifier& SERVER_ID,
         //
         //      return (-1);
     }
-    OTMessage theMessage;
+    Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
         OTClient::getTransactionNum, theMessage, *pNym, *pServer,
@@ -9425,7 +9425,7 @@ int32_t OT_API::notarizeWithdrawal(const OTIdentifier& SERVER_ID,
     }
     std::unique_ptr<Mint> pMint(Mint::MintFactory(strServerID, strContractID));
     OT_ASSERT(nullptr != pMint);
-    OTMessage theMessage;
+    Message theMessage;
 
     const int64_t lTotalAmount = AMOUNT;
     int64_t lAmount = lTotalAmount;
@@ -9668,7 +9668,7 @@ int32_t OT_API::notarizeDeposit(const OTIdentifier& SERVER_ID,
 
     CONTRACT_ID = pAccount->GetAssetTypeID();
     CONTRACT_ID.GetString(strContractID);
-    OTMessage theMessage;
+    Message theMessage;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
 
@@ -10010,7 +10010,7 @@ int32_t OT_API::payDividend(
               << lTotalCostOfDividend << ".)\n";
         return (-1);
     }
-    OTMessage theMessage;
+    Message theMessage;
 
     String strServerID(SERVER_ID), strNymID(ISSUER_USER_ID),
         strFromAcct(DIVIDEND_FROM_ACCT_ID);
@@ -10266,7 +10266,7 @@ int32_t OT_API::withdrawVoucher(const OTIdentifier& SERVER_ID,
 
     CONTRACT_ID = pAccount->GetAssetTypeID();
     CONTRACT_ID.GetString(strContractID);
-    OTMessage theMessage;
+    Message theMessage;
 
     const int64_t lAmount = AMOUNT;
 
@@ -10599,7 +10599,7 @@ int32_t OT_API::depositCheque(const OTIdentifier& SERVER_ID,
     String strContractID;
     CONTRACT_ID = pAccount->GetAssetTypeID();
     CONTRACT_ID.GetString(strContractID);
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strDepositAcct(ACCT_ID);
@@ -10880,7 +10880,7 @@ int32_t OT_API::depositPaymentPlan(const OTIdentifier& SERVER_ID,
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer.  (No need to cleanup.)
     OTPaymentPlan thePlan;
-    OTMessage theMessage;
+    Message theMessage;
 
     const String strServerID(SERVER_ID), strNymID(USER_ID);
 
@@ -11067,7 +11067,7 @@ int32_t OT_API::triggerClause(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID);
@@ -11131,7 +11131,7 @@ int32_t OT_API::activateSmartContract(const OTIdentifier& SERVER_ID,
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     OTSmartContract theContract(SERVER_ID);
-    OTMessage theMessage;
+    Message theMessage;
     const String strServerID(SERVER_ID), strNymID(USER_ID);
 
     if (theContract.LoadContractFromString(THE_SMART_CONTRACT)) {
@@ -11561,7 +11561,7 @@ int32_t OT_API::cancelCronItem(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     const String strServerID(SERVER_ID), strNymID(USER_ID);
 
@@ -11742,7 +11742,7 @@ int32_t OT_API::issueMarketOffer(
                  "bother trading them in the first place?)\n";
         return (-1);
     }
-    OTMessage theMessage;
+    Message theMessage;
     const String strServerID(SERVER_ID), strNymID(USER_ID);
     if (pNym->GetTransactionNumCount(strServerID) < 3) {
         otOut << __FUNCTION__
@@ -12056,7 +12056,7 @@ int32_t OT_API::getMarketList(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     String strServerID(SERVER_ID);
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -12110,7 +12110,7 @@ int32_t OT_API::getMarketOffers(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     String strServerID(SERVER_ID), strMarketID(MARKET_ID);
 
@@ -12172,7 +12172,7 @@ int32_t OT_API::getMarketRecentTrades(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     String strServerID(SERVER_ID), strMarketID(MARKET_ID);
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -12226,7 +12226,7 @@ int32_t OT_API::getNym_MarketOffers(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     String strServerID(SERVER_ID);
 
@@ -12284,7 +12284,7 @@ int32_t OT_API::notarizeTransfer(const OTIdentifier& SERVER_ID,
         GetOrLoadAccount(*pNym, ACCT_FROM, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     const int64_t lAmount = AMOUNT;
 
@@ -12480,7 +12480,7 @@ int32_t OT_API::getNymbox(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID);
@@ -12532,7 +12532,7 @@ int32_t OT_API::getInbox(const OTIdentifier& SERVER_ID,
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
@@ -12586,7 +12586,7 @@ int32_t OT_API::getOutbox(const OTIdentifier& SERVER_ID,
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
@@ -12638,7 +12638,7 @@ int32_t OT_API::processNymbox(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     bool bSuccess = false;
     int32_t nReceiptCount = (-1);
     int32_t nRequestNum = (-1);
@@ -12743,7 +12743,7 @@ int32_t OT_API::processInbox(const OTIdentifier& SERVER_ID,
         GetOrLoadAccount(*pNym, ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
@@ -12843,7 +12843,7 @@ int32_t OT_API::issueAssetType(const OTIdentifier& SERVER_ID,
         OTIdentifier newID;
         theAssetContract.CalculateContractID(newID);
         theAssetContract.SetIdentifier(newID); // probably unnecessary
-        OTMessage theMessage;
+        Message theMessage;
         int64_t lRequestNumber = 0;
 
         String strServerID(SERVER_ID), strNymID(USER_ID);
@@ -12940,7 +12940,7 @@ int32_t OT_API::getContract(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
@@ -12993,7 +12993,7 @@ int32_t OT_API::getMint(const OTIdentifier& SERVER_ID,
         GetAssetType(ASSET_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pAssetContract) return (-1);
     // By this point, pAssetContract is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
@@ -13126,7 +13126,7 @@ int32_t OT_API::queryAssetTypes(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID);
@@ -13186,7 +13186,7 @@ int32_t OT_API::createAssetAccount(const OTIdentifier& SERVER_ID,
         GetAssetType(ASSET_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pAssetContract) return (-1);
     // By this point, pAssetContract is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
@@ -13237,7 +13237,7 @@ int32_t OT_API::deleteAssetAccount(const OTIdentifier& SERVER_ID,
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCOUNT_ID);
@@ -13318,7 +13318,7 @@ int32_t OT_API::getBoxReceipt(
     // I just force it to load in order to keep things clean, since this is an
     // API call. (I'm
     // real strict on the API user, making him keep his nose clean.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     const String strServerID(SERVER_ID), strNymID(USER_ID),
@@ -13377,7 +13377,7 @@ int32_t OT_API::getAccount(const OTIdentifier& SERVER_ID,
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
@@ -13429,7 +13429,7 @@ int32_t OT_API::getAccountFiles(const OTIdentifier& SERVER_ID,
     if (nullptr == pAccount) return (-1);
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
@@ -13475,7 +13475,7 @@ int32_t OT_API::getRequest(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
         OTClient::getRequest, theMessage, *pNym, *pServer,
@@ -13504,7 +13504,7 @@ int32_t OT_API::usageCredits(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strNymID2(USER_ID_CHECK);
@@ -13560,7 +13560,7 @@ int32_t OT_API::checkUser(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strNymID2(USER_ID_CHECK);
@@ -13613,7 +13613,7 @@ int32_t OT_API::sendUserMessage(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int64_t lRequestNumber = 0;
 
     String strServerID(SERVER_ID), strNymID(USER_ID),
@@ -13658,7 +13658,7 @@ int32_t OT_API::sendUserMessage(const OTIdentifier& SERVER_ID,
         // store a copy in the outmail.
         // (not encrypted, since the Nymfile will be encrypted anyway.
         //
-        OTMessage* pMessage = new OTMessage;
+        Message* pMessage = new Message;
 
         OT_ASSERT(nullptr != pMessage);
 
@@ -13723,7 +13723,7 @@ int32_t OT_API::sendUserInstrument(
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
     int32_t nReturnValue = -1;
     int64_t lRequestNumber = 0;
 
@@ -13785,7 +13785,7 @@ int32_t OT_API::sendUserInstrument(
                      "since I couldn't find it in there.\n";
     }
     // OUTPAYMENT COPY:
-    std::unique_ptr<OTMessage> pMessage(new OTMessage);
+    std::unique_ptr<Message> pMessage(new Message);
 
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
@@ -13929,7 +13929,7 @@ int32_t OT_API::createUserAccount(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
         OTClient::createUserAccount, theMessage, *pNym, *pServer,
@@ -13958,7 +13958,7 @@ int32_t OT_API::deleteUserAccount(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
         OTClient::deleteUserAccount, theMessage, *pNym, *pServer,
@@ -13986,7 +13986,7 @@ int32_t OT_API::checkServerID(const OTIdentifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTMessage theMessage;
+    Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
         OTClient::checkServerID, theMessage, *pNym, *pServer,
@@ -14015,7 +14015,7 @@ void OT_API::AddAssetContract(const AssetContract& theContract) const
 // Sets the "focus" of the client member variable and calls the
 // ProcessMessageOut method.
 void OT_API::SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
-                         OTMessage& message) const
+                         Message& message) const
 {
     m_pClient->SetFocusToServerAndNym(*pServerContract, *pNym,
                                       m_pTransportCallback);
@@ -14025,7 +14025,7 @@ void OT_API::SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
 
 // Calls SendMessage() and does some request number magic
 int32_t OT_API::SendMessage(OTServerContract* pServerContract,
-                            OTPseudonym* pNym, OTMessage& message,
+                            OTPseudonym* pNym, Message& message,
                             int64_t requestNumber) const
 {
     SendMessage(pServerContract, pNym, message);

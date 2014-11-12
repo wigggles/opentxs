@@ -137,7 +137,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTData.hpp>
@@ -543,7 +543,7 @@ Account* Account::LoadExistingAccount(const OTIdentifier& accountId,
 Account* Account::GenerateNewAccount(const OTIdentifier& userId,
                                      const OTIdentifier& serverId,
                                      const OTPseudonym& serverNym,
-                                     const OTMessage& message,
+                                     const Message& message,
                                      Account::AccountType acctType,
                                      int64_t stashTransNum)
 {
@@ -570,7 +570,7 @@ message.m_strAssetID;
 message.m_strServerID;
  */
 bool Account::GenerateNewAccount(const OTPseudonym& server,
-                                 const OTMessage& message,
+                                 const Message& message,
                                  Account::AccountType acctType,
                                  int64_t stashTransNum)
 {

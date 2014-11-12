@@ -158,7 +158,7 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTMessage.hpp>
+#include <opentxs/core/Message.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
@@ -2836,7 +2836,7 @@ std::string OTAPI_Exec::GetNym_MailContentsByIndex(const std::string& NYM_ID,
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetMailByIndex(nIndex);
+    Message* pMessage = pNym->GetMailByIndex(nIndex);
 
     if (nullptr != pMessage) {
         // SENDER:    pMessage->m_strNymID
@@ -2873,7 +2873,7 @@ std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(const std::string& NYM_ID,
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetMailByIndex(nIndex);
+    Message* pMessage = pNym->GetMailByIndex(nIndex);
 
     if (nullptr != pMessage) {
         // SENDER:    pMessage->m_strNymID
@@ -2906,7 +2906,7 @@ std::string OTAPI_Exec::GetNym_MailServerIDByIndex(const std::string& NYM_ID,
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetMailByIndex(nIndex);
+    Message* pMessage = pNym->GetMailByIndex(nIndex);
 
     if (nullptr != pMessage) {
         // SENDER:    pMessage->m_strNymID
@@ -2982,7 +2982,7 @@ bool OTAPI_Exec::Nym_VerifyMailByIndex(const std::string& NYM_ID,
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
-    OTMessage* pMessage = pNym->GetMailByIndex(nIndex);
+    Message* pMessage = pNym->GetMailByIndex(nIndex);
 
     if (nullptr != pMessage) {
         // Grab the NymID of the sender.
@@ -3032,7 +3032,7 @@ std::string OTAPI_Exec::GetNym_OutmailContentsByIndex(
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetOutmailByIndex(nIndex);
+    Message* pMessage = pNym->GetOutmailByIndex(nIndex);
     if (nullptr != pMessage) {
         // SENDER:    pMessage->m_strNymID
         // RECIPIENT: pMessage->m_strNymID2
@@ -3065,7 +3065,7 @@ std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetOutmailByIndex(nIndex);
+    Message* pMessage = pNym->GetOutmailByIndex(nIndex);
     if (nullptr != pMessage) {
         // SENDER:    pMessage->m_strNymID
         // SERVER:    pMessage->m_strServerID
@@ -3095,7 +3095,7 @@ std::string OTAPI_Exec::GetNym_OutmailServerIDByIndex(
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetOutmailByIndex(nIndex);
+    Message* pMessage = pNym->GetOutmailByIndex(nIndex);
 
     if (nullptr != pMessage) {
         // SENDER:    pMessage->m_strNymID
@@ -3171,7 +3171,7 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(const std::string& NYM_ID,
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
-    OTMessage* pMessage = pNym->GetOutmailByIndex(nIndex);
+    Message* pMessage = pNym->GetOutmailByIndex(nIndex);
     if (nullptr != pMessage) {
         // Grab the NymID of the sender.
         const OTIdentifier theSenderNymID(pMessage->m_strNymID);
@@ -3228,7 +3228,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
+    Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
         // SENDER:     pMessage->m_strNymID
         // RECIPIENT:  pMessage->m_strNymID2
@@ -3268,7 +3268,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
+    Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
         // SENDER:    pMessage->m_strNymID
         // SERVER:    pMessage->m_strServerID
@@ -3298,7 +3298,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsServerIDByIndex(
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
-    OTMessage* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
+    Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
 
     if (nullptr != pMessage) {
         // SENDER:    pMessage->m_strNymID
@@ -3381,7 +3381,7 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(const std::string& NYM_ID,
     OTIdentifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
-    OTMessage* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
+    Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
         // Grab the NymID of the sender.
         const OTIdentifier theSenderNymID(pMessage->m_strNymID);
@@ -7401,7 +7401,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         return false;
     }
     const OTIdentifier theUserID(USER_ID);
-    OTMessage theMessage;
+    Message theMessage;
     const String strMsg(THE_MESSAGE);
     if (!strMsg.Exists()) {
         otErr << __FUNCTION__
@@ -11732,7 +11732,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -13207,7 +13207,7 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
     }
 
     String strMessage(THE_MESSAGE);
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists()) {
         otErr << __FUNCTION__ << ": Error: THE_MESSAGE doesn't exist.\n";
@@ -14900,7 +14900,7 @@ std::string OTAPI_Exec::PopMessageBuffer(const int64_t& REQUEST_NUMBER,
 
     const int64_t lRequestNum = REQUEST_NUMBER;
     const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
-    std::shared_ptr<OTMessage> pMsg(OTAPI()->PopMessageBuffer(
+    std::shared_ptr<Message> pMsg(OTAPI()->PopMessageBuffer(
         static_cast<int64_t>(lRequestNum), theServerID,
         theUserID)); // caller responsible to delete.
 
@@ -14963,8 +14963,8 @@ std::string OTAPI_Exec::GetSentMessage(const int64_t& REQUEST_NUMBER,
     }
     const int64_t lRequestNum = REQUEST_NUMBER;
     const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
-    OTMessage* pMsg = OTAPI()->GetSentMessage(static_cast<int64_t>(lRequestNum),
-                                              theServerID, theUserID);
+    Message* pMsg = OTAPI()->GetSentMessage(static_cast<int64_t>(lRequestNum),
+                                            theServerID, theUserID);
 
     if (nullptr == pMsg) // The message wasn't found with that request number.
     {
@@ -15127,7 +15127,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
 
     OTPseudonym* pNym = OTAPI()->GetOrLoadPrivateNym(theNymID, false);
     if (nullptr == pNym) return false;
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!theMessage.LoadContractFromString(strMessage)) {
         otErr << __FUNCTION__ << ": Failed trying to load @createUserAccount() "
@@ -15250,7 +15250,7 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
     }
 
     String strMessage(THE_MESSAGE);
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() || !theMessage.LoadContractFromString(strMessage))
         return "";
@@ -15276,7 +15276,7 @@ std::string OTAPI_Exec::Message_GetCommand(const std::string& THE_MESSAGE) const
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() || !theMessage.LoadContractFromString(strMessage))
         return "";
@@ -15304,7 +15304,7 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -15352,7 +15352,7 @@ std::string OTAPI_Exec::Message_GetNewAssetTypeID(
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -15399,7 +15399,7 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -15448,7 +15448,7 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -15495,7 +15495,7 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -15544,7 +15544,7 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
         return OT_ERROR;
     }
 
-    OTMessage theMessage;
+    Message theMessage;
     String strMessage(THE_MESSAGE);
 
     if (!strMessage.Exists()) {
@@ -15613,7 +15613,7 @@ int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() || !theMessage.LoadContractFromString(strMessage))
         return OT_ERROR;
@@ -15652,7 +15652,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -15748,7 +15748,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
 
     String strMessage(THE_MESSAGE);
 
-    OTMessage theMessage;
+    Message theMessage;
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
