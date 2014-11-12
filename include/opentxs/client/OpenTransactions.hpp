@@ -204,6 +204,12 @@ private:
     EXPORT bool Init();    // Per instance. (called automaticly by constructor)
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
 
+    void SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
+                     OTMessage& message) const;
+
+    int32_t SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
+                        OTMessage& message, int64_t requestNum) const;
+
 public:
     EXPORT bool IsInitialized() const
     {
