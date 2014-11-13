@@ -203,9 +203,6 @@ bool OTServerContract::SaveContractWallet(String& strContents) const
 
 void OTServerContract::CreateContents()
 {
-
-    m_strVersion = "2.0"; // 2.0 since adding credentials.
-
     m_xmlUnsigned.Release();
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
     m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n",
