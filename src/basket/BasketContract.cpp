@@ -174,8 +174,6 @@ BasketContract::~BasketContract()
 
 void BasketContract::CreateContents()
 {
-    m_strVersion = "2.0"; // 2.0 since adding credentials.
-
     m_xmlUnsigned.Release();
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
 
