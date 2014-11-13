@@ -134,7 +134,7 @@
 #define OPENTXS_BASKET_BASKET_HPP
 
 #include "BasketItem.hpp"
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 
 /*
 

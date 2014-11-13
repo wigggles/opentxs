@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTASSETCONTRACT_HPP
 #define OPENTXS_CORE_OTASSETCONTRACT_HPP
 
-#include "OTContract.hpp"
+#include "Contract.hpp"
 
 namespace opentxs
 {

@@ -131,7 +131,7 @@
  **************************************************************/
 
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/OTPseudonym.hpp>

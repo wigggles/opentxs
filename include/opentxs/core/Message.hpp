@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
-#include "OTContract.hpp"
+#include "Contract.hpp"
 #include "OTNumList.hpp"
 
 #include <unordered_map>

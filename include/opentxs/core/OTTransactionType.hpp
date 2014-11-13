@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
-#include "OTContract.hpp"
+#include "Contract.hpp"
 #include "OTNumList.hpp"
 
 namespace opentxs

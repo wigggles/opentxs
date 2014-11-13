@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
 #define OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
 
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 
 namespace opentxs
 {

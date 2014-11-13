@@ -149,7 +149,7 @@
 #include <opentxs/core/crypto/OTKeypair.hpp>
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTLowLevelKeyData.hpp>

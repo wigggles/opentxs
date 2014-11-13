@@ -151,7 +151,7 @@
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/util/Assert.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/Message.hpp>
