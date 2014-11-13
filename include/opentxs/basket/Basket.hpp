@@ -187,7 +187,7 @@
 namespace opentxs
 {
 
-class Basket : public OTContract
+class Basket : public Contract
 {
 protected:
     int32_t m_nSubCount;

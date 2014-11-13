@@ -194,7 +194,7 @@ void BasketContract::CreateContents()
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t BasketContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = OTContract::ProcessXMLNode(xml);
+    int32_t nReturnVal = Contract::ProcessXMLNode(xml);
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -219,7 +219,7 @@ int32_t BasketContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("basketInfo")) {
-        if (!OTContract::LoadEncodedTextField(xml, m_strBasketInfo)) {
+        if (!Contract::LoadEncodedTextField(xml, m_strBasketInfo)) {
             otErr << "Error in OTAssetContract::ProcessXMLNode: basketInfo "
                      "field without value.\n";
             return (-1); // error condition

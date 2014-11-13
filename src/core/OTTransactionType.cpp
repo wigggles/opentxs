@@ -148,7 +148,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
 {
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
-        OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
+        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         OTTransactionType* pContract = nullptr;
@@ -252,7 +252,7 @@ bool OTTransactionType::Contains(const char* szContains)
 // constructors and
 // therefore provide the requisite IDs.
 OTTransactionType::OTTransactionType()
-    : OTContract()
+    : Contract()
     , m_lTransactionNum(0)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
@@ -267,7 +267,7 @@ OTTransactionType::OTTransactionType()
 OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
                                      const OTIdentifier& theAccountID,
                                      const OTIdentifier& theServerID)
-    : OTContract(theAccountID)
+    : Contract(theAccountID)
     , m_ServerID(theServerID)
     , m_AcctUserID(theUserID)
     , m_lTransactionNum(0)
@@ -288,7 +288,7 @@ OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
                                      const OTIdentifier& theAccountID,
                                      const OTIdentifier& theServerID,
                                      int64_t lTransactionNum)
-    : OTContract(theAccountID)
+    : Contract(theAccountID)
     , m_ServerID(theServerID)
     , m_AcctUserID(theUserID)
     , m_lTransactionNum(lTransactionNum)
@@ -360,7 +360,7 @@ void OTTransactionType::Release()
 {
     Release_TransactionType();
 
-    ot_super::Release(); // since I've overridden the base class, I call it
+    Contract::Release(); // since I've overridden the base class, I call it
                          // now...
 }
 

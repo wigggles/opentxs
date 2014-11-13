@@ -297,7 +297,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         returnVal = 1;
     }
     else if (!strcmp("offer", xml->getNodeName())) {
-        if (!OTContract::LoadEncodedTextField(xml, marketOffer_)) {
+        if (!Contract::LoadEncodedTextField(xml, marketOffer_)) {
             otErr << "Error in OTTrade::ProcessXMLNode: offer field without "
                      "value.\n";
             return (-1); // error condition

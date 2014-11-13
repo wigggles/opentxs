@@ -480,7 +480,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         String strData;
 
-        if (!OTContract::LoadEncodedTextField(xml, strData) ||
+        if (!Contract::LoadEncodedTextField(xml, strData) ||
             !strData.Exists()) {
             otErr << "Error in OTCron::ProcessXMLNode: cronItem field without "
                      "value.\n";
@@ -1141,7 +1141,7 @@ OTMarket* OTCron::GetMarket(const OTIdentifier& MARKET_ID)
 }
 
 OTCron::OTCron()
-    : ot_super()
+    : Contract()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr) // just here for convenience, not responsible to
                             // cleanup this pointer.
@@ -1151,7 +1151,7 @@ OTCron::OTCron()
 }
 
 OTCron::OTCron(const OTIdentifier& SERVER_ID)
-    : ot_super()
+    : Contract()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr) // just here for convenience, not responsible to
                             // cleanup this pointer.
@@ -1162,7 +1162,7 @@ OTCron::OTCron(const OTIdentifier& SERVER_ID)
 }
 
 OTCron::OTCron(const char* szFilename)
-    : ot_super()
+    : Contract()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr) // just here for convenience, not responsible to
                             // cleanup this pointer.
@@ -1191,7 +1191,7 @@ void OTCron::Release()
 {
     Release_Cron();
 
-    ot_super::Release();
+    Contract::Release();
 }
 
 void OTCron::Release_Cron()

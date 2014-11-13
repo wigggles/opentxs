@@ -145,7 +145,7 @@ namespace opentxs
 
 class Account;
 class AssetContract;
-class OTContract;
+class Contract;
 class OTIdentifier;
 class Message;
 class OTPassword;
@@ -258,8 +258,8 @@ public:
                                             // string.
 
     EXPORT bool SignContractWithFirstNymOnList(
-        OTContract& theContract); // todo : follow-up on this and see what it's
-                                  // about.
+        Contract& theContract); // todo : follow-up on this and see what it's
+                                // about.
     // When the wallet's master passphrase changes, the extra symmetric keys
     // need to be updated to reflect that.
     EXPORT bool ChangePassphrasesOnExtraKeys(const OTPassword& oldPassphrase,

@@ -140,7 +140,7 @@ namespace opentxs
 
 class String;
 
-class OTServerContract : public OTContract
+class OTServerContract : public Contract
 {
 public:
     EXPORT OTServerContract();

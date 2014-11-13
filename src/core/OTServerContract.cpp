@@ -145,14 +145,14 @@ namespace opentxs
 {
 
 OTServerContract::OTServerContract()
-    : OTContract()
+    : Contract()
 {
     m_nPort = 0;
 }
 
 OTServerContract::OTServerContract(String& name, String& foldername,
                                    String& filename, String& strID)
-    : OTContract(name, foldername, filename, strID)
+    : Contract(name, foldername, filename, strID)
 {
     m_nPort = 0;
 }
@@ -244,7 +244,7 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
 
-    nReturnVal = OTContract::ProcessXMLNode(xml);
+    nReturnVal = Contract::ProcessXMLNode(xml);
     if (nReturnVal) return nReturnVal;
 
     if (!strcmp("notaryProviderContract", xml->getNodeName())) {

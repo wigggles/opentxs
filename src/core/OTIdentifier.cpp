@@ -175,10 +175,10 @@ OTIdentifier::OTIdentifier(const String& theStr)
     SetString(theStr);
 }
 
-OTIdentifier::OTIdentifier(const OTContract& theContract)
+OTIdentifier::OTIdentifier(const Contract& theContract)
     : OTData() // Get the contract's ID into this identifier.
 {
-    (const_cast<OTContract&>(theContract)).GetIdentifier(*this);
+    (const_cast<Contract&>(theContract)).GetIdentifier(*this);
 }
 
 OTIdentifier::OTIdentifier(const OTPseudonym& theNym)

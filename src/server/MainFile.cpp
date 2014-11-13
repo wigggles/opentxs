@@ -190,7 +190,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     // MintsMap        m_mapMints;          // Mints for each of those.
 
     for (auto& it : server_->transactor_.contractsMap_) {
-        OTContract* pContract = it.second;
+        Contract* pContract = it.second;
         OT_ASSERT_MSG(nullptr != pContract,
                       "nullptr contract pointer in MainFile::SaveMainFile.\n");
 
@@ -491,7 +491,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                          strNodeName.Compare("cachedKey")) {
                     OTASCIIArmor ascCachedKey;
 
-                    if (OTContract::LoadEncodedTextField(xml, ascCachedKey)) {
+                    if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                         // We successfully loaded the masterKey from file, so
                         // let's SET it
                         // as the master key globally...

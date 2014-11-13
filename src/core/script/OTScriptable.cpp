@@ -2593,7 +2593,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              : 0;
                     if (nAcctCount > 0) {
                         while (nAcctCount-- > 0) {
-                            if (!OTContract::SkipToElement(xml)) {
+                            if (!Contract::SkipToElement(xml)) {
                                 otErr << szFunc << ": Error finding expected "
                                                    "next element for party "
                                                    "account.\n";
@@ -2710,7 +2710,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         String strTextExpected; // signed copy will go here.
 
                         if (false ==
-                            OTContract::LoadEncodedTextFieldByName(
+                            Contract::LoadEncodedTextFieldByName(
                                 xml, strTextExpected, pElementExpected)) {
                             otErr << szFunc << ": Expected " << pElementExpected
                                   << " element with text field.\n";
@@ -2782,7 +2782,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                          : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
-                            if (!OTContract::SkipToElement(xml)) {
+                            if (!Contract::SkipToElement(xml)) {
                                 otErr << szFunc << ": Error finding expected "
                                                    "next element for "
                                                    "variable.\n";
@@ -2942,7 +2942,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                         strVarValue.Release(); // probably
                                                                // unnecessary.
                                         if (false ==
-                                            OTContract::LoadEncodedTextField(
+                                            Contract::LoadEncodedTextField(
                                                 xml, strVarValue)) {
                                             otErr << szFunc
                                                   << ": No value found for "
@@ -3019,7 +3019,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             temp_MapAttributes.insert(
                                 std::pair<std::string, std::string>("name",
                                                                     ""));
-                            if (!OTContract::LoadEncodedTextFieldByName(
+                            if (!Contract::LoadEncodedTextFieldByName(
                                     xml, strTextExpected, pElementExpected,
                                     &temp_MapAttributes)) // </clause>
                             {
@@ -3382,12 +3382,12 @@ void OTScriptable::Release()
 
     // If there were any dynamically allocated objects, clean them up here.
 
-    ot_super::Release(); // since I've overridden the base class, I call it
+    Contract::Release(); // since I've overridden the base class, I call it
                          // now...
 }
 
 OTScriptable::OTScriptable()
-    : ot_super()
+    : Contract()
     , m_bCalculatingID(false)
     , // This is not serialized.
     m_bSpecifyAssetID(false)

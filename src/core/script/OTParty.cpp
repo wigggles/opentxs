@@ -1418,7 +1418,7 @@ bool OTParty::VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
 // Done
 // The party will use its authorizing agent.
 //
-bool OTParty::SignContract(OTContract& theInput) const
+bool OTParty::SignContract(Contract& theInput) const
 {
     if (GetAuthorizingAgentName().size() <= 0) {
         otErr << "OTParty::" << __FUNCTION__

@@ -3379,7 +3379,7 @@ bool OT_API::FlatSign(const OTIdentifier& theSignerNymID,
         return false;
     }
     String strTemp(strInput);
-    return OTContract::SignFlatText(strTemp, strContractType, *pNym, strOutput);
+    return Contract::SignFlatText(strTemp, strContractType, *pNym, strOutput);
 }
 
 /** OT-Sign a CONTRACT.  (First signature)
@@ -3413,7 +3413,7 @@ bool OT_API::SignContract(const OTIdentifier& theSignerNymID,
         return false;
     }
     //
-    std::unique_ptr<OTContract> pContract(
+    std::unique_ptr<Contract> pContract(
         OTTransactionType::TransactionFactory(strContract));
 
     if (nullptr == pContract)
@@ -3467,7 +3467,7 @@ bool OT_API::AddSignature(const OTIdentifier& theSignerNymID,
         return false;
     }
     //
-    std::unique_ptr<OTContract> pContract(
+    std::unique_ptr<Contract> pContract(
         OTTransactionType::TransactionFactory(strContract));
 
     if (nullptr == pContract)
@@ -3505,13 +3505,13 @@ bool OT_API::AddSignature(const OTIdentifier& theSignerNymID,
  */
 bool OT_API::VerifySignature(const String& strContract,
                              const OTIdentifier& theSignerNymID,
-                             OTContract** ppContract) const // If you use
-                                                            // this optional
-                                                            // parameter,
-                                                            // then YOU are
-                                                            // responsible
-                                                            // to clean it
-                                                            // up.
+                             Contract** ppContract) const // If you use
+                                                          // this optional
+                                                          // parameter,
+                                                          // then YOU are
+                                                          // responsible
+                                                          // to clean it
+                                                          // up.
 {
     OTPasswordData thePWData(OT_PW_DISPLAY);
     OTPseudonym* pNym =
@@ -3526,8 +3526,8 @@ bool OT_API::VerifySignature(const String& strContract,
         return false;
     }
     //
-    OTContract* pContract = nullptr;
-    std::unique_ptr<OTContract> theAngel;
+    Contract* pContract = nullptr;
+    std::unique_ptr<Contract> theAngel;
 
     if (nullptr == pContract)
         pContract = OTTransactionType::TransactionFactory(strContract);
@@ -3594,7 +3594,7 @@ bool OT_API::VerifyAndRetrieveXMLContents(const String& strContract,
                                           const OTIdentifier& theSignerNymID,
                                           String& strOutput)
 {
-    OTContract* pContract = nullptr;
+    Contract* pContract = nullptr;
     const bool bSuccess =
         VerifySignature(strContract, theSignerNymID, &pContract);
     //
@@ -3602,7 +3602,7 @@ bool OT_API::VerifyAndRetrieveXMLContents(const String& strContract,
     // object
     // will clean it up after we leave the scope of this block.
     //
-    std::unique_ptr<OTContract> theAngel(pContract);
+    std::unique_ptr<Contract> theAngel(pContract);
     strOutput.Release();
 
     if (nullptr !=

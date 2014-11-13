@@ -375,7 +375,7 @@ bool Account::LoadContract()
 {
     String id;
     GetIdentifier(id);
-    return OTContract::LoadContract(OTFolders::Account().Get(), id.Get());
+    return Contract::LoadContract(OTFolders::Account().Get(), id.Get());
 }
 
 bool Account::SaveAccount()

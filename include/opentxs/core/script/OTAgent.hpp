@@ -258,15 +258,15 @@ public:
     bool ReserveOpeningTransNum(const String& strServerID);
     bool ReserveClosingTransNum(const String& strServerID,
                                 OTPartyAccount& thePartyAcct);
-    EXPORT bool SignContract(OTContract& theInput) const;
+    EXPORT bool SignContract(Contract& theInput) const;
 
     // Verify that this agent somehow has legitimate agency over this account.
     // (According to the account.)
     //
     bool VerifyAgencyOfAccount(const Account& theAccount) const;
-    bool VerifySignature(const OTContract& theContract) const; // Have the agent
-                                                               // try
-                                                               // to
+    bool VerifySignature(const Contract& theContract) const; // Have the agent
+                                                             // try
+                                                             // to
     // verify his own signature
     // against any contract.
 

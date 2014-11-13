@@ -173,7 +173,7 @@
 namespace opentxs
 {
 
-class OTContract;
+class Contract;
 class OTCredential;
 class OTIdentifier;
 class OTPassword;
@@ -182,10 +182,10 @@ class String;
 // This is stored as an OTContract, and it must be signed by the
 // master key. (which is also an OTSubcredential.)
 //
-class OTSubcredential : public OTContract
+class OTSubcredential : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
     friend class OTCredential;
 
 protected:

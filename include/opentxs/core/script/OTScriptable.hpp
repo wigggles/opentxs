@@ -152,10 +152,10 @@ typedef std::map<std::string, OTClause*> mapOfClauses;
 typedef std::map<std::string, OTParty*> mapOfParties;
 typedef std::map<std::string, OTVariable*> mapOfVariables;
 
-class OTScriptable : public OTContract
+class OTScriptable : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
     static bool is_ot_namechar_invalid(char c);
 

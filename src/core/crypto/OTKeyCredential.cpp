@@ -664,8 +664,7 @@ bool OTKeyCredential::SetPrivateContents(
     return false;
 }
 
-bool OTKeyCredential::Sign(OTContract& theContract,
-                           const OTPasswordData* pPWData)
+bool OTKeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData)
 {
     return m_SigningKey.SignContract(theContract, pPWData);
 }

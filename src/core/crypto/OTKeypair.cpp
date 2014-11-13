@@ -490,7 +490,7 @@ bool OTKeypair::LoadBothKeysFromCertFile(const String& strFoldername,
     return true;
 }
 
-bool OTKeypair::SignContract(OTContract& theContract,
+bool OTKeypair::SignContract(Contract& theContract,
                              const OTPasswordData* pPWData)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);

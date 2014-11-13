@@ -463,8 +463,8 @@ public:
      */
     EXPORT bool VerifySignature(
         const String& strContract, const OTIdentifier& theSignerNymID,
-        OTContract** ppContract = nullptr) const; // If you use this optional
-                                                  // parameter, then YOU are
+        Contract** ppContract = nullptr) const; // If you use this optional
+                                                // parameter, then YOU are
     // responsible to clean it up.
 
     /// Verify and Retrieve XML Contents.

@@ -144,7 +144,7 @@ class OTIdentifier;
 class OTPseudonym;
 class String;
 
-class AssetContract : public OTContract
+class AssetContract : public Contract
 {
 public:
     EXPORT AssetContract();

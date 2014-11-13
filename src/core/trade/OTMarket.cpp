@@ -198,7 +198,7 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         String strData;
 
-        if (!OTContract::LoadEncodedTextField(xml, strData) ||
+        if (!Contract::LoadEncodedTextField(xml, strData) ||
             !strData.Exists()) {
             otErr << "Error in OTMarket::" << __FUNCTION__
                   << ": offer field without value.\n";
@@ -2733,7 +2733,7 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
 }
 
 OTMarket::OTMarket(const char* szFilename)
-    : OTContract()
+    : Contract()
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_lScale(1)
@@ -2749,7 +2749,7 @@ OTMarket::OTMarket(const char* szFilename)
 }
 
 OTMarket::OTMarket()
-    : OTContract()
+    : Contract()
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_lScale(1)
@@ -2762,7 +2762,7 @@ OTMarket::OTMarket()
 OTMarket::OTMarket(const OTIdentifier& SERVER_ID,
                    const OTIdentifier& ASSET_TYPE_ID,
                    const OTIdentifier& CURRENCY_TYPE_ID, const int64_t& lScale)
-    : OTContract()
+    : Contract()
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_lScale(1)
@@ -2823,7 +2823,7 @@ void OTMarket::Release()
 {
     Release_Market(); // since I've overridden the base class, I call it now...
 
-    ot_super::Release(); // since I've overridden the base class, I call it
+    Contract::Release(); // since I've overridden the base class, I call it
                          // now...
 
     // Then I call this to re-initialize everything (just out of convenience.

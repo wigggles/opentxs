@@ -144,10 +144,10 @@ class OTIdentifier;
 class String;
 
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
-class OTTransactionType : public OTContract
+class OTTransactionType : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
 protected:
     // keeping constructor protected in order to force people to use the other

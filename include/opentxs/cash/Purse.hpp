@@ -169,10 +169,10 @@ class Token;
 
 typedef std::deque<OTASCIIArmor*> dequeOfTokens;
 
-class Purse : public OTContract
+class Purse : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
 protected:
     virtual void UpdateContents(); // Before transmission or serialization, this

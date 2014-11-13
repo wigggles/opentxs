@@ -163,7 +163,7 @@ namespace opentxs
 {
 
 class OTASCIIArmor;
-class OTContract;
+class Contract;
 class OTIdentifier;
 class OTPseudonym;
 class OTSignature;
@@ -181,7 +181,7 @@ public:
     EXPORT String(const String& value);
     EXPORT String(const OTASCIIArmor& value);
     String(const OTSignature& value);
-    EXPORT String(const OTContract& value);
+    EXPORT String(const Contract& value);
     EXPORT String(const OTIdentifier& value);
     String(OTPseudonym& value);
     EXPORT String(const char* value);

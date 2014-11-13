@@ -183,7 +183,7 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
     if (nCount > 0) {
         while (nCount-- > 0) {
             //            xml->read();
-            if (!OTContract::SkipToElement(xml)) {
+            if (!Contract::SkipToElement(xml)) {
                 otOut << "OTStash::ReadFromXMLNode: Failure: Unable to find "
                          "expected element.\n";
                 return (-1);
@@ -224,7 +224,7 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
         } // while
     }
 
-    if (!OTContract::SkipAfterLoadingField(xml)) // </stash>
+    if (!Contract::SkipAfterLoadingField(xml)) // </stash>
     {
         otOut << "*** OTStash::ReadFromXMLNode: Bad data? Expected "
                  "EXN_ELEMENT_END here, but "

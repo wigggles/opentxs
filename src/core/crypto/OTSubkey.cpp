@@ -197,7 +197,7 @@ int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         retval = 1;
     }
     else if (nodeName.Compare("masterSigned")) {
-        if (!OTContract::LoadEncodedTextField(xml, m_strMasterSigned)) {
+        if (!Contract::LoadEncodedTextField(xml, m_strMasterSigned)) {
             OTLog::vError("Error in %s line %d: failed loading expected "
                           "master-signed version while loading "
                           "keyCredential.\n",

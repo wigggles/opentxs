@@ -249,7 +249,7 @@ void OTWallet::RemovePendingWithdrawal()
     m_pWithdrawalPurse = nullptr;
 }
 
-bool OTWallet::SignContractWithFirstNymOnList(OTContract& theContract)
+bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 {
     if (GetNymCount() > 0) {
         OTIdentifier NYM_ID;
@@ -475,7 +475,7 @@ void OTWallet::DisplayStatistics(String& strOutput)
     strOutput.Concatenate("ASSET CONTRACTS:\n\n");
 
     for (auto& it : m_mapContracts) {
-        OTContract* pContract = it.second;
+        Contract* pContract = it.second;
         OT_ASSERT_MSG(nullptr != pContract, "nullptr contract pointer in "
                                             "OTWallet::m_mapContracts, "
                                             "OTWallet::DisplayStatistics");
@@ -488,7 +488,7 @@ void OTWallet::DisplayStatistics(String& strOutput)
     strOutput.Concatenate("SERVER CONTRACTS:\n\n");
 
     for (auto& it : m_mapServers) {
-        OTContract* pServer = it.second;
+        Contract* pServer = it.second;
         OT_ASSERT_MSG(nullptr != pServer, "nullptr server pointer in "
                                           "OTWallet::m_mapServers, "
                                           "OTWallet::DisplayStatistics");
@@ -667,7 +667,7 @@ Account* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
 OTServerContract* OTWallet::GetServerContract(const OTIdentifier& SERVER_ID)
 {
     for (auto& it : m_mapServers) {
-        OTContract* pServer = it.second;
+        Contract* pServer = it.second;
         OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
                                             "OTWallet::m_mapServers, "
                                             "OTWallet::GetServerContract");
@@ -686,7 +686,7 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
     std::string PARTIAL_ID)
 {
     for (auto& it : m_mapServers) {
-        OTContract* pServer = it.second;
+        Contract* pServer = it.second;
         OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
                                             "OTWallet::m_mapServers, "
                                             "OTWallet::GetServerContract");
@@ -704,7 +704,7 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
     // Okay, let's try it by the name, then.
     //
     for (auto& it : m_mapServers) {
-        OTContract* pServer = it.second;
+        Contract* pServer = it.second;
         OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
                                             "OTWallet::m_mapServers, "
                                             "OTWallet::GetServerContract");
@@ -1155,7 +1155,7 @@ bool OTWallet::RemoveAssetContract(const OTIdentifier& theTargetID)
 bool OTWallet::RemoveServerContract(const OTIdentifier& theTargetID)
 {
     for (auto it(m_mapServers.begin()); it != m_mapServers.end(); ++it) {
-        OTContract* pServer = it->second;
+        Contract* pServer = it->second;
         OT_ASSERT_MSG((nullptr != pServer), "nullptr server pointer in "
                                             "OTWallet::m_mapServers, "
                                             "OTWallet::RemoveServerContract");
@@ -1326,7 +1326,7 @@ bool OTWallet::SaveContract(String& strContract)
     }
 
     for (auto& it : m_mapContracts) {
-        OTContract* pContract = it.second;
+        Contract* pContract = it.second;
         OT_ASSERT_MSG(nullptr != pContract, "nullptr contract pointer in "
                                             "OTWallet::m_mapContracts, "
                                             "OTWallet::SaveContract");
@@ -1335,7 +1335,7 @@ bool OTWallet::SaveContract(String& strContract)
     }
 
     for (auto& it : m_mapServers) {
-        OTContract* pServer = it.second;
+        Contract* pServer = it.second;
         OT_ASSERT_MSG(nullptr != pServer, "nullptr server pointer in "
                                           "OTWallet::m_mapServers, "
                                           "OTWallet::SaveContract");
@@ -1344,7 +1344,7 @@ bool OTWallet::SaveContract(String& strContract)
     }
 
     for (auto& it : m_mapAccounts) {
-        OTContract* pAccount = it.second;
+        Contract* pAccount = it.second;
         OT_ASSERT_MSG(nullptr != pAccount, "nullptr account pointer in "
                                            "OTWallet::m_mapAccounts, "
                                            "OTWallet::SaveContract");
@@ -1732,7 +1732,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                          strNodeName.Compare("cachedKey")) {
                     OTASCIIArmor ascCachedKey;
 
-                    if (OTContract::LoadEncodedTextField(xml, ascCachedKey)) {
+                    if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                         // We successfully loaded the cachedKey from file, so
                         // let's SET it
                         // as the cached key globally...
@@ -1790,8 +1790,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                                  "symmetricKey ID (it was "
                                                  "blank.)\n";
 
-                    else if (OTContract::LoadEncodedTextField(
-                                 xml, ascSymmetricKey)) {
+                    else if (Contract::LoadEncodedTextField(xml,
+                                                            ascSymmetricKey)) {
                         std::shared_ptr<OTSymmetricKey> pKey(
                             new OTSymmetricKey);
 

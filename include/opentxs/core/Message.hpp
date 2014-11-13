@@ -176,7 +176,7 @@ private:
     std::unordered_map<std::string, std::unique_ptr<OTMessageStrategy>> mapping;
 };
 
-class Message : public OTContract
+class Message : public Contract
 {
 protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);

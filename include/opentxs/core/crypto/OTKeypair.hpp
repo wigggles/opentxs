@@ -176,7 +176,7 @@ namespace opentxs
 
 class OTASCIIArmor;
 class OTAsymmetricKey;
-class OTContract;
+class Contract;
 class OTIdentifier;
 class OTPassword;
 class OTPasswordData;
@@ -296,7 +296,7 @@ public:
                                                            // object.
     // Only works if a private key is present.
     //
-    EXPORT bool SignContract(OTContract& theContract,
+    EXPORT bool SignContract(Contract& theContract,
                              const OTPasswordData* pPWData = nullptr);
     EXPORT void SetMetadata(const OTSignatureMetadata& theMetadata);
     EXPORT int32_t GetPublicKeyBySignature(

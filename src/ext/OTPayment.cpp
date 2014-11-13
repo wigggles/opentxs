@@ -1223,7 +1223,7 @@ bool OTPayment::GetRecipientAcctID(OTIdentifier& theOutput) const
 }
 
 OTPayment::OTPayment()
-    : ot_super()
+    : Contract()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
     , m_bHasRecipient(false)
@@ -1237,7 +1237,7 @@ OTPayment::OTPayment()
 }
 
 OTPayment::OTPayment(const String& strPayment)
-    : ot_super()
+    : Contract()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
     , m_bHasRecipient(false)
@@ -1256,7 +1256,7 @@ OTPayment::OTPayment(const String& strPayment)
 //
 OTTrackable* OTPayment::Instantiate() const
 {
-    OTContract* pContract = nullptr;
+    Contract* pContract = nullptr;
     OTTrackable* pTrackable = nullptr;
     Cheque* pCheque = nullptr;
     OTPaymentPlan* pPaymentPlan = nullptr;
@@ -1553,7 +1553,7 @@ void OTPayment::Release()
 
     // Finally, we call the method we overrode:
     //
-    ot_super::Release();
+    Contract::Release();
 }
 
 void OTPayment::UpdateContents() // Before transmission or serialization, this
@@ -1601,7 +1601,7 @@ int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     else if (strNodeName.Compare("contents")) {
         String strContents;
 
-        if (!OTContract::LoadEncodedTextField(xml, strContents) ||
+        if (!Contract::LoadEncodedTextField(xml, strContents) ||
             !strContents.Exists() || !SetPayment(strContents)) {
             otErr << "OTPayment::ProcessXMLNode: ERROR: \"contents\" field "
                      "without a value, OR error setting that "
