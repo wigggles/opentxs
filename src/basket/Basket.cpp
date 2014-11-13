@@ -455,7 +455,7 @@ void Basket::CalculateContractID(OTIdentifier& newID) const
 }
 
 Basket::Basket(int32_t nCount, int64_t lMinimumTransferAmount)
-    : OTContract()
+    : Contract()
     , m_nSubCount(nCount)
     , m_lMinimumTransfer(lMinimumTransferAmount)
     , m_nTransferMultiple(0)
@@ -466,7 +466,7 @@ Basket::Basket(int32_t nCount, int64_t lMinimumTransferAmount)
 }
 
 Basket::Basket()
-    : OTContract()
+    : Contract()
     , m_nSubCount(0)
     , m_lMinimumTransfer(0)
     , m_nTransferMultiple(0)
@@ -503,7 +503,7 @@ void Basket::Release()
 {
     Release_Basket();
 
-    OTContract::Release();
+    Contract::Release();
 }
 
 } // namespace opentxs

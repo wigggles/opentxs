@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CASH_MINT_HPP
 #define OPENTXS_CASH_MINT_HPP
 
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <map>
 #include <cstdint>
 #include <ctime>
@@ -147,10 +147,10 @@ class Token;
 
 typedef std::map<int64_t, OTASCIIArmor*> mapOfArmor;
 
-class Mint : public OTContract
+class Mint : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
 protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);

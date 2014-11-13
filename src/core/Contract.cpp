@@ -133,7 +133,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -155,8 +155,8 @@ namespace opentxs
 {
 
 // static
-bool OTContract::DearmorAndTrim(const String& strInput, String& strOutput,
-                                String& strFirstLine)
+bool Contract::DearmorAndTrim(const String& strInput, String& strOutput,
+                              String& strFirstLine)
 {
 
     if (!strInput.Exists()) {
@@ -200,13 +200,13 @@ bool OTContract::DearmorAndTrim(const String& strInput, String& strOutput,
     return true;
 }
 
-OTContract::OTContract()
+Contract::Contract()
 {
     Initialize();
 }
 
-OTContract::OTContract(const String& name, const String& foldername,
-                       const String& filename, const String& strID)
+Contract::Contract(const String& name, const String& foldername,
+                   const String& filename, const String& strID)
 {
     Initialize();
 
@@ -217,21 +217,21 @@ OTContract::OTContract(const String& name, const String& foldername,
     m_ID.SetString(strID);
 }
 
-OTContract::OTContract(const String& strID)
+Contract::Contract(const String& strID)
 {
     Initialize();
 
     m_ID.SetString(strID);
 }
 
-OTContract::OTContract(const OTIdentifier& theID)
+Contract::Contract(const OTIdentifier& theID)
 {
     Initialize();
 
     m_ID = theID;
 }
 
-void OTContract::Initialize()
+void Contract::Initialize()
 {
     m_strContractType =
         "CONTRACT"; // CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM
@@ -246,7 +246,7 @@ void OTContract::Initialize()
 // the Release() call in LoadContract(). Really I just want to
 // "Release" the stuff that is about to be loaded, not the stuff
 // that I need to load it!
-void OTContract::Release_Contract()
+void Contract::Release_Contract()
 {
     // !! Notice I don't release the m_strFilename here!!
     // Because in LoadContract, we want to release all the members, and then
@@ -274,7 +274,7 @@ void OTContract::Release_Contract()
     }
 }
 
-void OTContract::Release()
+void Contract::Release()
 {
     Release_Contract();
 
@@ -282,13 +282,13 @@ void OTContract::Release()
     // is the base class.
 }
 
-OTContract::~OTContract()
+Contract::~Contract()
 {
 
     Release_Contract();
 }
 
-bool OTContract::SaveToContractFolder()
+bool Contract::SaveToContractFolder()
 {
     String strFoldername(OTFolders::Contract().Get()), strFilename;
 
@@ -304,17 +304,17 @@ bool OTContract::SaveToContractFolder()
     return SaveContract(strFoldername.Get(), strFilename.Get());
 }
 
-void OTContract::GetFilename(String& strFilename) const
+void Contract::GetFilename(String& strFilename) const
 {
     strFilename = m_strFilename;
 }
 
-void OTContract::GetIdentifier(OTIdentifier& theIdentifier) const
+void Contract::GetIdentifier(OTIdentifier& theIdentifier) const
 {
     theIdentifier = m_ID;
 }
 
-void OTContract::GetIdentifier(String& theIdentifier) const
+void Contract::GetIdentifier(String& theIdentifier) const
 {
     m_ID.GetString(theIdentifier);
 }
@@ -322,7 +322,7 @@ void OTContract::GetIdentifier(String& theIdentifier) const
 // Make sure this contract checks out. Very high level.
 // Verifies ID, existence of public key, and signature.
 //
-bool OTContract::VerifyContract()
+bool Contract::VerifyContract()
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -359,7 +359,7 @@ bool OTContract::VerifyContract()
     return true;
 }
 
-void OTContract::CalculateContractID(OTIdentifier& newID) const
+void Contract::CalculateContractID(OTIdentifier& newID) const
 {
     // may be redundant...
     std::string str_Trim(m_strRawFile.Get());
@@ -371,7 +371,7 @@ void OTContract::CalculateContractID(OTIdentifier& newID) const
         otErr << __FUNCTION__ << ": Error calculating Contract digest.\n";
 }
 
-bool OTContract::VerifyContractID() const
+bool Contract::VerifyContractID() const
 {
     OTIdentifier newID;
     CalculateContractID(newID);
@@ -405,7 +405,7 @@ bool OTContract::VerifyContractID() const
     }
 }
 
-const OTPseudonym* OTContract::GetContractPublicNym() const
+const OTPseudonym* Contract::GetContractPublicNym() const
 {
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
@@ -439,8 +439,8 @@ const OTPseudonym* OTContract::GetContractPublicNym() const
 // If you want the signature to remain on the contract and be handled
 // internally, then this is what you should call.
 //
-bool OTContract::SignContract(const OTPseudonym& theNym,
-                              const OTPasswordData* pPWData)
+bool Contract::SignContract(const OTPseudonym& theNym,
+                            const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
@@ -463,8 +463,8 @@ bool OTContract::SignContract(const OTPseudonym& theNym,
 
 // Signs using authentication key instead of signing key.
 //
-bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
-                                     const OTPasswordData* pPWData)
+bool Contract::SignContractAuthent(const OTPseudonym& theNym,
+                                   const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(nullptr != pSig, "OTContract::SignContractAuthent: Error "
@@ -487,18 +487,18 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
 
 // The output signature will be in theSignature.
 // It is NOT attached to the contract.  This is just a utility function.
-bool OTContract::SignContract(const OTPseudonym& theNym,
-                              OTSignature& theSignature,
-                              const OTPasswordData* pPWData)
+bool Contract::SignContract(const OTPseudonym& theNym,
+                            OTSignature& theSignature,
+                            const OTPasswordData* pPWData)
 {
     return SignContract(theNym.GetPrivateSignKey(), theSignature,
                         m_strSigHashType, pPWData);
 }
 
 // Uses authentication key instead of signing key.
-bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
-                                     OTSignature& theSignature,
-                                     const OTPasswordData* pPWData)
+bool Contract::SignContractAuthent(const OTPseudonym& theNym,
+                                   OTSignature& theSignature,
+                                   const OTPasswordData* pPWData)
 {
     return SignContract(theNym.GetPrivateAuthKey(), theSignature,
                         m_strSigHashType, pPWData);
@@ -516,8 +516,8 @@ bool OTContract::SignContractAuthent(const OTPseudonym& theNym,
 // having the Nym
 // ready yet to signing anything with.
 //
-bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
-                             const OTPasswordData* pPWData)
+bool Contract::SignWithKey(const OTAsymmetricKey& theKey,
+                           const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
@@ -597,10 +597,10 @@ bool OTContract::SignWithKey(const OTAsymmetricKey& theKey,
 // The output signature will be in theSignature.
 // It is NOT attached to the contract.  This is just a utility function.
 //
-bool OTContract::SignContract(const OTAsymmetricKey& theKey,
-                              OTSignature& theSignature,
-                              const String& strHashType,
-                              const OTPasswordData* pPWData)
+bool Contract::SignContract(const OTAsymmetricKey& theKey,
+                            OTSignature& theSignature,
+                            const String& strHashType,
+                            const OTPasswordData* pPWData)
 {
     // We assume if there's any important metadata, it will already
     // be on the key, so we just copy it over to the signature.
@@ -636,11 +636,11 @@ bool OTContract::SignContract(const OTAsymmetricKey& theKey,
 
 // Sign the Contract using a private key from a file.
 // theSignature will contain the output.
-bool OTContract::SignContract(const char* szFoldername,
-                              const char* szFilename,    // for Certfile, for
-                                                         // private key.
-                              OTSignature& theSignature, // output
-                              const OTPasswordData* pPWData)
+bool Contract::SignContract(const char* szFoldername,
+                            const char* szFilename,    // for Certfile, for
+                                                       // private key.
+                            OTSignature& theSignature, // output
+                            const OTPasswordData* pPWData)
 {
     OT_ASSERT(nullptr != szFoldername);
     OT_ASSERT(nullptr != szFilename);
@@ -693,11 +693,11 @@ bool OTContract::SignContract(const char* szFoldername,
 // contract and is
 // somewhere in m_listSignatures. Now it is being verified.
 //
-bool OTContract::VerifySignature(
-    const char* szFoldername, const char* szFilename, // for Cert.
-    const OTSignature& theSignature,
-    const OTPasswordData* pPWData) const // optional
-                                         // in/out
+bool Contract::VerifySignature(const char* szFoldername,
+                               const char* szFilename, // for Cert.
+                               const OTSignature& theSignature,
+                               const OTPasswordData* pPWData) const // optional
+                                                                    // in/out
 {
     OT_ASSERT_MSG(
         nullptr != szFoldername,
@@ -743,8 +743,8 @@ bool OTContract::VerifySignature(
     return true;
 }
 
-bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
-                                  const OTPasswordData* pPWData) const
+bool Contract::VerifySigAuthent(const OTPseudonym& theNym,
+                                const OTPasswordData* pPWData) const
 {
     String strNymID;
     theNym.GetIdentifier(strNymID);
@@ -773,8 +773,8 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
     return false;
 }
 
-bool OTContract::VerifySignature(const OTPseudonym& theNym,
-                                 const OTPasswordData* pPWData) const
+bool Contract::VerifySignature(const OTPseudonym& theNym,
+                               const OTPasswordData* pPWData) const
 {
     String strNymID;
     theNym.GetIdentifier(strNymID);
@@ -803,8 +803,8 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
     return false;
 }
 
-bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
-                               const OTPasswordData* pPWData) const
+bool Contract::VerifyWithKey(const OTAsymmetricKey& theKey,
+                             const OTPasswordData* pPWData) const
 {
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
@@ -833,9 +833,9 @@ bool OTContract::VerifyWithKey(const OTAsymmetricKey& theKey,
 // don't want
 // a legally binding signature, just a technically secure signature.)
 //
-bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
-                                  const OTSignature& theSignature,
-                                  const OTPasswordData* pPWData) const
+bool Contract::VerifySigAuthent(const OTPseudonym& theNym,
+                                const OTSignature& theSignature,
+                                const OTPasswordData* pPWData) const
 {
 
     OTPasswordData thePWData("OTContract::VerifySigAuthent 1");
@@ -878,9 +878,9 @@ bool OTContract::VerifySigAuthent(const OTPseudonym& theNym,
 // m_strHashType to decide
 // for you.  Choose the function you prefer, you can do it either way.
 //
-bool OTContract::VerifySignature(const OTPseudonym& theNym,
-                                 const OTSignature& theSignature,
-                                 const OTPasswordData* pPWData) const
+bool Contract::VerifySignature(const OTPseudonym& theNym,
+                               const OTSignature& theSignature,
+                               const OTPasswordData* pPWData) const
 {
 
     OTPasswordData thePWData("OTContract::VerifySignature 1");
@@ -917,10 +917,10 @@ bool OTContract::VerifySignature(const OTPseudonym& theNym,
                            (nullptr != pPWData) ? pPWData : &thePWData);
 }
 
-bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
-                                 const OTSignature& theSignature,
-                                 const String& strHashType,
-                                 const OTPasswordData* pPWData) const
+bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
+                               const OTSignature& theSignature,
+                               const String& strHashType,
+                               const OTPasswordData* pPWData) const
 {
     // See if this key could possibly have even signed this signature.
     // (The metadata may eliminate it as a possibility.)
@@ -944,7 +944,7 @@ bool OTContract::VerifySignature(const OTAsymmetricKey& theKey,
     return true;
 }
 
-void OTContract::ReleaseSignatures()
+void Contract::ReleaseSignatures()
 {
 
     while (!m_listSignatures.empty()) {
@@ -954,7 +954,7 @@ void OTContract::ReleaseSignatures()
     }
 }
 
-bool OTContract::DisplayStatistics(String& strContents) const
+bool Contract::DisplayStatistics(String& strContents) const
 {
     // Subclasses may override this.
     strContents.Concatenate(
@@ -964,14 +964,14 @@ bool OTContract::DisplayStatistics(String& strContents) const
     return false;
 }
 
-bool OTContract::SaveContractWallet(String&) const
+bool Contract::SaveContractWallet(String&) const
 {
     // Subclasses may use this.
 
     return false;
 }
 
-bool OTContract::SaveContents(std::ofstream& ofs) const
+bool Contract::SaveContents(std::ofstream& ofs) const
 {
     ofs << m_xmlUnsigned;
 
@@ -979,7 +979,7 @@ bool OTContract::SaveContents(std::ofstream& ofs) const
 }
 
 // Saves the unsigned XML contents to a string
-bool OTContract::SaveContents(String& strContents) const
+bool Contract::SaveContents(String& strContents) const
 {
     strContents.Concatenate(m_xmlUnsigned);
 
@@ -987,7 +987,7 @@ bool OTContract::SaveContents(String& strContents) const
 }
 
 // Save the contract member variables into the m_strRawFile variable
-bool OTContract::SaveContract()
+bool Contract::SaveContract()
 {
     String strTemp;
     bool bSuccess = RewriteContract(strTemp);
@@ -1005,7 +1005,7 @@ bool OTContract::SaveContract()
     return bSuccess;
 }
 
-void OTContract::UpdateContents()
+void Contract::UpdateContents()
 {
     // Deliberately left blank.
     //
@@ -1031,9 +1031,8 @@ void OTContract::UpdateContents()
 // contracts.
 //
 // static
-bool OTContract::SignFlatText(String& strFlatText,
-                              const String& strContractType,
-                              const OTPseudonym& theSigner, String& strOutput)
+bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
+                            const OTPseudonym& theSigner, String& strOutput)
 {
     const char* szFunc = "OTContract::SignFlatText";
 
@@ -1086,7 +1085,7 @@ bool OTContract::SignFlatText(String& strFlatText,
     listOfSignatures listSignatures;
     listSignatures.push_back(&theSignature);
 
-    const bool bBookends = OTContract::AddBookendsAroundContent(
+    const bool bBookends = Contract::AddBookendsAroundContent(
         strOutput, // the output (other params are input.)
         strInput, strContractType, OTIdentifier::DefaultHashAlgorithm,
         listSignatures);
@@ -1095,7 +1094,7 @@ bool OTContract::SignFlatText(String& strFlatText,
 }
 
 // Saves the raw (pre-existing) contract text to any string you want to pass in.
-bool OTContract::SaveContractRaw(String& strOutput) const
+bool Contract::SaveContractRaw(String& strOutput) const
 {
     strOutput.Concatenate("%s", m_strRawFile.Get());
 
@@ -1103,9 +1102,11 @@ bool OTContract::SaveContractRaw(String& strOutput) const
 }
 
 // static
-bool OTContract::AddBookendsAroundContent(
-    String& strOutput, const String& strContents, const String& strContractType,
-    const String& strHashType, const listOfSignatures& listSignatures)
+bool Contract::AddBookendsAroundContent(String& strOutput,
+                                        const String& strContents,
+                                        const String& strContractType,
+                                        const String& strHashType,
+                                        const listOfSignatures& listSignatures)
 {
     String strTemp;
 
@@ -1150,17 +1151,17 @@ bool OTContract::AddBookendsAroundContent(
 // signatures along with new signature bookends.. (The caller actually passes
 // m_strRawData into this function...)
 //
-bool OTContract::RewriteContract(String& strOutput) const
+bool Contract::RewriteContract(String& strOutput) const
 {
     String strContents;
     SaveContents(strContents);
 
-    return OTContract::AddBookendsAroundContent(
+    return Contract::AddBookendsAroundContent(
         strOutput, strContents, m_strContractType, m_strSigHashType,
         m_listSignatures);
 }
 
-bool OTContract::SaveContract(const char* szFoldername, const char* szFilename)
+bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
 {
     OT_ASSERT_MSG(nullptr != szFilename,
                   "Null filename sent to OTContract::SaveContract\n");
@@ -1207,7 +1208,7 @@ bool OTContract::SaveContract(const char* szFoldername, const char* szFilename)
 // assumes m_strFilename is already set.
 // Then it reads that file into a string.
 // Then it parses that string into the object.
-bool OTContract::LoadContract()
+bool Contract::LoadContract()
 {
     Release();
     LoadContractRawFile(); // opens m_strFilename and reads into m_strRawFile
@@ -1222,7 +1223,7 @@ bool OTContract::LoadContract()
 // This applies to all contracts except accounts, since their contents must
 // change periodically, their ID is not calculated from a hash of the file,
 // but instead is chosen at random when the account is created.
-bool OTContract::LoadContractRawFile()
+bool Contract::LoadContractRawFile()
 {
     const char* szFoldername = m_strFoldername.Get();
     const char* szFilename = m_strFilename.Get();
@@ -1262,7 +1263,7 @@ bool OTContract::LoadContractRawFile()
     return m_strRawFile.Exists();
 }
 
-bool OTContract::LoadContract(const char* szFoldername, const char* szFilename)
+bool Contract::LoadContract(const char* szFoldername, const char* szFilename)
 {
     Release();
 
@@ -1282,7 +1283,7 @@ bool OTContract::LoadContract(const char* szFoldername, const char* szFilename)
 
 // Just like it says. If you have a contract in string form, pass it in
 // here to import it.
-bool OTContract::LoadContractFromString(const String& theStr)
+bool Contract::LoadContractFromString(const String& theStr)
 {
     Release();
 
@@ -1328,7 +1329,7 @@ bool OTContract::LoadContractFromString(const String& theStr)
     return bSuccess;
 }
 
-bool OTContract::ParseRawFile()
+bool Contract::ParseRawFile()
 {
     char buffer1[2100]; // a bit bigger than 2048, just for safety reasons.
     OTSignature* pSig = nullptr;
@@ -1595,7 +1596,7 @@ bool OTContract::ParseRawFile()
 
 // This function assumes that m_xmlUnsigned is ready to be processed.
 // This function only processes that portion of the contract.
-bool OTContract::LoadContractXML()
+bool Contract::LoadContractXML()
 {
     int32_t retProcess = 0;
 
@@ -1676,7 +1677,7 @@ bool OTContract::LoadContractXML()
 }
 
 // static
-bool OTContract::SkipToElement(IrrXMLReader*& xml)
+bool Contract::SkipToElement(IrrXMLReader*& xml)
 {
     OT_ASSERT_MSG(nullptr != xml,
                   "OTContract::SkipToElement -- assert: nullptr != xml");
@@ -1728,7 +1729,7 @@ bool OTContract::SkipToElement(IrrXMLReader*& xml)
 }
 
 // static
-bool OTContract::SkipToTextField(IrrXMLReader*& xml)
+bool Contract::SkipToTextField(IrrXMLReader*& xml)
 {
     OT_ASSERT_MSG(nullptr != xml,
                   "OTContract::SkipToTextField -- assert: nullptr != xml");
@@ -1782,7 +1783,7 @@ bool OTContract::SkipToTextField(IrrXMLReader*& xml)
 // So you call this function..
 //
 // static
-bool OTContract::SkipAfterLoadingField(IrrXMLReader*& xml)
+bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
 {
     OT_ASSERT_MSG(
         nullptr != xml,
@@ -1836,11 +1837,11 @@ bool OTContract::SkipAfterLoadingField(IrrXMLReader*& xml)
 // Loads it up and also decodes it to a string.
 //
 // static
-bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
+bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
 {
     OTASCIIArmor ascOutput;
 
-    if (OTContract::LoadEncodedTextField(xml, ascOutput) &&
+    if (Contract::LoadEncodedTextField(xml, ascOutput) &&
         ascOutput.GetLength() > 2) {
         return ascOutput.GetString(strOutput, true); // linebreaks = true
     }
@@ -1849,8 +1850,7 @@ bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
 }
 
 // static
-bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml,
-                                      OTASCIIArmor& ascOutput)
+bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, OTASCIIArmor& ascOutput)
 {
     OT_ASSERT_MSG(nullptr != xml,
                   "OTContract::LoadEncodedTextField -- assert: nullptr != xml");
@@ -1919,17 +1919,16 @@ bool OTContract::LoadEncodedTextField(IrrXMLReader*& xml,
 
 // Loads it up and also decodes it to a string.
 // static
-bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
-                                            String& strOutput,
-                                            const char*& szName,
-                                            String::Map* pmapExtraVars)
+bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml, String& strOutput,
+                                          const char*& szName,
+                                          String::Map* pmapExtraVars)
 {
     OT_ASSERT(nullptr != szName);
 
     OTASCIIArmor ascOutput;
 
-    if (OTContract::LoadEncodedTextFieldByName(xml, ascOutput, szName,
-                                               pmapExtraVars) &&
+    if (Contract::LoadEncodedTextFieldByName(xml, ascOutput, szName,
+                                             pmapExtraVars) &&
         ascOutput.GetLength() > 2) {
         return ascOutput.GetString(strOutput, true); // linebreaks = true
     }
@@ -1939,10 +1938,10 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
 
 // Loads it up and keeps it encoded in an ascii-armored object.
 // static
-bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
-                                            OTASCIIArmor& ascOutput,
-                                            const char*& szName,
-                                            String::Map* pmapExtraVars)
+bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
+                                          OTASCIIArmor& ascOutput,
+                                          const char*& szName,
+                                          String::Map* pmapExtraVars)
 {
     OT_ASSERT(nullptr != szName);
 
@@ -1993,7 +1992,7 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
     // Any attribute names passed in, now have their corresponding
     // values set on mapExtraVars (for caller.)
 
-    if (false == OTContract::LoadEncodedTextField(xml, ascOutput)) {
+    if (false == Contract::LoadEncodedTextField(xml, ascOutput)) {
         otErr << __FUNCTION__ << ": Error loading " << pElementExpected
               << " field.\n";
         return false;
@@ -2020,8 +2019,8 @@ bool OTContract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
 // type
 // is unknown.
 //
-bool OTContract::CreateContract(const String& strContract,
-                                const OTPseudonym& theSigner)
+bool Contract::CreateContract(const String& strContract,
+                              const OTPseudonym& theSigner)
 {
     Release();
 
@@ -2155,7 +2154,7 @@ bool OTContract::CreateContract(const String& strContract,
 
 // Overrides of CreateContents call this in order to add some common internals.
 //
-void OTContract::CreateInnerContents()
+void Contract::CreateInnerContents()
 {
     // CONDITIONS
     //
@@ -2284,14 +2283,14 @@ void OTContract::CreateInnerContents()
 // (But meant for a different purpose.)
 // See OTServerContract.cpp and OTAssetContract.cpp
 //
-void OTContract::CreateContents()
+void Contract::CreateContents()
 {
     OT_FAIL_MSG("ASSERT: OTContract::CreateContents should never be called, "
                 "but should be overrided. (In this case, it wasn't.)");
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
+int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 {
     const String strNodeName(xml->getNodeName());
 
@@ -2376,8 +2375,8 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
 
         const char* pElementExpected = "nymIDSource";
         otWarn << __FUNCTION__ << ": Loading " << pElementExpected << "...\n";
-        if (!OTContract::LoadEncodedTextFieldByName(xml, strSignerSource,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, strSignerSource,
+                                                  pElementExpected)) {
             otErr << "Error in " << __FILE__ << " line " << __LINE__
                   << ": failed loading expected " << pElementExpected
                   << " field:\n\n" << m_xmlUnsigned << "\n\n\n";
@@ -2447,8 +2446,8 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
         {
             pElementExpected = "credentialList";
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascArmor,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascArmor,
+                                                      pElementExpected)) {
                 otErr << "Error in " << __FUNCTION__ << ": "
                                                         "Expected "
                       << pElementExpected << " element with text field.\n";
@@ -2457,8 +2456,8 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
 
             pElementExpected = "credentials";
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascArmor2,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascArmor2,
+                                                      pElementExpected)) {
                 otErr << "Error in " << __FUNCTION__ << ": "
                                                         "Expected "
                       << pElementExpected << " element with text field.\n";
@@ -2547,7 +2546,7 @@ int32_t OTContract::ProcessXMLNode(IrrXMLReader*& xml)
 // keys into it. You might also call this function when LOADING the contract, to
 // populate it.
 //
-bool OTContract::InsertNym(const String& strKeyName, const String& strKeyValue)
+bool Contract::InsertNym(const String& strKeyName, const String& strKeyValue)
 {
     bool bResult = false;
     OTPseudonym* pNym = new OTPseudonym;

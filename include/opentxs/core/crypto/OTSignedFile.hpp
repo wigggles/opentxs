@@ -133,15 +133,15 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 #define OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
 
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 
 namespace opentxs
 {
 
-class OTSignedFile : public OTContract
+class OTSignedFile : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
 protected:
     String m_strSignedFilePayload; // This class exists to wrap another and

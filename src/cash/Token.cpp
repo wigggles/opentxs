@@ -462,7 +462,7 @@ Token* Token::TokenFactory(String strInput, const OTIdentifier& SERVER_ID,
 
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
-        OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
+        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         Token* pToken =
@@ -487,7 +487,7 @@ Token* Token::TokenFactory(String strInput, const Purse& thePurse)
 
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
-        OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
+        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         Token* pToken = Token::LowLevelInstantiate(strFirstLine, thePurse);
@@ -511,7 +511,7 @@ Token* Token::TokenFactory(String strInput)
 
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
-        OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
+        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         Token* pToken = Token::LowLevelInstantiate(strFirstLine);
@@ -932,7 +932,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("tokenID")) {
-        if (!OTContract::LoadEncodedTextField(xml, m_ascSpendable)) {
+        if (!Contract::LoadEncodedTextField(xml, m_ascSpendable)) {
             otErr << "Error in Token::ProcessXMLNode: token ID without "
                      "value.\n";
             return (-1); // error condition
@@ -941,7 +941,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         return 1;
     }
     else if (strNodeName.Compare("tokenSignature")) {
-        if (!OTContract::LoadEncodedTextField(xml, m_Signature)) {
+        if (!Contract::LoadEncodedTextField(xml, m_Signature)) {
             otErr << "Error in Token::ProcessXMLNode: token Signature "
                      "without value.\n";
             return (-1); // error condition
@@ -965,7 +965,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTASCIIArmor* pArmoredPrototoken = new OTASCIIArmor;
         OT_ASSERT(nullptr != pArmoredPrototoken);
 
-        if (!OTContract::LoadEncodedTextField(xml, *pArmoredPrototoken) ||
+        if (!Contract::LoadEncodedTextField(xml, *pArmoredPrototoken) ||
             !pArmoredPrototoken->Exists()) {
             otErr << "Error in Token::ProcessXMLNode: prototoken field "
                      "without value.\n";
@@ -991,7 +991,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTASCIIArmor* pArmoredPrototoken = new OTASCIIArmor;
         OT_ASSERT(nullptr != pArmoredPrototoken);
 
-        if (!OTContract::LoadEncodedTextField(xml, *pArmoredPrototoken) ||
+        if (!Contract::LoadEncodedTextField(xml, *pArmoredPrototoken) ||
             !pArmoredPrototoken->Exists()) {
             otErr << "Error in Token::ProcessXMLNode: privatePrototoken "
                      "field without value.\n";

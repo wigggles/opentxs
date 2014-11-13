@@ -151,7 +151,7 @@
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/util/Assert.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/Message.hpp>
@@ -160,17 +160,17 @@
 namespace
 {
 
-opentxs::OTContract* InstantiateContract(opentxs::String strInput)
+opentxs::Contract* InstantiateContract(opentxs::String strInput)
 {
 
     using namespace opentxs;
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
-        OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
+        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
 
-        OTContract* pContract = nullptr;
+        Contract* pContract = nullptr;
 
         if (strFirstLine.Contains(
                 "-----BEGIN SIGNED SMARTCONTRACT-----")) // this string is 36

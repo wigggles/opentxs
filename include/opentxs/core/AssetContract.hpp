@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTASSETCONTRACT_HPP
 #define OPENTXS_CORE_OTASSETCONTRACT_HPP
 
-#include "OTContract.hpp"
+#include "Contract.hpp"
 
 namespace opentxs
 {
@@ -144,7 +144,7 @@ class OTIdentifier;
 class OTPseudonym;
 class String;
 
-class AssetContract : public OTContract
+class AssetContract : public Contract
 {
 public:
     EXPORT AssetContract();

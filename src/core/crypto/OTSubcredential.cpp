@@ -169,7 +169,7 @@ void OTSubcredential::SetOwner(OTCredential& theOwner)
 }
 
 OTSubcredential::OTSubcredential()
-    : ot_super()
+    : Contract()
     , m_StoreAs(OTSubcredential::credPrivateInfo)
     , m_pOwner(nullptr)
 {
@@ -177,7 +177,7 @@ OTSubcredential::OTSubcredential()
 }
 
 OTSubcredential::OTSubcredential(OTCredential& theOwner)
-    : ot_super()
+    : Contract()
     , m_StoreAs(OTSubcredential::credPrivateInfo)
     , m_pOwner(&theOwner)
 {
@@ -195,7 +195,7 @@ void OTSubcredential::Release()
     Release_Subcredential(); // My own cleanup is done here.
 
     // Next give the base class a chance to do the same...
-    ot_super::Release(); // since I've overridden the base class, I call it
+    Contract::Release(); // since I've overridden the base class, I call it
                          // now...
 }
 
@@ -371,7 +371,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "Loading nymIDSource...\n";
 
         OTASCIIArmor ascTemp;
-        if (!OTContract::LoadEncodedTextField(xml, ascTemp)) {
+        if (!Contract::LoadEncodedTextField(xml, ascTemp)) {
             otErr << "Error in " << __FILE__ << " line " << __LINE__
                   << ": failed loading expected nymIDSource field.\n";
             return (-1); // error condition
@@ -384,7 +384,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         String strMasterPublicCredential;
 
         if (false ==
-            OTContract::LoadEncodedTextField(xml, strMasterPublicCredential)) {
+            Contract::LoadEncodedTextField(xml, strMasterPublicCredential)) {
             otErr << "Error in " << __FILE__ << " line " << __LINE__
                   << ": failed loading expected master public credential while "
                      "loading subcredential.\n";
@@ -431,7 +431,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     "key",
                     "")); // Value should be "A" or "E" or "S" after reading.
 
-                if (!OTContract::LoadEncodedTextFieldByName(
+                if (!Contract::LoadEncodedTextFieldByName(
                         xml, strPublicInfo, pElementExpected,
                         &temp_MapAttributes)) // </publicInfo>
                 {
@@ -495,7 +495,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (strNodeName.Compare("publicCredential")) {
-        if (!OTContract::LoadEncodedTextField(
+        if (!Contract::LoadEncodedTextField(
                 xml, m_strContents)) // <========= m_strContents.
         {
             otErr << "Error in " << __FILE__ << " line " << __LINE__
@@ -530,7 +530,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     "key",
                     "")); // Value should be "A" or "E" or "S" after reading.
 
-                if (!OTContract::LoadEncodedTextFieldByName(
+                if (!Contract::LoadEncodedTextFieldByName(
                         xml, strPrivateInfo, pElementExpected,
                         &temp_MapAttributes)) // </privateInfo>
                 {

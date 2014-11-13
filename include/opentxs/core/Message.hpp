@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
-#include "OTContract.hpp"
+#include "Contract.hpp"
 #include "OTNumList.hpp"
 
 #include <unordered_map>
@@ -176,7 +176,7 @@ private:
     std::unordered_map<std::string, std::unique_ptr<OTMessageStrategy>> mapping;
 };
 
-class Message : public OTContract
+class Message : public Contract
 {
 protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);

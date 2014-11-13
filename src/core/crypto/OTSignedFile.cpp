@@ -219,7 +219,7 @@ int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (!strcmp("filePayload", xml->getNodeName())) {
         if (false ==
-            OTContract::LoadEncodedTextField(xml, m_strSignedFilePayload)) {
+            Contract::LoadEncodedTextField(xml, m_strSignedFilePayload)) {
             otErr << "Error in OTSignedFile::ProcessXMLNode: filePayload field "
                      "without value.\n";
             return (-1); // error condition
@@ -256,7 +256,7 @@ bool OTSignedFile::VerifyFile()
 }
 
 OTSignedFile::OTSignedFile(const String& LOCAL_SUBDIR, const String& FILE_NAME)
-    : ot_super()
+    : Contract()
 {
     m_strContractType.Set("FILE");
 
@@ -264,7 +264,7 @@ OTSignedFile::OTSignedFile(const String& LOCAL_SUBDIR, const String& FILE_NAME)
 }
 
 OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const String& FILE_NAME)
-    : ot_super()
+    : Contract()
 {
     m_strContractType.Set("FILE");
 
@@ -274,7 +274,7 @@ OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const String& FILE_NAME)
 }
 
 OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME)
-    : ot_super()
+    : Contract()
 {
     m_strContractType.Set("FILE");
 
@@ -343,7 +343,7 @@ void OTSignedFile::SetFilename(const String& LOCAL_SUBDIR,
 }
 
 OTSignedFile::OTSignedFile()
-    : ot_super()
+    : Contract()
 {
     m_strContractType.Set("FILE");
 }
@@ -376,7 +376,7 @@ void OTSignedFile::Release()
 {
     Release_SignedFile();
 
-    ot_super::Release();
+    Contract::Release();
 
     m_strContractType.Set("FILE");
 }

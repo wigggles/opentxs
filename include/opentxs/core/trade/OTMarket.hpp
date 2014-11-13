@@ -158,10 +158,10 @@ typedef std::multimap<int64_t, OTOffer*> mapOfOffers;
 // The same offers are also mapped (uniquely) to transaction number.
 typedef std::map<int64_t, OTOffer*> mapOfOffersTrnsNum;
 
-class OTMarket : public OTContract
+class OTMarket : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
 private:
     OTCron* m_pCron; // The Cron object that owns this Market.

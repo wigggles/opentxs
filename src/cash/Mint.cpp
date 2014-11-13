@@ -270,7 +270,7 @@ void Mint::Release()
 {
     Release_Mint();
 
-    ot_super::Release(); // I overrode the parent, so now I give him a chance to
+    Contract::Release(); // I overrode the parent, so now I give him a chance to
                          // clean up.
 
     InitMint();
@@ -312,7 +312,7 @@ void Mint::InitMint()
 
 Mint::Mint(const String& strServerID, const String& strServerNymID,
            const String& strAssetTypeID)
-    : ot_super(strAssetTypeID)
+    : Contract(strAssetTypeID)
     , m_ServerID(strServerID)
     , m_ServerNymID(strServerNymID)
     , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
@@ -333,7 +333,7 @@ Mint::Mint(const String& strServerID, const String& strServerNymID,
 }
 
 Mint::Mint(const String& strServerID, const String& strAssetTypeID)
-    : ot_super(strAssetTypeID)
+    : Contract(strAssetTypeID)
     , m_ServerID(strServerID)
     , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
     , m_AssetID(strAssetTypeID)
@@ -353,7 +353,7 @@ Mint::Mint(const String& strServerID, const String& strAssetTypeID)
 }
 
 Mint::Mint()
-    : ot_super()
+    : Contract()
     , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
@@ -776,7 +776,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     else if (strNodeName.Compare("mintPublicKey")) {
         OTASCIIArmor armorPublicKey;
 
-        if (!OTContract::LoadEncodedTextField(xml, armorPublicKey) ||
+        if (!Contract::LoadEncodedTextField(xml, armorPublicKey) ||
             !armorPublicKey.Exists()) {
             otErr << "Error in Mint::ProcessXMLNode: mintPublicKey field "
                      "without value.\n";
@@ -797,7 +797,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         OT_ASSERT(nullptr != pArmor);
 
-        if (!OTContract::LoadEncodedTextField(xml, *pArmor) ||
+        if (!Contract::LoadEncodedTextField(xml, *pArmor) ||
             !pArmor->Exists()) {
             otErr << "Error in Mint::ProcessXMLNode: mintPrivateInfo field "
                      "without value.\n";
@@ -821,7 +821,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         OT_ASSERT(nullptr != pArmor);
 
-        if (!OTContract::LoadEncodedTextField(xml, *pArmor) ||
+        if (!Contract::LoadEncodedTextField(xml, *pArmor) ||
             !pArmor->Exists()) {
             otErr << "Error in Mint::ProcessXMLNode: mintPublicInfo field "
                      "without value.\n";

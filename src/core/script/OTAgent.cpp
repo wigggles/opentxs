@@ -156,7 +156,7 @@
 namespace opentxs
 {
 
-bool OTAgent::VerifySignature(const OTContract& theContract) const
+bool OTAgent::VerifySignature(const Contract& theContract) const
 {
     // Only individual agents can sign for things, not groups (groups vote, they
     // don't sign.)
@@ -870,7 +870,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     return false;
 }
 
-bool OTAgent::SignContract(OTContract& theInput) const
+bool OTAgent::SignContract(Contract& theInput) const
 {
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
         otErr << "OTAgent::SignContract: Entities and roles are not yet "

@@ -160,7 +160,7 @@ class OTSignature;
 typedef std::list<OTSignature*> listOfSignatures;
 typedef std::map<std::string, OTPseudonym*> mapOfNyms;
 
-class OTContract
+class Contract
 {
     friend class OTData;
 
@@ -268,11 +268,11 @@ public:
     {
         m_ID = theID;
     }
-    EXPORT OTContract();
-    EXPORT OTContract(const String& name, const String& foldername,
-                      const String& filename, const String& strID);
-    EXPORT OTContract(const String& strID);
-    EXPORT OTContract(const OTIdentifier& theID);
+    EXPORT Contract();
+    EXPORT Contract(const String& name, const String& foldername,
+                    const String& filename, const String& strID);
+    EXPORT Contract(const String& strID);
+    EXPORT Contract(const OTIdentifier& theID);
     void Initialize();
 
     // TODO: a contract needs to have certain required fields in order to be
@@ -326,7 +326,7 @@ public:
     // sort of protocol
     // becomes necessary.)
 
-    EXPORT virtual ~OTContract();
+    EXPORT virtual ~Contract();
     EXPORT virtual void Release();
     EXPORT void Release_Contract();
     EXPORT void ReleaseSignatures();

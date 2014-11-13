@@ -228,8 +228,8 @@ public:
     // with bad addresses.
     //
     void ClearTemporaryPointers();
-    bool SignContract(OTContract& theInput) const; // The party will use its
-                                                   // authorizing agent.
+    bool SignContract(Contract& theInput) const; // The party will use its
+                                                 // authorizing agent.
     // See if a certain transaction number is present.
     // Checks opening number on party, and closing numbers on his accounts.
     bool HasTransactionNum(const int64_t& lInput) const;

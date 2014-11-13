@@ -432,7 +432,7 @@ bool AssetContract::StringToAmount(
 }
 
 AssetContract::AssetContract()
-    : OTContract()
+    : Contract()
     , m_bIsCurrency(true)
     , m_bIsShares(false)
 {
@@ -440,7 +440,7 @@ AssetContract::AssetContract()
 
 AssetContract::AssetContract(const String& name, const String& foldername,
                              const String& filename, const String& strID)
-    : OTContract(name, foldername, filename, strID)
+    : Contract(name, foldername, filename, strID)
     , m_bIsCurrency(true)
     , m_bIsShares(false)
 {
@@ -825,7 +825,7 @@ void AssetContract::CreateContents()
 //
 int32_t AssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = OTContract::ProcessXMLNode(xml);
+    int32_t nReturnVal = Contract::ProcessXMLNode(xml);
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,

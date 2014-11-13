@@ -131,7 +131,7 @@
  **************************************************************/
 
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
@@ -697,14 +697,14 @@ String::String(const OTIdentifier& theValue)
     if (theValue.GetSize() > 0) theValue.GetString(*this);
 }
 
-String::String(const OTContract& theValue)
+String::String(const Contract& theValue)
     : length_(0)
     , position_(0)
     , data_(nullptr)
 {
     //    Initialize();
 
-    (const_cast<OTContract&>(theValue)).SaveContractRaw(*this);
+    (const_cast<Contract&>(theValue)).SaveContractRaw(*this);
 }
 
 // This version base64-DECODES the ascii-armored string passed in,

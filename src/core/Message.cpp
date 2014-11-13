@@ -399,7 +399,7 @@ int32_t Message::processXmlNodeAckReplies(Message& m,
                                           irr::io::IrrXMLReader*& xml)
 {
     String strDepth;
-    if (!OTContract::LoadEncodedTextField(xml, strDepth)) {
+    if (!Contract::LoadEncodedTextField(xml, strDepth)) {
         otErr << "Error in OTMessage::ProcessXMLNode: ackReplies field "
                  "without value.\n";
         return (-1); // error condition
@@ -482,7 +482,7 @@ bool Message::SignContract(const OTPseudonym& theNym,
 
     // Use the authentication key instead of the signing key.
     //
-    m_bIsSigned = OTContract::SignContractAuthent(theNym, pPWData);
+    m_bIsSigned = Contract::SignContractAuthent(theNym, pPWData);
 
     if (m_bIsSigned) {
         //        otErr <<
@@ -534,7 +534,7 @@ bool Message::VerifyContractID() const
 }
 
 Message::Message()
-    : OTContract()
+    : Contract()
     , m_bIsSigned(false)
     , m_lNewRequestNum(0)
     , m_lDepth(0)
@@ -544,7 +544,7 @@ Message::Message()
     , m_lTime(0)
 
 {
-    OTContract::m_strContractType.Set("MESSAGE");
+    Contract::m_strContractType.Set("MESSAGE");
 }
 
 Message::~Message()
@@ -668,8 +668,8 @@ public:
         if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -802,8 +802,8 @@ public:
         if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -928,8 +928,8 @@ public:
         if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -997,8 +997,8 @@ public:
         const char* pElementExpected = "publicAuthentKey";
         OTASCIIArmor ascTextExpected;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1011,8 +1011,8 @@ public:
         pElementExpected = "publicEncryptionKey";
         ascTextExpected.Release();
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1110,8 +1110,8 @@ public:
 
         const char* pElementExpected = "credentialList";
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, m.m_ascPayload,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1121,8 +1121,8 @@ public:
 
         pElementExpected = "credentials";
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, m.m_ascPayload2,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload2,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1182,8 +1182,8 @@ public:
             const char* pElementExpected = "nymfile";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -1195,8 +1195,8 @@ public:
         const char* pElementExpected = "inReferenceTo";
         OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1288,8 +1288,8 @@ public:
         const char* pElementExpected = "inReferenceTo";
         OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1418,8 +1418,8 @@ public:
             pElementExpected = "inReferenceTo";
 
         OTASCIIArmor ascTextExpected;
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1435,8 +1435,8 @@ public:
             pElementExpected = "credentialList";
             ascTextExpected.Release();
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -1448,8 +1448,8 @@ public:
             pElementExpected = "credentials";
             ascTextExpected.Release();
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -1626,8 +1626,8 @@ public:
         const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1686,8 +1686,8 @@ public:
         const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -1806,8 +1806,8 @@ public:
         const char* pElementExpected = "messagePayload";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -2006,8 +2006,8 @@ public:
         const char* pElementExpected = "assetContract";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -2080,8 +2080,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2094,8 +2094,8 @@ public:
             const char* pElementExpected = "issuerAccount";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2167,8 +2167,8 @@ public:
         const char* pElementExpected = "stringMap";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -2235,8 +2235,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2249,8 +2249,8 @@ public:
             const char* pElementExpected = "stringMap";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2316,8 +2316,8 @@ public:
             const char* pElementExpected = "currencyBasket";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2390,8 +2390,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2519,8 +2519,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2533,8 +2533,8 @@ public:
             const char* pElementExpected = "newAccount";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2718,8 +2718,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2732,8 +2732,8 @@ public:
             const char* pElementExpected = "boxReceipt";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2854,8 +2854,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -2931,8 +2931,8 @@ public:
             const char* pElementExpected = "accountLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3006,8 +3006,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3020,8 +3020,8 @@ public:
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3232,8 +3232,8 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -3359,8 +3359,8 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -3479,8 +3479,8 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -3597,8 +3597,8 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -3665,8 +3665,8 @@ public:
             const char* pElementExpected = "processLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3740,8 +3740,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3754,8 +3754,8 @@ public:
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3829,8 +3829,8 @@ public:
             const char* pElementExpected = "processLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3900,8 +3900,8 @@ public:
             const char* pElementExpected = "inReferenceTo";
             OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3914,8 +3914,8 @@ public:
             const char* pElementExpected = "responseLedger";
             OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -3998,8 +3998,8 @@ public:
             const char* pElementExpected = "parameter";
             OTASCIIArmor ascTextExpected;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand
@@ -4063,8 +4063,8 @@ public:
 
         OTASCIIArmor ascTextExpected;
 
-        if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                    pElementExpected)) {
+        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                  pElementExpected)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
@@ -4149,8 +4149,8 @@ public:
         if (nullptr != pElementExpected) {
             OTASCIIArmor ascTextExpected;
 
-            if (!OTContract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                        pElementExpected)) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                                                      pElementExpected)) {
                 otErr << "Error in OTMessage::ProcessXMLNode: "
                          "Expected " << pElementExpected
                       << " element with text field, for " << m.m_strCommand

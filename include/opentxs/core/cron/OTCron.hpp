@@ -136,7 +136,7 @@
 #ifndef OPENTXS_CORE_CRON_OTCRON_HPP
 #define OPENTXS_CORE_CRON_OTCRON_HPP
 
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/util/StringUtils.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
@@ -161,10 +161,10 @@ typedef std::map<std::string, OTMarket*> mapOfMarkets;
 // which the server refreshes from time to time.
 typedef std::list<int64_t> listOfLongNumbers;
 
-class OTCron : public OTContract
+class OTCron : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
 private:
     mapOfMarkets m_mapMarkets;     // A list of all valid markets.

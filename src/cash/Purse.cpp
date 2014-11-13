@@ -586,7 +586,7 @@ Purse* Purse::PurseFactory(String strInput, const OTIdentifier& SERVER_ID,
 {
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
-        OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
+        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         Purse* pPurse =
@@ -636,7 +636,7 @@ Purse* Purse::PurseFactory(String strInput, const OTIdentifier& SERVER_ID)
 {
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
-        OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
+        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine, SERVER_ID);
@@ -674,7 +674,7 @@ Purse* Purse::PurseFactory(String strInput)
 
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
-        OTContract::DearmorAndTrim(strInput, strContract, strFirstLine);
+        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine);
@@ -694,7 +694,7 @@ Purse* Purse::PurseFactory(String strInput)
 
 // private, used by factory.
 Purse::Purse()
-    : ot_super()
+    : Contract()
     ,
     //    m_ServerID(),
     //    m_AssetID(),
@@ -709,7 +709,7 @@ Purse::Purse()
 }
 
 Purse::Purse(const Purse& thePurse)
-    : ot_super()
+    : Contract()
     , m_UserID()
     , m_ServerID(thePurse.GetServerID())
     , m_AssetID(thePurse.GetAssetID())
@@ -727,7 +727,7 @@ Purse::Purse(const Purse& thePurse)
 // Perhaps you know you're about to read this purse from a string and you
 // know the asset type is in there anyway. So you use this constructor.
 Purse::Purse(const OTIdentifier& SERVER_ID)
-    : ot_super()
+    : Contract()
     , m_ServerID(SERVER_ID)
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
@@ -740,7 +740,7 @@ Purse::Purse(const OTIdentifier& SERVER_ID)
 }
 
 Purse::Purse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
-    : ot_super()
+    : Contract()
     , m_ServerID(SERVER_ID)
     , m_AssetID(ASSET_ID)
     , m_lTotalValue(0)
@@ -755,7 +755,7 @@ Purse::Purse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
 
 Purse::Purse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
              const OTIdentifier& USER_ID)
-    : ot_super()
+    : Contract()
     , m_UserID(USER_ID)
     , m_ServerID(SERVER_ID)
     , m_AssetID(ASSET_ID)
@@ -813,7 +813,7 @@ void Purse::Release()
 {
     Release_Purse();
 
-    ot_super::Release();
+    Contract::Release();
 
     InitPurse();
 }
@@ -1189,7 +1189,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         OTASCIIArmor ascValue;
 
-        if (!OTContract::LoadEncodedTextField(xml, ascValue) ||
+        if (!Contract::LoadEncodedTextField(xml, ascValue) ||
             !ascValue.Exists()) {
             otErr << szFunc << ": Error: Expected "
                   << "internalKey"
@@ -1270,7 +1270,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         OTASCIIArmor ascValue;
 
-        if (!OTContract::LoadEncodedTextField(xml, ascValue) ||
+        if (!Contract::LoadEncodedTextField(xml, ascValue) ||
             !ascValue.Exists()) {
             otErr << szFunc << ": Error: Expected "
                   << "cachedKey"
@@ -1343,7 +1343,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         OTASCIIArmor* pArmor = new OTASCIIArmor;
         OT_ASSERT(nullptr != pArmor);
 
-        if (!OTContract::LoadEncodedTextField(xml, *pArmor) ||
+        if (!Contract::LoadEncodedTextField(xml, *pArmor) ||
             !pArmor->Exists()) {
             otErr << szFunc << ": Error: token field without value.\n";
 

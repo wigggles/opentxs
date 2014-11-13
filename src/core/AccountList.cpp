@@ -214,7 +214,7 @@ int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
     int32_t count = acctCount.Exists() ? atoi(acctCount.Get()) : 0;
     if (count > 0) {
         while (count-- > 0) {
-            if (!OTContract::SkipToElement(xml)) {
+            if (!Contract::SkipToElement(xml)) {
                 otOut
                     << "AccountList::ReadFromXMLNode: Failure: Unable to find "
                        "expected element.\n";
@@ -246,7 +246,7 @@ int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
         }
     }
 
-    if (!OTContract::SkipAfterLoadingField(xml)) // </accountList>
+    if (!Contract::SkipAfterLoadingField(xml)) // </accountList>
     {
         otOut << "*** AccountList::ReadFromXMLNode: Bad data? Expected "
                  "EXN_ELEMENT_END here, but "

@@ -149,7 +149,7 @@
 #include <opentxs/core/crypto/OTKeypair.hpp>
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTLowLevelKeyData.hpp>
@@ -490,7 +490,7 @@ bool OTKeypair::LoadBothKeysFromCertFile(const String& strFoldername,
     return true;
 }
 
-bool OTKeypair::SignContract(OTContract& theContract,
+bool OTKeypair::SignContract(Contract& theContract,
                              const OTPasswordData* pPWData)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);

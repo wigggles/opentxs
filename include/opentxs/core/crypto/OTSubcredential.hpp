@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTSUBCREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_OTSUBCREDENTIAL_HPP
 
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 
 // A nym contains a list of master credentials, via OTCredential.
 // The whole purpose of a Nym is to be an identity, which can have
@@ -173,7 +173,7 @@
 namespace opentxs
 {
 
-class OTContract;
+class Contract;
 class OTCredential;
 class OTIdentifier;
 class OTPassword;
@@ -182,10 +182,10 @@ class String;
 // This is stored as an OTContract, and it must be signed by the
 // master key. (which is also an OTSubcredential.)
 //
-class OTSubcredential : public OTContract
+class OTSubcredential : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
     friend class OTCredential;
 
 protected:

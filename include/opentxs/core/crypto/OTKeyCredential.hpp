@@ -281,7 +281,7 @@ public:
     virtual void SetMetadata();
     OTKeyCredential();
     OTKeyCredential(OTCredential& theOwner);
-    bool Sign(OTContract& theContract, const OTPasswordData* pPWData = nullptr);
+    bool Sign(Contract& theContract, const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
         char cKeyType = '0') const; // 'S' (signing key) or

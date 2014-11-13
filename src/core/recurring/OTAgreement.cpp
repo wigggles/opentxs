@@ -1607,8 +1607,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nReturnVal = 1;
     }
     else if (!strcmp("consideration", xml->getNodeName())) {
-        if (false ==
-            OTContract::LoadEncodedTextField(xml, m_strConsideration)) {
+        if (false == Contract::LoadEncodedTextField(xml, m_strConsideration)) {
             otErr << "Error in OTPaymentPlan::ProcessXMLNode: consideration "
                      "field without value.\n";
             return (-1); // error condition
@@ -1618,7 +1617,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (!strcmp("merchantSignedCopy", xml->getNodeName())) {
         if (false ==
-            OTContract::LoadEncodedTextField(xml, m_strMerchantSignedCopy)) {
+            Contract::LoadEncodedTextField(xml, m_strMerchantSignedCopy)) {
             otErr << "Error in OTPaymentPlan::ProcessXMLNode: "
                      "merchant_signed_copy field without value.\n";
             return (-1); // error condition

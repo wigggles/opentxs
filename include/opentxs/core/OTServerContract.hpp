@@ -133,14 +133,14 @@
 #ifndef OPENTXS_CORE_OTSERVERCONTRACT_HPP
 #define OPENTXS_CORE_OTSERVERCONTRACT_HPP
 
-#include "OTContract.hpp"
+#include "Contract.hpp"
 
 namespace opentxs
 {
 
 class String;
 
-class OTServerContract : public OTContract
+class OTServerContract : public Contract
 {
 public:
     EXPORT OTServerContract();

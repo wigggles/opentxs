@@ -133,7 +133,7 @@
 #ifndef OPENTXS_EXT_OTPAYMENT_HPP
 #define OPENTXS_EXT_OTPAYMENT_HPP
 
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 
 namespace opentxs
 {
@@ -193,10 +193,10 @@ class OTTrackable;
   Currently OTSmartContract is the only actual server-side scripting on OT.
  */
 
-class OTPayment : public OTContract
+class OTPayment : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
 public:
     enum paymentType {

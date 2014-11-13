@@ -4917,8 +4917,7 @@ bool OTPseudonym::LoadFromString(
                         m_strAltLocation,
                         false); // bLineBreaks=true by default.
 
-                if (!OTContract::LoadEncodedTextField(xml,
-                                                      m_strSourceForNymID)) {
+                if (!Contract::LoadEncodedTextField(xml, m_strSourceForNymID)) {
                     otErr << "Error in " << __FILE__ << " line " << __LINE__
                           << ": failed loading expected nymIDSource field.\n";
                     return false; // error condition
@@ -5273,7 +5272,7 @@ bool OTPseudonym::LoadFromString(
                 const String tempServerID = xml->getAttributeValue("serverID");
                 String strTemp;
                 if (!tempServerID.Exists() ||
-                    !OTContract::LoadEncodedTextField(xml, strTemp)) {
+                    !Contract::LoadEncodedTextField(xml, strTemp)) {
                     otErr << __FUNCTION__
                           << ": Error: transactionNums field without value.\n";
                     return false; // error condition
@@ -5300,7 +5299,7 @@ bool OTPseudonym::LoadFromString(
                 const String tempServerID = xml->getAttributeValue("serverID");
                 String strTemp;
                 if (!tempServerID.Exists() ||
-                    !OTContract::LoadEncodedTextField(xml, strTemp)) {
+                    !Contract::LoadEncodedTextField(xml, strTemp)) {
                     otErr << __FUNCTION__
                           << ": Error: issuedNums field without value.\n";
                     return false; // error condition
@@ -5325,7 +5324,7 @@ bool OTPseudonym::LoadFromString(
                 const String tempServerID = xml->getAttributeValue("serverID");
                 String strTemp;
                 if (!tempServerID.Exists() ||
-                    !OTContract::LoadEncodedTextField(xml, strTemp)) {
+                    !Contract::LoadEncodedTextField(xml, strTemp)) {
                     otErr << "OTPseudonym::LoadFromString: Error: "
                              "tentativeNums field without value.\n";
                     return false; // error condition
@@ -5365,7 +5364,7 @@ bool OTPseudonym::LoadFromString(
                 // empty, one time, so this may come back
                 // to haunt me, but I want to fix it right, not kludge it.
 
-                if (!OTContract::LoadEncodedTextField(xml, strTemp)) {
+                if (!Contract::LoadEncodedTextField(xml, strTemp)) {
                     otErr << __FUNCTION__
                           << ": Error: ackNums field without value "
                              "(at least, unable to LoadEncodedTextField on "

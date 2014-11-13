@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CASH_PURSE_HPP
 #define OPENTXS_CASH_PURSE_HPP
 
-#include <opentxs/core/OTContract.hpp>
+#include <opentxs/core/Contract.hpp>
 
 #include <deque>
 
@@ -169,10 +169,10 @@ class Token;
 
 typedef std::deque<OTASCIIArmor*> dequeOfTokens;
 
-class Purse : public OTContract
+class Purse : public Contract
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTContract ot_super;
+    typedef Contract ot_super;
 
 protected:
     virtual void UpdateContents(); // Before transmission or serialization, this

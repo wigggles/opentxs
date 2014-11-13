@@ -27,7 +27,7 @@ set(cxx-sources
   crypto/OTCallback.cpp
   crypto/OTCaller.cpp
   Cheque.cpp
-  OTContract.cpp
+  Contract.cpp
   crypto/OTCredential.cpp
   crypto/OTCrypto.cpp
   crypto/OTCryptoOpenSSL.cpp
