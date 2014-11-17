@@ -1074,7 +1074,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCheckServerID::reg("@checkServerID",
+RegisterStrategy StrategyAtCheckServerID::reg("checkServerIDResponse",
                                               new StrategyAtCheckServerID());
 
 class StrategyCreateUserAccount : public OTMessageStrategy

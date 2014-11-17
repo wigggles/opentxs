@@ -1660,7 +1660,7 @@ void UserCommandProcessor::UserCmdCheckServerID(OTPseudonym&, Message& MsgIn,
                                                 Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@checkServerID";
+    msgOut.m_strCommand = "checkServerIDResponse";
     msgOut.m_strNymID = MsgIn.m_strNymID;
 
     if (MsgIn.m_strServerID == server_->m_strServerID)
