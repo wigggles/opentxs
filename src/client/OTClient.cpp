@@ -6721,7 +6721,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
         OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
         if (nullptr == pMap)
             otOut << __FUNCTION__ << ": Failed decoding StringMap object "
-                                     "in @getAccountFiles.\n";
+                                     "in getAccountFilesResponse.\n";
         else {
             String::Map& theMap = pMap->the_map;
             String strAccount, strInbox, strOutbox;
@@ -7757,11 +7757,11 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
          theReply.m_strCommand.Compare("processNymboxResponse"))) {
         return processServerReplyProcessInbox(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("@getAccountFiles")) // Replaces
-                                                           // getAccount,
-                                                           // getInbox,
-                                                           // and
-                                                           // getOutbox
+    if (theReply.m_strCommand.Compare("getAccountFilesResponse")) // Replaces
+                                                                  // getAccount,
+                                                                  // getInbox,
+                                                                  // and
+                                                                  // getOutbox
     {
         return processServerReplyGetAccountFiles(theReply, pNymbox, args);
     }

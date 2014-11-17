@@ -3178,9 +3178,9 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getAccountFiles"; // reply to getAccountFiles
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
-    msgOut.m_strAcctID = MsgIn.m_strAcctID;   // The Account ID in question
+    msgOut.m_strCommand = "getAccountFilesResponse"; // reply to getAccountFiles
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);

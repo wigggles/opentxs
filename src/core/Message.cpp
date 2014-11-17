@@ -3385,7 +3385,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetAccountFiles::reg(
-    "@getAccountFiles", new StrategyAtGetAccountFiles());
+    "getAccountFilesResponse", new StrategyAtGetAccountFiles());
 
 class StrategyGetContract : public OTMessageStrategy
 {
