@@ -13527,8 +13527,8 @@ int32_t OT_API::usageCredits(const OTIdentifier& SERVER_ID,
                                           // set. (It uses it.)
 
     theMessage.m_lDepth = lAdjustment; // Default is "no adjustment"
-                                       // (@usageCredits returns current balance
-                                       // regardless.)
+    // (usageCreditsResponse returns current balance
+    // regardless.)
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);

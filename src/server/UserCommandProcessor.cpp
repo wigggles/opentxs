@@ -2138,11 +2138,11 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
                                                Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@usageCredits";  // reply to usageCredits
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of user whose usage
-                                            // credits are being examined /
-                                            // adjusted.
+    msgOut.m_strCommand = "usageCreditsResponse"; // reply to usageCredits
+    msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2;       // UserID of user whose usage
+    // credits are being examined /
+    // adjusted.
     const bool bIsPrivilegedNym =
         ((ServerSettings::GetOverrideNymID().size() >
           0) && // And if there's an override Nym...

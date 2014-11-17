@@ -13164,7 +13164,8 @@ int32_t OTAPI_Exec::deleteUserAccount(const std::string& SERVER_ID,
     return OTAPI()->deleteUserAccount(theServerID, theUserID);
 }
 
-// If THE_MESSAGE is of command type @usageCredits, and IF it was a SUCCESS,
+// If THE_MESSAGE is of command type usageCreditsResponse, and IF it was a
+// SUCCESS,
 // then this function returns the usage credits BALANCE (it's a int64_t int32_t,
 // but
 // passed as a string). If you adjusted the balance using the usageCredits
@@ -13213,14 +13214,16 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
         return -2;
     }
 
-    if (!theMessage.m_strCommand.Compare("@usageCredits")) {
-        otErr << __FUNCTION__ << ": THE_MESSAGE is supposed to be of command "
-                                 "type \"@usageCredits\", but instead it's a: "
+    if (!theMessage.m_strCommand.Compare("usageCreditsResponse")) {
+        otErr << __FUNCTION__
+              << ": THE_MESSAGE is supposed to be of command "
+                 "type \"usageCreditsResponse\", but instead it's a: "
               << theMessage.m_strCommand << "\n (Failure. Returning -2.)";
         return -2;
     }
 
-    // By this point, we know the message was a successful @usageCredits, loaded
+    // By this point, we know the message was a successful usageCreditsResponse,
+    // loaded
     // properly from the string that was passed in. Let's return the usage
     // credits
     // balance (a int64_t int32_t, returned in string format.)

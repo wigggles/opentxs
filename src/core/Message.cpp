@@ -1579,7 +1579,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtUsageCredits::reg("@usageCredits",
+RegisterStrategy StrategyAtUsageCredits::reg("usageCreditsResponse",
                                              new StrategyAtUsageCredits());
 
 class StrategyOutpaymentsMessageOrOutmailMessage : public OTMessageStrategy

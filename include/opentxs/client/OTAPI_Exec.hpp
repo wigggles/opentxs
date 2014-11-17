@@ -2728,7 +2728,7 @@ public:
                                 const std::string& USER_ID_CHECK,
                                 const int64_t& ADJUSTMENT) const;
 
-    /** IF THE_MESSAGE is of command type @usageCredits, and IF it was a
+    /** IF THE_MESSAGE is of command type usageCreditsResponse, and IF it was a
     SUCCESS,
     // then this function returns the usage credits BALANCE (it's a int64_t, but
     // passed as a string). If you adjusted the balance using the usageCredits
