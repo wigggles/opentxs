@@ -2967,7 +2967,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 dynamic_cast<OTDB::StringMap*>(pStorable.get());
             if (nullptr == pMap)
                 otOut << __FUNCTION__ << ": Failed decoding StringMap "
-                                         "object in @checkUser.\n";
+                                         "object in checkUserResponse.\n";
             else // IF the list saved, then we save the credentials
                  // themselves...
             {
@@ -2978,8 +2978,8 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 if (false ==
                     theTargetNym.LoadFromString(strCredentialList, &theMap)) {
                     otErr << __FUNCTION__
-                          << ": @checkUser: Failure loading nym " << strNymID2
-                          << " from credential string.\n";
+                          << ": checkUserResponse: Failure loading nym "
+                          << strNymID2 << " from credential string.\n";
                 }
                 // Now that the Nym has been loaded up from the message
                 // parameters,
@@ -2991,7 +2991,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 // storage.
                 //
                 else if (!theTargetNym.VerifyPseudonym()) {
-                    otErr << __FUNCTION__ << ": @checkUser: Loaded nym "
+                    otErr << __FUNCTION__ << ": checkUserResponse: Loaded nym "
                           << strNymID2 << " from credentials, but then it "
                                           "failed verifying.\n";
                 }
@@ -3020,7 +3020,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                               << ": Failed trying to armor or store "
                               << strFilename << ".\n";
                     else {
-                        otOut << "@checkUser: Success saving public "
+                        otOut << "checkUserResponse: Success saving public "
                                  "credential list for Nym: " << strNymID2
                               << "\n";
                         for (auto& it : theMap) {
@@ -3044,7 +3044,8 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                                          "credential " << str_cred_id
                                       << " for nym " << str_nym_id << ".\n";
                             else
-                                otOut << "@checkUser: Success saving public "
+                                otOut << "checkUserResponse: Success saving "
+                                         "public "
                                          "credential ID: " << str_cred_id
                                       << "\n";
                         }
@@ -3064,8 +3065,9 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
         if (thePubkeyNym.SetPublicKey(strPubkey) &&
             thePubkeyNym.VerifyPseudonym()) {
             if (thePubkeyNym.SavePublicKey(strPath))
-                otOut << "@checkUser: (Deprecated.) Success saving public "
-                         "key file for Nym: " << strNymID2 << "\n";
+                otOut
+                    << "checkUserResponse: (Deprecated.) Success saving public "
+                       "key file for Nym: " << strNymID2 << "\n";
         }
     }
 
@@ -7723,7 +7725,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("@getRequest")) {
         return processServerReplyGetRequest(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@checkUser")) {
+    if (theReply.m_strCommand.Compare("checkUserResponse")) {
         return processServerReplyCheckUser(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@notarizeTransactions")) {

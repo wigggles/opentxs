@@ -2953,7 +2953,8 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(const std::string& NYM_ID,
 //
 // A good wallet might be designed to automatically download any keys that
 // it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the @checkUser response auto-saves the new
+// add something to OTClient where the checkUserResponse response auto-saves the
+// new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
 //
@@ -3142,7 +3143,8 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
 //
 // A good wallet might be designed to automatically download any keys that
 // it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the @checkUser response auto-saves the new
+// add something to OTClient where the checkUserResponse response auto-saves the
+// new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
 //
@@ -3352,7 +3354,8 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(const std::string& NYM_ID,
 //
 // A good wallet might be designed to automatically download any keys that
 // it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the @checkUser response auto-saves the new
+// add something to OTClient where the checkUserResponse response auto-saves the
+// new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
 //

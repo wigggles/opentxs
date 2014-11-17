@@ -2042,8 +2042,8 @@ void UserCommandProcessor::UserCmdCheckUser(OTPseudonym&, Message& MsgIn,
                                             Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@checkUser";   // reply to checkUser
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strCommand = "checkUserResponse"; // reply to checkUser
+    msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
     msgOut.m_strNymID2 =
         MsgIn.m_strNymID2; // UserID of public key requested by user.
 

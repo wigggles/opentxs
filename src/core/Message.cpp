@@ -1480,7 +1480,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCheckUser::reg("@checkUser",
+RegisterStrategy StrategyAtCheckUser::reg("checkUserResponse",
                                           new StrategyAtCheckUser());
 
 class StrategyUsageCredits : public OTMessageStrategy
