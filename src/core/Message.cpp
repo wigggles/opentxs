@@ -3504,7 +3504,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetContract::reg("@getContract",
+RegisterStrategy StrategyAtGetContract::reg("getContractResponse",
                                             new StrategyAtGetContract());
 
 class StrategyGetMint : public OTMessageStrategy

@@ -7758,7 +7758,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     {
         return processServerReplyGetAccountFiles(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("@getContract")) {
+    if (theReply.m_strCommand.Compare("getContractResponse")) {
         return processServerReplyGetContract(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@getMint")) {

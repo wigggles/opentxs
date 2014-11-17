@@ -3671,8 +3671,8 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&, Message& MsgIn,
 void UserCommandProcessor::UserCmdGetContract(Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getContract";     // reply to getContract
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
+    msgOut.m_strCommand = "getContractResponse"; // reply to getContract
+    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 
     const OTIdentifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
