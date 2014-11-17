@@ -4084,7 +4084,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtTriggerClause::reg("@triggerClause",
+RegisterStrategy StrategyAtTriggerClause::reg("triggerClauseResponse",
                                               new StrategyAtTriggerClause());
 
 class StrategyGetMarketList : public OTMessageStrategy

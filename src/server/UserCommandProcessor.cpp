@@ -3722,9 +3722,9 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
         MsgIn); // Grab the incoming message in plaintext form
     msgOut.m_ascInReferenceTo.SetString(strInReferenceTo);
     // (1) set up member variables
-    msgOut.m_strCommand = "@triggerClause"; // reply to triggerClause
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_bSuccess = false;              // Default value.
+    msgOut.m_strCommand = "triggerClauseResponse"; // reply to triggerClause
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_bSuccess = false;                     // Default value.
     const OTIdentifier SERVER_ID(server_->m_strServerID),
         theMsgNymboxHash(MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash
                                                  // sent by the client side

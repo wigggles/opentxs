@@ -507,7 +507,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                  processInboxResponse  reply
                  triggerClause         -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
-                 @triggerClause reply
+                 triggerClauseResponse reply
 
                  getTransactionNum     -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
