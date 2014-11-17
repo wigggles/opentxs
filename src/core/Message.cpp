@@ -3933,7 +3933,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
-                     "@processNymbox reply\n";
+                     "processNymboxResponse reply\n";
             return (-1); // error condition
         }
 
@@ -3948,7 +3948,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtProcessNymbox::reg("@processNymbox",
+RegisterStrategy StrategyAtProcessNymbox::reg("processNymboxResponse",
                                               new StrategyAtProcessNymbox());
 
 class StrategyTriggerClause : public OTMessageStrategy

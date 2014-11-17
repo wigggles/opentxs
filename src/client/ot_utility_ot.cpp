@@ -1357,7 +1357,7 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
                     // no need to do that here.)
 
                     otOut << strLocation << ": FYI: I *did* find the "
-                                            "@processNymbox reply in my "
+                                            "processNymboxResponse reply in my "
                                             "Nymbox, so NO NEED to clawback "
                                             "any transaction numbers.\n";
                 }

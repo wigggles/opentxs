@@ -11740,7 +11740,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     // in that case, now do I?)
     //
     if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
-        (false == theMessage.m_strCommand.Compare("@processNymbox")) &&
+        (false == theMessage.m_strCommand.Compare("processNymboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
@@ -15594,7 +15594,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     //
     if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
-        (false == theMessage.m_strCommand.Compare("@processNymbox"))) {
+        (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return OT_ERROR;
@@ -15690,7 +15690,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     //
     if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
-        (false == theMessage.m_strCommand.Compare("@processNymbox"))) {
+        (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return OT_ERROR;

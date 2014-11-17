@@ -3481,7 +3481,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                               OTLedger* pNymbox,
                                               ProcessServerReplyArgs& args)
 {
-    // IN EITHER of these cases (processInboxResponse, @processNymbox), the
+    // IN EITHER of these cases (processInboxResponse, processNymboxResponse),
+    // the
     // number of
     // transaction numbers on my Nym has
     // probably changed.
@@ -3523,9 +3524,10 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
         String strLedger, strReplyLedger;
 
         // todo: we are already in the function which is called
-        // for @processNymbox and processInboxResponse. Maybe call this func.
+        // for processNymboxResponse and processInboxResponse. Maybe call this
+        // func.
         // with a flag so we do not have to compare again?
-        if (theReply.m_strCommand.Compare("@processNymbox"))
+        if (theReply.m_strCommand.Compare("processNymboxResponse"))
             ACCOUNT_ID = USER_ID; // For Nymbox, UserID *is* AcctID.
 
         OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID),
@@ -3604,7 +3606,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
             OTTransaction* pReplyTransaction = nullptr;
 
             // todo: we are already in the function which is called
-            // for @processNymbox and processInboxResponse. Maybe call this
+            // for processNymboxResponse and processInboxResponse. Maybe call
+            // this
             // func.
             // with a flag so we do not have to compare again?
             if (theReply.m_strCommand.Compare(
@@ -4705,7 +4708,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                 }     // if pTransaction
             }
             //
-            else // @processNymbox.  // We're processing the SERVER's REPLY
+            else // processNymboxResponse.  // We're processing the SERVER's
+                 // REPLY
                  // to our processNymbox request.
             {
                 pTransaction =
@@ -4938,13 +4942,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                         if (OTItem::acknowledgement !=
                             pReplyItem->GetStatus()) {
-                            otWarn << "@processNymbox reply item "
+                            otWarn << "processNymboxResponse reply item "
                                    << strTempTypeString
                                    << ": status == FAILED\n";
                             continue;
                         }
                         // else
-                        otWarn << "@processNymbox reply item "
+                        otWarn << "processNymboxResponse reply item "
                                << strTempTypeString << ": status == SUCCESS\n";
 
                         // pReplyItem->GetReferenceToNum() contains the
@@ -7750,7 +7754,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
         return processServerReplyGetBoxReceipt(theReply, pNymbox, args);
     }
     if ((theReply.m_strCommand.Compare("processInboxResponse") ||
-         theReply.m_strCommand.Compare("@processNymbox"))) {
+         theReply.m_strCommand.Compare("processNymboxResponse"))) {
         return processServerReplyProcessInbox(theReply, pNymbox, args);
     }
     if (theReply.m_strCommand.Compare("@getAccountFiles")) // Replaces

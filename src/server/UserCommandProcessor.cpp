@@ -4550,8 +4550,8 @@ void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
                                                 Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@processNymbox"; // reply to processNymbox
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strCommand = "processNymboxResponse"; // reply to processNymbox
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
     const OTIdentifier USER_ID(msgOut.m_strNymID),
         SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
@@ -4615,7 +4615,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
         // contains the answer to the transaction item sent.
         // Then we send that new "response ledger" back to the user in
         // MsgOut.Payload
-        // as an @processNymbox message.
+        // as an processNymboxResponse message.
 
         if (theLedger.GetTransactionCount() == 0) {
             OTTransaction* pTranResponse = OTTransaction::GenerateTransaction(
