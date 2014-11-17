@@ -150,9 +150,6 @@ class OTServerConnection
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 
-    bool m_bFocused;
-    TransportCallback* m_pCallback;
-
     OTPseudonym* m_pNym;
     OTServerContract* m_pServerContract;
     OTWallet* m_pWallet;
