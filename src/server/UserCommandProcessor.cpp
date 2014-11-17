@@ -2008,9 +2008,10 @@ void UserCommandProcessor::UserCmdSendUserInstrument(OTPseudonym& theNym,
                                                      Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@sendUserInstrument"; // reply to sendUserInstrument
-    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2;      // UserID of recipient pubkey
+    msgOut.m_strCommand =
+        "sendUserInstrumentResponse";       // reply to sendUserInstrument
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
     const OTIdentifier SENDER_USER_ID(theNym),

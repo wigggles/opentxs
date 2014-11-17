@@ -1875,7 +1875,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtSendUserInstrument::reg(
-    "@sendUserInstrument", new StrategyAtSendUserInstrument());
+    "sendUserInstrumentResponse", new StrategyAtSendUserInstrument());
 
 class StrategyGetRequest : public OTMessageStrategy
 {
