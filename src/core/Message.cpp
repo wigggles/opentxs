@@ -2406,7 +2406,7 @@ public:
         if (!m.m_ascInReferenceTo.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
-                     "@issueBasket reply\n";
+                     "issueBasketResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2422,7 +2422,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtIssueBasket::reg("@issueBasket",
+RegisterStrategy StrategyAtIssueBasket::reg("issueBasketResponse",
                                             new StrategyAtIssueBasket());
 
 class StrategyCreateAccount : public OTMessageStrategy

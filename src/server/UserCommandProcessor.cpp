@@ -2667,8 +2667,8 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                                               Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@issueBasket"; // reply to issueBasket
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strCommand = "issueBasketResponse"; // reply to issueBasket
+    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
 
     // Either way, we need to send the user's command back to him as well.
     {

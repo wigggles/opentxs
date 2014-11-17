@@ -15293,7 +15293,7 @@ std::string OTAPI_Exec::Message_GetNewAssetTypeID(
     // in that case, now do I?)
     //
     if ((false == theMessage.m_strCommand.Compare("issueAssetTypeResponse")) &&
-        (false == theMessage.m_strCommand.Compare("@issueBasket"))) {
+        (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
