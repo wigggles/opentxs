@@ -1752,7 +1752,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtSendUserMessage::reg(
-    "@sendUserMessage", new StrategyAtSendUserMessage());
+    "sendUserMessageResponse", new StrategyAtSendUserMessage());
 
 class StrategySendUserInstrumentOrPayDividend : public OTMessageStrategy
 {
