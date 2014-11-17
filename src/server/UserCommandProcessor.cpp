@@ -4294,8 +4294,9 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     const char* szFunc = "UserCommandProcessor::UserCmdDeleteAssetAcct";
 
     // (1) set up member variables
-    msgOut.m_strCommand = "@deleteAssetAccount"; // reply to deleteAssetAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
+    msgOut.m_strCommand =
+        "deleteAssetAccountResponse";       // reply to deleteAssetAccount
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account being deleted.
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID),

@@ -7786,7 +7786,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("deleteUserAccountResponse")) {
         return processServerReplyDeleteUserAccount(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@deleteAssetAccount")) {
+    if (theReply.m_strCommand.Compare("deleteAssetAccountResponse")) {
         return processServerReplyDeleteAssetAccount(theReply, args);
     }
     if (theReply.m_strCommand.Compare("issueAssetTypeResponse")) {

@@ -2869,7 +2869,7 @@ public:
         if (!m.m_ascInReferenceTo.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
-                     "@deleteAssetAccount reply\n";
+                     "deleteAssetAccountResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2888,7 +2888,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtDeleteAssetAccount::reg(
-    "@deleteAssetAccount", new StrategyAtDeleteAssetAccount());
+    "deleteAssetAccountResponse", new StrategyAtDeleteAssetAccount());
 
 class StrategyNotarizeTransactions : public OTMessageStrategy
 {
