@@ -2620,7 +2620,8 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                                    // and signature, (OR success
                                                    // generating the ledger.)
                                             {
-                                                // Currently in @getBoxReceipt,
+                                                // Currently in
+                                                // getBoxReceiptResponse,
                                                 // we are taking an incoming
                                                 // cheque from the nymbox
                                                 // and adding it to the payments
@@ -3212,10 +3213,11 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
     // so we'll never end up here except in cases where it needs to be
     // loaded. I can even ASSERT here, that the pointer is actually nullptr!
     //
-    OT_ASSERT_MSG(nullptr == pNymbox, "Nymbox pointer is expected to be "
-                                      "nullptr here, since @getBoxReceipt "
-                                      "isn't dropped as a server "
-                                      "replyNotice into the nymbox.");
+    OT_ASSERT_MSG(nullptr == pNymbox,
+                  "Nymbox pointer is expected to be "
+                  "nullptr here, since getBoxReceiptResponse "
+                  "isn't dropped as a server "
+                  "replyNotice into the nymbox.");
 
     // Note: I don't HAVE to load the ledger, and what if there are 500000
     // receipts in it?
@@ -3232,9 +3234,8 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
     case 2: // bSuccessLoading = pLedger->LoadOutbox();    break;
         break;
     default:
-        otErr << __FUNCTION__
-              << ": @getBoxReceipt: Unknown box type: " << theReply.m_lDepth
-              << "\n";
+        otErr << __FUNCTION__ << ": getBoxReceiptResponse: Unknown box type: "
+              << theReply.m_lDepth << "\n";
         bErrorCondition = true;
         break;
     }
@@ -3261,7 +3262,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
 
         if (nullptr == pTransType)
             otErr << __FUNCTION__
-                  << ": @getBoxReceipt: Error instantiating transaction "
+                  << ": getBoxReceiptResponse: Error instantiating transaction "
                      "type based on decoded theReply.m_ascPayload:\n\n"
                   << strTransType << "\n";
         else {
@@ -3270,12 +3271,13 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
 
             if (nullptr == pBoxReceipt)
                 otErr << __FUNCTION__
-                      << ": @getBoxReceipt: Error dynamic_cast from "
+                      << ": getBoxReceiptResponse: Error dynamic_cast from "
                          "transaction type to transaction, based on "
                          "decoded theReply.m_ascPayload:\n\n" << strTransType
                       << "\n\n";
             else if (!pBoxReceipt->VerifyAccount(*pServerNym))
-                otErr << __FUNCTION__ << ": @getBoxReceipt: Error: Box Receipt "
+                otErr << __FUNCTION__
+                      << ": getBoxReceiptResponse: Error: Box Receipt "
                       << pBoxReceipt->GetTransactionNum() << " in "
                       << ((theReply.m_lDepth == 0)
                               ? "nymbox"
@@ -3284,7 +3286,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
             else if (pBoxReceipt->GetTransactionNum() !=
                      theReply.m_lTransactionNum)
                 otErr << __FUNCTION__
-                      << ": @getBoxReceipt: Error: Transaction Number "
+                      << ": getBoxReceiptResponse: Error: Transaction Number "
                          "doesn't match on the box receipt itself ("
                       << pBoxReceipt->GetTransactionNum()
                       << "), versus the one listed in the reply message ("
@@ -3293,11 +3295,12 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
             // VerifyAccount().
             else if (pBoxReceipt->GetUserID() != USER_ID) {
                 const String strPurportedUserID(pBoxReceipt->GetUserID());
-                otErr << __FUNCTION__
-                      << ": @getBoxReceipt: Error: NymID doesn't match on "
-                         "the box receipt itself (" << strPurportedUserID
-                      << "), versus the one listed in the reply message ("
-                      << theReply.m_strNymID << ").\n";
+                otErr
+                    << __FUNCTION__
+                    << ": getBoxReceiptResponse: Error: NymID doesn't match on "
+                       "the box receipt itself (" << strPurportedUserID
+                    << "), versus the one listed in the reply message ("
+                    << theReply.m_strNymID << ").\n";
             }
             else // FINALLY we have the Ledger AND the Box Receipt both
                    // loaded at the same time.
@@ -3353,7 +3356,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                     if (!bSuccessLoading) {
                         String strUserID(USER_ID), strAcctID(USER_ID);
                         otOut << __FUNCTION__
-                              << ": @getBoxReceipt: WARNING: Unable to "
+                              << ": getBoxReceiptResponse: WARNING: Unable to "
                                  "load, verify, or generate paymentInbox, "
                                  "with IDs: " << strUserID << " / " << strAcctID
                               << "\n";
@@ -3390,7 +3393,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                         // QUESTION: what if I ERASE it out of my recordBox.
                         // Won't it pop back up again?
                         // ANSWER: YES, but not if I do this instead at
-                        // @getBoxReceipt which will only happen once.
+                        // getBoxReceiptResponse which will only happen once.
                         //         UPDATE: which I now AM (see our location
                         // here...)
                         // HOWEVER: Most likely not, because this notice
@@ -3452,7 +3455,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                 if (!pBoxReceipt->SaveBoxReceipt(
                         theReply.m_lDepth)) // <===================
                     otErr << __FUNCTION__
-                          << ": @getBoxReceipt(): Failed trying to "
+                          << ": getBoxReceiptResponse(): Failed trying to "
                              "SaveBoxReceipt. Contents:\n\n" << strTransType
                           << "\n\n";
                 /* theReply.m_lDepth in this context stores boxType. Value
@@ -3462,10 +3465,11 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
         }     // Success loading the boxReceipt from the server reply
     }         // No error condition.
     else {
-        otErr << __FUNCTION__
-              << ": SHOULD NEVER HAPPEN: @getBoxReceipt: failure loading "
-                 "box, or verifying it. UserID: " << theReply.m_strNymID
-              << "  AcctID: " << theReply.m_strAcctID << " \n";
+        otErr
+            << __FUNCTION__
+            << ": SHOULD NEVER HAPPEN: getBoxReceiptResponse: failure loading "
+               "box, or verifying it. UserID: " << theReply.m_strNymID
+            << "  AcctID: " << theReply.m_strAcctID << " \n";
     }
 
     return true;
@@ -7737,7 +7741,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("@getNymbox")) {
         return processServerReplyGetNymBox(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("@getBoxReceipt")) {
+    if (theReply.m_strCommand.Compare("getBoxReceiptResponse")) {
         return processServerReplyGetBoxReceipt(theReply, pNymbox, args);
     }
     if ((theReply.m_strCommand.Compare("@processInbox") ||

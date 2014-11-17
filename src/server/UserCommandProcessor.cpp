@@ -4082,11 +4082,11 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
 void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getBoxReceipt"; // reply to getBoxReceipt
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account ID
-                                            // (inbox/outbox), or Nym ID
-                                            // (nymbox)
+    msgOut.m_strCommand = "getBoxReceiptResponse"; // reply to getBoxReceipt
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_strAcctID = MsgIn.m_strAcctID;        // the asset account ID
+                                                   // (inbox/outbox), or Nym ID
+                                                   // (nymbox)
     msgOut.m_lTransactionNum =
         MsgIn.m_lTransactionNum; // TransactionNumber for the receipt in the box
                                  // (unique to the box.)

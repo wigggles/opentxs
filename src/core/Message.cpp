@@ -2707,7 +2707,7 @@ public:
             m.m_lDepth = 0;
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected boxType to be inbox, outbox, or nymbox, in "
-                     "@getBoxReceipt reply\n";
+                     "getBoxReceiptResponse reply\n";
             return (-1);
         }
 
@@ -2750,7 +2750,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected boxReceipt and/or inReferenceTo elements with "
                      "text fields in "
-                     "@getBoxReceipt reply\n";
+                     "getBoxReceiptResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2766,7 +2766,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetBoxReceipt::reg("@getBoxReceipt",
+RegisterStrategy StrategyAtGetBoxReceipt::reg("getBoxReceiptResponse",
                                               new StrategyAtGetBoxReceipt());
 
 class StrategyDeleteAssetAccount : public OTMessageStrategy
