@@ -763,10 +763,10 @@ public:
     // this function will do the trick.
     // NOTE: Before calling this, you need to do a getNymbox() to download the
     // latest Nymbox, and you need to do
-    // a createUserAccount() to download the server's copy of your Nym. You then
+    // a registerNym() to download the server's copy of your Nym. You then
     // need to load that Nymbox from
     // local storage, and you need to load the server's message Nym out of the
-    // @createUserAccount reply, so that
+    // @registerNym reply, so that
     // you can pass both of those objects into this function, which must assume
     // that those pieces were already done
     // just prior to this call.

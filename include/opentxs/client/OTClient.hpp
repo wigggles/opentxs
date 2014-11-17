@@ -265,7 +265,7 @@ public:
         // that users will connect to when they import the contract, as well as
         // the private
         // key that matches the public key from the contract.
-        createUserAccount, // Create user account on a specific server, with
+        registerNym,       // Create user account on a specific server, with
                            // public key. User ID will be hash of said public
                            // key.
         deleteUserAccount, // Delete user account from a specific server.

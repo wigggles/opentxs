@@ -573,7 +573,7 @@ int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
 // Returns a new User ID (with files already created)
 // or "" upon failure.
 //
-// Once it exists, use OTAPI_Exec::createUserAccount() to
+// Once it exists, use OTAPI_Exec::registerNym() to
 // register your new Nym at any given Server. (Nearly all
 // server requests require this...)
 //
@@ -13119,8 +13119,8 @@ int32_t OTAPI_Exec::checkServerID(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::createUserAccount(const std::string& SERVER_ID,
-                                      const std::string& USER_ID) const
+int32_t OTAPI_Exec::registerNym(const std::string& SERVER_ID,
+                                const std::string& USER_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13133,7 +13133,7 @@ int32_t OTAPI_Exec::createUserAccount(const std::string& SERVER_ID,
 
     OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
 
-    return OTAPI()->createUserAccount(theServerID, theUserID);
+    return OTAPI()->registerNym(theServerID, theUserID);
 }
 
 // Returns int32_t:
@@ -15018,7 +15018,7 @@ void OTAPI_Exec::Sleep(const int64_t& MILLISECONDS) const
 // Make sure you download your Nymbox (getNymbox) before calling this,
 // so when it loads the Nymbox it will have the latest version of it.
 //
-// Also, call createUserAccount() and pass the server reply message in
+// Also, call registerNym() and pass the server reply message in
 // here, so that it can read theMessageNym (to sync the transaction
 // numbers.)
 //
@@ -15054,7 +15054,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
     Message theMessage;
 
     if (!theMessage.LoadContractFromString(strMessage)) {
-        otErr << __FUNCTION__ << ": Failed trying to load @createUserAccount() "
+        otErr << __FUNCTION__ << ": Failed trying to load @registerNym() "
                                  "message from string (it's a server reply.) "
                                  "Contents:\n\n" << strMessage << "\n\n";
         return false;
@@ -15067,17 +15067,17 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
               << strMessage << "\n\n";
         return false;
     }
-    if (!theMessage.m_strCommand.Compare("@createUserAccount")) {
+    if (!theMessage.m_strCommand.Compare("@registerNym")) {
         otErr << __FUNCTION__ << ": Failed. Though success loading message "
                                  "from string, it had the wrong command type. "
-                                 "(Expected @createUserAccount, but found "
+                                 "(Expected @registerNym, but found "
               << theMessage.m_strCommand << ".) Message contents:\n\n"
               << strMessage << "\n\n";
         return false;
     }
     if (!theMessage.m_ascPayload.Exists()) {
         otErr << __FUNCTION__
-              << ": Failed. Though success loading @createUserAccount() "
+              << ": Failed. Though success loading @registerNym() "
                  "message, the payload was empty. (Expected theMessageNym to "
                  "be there, so I could re-sync client side to server.) Message "
                  "contents:\n\n" << strMessage << "\n\n";
@@ -15087,7 +15087,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
 
     if (!theMessage.m_ascPayload.GetString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed decoding message payload in server "
-                                 "reply: @createUserAccount(). (Expected "
+                                 "reply: @registerNym(). (Expected "
                                  "theMessageNym to be there, so I could "
                                  "re-sync client side to server.) Message "
                                  "contents:\n\n" << strMessage << "\n\n";

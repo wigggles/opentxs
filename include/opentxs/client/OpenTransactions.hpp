@@ -756,8 +756,8 @@ public:
     EXPORT int32_t checkServerID(const OTIdentifier& SERVER_ID,
                                  const OTIdentifier& USER_ID) const;
 
-    EXPORT int32_t createUserAccount(const OTIdentifier& SERVER_ID,
-                                     const OTIdentifier& USER_ID) const;
+    EXPORT int32_t registerNym(const OTIdentifier& SERVER_ID,
+                               const OTIdentifier& USER_ID) const;
 
     EXPORT int32_t deleteUserAccount(const OTIdentifier& SERVER_ID,
                                      const OTIdentifier& USER_ID) const;

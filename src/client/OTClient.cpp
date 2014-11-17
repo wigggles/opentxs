@@ -7877,7 +7877,7 @@ int32_t OTClient::ProcessUserCommand(
 
     } break;
 
-    case (OTClient::createUserAccount): {
+    case (OTClient::registerNym): {
         // Create a new OTDB::StringMap object.
         //
         std::unique_ptr<OTDB::Storable> pStorable(OTDB::CreateObject(
