@@ -306,8 +306,9 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                 OTDB::StringMap* pMap =
                     dynamic_cast<OTDB::StringMap*>(pStorable.get());
                 if (nullptr == pMap)
-                    OTLog::vOutput(0, "%s: @registerNym: Failed decoding "
-                                      "StringMap object.\n",
+                    OTLog::vOutput(0,
+                                   "%s: registerNymResponse: Failed decoding "
+                                   "StringMap object.\n",
                                    __FUNCTION__);
                 else {
                     auto& theMap = pMap->the_map;
@@ -336,7 +337,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     if (false ==
                         pNym->LoadFromString(strCredentialList, &theMap)) {
                         OTLog::vError(
-                            "%s: @registerNym: Failure loading nym %s "
+                            "%s: registerNymResponse: Failure loading nym %s "
                             "from credential string.\n",
                             __FUNCTION__, theMessage.m_strNymID.Get());
                     }
@@ -351,7 +352,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     //
                     else if (!pNym->VerifyPseudonym()) {
                         OTLog::vError(
-                            "%s: @registerNym: Loaded nym %s "
+                            "%s: registerNymResponse: Loaded nym %s "
                             "from credentials, but then it failed verifying.\n",
                             __FUNCTION__, theMessage.m_strNymID.Get());
                     }
@@ -372,7 +373,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         // VerifySigAuthent.
                         { // (Because we use authentication keys, not signing
                             // keys, for messages.)
-                            OTLog::Output(0, "@registerNym: "
+                            OTLog::Output(0, "registerNymResponse: "
                                              "Authentication signature -- "
                                              "verification failed!\n");
                             return false;
@@ -400,13 +401,13 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                 strOutput.Get(), OTFolders::Pubcred().Get(),
                                 strFilename.Get());
                         if (!bStoredList)
-                            OTLog::vError("%s: @registerNym: Failed "
+                            OTLog::vError("%s: registerNymResponse: Failed "
                                           "trying to armor or store: %s\n",
                                           __FUNCTION__, strFilename.Get());
                         else // IF the list saved, then we save the
                              // credentials themselves...
                         {
-                            OTLog::vOutput(1, "@registerNym: Success "
+                            OTLog::vOutput(1, "registerNymResponse: Success "
                                               "saving public credential "
                                               "list for Nym: %s\n",
                                            str_nym_id.c_str());
@@ -428,13 +429,13 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                         str_cred_id);
                                 if (!bStoredCredential)
                                     OTLog::vError(
-                                        "%s: @registerNym: Failed "
+                                        "%s: registerNymResponse: Failed "
                                         "trying to store credential %s for "
                                         "nym %s.\n",
                                         __FUNCTION__, str_cred_id.c_str(),
                                         str_nym_id.c_str());
                                 else
-                                    OTLog::vOutput(0, "@registerNym: "
+                                    OTLog::vOutput(0, "registerNymResponse: "
                                                       "Success saving "
                                                       "public credential "
                                                       "ID: %s\n",
@@ -491,7 +492,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         // (1) set up member variables
 
                         // reply to registerNym
-                        msgOut.m_strCommand = "@registerNym";
+                        msgOut.m_strCommand = "registerNymResponse";
                         msgOut.m_strNymID = theMessage.m_strNymID; // UserID
                         msgOut.m_strServerID =
                             server_->m_strServerID; // ServerID, a hash of

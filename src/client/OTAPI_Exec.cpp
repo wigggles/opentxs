@@ -15060,9 +15060,10 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
     Message theMessage;
 
     if (!theMessage.LoadContractFromString(strMessage)) {
-        otErr << __FUNCTION__ << ": Failed trying to load @registerNym() "
-                                 "message from string (it's a server reply.) "
-                                 "Contents:\n\n" << strMessage << "\n\n";
+        otErr << __FUNCTION__
+              << ": Failed trying to load registerNymResponse() "
+                 "message from string (it's a server reply.) "
+                 "Contents:\n\n" << strMessage << "\n\n";
         return false;
     }
     if (!strNymID.Compare(theMessage.m_strNymID)) {
@@ -15073,17 +15074,17 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
               << strMessage << "\n\n";
         return false;
     }
-    if (!theMessage.m_strCommand.Compare("@registerNym")) {
+    if (!theMessage.m_strCommand.Compare("registerNymResponse")) {
         otErr << __FUNCTION__ << ": Failed. Though success loading message "
                                  "from string, it had the wrong command type. "
-                                 "(Expected @registerNym, but found "
+                                 "(Expected registerNymResponse, but found "
               << theMessage.m_strCommand << ".) Message contents:\n\n"
               << strMessage << "\n\n";
         return false;
     }
     if (!theMessage.m_ascPayload.Exists()) {
         otErr << __FUNCTION__
-              << ": Failed. Though success loading @registerNym() "
+              << ": Failed. Though success loading registerNymResponse() "
                  "message, the payload was empty. (Expected theMessageNym to "
                  "be there, so I could re-sync client side to server.) Message "
                  "contents:\n\n" << strMessage << "\n\n";
@@ -15093,7 +15094,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
 
     if (!theMessage.m_ascPayload.GetString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed decoding message payload in server "
-                                 "reply: @registerNym(). (Expected "
+                                 "reply: registerNymResponse(). (Expected "
                                  "theMessageNym to be there, so I could "
                                  "re-sync client side to server.) Message "
                                  "contents:\n\n" << strMessage << "\n\n";

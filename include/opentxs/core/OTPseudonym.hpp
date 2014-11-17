@@ -766,7 +766,7 @@ public:
     // a registerNym() to download the server's copy of your Nym. You then
     // need to load that Nymbox from
     // local storage, and you need to load the server's message Nym out of the
-    // @registerNym reply, so that
+    // registerNymResponse reply, so that
     // you can pass both of those objects into this function, which must assume
     // that those pieces were already done
     // just prior to this call.
