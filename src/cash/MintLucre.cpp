@@ -146,6 +146,10 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 
+#ifdef __APPLE__
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 namespace opentxs
 {
 

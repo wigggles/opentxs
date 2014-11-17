@@ -145,6 +145,10 @@
 
 #include <opentxs/core/OTLog.hpp>
 
+#ifdef __APPLE__
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 // SUBCLASSES OF OTTOKEN FOR EACH DIGITAL CASH ALGORITHM.
 
 #if defined(OT_CASH_USING_MAGIC_MONEY)

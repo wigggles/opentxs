@@ -18,6 +18,10 @@ extern "C" {
 }
 #endif
 
+#ifdef __APPLE__
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 

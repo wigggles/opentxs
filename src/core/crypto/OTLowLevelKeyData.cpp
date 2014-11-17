@@ -142,6 +142,10 @@
 
 #include <opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp>
 
+#ifdef __APPLE__
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 namespace opentxs
 {
 

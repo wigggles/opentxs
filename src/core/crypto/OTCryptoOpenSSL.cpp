@@ -398,7 +398,7 @@ std::mutex* OTCrypto_OpenSSL::s_arrayMutex = nullptr;
 
 extern "C" {
 #if OPENSSL_VERSION_NUMBER - 0 < 0x10000000L
-unsigned int64_t ot_openssl_thread_id(void);
+unsigned long ot_openssl_thread_id(void);
 #else
 void ot_openssl_thread_id(CRYPTO_THREADID*);
 #endif
@@ -426,9 +426,9 @@ void ot_openssl_locking_callback(int32_t mode, int32_t type, const char* file,
  */
 
 #if OPENSSL_VERSION_NUMBER - 0 < 0x10000000L
-uint64_t ot_openssl_thread_id()
+unsigned long ot_openssl_thread_id(void)
 {
-    uint64_t ret = this_thread::get_raw_id();
+    uint64_t ret = std::hash<std::thread::id>()(std::this_thread::get_id());
 
     return (ret);
 }
@@ -1270,19 +1270,22 @@ void OTCrypto_OpenSSL::Cleanup_Override() const
     ERR_free_strings(); // DONE (brutal) -- corresponds to
                         // SSL_load_error_strings in OT_Init().  #1
 
-    // ERR_remove_state - free a thread's error queue "prevents memory leaks..."
-    //
-    // ERR_remove_state() frees the error queue associated with thread pid. If
-    // pid == 0,
-    // the current thread will have its error queue removed.
-    //
-    // Since error queue data structures are allocated automatically for new
-    // threads,
-    // they must be freed when threads are terminated in order to avoid memory
-    // leaks.
-    //
-    //  ERR_remove_state(0);
+// ERR_remove_state - free a thread's error queue "prevents memory leaks..."
+//
+// ERR_remove_state() frees the error queue associated with thread pid. If
+// pid == 0,
+// the current thread will have its error queue removed.
+//
+// Since error queue data structures are allocated automatically for new
+// threads,
+// they must be freed when threads are terminated in order to avoid memory
+// leaks.
+//
+#if OPENSSL_VERSION_NUMBER - 0 < 0x10000000L
+    ERR_remove_state(0);
+#else
     ERR_remove_thread_state(nullptr);
+#endif
 
     /*
     +     Note that ERR_remove_state() is now deprecated, because it is tied
