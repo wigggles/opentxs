@@ -1447,8 +1447,9 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                       "ProcessMessage.\n");
 
         String strTemp;
-        strTemp.Format("@%s", theMessage.m_strCommand.Get()); // Todo security.
-                                                              // Review this.
+        strTemp.Format("%sResponse",
+                       theMessage.m_strCommand.Get()); // Todo security.
+                                                       // Review this.
 
         msgOut.m_strCommand = strTemp;
         msgOut.m_strAcctID = theMessage.m_strAcctID;
