@@ -3121,19 +3121,20 @@ bool OTClient::processServerReplyGetNymBox(const Message& theReply,
 
     String strReply(theReply);
 
-    otOut << "Received @getNymbox server response ("
+    otOut << "Received getNymboxResponse server response ("
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
 
     // base64-Decode the server reply's payload into strInbox
     String strNymbox(theReply.m_ascPayload);
 
     // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
-    // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
+    // Except... getNymboxResponse isn't dropped as a replyNotice into the
+    // Nymbox,
     // so we'll never end up here except in cases where it needs to be
     // loaded. I can even ASSERT here, that the pointer is actually nullptr!
     //
     OT_ASSERT_MSG(nullptr == pNymbox, "Nymbox pointer is expected to be "
-                                      "nullptr here, since @getNymbox "
+                                      "nullptr here, since getNymboxResponse "
                                       "isn't dropped as a server "
                                       "replyNotice into the nymbox.");
 
@@ -3188,7 +3189,7 @@ bool OTClient::processServerReplyGetNymBox(const Message& theReply,
     }
     else {
         otErr << "OTClient::ProcessServerReply: Error loading or verifying "
-                 "nymbox during @getNymbox:\n\n" << strNymbox << "\n";
+                 "nymbox during getNymboxResponse:\n\n" << strNymbox << "\n";
     }
 
     return true;
@@ -3209,7 +3210,8 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
 
     // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
-    // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
+    // Except... getNymboxResponse isn't dropped as a replyNotice into the
+    // Nymbox,
     // so we'll never end up here except in cases where it needs to be
     // loaded. I can even ASSERT here, that the pointer is actually nullptr!
     //
@@ -7738,7 +7740,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("@getTransactionNum")) {
         return processServerReplyGetTransactionNum(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@getNymbox")) {
+    if (theReply.m_strCommand.Compare("getNymboxResponse")) {
         return processServerReplyGetNymBox(theReply, pNymbox, args);
     }
     if (theReply.m_strCommand.Compare("getBoxReceiptResponse")) {

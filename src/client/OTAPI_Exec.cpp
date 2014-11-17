@@ -14944,20 +14944,20 @@ bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
 
 // OTAPI_Exec::FlushSentMessages
 //
-// Make sure to call this directly after a successful @getNymbox.
+// Make sure to call this directly after a successful getNymboxResponse.
 // (And ONLY at that time.)
 //
 // This empties the buffer of sent messages.
 // (Harvesting any transaction numbers that are still there.)
 //
 // NOTE: You normally ONLY call this immediately after receiving
-// a successful @getNymbox. It's only then that you can see which
+// a successful getNymboxResponse. It's only then that you can see which
 // messages a server actually received or not -- which transactions
 // it processed (success or fail) vs which transactions did NOT
 // process (and thus did NOT leave any success/fail receipt in the
 // nymbox.)
 //
-// I COULD have just flushed myself IN the @getNymbox code (where
+// I COULD have just flushed myself IN the getNymboxResponse code (where
 // the reply is processed.) But then the developer using the OT API
 // would never have the opportunity to see whether a message was
 // replied to, and harvest it for himself (say, just before attempting
@@ -14968,7 +14968,7 @@ bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
 // and harvesting will still occur properly, and he will also thus have
 // his chance to check for his own replies to harvest before then.
 // This all depends on the developer using the API being smart enough
-// to call this function after a successful @getNymbox!
+// to call this function after a successful getNymboxResponse!
 //
 void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
                                    const std::string& SERVER_ID,
@@ -15437,7 +15437,7 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
         (false == theMessage.m_strCommand.Compare("getTransactionNum")) &&
         (false == theMessage.m_strCommand.Compare("processInbox")) &&
         (false == theMessage.m_strCommand.Compare("triggerClause")) &&
-        (false == theMessage.m_strCommand.Compare("@getNymbox")) &&
+        (false == theMessage.m_strCommand.Compare("getNymboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("getRequestResponse")) &&
         (false == theMessage.m_strCommand.Compare("@getTransactionNum"))) {
         otOut << __FUNCTION__

@@ -388,7 +388,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 }
 
 // WARNING: ONLY call this (with arguments) directly after a successful
-// @getNymbox has been received!
+// getNymboxResponse has been received!
 // See comments below for more details.
 //
 void OTMessageOutbuffer::Clear(const String* pstrServerID,
@@ -438,7 +438,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
              from any messages left in the sent buffer. We are able to do this
              with
              confidence because we know that this function is only called in
-             @getNymbox
+             getNymboxResponse
              on client side, and only after the ones with actual replies (as
              evidenced
              by the Nymbox) have already been removed from *this "sent buffer."
@@ -462,7 +462,8 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
              or
              something.) How do we know this? Because there would be a notice in
              the
-             Nymbox! So at the moment of successful @getNymbox, we are able to
+             Nymbox! So at the moment of successful getNymboxResponse, we are
+             able to
              loop through
              those receipts and know FOR SURE, WHICH ones definitely have a
              reply, and
@@ -490,7 +491,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                 /*
                  getNymbox            -- client is NOT sending hash, server is
                  NOT rejecting bad hashes, server IS SENDING HASH in the
-                 @getNymbox reply
+                 getNymboxResponse reply
                  getRequest            -- client is NOT sending hash, server is
                  NOT rejecting bad hashes, server IS SENDING HASH in the
                  getRequestResponse reply
@@ -523,7 +524,8 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                      pThisMsg->m_strCommand.Compare("notarizeTransactions") ||
                      pThisMsg->m_strCommand.Compare("triggerClause"))) {
                     //
-                    // If we are here in the first place (i.e. after @getNymbox
+                    // If we are here in the first place (i.e. after
+                    // getNymboxResponse
                     // just removed
                     // all the messages in this sent buffer that already had a
                     // reply sitting
@@ -536,32 +538,32 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                                // (whether transaction within succeeded or
                                // failed) would have been dropped into my
                                // Nymbox, and thus removed from this "sent
-                               // buffer" in @getNymbox.
+                               // buffer" in getNymboxResponse.
                     const bool bReplyWasFailure =
                         true; // If the msg had been an explicit failure, the
                               // reply (without the transaction inside of it
                               // even having a chance to succeed or fail) would
                               // definitely NOT have been dropped into my
                               // Nymbox, and thus removed from this "sent
-                              // buffer" in @getNymbox. However, IN THIS ONE
-                              // CASE, since we DID just download the Nymbox and
-                              // verify there ARE NO REPLIES for this request
-                              // number (before calling this function), and
-                              // since a dropped message is basically identical
-                              // to a rejected message, since in either case,
-                              // the transaction itself never even had a chance
-                              // to run, we are able to now harvest the message
-                              // AS IF the server HAD explicitly rejected the
-                              // message. This is why I pass true here, where
-                              // anywhere else in the code I would always pass
-                              // false unless I had explicitly received a
-                              // failure from the server. This place in the
-                              // code, where we are now, is the failsafe
-                              // endpoint for missed/dropped messages! IF they
-                              // STILL haven't been found by this point, they
-                              // are cleaned up as if the message was explicitly
-                              // rejected by the server before the transaction
-                              // even had a chance to run.
+                    // buffer" in getNymboxResponse. However, IN THIS ONE
+                    // CASE, since we DID just download the Nymbox and
+                    // verify there ARE NO REPLIES for this request
+                    // number (before calling this function), and
+                    // since a dropped message is basically identical
+                    // to a rejected message, since in either case,
+                    // the transaction itself never even had a chance
+                    // to run, we are able to now harvest the message
+                    // AS IF the server HAD explicitly rejected the
+                    // message. This is why I pass true here, where
+                    // anywhere else in the code I would always pass
+                    // false unless I had explicitly received a
+                    // failure from the server. This place in the
+                    // code, where we are now, is the failsafe
+                    // endpoint for missed/dropped messages! IF they
+                    // STILL haven't been found by this point, they
+                    // are cleaned up as if the message was explicitly
+                    // rejected by the server before the transaction
+                    // even had a chance to run.
 
                     const bool bTransactionWasSuccess =
                         false; // Per above, since "the transaction never had a

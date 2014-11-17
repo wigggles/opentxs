@@ -3256,7 +3256,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetNymbox::reg("@getNymbox",
+RegisterStrategy StrategyAtGetNymbox::reg("getNymboxResponse",
                                           new StrategyAtGetNymbox());
 
 class StrategyGetAccountFiles : public OTMessageStrategy
