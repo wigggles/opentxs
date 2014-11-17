@@ -11739,7 +11739,8 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse"))) {
         otOut << __FUNCTION__
@@ -15246,7 +15247,8 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     // in that case, now do I?)
     //
     if ((false == theMessage.m_strCommand.Compare("notarizeTransactions")) &&
-        (false == theMessage.m_strCommand.Compare("@notarizeTransactions"))) {
+        (false ==
+         theMessage.m_strCommand.Compare("notarizeTransactionsResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15593,7 +15595,8 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__
@@ -15689,7 +15692,8 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__

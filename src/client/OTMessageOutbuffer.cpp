@@ -501,7 +501,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                  processNymboxResponse  reply
                  notarizeTransactions    -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
-                 @notarizeTransactions  reply
+                 notarizeTransactionsResponse  reply
                  processInbox         -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
                  processInboxResponse  reply

@@ -3085,7 +3085,7 @@ bool OTClient::processServerReplyNotarizeTransactions(
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
     // todo (gui):
-    // This block assumes that the above "@notarizeTransactions", being
+    // This block assumes that the above "notarizeTransactionsResponse", being
     // successful, probably changed
     // the account balance. A nice GUI would probably interpret the reply
     // and edit the local files
@@ -7741,7 +7741,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("checkUserResponse")) {
         return processServerReplyCheckUser(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@notarizeTransactions")) {
+    if (theReply.m_strCommand.Compare("notarizeTransactionsResponse")) {
         return processServerReplyNotarizeTransactions(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@getTransactionNum")) {

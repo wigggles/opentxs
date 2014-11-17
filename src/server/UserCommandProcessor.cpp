@@ -5121,7 +5121,7 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(OTPseudonym& theNym,
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "@notarizeTransactions";            // reply to notarizeTransactions
+        "notarizeTransactionsResponse";     // reply to notarizeTransactions
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 

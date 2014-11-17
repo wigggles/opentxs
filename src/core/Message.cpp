@@ -3038,7 +3038,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
-                     "@notarizeTransactions reply\n";
+                     "notarizeTransactionsResponse reply\n";
             return (-1); // error condition
         }
 
@@ -3057,7 +3057,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtNotarizeTransactions::reg(
-    "@notarizeTransactions", new StrategyAtNotarizeTransactions());
+    "notarizeTransactionsResponse", new StrategyAtNotarizeTransactions());
 
 class StrategyGetTransactionNum : public OTMessageStrategy
 {
