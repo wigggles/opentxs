@@ -675,10 +675,11 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
                        // getRequestNumber function.)
         }
 
-        // BY THIS POINT, we have received a server reply:  @getRequest
+        // BY THIS POINT, we have received a server reply:  getRequestResponse
         // (Unless it is malformed.) It's definitely not null, nor empty.
 
-        // Grab the NymboxHash on the @getRequest reply, and also the one I
+        // Grab the NymboxHash on the getRequestResponse reply, and also the one
+        // I
         // already had on my client-side Nym... (So we can compare them.)
         //
         //      If the hashes do NOT match, then I DO need to download nymbox
@@ -736,8 +737,8 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
         if (!bServerHash) {
             otOut << strLocation
                   << ": Warning: Unable to retrieve server-side NymboxHash "
-                     "from server @getRequest reply:\n\n" << lastReplyReceived
-                  << "\n";
+                     "from server getRequestResponse reply:\n\n"
+                  << lastReplyReceived << "\n";
         }
 
         strLocalHash = OTAPI_Wrap::GetNym_NymboxHash(serverID, nymID);

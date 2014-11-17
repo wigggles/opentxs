@@ -1968,7 +1968,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetRequest::reg("@getRequest",
+RegisterStrategy StrategyAtGetRequest::reg("getRequestResponse",
                                            new StrategyAtGetRequest());
 
 class StrategyIssueAssetType : public OTMessageStrategy

@@ -3392,7 +3392,7 @@ void OTPseudonym::IncrementRequestNum(OTPseudonym& SIGNER_NYM,
     }
 }
 
-// if the server sends us a @getRequest
+// if the server sends us a getRequestResponse
 void OTPseudonym::OnUpdateRequestNum(OTPseudonym& SIGNER_NYM,
                                      const String& strServerID,
                                      int64_t lNewRequestNumber)

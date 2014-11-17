@@ -493,7 +493,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                  @getNymbox reply
                  getRequest            -- client is NOT sending hash, server is
                  NOT rejecting bad hashes, server IS SENDING HASH in the
-                 @getRequest reply
+                 getRequestResponse reply
 
                  processNymbox        -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the

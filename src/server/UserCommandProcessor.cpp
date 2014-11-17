@@ -1905,8 +1905,8 @@ void UserCommandProcessor::UserCmdGetRequest(OTPseudonym& theNym,
                                              Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getRequest";  // reply to getRequest
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strCommand = "getRequestResponse"; // reply to getRequest
+    msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
 
     msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum); // Outoing reply contains
                                                        // same request num

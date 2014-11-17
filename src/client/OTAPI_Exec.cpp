@@ -15438,7 +15438,7 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
         (false == theMessage.m_strCommand.Compare("processInbox")) &&
         (false == theMessage.m_strCommand.Compare("triggerClause")) &&
         (false == theMessage.m_strCommand.Compare("@getNymbox")) &&
-        (false == theMessage.m_strCommand.Compare("@getRequest")) &&
+        (false == theMessage.m_strCommand.Compare("getRequestResponse")) &&
         (false == theMessage.m_strCommand.Compare("@getTransactionNum"))) {
         otOut << __FUNCTION__
               << ": Wrong message type : " << theMessage.m_strCommand

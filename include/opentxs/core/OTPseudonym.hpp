@@ -694,7 +694,7 @@ public:
                                    const String& strServerID,
                                    int64_t lNewRequestNumber); // if the server
                                                                // sends us a
-                                                               // @getRequest
+    // getRequestResponse
     EXPORT bool GetCurrentRequestNum(const String& strServerID,
                                      int64_t& lReqNum) const; // get the current
     // request number for

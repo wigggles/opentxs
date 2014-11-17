@@ -7722,7 +7722,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("@triggerClause")) {
         return processServerReplyTriggerClause(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@getRequest")) {
+    if (theReply.m_strCommand.Compare("getRequestResponse")) {
         return processServerReplyGetRequest(theReply, args);
     }
     if (theReply.m_strCommand.Compare("checkUserResponse")) {
