@@ -3857,7 +3857,7 @@ public:
     // This way you can discover what kind of command it was.
     // All server replies are pre-pended with the @ sign. For example, if
     // you send a "getAccount" message, the server reply is "@getAccount",
-    // and if you send "getMint" the reply is "@getMint", and so on.
+    // and if you send "getMint" the reply is "getMintResponse", and so on.
     */
     EXPORT std::string Message_GetCommand(const std::string& THE_MESSAGE) const;
 

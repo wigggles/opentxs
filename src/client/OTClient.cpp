@@ -7761,7 +7761,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("getContractResponse")) {
         return processServerReplyGetContract(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@getMint")) {
+    if (theReply.m_strCommand.Compare("getMintResponse")) {
         return processServerReplyGetMint(theReply);
     }
     if (theReply.m_strCommand.Compare("@getMarketList")) {

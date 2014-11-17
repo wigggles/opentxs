@@ -3871,7 +3871,7 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, Message& MsgIn,
                                           Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getMint";         // reply to getMint
+    msgOut.m_strCommand = "getMintResponse";  // reply to getMint
     msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 

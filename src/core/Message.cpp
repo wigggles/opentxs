@@ -3622,7 +3622,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetMint::reg("@getMint", new StrategyAtGetMint());
+RegisterStrategy StrategyAtGetMint::reg("getMintResponse",
+                                        new StrategyAtGetMint());
 
 class StrategyProcessInbox : public OTMessageStrategy
 {
