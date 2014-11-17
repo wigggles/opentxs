@@ -4097,8 +4097,8 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
         SERVER_ID(MsgIn.m_strServerID), ACCOUNT_ID(MsgIn.m_strAcctID);
 
-    OTLedger* pLedger = nullptr;
-    std::unique_ptr<OTLedger> theLedgerAngel;
+    std::unique_ptr<OTLedger> pLedger(
+        new OTLedger(USER_ID, ACCOUNT_ID, SERVER_ID));
 
     bool bErrorCondition = false;
     bool bSuccessLoading = false;
@@ -4106,14 +4106,10 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
     switch (MsgIn.m_lDepth) {
     case 0: // Nymbox
         if (USER_ID == ACCOUNT_ID) {
-            pLedger = new OTLedger(USER_ID, USER_ID, SERVER_ID);
-            OT_ASSERT(nullptr != pLedger);
-            theLedgerAngel.reset(pLedger);
-            bSuccessLoading = pLedger->LoadNymbox(); // It's verified using
-                                                     // VerifyAccount() below
-                                                     // this switch block.
+            // It's verified using VerifyAccount() below this switch block.
+            bSuccessLoading = pLedger->LoadNymbox();
         }
-        else                                       // Inbox / Outbox.
+        else // Inbox / Outbox.
         {
             OTLog::vError(
                 "UserCommandProcessor::UserCmdGetBoxReceipt: User requested "
@@ -4134,12 +4130,8 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
             bErrorCondition = true;
         }
         else {
-            pLedger = new OTLedger(USER_ID, ACCOUNT_ID, SERVER_ID);
-            OT_ASSERT(nullptr != pLedger);
-            theLedgerAngel.reset(pLedger);
-            bSuccessLoading = pLedger->LoadInbox(); // It's verified using
-                                                    // VerifyAccount() below
-                                                    // this switch block.
+            // It's verified using VerifyAccount() below this switch block.
+            bSuccessLoading = pLedger->LoadInbox();
         }
         break;
     case 2: // Outbox
@@ -4152,12 +4144,8 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
             bErrorCondition = true;
         }
         else {
-            pLedger = new OTLedger(USER_ID, ACCOUNT_ID, SERVER_ID);
-            OT_ASSERT(nullptr != pLedger);
-            theLedgerAngel.reset(pLedger);
-            bSuccessLoading = pLedger->LoadOutbox(); // It's verified using
-                                                     // VerifyAccount() below
-                                                     // this switch block.
+            // It's verified using VerifyAccount() below this switch block.
+            bSuccessLoading = pLedger->LoadOutbox();
         }
         break;
     default:
