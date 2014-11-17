@@ -1307,7 +1307,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtDeleteUserAccount::reg(
-    "@deleteUserAccount", new StrategyAtDeleteUserAccount());
+    "deleteUserAccountResponse", new StrategyAtDeleteUserAccount());
 
 class StrategyCheckUser : public OTMessageStrategy
 {

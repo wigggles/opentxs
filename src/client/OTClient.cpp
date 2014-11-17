@@ -7783,7 +7783,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("getNym_MarketOffersResponse")) {
         return processServerReplyGetNymMarketOffers(theReply);
     }
-    if (theReply.m_strCommand.Compare("@deleteUserAccount")) {
+    if (theReply.m_strCommand.Compare("deleteUserAccountResponse")) {
         return processServerReplyDeleteUserAccount(theReply, args);
     }
     if (theReply.m_strCommand.Compare("@deleteAssetAccount")) {

@@ -3941,8 +3941,9 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
                                              Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@deleteUserAccount"; // reply to deleteUserAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
+    msgOut.m_strCommand =
+        "deleteUserAccountResponse";      // reply to deleteUserAccount
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
         SERVER_ID(MsgIn.m_strServerID);
