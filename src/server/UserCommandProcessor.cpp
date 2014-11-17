@@ -1516,9 +1516,9 @@ void UserCommandProcessor::UserCmdGetMarketOffers(OTPseudonym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getMarketOffers"; // reply to getMarketOffers
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2;   // Market ID.
+    msgOut.m_strCommand = "getMarketOffersResponse"; // reply to getMarketOffers
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2;          // Market ID.
 
     int64_t lDepth = MsgIn.m_lDepth;
     if (lDepth < 0) lDepth = 0;

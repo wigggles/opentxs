@@ -703,7 +703,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetMarketOffers::reg(
-    "@getMarketOffers", new StrategyAtGetMarketOffers());
+    "getMarketOffersResponse", new StrategyAtGetMarketOffers());
 
 class StrategyGetMarketRecentTrades : public OTMessageStrategy
 {
