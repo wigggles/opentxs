@@ -2267,7 +2267,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected stringMap and/or inReferenceTo elements with "
                      "text fields in "
-                     "@queryAssetTypes reply\n";
+                     "queryAssetTypesResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2281,7 +2281,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtQueryAssetTypes::reg(
-    "@queryAssetTypes", new StrategyAtQueryAssetTypes());
+    "queryAssetTypesResponse", new StrategyAtQueryAssetTypes());
 
 class StrategyIssueBasket : public OTMessageStrategy
 {

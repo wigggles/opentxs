@@ -3583,8 +3583,8 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@queryAssetTypes"; // reply to queryAssetTypes
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
+    msgOut.m_strCommand = "queryAssetTypesResponse"; // reply to queryAssetTypes
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
     msgOut.m_bSuccess = false;
 
     // Send the user's command back to him whether success or failure.

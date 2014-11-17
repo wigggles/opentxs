@@ -15168,7 +15168,7 @@ int32_t OTAPI_Exec::queryAssetTypes(const std::string& SERVER_ID,
 //
 // This way you can retrieve the payload from any message.
 // Useful, for example, for getting the encoded StringMap object
-// from the queryAssetTypes and @queryAssetTypes messages, which both
+// from the queryAssetTypes and queryAssetTypesResponse messages, which both
 // use the m_ascPayload field to transport it.
 //
 std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const

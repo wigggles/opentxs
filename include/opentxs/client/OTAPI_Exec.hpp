@@ -3893,7 +3893,7 @@ public:
     //
     // This way you can retrieve the payload from any message.
     // Useful, for example, for getting the encoded StringMap object
-    // from the queryAssetTypes and @queryAssetTypes messages, which both
+    // from the queryAssetTypes and queryAssetTypesResponse messages, which both
     // use the m_ascPayload field to transport it.
     */
     EXPORT std::string Message_GetPayload(const std::string& THE_MESSAGE) const;
