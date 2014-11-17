@@ -250,7 +250,6 @@ class OTKeyCredential : public OTSubcredential
 {
 private: // Private prevents erroneous use by other classes.
     typedef OTSubcredential ot_super;
-    friend class OTCredential;
 
 protected:
     virtual bool SetPublicContents(const String::Map& mapPublic);
