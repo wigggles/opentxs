@@ -2112,7 +2112,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected issuerAccount and/or inReferenceTo elements "
                      "with text fields in "
-                     "@issueAssetType reply\n";
+                     "issueAssetTypeResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2132,7 +2132,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtIssueAssetType::reg("@issueAssetType",
+RegisterStrategy StrategyAtIssueAssetType::reg("issueAssetTypeResponse",
                                                new StrategyAtIssueAssetType());
 
 class StrategyQueryAssetTypes : public OTMessageStrategy

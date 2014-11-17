@@ -2345,8 +2345,8 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
     const char* szFunc = "UserCommandProcessor::UserCmdIssueAssetType";
 
     // (1) set up member variables
-    msgOut.m_strCommand = "@issueAssetType"; // reply to issueAssetType
-    msgOut.m_strNymID = MsgIn.m_strNymID;    // UserID
+    msgOut.m_strCommand = "issueAssetTypeResponse"; // reply to issueAssetType
+    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
     msgOut.m_strAssetID =
         MsgIn.m_strAssetID; // Asset Type ID, a hash of the asset contract.
 
