@@ -3481,7 +3481,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                               OTLedger* pNymbox,
                                               ProcessServerReplyArgs& args)
 {
-    // IN EITHER of these cases (@processInbox, @processNymbox), the number of
+    // IN EITHER of these cases (processInboxResponse, @processNymbox), the
+    // number of
     // transaction numbers on my Nym has
     // probably changed.
     // But the server acknowledgment here confirms it, so I should remove any
@@ -3522,7 +3523,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
         String strLedger, strReplyLedger;
 
         // todo: we are already in the function which is called
-        // for @processNymbox and @processInbox. Maybe call this func.
+        // for @processNymbox and processInboxResponse. Maybe call this func.
         // with a flag so we do not have to compare again?
         if (theReply.m_strCommand.Compare("@processNymbox"))
             ACCOUNT_ID = USER_ID; // For Nymbox, UserID *is* AcctID.
@@ -3603,11 +3604,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
             OTTransaction* pReplyTransaction = nullptr;
 
             // todo: we are already in the function which is called
-            // for @processNymbox and @processInbox. Maybe call this func.
+            // for @processNymbox and processInboxResponse. Maybe call this
+            // func.
             // with a flag so we do not have to compare again?
             if (theReply.m_strCommand.Compare(
-                    "@processInbox")) // We're processing the SERVER's REPLY
-                                      // to our processInbox request.
+                    "processInboxResponse")) // We're processing the SERVER's
+                                             // REPLY
+                                             // to our processInbox request.
             {
                 pTransaction =
                     theLedger.GetTransaction(OTTransaction::processInbox);
@@ -3766,7 +3769,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 otErr
                                     << "*** Unexpected reply item type ("
                                     << nReplyItemType
-                                    << ") in @processInbox, while "
+                                    << ") in processInboxResponse, while "
                                        "processing server reply: " << strTheType
                                     << " \n";
                                 continue;
@@ -3782,13 +3785,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                             if (OTItem::acknowledgement !=
                                 pReplyItem->GetStatus()) {
-                                otWarn << "@processInbox reply item "
+                                otWarn << "processInboxResponse reply item "
                                        << strTempTypeString
                                        << ": status == FAILED\n";
                                 continue;
                             }
                             // else
-                            otWarn << "@processInbox reply item "
+                            otWarn << "processInboxResponse reply item "
                                    << strTempTypeString
                                    << ": status == SUCCESS\n";
 
@@ -3945,7 +3948,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 otErr
                                     << "*** Unexpected reply item type ("
                                     << nReplyItemType
-                                    << ") in @processInbox, while "
+                                    << ") in processInboxResponse, while "
                                        "processing server reply: " << strTheType
                                     << "\n";
                                 break; // will return just below, where it
@@ -7746,7 +7749,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("getBoxReceiptResponse")) {
         return processServerReplyGetBoxReceipt(theReply, pNymbox, args);
     }
-    if ((theReply.m_strCommand.Compare("@processInbox") ||
+    if ((theReply.m_strCommand.Compare("processInboxResponse") ||
          theReply.m_strCommand.Compare("@processNymbox"))) {
         return processServerReplyProcessInbox(theReply, pNymbox, args);
     }

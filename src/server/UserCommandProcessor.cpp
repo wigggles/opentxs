@@ -4783,9 +4783,9 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
                                                Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@processInbox";  // reply to processInbox
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
+    msgOut.m_strCommand = "processInboxResponse"; // reply to processInbox
+    msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
+    msgOut.m_strAcctID = MsgIn.m_strAcctID;       // The Account ID in question
 
     const OTIdentifier USER_ID(msgOut.m_strNymID),
         ACCOUNT_ID(MsgIn.m_strAcctID), SERVER_ID(server_->m_strServerID),
@@ -4895,7 +4895,7 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
             // contains the answer to the transaction item sent.
             // Then we send that new "response ledger" back to the user in
             // MsgOut.Payload
-            // as an @processInbox message.
+            // as an processInboxResponse message.
 
             OTTransaction* pTransaction =
                 theLedger.GetTransaction(OTTransaction::processInbox);

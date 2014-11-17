@@ -3237,7 +3237,8 @@ public:
     will automatically process that into a processInbox command back to the
     server,
     automatically accepting all of the transactions, resulting in a final
-    @processInbox reply from the server. Obviously a real GUI client would
+    processInboxResponse reply from the server. Obviously a real GUI client
+    would
     merely
     display the inbox to the user, where the user could choose to accept the
     items
