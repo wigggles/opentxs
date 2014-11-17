@@ -15388,7 +15388,7 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
     // contain a new account ID anyway, right? (Don't want to pass back whatever
     // it DOES contain in that case, now do I?)
     //
-    if (!theMessage.m_strCommand.Compare("@createAccount")) {
+    if (!theMessage.m_strCommand.Compare("createAccountResponse")) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";

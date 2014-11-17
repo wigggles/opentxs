@@ -2960,8 +2960,8 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
                                                 Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@createAccount"; // reply to createAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strCommand = "createAccountResponse"; // reply to createAccount
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
     // Either way, we need to send the user's command back to him as well.
     String tempInMessage(MsgIn);

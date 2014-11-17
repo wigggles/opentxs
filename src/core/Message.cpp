@@ -2550,7 +2550,7 @@ public:
         if (m.m_bSuccess && !m.m_ascPayload.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected newAccount element with text field, in "
-                     "@createAccount reply\n";
+                     "createAccountResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2568,7 +2568,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCreateAccount::reg("@createAccount",
+RegisterStrategy StrategyAtCreateAccount::reg("createAccountResponse",
                                               new StrategyAtCreateAccount());
 
 class StrategyGetBoxReceipt : public OTMessageStrategy
