@@ -185,11 +185,33 @@ EndInterface
     // BUFFER for Protocol Buffers.
     // Google's protocol buffers serializes to std::strings and streams. How
     // conveeeeeenient.
-    //
-    // typedef PackedBufferSubclass<PackerPB, IStorablePB, std::string>
-    // BufferPB;
-    DECLARE_PACKED_BUFFER_SUBCLASS(BufferPB, PackerSubclass<BufferPB>,
-                                   IStorablePB, std::string);
+
+    class BufferPB : public PackedBuffer
+{
+    friend class PackerSubclass<BufferPB>;
+    friend OTInterface IStorablePB;
+    std::string m_buffer;
+
+public:
+    BufferPB()
+        : PackedBuffer()
+    {
+    }
+    virtual ~BufferPB()
+    {
+    }
+    virtual bool PackString(std::string& theString);
+    virtual bool UnpackString(std::string& theString);
+    virtual bool ReadFromIStream(std::istream& inStream, int64_t lFilesize);
+    virtual bool WriteToOStream(std::ostream& outStream);
+    virtual const uint8_t* GetData();
+    virtual size_t GetSize();
+    virtual void SetData(const uint8_t* pData, size_t theSize);
+    std::string& GetBuffer()
+    {
+        return m_buffer;
+    }
+};
 
 // Protocol Buffers packer.
 //

@@ -462,44 +462,6 @@ public:
     virtual void SetData(const uint8_t* pData, size_t theSize) = 0;
 };
 
-//
-// SUBCLASSES (the actual declarations are at the bottom of this file.)
-//
-//    typedef PackedBufferSubclass<PackerPB,        IStorablePB,
-// std::string>        BufferPB;
-//
-// They're all based on this template:
-//
-#define DECLARE_PACKED_BUFFER_SUBCLASS(theNewType, thePackerType,              \
-                                       theInterfaceType, theInternalType)      \
-    class theNewType : public PackedBuffer                                     \
-    {                                                                          \
-        friend class thePackerType;                                            \
-        friend OTInterface theInterfaceType;                                   \
-        theInternalType m_buffer;                                              \
-                                                                               \
-    public:                                                                    \
-        theNewType()                                                           \
-            : PackedBuffer()                                                   \
-        {                                                                      \
-        }                                                                      \
-        virtual ~theNewType()                                                  \
-        {                                                                      \
-        }                                                                      \
-        virtual bool PackString(std::string& theString);                       \
-        virtual bool UnpackString(std::string& theString);                     \
-        virtual bool ReadFromIStream(std::istream& inStream,                   \
-                                     int64_t lFilesize);                       \
-        virtual bool WriteToOStream(std::ostream& outStream);                  \
-        virtual const uint8_t* GetData();                                      \
-        virtual size_t GetSize();                                              \
-        virtual void SetData(const uint8_t* pData, size_t theSize);            \
-        theInternalType& GetBuffer()                                           \
-        {                                                                      \
-            return m_buffer;                                                   \
-        }                                                                      \
-    }
-
 // PACKER (now OTPacker since MsgPack also has a "Packer" in a #define).
 //
 // abstract base class for a packer
