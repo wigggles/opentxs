@@ -7287,7 +7287,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in @getNym_MarketOffers reply.\n";
+                 "payload in getNym_MarketOffersResponse reply.\n";
         return true;
     }
 
@@ -7312,7 +7312,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
     if (!bUnpacked) {
         otErr << "Failed unpacking data for process server reply, "
-                 "@getNym_MarketOffers.\n";
+                 "getNym_MarketOffersResponse.\n";
         return true;
     }
 
@@ -7780,7 +7780,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("getMarketRecentTradesResponse")) {
         return processServerReplyGetMarketRecentTrades(theReply);
     }
-    if (theReply.m_strCommand.Compare("@getNym_MarketOffers")) {
+    if (theReply.m_strCommand.Compare("getNym_MarketOffersResponse")) {
         return processServerReplyGetNymMarketOffers(theReply);
     }
     if (theReply.m_strCommand.Compare("@deleteUserAccount")) {

@@ -1622,8 +1622,9 @@ void UserCommandProcessor::UserCmdGetNym_MarketOffers(OTPseudonym& theNym,
                                                       Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getNym_MarketOffers"; // reply to getMarketOffers
-    msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
+    msgOut.m_strCommand =
+        "getNym_MarketOffersResponse";    // reply to getMarketOffers
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     OTIdentifier NYM_ID;
     theNym.GetIdentifier(NYM_ID);

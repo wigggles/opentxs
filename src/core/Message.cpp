@@ -961,7 +961,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetNymMarketOffers::reg(
-    "@getNym_MarketOffers", new StrategyAtGetNymMarketOffers());
+    "getNym_MarketOffersResponse", new StrategyAtGetNymMarketOffers());
 
 class StrategyCheckServerID : public OTMessageStrategy
 {
