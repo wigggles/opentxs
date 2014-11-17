@@ -1472,8 +1472,8 @@ void UserCommandProcessor::UserCmdGetMarketList(OTPseudonym&, Message& MsgIn,
                                                 Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getMarketList"; // reply to getMarketList
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strCommand = "getMarketListResponse"; // reply to getMarketList
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
     //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
     // ProcessUserCommand.
 

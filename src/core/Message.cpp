@@ -4210,7 +4210,7 @@ public:
 
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetMarketList::reg("@getMarketList",
+RegisterStrategy StrategyAtGetMarketList::reg("getMarketListResponse",
                                               new StrategyAtGetMarketList());
 
 } // namespace opentxs
