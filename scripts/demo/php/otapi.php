@@ -1578,10 +1578,6 @@ class OTAPI_Basic {
 		return OTAPI_Basic_createAssetAccount($SERVER_ID,$USER_ID,$ASSET_ID);
 	}
 
-	static function getAccount($SERVER_ID,$USER_ID,$ACCT_ID) {
-		return OTAPI_Basic_getAccount($SERVER_ID,$USER_ID,$ACCT_ID);
-	}
-
 	static function GenerateBasketCreation($USER_ID,$MINIMUM_TRANSFER) {
 		return OTAPI_Basic_GenerateBasketCreation($USER_ID,$MINIMUM_TRANSFER);
 	}
@@ -1616,14 +1612,6 @@ class OTAPI_Basic {
 
 	static function notarizeTransfer($SERVER_ID,$USER_ID,$ACCT_FROM,$ACCT_TO,$AMOUNT,$NOTE) {
 		return OTAPI_Basic_notarizeTransfer($SERVER_ID,$USER_ID,$ACCT_FROM,$ACCT_TO,$AMOUNT,$NOTE);
-	}
-
-	static function getInbox($SERVER_ID,$USER_ID,$ACCT_ID) {
-		return OTAPI_Basic_getInbox($SERVER_ID,$USER_ID,$ACCT_ID);
-	}
-
-	static function getOutbox($SERVER_ID,$USER_ID,$ACCT_ID) {
-		return OTAPI_Basic_getOutbox($SERVER_ID,$USER_ID,$ACCT_ID);
 	}
 
 	static function getNymbox($SERVER_ID,$USER_ID) {

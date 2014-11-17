@@ -210,18 +210,6 @@ public:
         getInboxAccount(const std::string& serverID, const std::string& nymID,
                         const std::string& accountID, bool& bWasSentInbox,
                         bool& bWasSentAccount, bool bForceDownload);
-    EXPORT OT_UTILITY_OT int32_t
-        getInboxAccount_old(const std::string& serverID,
-                            const std::string& nymID,
-                            const std::string& accountID, bool& bWasSentInbox,
-                            bool& bWasSentAccount, bool bForceDownload);
-    EXPORT OT_UTILITY_OT int32_t
-        getInboxLowLevel(const std::string& serverID, const std::string& nymID,
-                         const std::string& accountID, bool& bWasSent);
-    EXPORT OT_UTILITY_OT int32_t getInboxLowLevel(const std::string& serverID,
-                                                  const std::string& nymID,
-                                                  const std::string& accountID,
-                                                  bool& bWasSent, bool bForce);
     EXPORT OT_UTILITY_OT bool getInboxOutboxAccount(
         const std::string& accountID);
     EXPORT OT_UTILITY_OT bool getInboxOutboxAccount(
@@ -233,9 +221,6 @@ public:
                                                    const std::string& nymID,
                                                    const std::string& accountID,
                                                    bool bForceDownload);
-    EXPORT OT_UTILITY_OT bool getIntermediaryFiles_old(
-        const std::string& serverID, const std::string& nymID,
-        const std::string& accountID, bool bForceDownload);
     EXPORT OT_UTILITY_OT std::string getLastReplyReceived() const;
     EXPORT OT_UTILITY_OT int32_t getNbrTransactionCount() const;
     EXPORT OT_UTILITY_OT int32_t
@@ -248,13 +233,6 @@ public:
     EXPORT OT_UTILITY_OT int32_t getNymboxLowLevel(const std::string& serverID,
                                                    const std::string& nymID,
                                                    bool& bWasSent);
-    EXPORT OT_UTILITY_OT int32_t
-        getOutboxLowLevel(const std::string& serverID, const std::string& nymID,
-                          const std::string& accountID, bool& bWasSent);
-    EXPORT OT_UTILITY_OT int32_t getOutboxLowLevel(const std::string& serverID,
-                                                   const std::string& nymID,
-                                                   const std::string& accountID,
-                                                   bool& bWasSent, bool bForce);
     EXPORT OT_UTILITY_OT int32_t
         getRequestNumber(const std::string& serverID, const std::string& nymID);
     EXPORT OT_UTILITY_OT int32_t getRequestNumber(const std::string& serverID,

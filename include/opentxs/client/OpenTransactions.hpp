@@ -817,10 +817,6 @@ public:
                                       const Identifier& USER_ID,
                                       const Identifier& ACCOUNT_ID) const;
 
-    EXPORT int32_t getAccount(const Identifier& SERVER_ID,
-                              const Identifier& USER_ID,
-                              const Identifier& ACCT_ID) const;
-
     EXPORT int32_t getAccountFiles(const Identifier& SERVER_ID,
                                    const Identifier& USER_ID,
                                    const Identifier& ACCT_ID) const;
@@ -881,14 +877,6 @@ public:
 
     EXPORT int32_t
         getNymbox(const Identifier& SERVER_ID, const Identifier& USER_ID) const;
-
-    EXPORT int32_t getInbox(const Identifier& SERVER_ID,
-                            const Identifier& USER_ID,
-                            const Identifier& ACCT_ID) const;
-
-    EXPORT int32_t getOutbox(const Identifier& SERVER_ID,
-                             const Identifier& USER_ID,
-                             const Identifier& ACCT_ID) const;
 
     // Returns:
     // -1 if error.
