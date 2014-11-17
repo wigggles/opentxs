@@ -511,7 +511,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
 
                  getTransactionNum     -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
-                 @getTransactionNum reply
+                 getTransactionNumResponse reply
 
                  Already covered in NotarizeTransaction:
                     transfer, withdrawal, deposit, marketOffer, paymentPlan,

@@ -1689,8 +1689,9 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
                                                     Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getTransactionNum"; // reply to getTransactionNum
-    msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
+    msgOut.m_strCommand =
+        "getTransactionNumResponse";      // reply to getTransactionNum
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     const OTIdentifier SERVER_ID(server_->m_strServerID);
 

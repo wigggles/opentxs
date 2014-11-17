@@ -7744,7 +7744,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("notarizeTransactionsResponse")) {
         return processServerReplyNotarizeTransactions(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@getTransactionNum")) {
+    if (theReply.m_strCommand.Compare("getTransactionNumResponse")) {
         return processServerReplyGetTransactionNum(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getNymboxResponse")) {

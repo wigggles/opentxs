@@ -3143,7 +3143,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetTransactionNum::reg(
-    "@getTransactionNum", new StrategyAtGetTransactionNum());
+    "getTransactionNumResponse", new StrategyAtGetTransactionNum());
 
 class StrategyGetNymbox : public OTMessageStrategy
 {

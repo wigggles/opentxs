@@ -2718,10 +2718,11 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
                       // getRequestNumber function.);
     }
 
-    // BY THIS POINT, we have received a server reply:  @getTransactionNum
+    // BY THIS POINT, we have received a server reply: getTransactionNumResponse
     // (Unless it is malformed.) It's definitely not null, nor empty.
 
-    // Grab the NymboxHash on the @getTransactionNum reply, and also the one I
+    // Grab the NymboxHash on the getTransactionNumResponse reply, and also the
+    // one I
     // already had on my client-side Nym... (So we can compare them.)
     //
     string strServerHash = OTAPI_Wrap::Message_GetNymboxHash(lastReplyReceived);
@@ -2729,7 +2730,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
     if (!bServerhash) {
         otOut << strLocation
               << ": Warning: Unable to retrieve server-side NymboxHash from "
-                 "OT, from server @getTransactionNum reply:\n\n"
+                 "OT, from server getTransactionNumResponse reply:\n\n"
               << strLastReplyReceived << "\n";
         //          return false;
     }
