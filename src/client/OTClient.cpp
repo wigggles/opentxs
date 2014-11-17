@@ -7877,7 +7877,7 @@ int32_t OTClient::ProcessUserCommand(
 
     } break;
 
-    case (OTClient::createUserAccount): {
+    case (OTClient::registerNym): {
         // Create a new OTDB::StringMap object.
         //
         std::unique_ptr<OTDB::Storable> pStorable(OTDB::CreateObject(
@@ -7945,14 +7945,14 @@ int32_t OTClient::ProcessUserCommand(
         if (!theMessage.m_ascPayload.Exists() ||
             !theMessage.m_ascPayload2.Exists()) {
             otErr << __FUNCTION__ << ": Failed trying to assemble a "
-                                     "createUserAccount message: This Nym has "
+                                     "registerNym message: This Nym has "
                                      "no credentials to use for registration. "
                                      "Convert this Nym first to the new "
                                      "credential system, then try again.\n";
         }
         else {
             // (1) set up member variables
-            theMessage.m_strCommand = "createUserAccount";
+            theMessage.m_strCommand = "registerNym";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
 

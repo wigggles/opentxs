@@ -8257,7 +8257,7 @@ bool OT_API::ClearRecord(
 
 // This function assumes you have already downloaded the latest copy of your
 // Nymbox,
-// and that you have already retrieved theMessageNym from the @createUserAccount
+// and that you have already retrieved theMessageNym from the @registerNym
 // message, with both objects being loaded and passed as arguments here, ready
 // to go.
 //
@@ -13917,8 +13917,8 @@ int32_t OT_API::sendUserInstrument(
 //
 // Update: DONE.
 
-int32_t OT_API::createUserAccount(const OTIdentifier& SERVER_ID,
-                                  const OTIdentifier& USER_ID) const
+int32_t OT_API::registerNym(const OTIdentifier& SERVER_ID,
+                            const OTIdentifier& USER_ID) const
 {
     OTPseudonym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13932,7 +13932,7 @@ int32_t OT_API::createUserAccount(const OTIdentifier& SERVER_ID,
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::createUserAccount, theMessage, *pNym, *pServer,
+        OTClient::registerNym, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         SendMessage(pServer, pNym, theMessage);
@@ -13940,7 +13940,7 @@ int32_t OT_API::createUserAccount(const OTIdentifier& SERVER_ID,
         return nReturnValue;
     }
     else
-        otErr << "OT_API::createUserAccount: Error in "
+        otErr << "OT_API::registerNym: Error in "
                  "m_pClient->ProcessUserCommand() \n";
 
     return -1;

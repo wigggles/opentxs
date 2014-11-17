@@ -2249,8 +2249,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 
         theScript.chai->add(fun(&OTAPI_Wrap::checkServerID),
                             "OT_API_checkServerID");
-        theScript.chai->add(fun(&OTAPI_Wrap::createUserAccount),
-                            "OT_API_createUserAccount");
+        theScript.chai->add(fun(&OTAPI_Wrap::registerNym),
+                            "OT_API_registerNym");
         theScript.chai->add(fun(&OTAPI_Wrap::deleteUserAccount),
                             "OT_API_deleteUserAccount");
         theScript.chai->add(fun(&OTAPI_Wrap::deleteAssetAccount),

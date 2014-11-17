@@ -494,7 +494,7 @@ public:
     // Returns a new User ID (with files already created)
     // or nullptr upon failure.
     //
-    // Once it exists, use createUserAccount() to
+    // Once it exists, use registerNym() to
     // register your new Nym at any given Server. (Nearly all
     // server requests require this...)
     //
@@ -2639,8 +2639,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t createUserAccount(const std::string& SERVER_ID,
-                                     const std::string& USER_ID) const;
+    EXPORT int32_t registerNym(const std::string& SERVER_ID,
+                               const std::string& USER_ID) const;
 
     /** This allows you to delete a Nym from any server it is
     // registered at. NOTE: This will FAIL if the Nym has any
@@ -3843,7 +3843,7 @@ public:
     // Make sure you download your Nymbox (getNymbox) before calling this,
     // so when it loads the Nymbox it will have the latest version of it.
     //
-    // Also, call createUserAccount() and pass the server reply message in
+    // Also, call registerNym() and pass the server reply message in
     // here, so that it can read theMessageNym (to sync the transaction
     // numbers.)
     //

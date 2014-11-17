@@ -1964,20 +1964,20 @@ int32_t main(int32_t argc, char* argv[])
 
         // register new user account
         else if (buf[0] == 'r') {
-            otOut << "(User has instructed to send a createUserAccount "
+            otOut << "(User has instructed to send a registerNym "
                      "command to the server...)\n";
 
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::createUserAccount, theMessage, *pMyNym,
+                        OTClient::registerNym, theMessage, *pMyNym,
                         *pServerContract,
                         nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
             else
-                otErr << "Error processing createUserAccount command in "
+                otErr << "Error processing registerNym command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
         }

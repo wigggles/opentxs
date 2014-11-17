@@ -2012,10 +2012,10 @@ int32_t OTAPI_Wrap::checkServerID(const std::string& SERVER_ID,
     return Exec()->checkServerID(SERVER_ID, USER_ID);
 }
 
-int32_t OTAPI_Wrap::createUserAccount(const std::string& SERVER_ID,
-                                      const std::string& USER_ID)
+int32_t OTAPI_Wrap::registerNym(const std::string& SERVER_ID,
+                                const std::string& USER_ID)
 {
-    return Exec()->createUserAccount(SERVER_ID, USER_ID);
+    return Exec()->registerNym(SERVER_ID, USER_ID);
 }
 
 int32_t OTAPI_Wrap::deleteUserAccount(const std::string& SERVER_ID,

@@ -1139,7 +1139,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyCreateUserAccount::reg(
-    "createUserAccount", new StrategyCreateUserAccount());
+    "registerNym", new StrategyCreateUserAccount());
 
 class StrategyAtCreateUserAccount : public OTMessageStrategy
 {
@@ -1214,7 +1214,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtCreateUserAccount::reg(
-    "@createUserAccount", new StrategyAtCreateUserAccount());
+    "@registerNym", new StrategyAtCreateUserAccount());
 
 class StrategyDeleteUserAccount : public OTMessageStrategy
 {
