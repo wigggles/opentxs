@@ -7212,7 +7212,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in @getMarketRecentTrades reply.\n";
+                 "payload in getMarketRecentTradesResponse reply.\n";
         return true;
     }
 
@@ -7237,7 +7237,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 
     if (!bUnpacked) {
         otErr << "Failed unpacking data for process server reply, "
-                 "@getMarketRecentTrades.\n";
+                 "getMarketRecentTradesResponse.\n";
         return true;
     }
 
@@ -7777,7 +7777,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("getMarketOffersResponse")) {
         return processServerReplyGetMarketOffers(theReply);
     }
-    if (theReply.m_strCommand.Compare("@getMarketRecentTrades")) {
+    if (theReply.m_strCommand.Compare("getMarketRecentTradesResponse")) {
         return processServerReplyGetMarketRecentTrades(theReply);
     }
     if (theReply.m_strCommand.Compare("@getNym_MarketOffers")) {

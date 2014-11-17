@@ -837,7 +837,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetMarketRecentTrades::reg(
-    "@getMarketRecentTrades", new StrategyAtGetMarketRecentTrades());
+    "getMarketRecentTradesResponse", new StrategyAtGetMarketRecentTrades());
 
 class StrategyGetNymMarketOffers : public OTMessageStrategy
 {

@@ -1571,7 +1571,7 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(OTPseudonym&,
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "@getMarketRecentTrades";           // reply to getMarketRecentTrades
+        "getMarketRecentTradesResponse";    // reply to getMarketRecentTrades
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // Market ID.
 
