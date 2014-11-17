@@ -281,15 +281,14 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         UserCmdCheckServerID(*pNym, theMessage, msgOut);
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("createUserAccount")) {
-        OTLog::vOutput(
-            0, "\n==> Received a createUserAccount message. Nym: %s ...\n",
-            strMsgNymID.Get());
+    else if (theMessage.m_strCommand.Compare("registerNym")) {
+        OTLog::vOutput(0, "\n==> Received a registerNym message. Nym: %s ...\n",
+                       strMsgNymID.Get());
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_create_user_acct);
         if (bNymIsServerNym) {
             OTLog::Output(0,
                           "**** Sorry, the server Nym is forbidden from using "
-                          "the createUserAccount message as a client. "
+                          "the registerNym message as a client. "
                           "PLEASE REMOVE THAT NYM FROM YOUR WALLET!! Create a "
                           "fresh Nym to use. ***\n");
             return false;
@@ -307,7 +306,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                 OTDB::StringMap* pMap =
                     dynamic_cast<OTDB::StringMap*>(pStorable.get());
                 if (nullptr == pMap)
-                    OTLog::vOutput(0, "%s: @createUserAccount: Failed decoding "
+                    OTLog::vOutput(0, "%s: @registerNym: Failed decoding "
                                       "StringMap object.\n",
                                    __FUNCTION__);
                 else {
@@ -337,7 +336,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     if (false ==
                         pNym->LoadFromString(strCredentialList, &theMap)) {
                         OTLog::vError(
-                            "%s: @createUserAccount: Failure loading nym %s "
+                            "%s: @registerNym: Failure loading nym %s "
                             "from credential string.\n",
                             __FUNCTION__, theMessage.m_strNymID.Get());
                     }
@@ -352,7 +351,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     //
                     else if (!pNym->VerifyPseudonym()) {
                         OTLog::vError(
-                            "%s: @createUserAccount: Loaded nym %s "
+                            "%s: @registerNym: Loaded nym %s "
                             "from credentials, but then it failed verifying.\n",
                             __FUNCTION__, theMessage.m_strNymID.Get());
                     }
@@ -373,7 +372,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         // VerifySigAuthent.
                         { // (Because we use authentication keys, not signing
                             // keys, for messages.)
-                            OTLog::Output(0, "@createUserAccount: "
+                            OTLog::Output(0, "@registerNym: "
                                              "Authentication signature -- "
                                              "verification failed!\n");
                             return false;
@@ -401,13 +400,13 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                 strOutput.Get(), OTFolders::Pubcred().Get(),
                                 strFilename.Get());
                         if (!bStoredList)
-                            OTLog::vError("%s: @createUserAccount: Failed "
+                            OTLog::vError("%s: @registerNym: Failed "
                                           "trying to armor or store: %s\n",
                                           __FUNCTION__, strFilename.Get());
                         else // IF the list saved, then we save the
                              // credentials themselves...
                         {
-                            OTLog::vOutput(1, "@createUserAccount: Success "
+                            OTLog::vOutput(1, "@registerNym: Success "
                                               "saving public credential "
                                               "list for Nym: %s\n",
                                            str_nym_id.c_str());
@@ -429,13 +428,13 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                         str_cred_id);
                                 if (!bStoredCredential)
                                     OTLog::vError(
-                                        "%s: @createUserAccount: Failed "
+                                        "%s: @registerNym: Failed "
                                         "trying to store credential %s for "
                                         "nym %s.\n",
                                         __FUNCTION__, str_cred_id.c_str(),
                                         str_nym_id.c_str());
                                 else
-                                    OTLog::vOutput(0, "@createUserAccount: "
+                                    OTLog::vOutput(0, "@registerNym: "
                                                       "Success saving "
                                                       "public credential "
                                                       "ID: %s\n",
@@ -491,8 +490,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         // Prepare to send success or failure back to user.
                         // (1) set up member variables
 
-                        // reply to createUserAccount
-                        msgOut.m_strCommand = "@createUserAccount";
+                        // reply to registerNym
+                        msgOut.m_strCommand = "@registerNym";
                         msgOut.m_strNymID = theMessage.m_strNymID; // UserID
                         msgOut.m_strServerID =
                             server_->m_strServerID; // ServerID, a hash of
@@ -587,7 +586,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                             OTFolders::UserAcct().Get(),
                             theMessage.m_strNymID.Get());
 
-                        // First we save the createUserAccount message
+                        // First we save the registerNym message
                         // in the accounts folder...
                         if (!msgOut.m_bSuccess) {
                             OTLog::Error("Error saving new user "

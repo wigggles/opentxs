@@ -8257,7 +8257,7 @@ bool OT_API::ClearRecord(
 
 // This function assumes you have already downloaded the latest copy of your
 // Nymbox,
-// and that you have already retrieved theMessageNym from the @createUserAccount
+// and that you have already retrieved theMessageNym from the @registerNym
 // message, with both objects being loaded and passed as arguments here, ready
 // to go.
 //
