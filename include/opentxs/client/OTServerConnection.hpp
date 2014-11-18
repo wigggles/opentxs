@@ -143,9 +143,13 @@ class Identifier;
 class OTPseudonym;
 class OTServerContract;
 class OTWallet;
+class OTEnvelope;
+class OTSocket;
+class OTSettings;
 
 class OTServerConnection
 {
+    OTSocket* m_pSocket;
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 
@@ -155,11 +159,9 @@ class OTServerConnection
     OTClient* m_pClient;
 
 public:
-    OTServerConnection(OTWallet& theWallet, OTClient& theClient);
-
-    EXPORT ~OTServerConnection()
-    {
-    }
+    OTServerConnection(OTWallet& theWallet, OTClient& theClient,
+                       OTSettings* pConfig);
+    ~OTServerConnection();
 
     bool GetServerID(Identifier& theID) const;
 
@@ -167,10 +169,12 @@ public:
     {
         return m_pNym;
     }
+
     inline OTServerContract* GetServerContract() const
     {
         return m_pServerContract;
     }
+
     inline OTWallet* GetWallet() const
     {
         return m_pWallet;
@@ -180,6 +184,9 @@ public:
 
     void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
                            const Message& theMessage);
+
+private:
+    bool send(const OTServerContract& contract, const OTEnvelope& envelope);
 };
 
 } // namespace opentxs

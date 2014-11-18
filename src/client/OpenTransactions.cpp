@@ -135,13 +135,11 @@
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTServerConnection.hpp>
 #include "Helpers.hpp"
 #include <opentxs/client/OTWallet.hpp>
 
 #include <opentxs/ext/InstantiateContract.hpp>
 #include <opentxs/ext/OTPayment.hpp>
-#include <opentxs/ext/Socket_ZMQ4.hpp>
 
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/cash/Purse.hpp>
@@ -172,6 +170,7 @@
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
+#include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/Identifier.hpp>
@@ -198,13 +197,6 @@ extern "C" {
 #include <netinet/in.h>
 }
 #endif
-
-#define CLIENT_DEFAULT_LATENCY_SEND_MS 200
-#define CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES 7
-#define CLIENT_DEFAULT_LATENCY_RECEIVE_MS 200
-#define CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES 7
-#define CLIENT_DEFAULT_LATENCY_DELAY_AFTER 50
-#define CLIENT_DEFAULT_IS_BLOCKING false
 
 #define CLIENT_CONFIG_KEY "client"
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
@@ -622,7 +614,6 @@ bool OT_API::CleanupOTApp()
 OT_API::OT_API()
     : m_pPid(new Pid())
     , m_bInitialized(false)
-    , m_pSocket(new OTSocket_ZMQ_4())
     , m_strDataPath("")
     , m_strWalletFilename("")
     , m_strWalletFilePath("")
@@ -639,11 +630,6 @@ OT_API::OT_API()
 
 OT_API::~OT_API()
 {
-    // DELETE AND SET nullptr
-    //
-    if (nullptr != m_pSocket) delete m_pSocket;
-    m_pSocket = nullptr;
-
     if (nullptr != m_pWallet) delete m_pWallet;
     m_pWallet = nullptr;
     if (nullptr != m_pClient) delete m_pClient;
@@ -702,7 +688,9 @@ bool OT_API::Init()
         m_pClient = new OTClient;
     }
 
-    if (!LoadConfigFile()) {
+    std::shared_ptr<OTSettings> pConfig(LoadConfigFile());
+
+    if (!pConfig) {
         otErr << __FUNCTION__ << ": Unable to Load Config File!";
         OT_FAIL;
     }
@@ -747,7 +735,7 @@ bool OT_API::Init()
             otWarn << __FUNCTION__ << ": m_pClient->InitClient() was already "
                                       "initialized. (Skipping.)\n";
         else {
-            m_bInitialized = m_pClient->InitClient(*m_pWallet);
+            m_bInitialized = m_pClient->InitClient(*m_pWallet, pConfig.get());
             if (m_bInitialized)
                 otWarn << __FUNCTION__
                        << ": Success invoking m_pClient->InitClient() \n";
@@ -801,13 +789,13 @@ bool OT_API::SetWalletFilename(const String& strPath)
 
 // Load the configuration file.
 //
-bool OT_API::LoadConfigFile()
+std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
 {
     // Setup Config File
     String strConfigPath, strConfigFilename;
 
     if (!OTDataFolder::IsInitialized()) {
-        return false;
+        return nullptr;
     }
 
     // Create Config Object (OTSettings)
@@ -815,19 +803,19 @@ bool OT_API::LoadConfigFile()
     if (!OTDataFolder::GetConfigFilePath(strConfigFilePath)) {
         OT_FAIL;
     }
-    OTSettings* p_Config = nullptr;
-    p_Config = new OTSettings(strConfigFilePath);
+    std::shared_ptr<OTSettings> p_Config(
+        std::make_shared<OTSettings>(strConfigFilePath));
 
     // First Load, Create new fresh config file if failed loading.
     if (!p_Config->Load()) {
         otOut << __FUNCTION__
               << ": Note: Unable to Load Config. Creating a new file: "
               << strConfigFilename << "\n";
-        if (!p_Config->Reset()) return false;
-        if (!p_Config->Save()) return false;
+        if (!p_Config->Reset()) return nullptr;
+        if (!p_Config->Save()) return nullptr;
     }
 
-    if (!p_Config->Reset()) return false;
+    if (!p_Config->Reset()) return nullptr;
 
     // Second Load, Throw Assert if Failed loading.
     if (!p_Config->Load()) {
@@ -884,21 +872,6 @@ bool OT_API::LoadConfigFile()
 
         bool b_SectionExist;
         p_Config->CheckSetSection("latency", szComment, b_SectionExist);
-    }
-
-    {
-        if (nullptr == m_pSocket) {
-            OT_FAIL;
-        }
-
-        const OTSocket::Defaults socketDefaults(
-            CLIENT_DEFAULT_LATENCY_SEND_MS,
-            CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES,
-            CLIENT_DEFAULT_LATENCY_RECEIVE_MS,
-            CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES,
-            CLIENT_DEFAULT_LATENCY_DELAY_AFTER, CLIENT_DEFAULT_IS_BLOCKING);
-
-        m_pSocket->Init(socketDefaults, p_Config); // setup the socket.
     }
 
     // SECURITY (beginnings of..)
@@ -961,13 +934,7 @@ bool OT_API::LoadConfigFile()
         OT_FAIL;
     }
 
-    // Finsihed Saving... now lets cleanup!
-    if (!p_Config->Reset()) return false;
-
-    if (nullptr != p_Config) delete p_Config;
-    p_Config = nullptr;
-
-    return true;
+    return p_Config;
 }
 
 bool OT_API::SetWallet(const String& strFilename)

@@ -141,6 +141,7 @@
 namespace opentxs
 {
 
+class OTSettings;
 class OT_API;
 class Account;
 class AssetContract;
@@ -157,7 +158,6 @@ class OTPasswordData;
 class OTPayment;
 class OTPaymentPlan;
 class OTServerContract;
-class OTSocket;
 class OTWallet;
 class Mint;
 class Purse;
@@ -182,8 +182,6 @@ private:
 
     bool m_bInitialized;
     bool m_bDefaultStore;
-
-    OTSocket* m_pSocket;
 
     String m_strDataPath;
     String m_strWalletFilename;
@@ -223,7 +221,6 @@ public:
         return m_pClient;
     }
 
-    EXPORT bool LoadConfigFile();
     EXPORT bool SetWallet(const String& strFilename);
     EXPORT bool WalletExists() const;
     EXPORT bool LoadWallet() const;
@@ -1107,6 +1104,9 @@ public:
 
     EXPORT void AddServerContract(const OTServerContract& pContract) const;
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
+
+private:
+    std::shared_ptr<OTSettings> LoadConfigFile();
 };
 
 } // namespace opentxs

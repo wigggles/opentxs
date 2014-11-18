@@ -147,6 +147,7 @@ class OTLedger;
 class OTServerConnection;
 class OTServerContract;
 class OTWallet;
+class OTSettings;
 
 // This class represents the "test client"
 //
@@ -332,7 +333,7 @@ public:
     OTClient();
     ~OTClient();
 
-    bool InitClient(OTWallet& theWallet); // Need to call this before using.
+    bool InitClient(OTWallet& theWallet, OTSettings* pConfig);
     bool m_bInitialized; // this will be false until InitClient() is called.
     // These functions manipulate the internal m_pConnection member:
     void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
