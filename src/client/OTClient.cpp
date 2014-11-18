@@ -2620,7 +2620,8 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                                    // and signature, (OR success
                                                    // generating the ledger.)
                                             {
-                                                // Currently in @getBoxReceipt,
+                                                // Currently in
+                                                // getBoxReceiptResponse,
                                                 // we are taking an incoming
                                                 // cheque from the nymbox
                                                 // and adding it to the payments
@@ -2967,7 +2968,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 dynamic_cast<OTDB::StringMap*>(pStorable.get());
             if (nullptr == pMap)
                 otOut << __FUNCTION__ << ": Failed decoding StringMap "
-                                         "object in @checkUser.\n";
+                                         "object in checkUserResponse.\n";
             else // IF the list saved, then we save the credentials
                  // themselves...
             {
@@ -2978,8 +2979,8 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 if (false ==
                     theTargetNym.LoadFromString(strCredentialList, &theMap)) {
                     otErr << __FUNCTION__
-                          << ": @checkUser: Failure loading nym " << strNymID2
-                          << " from credential string.\n";
+                          << ": checkUserResponse: Failure loading nym "
+                          << strNymID2 << " from credential string.\n";
                 }
                 // Now that the Nym has been loaded up from the message
                 // parameters,
@@ -2991,7 +2992,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 // storage.
                 //
                 else if (!theTargetNym.VerifyPseudonym()) {
-                    otErr << __FUNCTION__ << ": @checkUser: Loaded nym "
+                    otErr << __FUNCTION__ << ": checkUserResponse: Loaded nym "
                           << strNymID2 << " from credentials, but then it "
                                           "failed verifying.\n";
                 }
@@ -3020,7 +3021,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                               << ": Failed trying to armor or store "
                               << strFilename << ".\n";
                     else {
-                        otOut << "@checkUser: Success saving public "
+                        otOut << "checkUserResponse: Success saving public "
                                  "credential list for Nym: " << strNymID2
                               << "\n";
                         for (auto& it : theMap) {
@@ -3044,7 +3045,8 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                                          "credential " << str_cred_id
                                       << " for nym " << str_nym_id << ".\n";
                             else
-                                otOut << "@checkUser: Success saving public "
+                                otOut << "checkUserResponse: Success saving "
+                                         "public "
                                          "credential ID: " << str_cred_id
                                       << "\n";
                         }
@@ -3064,8 +3066,9 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
         if (thePubkeyNym.SetPublicKey(strPubkey) &&
             thePubkeyNym.VerifyPseudonym()) {
             if (thePubkeyNym.SavePublicKey(strPath))
-                otOut << "@checkUser: (Deprecated.) Success saving public "
-                         "key file for Nym: " << strNymID2 << "\n";
+                otOut
+                    << "checkUserResponse: (Deprecated.) Success saving public "
+                       "key file for Nym: " << strNymID2 << "\n";
         }
     }
 
@@ -3082,7 +3085,7 @@ bool OTClient::processServerReplyNotarizeTransactions(
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
     // todo (gui):
-    // This block assumes that the above "@notarizeTransactions", being
+    // This block assumes that the above "notarizeTransactionsResponse", being
     // successful, probably changed
     // the account balance. A nice GUI would probably interpret the reply
     // and edit the local files
@@ -3118,19 +3121,20 @@ bool OTClient::processServerReplyGetNymBox(const Message& theReply,
 
     String strReply(theReply);
 
-    otOut << "Received @getNymbox server response ("
+    otOut << "Received getNymboxResponse server response ("
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
 
     // base64-Decode the server reply's payload into strInbox
     String strNymbox(theReply.m_ascPayload);
 
     // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
-    // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
+    // Except... getNymboxResponse isn't dropped as a replyNotice into the
+    // Nymbox,
     // so we'll never end up here except in cases where it needs to be
     // loaded. I can even ASSERT here, that the pointer is actually nullptr!
     //
     OT_ASSERT_MSG(nullptr == pNymbox, "Nymbox pointer is expected to be "
-                                      "nullptr here, since @getNymbox "
+                                      "nullptr here, since getNymboxResponse "
                                       "isn't dropped as a server "
                                       "replyNotice into the nymbox.");
 
@@ -3185,7 +3189,7 @@ bool OTClient::processServerReplyGetNymBox(const Message& theReply,
     }
     else {
         otErr << "OTClient::ProcessServerReply: Error loading or verifying "
-                 "nymbox during @getNymbox:\n\n" << strNymbox << "\n";
+                 "nymbox during getNymboxResponse:\n\n" << strNymbox << "\n";
     }
 
     return true;
@@ -3206,14 +3210,16 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
 
     // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
-    // Except... @getNymbox isn't dropped as a replyNotice into the Nymbox,
+    // Except... getNymboxResponse isn't dropped as a replyNotice into the
+    // Nymbox,
     // so we'll never end up here except in cases where it needs to be
     // loaded. I can even ASSERT here, that the pointer is actually nullptr!
     //
-    OT_ASSERT_MSG(nullptr == pNymbox, "Nymbox pointer is expected to be "
-                                      "nullptr here, since @getBoxReceipt "
-                                      "isn't dropped as a server "
-                                      "replyNotice into the nymbox.");
+    OT_ASSERT_MSG(nullptr == pNymbox,
+                  "Nymbox pointer is expected to be "
+                  "nullptr here, since getBoxReceiptResponse "
+                  "isn't dropped as a server "
+                  "replyNotice into the nymbox.");
 
     // Note: I don't HAVE to load the ledger, and what if there are 500000
     // receipts in it?
@@ -3230,9 +3236,8 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
     case 2: // bSuccessLoading = pLedger->LoadOutbox();    break;
         break;
     default:
-        otErr << __FUNCTION__
-              << ": @getBoxReceipt: Unknown box type: " << theReply.m_lDepth
-              << "\n";
+        otErr << __FUNCTION__ << ": getBoxReceiptResponse: Unknown box type: "
+              << theReply.m_lDepth << "\n";
         bErrorCondition = true;
         break;
     }
@@ -3259,7 +3264,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
 
         if (nullptr == pTransType)
             otErr << __FUNCTION__
-                  << ": @getBoxReceipt: Error instantiating transaction "
+                  << ": getBoxReceiptResponse: Error instantiating transaction "
                      "type based on decoded theReply.m_ascPayload:\n\n"
                   << strTransType << "\n";
         else {
@@ -3268,12 +3273,13 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
 
             if (nullptr == pBoxReceipt)
                 otErr << __FUNCTION__
-                      << ": @getBoxReceipt: Error dynamic_cast from "
+                      << ": getBoxReceiptResponse: Error dynamic_cast from "
                          "transaction type to transaction, based on "
                          "decoded theReply.m_ascPayload:\n\n" << strTransType
                       << "\n\n";
             else if (!pBoxReceipt->VerifyAccount(*pServerNym))
-                otErr << __FUNCTION__ << ": @getBoxReceipt: Error: Box Receipt "
+                otErr << __FUNCTION__
+                      << ": getBoxReceiptResponse: Error: Box Receipt "
                       << pBoxReceipt->GetTransactionNum() << " in "
                       << ((theReply.m_lDepth == 0)
                               ? "nymbox"
@@ -3282,7 +3288,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
             else if (pBoxReceipt->GetTransactionNum() !=
                      theReply.m_lTransactionNum)
                 otErr << __FUNCTION__
-                      << ": @getBoxReceipt: Error: Transaction Number "
+                      << ": getBoxReceiptResponse: Error: Transaction Number "
                          "doesn't match on the box receipt itself ("
                       << pBoxReceipt->GetTransactionNum()
                       << "), versus the one listed in the reply message ("
@@ -3291,11 +3297,12 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
             // VerifyAccount().
             else if (pBoxReceipt->GetUserID() != USER_ID) {
                 const String strPurportedUserID(pBoxReceipt->GetUserID());
-                otErr << __FUNCTION__
-                      << ": @getBoxReceipt: Error: NymID doesn't match on "
-                         "the box receipt itself (" << strPurportedUserID
-                      << "), versus the one listed in the reply message ("
-                      << theReply.m_strNymID << ").\n";
+                otErr
+                    << __FUNCTION__
+                    << ": getBoxReceiptResponse: Error: NymID doesn't match on "
+                       "the box receipt itself (" << strPurportedUserID
+                    << "), versus the one listed in the reply message ("
+                    << theReply.m_strNymID << ").\n";
             }
             else // FINALLY we have the Ledger AND the Box Receipt both
                    // loaded at the same time.
@@ -3351,7 +3358,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                     if (!bSuccessLoading) {
                         String strUserID(USER_ID), strAcctID(USER_ID);
                         otOut << __FUNCTION__
-                              << ": @getBoxReceipt: WARNING: Unable to "
+                              << ": getBoxReceiptResponse: WARNING: Unable to "
                                  "load, verify, or generate paymentInbox, "
                                  "with IDs: " << strUserID << " / " << strAcctID
                               << "\n";
@@ -3388,7 +3395,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                         // QUESTION: what if I ERASE it out of my recordBox.
                         // Won't it pop back up again?
                         // ANSWER: YES, but not if I do this instead at
-                        // @getBoxReceipt which will only happen once.
+                        // getBoxReceiptResponse which will only happen once.
                         //         UPDATE: which I now AM (see our location
                         // here...)
                         // HOWEVER: Most likely not, because this notice
@@ -3450,7 +3457,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                 if (!pBoxReceipt->SaveBoxReceipt(
                         theReply.m_lDepth)) // <===================
                     otErr << __FUNCTION__
-                          << ": @getBoxReceipt(): Failed trying to "
+                          << ": getBoxReceiptResponse(): Failed trying to "
                              "SaveBoxReceipt. Contents:\n\n" << strTransType
                           << "\n\n";
                 /* theReply.m_lDepth in this context stores boxType. Value
@@ -3460,10 +3467,11 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
         }     // Success loading the boxReceipt from the server reply
     }         // No error condition.
     else {
-        otErr << __FUNCTION__
-              << ": SHOULD NEVER HAPPEN: @getBoxReceipt: failure loading "
-                 "box, or verifying it. UserID: " << theReply.m_strNymID
-              << "  AcctID: " << theReply.m_strAcctID << " \n";
+        otErr
+            << __FUNCTION__
+            << ": SHOULD NEVER HAPPEN: getBoxReceiptResponse: failure loading "
+               "box, or verifying it. UserID: " << theReply.m_strNymID
+            << "  AcctID: " << theReply.m_strAcctID << " \n";
     }
 
     return true;
@@ -3473,7 +3481,9 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                               OTLedger* pNymbox,
                                               ProcessServerReplyArgs& args)
 {
-    // IN EITHER of these cases (@processInbox, @processNymbox), the number of
+    // IN EITHER of these cases (processInboxResponse, processNymboxResponse),
+    // the
+    // number of
     // transaction numbers on my Nym has
     // probably changed.
     // But the server acknowledgment here confirms it, so I should remove any
@@ -3514,9 +3524,10 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
         String strLedger, strReplyLedger;
 
         // todo: we are already in the function which is called
-        // for @processNymbox and @processInbox. Maybe call this func.
+        // for processNymboxResponse and processInboxResponse. Maybe call this
+        // func.
         // with a flag so we do not have to compare again?
-        if (theReply.m_strCommand.Compare("@processNymbox"))
+        if (theReply.m_strCommand.Compare("processNymboxResponse"))
             ACCOUNT_ID = USER_ID; // For Nymbox, UserID *is* AcctID.
 
         OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID),
@@ -3595,11 +3606,14 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
             OTTransaction* pReplyTransaction = nullptr;
 
             // todo: we are already in the function which is called
-            // for @processNymbox and @processInbox. Maybe call this func.
+            // for processNymboxResponse and processInboxResponse. Maybe call
+            // this
+            // func.
             // with a flag so we do not have to compare again?
             if (theReply.m_strCommand.Compare(
-                    "@processInbox")) // We're processing the SERVER's REPLY
-                                      // to our processInbox request.
+                    "processInboxResponse")) // We're processing the SERVER's
+                                             // REPLY
+                                             // to our processInbox request.
             {
                 pTransaction =
                     theLedger.GetTransaction(OTTransaction::processInbox);
@@ -3758,7 +3772,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 otErr
                                     << "*** Unexpected reply item type ("
                                     << nReplyItemType
-                                    << ") in @processInbox, while "
+                                    << ") in processInboxResponse, while "
                                        "processing server reply: " << strTheType
                                     << " \n";
                                 continue;
@@ -3774,13 +3788,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                             if (OTItem::acknowledgement !=
                                 pReplyItem->GetStatus()) {
-                                otWarn << "@processInbox reply item "
+                                otWarn << "processInboxResponse reply item "
                                        << strTempTypeString
                                        << ": status == FAILED\n";
                                 continue;
                             }
                             // else
-                            otWarn << "@processInbox reply item "
+                            otWarn << "processInboxResponse reply item "
                                    << strTempTypeString
                                    << ": status == SUCCESS\n";
 
@@ -3937,7 +3951,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 otErr
                                     << "*** Unexpected reply item type ("
                                     << nReplyItemType
-                                    << ") in @processInbox, while "
+                                    << ") in processInboxResponse, while "
                                        "processing server reply: " << strTheType
                                     << "\n";
                                 break; // will return just below, where it
@@ -4694,7 +4708,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                 }     // if pTransaction
             }
             //
-            else // @processNymbox.  // We're processing the SERVER's REPLY
+            else // processNymboxResponse.  // We're processing the SERVER's
+                 // REPLY
                  // to our processNymbox request.
             {
                 pTransaction =
@@ -4927,13 +4942,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                         if (OTItem::acknowledgement !=
                             pReplyItem->GetStatus()) {
-                            otWarn << "@processNymbox reply item "
+                            otWarn << "processNymboxResponse reply item "
                                    << strTempTypeString
                                    << ": status == FAILED\n";
                             continue;
                         }
                         // else
-                        otWarn << "@processNymbox reply item "
+                        otWarn << "processNymboxResponse reply item "
                                << strTempTypeString << ": status == SUCCESS\n";
 
                         // pReplyItem->GetReferenceToNum() contains the
@@ -6706,7 +6721,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
         OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
         if (nullptr == pMap)
             otOut << __FUNCTION__ << ": Failed decoding StringMap object "
-                                     "in @getAccountFiles.\n";
+                                     "in getAccountFilesResponse.\n";
         else {
             String::Map& theMap = pMap->the_map;
             String strAccount, strInbox, strOutbox;
@@ -7039,7 +7054,7 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in @getMarketList reply.\n";
+                 "payload in getMarketListResponse reply.\n";
         return true;
     }
 
@@ -7064,7 +7079,7 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
 
     if (!bUnpacked) {
         otErr << "Process Server Reply: Failed unpacking data for "
-                 "@getMarketList.\n";
+                 "getMarketListResponse.\n";
         return true;
     }
 
@@ -7118,7 +7133,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in @getMarketOffers reply.\n";
+                 "payload in getMarketOffersResponse reply.\n";
         return true;
     }
 
@@ -7143,7 +7158,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
 
     if (!bUnpacked) {
         otErr << "Failed unpacking data for process server reply, "
-                 "@getMarketOffers.\n";
+                 "getMarketOffersResponse.\n";
         return true;
     }
 
@@ -7197,7 +7212,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in @getMarketRecentTrades reply.\n";
+                 "payload in getMarketRecentTradesResponse reply.\n";
         return true;
     }
 
@@ -7222,7 +7237,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 
     if (!bUnpacked) {
         otErr << "Failed unpacking data for process server reply, "
-                 "@getMarketRecentTrades.\n";
+                 "getMarketRecentTradesResponse.\n";
         return true;
     }
 
@@ -7272,7 +7287,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     if ((theReply.m_ascPayload.GetLength() <= 2) ||
         (false == theReply.m_ascPayload.GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in @getNym_MarketOffers reply.\n";
+                 "payload in getNym_MarketOffersResponse reply.\n";
         return true;
     }
 
@@ -7297,7 +7312,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
     if (!bUnpacked) {
         otErr << "Failed unpacking data for process server reply, "
-                 "@getNym_MarketOffers.\n";
+                 "getNym_MarketOffersResponse.\n";
         return true;
     }
 
@@ -7443,7 +7458,7 @@ bool OTClient::processServerReplyIssueAssetType(const Message& theReply,
             pAccount->SaveAccount();
 
             // Need to consider other security considerations.
-            // What if I wasn't EXPECTING a @issueAssetType message?
+            // What if I wasn't EXPECTING a issueAssetTypeResponse message?
             // Well actually, in that case, the server wouldn't have a
             // copy of my request to send back to me, would he? So I should
             // check that request to make sure it's good.
@@ -7503,7 +7518,7 @@ bool OTClient::processServerReplyCreateAccount(const Message& theReply,
             pAccount->SaveAccount();
 
             // Need to consider other security considerations.
-            // What if I wasn't EXPECTING a @createAccount message?
+            // What if I wasn't EXPECTING a createAccountResponse message?
             // Well actually, in that case, the server wouldn't have a
             // copy of my request to send back to me, would he? So I should
             // check that request to make sure it's good.
@@ -7717,67 +7732,67 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (!theReply.m_bSuccess) {
         return false;
     }
-    if (theReply.m_strCommand.Compare("@triggerClause")) {
+    if (theReply.m_strCommand.Compare("triggerClauseResponse")) {
         return processServerReplyTriggerClause(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@getRequest")) {
+    if (theReply.m_strCommand.Compare("getRequestResponse")) {
         return processServerReplyGetRequest(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@checkUser")) {
+    if (theReply.m_strCommand.Compare("checkUserResponse")) {
         return processServerReplyCheckUser(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@notarizeTransactions")) {
+    if (theReply.m_strCommand.Compare("notarizeTransactionsResponse")) {
         return processServerReplyNotarizeTransactions(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@getTransactionNum")) {
+    if (theReply.m_strCommand.Compare("getTransactionNumResponse")) {
         return processServerReplyGetTransactionNum(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@getNymbox")) {
+    if (theReply.m_strCommand.Compare("getNymboxResponse")) {
         return processServerReplyGetNymBox(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("@getBoxReceipt")) {
+    if (theReply.m_strCommand.Compare("getBoxReceiptResponse")) {
         return processServerReplyGetBoxReceipt(theReply, pNymbox, args);
     }
-    if ((theReply.m_strCommand.Compare("@processInbox") ||
-         theReply.m_strCommand.Compare("@processNymbox"))) {
+    if ((theReply.m_strCommand.Compare("processInboxResponse") ||
+         theReply.m_strCommand.Compare("processNymboxResponse"))) {
         return processServerReplyProcessInbox(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("@getAccountFiles")) // Replaces
-                                                           // getAccount,
-                                                           // getInbox,
-                                                           // and
-                                                           // getOutbox
+    if (theReply.m_strCommand.Compare("getAccountFilesResponse")) // Replaces
+                                                                  // getAccount,
+                                                                  // getInbox,
+                                                                  // and
+                                                                  // getOutbox
     {
         return processServerReplyGetAccountFiles(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("@getContract")) {
+    if (theReply.m_strCommand.Compare("getContractResponse")) {
         return processServerReplyGetContract(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@getMint")) {
+    if (theReply.m_strCommand.Compare("getMintResponse")) {
         return processServerReplyGetMint(theReply);
     }
-    if (theReply.m_strCommand.Compare("@getMarketList")) {
+    if (theReply.m_strCommand.Compare("getMarketListResponse")) {
         return processServerReplyGetMarketList(theReply);
     }
-    if (theReply.m_strCommand.Compare("@getMarketOffers")) {
+    if (theReply.m_strCommand.Compare("getMarketOffersResponse")) {
         return processServerReplyGetMarketOffers(theReply);
     }
-    if (theReply.m_strCommand.Compare("@getMarketRecentTrades")) {
+    if (theReply.m_strCommand.Compare("getMarketRecentTradesResponse")) {
         return processServerReplyGetMarketRecentTrades(theReply);
     }
-    if (theReply.m_strCommand.Compare("@getNym_MarketOffers")) {
+    if (theReply.m_strCommand.Compare("getNym_MarketOffersResponse")) {
         return processServerReplyGetNymMarketOffers(theReply);
     }
-    if (theReply.m_strCommand.Compare("@deleteUserAccount")) {
+    if (theReply.m_strCommand.Compare("deleteUserAccountResponse")) {
         return processServerReplyDeleteUserAccount(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@deleteAssetAccount")) {
+    if (theReply.m_strCommand.Compare("deleteAssetAccountResponse")) {
         return processServerReplyDeleteAssetAccount(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@issueAssetType")) {
+    if (theReply.m_strCommand.Compare("issueAssetTypeResponse")) {
         return processServerReplyIssueAssetType(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("@createAccount")) {
+    if (theReply.m_strCommand.Compare("createAccountResponse")) {
         return processServerReplyCreateAccount(theReply, args);
     }
     return false;

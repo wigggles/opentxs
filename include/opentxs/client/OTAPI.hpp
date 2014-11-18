@@ -2679,7 +2679,7 @@ public:
                                        const std::string& USER_ID_CHECK,
                                        const int64_t& ADJUSTMENT);
 
-    /** IF THE_MESSAGE is of command type @usageCredits, and IF it was a
+    /** IF THE_MESSAGE is of command type usageCreditsResponse, and IF it was a
     SUCCESS,
     // then this function returns the usage credits BALANCE (it's a int64_t, but
     // passed as a string). If you adjusted the balance using the usageCredits
@@ -3188,7 +3188,8 @@ public:
     will automatically process that into a processInbox command back to the
     server,
     automatically accepting all of the transactions, resulting in a final
-    @processInbox reply from the server. Obviously a real GUI client would
+    processInboxResponse reply from the server. Obviously a real GUI client
+    would
     merely
     display the inbox to the user, where the user could choose to accept the
     items
@@ -3738,20 +3739,20 @@ public:
     /** -----------------------------------------------------------
     // FlushSentMessages
     //
-    // Make sure to call this directly after a successful @getNymbox.
+    // Make sure to call this directly after a successful getNymboxResponse.
     // (And ONLY at that time.)
     //
     // This empties the buffer of sent messages.
     // (Harvesting any transaction numbers that are still there.)
     //
     // NOTE: You normally ONLY call this immediately after receiving
-    // a successful @getNymbox. It's only then that you can see which
+    // a successful getNymboxResponse. It's only then that you can see which
     // messages a server actually received or not -- which transactions
     // it processed (success or fail) vs which transactions did NOT
     // process (and thus did NOT leave any success/fail receipt in the
     // nymbox.)
     //
-    // I COULD have just flushed myself IN the @getNymbox code (where
+    // I COULD have just flushed myself IN the getNymboxResponse code (where
     // the reply is processed.) But then the developer using the OT API
     // would never have the opportunity to see whether a message was
     // replied to, and harvest it for himself (say, just before attempting
@@ -3762,7 +3763,7 @@ public:
     // and harvesting will still occur properly, and he will also thus have
     // his chance to check for his own replies to harvest before then.
     // This all depends on the developer using the API being smart enough
-    // to call this function after a successful @getNymbox!
+    // to call this function after a successful getNymboxResponse!
     */
     EXPORT static void FlushSentMessages(
         const bool& bHarvestingForRetry, // bHarvestingForRetry is actually
@@ -3801,8 +3802,9 @@ public:
     //
     // This way you can discover what kind of command it was.
     // All server replies are pre-pended with the @ sign. For example, if
-    // you send a "getAccount" message, the server reply is "@getAccount",
-    // and if you send "getMint" the reply is "@getMint", and so on.
+    // you send a "getAccountFiles" message, the server reply is
+    "getAccountFilesResponse",
+    // and if you send "getMint" the reply is "getMintResponse", and so on.
     */
     EXPORT static std::string Message_GetCommand(
         const std::string& THE_MESSAGE);
@@ -3835,7 +3837,7 @@ public:
     //
     // This way you can retrieve the payload from any message.
     // Useful, for example, for getting the encoded StringMap object
-    // from the queryAssetTypes and @queryAssetTypes messages, which both
+    // from the queryAssetTypes and queryAssetTypesResponse messages, which both
     // use the m_ascPayload field to transport it.
     */
     EXPORT static std::string Message_GetPayload(

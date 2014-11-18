@@ -2953,7 +2953,8 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(const std::string& NYM_ID,
 //
 // A good wallet might be designed to automatically download any keys that
 // it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the @checkUser response auto-saves the new
+// add something to OTClient where the checkUserResponse response auto-saves the
+// new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
 //
@@ -3142,7 +3143,8 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
 //
 // A good wallet might be designed to automatically download any keys that
 // it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the @checkUser response auto-saves the new
+// add something to OTClient where the checkUserResponse response auto-saves the
+// new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
 //
@@ -3352,7 +3354,8 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(const std::string& NYM_ID,
 //
 // A good wallet might be designed to automatically download any keys that
 // it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the @checkUser response auto-saves the new
+// add something to OTClient where the checkUserResponse response auto-saves the
+// new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
 //
@@ -11736,9 +11739,10 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
-        (false == theMessage.m_strCommand.Compare("@processNymbox")) &&
-        (false == theMessage.m_strCommand.Compare("@processInbox"))) {
+    if ((false ==
+         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+        (false == theMessage.m_strCommand.Compare("processNymboxResponse")) &&
+        (false == theMessage.m_strCommand.Compare("processInboxResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return OT_ERROR;
@@ -13161,7 +13165,8 @@ int32_t OTAPI_Exec::deleteUserAccount(const std::string& SERVER_ID,
     return OTAPI()->deleteUserAccount(theServerID, theUserID);
 }
 
-// If THE_MESSAGE is of command type @usageCredits, and IF it was a SUCCESS,
+// If THE_MESSAGE is of command type usageCreditsResponse, and IF it was a
+// SUCCESS,
 // then this function returns the usage credits BALANCE (it's a int64_t int32_t,
 // but
 // passed as a string). If you adjusted the balance using the usageCredits
@@ -13210,14 +13215,16 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
         return -2;
     }
 
-    if (!theMessage.m_strCommand.Compare("@usageCredits")) {
-        otErr << __FUNCTION__ << ": THE_MESSAGE is supposed to be of command "
-                                 "type \"@usageCredits\", but instead it's a: "
+    if (!theMessage.m_strCommand.Compare("usageCreditsResponse")) {
+        otErr << __FUNCTION__
+              << ": THE_MESSAGE is supposed to be of command "
+                 "type \"usageCreditsResponse\", but instead it's a: "
               << theMessage.m_strCommand << "\n (Failure. Returning -2.)";
         return -2;
     }
 
-    // By this point, we know the message was a successful @usageCredits, loaded
+    // By this point, we know the message was a successful usageCreditsResponse,
+    // loaded
     // properly from the string that was passed in. Let's return the usage
     // credits
     // balance (a int64_t int32_t, returned in string format.)
@@ -14938,20 +14945,20 @@ bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
 
 // OTAPI_Exec::FlushSentMessages
 //
-// Make sure to call this directly after a successful @getNymbox.
+// Make sure to call this directly after a successful getNymboxResponse.
 // (And ONLY at that time.)
 //
 // This empties the buffer of sent messages.
 // (Harvesting any transaction numbers that are still there.)
 //
 // NOTE: You normally ONLY call this immediately after receiving
-// a successful @getNymbox. It's only then that you can see which
+// a successful getNymboxResponse. It's only then that you can see which
 // messages a server actually received or not -- which transactions
 // it processed (success or fail) vs which transactions did NOT
 // process (and thus did NOT leave any success/fail receipt in the
 // nymbox.)
 //
-// I COULD have just flushed myself IN the @getNymbox code (where
+// I COULD have just flushed myself IN the getNymboxResponse code (where
 // the reply is processed.) But then the developer using the OT API
 // would never have the opportunity to see whether a message was
 // replied to, and harvest it for himself (say, just before attempting
@@ -14962,7 +14969,7 @@ bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
 // and harvesting will still occur properly, and he will also thus have
 // his chance to check for his own replies to harvest before then.
 // This all depends on the developer using the API being smart enough
-// to call this function after a successful @getNymbox!
+// to call this function after a successful getNymboxResponse!
 //
 void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
                                    const std::string& SERVER_ID,
@@ -15054,9 +15061,10 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
     Message theMessage;
 
     if (!theMessage.LoadContractFromString(strMessage)) {
-        otErr << __FUNCTION__ << ": Failed trying to load @registerNym() "
-                                 "message from string (it's a server reply.) "
-                                 "Contents:\n\n" << strMessage << "\n\n";
+        otErr << __FUNCTION__
+              << ": Failed trying to load registerNymResponse() "
+                 "message from string (it's a server reply.) "
+                 "Contents:\n\n" << strMessage << "\n\n";
         return false;
     }
     if (!strNymID.Compare(theMessage.m_strNymID)) {
@@ -15067,17 +15075,17 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
               << strMessage << "\n\n";
         return false;
     }
-    if (!theMessage.m_strCommand.Compare("@registerNym")) {
+    if (!theMessage.m_strCommand.Compare("registerNymResponse")) {
         otErr << __FUNCTION__ << ": Failed. Though success loading message "
                                  "from string, it had the wrong command type. "
-                                 "(Expected @registerNym, but found "
+                                 "(Expected registerNymResponse, but found "
               << theMessage.m_strCommand << ".) Message contents:\n\n"
               << strMessage << "\n\n";
         return false;
     }
     if (!theMessage.m_ascPayload.Exists()) {
         otErr << __FUNCTION__
-              << ": Failed. Though success loading @registerNym() "
+              << ": Failed. Though success loading registerNymResponse() "
                  "message, the payload was empty. (Expected theMessageNym to "
                  "be there, so I could re-sync client side to server.) Message "
                  "contents:\n\n" << strMessage << "\n\n";
@@ -15087,7 +15095,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
 
     if (!theMessage.m_ascPayload.GetString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed decoding message payload in server "
-                                 "reply: @registerNym(). (Expected "
+                                 "reply: registerNymResponse(). (Expected "
                                  "theMessageNym to be there, so I could "
                                  "re-sync client side to server.) Message "
                                  "contents:\n\n" << strMessage << "\n\n";
@@ -15161,7 +15169,7 @@ int32_t OTAPI_Exec::queryAssetTypes(const std::string& SERVER_ID,
 //
 // This way you can retrieve the payload from any message.
 // Useful, for example, for getting the encoded StringMap object
-// from the queryAssetTypes and @queryAssetTypes messages, which both
+// from the queryAssetTypes and queryAssetTypesResponse messages, which both
 // use the m_ascPayload field to transport it.
 //
 std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
@@ -15187,7 +15195,7 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
 // This way you can discover what kind of command it was.
 // All server replies are pre-pended with the @ sign. For example, if
 // you send a "getAccount" message, the server reply is "@getAccount",
-// and if you send "getMint" the reply is "@getMint", and so on.
+// and if you send "getMint" the reply is "getMintResponse", and so on.
 //
 std::string OTAPI_Exec::Message_GetCommand(const std::string& THE_MESSAGE) const
 {
@@ -15239,7 +15247,8 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     // in that case, now do I?)
     //
     if ((false == theMessage.m_strCommand.Compare("notarizeTransactions")) &&
-        (false == theMessage.m_strCommand.Compare("@notarizeTransactions"))) {
+        (false ==
+         theMessage.m_strCommand.Compare("notarizeTransactionsResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15286,8 +15295,8 @@ std::string OTAPI_Exec::Message_GetNewAssetTypeID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("@issueAssetType")) &&
-        (false == theMessage.m_strCommand.Compare("@issueBasket"))) {
+    if ((false == theMessage.m_strCommand.Compare("issueAssetTypeResponse")) &&
+        (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15334,7 +15343,7 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     // contain
     // in that case, now do I?)
     //
-    if (!theMessage.m_strCommand.Compare("@issueAssetType")) {
+    if (!theMessage.m_strCommand.Compare("issueAssetTypeResponse")) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15382,7 +15391,7 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
     // contain a new account ID anyway, right? (Don't want to pass back whatever
     // it DOES contain in that case, now do I?)
     //
-    if (!theMessage.m_strCommand.Compare("@createAccount")) {
+    if (!theMessage.m_strCommand.Compare("createAccountResponse")) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15431,9 +15440,10 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
         (false == theMessage.m_strCommand.Compare("getTransactionNum")) &&
         (false == theMessage.m_strCommand.Compare("processInbox")) &&
         (false == theMessage.m_strCommand.Compare("triggerClause")) &&
-        (false == theMessage.m_strCommand.Compare("@getNymbox")) &&
-        (false == theMessage.m_strCommand.Compare("@getRequest")) &&
-        (false == theMessage.m_strCommand.Compare("@getTransactionNum"))) {
+        (false == theMessage.m_strCommand.Compare("getNymboxResponse")) &&
+        (false == theMessage.m_strCommand.Compare("getRequestResponse")) &&
+        (false ==
+         theMessage.m_strCommand.Compare("getTransactionNumResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type : " << theMessage.m_strCommand
               << " \nFYI, with m_strNymboxHash : " << theMessage.m_strNymboxHash
@@ -15586,9 +15596,10 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
-        (false == theMessage.m_strCommand.Compare("@processInbox")) &&
-        (false == theMessage.m_strCommand.Compare("@processNymbox"))) {
+    if ((false ==
+         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+        (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
+        (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return OT_ERROR;
@@ -15682,9 +15693,10 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("@notarizeTransactions")) &&
-        (false == theMessage.m_strCommand.Compare("@processInbox")) &&
-        (false == theMessage.m_strCommand.Compare("@processNymbox"))) {
+    if ((false ==
+         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+        (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
+        (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return OT_ERROR;

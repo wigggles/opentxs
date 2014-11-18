@@ -8257,7 +8257,8 @@ bool OT_API::ClearRecord(
 
 // This function assumes you have already downloaded the latest copy of your
 // Nymbox,
-// and that you have already retrieved theMessageNym from the @registerNym
+// and that you have already retrieved theMessageNym from the
+// registerNymResponse
 // message, with both objects being loaded and passed as arguments here, ready
 // to go.
 //
@@ -8392,7 +8393,8 @@ bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
 // just stored in
 // RAM like this version does.
 //
-// Therefore this function will be called only after @getNymbox (in OTClient),
+// Therefore this function will be called only after getNymboxResponse (in
+// OTClient),
 // where each
 // replyNotice in the Nymbox will be removed from the sent messages
 // individually, and then
@@ -8401,20 +8403,20 @@ bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
 //
 // OT_API::FlushSentMessages
 //
-// Make sure to call this directly after a successful @getNymbox.
+// Make sure to call this directly after a successful getNymboxResponse.
 // (And ONLY at that time.)
 //
 // This empties the buffer of sent messages.
 // (Harvesting any transaction numbers that are still there.)
 //
 // NOTE: You normally ONLY call this immediately after receiving
-// a successful @getNymbox. It's only then that you can see which
+// a successful getNymboxResponse. It's only then that you can see which
 // messages a server actually received or not -- which transactions
 // it processed (success or fail) vs which transactions did NOT
 // process (and thus did NOT leave any success/fail receipt in the
 // nymbox.)
 //
-// I COULD have just flushed myself IN the @getNymbox code (where
+// I COULD have just flushed myself IN the getNymboxResponse code (where
 // the reply is processed.) But then the developer using the OT API
 // would never have the opportunity to see whether a message was
 // replied to, and harvest it for himself (say, just before attempting
@@ -8425,7 +8427,7 @@ bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
 // and harvesting will still occur properly, and he will also thus have
 // his chance to check for his own replies to harvest before then.
 // This all depends on the developer using the API being smart enough
-// to call this function after a successful @getNymbox!
+// to call this function after a successful getNymboxResponse!
 //
 void OT_API::FlushSentMessages(bool bHarvestingForRetry,
                                const OTIdentifier& SERVER_ID,
@@ -13527,8 +13529,8 @@ int32_t OT_API::usageCredits(const OTIdentifier& SERVER_ID,
                                           // set. (It uses it.)
 
     theMessage.m_lDepth = lAdjustment; // Default is "no adjustment"
-                                       // (@usageCredits returns current balance
-                                       // regardless.)
+    // (usageCreditsResponse returns current balance
+    // regardless.)
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);

@@ -306,8 +306,9 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                 OTDB::StringMap* pMap =
                     dynamic_cast<OTDB::StringMap*>(pStorable.get());
                 if (nullptr == pMap)
-                    OTLog::vOutput(0, "%s: @registerNym: Failed decoding "
-                                      "StringMap object.\n",
+                    OTLog::vOutput(0,
+                                   "%s: registerNymResponse: Failed decoding "
+                                   "StringMap object.\n",
                                    __FUNCTION__);
                 else {
                     auto& theMap = pMap->the_map;
@@ -336,7 +337,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     if (false ==
                         pNym->LoadFromString(strCredentialList, &theMap)) {
                         OTLog::vError(
-                            "%s: @registerNym: Failure loading nym %s "
+                            "%s: registerNymResponse: Failure loading nym %s "
                             "from credential string.\n",
                             __FUNCTION__, theMessage.m_strNymID.Get());
                     }
@@ -351,7 +352,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     //
                     else if (!pNym->VerifyPseudonym()) {
                         OTLog::vError(
-                            "%s: @registerNym: Loaded nym %s "
+                            "%s: registerNymResponse: Loaded nym %s "
                             "from credentials, but then it failed verifying.\n",
                             __FUNCTION__, theMessage.m_strNymID.Get());
                     }
@@ -372,7 +373,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         // VerifySigAuthent.
                         { // (Because we use authentication keys, not signing
                             // keys, for messages.)
-                            OTLog::Output(0, "@registerNym: "
+                            OTLog::Output(0, "registerNymResponse: "
                                              "Authentication signature -- "
                                              "verification failed!\n");
                             return false;
@@ -400,13 +401,13 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                 strOutput.Get(), OTFolders::Pubcred().Get(),
                                 strFilename.Get());
                         if (!bStoredList)
-                            OTLog::vError("%s: @registerNym: Failed "
+                            OTLog::vError("%s: registerNymResponse: Failed "
                                           "trying to armor or store: %s\n",
                                           __FUNCTION__, strFilename.Get());
                         else // IF the list saved, then we save the
                              // credentials themselves...
                         {
-                            OTLog::vOutput(1, "@registerNym: Success "
+                            OTLog::vOutput(1, "registerNymResponse: Success "
                                               "saving public credential "
                                               "list for Nym: %s\n",
                                            str_nym_id.c_str());
@@ -428,13 +429,13 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                         str_cred_id);
                                 if (!bStoredCredential)
                                     OTLog::vError(
-                                        "%s: @registerNym: Failed "
+                                        "%s: registerNymResponse: Failed "
                                         "trying to store credential %s for "
                                         "nym %s.\n",
                                         __FUNCTION__, str_cred_id.c_str(),
                                         str_nym_id.c_str());
                                 else
-                                    OTLog::vOutput(0, "@registerNym: "
+                                    OTLog::vOutput(0, "registerNymResponse: "
                                                       "Success saving "
                                                       "public credential "
                                                       "ID: %s\n",
@@ -491,7 +492,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         // (1) set up member variables
 
                         // reply to registerNym
-                        msgOut.m_strCommand = "@registerNym";
+                        msgOut.m_strCommand = "registerNymResponse";
                         msgOut.m_strNymID = theMessage.m_strNymID; // UserID
                         msgOut.m_strServerID =
                             server_->m_strServerID; // ServerID, a hash of
@@ -1446,8 +1447,9 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                       "ProcessMessage.\n");
 
         String strTemp;
-        strTemp.Format("@%s", theMessage.m_strCommand.Get()); // Todo security.
-                                                              // Review this.
+        strTemp.Format("%sResponse",
+                       theMessage.m_strCommand.Get()); // Todo security.
+                                                       // Review this.
 
         msgOut.m_strCommand = strTemp;
         msgOut.m_strAcctID = theMessage.m_strAcctID;
@@ -1472,8 +1474,8 @@ void UserCommandProcessor::UserCmdGetMarketList(OTPseudonym&, Message& MsgIn,
                                                 Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getMarketList"; // reply to getMarketList
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strCommand = "getMarketListResponse"; // reply to getMarketList
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
     //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
     // ProcessUserCommand.
 
@@ -1515,9 +1517,9 @@ void UserCommandProcessor::UserCmdGetMarketOffers(OTPseudonym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getMarketOffers"; // reply to getMarketOffers
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2;   // Market ID.
+    msgOut.m_strCommand = "getMarketOffersResponse"; // reply to getMarketOffers
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2;          // Market ID.
 
     int64_t lDepth = MsgIn.m_lDepth;
     if (lDepth < 0) lDepth = 0;
@@ -1569,7 +1571,7 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(OTPseudonym&,
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "@getMarketRecentTrades";           // reply to getMarketRecentTrades
+        "getMarketRecentTradesResponse";    // reply to getMarketRecentTrades
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // Market ID.
 
@@ -1620,8 +1622,9 @@ void UserCommandProcessor::UserCmdGetNym_MarketOffers(OTPseudonym& theNym,
                                                       Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getNym_MarketOffers"; // reply to getMarketOffers
-    msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
+    msgOut.m_strCommand =
+        "getNym_MarketOffersResponse";    // reply to getMarketOffers
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     OTIdentifier NYM_ID;
     theNym.GetIdentifier(NYM_ID);
@@ -1660,7 +1663,7 @@ void UserCommandProcessor::UserCmdCheckServerID(OTPseudonym&, Message& MsgIn,
                                                 Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@checkServerID";
+    msgOut.m_strCommand = "checkServerIDResponse";
     msgOut.m_strNymID = MsgIn.m_strNymID;
 
     if (MsgIn.m_strServerID == server_->m_strServerID)
@@ -1686,8 +1689,9 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
                                                     Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getTransactionNum"; // reply to getTransactionNum
-    msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
+    msgOut.m_strCommand =
+        "getTransactionNumResponse";      // reply to getTransactionNum
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     const OTIdentifier SERVER_ID(server_->m_strServerID);
 
@@ -1905,8 +1909,8 @@ void UserCommandProcessor::UserCmdGetRequest(OTPseudonym& theNym,
                                              Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getRequest";  // reply to getRequest
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strCommand = "getRequestResponse"; // reply to getRequest
+    msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
 
     msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum); // Outoing reply contains
                                                        // same request num
@@ -1965,9 +1969,9 @@ void UserCommandProcessor::UserCmdSendUserMessage(OTPseudonym& theNym,
                                                   Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@sendUserMessage"; // reply to sendUserMessage
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2;   // UserID of recipient pubkey
+    msgOut.m_strCommand = "sendUserMessageResponse"; // reply to sendUserMessage
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
     const OTIdentifier SENDER_USER_ID(theNym),
@@ -2004,9 +2008,10 @@ void UserCommandProcessor::UserCmdSendUserInstrument(OTPseudonym& theNym,
                                                      Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@sendUserInstrument"; // reply to sendUserInstrument
-    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2;      // UserID of recipient pubkey
+    msgOut.m_strCommand =
+        "sendUserInstrumentResponse";       // reply to sendUserInstrument
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
     const OTIdentifier SENDER_USER_ID(theNym),
@@ -2042,8 +2047,8 @@ void UserCommandProcessor::UserCmdCheckUser(OTPseudonym&, Message& MsgIn,
                                             Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@checkUser";   // reply to checkUser
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strCommand = "checkUserResponse"; // reply to checkUser
+    msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
     msgOut.m_strNymID2 =
         MsgIn.m_strNymID2; // UserID of public key requested by user.
 
@@ -2138,11 +2143,11 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
                                                Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@usageCredits";  // reply to usageCredits
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of user whose usage
-                                            // credits are being examined /
-                                            // adjusted.
+    msgOut.m_strCommand = "usageCreditsResponse"; // reply to usageCredits
+    msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2;       // UserID of user whose usage
+    // credits are being examined /
+    // adjusted.
     const bool bIsPrivilegedNym =
         ((ServerSettings::GetOverrideNymID().size() >
           0) && // And if there's an override Nym...
@@ -2345,8 +2350,8 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
     const char* szFunc = "UserCommandProcessor::UserCmdIssueAssetType";
 
     // (1) set up member variables
-    msgOut.m_strCommand = "@issueAssetType"; // reply to issueAssetType
-    msgOut.m_strNymID = MsgIn.m_strNymID;    // UserID
+    msgOut.m_strCommand = "issueAssetTypeResponse"; // reply to issueAssetType
+    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
     msgOut.m_strAssetID =
         MsgIn.m_strAssetID; // Asset Type ID, a hash of the asset contract.
 
@@ -2667,8 +2672,8 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
                                               Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@issueBasket"; // reply to issueBasket
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strCommand = "issueBasketResponse"; // reply to issueBasket
+    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
 
     // Either way, we need to send the user's command back to him as well.
     {
@@ -2960,8 +2965,8 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
                                                 Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@createAccount"; // reply to createAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strCommand = "createAccountResponse"; // reply to createAccount
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
     // Either way, we need to send the user's command back to him as well.
     String tempInMessage(MsgIn);
@@ -3177,9 +3182,9 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getAccountFiles"; // reply to getAccountFiles
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
-    msgOut.m_strAcctID = MsgIn.m_strAcctID;   // The Account ID in question
+    msgOut.m_strCommand = "getAccountFilesResponse"; // reply to getAccountFiles
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);
@@ -3582,8 +3587,8 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@queryAssetTypes"; // reply to queryAssetTypes
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
+    msgOut.m_strCommand = "queryAssetTypesResponse"; // reply to queryAssetTypes
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
     msgOut.m_bSuccess = false;
 
     // Send the user's command back to him whether success or failure.
@@ -3671,8 +3676,8 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&, Message& MsgIn,
 void UserCommandProcessor::UserCmdGetContract(Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getContract";     // reply to getContract
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
+    msgOut.m_strCommand = "getContractResponse"; // reply to getContract
+    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 
     const OTIdentifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
@@ -3722,9 +3727,9 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
         MsgIn); // Grab the incoming message in plaintext form
     msgOut.m_ascInReferenceTo.SetString(strInReferenceTo);
     // (1) set up member variables
-    msgOut.m_strCommand = "@triggerClause"; // reply to triggerClause
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_bSuccess = false;              // Default value.
+    msgOut.m_strCommand = "triggerClauseResponse"; // reply to triggerClause
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_bSuccess = false;                     // Default value.
     const OTIdentifier SERVER_ID(server_->m_strServerID),
         theMsgNymboxHash(MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash
                                                  // sent by the client side
@@ -3871,7 +3876,7 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, Message& MsgIn,
                                           Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getMint";         // reply to getMint
+    msgOut.m_strCommand = "getMintResponse";  // reply to getMint
     msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 
@@ -3938,8 +3943,9 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
                                              Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@deleteUserAccount"; // reply to deleteUserAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
+    msgOut.m_strCommand =
+        "deleteUserAccountResponse";      // reply to deleteUserAccount
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
         SERVER_ID(MsgIn.m_strServerID);
@@ -4082,11 +4088,11 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
 void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getBoxReceipt"; // reply to getBoxReceipt
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account ID
-                                            // (inbox/outbox), or Nym ID
-                                            // (nymbox)
+    msgOut.m_strCommand = "getBoxReceiptResponse"; // reply to getBoxReceipt
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_strAcctID = MsgIn.m_strAcctID;        // the asset account ID
+                                                   // (inbox/outbox), or Nym ID
+                                                   // (nymbox)
     msgOut.m_lTransactionNum =
         MsgIn.m_lTransactionNum; // TransactionNumber for the receipt in the box
                                  // (unique to the box.)
@@ -4290,8 +4296,9 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     const char* szFunc = "UserCommandProcessor::UserCmdDeleteAssetAcct";
 
     // (1) set up member variables
-    msgOut.m_strCommand = "@deleteAssetAccount"; // reply to deleteAssetAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
+    msgOut.m_strCommand =
+        "deleteAssetAccountResponse";       // reply to deleteAssetAccount
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account being deleted.
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
@@ -4431,8 +4438,8 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym, Message& MsgIn,
                                             Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@getNymbox";   // reply to getNymbox
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strCommand = "getNymboxResponse"; // reply to getNymbox
+    msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
 
     const OTIdentifier USER_ID(MsgIn.m_strNymID),
         SERVER_ID(MsgIn.m_strServerID);
@@ -4550,8 +4557,8 @@ void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
                                                 Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@processNymbox"; // reply to processNymbox
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strCommand = "processNymboxResponse"; // reply to processNymbox
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
     const OTIdentifier USER_ID(msgOut.m_strNymID),
         SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
@@ -4615,7 +4622,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
         // contains the answer to the transaction item sent.
         // Then we send that new "response ledger" back to the user in
         // MsgOut.Payload
-        // as an @processNymbox message.
+        // as an processNymboxResponse message.
 
         if (theLedger.GetTransactionCount() == 0) {
             OTTransaction* pTranResponse = OTTransaction::GenerateTransaction(
@@ -4783,9 +4790,9 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
                                                Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "@processInbox";  // reply to processInbox
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
+    msgOut.m_strCommand = "processInboxResponse"; // reply to processInbox
+    msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
+    msgOut.m_strAcctID = MsgIn.m_strAcctID;       // The Account ID in question
 
     const OTIdentifier USER_ID(msgOut.m_strNymID),
         ACCOUNT_ID(MsgIn.m_strAcctID), SERVER_ID(server_->m_strServerID),
@@ -4895,7 +4902,7 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
             // contains the answer to the transaction item sent.
             // Then we send that new "response ledger" back to the user in
             // MsgOut.Payload
-            // as an @processInbox message.
+            // as an processInboxResponse message.
 
             OTTransaction* pTransaction =
                 theLedger.GetTransaction(OTTransaction::processInbox);
@@ -5116,7 +5123,7 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(OTPseudonym& theNym,
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "@notarizeTransactions";            // reply to notarizeTransactions
+        "notarizeTransactionsResponse";     // reply to notarizeTransactions
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 

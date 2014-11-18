@@ -703,7 +703,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetMarketOffers::reg(
-    "@getMarketOffers", new StrategyAtGetMarketOffers());
+    "getMarketOffersResponse", new StrategyAtGetMarketOffers());
 
 class StrategyGetMarketRecentTrades : public OTMessageStrategy
 {
@@ -837,7 +837,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetMarketRecentTrades::reg(
-    "@getMarketRecentTrades", new StrategyAtGetMarketRecentTrades());
+    "getMarketRecentTradesResponse", new StrategyAtGetMarketRecentTrades());
 
 class StrategyGetNymMarketOffers : public OTMessageStrategy
 {
@@ -961,7 +961,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetNymMarketOffers::reg(
-    "@getNym_MarketOffers", new StrategyAtGetNymMarketOffers());
+    "getNym_MarketOffersResponse", new StrategyAtGetNymMarketOffers());
 
 class StrategyCheckServerID : public OTMessageStrategy
 {
@@ -1074,7 +1074,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCheckServerID::reg("@checkServerID",
+RegisterStrategy StrategyAtCheckServerID::reg("checkServerIDResponse",
                                               new StrategyAtCheckServerID());
 
 class StrategyCreateUserAccount : public OTMessageStrategy
@@ -1214,7 +1214,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtCreateUserAccount::reg(
-    "@registerNym", new StrategyAtCreateUserAccount());
+    "registerNymResponse", new StrategyAtCreateUserAccount());
 
 class StrategyDeleteUserAccount : public OTMessageStrategy
 {
@@ -1307,7 +1307,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtDeleteUserAccount::reg(
-    "@deleteUserAccount", new StrategyAtDeleteUserAccount());
+    "deleteUserAccountResponse", new StrategyAtDeleteUserAccount());
 
 class StrategyCheckUser : public OTMessageStrategy
 {
@@ -1480,7 +1480,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCheckUser::reg("@checkUser",
+RegisterStrategy StrategyAtCheckUser::reg("checkUserResponse",
                                           new StrategyAtCheckUser());
 
 class StrategyUsageCredits : public OTMessageStrategy
@@ -1579,7 +1579,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtUsageCredits::reg("@usageCredits",
+RegisterStrategy StrategyAtUsageCredits::reg("usageCreditsResponse",
                                              new StrategyAtUsageCredits());
 
 class StrategyOutpaymentsMessageOrOutmailMessage : public OTMessageStrategy
@@ -1752,7 +1752,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtSendUserMessage::reg(
-    "@sendUserMessage", new StrategyAtSendUserMessage());
+    "sendUserMessageResponse", new StrategyAtSendUserMessage());
 
 class StrategySendUserInstrumentOrPayDividend : public OTMessageStrategy
 {
@@ -1875,7 +1875,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtSendUserInstrument::reg(
-    "@sendUserInstrument", new StrategyAtSendUserInstrument());
+    "sendUserInstrumentResponse", new StrategyAtSendUserInstrument());
 
 class StrategyGetRequest : public OTMessageStrategy
 {
@@ -1968,7 +1968,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetRequest::reg("@getRequest",
+RegisterStrategy StrategyAtGetRequest::reg("getRequestResponse",
                                            new StrategyAtGetRequest());
 
 class StrategyIssueAssetType : public OTMessageStrategy
@@ -2112,7 +2112,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected issuerAccount and/or inReferenceTo elements "
                      "with text fields in "
-                     "@issueAssetType reply\n";
+                     "issueAssetTypeResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2132,7 +2132,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtIssueAssetType::reg("@issueAssetType",
+RegisterStrategy StrategyAtIssueAssetType::reg("issueAssetTypeResponse",
                                                new StrategyAtIssueAssetType());
 
 class StrategyQueryAssetTypes : public OTMessageStrategy
@@ -2267,7 +2267,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected stringMap and/or inReferenceTo elements with "
                      "text fields in "
-                     "@queryAssetTypes reply\n";
+                     "queryAssetTypesResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2281,7 +2281,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtQueryAssetTypes::reg(
-    "@queryAssetTypes", new StrategyAtQueryAssetTypes());
+    "queryAssetTypesResponse", new StrategyAtQueryAssetTypes());
 
 class StrategyIssueBasket : public OTMessageStrategy
 {
@@ -2406,7 +2406,7 @@ public:
         if (!m.m_ascInReferenceTo.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
-                     "@issueBasket reply\n";
+                     "issueBasketResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2422,7 +2422,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtIssueBasket::reg("@issueBasket",
+RegisterStrategy StrategyAtIssueBasket::reg("issueBasketResponse",
                                             new StrategyAtIssueBasket());
 
 class StrategyCreateAccount : public OTMessageStrategy
@@ -2550,7 +2550,7 @@ public:
         if (m.m_bSuccess && !m.m_ascPayload.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected newAccount element with text field, in "
-                     "@createAccount reply\n";
+                     "createAccountResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2568,7 +2568,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCreateAccount::reg("@createAccount",
+RegisterStrategy StrategyAtCreateAccount::reg("createAccountResponse",
                                               new StrategyAtCreateAccount());
 
 class StrategyGetBoxReceipt : public OTMessageStrategy
@@ -2707,7 +2707,7 @@ public:
             m.m_lDepth = 0;
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected boxType to be inbox, outbox, or nymbox, in "
-                     "@getBoxReceipt reply\n";
+                     "getBoxReceiptResponse reply\n";
             return (-1);
         }
 
@@ -2750,7 +2750,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected boxReceipt and/or inReferenceTo elements with "
                      "text fields in "
-                     "@getBoxReceipt reply\n";
+                     "getBoxReceiptResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2766,7 +2766,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetBoxReceipt::reg("@getBoxReceipt",
+RegisterStrategy StrategyAtGetBoxReceipt::reg("getBoxReceiptResponse",
                                               new StrategyAtGetBoxReceipt());
 
 class StrategyDeleteAssetAccount : public OTMessageStrategy
@@ -2869,7 +2869,7 @@ public:
         if (!m.m_ascInReferenceTo.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
-                     "@deleteAssetAccount reply\n";
+                     "deleteAssetAccountResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2888,7 +2888,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtDeleteAssetAccount::reg(
-    "@deleteAssetAccount", new StrategyAtDeleteAssetAccount());
+    "deleteAssetAccountResponse", new StrategyAtDeleteAssetAccount());
 
 class StrategyNotarizeTransactions : public OTMessageStrategy
 {
@@ -3038,7 +3038,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
-                     "@notarizeTransactions reply\n";
+                     "notarizeTransactionsResponse reply\n";
             return (-1); // error condition
         }
 
@@ -3057,7 +3057,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtNotarizeTransactions::reg(
-    "@notarizeTransactions", new StrategyAtNotarizeTransactions());
+    "notarizeTransactionsResponse", new StrategyAtNotarizeTransactions());
 
 class StrategyGetTransactionNum : public OTMessageStrategy
 {
@@ -3143,7 +3143,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetTransactionNum::reg(
-    "@getTransactionNum", new StrategyAtGetTransactionNum());
+    "getTransactionNumResponse", new StrategyAtGetTransactionNum());
 
 class StrategyGetNymbox : public OTMessageStrategy
 {
@@ -3256,7 +3256,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetNymbox::reg("@getNymbox",
+RegisterStrategy StrategyAtGetNymbox::reg("getNymboxResponse",
                                           new StrategyAtGetNymbox());
 
 class StrategyGetAccountFiles : public OTMessageStrategy
@@ -3385,7 +3385,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyAtGetAccountFiles::reg(
-    "@getAccountFiles", new StrategyAtGetAccountFiles());
+    "getAccountFilesResponse", new StrategyAtGetAccountFiles());
 
 class StrategyGetContract : public OTMessageStrategy
 {
@@ -3504,7 +3504,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetContract::reg("@getContract",
+RegisterStrategy StrategyAtGetContract::reg("getContractResponse",
                                             new StrategyAtGetContract());
 
 class StrategyGetMint : public OTMessageStrategy
@@ -3622,7 +3622,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetMint::reg("@getMint", new StrategyAtGetMint());
+RegisterStrategy StrategyAtGetMint::reg("getMintResponse",
+                                        new StrategyAtGetMint());
 
 class StrategyProcessInbox : public OTMessageStrategy
 {
@@ -3772,7 +3773,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
-                     "@processInbox reply\n";
+                     "processInboxResponse reply\n";
             return (-1); // error condition
         }
 
@@ -3787,7 +3788,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtProcessInbox::reg("@processInbox",
+RegisterStrategy StrategyAtProcessInbox::reg("processInboxResponse",
                                              new StrategyAtProcessInbox());
 
 class StrategyProcessNymbox : public OTMessageStrategy
@@ -3932,7 +3933,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
-                     "@processNymbox reply\n";
+                     "processNymboxResponse reply\n";
             return (-1); // error condition
         }
 
@@ -3947,7 +3948,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtProcessNymbox::reg("@processNymbox",
+RegisterStrategy StrategyAtProcessNymbox::reg("processNymboxResponse",
                                               new StrategyAtProcessNymbox());
 
 class StrategyTriggerClause : public OTMessageStrategy
@@ -4083,7 +4084,7 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtTriggerClause::reg("@triggerClause",
+RegisterStrategy StrategyAtTriggerClause::reg("triggerClauseResponse",
                                               new StrategyAtTriggerClause());
 
 class StrategyGetMarketList : public OTMessageStrategy
@@ -4209,7 +4210,7 @@ public:
 
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetMarketList::reg("@getMarketList",
+RegisterStrategy StrategyAtGetMarketList::reg("getMarketListResponse",
                                               new StrategyAtGetMarketList());
 
 } // namespace opentxs
