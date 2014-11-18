@@ -279,8 +279,6 @@ void MessageProcessor::run()
                                "legible or worthy of a server response. :-)  "
                                "Msg:\n\n%s\n\n",
                             messageString.c_str());
-
-                        socket_.Listen();
                     }
                     else {
                         bool successSending = socket_.Send(reply.c_str());
