@@ -151,81 +151,7 @@ class OTSettings;
 
 class OTClient
 {
-private:
-    OTWallet* m_pWallet;
-    OTMessageBuffer m_MessageBuffer;
-    OTMessageOutbuffer m_MessageOutbuffer;
-
-    // This is used to determine whether to activate
-    // certain messages automatically in
-    // the client based on various server replies to previous requests (based on
-    // what mode it's being used in...
-    // if we're using the API, then NO auto-messages!) Similarly, if we're using
-    // the interpreted script, then NO auto
-    // messages. But if we are using the test client, aka the command line in
-    // --prompt mode, and the --script switch
-    // wasn't used to startup, (which would mean we're executing a script) then
-    // it's A-Okay to fire those auto messages.
-    bool m_bRunningAsScript;
-
-    void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
-                                      const String& str_trans,
-                                      String str_box_type,
-                                      const int64_t& lTransNum,
-                                      OTPseudonym& the_nym,
-                                      OTLedger& ledger) const;
-
-    struct ProcessServerReplyArgs;
-    void setRecentHash(const Message& theReply, const String& strServerID,
-                       OTPseudonym* pNym, bool setNymboxHash);
-    bool processServerReplyTriggerClause(const Message& theReply,
-                                         ProcessServerReplyArgs& args);
-    bool processServerReplyGetRequest(const Message& theReply,
-                                      ProcessServerReplyArgs& args);
-    bool processServerReplyCheckUser(const Message& theReply,
-                                     ProcessServerReplyArgs& args);
-    bool processServerReplyNotarizeTransactions(const Message& theReply,
-                                                ProcessServerReplyArgs& args);
-    bool processServerReplyGetTransactionNum(const Message& theReply,
-                                             ProcessServerReplyArgs& args);
-    bool processServerReplyGetNymBox(const Message& theReply, OTLedger* pNymbox,
-                                     ProcessServerReplyArgs& args);
-    bool processServerReplyGetBoxReceipt(const Message& theReply,
-                                         OTLedger* pNymbox,
-                                         ProcessServerReplyArgs& args);
-    bool processServerReplyProcessInbox(const Message& theReply,
-                                        OTLedger* pNymbox,
-                                        ProcessServerReplyArgs& args);
-    bool processServerReplyGetAccountFiles(const Message& theReply,
-                                           OTLedger* pNymbox,
-                                           ProcessServerReplyArgs& args);
-    bool processServerReplyGetContract(const Message& theReply,
-                                       ProcessServerReplyArgs& args);
-    bool processServerReplyGetMint(const Message& theReply);
-    bool processServerReplyGetMarketList(const Message& theReply);
-    bool processServerReplyGetMarketOffers(const Message& theReply);
-    bool processServerReplyGetMarketRecentTrades(const Message& theReply);
-    bool processServerReplyGetNymMarketOffers(const Message& theReply);
-    bool processServerReplyDeleteUserAccount(const Message& theReply,
-                                             ProcessServerReplyArgs& args);
-    bool processServerReplyDeleteAssetAccount(const Message& theReply,
-                                              ProcessServerReplyArgs& args);
-    bool processServerReplyIssueAssetType(const Message& theReply,
-                                          ProcessServerReplyArgs& args);
-    bool processServerReplyCreateAccount(const Message& theReply,
-                                         ProcessServerReplyArgs& args);
-
 public:
-    bool IsRunningAsScript() const
-    {
-        return m_bRunningAsScript;
-    }
-
-    void SetRunningAsScript()
-    {
-        m_bRunningAsScript = true;
-    }
-
     enum OT_CLIENT_CMD_TYPE {
         checkServerID, // Your public key is sent along with this message so the
                        // server can reply to
@@ -287,7 +213,11 @@ public:
         badID
     };
 
-    OTServerConnection* m_pConnection;
+public:
+    OTClient();
+    ~OTClient();
+
+    bool InitClient(OTWallet& theWallet, OTSettings* pConfig);
 
     inline OTMessageBuffer& GetMessageBuffer()
     {
@@ -299,11 +229,15 @@ public:
         return m_MessageOutbuffer;
     }
 
-    OTClient();
-    ~OTClient();
+    bool IsRunningAsScript() const
+    {
+        return m_bRunningAsScript;
+    }
 
-    bool InitClient(OTWallet& theWallet, OTSettings* pConfig);
-    bool m_bInitialized;
+    void SetRunningAsScript()
+    {
+        m_bRunningAsScript = true;
+    }
 
     void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
                            const Message& theMessage);
@@ -334,6 +268,74 @@ public:
     bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theServerID,
                             const OTServerContract& theServerContract,
                             OTPseudonym& theNym, Message& theMessage);
+
+private:
+    void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
+                                      const String& str_trans,
+                                      String str_box_type,
+                                      const int64_t& lTransNum,
+                                      OTPseudonym& the_nym,
+                                      OTLedger& ledger) const;
+
+    struct ProcessServerReplyArgs;
+    void setRecentHash(const Message& theReply, const String& strServerID,
+                       OTPseudonym* pNym, bool setNymboxHash);
+    bool processServerReplyTriggerClause(const Message& theReply,
+                                         ProcessServerReplyArgs& args);
+    bool processServerReplyGetRequest(const Message& theReply,
+                                      ProcessServerReplyArgs& args);
+    bool processServerReplyCheckUser(const Message& theReply,
+                                     ProcessServerReplyArgs& args);
+    bool processServerReplyNotarizeTransactions(const Message& theReply,
+                                                ProcessServerReplyArgs& args);
+    bool processServerReplyGetTransactionNum(const Message& theReply,
+                                             ProcessServerReplyArgs& args);
+    bool processServerReplyGetNymBox(const Message& theReply, OTLedger* pNymbox,
+                                     ProcessServerReplyArgs& args);
+    bool processServerReplyGetBoxReceipt(const Message& theReply,
+                                         OTLedger* pNymbox,
+                                         ProcessServerReplyArgs& args);
+    bool processServerReplyProcessInbox(const Message& theReply,
+                                        OTLedger* pNymbox,
+                                        ProcessServerReplyArgs& args);
+    bool processServerReplyGetAccountFiles(const Message& theReply,
+                                           OTLedger* pNymbox,
+                                           ProcessServerReplyArgs& args);
+    bool processServerReplyGetContract(const Message& theReply,
+                                       ProcessServerReplyArgs& args);
+    bool processServerReplyGetMint(const Message& theReply);
+    bool processServerReplyGetMarketList(const Message& theReply);
+    bool processServerReplyGetMarketOffers(const Message& theReply);
+    bool processServerReplyGetMarketRecentTrades(const Message& theReply);
+    bool processServerReplyGetNymMarketOffers(const Message& theReply);
+    bool processServerReplyDeleteUserAccount(const Message& theReply,
+                                             ProcessServerReplyArgs& args);
+    bool processServerReplyDeleteAssetAccount(const Message& theReply,
+                                              ProcessServerReplyArgs& args);
+    bool processServerReplyIssueAssetType(const Message& theReply,
+                                          ProcessServerReplyArgs& args);
+    bool processServerReplyCreateAccount(const Message& theReply,
+                                         ProcessServerReplyArgs& args);
+
+private:
+    OTServerConnection* m_pConnection;
+    bool m_bInitialized;
+
+    OTWallet* m_pWallet;
+    OTMessageBuffer m_MessageBuffer;
+    OTMessageOutbuffer m_MessageOutbuffer;
+
+    // This is used to determine whether to activate
+    // certain messages automatically in
+    // the client based on various server replies to previous requests (based on
+    // what mode it's being used in...
+    // if we're using the API, then NO auto-messages!) Similarly, if we're using
+    // the interpreted script, then NO auto
+    // messages. But if we are using the test client, aka the command line in
+    // --prompt mode, and the --script switch
+    // wasn't used to startup, (which would mean we're executing a script) then
+    // it's A-Okay to fire those auto messages.
+    bool m_bRunningAsScript;
 };
 
 } // namespace opentxs

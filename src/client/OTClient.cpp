@@ -168,6 +168,37 @@
 namespace opentxs
 {
 
+OTClient::OTClient()
+    : m_pConnection(nullptr)
+    , m_bInitialized(false)
+    , m_pWallet(nullptr)
+    , m_MessageBuffer()
+    , m_MessageOutbuffer()
+    , m_bRunningAsScript(false)
+{
+}
+
+OTClient::~OTClient()
+{
+    if (m_pConnection) {
+        delete m_pConnection;
+        m_pConnection = nullptr;
+    }
+}
+
+bool OTClient::InitClient(OTWallet& theWallet, OTSettings* pConfig)
+{
+    if (m_bInitialized) {
+        return false;
+    }
+    m_bInitialized = true;
+
+    m_pConnection = new OTServerConnection(theWallet, *this, pConfig);
+    m_pWallet = &theWallet;
+
+    return true;
+}
+
 void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
                                  OTPseudonym* pNym, const Message& theMessage)
 {
@@ -919,10 +950,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             }
         }
 
-        if (ProcessUserCommand(
-                OTClient::processNymbox, theMessage, *pNym,
-                theServerContract,
-                nullptr) > 0) {
+        if (ProcessUserCommand(OTClient::processNymbox, theMessage, *pNym,
+                               theServerContract, nullptr) > 0) {
             // the message is all set up and ready to go out... it's even
             // signed.
             // Except the ledger we're sending, still needs to be added, and
@@ -1097,9 +1126,9 @@ void OTClient::load_str_trans_add_to_ledger(
                 }
             }
         }
-    }     // if this transaction wasn't already in the paymentInbox / recordBox
-          // (whichever was passed in)...
-    // else it WAS already there, so do nothing. (No need to add it twice.)
+    } // if this transaction wasn't already in the paymentInbox / recordBox
+      // (whichever was passed in)...
+      // else it WAS already there, so do nothing. (No need to add it twice.)
 } // void load_str_trans_add_to_ledger
 
 /// We have received the server reply (ProcessServerReply) which has vetted it
@@ -8435,8 +8464,7 @@ int32_t OTClient::ProcessUserCommand(
             delete pTransaction;
             pTransaction = nullptr;
         }
-    }
-    break;
+    } break;
     case OTClient::notarizeCheque: // DEPOSIT CHEQUE
     {
         String strFromAcct;
@@ -8677,8 +8705,7 @@ int32_t OTClient::ProcessUserCommand(
                                      lStoredTransactionNumber,
                                      true); // bSave=true
         }
-    }
-    break;
+    } break;
     case OTClient::getTransactionNum: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -9045,8 +9072,7 @@ int32_t OTClient::ProcessUserCommand(
             otOut << "Unable to load payment plan from string. Sorry.\n";
         }
 
-    }
-    break;
+    } break;
 
     default: {
         otOut << "\n";
@@ -9054,35 +9080,6 @@ int32_t OTClient::ProcessUserCommand(
     }
 
     return static_cast<int32_t>(lReturnValue);
-}
-
-bool OTClient::InitClient(OTWallet& theWallet, OTSettings* pConfig)
-{
-    if (m_bInitialized) {
-        otWarn
-            << "OTClient::InitClient: Already initialized. (Returning true.)\n";
-        return false;
-    }
-    m_bInitialized = true;
-
-    m_pConnection = new OTServerConnection(theWallet, *this, pConfig);
-    m_pWallet = &theWallet;
-
-    return true;
-}
-
-OTClient::OTClient()
-    : m_pWallet(nullptr)
-    , m_bRunningAsScript(false)
-    , m_pConnection(nullptr)
-    , m_bInitialized(false)
-{
-}
-
-OTClient::~OTClient()
-{
-    if (nullptr != m_pConnection) delete m_pConnection;
-    m_pConnection = nullptr;
 }
 
 } // namespace opentxs
