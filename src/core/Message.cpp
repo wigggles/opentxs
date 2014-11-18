@@ -439,9 +439,9 @@ int32_t Message::processXmlNodeOTmessage(Message& m,
     return 1;
 }
 
-// OTString StrategyAtGetMarketList::writeXml(OTMessage &message)
+// OTString StrategyGetMarketListResponse::writeXml(OTMessage &message)
 
-// int32_t StrategyAtGetMarketList::processXml(OTMessage &message,
+// int32_t StrategyGetMarketListResponse::processXml(OTMessage &message,
 // irr::io::IrrXMLReader*& xml)
 
 // Most contracts do not override this function...
@@ -613,7 +613,7 @@ public:
 RegisterStrategy StrategyGetMarketOffers::reg("getMarketOffers",
                                               new StrategyGetMarketOffers());
 
-class StrategyAtGetMarketOffers : public OTMessageStrategy
+class StrategyGetMarketOffersResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -702,8 +702,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetMarketOffers::reg(
-    "getMarketOffersResponse", new StrategyAtGetMarketOffers());
+RegisterStrategy StrategyGetMarketOffersResponse::reg(
+    "getMarketOffersResponse", new StrategyGetMarketOffersResponse());
 
 class StrategyGetMarketRecentTrades : public OTMessageStrategy
 {
@@ -747,7 +747,7 @@ public:
 RegisterStrategy StrategyGetMarketRecentTrades::reg(
     "getMarketRecentTrades", new StrategyGetMarketRecentTrades());
 
-class StrategyAtGetMarketRecentTrades : public OTMessageStrategy
+class StrategyGetMarketRecentTradesResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -836,8 +836,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetMarketRecentTrades::reg(
-    "getMarketRecentTradesResponse", new StrategyAtGetMarketRecentTrades());
+RegisterStrategy StrategyGetMarketRecentTradesResponse::reg(
+    "getMarketRecentTradesResponse",
+    new StrategyGetMarketRecentTradesResponse());
 
 class StrategyGetNymMarketOffers : public OTMessageStrategy
 {
@@ -876,7 +877,7 @@ public:
 RegisterStrategy StrategyGetNymMarketOffers::reg(
     "getNym_MarketOffers", new StrategyGetNymMarketOffers());
 
-class StrategyAtGetNymMarketOffers : public OTMessageStrategy
+class StrategyGetNymMarketOffersResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -960,8 +961,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetNymMarketOffers::reg(
-    "getNym_MarketOffersResponse", new StrategyAtGetNymMarketOffers());
+RegisterStrategy StrategyGetNymMarketOffersResponse::reg(
+    "getNym_MarketOffersResponse", new StrategyGetNymMarketOffersResponse());
 
 class StrategyCheckServerID : public OTMessageStrategy
 {
@@ -1035,7 +1036,7 @@ public:
 RegisterStrategy StrategyCheckServerID::reg("checkServerID",
                                             new StrategyCheckServerID());
 
-class StrategyAtCheckServerID : public OTMessageStrategy
+class StrategyCheckServerIDResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1074,8 +1075,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCheckServerID::reg("checkServerIDResponse",
-                                              new StrategyAtCheckServerID());
+RegisterStrategy StrategyCheckServerIDResponse::reg(
+    "checkServerIDResponse", new StrategyCheckServerIDResponse());
 
 class StrategyCreateUserAccount : public OTMessageStrategy
 {
@@ -1141,7 +1142,7 @@ public:
 RegisterStrategy StrategyCreateUserAccount::reg(
     "registerNym", new StrategyCreateUserAccount());
 
-class StrategyAtCreateUserAccount : public OTMessageStrategy
+class StrategyCreateUserAccountResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1213,8 +1214,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCreateUserAccount::reg(
-    "registerNymResponse", new StrategyAtCreateUserAccount());
+RegisterStrategy StrategyCreateUserAccountResponse::reg(
+    "registerNymResponse", new StrategyCreateUserAccountResponse());
 
 class StrategyDeleteUserAccount : public OTMessageStrategy
 {
@@ -1252,7 +1253,7 @@ public:
 RegisterStrategy StrategyDeleteUserAccount::reg(
     "deleteUserAccount", new StrategyDeleteUserAccount());
 
-class StrategyAtDeleteUserAccount : public OTMessageStrategy
+class StrategyDeleteUserAccountResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1306,8 +1307,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtDeleteUserAccount::reg(
-    "deleteUserAccountResponse", new StrategyAtDeleteUserAccount());
+RegisterStrategy StrategyDeleteUserAccountResponse::reg(
+    "deleteUserAccountResponse", new StrategyDeleteUserAccountResponse());
 
 class StrategyCheckUser : public OTMessageStrategy
 {
@@ -1349,7 +1350,7 @@ public:
 };
 RegisterStrategy StrategyCheckUser::reg("checkUser", new StrategyCheckUser());
 
-class StrategyAtCheckUser : public OTMessageStrategy
+class StrategyCheckUserResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1480,8 +1481,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCheckUser::reg("checkUserResponse",
-                                          new StrategyAtCheckUser());
+RegisterStrategy StrategyCheckUserResponse::reg(
+    "checkUserResponse", new StrategyCheckUserResponse());
 
 class StrategyUsageCredits : public OTMessageStrategy
 {
@@ -1530,7 +1531,7 @@ public:
 RegisterStrategy StrategyUsageCredits::reg("usageCredits",
                                            new StrategyUsageCredits());
 
-class StrategyAtUsageCredits : public OTMessageStrategy
+class StrategyUsageCreditsResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1579,8 +1580,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtUsageCredits::reg("usageCreditsResponse",
-                                             new StrategyAtUsageCredits());
+RegisterStrategy StrategyUsageCreditsResponse::reg(
+    "usageCreditsResponse", new StrategyUsageCreditsResponse());
 
 class StrategyOutpaymentsMessageOrOutmailMessage : public OTMessageStrategy
 {
@@ -1708,7 +1709,7 @@ public:
 RegisterStrategy StrategySendUserMessage::reg("sendUserMessage",
                                               new StrategySendUserMessage());
 
-class StrategyAtSendUserMessage : public OTMessageStrategy
+class StrategySendUserMessageResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1751,8 +1752,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtSendUserMessage::reg(
-    "sendUserMessageResponse", new StrategyAtSendUserMessage());
+RegisterStrategy StrategySendUserMessageResponse::reg(
+    "sendUserMessageResponse", new StrategySendUserMessageResponse());
 
 class StrategySendUserInstrumentOrPayDividend : public OTMessageStrategy
 {
@@ -1831,7 +1832,7 @@ RegisterStrategy StrategySendUserInstrumentOrPayDividend::reg(
 RegisterStrategy StrategySendUserInstrumentOrPayDividend::reg2(
     "payDividend", new StrategySendUserInstrumentOrPayDividend());
 
-class StrategyAtSendUserInstrument : public OTMessageStrategy
+class StrategySendUserInstrumentResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1874,8 +1875,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtSendUserInstrument::reg(
-    "sendUserInstrumentResponse", new StrategyAtSendUserInstrument());
+RegisterStrategy StrategySendUserInstrumentResponse::reg(
+    "sendUserInstrumentResponse", new StrategySendUserInstrumentResponse());
 
 class StrategyGetRequest : public OTMessageStrategy
 {
@@ -1913,7 +1914,7 @@ public:
 RegisterStrategy StrategyGetRequest::reg("getRequest",
                                          new StrategyGetRequest());
 
-class StrategyAtGetRequest : public OTMessageStrategy
+class StrategyGetRequestResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1968,8 +1969,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetRequest::reg("getRequestResponse",
-                                           new StrategyAtGetRequest());
+RegisterStrategy StrategyGetRequestResponse::reg(
+    "getRequestResponse", new StrategyGetRequestResponse());
 
 class StrategyIssueAssetType : public OTMessageStrategy
 {
@@ -2029,7 +2030,7 @@ public:
 RegisterStrategy StrategyIssueAssetType::reg("issueAssetType",
                                              new StrategyIssueAssetType());
 
-class StrategyAtIssueAssetType : public OTMessageStrategy
+class StrategyIssueAssetTypeResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2132,8 +2133,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtIssueAssetType::reg("issueAssetTypeResponse",
-                                               new StrategyAtIssueAssetType());
+RegisterStrategy StrategyIssueAssetTypeResponse::reg(
+    "issueAssetTypeResponse", new StrategyIssueAssetTypeResponse());
 
 class StrategyQueryAssetTypes : public OTMessageStrategy
 {
@@ -2189,7 +2190,7 @@ public:
 RegisterStrategy StrategyQueryAssetTypes::reg("queryAssetTypes",
                                               new StrategyQueryAssetTypes());
 
-class StrategyAtQueryAssetTypes : public OTMessageStrategy
+class StrategyQueryAssetTypesResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2280,8 +2281,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtQueryAssetTypes::reg(
-    "queryAssetTypesResponse", new StrategyAtQueryAssetTypes());
+RegisterStrategy StrategyQueryAssetTypesResponse::reg(
+    "queryAssetTypesResponse", new StrategyQueryAssetTypesResponse());
 
 class StrategyIssueBasket : public OTMessageStrategy
 {
@@ -2348,7 +2349,7 @@ public:
 RegisterStrategy StrategyIssueBasket::reg("issueBasket",
                                           new StrategyIssueBasket());
 
-class StrategyAtIssueBasket : public OTMessageStrategy
+class StrategyIssueBasketResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2422,8 +2423,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtIssueBasket::reg("issueBasketResponse",
-                                            new StrategyAtIssueBasket());
+RegisterStrategy StrategyIssueBasketResponse::reg(
+    "issueBasketResponse", new StrategyIssueBasketResponse());
 
 class StrategyCreateAccount : public OTMessageStrategy
 {
@@ -2470,7 +2471,7 @@ public:
 RegisterStrategy StrategyCreateAccount::reg("createAccount",
                                             new StrategyCreateAccount());
 
-class StrategyAtCreateAccount : public OTMessageStrategy
+class StrategyCreateAccountResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2568,8 +2569,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtCreateAccount::reg("createAccountResponse",
-                                              new StrategyAtCreateAccount());
+RegisterStrategy StrategyCreateAccountResponse::reg(
+    "createAccountResponse", new StrategyCreateAccountResponse());
 
 class StrategyGetBoxReceipt : public OTMessageStrategy
 {
@@ -2644,7 +2645,7 @@ public:
 RegisterStrategy StrategyGetBoxReceipt::reg("getBoxReceipt",
                                             new StrategyGetBoxReceipt());
 
-class StrategyAtGetBoxReceipt : public OTMessageStrategy
+class StrategyGetBoxReceiptResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2766,8 +2767,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetBoxReceipt::reg("getBoxReceiptResponse",
-                                              new StrategyAtGetBoxReceipt());
+RegisterStrategy StrategyGetBoxReceiptResponse::reg(
+    "getBoxReceiptResponse", new StrategyGetBoxReceiptResponse());
 
 class StrategyDeleteAssetAccount : public OTMessageStrategy
 {
@@ -2811,7 +2812,7 @@ public:
 RegisterStrategy StrategyDeleteAssetAccount::reg(
     "deleteAssetAccount", new StrategyDeleteAssetAccount());
 
-class StrategyAtDeleteAssetAccount : public OTMessageStrategy
+class StrategyDeleteAssetAccountResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2887,8 +2888,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtDeleteAssetAccount::reg(
-    "deleteAssetAccountResponse", new StrategyAtDeleteAssetAccount());
+RegisterStrategy StrategyDeleteAssetAccountResponse::reg(
+    "deleteAssetAccountResponse", new StrategyDeleteAssetAccountResponse());
 
 class StrategyNotarizeTransactions : public OTMessageStrategy
 {
@@ -2955,7 +2956,7 @@ public:
 RegisterStrategy StrategyNotarizeTransactions::reg(
     "notarizeTransactions", new StrategyNotarizeTransactions());
 
-class StrategyAtNotarizeTransactions : public OTMessageStrategy
+class StrategyNotarizeTransactionsResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3056,8 +3057,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtNotarizeTransactions::reg(
-    "notarizeTransactionsResponse", new StrategyAtNotarizeTransactions());
+RegisterStrategy StrategyNotarizeTransactionsResponse::reg(
+    "notarizeTransactionsResponse", new StrategyNotarizeTransactionsResponse());
 
 class StrategyGetTransactionNum : public OTMessageStrategy
 {
@@ -3100,7 +3101,7 @@ public:
 RegisterStrategy StrategyGetTransactionNum::reg(
     "getTransactionNum", new StrategyGetTransactionNum());
 
-class StrategyAtGetTransactionNum : public OTMessageStrategy
+class StrategyGetTransactionNumResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3142,8 +3143,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetTransactionNum::reg(
-    "getTransactionNumResponse", new StrategyAtGetTransactionNum());
+RegisterStrategy StrategyGetTransactionNumResponse::reg(
+    "getTransactionNumResponse", new StrategyGetTransactionNumResponse());
 
 class StrategyGetNymbox : public OTMessageStrategy
 {
@@ -3181,7 +3182,7 @@ public:
 };
 RegisterStrategy StrategyGetNymbox::reg("getNymbox", new StrategyGetNymbox());
 
-class StrategyAtGetNymbox : public OTMessageStrategy
+class StrategyGetNymboxResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3256,8 +3257,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetNymbox::reg("getNymboxResponse",
-                                          new StrategyAtGetNymbox());
+RegisterStrategy StrategyGetNymboxResponse::reg(
+    "getNymboxResponse", new StrategyGetNymboxResponse());
 
 class StrategyGetAccountFiles : public OTMessageStrategy
 {
@@ -3300,7 +3301,7 @@ public:
 RegisterStrategy StrategyGetAccountFiles::reg("getAccountFiles",
                                               new StrategyGetAccountFiles());
 
-class StrategyAtGetAccountFiles : public OTMessageStrategy
+class StrategyGetAccountFilesResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3384,8 +3385,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetAccountFiles::reg(
-    "getAccountFilesResponse", new StrategyAtGetAccountFiles());
+RegisterStrategy StrategyGetAccountFilesResponse::reg(
+    "getAccountFilesResponse", new StrategyGetAccountFilesResponse());
 
 class StrategyGetContract : public OTMessageStrategy
 {
@@ -3428,7 +3429,7 @@ public:
 RegisterStrategy StrategyGetContract::reg("getContract",
                                           new StrategyGetContract());
 
-class StrategyAtGetContract : public OTMessageStrategy
+class StrategyGetContractResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3504,8 +3505,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetContract::reg("getContractResponse",
-                                            new StrategyAtGetContract());
+RegisterStrategy StrategyGetContractResponse::reg(
+    "getContractResponse", new StrategyGetContractResponse());
 
 class StrategyGetMint : public OTMessageStrategy
 {
@@ -3547,7 +3548,7 @@ public:
 };
 RegisterStrategy StrategyGetMint::reg("getMint", new StrategyGetMint());
 
-class StrategyAtGetMint : public OTMessageStrategy
+class StrategyGetMintResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3622,8 +3623,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetMint::reg("getMintResponse",
-                                        new StrategyAtGetMint());
+RegisterStrategy StrategyGetMintResponse::reg("getMintResponse",
+                                              new StrategyGetMintResponse());
 
 class StrategyProcessInbox : public OTMessageStrategy
 {
@@ -3690,7 +3691,7 @@ public:
 RegisterStrategy StrategyProcessInbox::reg("processInbox",
                                            new StrategyProcessInbox());
 
-class StrategyAtProcessInbox : public OTMessageStrategy
+class StrategyProcessInboxResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3788,8 +3789,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtProcessInbox::reg("processInboxResponse",
-                                             new StrategyAtProcessInbox());
+RegisterStrategy StrategyProcessInboxResponse::reg(
+    "processInboxResponse", new StrategyProcessInboxResponse());
 
 class StrategyProcessNymbox : public OTMessageStrategy
 {
@@ -3853,7 +3854,7 @@ public:
 RegisterStrategy StrategyProcessNymbox::reg("processNymbox",
                                             new StrategyProcessNymbox());
 
-class StrategyAtProcessNymbox : public OTMessageStrategy
+class StrategyProcessNymboxResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3948,8 +3949,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtProcessNymbox::reg("processNymboxResponse",
-                                              new StrategyAtProcessNymbox());
+RegisterStrategy StrategyProcessNymboxResponse::reg(
+    "processNymboxResponse", new StrategyProcessNymboxResponse());
 
 class StrategyTriggerClause : public OTMessageStrategy
 {
@@ -4026,7 +4027,7 @@ public:
 RegisterStrategy StrategyTriggerClause::reg("triggerClause",
                                             new StrategyTriggerClause());
 
-class StrategyAtTriggerClause : public OTMessageStrategy
+class StrategyTriggerClauseResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -4084,8 +4085,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtTriggerClause::reg("triggerClauseResponse",
-                                              new StrategyAtTriggerClause());
+RegisterStrategy StrategyTriggerClauseResponse::reg(
+    "triggerClauseResponse", new StrategyTriggerClauseResponse());
 
 class StrategyGetMarketList : public OTMessageStrategy
 {
@@ -4124,7 +4125,7 @@ public:
 RegisterStrategy StrategyGetMarketList::reg("getMarketList",
                                             new StrategyGetMarketList());
 
-class StrategyAtGetMarketList : public OTMessageStrategy
+class StrategyGetMarketListResponse : public OTMessageStrategy
 {
 public:
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -4210,7 +4211,7 @@ public:
 
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyAtGetMarketList::reg("getMarketListResponse",
-                                              new StrategyAtGetMarketList());
+RegisterStrategy StrategyGetMarketListResponse::reg(
+    "getMarketListResponse", new StrategyGetMarketListResponse());
 
 } // namespace opentxs
