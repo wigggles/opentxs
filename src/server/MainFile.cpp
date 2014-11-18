@@ -137,7 +137,7 @@
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/AssetContract.hpp>

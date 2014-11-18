@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTCONTRACT_HPP
 #define OPENTXS_CORE_OTCONTRACT_HPP
 
-#include "OTIdentifier.hpp"
+#include "Identifier.hpp"
 #include "OTStringXML.hpp"
 #include "util/Common.hpp" // TODO: remove this when feasible
 

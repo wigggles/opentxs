@@ -134,7 +134,7 @@
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
-#include "OTIdentifier.hpp"
+#include "Identifier.hpp"
 
 #include <deque>
 #include <map>

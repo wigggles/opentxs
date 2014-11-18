@@ -133,7 +133,7 @@
 #ifndef OPENTXS_BASKET_BASKETITEM_HPP
 #define OPENTXS_BASKET_BASKETITEM_HPP
 
-#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/Identifier.hpp>
 
 #include <deque>
 

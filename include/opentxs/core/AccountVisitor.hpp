@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTACCTFUNCTOR_HPP
 #define OPENTXS_CORE_OTACCTFUNCTOR_HPP
 
-#include "OTIdentifier.hpp"
+#include "Identifier.hpp"
 #include <map>
 #include <string>
 
