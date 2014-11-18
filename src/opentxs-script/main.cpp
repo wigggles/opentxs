@@ -1123,19 +1123,6 @@ int32_t main(int32_t argc, char* argv[])
         // COMMANDS
 
         if ((opt->getValue("script") != nullptr) || (opt->getArgc() > 0)) {
-            OTAPI_Wrap::OTAPI()->GetClient()->SetRunningAsScript(); // This way
-                                                                    // it won't
-                                                                    // go firing
-                                                                    // off
-                                                                    // messages
-            // automatically based on receiving certain
-            // server replies to previous requests.
-            // Todo: Research whether the above call is still necessary. (OTAPI
-            // no
-            // longer fires off ANY auto messages based on server replies. API
-            // CLIENT
-            // MUST do those things itself now.)
-
             std::string strFilename;
 
             // If a filename is provided as a normal argument (like this: ot

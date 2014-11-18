@@ -227,16 +227,6 @@ public:
         return m_MessageOutbuffer;
     }
 
-    bool IsRunningAsScript() const
-    {
-        return m_bRunningAsScript;
-    }
-
-    void SetRunningAsScript()
-    {
-        m_bRunningAsScript = true;
-    }
-
     void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
                            const Message& theMessage);
     bool ProcessInBuffer(const Message& theServerReply) const;
@@ -320,18 +310,6 @@ private:
     OTWallet* m_pWallet;
     OTMessageBuffer m_MessageBuffer;
     OTMessageOutbuffer m_MessageOutbuffer;
-
-    // This is used to determine whether to activate
-    // certain messages automatically in
-    // the client based on various server replies to previous requests (based on
-    // what mode it's being used in...
-    // if we're using the API, then NO auto-messages!) Similarly, if we're using
-    // the interpreted script, then NO auto
-    // messages. But if we are using the test client, aka the command line in
-    // --prompt mode, and the --script switch
-    // wasn't used to startup, (which would mean we're executing a script) then
-    // it's A-Okay to fire those auto messages.
-    bool m_bRunningAsScript;
 };
 
 } // namespace opentxs

@@ -173,7 +173,6 @@ OTClient::OTClient(OTWallet* theWallet, OTSettings* pConfig)
     , m_pWallet(theWallet)
     , m_MessageBuffer()
     , m_MessageOutbuffer()
-    , m_bRunningAsScript(false)
 {
 }
 
