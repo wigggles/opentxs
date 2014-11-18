@@ -163,7 +163,7 @@ namespace opentxs
 // and does NOT include salt, IV, iteration count, etc when
 // generating the hash for the ID.
 //
-void OTSymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
+void OTSymmetricKey::GetIdentifier(Identifier& theIdentifier) const
 {
     //  const bool bCalc =
     theIdentifier.CalculateDigest(m_dataEncryptedKey);
@@ -171,7 +171,7 @@ void OTSymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
 
 void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
 {
-    OTIdentifier theIdentifier;
+    Identifier theIdentifier;
     const bool bCalc = theIdentifier.CalculateDigest(m_dataEncryptedKey);
     if (bCalc) theIdentifier.GetString(strIdentifier);
 }

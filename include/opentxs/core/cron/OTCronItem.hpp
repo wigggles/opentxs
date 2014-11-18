@@ -144,7 +144,7 @@ namespace opentxs
 {
 
 class OTCron;
-class OTIdentifier;
+class Identifier;
 class OTPseudonym;
 class String;
 
@@ -159,7 +159,7 @@ private: // Private prevents erroneous use by other classes.
 private:
     OTCron* m_pCron;
     OTPseudonym* serverNym_;
-    OTIdentifier* serverId_;
+    Identifier* serverId_;
     time64_t m_CREATION_DATE;     // The date, in seconds, when the CronItem was
                                   // authorized.
     time64_t m_LAST_PROCESS_DATE; // The last time this item was processed.
@@ -170,11 +170,11 @@ protected:
                                                // transaction. (finalReceipt.)
 
 protected:
-    OTCronItem(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
-    OTCronItem(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-               const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID);
+    OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
+    OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+               const Identifier& ACCT_ID, const Identifier& USER_ID);
 
-    OTIdentifier* m_pCancelerNymID;
+    Identifier* m_pCancelerNymID;
 
     bool m_bCanceled; // This defaults to false. But if someone cancels it
                       // (BEFORE it is ever activated, just to nip it in the bud
@@ -204,14 +204,14 @@ protected:
 public:
     // To force the Nym to close out the closing number on the receipt.
     bool DropFinalReceiptToInbox(
-        const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
+        const Identifier& USER_ID, const Identifier& ACCOUNT_ID,
         const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
         const String& strOrigCronItem, String* pstrNote = nullptr,
         String* pstrAttachment = nullptr, Account* pActualAcct = nullptr);
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.
-    bool DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
+    bool DropFinalReceiptToNymbox(const Identifier& USER_ID,
                                   const int64_t& lNewTransactionNumber,
                                   const String& strOrigCronItem,
                                   String* pstrNote = nullptr,
@@ -253,14 +253,14 @@ public:
         const int64_t& lTransactionNum); // Server-side only.
     EXPORT static OTCronItem* LoadActiveCronReceipt(
         const int64_t& lTransactionNum,
-        const OTIdentifier& serverID); // Client-side only.
+        const Identifier& serverID); // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
-        const int64_t& lTransactionNum, const OTIdentifier& nymID,
-        const OTIdentifier& serverID); // Client-side only.
+        const int64_t& lTransactionNum, const Identifier& nymID,
+        const Identifier& serverID); // Client-side only.
     EXPORT static bool GetActiveCronTransNums(OTNumList& output, // Client-side
                                                                  // only.
-                                              const OTIdentifier& nymID,
-                                              const OTIdentifier& serverID);
+                                              const Identifier& nymID,
+                                              const Identifier& serverID);
     inline void SetCreationDate(const time64_t& CREATION_DATE)
     {
         m_CREATION_DATE = CREATION_DATE;
@@ -298,16 +298,16 @@ public:
     {
         serverNym_ = serverNym;
     }
-    void setServerId(OTIdentifier* serverId)
+    void setServerId(Identifier* serverId)
     {
         serverId_ = serverId;
     }
     // When first adding anything to Cron, a copy needs to be saved in a folder
     // somewhere.
     EXPORT bool SaveCronReceipt(); // server side only
-    EXPORT bool SaveActiveCronReceipt(const OTIdentifier& theNymID); // client
-                                                                     // side
-                                                                     // only
+    EXPORT bool SaveActiveCronReceipt(const Identifier& theNymID); // client
+                                                                   // side
+                                                                   // only
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -320,7 +320,7 @@ public:
 
     virtual void Release();
     void Release_CronItem();
-    EXPORT bool GetCancelerID(OTIdentifier& theOutput) const;
+    EXPORT bool GetCancelerID(Identifier& theOutput) const;
     EXPORT bool IsCanceled() const
     {
         return m_bCanceled;
@@ -341,8 +341,8 @@ public:
     EXPORT int64_t GetClosingNum() const;
     virtual bool IsValidOpeningNumber(const int64_t& lOpeningNum) const;
 
-    virtual int64_t GetOpeningNumber(const OTIdentifier& theNymID) const;
-    virtual int64_t GetClosingNumber(const OTIdentifier& theAcctID) const;
+    virtual int64_t GetOpeningNumber(const Identifier& theNymID) const;
+    virtual int64_t GetClosingNumber(const Identifier& theAcctID) const;
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     //    virtual void UpdateContents(); // Before transmission or
     // serialization, this is where the ledger saves its contents

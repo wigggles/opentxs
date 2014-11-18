@@ -741,7 +741,7 @@ bool OTRecord::DeleteRecord() const
               << m_str_nym_id << "), acct id (" << str_using_account << ")\n";
         return false;
     }
-    const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id),
+    const Identifier theServerID(m_str_server_id), theNymID(m_str_nym_id),
         theAcctID(str_using_account); // this last one sometimes contains NymID
                                       // (see above.)
 
@@ -805,7 +805,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
                   << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
-        const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id),
+        const Identifier theServerID(m_str_server_id), theNymID(m_str_nym_id),
             theAcctID(m_str_account_id);
 
         // Open the Nym's asset account inbox.
@@ -872,7 +872,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
                   << m_str_nym_id << ")\n";
             return false;
         }
-        const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
+        const Identifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
 
         // Open the Nym's payments inbox.
         OTLedger* pInbox =
@@ -939,7 +939,7 @@ bool OTRecord::DiscardIncoming() const
                   << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
-        const OTIdentifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
+        const Identifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
 
         // Open the Nym's payments inbox.
         OTLedger* pInbox =
@@ -1028,7 +1028,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const // This can
             return false;
         }
 
-        const OTIdentifier theNymID(m_str_nym_id);
+        const Identifier theNymID(m_str_nym_id);
         std::string str_using_acct;
 
         if (IsCheque()) {

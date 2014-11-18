@@ -149,7 +149,7 @@ class OTPseudonym;
 class String;
 class OTSymmetricKey;
 
-class OTIdentifier : public OTData
+class Identifier : public OTData
 {
 private:
     bool CalculateDigest(const unsigned char* data, size_t len);
@@ -158,27 +158,27 @@ public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
     EXPORT static const String DefaultHashAlgorithm;
-    EXPORT OTIdentifier();
+    EXPORT Identifier();
 
-    EXPORT OTIdentifier(const OTIdentifier& theID);
-    EXPORT OTIdentifier(const char* szStr);
-    EXPORT OTIdentifier(const std::string& szStr);
-    EXPORT OTIdentifier(const String& theStr);
-    EXPORT OTIdentifier(const OTPseudonym& theNym);
-    EXPORT OTIdentifier(const Contract& theContract);
-    EXPORT OTIdentifier(const OTSymmetricKey& theKey);
-    EXPORT OTIdentifier(const OTCachedKey& theKey);
+    EXPORT Identifier(const Identifier& theID);
+    EXPORT Identifier(const char* szStr);
+    EXPORT Identifier(const std::string& szStr);
+    EXPORT Identifier(const String& theStr);
+    EXPORT Identifier(const OTPseudonym& theNym);
+    EXPORT Identifier(const Contract& theContract);
+    EXPORT Identifier(const OTSymmetricKey& theKey);
+    EXPORT Identifier(const OTCachedKey& theKey);
 
-    EXPORT virtual ~OTIdentifier();
+    EXPORT virtual ~Identifier();
     using OTData::swap;
     using OTData::operator=;
-    EXPORT bool operator==(const OTIdentifier& s2) const;
-    EXPORT bool operator!=(const OTIdentifier& s2) const;
+    EXPORT bool operator==(const Identifier& s2) const;
+    EXPORT bool operator!=(const Identifier& s2) const;
 
-    EXPORT bool operator>(const OTIdentifier& s2) const;
-    EXPORT bool operator<(const OTIdentifier& s2) const;
-    EXPORT bool operator<=(const OTIdentifier& s2) const;
-    EXPORT bool operator>=(const OTIdentifier& s2) const;
+    EXPORT bool operator>(const Identifier& s2) const;
+    EXPORT bool operator<(const Identifier& s2) const;
+    EXPORT bool operator<=(const Identifier& s2) const;
+    EXPORT bool operator>=(const Identifier& s2) const;
     EXPORT bool CalculateDigest(const OTData& dataInput);
     EXPORT bool CalculateDigest(const String& strInput);
 

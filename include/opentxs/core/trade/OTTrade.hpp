@@ -143,7 +143,7 @@
 namespace opentxs
 {
 
-class OTIdentifier;
+class Identifier;
 class OTPseudonym;
 
 /*
@@ -178,10 +178,10 @@ class OTTrade : public OTCronItem
 private:
     typedef OTCronItem ot_super;
 
-    OTIdentifier currencyTypeID_; // GOLD (Asset) is trading for DOLLARS
-                                  // (Currency).
-    OTIdentifier currencyAcctID_; // My Dollar account, used for paying for
-                                  // my Gold (say) trades.
+    Identifier currencyTypeID_; // GOLD (Asset) is trading for DOLLARS
+                                // (Currency).
+    Identifier currencyAcctID_; // My Dollar account, used for paying for
+                                // my Gold (say) trades.
 
     OTOffer* offer_; // The pointer to the Offer (NOT responsible for cleaning
                      // this up!!!
@@ -253,25 +253,25 @@ public:
     }
 
     // optionally returns the offer's market ID and a pointer to the market.
-    OTOffer* GetOffer(OTIdentifier* offerMarketId = nullptr,
+    OTOffer* GetOffer(Identifier* offerMarketId = nullptr,
                       OTMarket* *market = nullptr);
 
-    inline const OTIdentifier& GetCurrencyID() const
+    inline const Identifier& GetCurrencyID() const
     {
         return currencyTypeID_;
     }
 
-    inline void SetCurrencyID(const OTIdentifier& currencyId)
+    inline void SetCurrencyID(const Identifier& currencyId)
     {
         currencyTypeID_ = currencyId;
     }
 
-    inline const OTIdentifier& GetCurrencyAcctID() const
+    inline const Identifier& GetCurrencyAcctID() const
     {
         return currencyAcctID_;
     }
 
-    inline void SetCurrencyAcctID(const OTIdentifier& currencyAcctID)
+    inline void SetCurrencyAcctID(const Identifier& currencyAcctID)
     {
         currencyAcctID_ = currencyAcctID;
     }
@@ -309,17 +309,17 @@ public:
     virtual bool VerifyNymAsAgentForAccount(OTPseudonym& nym,
                                             Account& account) const;
     EXPORT OTTrade();
-    EXPORT OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,
-                   const OTIdentifier& assetAcctId, const OTIdentifier& userId,
-                   const OTIdentifier& currencyId,
-                   const OTIdentifier& currencyAcctId);
+    EXPORT OTTrade(const Identifier& serverId, const Identifier& assetId,
+                   const Identifier& assetAcctId, const Identifier& userId,
+                   const Identifier& currencyId,
+                   const Identifier& currencyAcctId);
     EXPORT virtual ~OTTrade();
 
     void InitTrade();
 
     void Release_Trade();
     virtual void Release();
-    virtual int64_t GetClosingNumber(const OTIdentifier& acctId) const;
+    virtual int64_t GetClosingNumber(const Identifier& acctId) const;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 

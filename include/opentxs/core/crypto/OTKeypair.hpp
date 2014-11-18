@@ -177,7 +177,7 @@ namespace opentxs
 class OTASCIIArmor;
 class OTAsymmetricKey;
 class Contract;
-class OTIdentifier;
+class Identifier;
 class OTPassword;
 class OTPasswordData;
 class OTSignature;
@@ -205,7 +205,7 @@ public:
     EXPORT bool HasPrivateKey();
     EXPORT const OTAsymmetricKey& GetPublicKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
-    EXPORT bool CalculateID(OTIdentifier& theOutput) const;
+    EXPORT bool CalculateID(Identifier& theOutput) const;
     EXPORT bool SaveCertToString(
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;

@@ -224,7 +224,7 @@ Contract::Contract(const String& strID)
     m_ID.SetString(strID);
 }
 
-Contract::Contract(const OTIdentifier& theID)
+Contract::Contract(const Identifier& theID)
 {
     Initialize();
 
@@ -237,7 +237,7 @@ void Contract::Initialize()
         "CONTRACT"; // CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM
     // make sure subclasses set this in their own initialization routine.
 
-    m_strSigHashType = OTIdentifier::DefaultHashAlgorithm;
+    m_strSigHashType = Identifier::DefaultHashAlgorithm;
     m_strVersion = "2.0"; // since new credentials system.
 }
 
@@ -256,7 +256,7 @@ void Contract::Release_Contract()
     //
     // m_strFilename.Release();
 
-    m_strSigHashType = OTIdentifier::DefaultHashAlgorithm;
+    m_strSigHashType = Identifier::DefaultHashAlgorithm;
     m_xmlUnsigned.Release();
     m_strRawFile.Release();
 
@@ -309,7 +309,7 @@ void Contract::GetFilename(String& strFilename) const
     strFilename = m_strFilename;
 }
 
-void Contract::GetIdentifier(OTIdentifier& theIdentifier) const
+void Contract::GetIdentifier(Identifier& theIdentifier) const
 {
     theIdentifier = m_ID;
 }
@@ -342,7 +342,7 @@ bool Contract::VerifyContract()
     }
 
     if (!VerifySignature(*pNym)) {
-        const OTIdentifier theNymID(*pNym);
+        const Identifier theNymID(*pNym);
         const String strNymID(theNymID);
         otOut << __FUNCTION__ << ": Failed verifying the contract's signature "
                                  "against the public key that was retrieved "
@@ -359,7 +359,7 @@ bool Contract::VerifyContract()
     return true;
 }
 
-void Contract::CalculateContractID(OTIdentifier& newID) const
+void Contract::CalculateContractID(Identifier& newID) const
 {
     // may be redundant...
     std::string str_Trim(m_strRawFile.Get());
@@ -373,7 +373,7 @@ void Contract::CalculateContractID(OTIdentifier& newID) const
 
 bool Contract::VerifyContractID() const
 {
-    OTIdentifier newID;
+    Identifier newID;
     CalculateContractID(newID);
 
     // newID now contains the Hash aka Message Digest aka Fingerprint
@@ -399,7 +399,7 @@ bool Contract::VerifyContractID() const
         String str1;
         newID.GetString(str1);
         otWarn << "\nContract ID *SUCCESSFUL* match to "
-               << OTIdentifier::DefaultHashAlgorithm
+               << Identifier::DefaultHashAlgorithm
                << " hash of contract file: " << str1 << "\n\n";
         return true;
     }
@@ -1075,7 +1075,7 @@ bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
     if (false ==
         OTCrypto::It()->SignContract(strInput, theSigner.GetPrivateSignKey(),
                                      theSignature, // the output
-                                     OTIdentifier::DefaultHashAlgorithm,
+                                     Identifier::DefaultHashAlgorithm,
                                      &thePWData)) {
         otErr << szFunc << ": SignContract failed. Contents:\n\n" << strInput
               << "\n\n\n";
@@ -1087,7 +1087,7 @@ bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
 
     const bool bBookends = Contract::AddBookendsAroundContent(
         strOutput, // the output (other params are input.)
-        strInput, strContractType, OTIdentifier::DefaultHashAlgorithm,
+        strInput, strContractType, Identifier::DefaultHashAlgorithm,
         listSignatures);
 
     return bBookends;
@@ -2138,7 +2138,7 @@ bool Contract::CreateContract(const String& strContract,
                                          // to then load it up from that
                                          // string.
 
-        OTIdentifier NEW_ID;
+        Identifier NEW_ID;
         CalculateContractID(NEW_ID);
         m_ID = NEW_ID;
 

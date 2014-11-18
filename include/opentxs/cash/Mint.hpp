@@ -164,14 +164,14 @@ protected:
     mapOfArmor m_mapPublic; // An Ascii-armored string of the mint Public
                             // information. Base64-encoded only.
 
-    OTIdentifier m_ServerID;    // The Server ID, (a hash of the server contract
-                                // whose public key is m_keyPublic)
-    OTIdentifier m_ServerNymID; // The Nym ID of the Server, whose public key is
-                                // m_keyPublic
+    Identifier m_ServerID;    // The Server ID, (a hash of the server contract
+                              // whose public key is m_keyPublic)
+    Identifier m_ServerNymID; // The Nym ID of the Server, whose public key is
+                              // m_keyPublic
 
     OTAsymmetricKey* m_pKeyPublic; // The server's public key.
 
-    OTIdentifier m_AssetID; // Each Asset type has its own mint.
+    Identifier m_AssetID; // Each Asset type has its own mint.
 
     int32_t m_nDenominationCount; // How many denominations of the currency are
                                   // issued by this Mint?
@@ -196,8 +196,8 @@ protected:
     time64_t m_EXPIRATION; // The Mint itself expires before the tokens do. (As
                            // the new series rotates in...)
 
-    OTIdentifier m_CashAccountID; // The Account ID for the cash reserve
-                                  // account. (Pointer below.)
+    Identifier m_CashAccountID; // The Account ID for the cash reserve
+                                // account. (Pointer below.)
 
     Account* m_pReserveAcct; // When you withdraw cash, the Mint removes X
                              // dollars from your account, then
@@ -291,7 +291,7 @@ public:
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the token saves its contents
 
-    inline void SetAssetID(const OTIdentifier& newID)
+    inline void SetAssetID(const Identifier& newID)
     {
         m_AssetID = newID;
     }
@@ -299,8 +299,8 @@ public:
     // Lucre step 1: generate new mint
     EXPORT void GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
                                 time64_t VALID_TO, time64_t MINT_EXPIRATION,
-                                const OTIdentifier& theAssetID,
-                                const OTIdentifier& theServerID,
+                                const Identifier& theAssetID,
+                                const Identifier& theServerID,
                                 OTPseudonym& theNotary, int64_t nDenom1 = 0,
                                 int64_t nDenom2 = 0, int64_t nDenom3 = 0,
                                 int64_t nDenom4 = 0, int64_t nDenom5 = 0,

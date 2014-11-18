@@ -205,7 +205,7 @@ bool OTLedger::VerifyAccount(const OTPseudonym& theNym)
     } break;
     default: {
         const int32_t nLedgerType = static_cast<int32_t>(GetType());
-        const OTIdentifier theNymID(theNym);
+        const Identifier theNymID(theNym);
         const String strNymID(theNymID);
         String strAccountID;
         GetIdentifier(strAccountID);
@@ -752,7 +752,7 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
 // this.
 // It's more generic but warning: performs less verification.
 //
-bool OTLedger::CalculateHash(OTIdentifier& theOutput)
+bool OTLedger::CalculateHash(Identifier& theOutput)
 {
     theOutput.Release();
 
@@ -766,7 +766,7 @@ bool OTLedger::CalculateHash(OTIdentifier& theOutput)
     return bCalcDigest;
 }
 
-bool OTLedger::CalculateInboxHash(OTIdentifier& theOutput)
+bool OTLedger::CalculateInboxHash(Identifier& theOutput)
 {
     if (m_Type != OTLedger::inbox) {
         otErr << "Wrong ledger type passed to OTLedger::CalculateInboxHash.\n";
@@ -776,7 +776,7 @@ bool OTLedger::CalculateInboxHash(OTIdentifier& theOutput)
     return CalculateHash(theOutput);
 }
 
-bool OTLedger::CalculateOutboxHash(OTIdentifier& theOutput)
+bool OTLedger::CalculateOutboxHash(Identifier& theOutput)
 {
     if (m_Type != OTLedger::outbox) {
         otErr << "Wrong ledger type passed to OTLedger::CalculateOutboxHash.\n";
@@ -786,7 +786,7 @@ bool OTLedger::CalculateOutboxHash(OTIdentifier& theOutput)
     return CalculateHash(theOutput);
 }
 
-bool OTLedger::CalculateNymboxHash(OTIdentifier& theOutput)
+bool OTLedger::CalculateNymboxHash(Identifier& theOutput)
 {
     if (m_Type != OTLedger::nymbox) {
         otErr << "Wrong ledger type passed to OTLedger::CalculateNymboxHash.\n";
@@ -797,11 +797,11 @@ bool OTLedger::CalculateNymboxHash(OTIdentifier& theOutput)
 }
 
 // If you're going to save this, make sure you sign it first.
-bool OTLedger::SaveNymbox(OTIdentifier* pNymboxHash) // If you pass
-                                                     // the identifier
-                                                     // in, the hash
-                                                     // is recorded
-                                                     // there.
+bool OTLedger::SaveNymbox(Identifier* pNymboxHash) // If you pass
+                                                   // the identifier
+                                                   // in, the hash
+                                                   // is recorded
+                                                   // there.
 {
     if (m_Type != OTLedger::nymbox) {
         otErr << "Wrong ledger type passed to OTLedger::SaveNymbox.\n";
@@ -832,10 +832,10 @@ bool OTLedger::SaveNymbox(OTIdentifier* pNymboxHash) // If you pass
 }
 
 // If you're going to save this, make sure you sign it first.
-bool OTLedger::SaveInbox(OTIdentifier* pInboxHash) // If you pass the
-                                                   // identifier in,
-                                                   // the hash is
-                                                   // recorded there.
+bool OTLedger::SaveInbox(Identifier* pInboxHash) // If you pass the
+                                                 // identifier in,
+                                                 // the hash is
+                                                 // recorded there.
 {
 
     //    OTString strTempBlah, strTempBlah2(*this);
@@ -877,11 +877,11 @@ bool OTLedger::SaveInbox(OTIdentifier* pInboxHash) // If you pass the
 }
 
 // If you're going to save this, make sure you sign it first.
-bool OTLedger::SaveOutbox(OTIdentifier* pOutboxHash) // If you pass
-                                                     // the identifier
-                                                     // in, the hash
-                                                     // is recorded
-                                                     // there.
+bool OTLedger::SaveOutbox(Identifier* pOutboxHash) // If you pass
+                                                   // the identifier
+                                                   // in, the hash
+                                                   // is recorded
+                                                   // there.
 {
     if (m_Type != OTLedger::outbox) {
         otErr << "Wrong ledger type passed to OTLedger::SaveOutbox.\n";
@@ -943,10 +943,10 @@ bool OTLedger::SaveExpiredBox()
 
 // static
 OTLedger* OTLedger::GenerateLedger(
-    const OTIdentifier& theUserID,
-    const OTIdentifier& theAcctID, // AcctID should be "OwnerID" since could be
-                                   // acct OR Nym (with nymbox)
-    const OTIdentifier& theServerID, ledgerType theType, bool bCreateFile)
+    const Identifier& theUserID,
+    const Identifier& theAcctID, // AcctID should be "OwnerID" since could be
+                                 // acct OR Nym (with nymbox)
+    const Identifier& theServerID, ledgerType theType, bool bCreateFile)
 {
     OTLedger* pLedger = new OTLedger(theUserID, theAcctID, theServerID);
     OT_ASSERT(nullptr != pLedger);
@@ -957,9 +957,9 @@ OTLedger* OTLedger::GenerateLedger(
     return pLedger;
 }
 
-bool OTLedger::GenerateLedger(const OTIdentifier& theAcctID,
-                              const OTIdentifier& theServerID,
-                              ledgerType theType, bool bCreateFile)
+bool OTLedger::GenerateLedger(const Identifier& theAcctID,
+                              const Identifier& theServerID, ledgerType theType,
+                              bool bCreateFile)
 {
     // First we set the "Safe" ID and try to load the file, to make sure it
     // doesn't already exist.
@@ -1118,9 +1118,8 @@ void OTLedger::InitLedger()
 // Since a ledger is normally used as an inbox for a specific account, in a
 // specific file,
 // then I've decided to restrict ledgers to a single account.
-OTLedger::OTLedger(const OTIdentifier& theUserID,
-                   const OTIdentifier& theAccountID,
-                   const OTIdentifier& theServerID)
+OTLedger::OTLedger(const Identifier& theUserID, const Identifier& theAccountID,
+                   const Identifier& theServerID)
     : OTTransactionType(theUserID, theAccountID, theServerID)
     , m_Type(OTLedger::message)
     , m_bLoadedLegacyData(false)
@@ -1135,8 +1134,8 @@ OTLedger::OTLedger(const OTIdentifier& theUserID,
 // you only know their account number, not their user ID. So you call this
 // function to get it
 // loaded up, and the UserID will hopefully be loaded up with the rest of it.
-OTLedger::OTLedger(const OTIdentifier& theAccountID,
-                   const OTIdentifier& theServerID)
+OTLedger::OTLedger(const Identifier& theAccountID,
+                   const Identifier& theServerID)
     : OTTransactionType()
     , m_Type(OTLedger::message)
     , m_bLoadedLegacyData(false)
@@ -1539,7 +1538,7 @@ OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
         return nullptr;
     }
 
-    const OTIdentifier theNymID(theNym);
+    const Identifier theNymID(theNym);
 
     if ((theAccount.GetPurportedAccountID() != GetPurportedAccountID()) ||
         (theAccount.GetPurportedServerID() != GetPurportedServerID()) ||
@@ -1968,7 +1967,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        OTIdentifier ACCOUNT_ID(strLedgerAcctID),
+        Identifier ACCOUNT_ID(strLedgerAcctID),
             SERVER_ID(strLedgerAcctServerID), USER_ID(strUserID);
 
         SetPurportedAccountID(ACCOUNT_ID);

@@ -597,7 +597,7 @@ bool OTTransaction::HarvestOpeningNumber(
             //    recipient's opening number is still good in that case.
             //
 
-            const OTIdentifier theNymID(theNym);
+            const Identifier theNymID(theNym);
 
             // Assumption: if theNymID matches GetUserID(), then theNym
             // must be the SENDER / PAYER!
@@ -1466,7 +1466,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         return false;
     }
 
-    OTIdentifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
+    Identifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
 
     const String strServerID(GetRealServerID()), strReceiptID(USER_ID);
 
@@ -3118,7 +3118,7 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 
     // VERIFY THE HASH
     //
-    OTIdentifier idFullVersion; // Generate a message digest of that string.
+    Identifier idFullVersion; // Generate a message digest of that string.
     theFullVersion.CalculateContractID(idFullVersion);
 
     // Abbreviated version (*this) stores a hash of the original full version.
@@ -3167,7 +3167,7 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 //
 bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 {
-    const OTIdentifier NYM_ID(theNym);
+    const Identifier NYM_ID(theNym);
 
     if (NYM_ID != GetUserID()) {
         otErr << "Wrong owner passed to OTTransaction::VerifyItems\n";
@@ -3271,9 +3271,9 @@ OTTransaction::OTTransaction(const OTLedger& theOwner)
 // ledger is passed in.
 //      Then it can grab whatever it needs from those. I'm doing something
 // similar in OTItem
-OTTransaction::OTTransaction(const OTIdentifier& theUserID,
-                             const OTIdentifier& theAccountID,
-                             const OTIdentifier& theServerID)
+OTTransaction::OTTransaction(const Identifier& theUserID,
+                             const Identifier& theAccountID,
+                             const Identifier& theServerID)
     : OTTransactionType(theUserID, theAccountID, theServerID)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
@@ -3295,9 +3295,9 @@ OTTransaction::OTTransaction(const OTIdentifier& theUserID,
     // as a WARNING to you!
 }
 
-OTTransaction::OTTransaction(const OTIdentifier& theUserID,
-                             const OTIdentifier& theAccountID,
-                             const OTIdentifier& theServerID,
+OTTransaction::OTTransaction(const Identifier& theUserID,
+                             const Identifier& theAccountID,
+                             const Identifier& theServerID,
                              int64_t lTransactionNum)
     : OTTransactionType(theUserID, theAccountID, theServerID, lTransactionNum)
     , m_pParent(nullptr)
@@ -3343,8 +3343,8 @@ void OTTransaction::InitTransaction()
 // See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 //
 OTTransaction::OTTransaction(
-    const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
-    const OTIdentifier& theServerID, const int64_t& lNumberOfOrigin,
+    const Identifier& theUserID, const Identifier& theAccountID,
+    const Identifier& theServerID, const int64_t& lNumberOfOrigin,
     const int64_t& lTransactionNum, const int64_t& lInRefTo,
     const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
     transactionType theType, const String& strHash, const int64_t& lAdjustment,
@@ -3464,8 +3464,8 @@ OTTransaction* OTTransaction::GenerateTransaction(const OTLedger& theOwner,
 
 // static
 OTTransaction* OTTransaction::GenerateTransaction(
-    const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
-    const OTIdentifier& theServerID, transactionType theType,
+    const Identifier& theUserID, const Identifier& theAccountID,
+    const Identifier& theServerID, transactionType theType,
     int64_t lTransactionNum)
 {
     OTTransaction* pTransaction = new OTTransaction(
@@ -4202,7 +4202,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              // now becomes std::set<int64_t>.)
         }
 
-        OTIdentifier ACCOUNT_ID(strAcctID), SERVER_ID(strServerID),
+        Identifier ACCOUNT_ID(strAcctID), SERVER_ID(strServerID),
             USER_ID(strUserID);
 
         SetPurportedAccountID(
@@ -4612,8 +4612,8 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(String& strOutput)
     if (IsAbbreviated()) m_Hash.GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        OTIdentifier idReceiptHash; // a hash of the actual transaction is
-                                    // stored with its
+        Identifier idReceiptHash; // a hash of the actual transaction is
+                                  // stored with its
         CalculateContractID(idReceiptHash); // abbreviated short-form
                                             // record (in the payment
                                             // inbox, for example.)
@@ -4695,8 +4695,8 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(String& strOutput)
     if (IsAbbreviated()) m_Hash.GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        OTIdentifier idReceiptHash; // a hash of the actual transaction is
-                                    // stored with its
+        Identifier idReceiptHash; // a hash of the actual transaction is
+                                  // stored with its
         CalculateContractID(idReceiptHash); // abbreviated short-form
                                             // record (in the expired box,
                                             // for example.)
@@ -4904,8 +4904,8 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
     if (IsAbbreviated()) m_Hash.GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        OTIdentifier idReceiptHash; // a hash of the actual transaction is
-                                    // stored with its
+        Identifier idReceiptHash; // a hash of the actual transaction is
+                                  // stored with its
         CalculateContractID(idReceiptHash); // abbreviated short-form
                                             // record (in the record box,
                                             // for example.)
@@ -5054,8 +5054,8 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
     if (IsAbbreviated()) m_Hash.GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        OTIdentifier idReceiptHash; // a hash of the actual transaction is
-                                    // stored with its
+        Identifier idReceiptHash; // a hash of the actual transaction is
+                                  // stored with its
         CalculateContractID(idReceiptHash); // abbreviated short-form
                                             // record (in the inbox, for
                                             // example.)
@@ -5155,8 +5155,8 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
     if (IsAbbreviated()) m_Hash.GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        OTIdentifier idReceiptHash; // a hash of the actual transaction is
-                                    // stored with its
+        Identifier idReceiptHash; // a hash of the actual transaction is
+                                  // stored with its
         CalculateContractID(idReceiptHash); // abbreviated short-form
                                             // record (in the inbox, for
                                             // example.)
@@ -5309,8 +5309,8 @@ void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
     if (IsAbbreviated()) m_Hash.GetString(strHash);
     // Otherwise if it's a full record, then calculate the hash and save it.
     else {
-        OTIdentifier idReceiptHash; // a hash of the actual transaction is
-                                    // stored with its
+        Identifier idReceiptHash; // a hash of the actual transaction is
+                                  // stored with its
         CalculateContractID(idReceiptHash); // abbreviated short-form
                                             // record (in the inbox, for
                                             // example.)
@@ -6022,7 +6022,7 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
 // 4.       pItem1->SetAttachment(strOffer);
 //
 
-bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
+bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6213,7 +6213,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(OTIdentifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
+bool OTTransaction::GetRecipientUserIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6407,7 +6407,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(OTIdentifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
+bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6544,7 +6544,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(OTIdentifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID)
+bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 

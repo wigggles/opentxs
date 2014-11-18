@@ -677,7 +677,7 @@ bool OTPayment::HasTransactionNum(const int64_t& lInput) const
 }
 
 bool OTPayment::GetClosingNum(int64_t& lOutput,
-                              const OTIdentifier& theAcctID) const
+                              const Identifier& theAcctID) const
 {
     lOutput = 0;
 
@@ -742,7 +742,7 @@ bool OTPayment::GetClosingNum(int64_t& lOutput,
 }
 
 bool OTPayment::GetOpeningNum(int64_t& lOutput,
-                              const OTIdentifier& theNymID) const
+                              const Identifier& theNymID) const
 {
     lOutput = 0;
 
@@ -960,7 +960,7 @@ bool OTPayment::VerifyCurrentDate(bool& bVerified)
     return true;
 }
 
-bool OTPayment::GetAssetTypeID(OTIdentifier& theOutput) const
+bool OTPayment::GetAssetTypeID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -990,7 +990,7 @@ bool OTPayment::GetAssetTypeID(OTIdentifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetServerID(OTIdentifier& theOutput) const
+bool OTPayment::GetServerID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1020,7 +1020,7 @@ bool OTPayment::GetServerID(OTIdentifier& theOutput) const
 // With a voucher (cashier's cheque) the "bank" is the "sender",
 // whereas the actual Nym who purchased it is the "remitter."
 //
-bool OTPayment::GetRemitterUserID(OTIdentifier& theOutput) const
+bool OTPayment::GetRemitterUserID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1047,7 +1047,7 @@ bool OTPayment::GetRemitterUserID(OTIdentifier& theOutput) const
 // whereas the actual account originally used to purchase it is the "remitter"
 // acct.
 //
-bool OTPayment::GetRemitterAcctID(OTIdentifier& theOutput) const
+bool OTPayment::GetRemitterAcctID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1070,21 +1070,21 @@ bool OTPayment::GetRemitterAcctID(OTIdentifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetSenderUserIDForDisplay(OTIdentifier& theOutput) const
+bool OTPayment::GetSenderUserIDForDisplay(Identifier& theOutput) const
 {
     if (IsVoucher()) return GetRemitterUserID(theOutput);
 
     return GetSenderUserID(theOutput);
 }
 
-bool OTPayment::GetSenderAcctIDForDisplay(OTIdentifier& theOutput) const
+bool OTPayment::GetSenderAcctIDForDisplay(Identifier& theOutput) const
 {
     if (IsVoucher()) return GetRemitterAcctID(theOutput);
 
     return GetSenderAcctID(theOutput);
 }
 
-bool OTPayment::GetSenderUserID(OTIdentifier& theOutput) const
+bool OTPayment::GetSenderUserID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1114,7 +1114,7 @@ bool OTPayment::GetSenderUserID(OTIdentifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetSenderAcctID(OTIdentifier& theOutput) const
+bool OTPayment::GetSenderAcctID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1144,7 +1144,7 @@ bool OTPayment::GetSenderAcctID(OTIdentifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetRecipientUserID(OTIdentifier& theOutput) const
+bool OTPayment::GetRecipientUserID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1179,7 +1179,7 @@ bool OTPayment::GetRecipientUserID(OTIdentifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetRecipientAcctID(OTIdentifier& theOutput) const
+bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
 {
     // NOTE:
     // A cheque HAS NO "Recipient Asset Acct ID", since the recipient's account

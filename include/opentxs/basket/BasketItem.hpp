@@ -147,8 +147,8 @@ typedef std::deque<BasketItem*> dequeOfBasketItems;
 class BasketItem
 {
 public:
-    OTIdentifier SUB_CONTRACT_ID;
-    OTIdentifier SUB_ACCOUNT_ID;
+    Identifier SUB_CONTRACT_ID;
+    Identifier SUB_ACCOUNT_ID;
 
     int64_t lMinimumTransferAmount;
 

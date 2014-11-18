@@ -148,17 +148,17 @@ protected:
 
     int64_t m_lAmount;
     String m_strMemo;
-    OTIdentifier m_RECIPIENT_USER_ID; // Optional. If present, must match
-                                      // depositor's user ID.
+    Identifier m_RECIPIENT_USER_ID; // Optional. If present, must match
+                                    // depositor's user ID.
     bool m_bHasRecipient;
-    OTIdentifier m_REMITTER_USER_ID; // In the case of vouchers (cashier's
-                                     // cheques) we store the Remitter's ID.
-    OTIdentifier m_REMITTER_ACCT_ID;
+    Identifier m_REMITTER_USER_ID; // In the case of vouchers (cashier's
+                                   // cheques) we store the Remitter's ID.
+    Identifier m_REMITTER_ACCT_ID;
     bool m_bHasRemitter;
 
 public:
-    inline void SetAsVoucher(const OTIdentifier& remitterUserID,
-                             const OTIdentifier& remitterAcctID)
+    inline void SetAsVoucher(const Identifier& remitterUserID,
+                             const Identifier& remitterAcctID)
     {
         m_REMITTER_USER_ID = remitterUserID;
         m_REMITTER_ACCT_ID = remitterAcctID;
@@ -173,7 +173,7 @@ public:
     {
         return m_lAmount;
     }
-    inline const OTIdentifier& GetRecipientUserID() const
+    inline const Identifier& GetRecipientUserID() const
     {
         return m_RECIPIENT_USER_ID;
     }
@@ -181,11 +181,11 @@ public:
     {
         return m_bHasRecipient;
     }
-    inline const OTIdentifier& GetRemitterUserID() const
+    inline const Identifier& GetRemitterUserID() const
     {
         return m_REMITTER_USER_ID;
     }
-    inline const OTIdentifier& GetRemitterAcctID() const
+    inline const Identifier& GetRemitterAcctID() const
     {
         return m_REMITTER_ACCT_ID;
     }
@@ -205,16 +205,16 @@ public:
         const int64_t& lAmount, const int64_t& lTransactionNum,
         const time64_t& VALID_FROM,
         const time64_t& VALID_TO, // The expiration date (valid from/to dates.)
-        const OTIdentifier& SENDER_ACCT_ID, // The asset account the cheque is
-                                            // drawn on.
-        const OTIdentifier& SENDER_USER_ID, // This ID must match the user ID on
-                                            // the asset account,
+        const Identifier& SENDER_ACCT_ID, // The asset account the cheque is
+                                          // drawn on.
+        const Identifier& SENDER_USER_ID, // This ID must match the user ID on
+                                          // the asset account,
         // AND must verify the cheque signature with that user's key.
-        const String& strMemo, // Optional memo field.
-        const OTIdentifier* pRECIPIENT_USER_ID = nullptr); // Recipient
-                                                           // optional. (Might
-                                                           // be a blank
-                                                           // cheque.)
+        const String& strMemo,                           // Optional memo field.
+        const Identifier* pRECIPIENT_USER_ID = nullptr); // Recipient
+                                                         // optional. (Might
+                                                         // be a blank
+                                                         // cheque.)
 
     EXPORT void CancelCheque(); // You still need to re-sign the cheque after
                                 // doing this.
@@ -246,7 +246,7 @@ public:
      / TO dates.
      */
     EXPORT Cheque();
-    EXPORT Cheque(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
+    EXPORT Cheque(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
     EXPORT virtual ~Cheque();
 
     void InitCheque();

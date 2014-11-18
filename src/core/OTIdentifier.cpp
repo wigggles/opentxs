@@ -145,56 +145,56 @@
 namespace opentxs
 {
 
-OTIdentifier::OTIdentifier()
+Identifier::Identifier()
     : OTData()
 {
 }
 
-OTIdentifier::OTIdentifier(const OTIdentifier& theID)
+Identifier::Identifier(const Identifier& theID)
     : OTData(theID)
 {
 }
 
-OTIdentifier::OTIdentifier(const char* szStr)
+Identifier::Identifier(const char* szStr)
     : OTData()
 {
     OT_ASSERT(nullptr != szStr);
     SetString(szStr);
 }
 
-OTIdentifier::OTIdentifier(const std::string& theStr)
+Identifier::Identifier(const std::string& theStr)
     : OTData()
 {
     OT_ASSERT(!theStr.empty());
     SetString(theStr.c_str());
 }
 
-OTIdentifier::OTIdentifier(const String& theStr)
+Identifier::Identifier(const String& theStr)
     : OTData()
 {
     SetString(theStr);
 }
 
-OTIdentifier::OTIdentifier(const Contract& theContract)
+Identifier::Identifier(const Contract& theContract)
     : OTData() // Get the contract's ID into this identifier.
 {
     (const_cast<Contract&>(theContract)).GetIdentifier(*this);
 }
 
-OTIdentifier::OTIdentifier(const OTPseudonym& theNym)
+Identifier::Identifier(const OTPseudonym& theNym)
     : OTData() // Get the Nym's ID into this identifier.
 {
     (const_cast<OTPseudonym&>(theNym)).GetIdentifier(*this);
 }
 
-OTIdentifier::OTIdentifier(const OTSymmetricKey& theKey)
+Identifier::Identifier(const OTSymmetricKey& theKey)
     : OTData() // Get the Symmetric Key's ID into *this. (It's a hash of the
                // encrypted form of the symmetric key.)
 {
     (const_cast<OTSymmetricKey&>(theKey)).GetIdentifier(*this);
 }
 
-OTIdentifier::OTIdentifier(const OTCachedKey& theKey)
+Identifier::Identifier(const OTCachedKey& theKey)
     : OTData() // Cached Key stores a symmetric key inside, so this actually
                // captures the ID for that symmetrickey.
 {
@@ -210,50 +210,50 @@ OTIdentifier::OTIdentifier(const OTCachedKey& theKey)
                          // would not happen, before constructing like this.)
 }
 
-void OTIdentifier::SetString(const char* szString)
+void Identifier::SetString(const char* szString)
 {
     OT_ASSERT(nullptr != szString);
     const String theStr(szString);
     SetString(theStr);
 }
 
-bool OTIdentifier::operator==(const OTIdentifier& s2) const
+bool Identifier::operator==(const Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.Compare(ots2);
 }
 
-bool OTIdentifier::operator!=(const OTIdentifier& s2) const
+bool Identifier::operator!=(const Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return !(ots1.Compare(ots2));
 }
 
-bool OTIdentifier::operator>(const OTIdentifier& s2) const
+bool Identifier::operator>(const Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.operator>(ots2);
 }
 
-bool OTIdentifier::operator<(const OTIdentifier& s2) const
+bool Identifier::operator<(const Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.operator<(ots2);
 }
 
-bool OTIdentifier::operator<=(const OTIdentifier& s2) const
+bool Identifier::operator<=(const Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.operator<=(ots2);
 }
 
-bool OTIdentifier::operator>=(const OTIdentifier& s2) const
+bool Identifier::operator>=(const Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.operator>=(ots2);
 }
 
-OTIdentifier::~OTIdentifier()
+Identifier::~Identifier()
 {
 }
 
@@ -263,11 +263,11 @@ OTIdentifier::~OTIdentifier()
 // which resort to low level calls to accomplish non standard message digests.
 // Otherwise, it will use whatever OpenSSL provides by that name (see
 // GetOpenSSLDigestByName).
-const String OTIdentifier::DefaultHashAlgorithm("HASH256");
+const String Identifier::DefaultHashAlgorithm("HASH256");
 
 // This method implements the (ripemd160 . sha256) hash,
 // so the result is 20 bytes long.
-bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
+bool Identifier::CalculateDigest(const unsigned char* data, size_t len)
 {
     // The Hash160 function comes from the Bitcoin reference client, where
     // it is implemented as RIPEMD160 ( SHA256 ( x ) ) => 20 byte hash
@@ -277,14 +277,14 @@ bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
     return true;
 }
 
-bool OTIdentifier::CalculateDigest(const String& strInput)
+bool Identifier::CalculateDigest(const String& strInput)
 {
     return CalculateDigest(
         reinterpret_cast<const unsigned char*>(strInput.Get()),
         static_cast<size_t>(strInput.GetLength()));
 }
 
-bool OTIdentifier::CalculateDigest(const OTData& dataInput)
+bool Identifier::CalculateDigest(const OTData& dataInput)
 {
     auto dataPtr = static_cast<const unsigned char*>(dataInput.GetPointer());
     return CalculateDigest(dataPtr, dataInput.GetSize());
@@ -292,7 +292,7 @@ bool OTIdentifier::CalculateDigest(const OTData& dataInput)
 
 // SET (binary id) FROM ENCODED STRING
 //
-void OTIdentifier::SetString(const String& theStr)
+void Identifier::SetString(const String& theStr)
 {
     OTCrypto::It()->SetIDFromEncoded(theStr, *this);
 }
@@ -301,7 +301,7 @@ void OTIdentifier::SetString(const String& theStr)
 // But what if you want a pretty string version of it?
 // Just call this function.
 //
-void OTIdentifier::GetString(String& theStr) const
+void Identifier::GetString(String& theStr) const
 {
     OTCrypto::It()->EncodeID(*this, theStr); // *this input, theStr output.
 }

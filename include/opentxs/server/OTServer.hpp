@@ -147,7 +147,7 @@
 namespace opentxs
 {
 
-class OTIdentifier;
+class Identifier;
 class Message;
 class OTPayment;
 class OTServerContract;
@@ -177,18 +177,18 @@ public:
     void ProcessCron();
 
 private:
-    bool SendInstrumentToNym(const OTIdentifier& serverId,
-                             const OTIdentifier& senderUserId,
-                             const OTIdentifier& recipientUserId,
+    bool SendInstrumentToNym(const Identifier& serverId,
+                             const Identifier& senderUserId,
+                             const Identifier& recipientUserId,
                              Message* msg = nullptr,
                              const OTPayment* payment = nullptr,
                              const char* command = nullptr);
 
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
-    bool DropMessageToNymbox(const OTIdentifier& serverId,
-                             const OTIdentifier& senderUserId,
-                             const OTIdentifier& recipientUserId,
+    bool DropMessageToNymbox(const Identifier& serverId,
+                             const Identifier& senderUserId,
+                             const Identifier& recipientUserId,
                              OTTransaction::transactionType transactionType,
                              Message* msg = nullptr,
                              const String* messageString = nullptr,

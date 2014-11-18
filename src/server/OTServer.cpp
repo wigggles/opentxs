@@ -526,8 +526,8 @@ void OTServer::Init(bool readOnly)
 // szCommand for passing payDividend (as the message command instead of
 // sendUserInstrument, the default.)
 bool OTServer::SendInstrumentToNym(
-    const OTIdentifier& SERVER_ID, const OTIdentifier& SENDER_USER_ID,
-    const OTIdentifier& RECIPIENT_USER_ID,
+    const Identifier& SERVER_ID, const Identifier& SENDER_USER_ID,
+    const Identifier& RECIPIENT_USER_ID,
     Message* pMsg,             // the request msg from payer, which is attached
                                // WHOLE to the Nymbox receipt. contains payment
                                // already.
@@ -630,9 +630,9 @@ bool OTServer::SendInstrumentToNym(
 // pass it in here and attach it to the new message. Or maybe we just set it as
 // the voucher memo.
 //
-bool OTServer::DropMessageToNymbox(const OTIdentifier& SERVER_ID,
-                                   const OTIdentifier& SENDER_USER_ID,
-                                   const OTIdentifier& RECIPIENT_USER_ID,
+bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
+                                   const Identifier& SENDER_USER_ID,
+                                   const Identifier& RECIPIENT_USER_ID,
                                    OTTransaction::transactionType theType,
                                    Message* pMsg, const String* pstrMessage,
                                    const char* szCommand) // If you pass

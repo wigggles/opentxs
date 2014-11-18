@@ -174,7 +174,7 @@ char const* const __TypeStringsAccount[] = {
     "err_acct"};
 
 // Used for generating accounts, thus no accountID needed.
-Account::Account(const OTIdentifier& userId, const OTIdentifier& serverId)
+Account::Account(const Identifier& userId, const Identifier& serverId)
     : OTTransactionType()
     , stashTransNum_(0)
     , markForDeletion_(false)
@@ -193,8 +193,8 @@ Account::Account()
     InitAccount();
 }
 
-Account::Account(const OTIdentifier& userId, const OTIdentifier& accountId,
-                 const OTIdentifier& serverId, const String& name)
+Account::Account(const Identifier& userId, const Identifier& accountId,
+                 const Identifier& serverId, const String& name)
     : OTTransactionType(userId, accountId, serverId)
     , stashTransNum_(0)
     , markForDeletion_(false)
@@ -203,8 +203,8 @@ Account::Account(const OTIdentifier& userId, const OTIdentifier& accountId,
     m_strName = name;
 }
 
-Account::Account(const OTIdentifier& userId, const OTIdentifier& accountId,
-                 const OTIdentifier& serverId)
+Account::Account(const Identifier& userId, const Identifier& accountId,
+                 const Identifier& serverId)
     : OTTransactionType(userId, accountId, serverId)
     , stashTransNum_(0)
     , markForDeletion_(false)
@@ -259,7 +259,7 @@ OTLedger* Account::LoadOutbox(OTPseudonym& nym) const
 
 // hash is optional, the account will update its internal copy of the hash
 // anyway.
-bool Account::SaveInbox(OTLedger& box, OTIdentifier* hash)
+bool Account::SaveInbox(OTLedger& box, Identifier* hash)
 {
     if (!IsSameAccount(box)) {
         String strAcctID(GetRealAccountID());
@@ -274,7 +274,7 @@ bool Account::SaveInbox(OTLedger& box, OTIdentifier* hash)
         return false;
     }
 
-    OTIdentifier theHash;
+    Identifier theHash;
     if (hash == nullptr) hash = &theHash;
 
     bool success = box.SaveInbox(hash);
@@ -286,7 +286,7 @@ bool Account::SaveInbox(OTLedger& box, OTIdentifier* hash)
 
 // hash is optional, the account will update its internal copy of the hash
 // anyway. If you pass the identifier in, the hash is recorded there.
-bool Account::SaveOutbox(OTLedger& box, OTIdentifier* hash)
+bool Account::SaveOutbox(OTLedger& box, Identifier* hash)
 {
     if (!IsSameAccount(box)) {
         String strAcctID(GetRealAccountID());
@@ -301,7 +301,7 @@ bool Account::SaveOutbox(OTLedger& box, OTIdentifier* hash)
         return false;
     }
 
-    OTIdentifier theHash;
+    Identifier theHash;
     if (hash == nullptr) hash = &theHash;
 
     bool success = box.SaveOutbox(hash);
@@ -311,12 +311,12 @@ bool Account::SaveOutbox(OTLedger& box, OTIdentifier* hash)
     return success;
 }
 
-void Account::SetInboxHash(const OTIdentifier& input)
+void Account::SetInboxHash(const Identifier& input)
 {
     inboxHash_ = input;
 }
 
-bool Account::GetInboxHash(OTIdentifier& output)
+bool Account::GetInboxHash(Identifier& output)
 {
     output.Release();
 
@@ -337,12 +337,12 @@ bool Account::GetInboxHash(OTIdentifier& output)
     return false;
 }
 
-void Account::SetOutboxHash(const OTIdentifier& input)
+void Account::SetOutboxHash(const Identifier& input)
 {
     outboxHash_ = input;
 }
 
-bool Account::GetOutboxHash(OTIdentifier& output)
+bool Account::GetOutboxHash(Identifier& output)
 {
     output.Release();
 
@@ -458,7 +458,7 @@ bool Account::Credit(const int64_t& amount)
     }
 }
 
-const OTIdentifier& Account::GetAssetTypeID() const
+const Identifier& Account::GetAssetTypeID() const
 {
     return acctAssetTypeId_;
 }
@@ -474,14 +474,14 @@ void Account::InitAccount()
 // before calling this.
 bool Account::VerifyOwner(const OTPseudonym& candidate) const
 {
-    OTIdentifier ID_CANDIDATE;
+    Identifier ID_CANDIDATE;
     // ID_CANDIDATE now contains the ID of the Nym we're testing.
     candidate.GetIdentifier(ID_CANDIDATE);
     return m_AcctUserID == ID_CANDIDATE;
 }
 
 // TODO: when entities and roles are added, probably more will go here.
-bool Account::VerifyOwnerByID(const OTIdentifier& nymId) const
+bool Account::VerifyOwnerByID(const Identifier& nymId) const
 {
     return nymId == m_AcctUserID;
 }
@@ -489,8 +489,8 @@ bool Account::VerifyOwnerByID(const OTIdentifier& nymId) const
 // Let's say you don't have or know the UserID, and you just want to load the
 // damn thing up.
 // Then call this function. It will set userID and server ID for you.
-Account* Account::LoadExistingAccount(const OTIdentifier& accountId,
-                                      const OTIdentifier& serverId)
+Account* Account::LoadExistingAccount(const Identifier& accountId,
+                                      const Identifier& serverId)
 {
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
@@ -540,8 +540,8 @@ Account* Account::LoadExistingAccount(const OTIdentifier& accountId,
     return nullptr;
 }
 
-Account* Account::GenerateNewAccount(const OTIdentifier& userId,
-                                     const OTIdentifier& serverId,
+Account* Account::GenerateNewAccount(const Identifier& userId,
+                                     const Identifier& serverId,
                                      const OTPseudonym& serverNym,
                                      const Message& message,
                                      Account::AccountType acctType,
@@ -584,7 +584,7 @@ bool Account::GenerateNewAccount(const OTPseudonym& server,
 
     // Next we calculate that binary object into a message digest (an
     // OTIdentifier).
-    OTIdentifier newID;
+    Identifier newID;
     if (!newID.CalculateDigest(payload)) {
         otErr << __FUNCTION__ << ": Error generating new account ID.\n";
         return false;
@@ -633,7 +633,7 @@ bool Account::GenerateNewAccount(const OTPseudonym& server,
     otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
            << message.m_strAssetID << "\n";
 
-    OTIdentifier serverId(message.m_strServerID);
+    Identifier serverId(message.m_strServerID);
     // TODO: this assumes the serverID on the message
     // is correct. It's vetted, but still...
     SetRealServerID(serverId);
@@ -842,9 +842,9 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         String strServerID(xml->getAttributeValue("serverID"));
         String strAcctUserID(xml->getAttributeValue("userID"));
 
-        OTIdentifier ACCOUNT_ID(strAccountID);
-        OTIdentifier SERVER_ID(strServerID);
-        OTIdentifier USER_ID(strAcctUserID);
+        Identifier ACCOUNT_ID(strAccountID);
+        Identifier SERVER_ID(strServerID);
+        Identifier USER_ID(strAcctUserID);
 
         SetPurportedAccountID(ACCOUNT_ID);
         SetPurportedServerID(SERVER_ID);

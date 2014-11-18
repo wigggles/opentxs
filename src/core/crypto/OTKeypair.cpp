@@ -639,7 +639,7 @@ bool OTKeypair::SetPrivateKey(const OTASCIIArmor& strKey) // Decodes a private
     return m_pkeyPrivate->SetPrivateKey(strKey);
 }
 
-bool OTKeypair::CalculateID(OTIdentifier& theOutput) const
+bool OTKeypair::CalculateID(Identifier& theOutput) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 

@@ -140,7 +140,7 @@ namespace opentxs
 
 class Account;
 class OTAgent;
-class OTIdentifier;
+class Identifier;
 class OTNumList;
 class OTPartyAccount;
 class OTPseudonym;
@@ -265,7 +265,7 @@ public:
                                    String* pstrNote = nullptr,
                                    String* pstrAttachment = nullptr);
     bool SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
-                           const OTIdentifier& theServerID,
+                           const Identifier& theServerID,
                            const int64_t& lNewTransactionNumber,
                            // const int64_t& lInReferenceTo,
                            // We use GetOpenTransNo() now.
@@ -365,11 +365,11 @@ public:
                                                       // Party,
     // set agent's pointer to Nym
     // and return true.
-    bool HasAgentByNymID(const OTIdentifier& theNymID,
+    bool HasAgentByNymID(const Identifier& theNymID,
                          OTAgent** ppAgent = nullptr) const;
     bool HasAuthorizingAgent(OTPseudonym& theNym,
                              OTAgent** ppAgent = nullptr) const;
-    bool HasAuthorizingAgentByNymID(const OTIdentifier& theNymID,
+    bool HasAuthorizingAgentByNymID(const Identifier& theNymID,
                                     OTAgent** ppAgent = nullptr)
         const; // ppAgent lets you get the agent ptr if it was there.
     // Load the authorizing agent from storage. Set agent's pointer to Nym.
@@ -408,13 +408,13 @@ public:
     EXPORT OTPartyAccount* GetAccountByAgent(
         const std::string& str_agent_name); // by agent name
     EXPORT OTPartyAccount* GetAccountByID(
-        const OTIdentifier& theAcctID) const; // by asset acct id
+        const Identifier& theAcctID) const; // by asset acct id
     // If account is present for Party, set account's pointer to theAccount and
     // return true.
     //
     bool HasAccount(Account& theAccount,
                     OTPartyAccount** ppPartyAccount = nullptr) const;
-    bool HasAccountByID(const OTIdentifier& theAcctID,
+    bool HasAccountByID(const Identifier& theAcctID,
                         OTPartyAccount** ppPartyAccount = nullptr) const;
     bool VerifyOwnershipOfAccount(const Account& theAccount) const;
     bool VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,

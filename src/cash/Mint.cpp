@@ -878,8 +878,8 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // 1, 5, 10, 20, 50, 100, 500, 1000, 10000, 100000);
 void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
                            time64_t VALID_TO, time64_t MINT_EXPIRATION,
-                           const OTIdentifier& theAssetID,
-                           const OTIdentifier& theServerID,
+                           const Identifier& theAssetID,
+                           const Identifier& theServerID,
                            OTPseudonym& theNotary, int64_t nDenom1,
                            int64_t nDenom2, int64_t nDenom3, int64_t nDenom4,
                            int64_t nDenom5, int64_t nDenom6, int64_t nDenom7,
@@ -890,7 +890,7 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     m_AssetID = theAssetID;
     m_ServerID = theServerID;
 
-    OTIdentifier SERVER_NYM_ID(theNotary);
+    Identifier SERVER_NYM_ID(theNotary);
     m_ServerNymID = SERVER_NYM_ID;
 
     m_nSeries = nSeries;

@@ -717,7 +717,7 @@ OTPartyAccount* OTParty::GetAccountByAgent(const std::string& str_agent_name)
 // Get PartyAccount pointer by Acct ID.
 //
 // Returns nullptr on failure.
-OTPartyAccount* OTParty::GetAccountByID(const OTIdentifier& theAcctID) const
+OTPartyAccount* OTParty::GetAccountByID(const Identifier& theAcctID) const
 {
     for (const auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
@@ -732,7 +732,7 @@ OTPartyAccount* OTParty::GetAccountByID(const OTIdentifier& theAcctID) const
 // bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
 
 // If account is present for Party, return true.
-bool OTParty::HasAccountByID(const OTIdentifier& theAcctID,
+bool OTParty::HasAccountByID(const Identifier& theAcctID,
                              OTPartyAccount** ppPartyAccount) const
 {
     for (const auto& it : m_mapPartyAccounts) {
@@ -788,7 +788,7 @@ bool OTParty::HasAgent(OTPseudonym& theNym, OTAgent** ppAgent) const
     return false;
 }
 
-bool OTParty::HasAgentByNymID(const OTIdentifier& theNymID,
+bool OTParty::HasAgentByNymID(const Identifier& theNymID,
                               OTAgent** ppAgent) const
 {
     for (const auto& it : m_mapAgents) {
@@ -841,7 +841,7 @@ bool OTParty::HasAuthorizingAgent(OTPseudonym& theNym,
     return false;
 }
 
-bool OTParty::HasAuthorizingAgentByNymID(const OTIdentifier& theNymID,
+bool OTParty::HasAuthorizingAgentByNymID(const Identifier& theNymID,
                                          OTAgent** ppAgent) const // ppAgent
                                                                   // lets you
                                                                   // get the
@@ -946,7 +946,7 @@ bool OTParty::VerifyOwnershipOfAccount(const Account& theAccount) const
             return false;
         }
 
-        const OTIdentifier thePartyNymID(str_nym_id.c_str());
+        const Identifier thePartyNymID(str_nym_id.c_str());
 
         return theAccount.VerifyOwnerByID(thePartyNymID);
     }
@@ -1054,7 +1054,7 @@ bool OTParty::DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
 }
 
 bool OTParty::SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
-                                const OTIdentifier& theServerID,
+                                const Identifier& theServerID,
                                 const int64_t& lNewTransactionNumber,
                                 const String& strReference, String* pstrNote,
                                 String* pstrAttachment, OTPseudonym* pActualNym)
@@ -1241,7 +1241,7 @@ bool OTParty::LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
             return false;
         }
 
-        OTIdentifier theNymID;
+        Identifier theNymID;
         bool bGotAgentNymID = pAgent->GetNymID(theNymID);
         const String strNymID(theNymID);
         const std::string str_agent_id =

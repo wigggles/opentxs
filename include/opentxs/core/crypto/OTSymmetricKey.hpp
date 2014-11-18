@@ -139,7 +139,7 @@ namespace opentxs
 {
 
 class OTASCIIArmor;
-class OTIdentifier;
+class Identifier;
 class OTPassword;
 class String;
 
@@ -221,7 +221,7 @@ public:
     {
         return m_bHasHashCheck;
     }
-    EXPORT void GetIdentifier(OTIdentifier& theIdentifier) const;
+    EXPORT void GetIdentifier(Identifier& theIdentifier) const;
     EXPORT void GetIdentifier(String& strIdentifier) const;
     // The derived key is used for decrypting the actual symmetric key.
     // It's called the derived key because it is derived from the passphrase.

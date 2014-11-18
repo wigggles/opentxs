@@ -142,7 +142,7 @@ namespace opentxs
 class String;
 class OTTransaction;
 class OTLedger;
-class OTIdentifier;
+class Identifier;
 class OTNumList;
 
 EXPORT const char* GetTransactionTypeString(int transactionNumber);
@@ -158,8 +158,8 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               OTNumList* pNumList = nullptr);
 
 EXPORT bool VerifyBoxReceiptExists(
-    const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
-    const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
+    const Identifier& SERVER_ID, const Identifier& USER_ID,
+    const Identifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
     // pass USER_ID in this field also.
     int32_t nBoxType, // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum);

@@ -168,10 +168,10 @@ public:
     };
 
 public:
-    EXPORT Account(const OTIdentifier& userId, const OTIdentifier& accountId,
-                   const OTIdentifier& serverId, const String& name);
-    EXPORT Account(const OTIdentifier& userId, const OTIdentifier& accountId,
-                   const OTIdentifier& serverId);
+    EXPORT Account(const Identifier& userId, const Identifier& accountId,
+                   const Identifier& serverId, const String& name);
+    EXPORT Account(const Identifier& userId, const Identifier& accountId,
+                   const Identifier& serverId);
 
     EXPORT virtual ~Account();
 
@@ -218,8 +218,8 @@ public:
     EXPORT void InitAccount();
 
     EXPORT void Release_Account();
-    EXPORT static Account* GenerateNewAccount(const OTIdentifier& userId,
-                                              const OTIdentifier& serverId,
+    EXPORT static Account* GenerateNewAccount(const Identifier& userId,
+                                              const Identifier& serverId,
                                               const OTPseudonym& serverNym,
                                               const Message& message,
                                               AccountType acctType = simple,
@@ -232,18 +232,18 @@ public:
     // Let's say you don't have or know the UserID, and you just want to load
     // the damn thing up.
     // Then call this function. It will set userID for you.
-    EXPORT static Account* LoadExistingAccount(const OTIdentifier& accountId,
-                                               const OTIdentifier& serverId);
+    EXPORT static Account* LoadExistingAccount(const Identifier& accountId,
+                                               const Identifier& serverId);
     // Caller responsible to delete.
     EXPORT OTLedger* LoadInbox(OTPseudonym& nym) const;
     // Caller responsible to delete.
     EXPORT OTLedger* LoadOutbox(OTPseudonym& nym) const;
 
     // If you pass the identifier in, the inbox hash is recorded there
-    EXPORT bool SaveInbox(OTLedger& box, OTIdentifier* hash = nullptr);
+    EXPORT bool SaveInbox(OTLedger& box, Identifier* hash = nullptr);
     // If you pass the identifier in, the outbox hash is recorded there
-    EXPORT bool SaveOutbox(OTLedger& box, OTIdentifier* nash = nullptr);
-    EXPORT const OTIdentifier& GetAssetTypeID() const;
+    EXPORT bool SaveOutbox(OTLedger& box, Identifier* nash = nullptr);
+    EXPORT const Identifier& GetAssetTypeID() const;
     EXPORT int64_t GetBalance() const;
     // Debit a certain amount from the account (presumably the same amount is
     // being added somewhere)
@@ -254,16 +254,16 @@ public:
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
     EXPORT bool VerifyOwner(const OTPseudonym& candidate) const;
-    EXPORT bool VerifyOwnerByID(const OTIdentifier& nymId) const;
+    EXPORT bool VerifyOwnerByID(const Identifier& nymId) const;
     // generates filename based on accounts path and account ID. Saves to the
     // standard location for an acct.
     EXPORT bool SaveAccount();
 
-    EXPORT void SetInboxHash(const OTIdentifier& input);
-    EXPORT bool GetInboxHash(OTIdentifier& output);
+    EXPORT void SetInboxHash(const Identifier& input);
+    EXPORT bool GetInboxHash(Identifier& output);
 
-    EXPORT void SetOutboxHash(const OTIdentifier& input);
-    EXPORT bool GetOutboxHash(OTIdentifier& output);
+    EXPORT void SetOutboxHash(const Identifier& input);
+    EXPORT bool GetOutboxHash(Identifier& output);
     EXPORT static char const* _GetTypeString(AccountType accountType);
 
     EXPORT char const* GetTypeString() const
@@ -272,7 +272,7 @@ public:
     }
 
 protected:
-    Account(const OTIdentifier& userId, const OTIdentifier& serverId);
+    Account(const Identifier& userId, const Identifier& serverId);
     Account();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -283,7 +283,7 @@ protected:
 protected:
     AccountType acctType_;
     // These are all the variables from the account file itself.
-    OTIdentifier acctAssetTypeId_;
+    Identifier acctAssetTypeId_;
     String balanceDate_;
     String balanceAmount_;
     // the Transaction Number of a smart contract running on cron, if this is a
@@ -294,10 +294,10 @@ protected:
     // for easy cleanup later when the server is doing some maintenance.
     // Hash of this account's Inbox, so we don't download it more often than
     // necessary.
-    OTIdentifier inboxHash_;
+    Identifier inboxHash_;
     // Hash of this account's Outbox, so we don't download it more often than
     // necessary.
-    OTIdentifier outboxHash_;
+    Identifier outboxHash_;
 };
 
 } // namespace opentxs

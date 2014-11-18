@@ -246,31 +246,31 @@ protected:
 
     String m_strMemo; // Memo, Consideration, Subject, etc.
 
-    OTIdentifier m_AssetTypeID; // These are for convenience only, for caching
-                                // once they happen to be loaded.
-    OTIdentifier m_ServerID; // These values are NOT serialized other than via
-                             // the payment instrument itself
-    OTIdentifier m_SenderUserID; // (where they are captured from, whenever it
-                                 // is instantiated.) Until m_bAreTempValuesSet
-    OTIdentifier m_SenderAcctID; // is set to true, these values can NOT be
-                                 // considered available. Use the accessing
-                                 // methods
-    OTIdentifier m_RecipientUserID; // below. These values are not ALL always
-                                    // available, depending on the payment
-                                    // instrument
-    OTIdentifier m_RecipientAcctID; // type. Different payment instruments
-                                    // support different temp values.
-    OTIdentifier m_RemitterUserID;  // A voucher (cashier's cheque) has the
-                                    // "bank" as the sender. Whereas the Nym who
-                                    // actually purchased the voucher is the
-                                    // remitter.
-    OTIdentifier m_RemitterAcctID;  // A voucher (cashier's cheque) has the
-                                    // "bank"s account as the sender acct.
-                                    // Whereas the account that was originally
-                                    // used to purchase the voucher is the
-                                    // remitter account.
-    time64_t m_VALID_FROM;          // Temporary values. Not always available.
-    time64_t m_VALID_TO;            // Temporary values. Not always available.
+    Identifier m_AssetTypeID;  // These are for convenience only, for caching
+                               // once they happen to be loaded.
+    Identifier m_ServerID;     // These values are NOT serialized other than via
+                               // the payment instrument itself
+    Identifier m_SenderUserID; // (where they are captured from, whenever it
+                               // is instantiated.) Until m_bAreTempValuesSet
+    Identifier m_SenderAcctID; // is set to true, these values can NOT be
+                               // considered available. Use the accessing
+                               // methods
+    Identifier m_RecipientUserID; // below. These values are not ALL always
+                                  // available, depending on the payment
+                                  // instrument
+    Identifier m_RecipientAcctID; // type. Different payment instruments
+                                  // support different temp values.
+    Identifier m_RemitterUserID;  // A voucher (cashier's cheque) has the
+                                  // "bank" as the sender. Whereas the Nym who
+                                  // actually purchased the voucher is the
+                                  // remitter.
+    Identifier m_RemitterAcctID;  // A voucher (cashier's cheque) has the
+                                  // "bank"s account as the sender acct.
+                                  // Whereas the account that was originally
+                                  // used to purchase the voucher is the
+                                  // remitter account.
+    time64_t m_VALID_FROM;        // Temporary values. Not always available.
+    time64_t m_VALID_TO;          // Temporary values. Not always available.
 public:
     EXPORT bool SetPayment(const String& strPayment);
 
@@ -350,22 +350,22 @@ public:
     // opening transaction number for a given Nym, if applicable.
     // (Or closing number for a given asset account.)
     EXPORT bool GetOpeningNum(int64_t& lOutput,
-                              const OTIdentifier& theNymID) const;
+                              const Identifier& theNymID) const;
     EXPORT bool GetClosingNum(int64_t& lOutput,
-                              const OTIdentifier& theAcctID) const;
+                              const Identifier& theAcctID) const;
     EXPORT bool GetAllTransactionNumbers(OTNumList& numlistOutput) const;
     EXPORT bool HasTransactionNum(const int64_t& lInput) const;
     EXPORT bool GetMemo(String& strOutput) const;
-    EXPORT bool GetAssetTypeID(OTIdentifier& theOutput) const;
-    EXPORT bool GetServerID(OTIdentifier& theOutput) const;
-    EXPORT bool GetSenderUserID(OTIdentifier& theOutput) const;
-    EXPORT bool GetSenderAcctID(OTIdentifier& theOutput) const;
-    EXPORT bool GetRecipientUserID(OTIdentifier& theOutput) const;
-    EXPORT bool GetRecipientAcctID(OTIdentifier& theOutput) const;
-    EXPORT bool GetRemitterUserID(OTIdentifier& theOutput) const;
-    EXPORT bool GetRemitterAcctID(OTIdentifier& theOutput) const;
-    EXPORT bool GetSenderUserIDForDisplay(OTIdentifier& theOutput) const;
-    EXPORT bool GetSenderAcctIDForDisplay(OTIdentifier& theOutput) const;
+    EXPORT bool GetAssetTypeID(Identifier& theOutput) const;
+    EXPORT bool GetServerID(Identifier& theOutput) const;
+    EXPORT bool GetSenderUserID(Identifier& theOutput) const;
+    EXPORT bool GetSenderAcctID(Identifier& theOutput) const;
+    EXPORT bool GetRecipientUserID(Identifier& theOutput) const;
+    EXPORT bool GetRecipientAcctID(Identifier& theOutput) const;
+    EXPORT bool GetRemitterUserID(Identifier& theOutput) const;
+    EXPORT bool GetRemitterAcctID(Identifier& theOutput) const;
+    EXPORT bool GetSenderUserIDForDisplay(Identifier& theOutput) const;
+    EXPORT bool GetSenderAcctIDForDisplay(Identifier& theOutput) const;
     EXPORT bool GetValidFrom(time64_t& tOutput) const;
     EXPORT bool GetValidTo(time64_t& tOutput) const;
     EXPORT bool VerifyCurrentDate(bool& bVerified); // Verify whether the

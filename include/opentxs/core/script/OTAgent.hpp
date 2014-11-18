@@ -141,7 +141,7 @@ namespace opentxs
 
 class Account;
 class OTAgent;
-class OTIdentifier;
+class Identifier;
 class OTParty;
 class OTPartyAccount;
 class OTPseudonym;
@@ -279,7 +279,7 @@ public:
     }
 
     EXPORT bool IsValidSigner(OTPseudonym& theNym);
-    EXPORT bool IsValidSignerID(const OTIdentifier& theNymID);
+    EXPORT bool IsValidSignerID(const Identifier& theNymID);
 
     bool IsAuthorizingAgentForParty(); // true/false whether THIS agent is the
                                        // authorizing agent for his party.
@@ -334,19 +334,19 @@ public:
 
     // For when the agent is an individual:
     //
-    EXPORT bool GetNymID(OTIdentifier& theOutput) const; // If IsIndividual(),
-                                                         // then this is his own
-                                                         // personal NymID,
+    EXPORT bool GetNymID(Identifier& theOutput) const; // If IsIndividual(),
+                                                       // then this is his own
+                                                       // personal NymID,
     // (whether he DoesRepresentHimself() or DoesRepresentAnEntity()
     // -- either way). Otherwise if IsGroup(), this returns false.
 
-    bool GetRoleID(OTIdentifier& theOutput) const; // IF IsIndividual() AND
-                                                   // DoesRepresentAnEntity(),
-                                                   // then this is his RoleID
-                                                   // within that Entity.
-                                                   // Otherwise, if IsGroup() or
-                                                   // DoesRepresentHimself(),
-                                                   // then this returns false.
+    bool GetRoleID(Identifier& theOutput) const; // IF IsIndividual() AND
+                                                 // DoesRepresentAnEntity(),
+                                                 // then this is his RoleID
+                                                 // within that Entity.
+                                                 // Otherwise, if IsGroup() or
+                                                 // DoesRepresentHimself(),
+                                                 // then this returns false.
 
     // Notice if the agent is a voting group, then it has no signer. (Instead it
     // will have an election.)
@@ -360,7 +360,7 @@ public:
     // anything needing it as part of the
     // script would also therefore be impossible.
     //
-    bool GetSignerID(OTIdentifier& theOutput) const;
+    bool GetSignerID(Identifier& theOutput) const;
     // If IsIndividual() and DoesRepresentAnEntity() then this returns
     // GetRoleID().
     // else if Individual() and DoesRepresentHimself() then this returns
@@ -380,9 +380,9 @@ public:
     // I'm debating making this function private along with DoesRepresentHimself
     // / DoesRepresentAnEntity().
     //
-    bool GetEntityID(OTIdentifier& theOutput) const; // IF represents an entity,
-                                                     // this is its ID. Else
-                                                     // fail.
+    bool GetEntityID(Identifier& theOutput) const; // IF represents an entity,
+                                                   // this is its ID. Else
+                                                   // fail.
 
     EXPORT const String& GetName()
     {
@@ -408,7 +408,7 @@ public:
     // If DoesRepresentHimself() then return GetNymID()
     // else (thus DoesRepresentAnEntity()) so return GetEntityID()
     //
-    bool GetPartyID(OTIdentifier& theOutput) const;
+    bool GetPartyID(Identifier& theOutput) const;
 
     OTParty* GetParty() const
     {
@@ -447,13 +447,13 @@ public:
     bool DropFinalReceiptToInbox(
         mapOfNyms* pNymMap, const String& strServerID,
         OTPseudonym& theServerNym, OTSmartContract& theSmartContract,
-        const OTIdentifier& theAccountID, const int64_t& lNewTransactionNumber,
+        const Identifier& theAccountID, const int64_t& lNewTransactionNumber,
         const int64_t& lClosingNumber, const String& strOrigCronItem,
         String* pstrNote = nullptr, String* pstrAttachment = nullptr);
 
     bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // the notice can be "acknowledgment" or "rejection"
-        OTPseudonym& theServerNym, const OTIdentifier& theServerID,
+        OTPseudonym& theServerNym, const Identifier& theServerID,
         const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
         const String& strReference, String* pstrNote = nullptr,
         String* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);

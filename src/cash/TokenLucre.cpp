@@ -165,8 +165,8 @@ Token_Lucre::Token_Lucre()
 {
 }
 
-Token_Lucre::Token_Lucre(const OTIdentifier& SERVER_ID,
-                         const OTIdentifier& ASSET_ID)
+Token_Lucre::Token_Lucre(const Identifier& SERVER_ID,
+                         const Identifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
 {
 }

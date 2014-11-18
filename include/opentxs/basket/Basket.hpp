@@ -194,8 +194,8 @@ protected:
     int64_t m_lMinimumTransfer;  // used in the actual basket
     int32_t m_nTransferMultiple; // used in a request basket. If non-zero, that
                                  // means this is a request basket.
-    OTIdentifier m_RequestAccountID; // used in a request basket so the server
-                                     // knows your acct ID.
+    Identifier m_RequestAccountID; // used in a request basket so the server
+                                   // knows your acct ID.
     dequeOfBasketItems m_dequeItems;
     bool m_bHideAccountID; // When saving, we might wish to produce a version
                            // without Account IDs
@@ -215,7 +215,7 @@ public:
 
     virtual void UpdateContents();
 
-    EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
+    EXPORT virtual void CalculateContractID(Identifier& newID) const;
 
     inline int64_t GetMinimumTransfer() const
     {
@@ -262,7 +262,7 @@ public:
     // For generating a real basket.  The user does this part, and the server
     // creates Account ID later
     // (That's why you don't see the account ID being passed in to the method.)
-    EXPORT void AddSubContract(const OTIdentifier& SUB_CONTRACT_ID,
+    EXPORT void AddSubContract(const Identifier& SUB_CONTRACT_ID,
                                int64_t lMinimumTransferAmount);
     inline void IncrementSubCount()
     {
@@ -271,15 +271,15 @@ public:
 
     // For generating a user request to exchange in/out of a basket.
     // Assumes that SetTransferMultiple has already been called.
-    EXPORT void AddRequestSubContract(const OTIdentifier& SUB_CONTRACT_ID,
-                                      const OTIdentifier& SUB_ACCOUNT_ID,
+    EXPORT void AddRequestSubContract(const Identifier& SUB_CONTRACT_ID,
+                                      const Identifier& SUB_ACCOUNT_ID,
                                       const int64_t& lClosingTransactionNo);
 
-    inline void SetRequestAccountID(const OTIdentifier& theAccountID)
+    inline void SetRequestAccountID(const Identifier& theAccountID)
     {
         m_RequestAccountID = theAccountID;
     }
-    inline const OTIdentifier& GetRequestAccountID()
+    inline const Identifier& GetRequestAccountID()
     {
         return m_RequestAccountID;
     }
@@ -295,7 +295,7 @@ public:
     // numbers back
     //
     EXPORT void HarvestClosingNumbers(OTPseudonym& theNym,
-                                      const OTIdentifier& theServerID,
+                                      const Identifier& theServerID,
                                       bool bSave = true);
 
 private:

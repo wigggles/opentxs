@@ -144,7 +144,7 @@ namespace opentxs
 
 class OTASCIIArmor;
 class OTCachedKey;
-class OTIdentifier;
+class Identifier;
 class OTPassword;
 class String;
 class OTSymmetricKey;
@@ -368,7 +368,7 @@ public:
     // map of master keys. Otherwise it will use "the" global Master Key
     // (the one used for the Nyms.)
     EXPORT static std::shared_ptr<OTCachedKey> It(
-        OTIdentifier* pIdentifier = nullptr);
+        Identifier* pIdentifier = nullptr);
 
     // if you pass in a master key, it will look it up on an existing cached map
     // of master keys, based on the ID of the master key passed in. If not
@@ -379,7 +379,7 @@ public:
     EXPORT static void Cleanup(); // Call on application shutdown. Called in
                                   // CleanupOTAPI and also in OTServer wherever
                                   // it cleans up.
-    EXPORT bool GetIdentifier(OTIdentifier& theIdentifier) const;
+    EXPORT bool GetIdentifier(Identifier& theIdentifier) const;
     EXPORT bool GetIdentifier(String& strIdentifier) const;
     EXPORT bool IsGenerated();
     EXPORT bool HasHashCheck();

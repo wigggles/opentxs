@@ -621,8 +621,8 @@ OTPaymentPlan::OTPaymentPlan()
     InitPaymentPlan();
 }
 
-OTPaymentPlan::OTPaymentPlan(const OTIdentifier& SERVER_ID,
-                             const OTIdentifier& ASSET_ID)
+OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
+                             const Identifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
@@ -630,12 +630,12 @@ OTPaymentPlan::OTPaymentPlan(const OTIdentifier& SERVER_ID,
     InitPaymentPlan();
 }
 
-OTPaymentPlan::OTPaymentPlan(const OTIdentifier& SERVER_ID,
-                             const OTIdentifier& ASSET_ID,
-                             const OTIdentifier& SENDER_ACCT_ID,
-                             const OTIdentifier& SENDER_USER_ID,
-                             const OTIdentifier& RECIPIENT_ACCT_ID,
-                             const OTIdentifier& RECIPIENT_USER_ID)
+OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
+                             const Identifier& ASSET_ID,
+                             const Identifier& SENDER_ACCT_ID,
+                             const Identifier& SENDER_USER_ID,
+                             const Identifier& RECIPIENT_ACCT_ID,
+                             const Identifier& RECIPIENT_USER_ID)
     : ot_super(SERVER_ID, ASSET_ID, SENDER_ACCT_ID, SENDER_USER_ID,
                RECIPIENT_ACCT_ID, RECIPIENT_USER_ID)
     , m_bProcessingInitialPayment(false)
@@ -673,14 +673,14 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
     bool bSuccess = false; // The return value.
 
-    const OTIdentifier SERVER_ID(pCron->GetServerID());
-    const OTIdentifier SERVER_USER_ID(*pServerNym);
+    const Identifier SERVER_ID(pCron->GetServerID());
+    const Identifier SERVER_USER_ID(*pServerNym);
 
-    const OTIdentifier& SOURCE_ACCT_ID = GetSenderAcctID();
-    const OTIdentifier& SENDER_USER_ID = GetSenderUserID();
+    const Identifier& SOURCE_ACCT_ID = GetSenderAcctID();
+    const Identifier& SENDER_USER_ID = GetSenderUserID();
 
-    const OTIdentifier& RECIPIENT_ACCT_ID = GetRecipientAcctID();
-    const OTIdentifier& RECIPIENT_USER_ID = GetRecipientUserID();
+    const Identifier& RECIPIENT_ACCT_ID = GetRecipientAcctID();
+    const Identifier& RECIPIENT_USER_ID = GetRecipientUserID();
 
     String strSenderUserID(SENDER_USER_ID),
         strRecipientUserID(RECIPIENT_USER_ID), strSourceAcctID(SOURCE_ACCT_ID),

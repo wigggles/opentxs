@@ -166,7 +166,7 @@ bool Message::HarvestTransactionNumbers(
     bool bTransactionWasFailure) const // false until positively asserted.
 {
 
-    const OTIdentifier MSG_NYM_ID(m_strNymID), SERVER_ID(m_strServerID),
+    const Identifier MSG_NYM_ID(m_strNymID), SERVER_ID(m_strServerID),
         ACCOUNT_ID(m_strAcctID.Exists() ? m_strAcctID
                                         : m_strNymID); // This may be
                                                        // unnecessary, but just
@@ -265,7 +265,7 @@ void Message::SetAcknowledgments(OTPseudonym& theNym)
 {
     m_AcknowledgedReplies.Release();
 
-    const OTIdentifier theServerID(m_strServerID);
+    const Identifier theServerID(m_strServerID);
 
     for (auto& it : theNym.GetMapAcknowledgedNum()) {
         std::string strServerID = it.first;
@@ -273,7 +273,7 @@ void Message::SetAcknowledgments(OTPseudonym& theNym)
         OT_ASSERT(nullptr != pDeque);
 
         String OTstrServerID = strServerID.c_str();
-        const OTIdentifier theTempID(OTstrServerID);
+        const Identifier theTempID(OTstrServerID);
 
         if (!(pDeque->empty()) &&
             (theServerID == theTempID)) // only for the matching serverID.

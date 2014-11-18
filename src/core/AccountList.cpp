@@ -269,8 +269,8 @@ void AccountList::Release()
 }
 
 std::shared_ptr<Account> AccountList::GetOrCreateAccount(
-    OTPseudonym& serverNym, const OTIdentifier& accountOwnerId,
-    const OTIdentifier& assetTypeId, const OTIdentifier& serverId,
+    OTPseudonym& serverNym, const Identifier& accountOwnerId,
+    const Identifier& assetTypeId, const Identifier& serverId,
     // this will be set to true if the acct is created here.
     // Otherwise set to false;
     bool& wasAcctCreated, int64_t stashTransNum)
@@ -342,7 +342,7 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
         // erased it...)
         // So let's load it now. After all, the Account ID *does* exist...
         String acctIDString(accountIdString.c_str());
-        OTIdentifier accountID(acctIDString);
+        Identifier accountID(acctIDString);
 
         // The Account ID exists, but we don't have the pointer to a loaded
         // account for it. So, let's load it.

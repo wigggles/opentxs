@@ -160,7 +160,7 @@ typedef std::map<std::string, int64_t> mapOfRequestNums;
 typedef std::map<std::string, int64_t> mapOfHighestNums;
 typedef std::deque<int64_t> dequeOfTransNums;
 typedef std::map<std::string, dequeOfTransNums*> mapOfTransNums;
-typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
+typedef std::map<std::string, Identifier> mapOfIdentifiers;
 typedef std::map<std::string, OTCredential*> mapOfCredentials;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 
@@ -195,8 +195,8 @@ private:
                              // if the source is DN info from a cert, the alt
                              // location might contain the URL to download it
                              // from.
-    OTIdentifier m_nymID; // Hashed-ID formed by hashing the Nym's public key.
-    OTIdentifier m_NymboxHash; // (Server-side) Hash of the Nymbox
+    Identifier m_nymID; // Hashed-ID formed by hashing the Nym's public key.
+    Identifier m_NymboxHash; // (Server-side) Hash of the Nymbox
 
     mapOfIdentifiers m_mapNymboxHash; // (Client-side) Hash of latest DOWNLOADED
                                       // Nymbox (OTIdentifier) mapped by
@@ -346,7 +346,7 @@ public:
     // accounts somewhere already.
 
     EXPORT bool AddNewSubkey(
-        const OTIdentifier& idMasterCredential,
+        const Identifier& idMasterCredential,
         int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr.
         const String::Map* pmapPrivate = nullptr, // If nullptr, then the keys
                                                   // are generated in here.
@@ -360,7 +360,7 @@ public:
                                       // created.
 
     EXPORT bool AddNewSubcredential(
-        const OTIdentifier& idMasterCredential,
+        const Identifier& idMasterCredential,
         const String::Map* pmapPrivate = nullptr, // If nullptr, then the keys
                                                   // are generated in here.
         const String::Map* pmapPublic = nullptr,  // In the case of key
@@ -382,16 +382,16 @@ public:
         int32_t nIndex) const;
     EXPORT const OTSubcredential* GetSubcredential(
         const String& strMasterID, const String& strSubCredID) const;
-    EXPORT bool GetNymboxHashServerSide(const OTIdentifier& theServerID,
-                                        OTIdentifier& theOutput); // server-side
+    EXPORT bool GetNymboxHashServerSide(const Identifier& theServerID,
+                                        Identifier& theOutput); // server-side
     EXPORT void SetNymboxHashServerSide(
-        const OTIdentifier& theInput); // server-side
+        const Identifier& theInput); // server-side
 private:
     // Generic function used by the below functions.
     bool GetHash(const mapOfIdentifiers& the_map, const std::string& str_id,
-                 OTIdentifier& theOutput) const; // client-side
+                 Identifier& theOutput) const; // client-side
     bool SetHash(mapOfIdentifiers& the_map, const std::string& str_id,
-                 const OTIdentifier& theInput); // client-side
+                 const Identifier& theInput); // client-side
     //    OTIdentifier          m_NymboxHash;       // (Server-side) Hash of the
     // Nymbox
     //  mapOfIdentifiers      m_mapNymboxHash;    // (Client-side) Hash of
@@ -400,18 +400,18 @@ public:
     // This value is only updated on client side, when the actual latest
     // nymbox has been downloaded.
     EXPORT bool GetNymboxHash(const std::string& server_id,
-                              OTIdentifier& theOutput) const; // client-side
+                              Identifier& theOutput) const; // client-side
     EXPORT bool SetNymboxHash(const std::string& server_id,
-                              const OTIdentifier& theInput); // client-side
+                              const Identifier& theInput); // client-side
     // Whereas THIS value is updated when various server replies are received.
     // (So we can see the most recent version of the same hash on server side.)
     // If this doesn't match the hash above, then it's time to download your
     // nymbox
     // because it's old.
     EXPORT bool GetRecentHash(const std::string& server_id,
-                              OTIdentifier& theOutput) const; // client-side
+                              Identifier& theOutput) const; // client-side
     EXPORT bool SetRecentHash(const std::string& server_id,
-                              const OTIdentifier& theInput); // client-side
+                              const Identifier& theInput); // client-side
     // This functions are for the latest downloaded inbox's hash.
     // (If the hash that appears in the account is different, then
     // your inbox is old -- download it again.)
@@ -420,9 +420,9 @@ public:
     // changed.
     //
     EXPORT bool GetInboxHash(const std::string& acct_id,
-                             OTIdentifier& theOutput) const; // client-side
+                             Identifier& theOutput) const; // client-side
     EXPORT bool SetInboxHash(const std::string& acct_id,
-                             const OTIdentifier& theInput); // client-side
+                             const Identifier& theInput); // client-side
     // This functions are for the latest downloaded outbox's hash.
     // (If the hash that appears in the account is different, then
     // your outbox is old -- download it again.)
@@ -431,9 +431,9 @@ public:
     // changed.
     //
     EXPORT bool GetOutboxHash(const std::string& acct_id,
-                              OTIdentifier& theOutput) const; // client-side
+                              Identifier& theOutput) const; // client-side
     EXPORT bool SetOutboxHash(const std::string& acct_id,
-                              const OTIdentifier& theInput); // client-side
+                              const Identifier& theInput); // client-side
     EXPORT const int64_t& GetUsageCredits() const
     {
         return m_lUsageCredits;
@@ -497,7 +497,7 @@ public:
     // EXPORT    bool ConvertToCachedKey();  // Replaced by
     // Savex509CertAndPrivateKey().
     EXPORT OTPseudonym();
-    EXPORT OTPseudonym(const OTIdentifier& nymID);
+    EXPORT OTPseudonym(const Identifier& nymID);
     EXPORT OTPseudonym(const String& strNymID);
     EXPORT OTPseudonym(const String& name, const String& filename,
                        const String& nymID);
@@ -542,12 +542,12 @@ public:
     // CALLER is responsible to delete the Nym ptr being returned
     // in these functions!
     //
-    EXPORT static OTPseudonym* LoadPublicNym(const OTIdentifier& NYM_ID,
+    EXPORT static OTPseudonym* LoadPublicNym(const Identifier& NYM_ID,
                                              const String* pstrName = nullptr,
                                              const char* szFuncName = nullptr);
 
     EXPORT static OTPseudonym* LoadPrivateNym(
-        const OTIdentifier& NYM_ID, bool bChecking = false,
+        const Identifier& NYM_ID, bool bChecking = false,
         const String* pstrName = nullptr, const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
@@ -627,7 +627,7 @@ public:
     EXPORT bool SavePseudonym(String& strNym);
     EXPORT bool SavePseudonym(std::ofstream& ofs);
     EXPORT bool SetIdentifierByPubkey();
-    EXPORT bool CompareID(const OTIdentifier& theIdentifier) const
+    EXPORT bool CompareID(const Identifier& theIdentifier) const
     {
         return (theIdentifier == m_nymID);
     }
@@ -653,32 +653,32 @@ public:
     }
 
     EXPORT void SerializeNymIDSource(String& strOutput) const;
-    EXPORT const OTIdentifier& GetConstID() const
+    EXPORT const Identifier& GetConstID() const
     {
         return m_nymID;
     } // CONST VERSION
 
-    EXPORT void GetIdentifier(OTIdentifier& theIdentifier) const; // BINARY
-                                                                  // VERSION
-    EXPORT void SetIdentifier(const OTIdentifier& theIdentifier);
+    EXPORT void GetIdentifier(Identifier& theIdentifier) const; // BINARY
+                                                                // VERSION
+    EXPORT void SetIdentifier(const Identifier& theIdentifier);
 
     EXPORT void GetIdentifier(String& theIdentifier) const; // STRING VERSION
     EXPORT void SetIdentifier(const String& theIdentifier);
     EXPORT void HarvestTransactionNumbers(
-        const OTIdentifier& theServerID, OTPseudonym& SIGNER_NYM,
+        const Identifier& theServerID, OTPseudonym& SIGNER_NYM,
         OTPseudonym& theOtherNym, // OtherNym is used as a container for the
                                   // server to send
         bool bSave = true);       // us new transaction numbers.
 
     EXPORT void HarvestIssuedNumbers(
-        const OTIdentifier& theServerID, OTPseudonym& SIGNER_NYM,
+        const Identifier& theServerID, OTPseudonym& SIGNER_NYM,
         OTPseudonym& theOtherNym, // OtherNym is used as container for us to
                                   // send a list
         bool bSave = false); // of issued numbers to the server (for balance
                              // agreement)
 
     EXPORT bool ClawbackTransactionNumber(
-        const OTIdentifier& theServerID,
+        const Identifier& theServerID,
         const int64_t& lTransClawback, // the number being clawed back.
         bool bSave = false, OTPseudonym* pSIGNER_NYM = nullptr);
     EXPORT void IncrementRequestNum(OTPseudonym& SIGNER_NYM,
@@ -848,8 +848,8 @@ public:
     // until I accept the receipts or put stop payment onto them.
     //
     EXPORT int32_t
-        GetIssuedNumCount(const OTIdentifier& theServerID) const; // count
-    EXPORT int64_t GetIssuedNum(const OTIdentifier& theServerID,
+        GetIssuedNumCount(const Identifier& theServerID) const; // count
+    EXPORT int64_t GetIssuedNum(const Identifier& theServerID,
                                 int32_t nIndex) const; // index
 
     EXPORT bool AddIssuedNum(const String& strServerID,
@@ -864,8 +864,8 @@ public:
     // to use.
     //
     EXPORT int32_t
-        GetTransactionNumCount(const OTIdentifier& theServerID) const; // count
-    EXPORT int64_t GetTransactionNum(const OTIdentifier& theServerID,
+        GetTransactionNumCount(const Identifier& theServerID) const; // count
+    EXPORT int64_t GetTransactionNum(const Identifier& theServerID,
                                      int32_t nIndex) const; // index
 
     EXPORT bool AddTransactionNum(const String& strServerID,
@@ -906,7 +906,7 @@ public:
     // balance agreements
     // will be wrong.
     //
-    EXPORT int64_t GetTentativeNum(const OTIdentifier& theServerID,
+    EXPORT int64_t GetTentativeNum(const Identifier& theServerID,
                                    int32_t nIndex) const; // index
 
     EXPORT bool AddTentativeNum(const String& strServerID,
@@ -947,8 +947,8 @@ public:
     // as well.
     //
     EXPORT int32_t
-        GetAcknowledgedNumCount(const OTIdentifier& theServerID) const; // count
-    EXPORT int64_t GetAcknowledgedNum(const OTIdentifier& theServerID,
+        GetAcknowledgedNumCount(const Identifier& theServerID) const; // count
+    EXPORT int64_t GetAcknowledgedNum(const Identifier& theServerID,
                                       int32_t nIndex) const; // index
 
     EXPORT bool AddAcknowledgedNum(const String& strServerID,
@@ -983,9 +983,9 @@ public:
                               int64_t lTransNum); // doesn't save
 
     EXPORT int32_t GetGenericNumCount(const mapOfTransNums& THE_MAP,
-                                      const OTIdentifier& theServerID) const;
+                                      const Identifier& theServerID) const;
     EXPORT int64_t GetGenericNum(const mapOfTransNums& THE_MAP,
-                                 const OTIdentifier& theServerID,
+                                 const Identifier& theServerID,
                                  int32_t nIndex) const;
     // Whenever a Nym receives a message via his Nymbox, and then the Nymbox is
     // processed, (which happens automatically)

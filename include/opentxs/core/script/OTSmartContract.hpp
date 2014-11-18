@@ -205,10 +205,10 @@ private:
     // For moving money from one nym's account to another.
     // it is also nearly identically copied in OTPaymentPlan.
     bool MoveFunds(const mapOfNyms& map_NymsAlreadyLoaded,
-                   const int64_t& lAmount, const OTIdentifier& SOURCE_ACCT_ID,
-                   const OTIdentifier& SENDER_USER_ID,
-                   const OTIdentifier& RECIPIENT_ACCT_ID,
-                   const OTIdentifier& RECIPIENT_USER_ID);
+                   const int64_t& lAmount, const Identifier& SOURCE_ACCT_ID,
+                   const Identifier& SENDER_USER_ID,
+                   const Identifier& RECIPIENT_ACCT_ID,
+                   const Identifier& RECIPIENT_USER_ID);
 
 protected:
     virtual void onActivate(); // called by OTCronItem::HookActivationOnCron().
@@ -327,7 +327,7 @@ public:
                                                   // OTSmartContract
                                                   //
     // Returns true if it was empty (and thus successfully set).
-    EXPORT bool SetServerIDIfEmpty(const OTIdentifier& theID);
+    EXPORT bool SetServerIDIfEmpty(const Identifier& theID);
 
     EXPORT bool VerifySmartContract(OTPseudonym& theNym, Account& theAcct,
                                     OTPseudonym& theServerNym,
@@ -373,8 +373,8 @@ public:
     //
     EXPORT void PrepareToActivate(const int64_t& lOpeningTransNo,
                                   const int64_t& lClosingTransNo,
-                                  const OTIdentifier& theUserID,
-                                  const OTIdentifier& theAcctID);
+                                  const Identifier& theUserID,
+                                  const Identifier& theAcctID);
 
     //
     // HIGH LEVEL
@@ -463,11 +463,10 @@ public:
                            const int64_t& lAmount, // negative amount here means
                                                    // UNstash. Positive means
                                                    // STASH.
-                           const OTIdentifier& PARTY_ACCT_ID,
-                           const OTIdentifier& PARTY_USER_ID,
-                           OTStash& theStash);
+                           const Identifier& PARTY_ACCT_ID,
+                           const Identifier& PARTY_USER_ID, OTStash& theStash);
     EXPORT OTSmartContract();
-    EXPORT OTSmartContract(const OTIdentifier& SERVER_ID);
+    EXPORT OTSmartContract(const Identifier& SERVER_ID);
 
     EXPORT virtual ~OTSmartContract();
 
@@ -481,8 +480,8 @@ public:
     static void CleanupAccts(mapOfAccounts& theMap);
     virtual bool IsValidOpeningNumber(const int64_t& lOpeningNum) const;
 
-    virtual int64_t GetOpeningNumber(const OTIdentifier& theNymID) const;
-    virtual int64_t GetClosingNumber(const OTIdentifier& theAcctID) const;
+    virtual int64_t GetOpeningNumber(const Identifier& theNymID) const;
+    virtual int64_t GetClosingNumber(const Identifier& theAcctID) const;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 

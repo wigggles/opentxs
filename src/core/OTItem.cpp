@@ -850,7 +850,7 @@ bool OTItem::VerifyBalanceStatement(
         dequeOfTransNums* pDeque = it.second;
         OT_ASSERT(nullptr != pDeque);
 
-        const OTIdentifier theServerID(strServerID.c_str());
+        const Identifier theServerID(strServerID.c_str());
 
         if (!(pDeque->empty()) && (theServerID == GetPurportedServerID())) {
             nNumberOfTransactionNumbers1 +=
@@ -873,7 +873,7 @@ bool OTItem::VerifyBalanceStatement(
             dequeOfTransNums* pDeque = it.second;
             OT_ASSERT(nullptr != pDeque);
 
-            const OTIdentifier theServerID(strServerID.c_str());
+            const Identifier theServerID(strServerID.c_str());
             const String OTstrServerID(theServerID);
 
             if (!(pDeque->empty()) && (theServerID == GetPurportedServerID())) {
@@ -1450,9 +1450,9 @@ void OTItem::GetNote(String& theStr) const
 // you are creating this item yourself, not verifying it from someone else.
 // Use this function to create the new Item before you add it to your new
 // Transaction.
-OTItem* OTItem::CreateItemFromTransaction(
-    const OTTransaction& theOwner, OTItem::itemType theType,
-    const OTIdentifier* pDestinationAcctID)
+OTItem* OTItem::CreateItemFromTransaction(const OTTransaction& theOwner,
+                                          OTItem::itemType theType,
+                                          const Identifier* pDestinationAcctID)
 {
     OTItem* pItem =
         new OTItem(theOwner.GetUserID(), theOwner, theType, pDestinationAcctID);
@@ -1473,7 +1473,7 @@ OTItem* OTItem::CreateItemFromTransaction(
 // we need
 // to verify that the user ID is actually the owner of the AccountID. TOdo that.
 OTItem* OTItem::CreateItemFromString(const String& strItem,
-                                     const OTIdentifier& theServerID,
+                                     const Identifier& theServerID,
                                      int64_t lTransactionNumber)
 {
     if (!strItem.Exists()) {
@@ -1489,7 +1489,7 @@ OTItem* OTItem::CreateItemFromString(const String& strItem,
 
     // This loads up the purported account ID and the user ID.
     if (pItem->LoadContractFromString(strItem)) {
-        const OTIdentifier& ACCOUNT_ID = pItem->GetPurportedAccountID();
+        const Identifier& ACCOUNT_ID = pItem->GetPurportedAccountID();
         pItem->SetRealAccountID(ACCOUNT_ID); // I do this because it's all we've
                                              // got in this case. It's what's in
                                              // the
@@ -1553,7 +1553,7 @@ OTItem::OTItem()
 }
 
 // From owner we can get acct ID, server ID, and transaction Num
-OTItem::OTItem(const OTIdentifier& theUserID, const OTTransaction& theOwner)
+OTItem::OTItem(const Identifier& theUserID, const OTTransaction& theOwner)
     : OTTransactionType(theUserID, theOwner.GetRealAccountID(),
                         theOwner.GetRealServerID(),
                         theOwner.GetTransactionNum())
@@ -1567,7 +1567,7 @@ OTItem::OTItem(const OTIdentifier& theUserID, const OTTransaction& theOwner)
 }
 
 // From owner we can get acct ID, server ID, and transaction Num
-OTItem::OTItem(const OTIdentifier& theUserID, const OTItem& theOwner)
+OTItem::OTItem(const Identifier& theUserID, const OTItem& theOwner)
     : OTTransactionType(theUserID, theOwner.GetRealAccountID(),
                         theOwner.GetRealServerID(),
                         theOwner.GetTransactionNum())
@@ -1580,8 +1580,8 @@ OTItem::OTItem(const OTIdentifier& theUserID, const OTItem& theOwner)
     InitItem();
 }
 
-OTItem::OTItem(const OTIdentifier& theUserID, const OTTransaction& theOwner,
-               OTItem::itemType theType, const OTIdentifier* pDestinationAcctID)
+OTItem::OTItem(const Identifier& theUserID, const OTTransaction& theOwner,
+               OTItem::itemType theType, const Identifier* pDestinationAcctID)
     : OTTransactionType(theUserID, theOwner.GetRealAccountID(),
                         theOwner.GetRealServerID(),
                         theOwner.GetTransactionNum())
@@ -1850,7 +1850,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              // now becomes std::set<int64_t>.)
         }
 
-        OTIdentifier ACCOUNT_ID(strAcctFromID), SERVER_ID(strServerID),
+        Identifier ACCOUNT_ID(strAcctFromID), SERVER_ID(strServerID),
             DESTINATION_ACCOUNT(strAcctToID), USER_ID(strUserID);
 
         SetPurportedAccountID(ACCOUNT_ID); // OTTransactionType::m_AcctID  the
@@ -1961,7 +1961,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             strServerID = xml->getAttributeValue("serverID");
             strUserID = xml->getAttributeValue("userID");
 
-            OTIdentifier ACCOUNT_ID(strAccountID), SERVER_ID(strServerID),
+            Identifier ACCOUNT_ID(strAccountID), SERVER_ID(strServerID),
                 USER_ID(strUserID);
 
             pItem->SetPurportedAccountID(

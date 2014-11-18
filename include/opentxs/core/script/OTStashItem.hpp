@@ -160,7 +160,7 @@ public:
     }
     OTStashItem();
     OTStashItem(const String& strAssetTypeID, int64_t lAmount = 0);
-    OTStashItem(const OTIdentifier& theAssetTypeID, int64_t lAmount = 0);
+    OTStashItem(const Identifier& theAssetTypeID, int64_t lAmount = 0);
     virtual ~OTStashItem();
 };
 

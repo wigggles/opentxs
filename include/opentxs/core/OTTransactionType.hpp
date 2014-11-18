@@ -140,7 +140,7 @@
 namespace opentxs
 {
 
-class OTIdentifier;
+class Identifier;
 class String;
 
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
@@ -723,22 +723,22 @@ protected:
     //    OTIdentifier    m_ID;            // Account ID. This is in OTContract
     // (parent class). Here we use it for the REAL ACCOUNT ID (set before
     // loading.)
-    OTIdentifier m_AcctID; // Compare m_AcctID to m_ID after loading it from
-                           // string or file. They should match, and signature
-                           // should verify.
+    Identifier m_AcctID; // Compare m_AcctID to m_ID after loading it from
+                         // string or file. They should match, and signature
+                         // should verify.
 
-    OTIdentifier m_ServerID;     // Server ID as used to instantiate the
-                                 // transaction, based on expected ServerID.
-    OTIdentifier m_AcctServerID; // Actual ServerID within the signed portion.
-                                 // (Compare to m_ServerID upon loading.)
+    Identifier m_ServerID;     // Server ID as used to instantiate the
+                               // transaction, based on expected ServerID.
+    Identifier m_AcctServerID; // Actual ServerID within the signed portion.
+                               // (Compare to m_ServerID upon loading.)
 
     // Update: instead of in the child classes, like OTLedger, OTTransaction,
     // OTItem, etc, I put the
     // "purported acct ID" and "purported server ID" here in the base class, to
     // manage it all centrally.
 
-    OTIdentifier m_AcctUserID; // NymID of the user who created this item. (In
-                               // the future, this item
+    Identifier m_AcctUserID; // NymID of the user who created this item. (In
+                             // the future, this item
     // might be the only reference someone has. They'll want my NymID.)
     // I put this in protected because there are now Get/Set methods...so use
     // them!
@@ -830,52 +830,52 @@ public:
     // Someday I'll add EntityID and RoleID here (in lieu of UserID,
     // in cases when the account is owned by an Entity and not a Nym.)
     //
-    inline const OTIdentifier& GetUserID() const
+    inline const Identifier& GetUserID() const
     {
         return m_AcctUserID;
     }
-    inline void SetUserID(const OTIdentifier& theID)
+    inline void SetUserID(const Identifier& theID)
     {
         m_AcctUserID = theID;
     }
 
     // Used for: Load an account based on this ID
-    inline const OTIdentifier& GetRealAccountID() const
+    inline const Identifier& GetRealAccountID() const
     {
         return m_ID;
     }
-    inline void SetRealAccountID(const OTIdentifier& theID)
+    inline void SetRealAccountID(const Identifier& theID)
     {
         m_ID = theID;
     }
 
     // Used for: Verify this ID on a transaction to make sure it matches the one
     // above.
-    inline const OTIdentifier& GetPurportedAccountID() const
+    inline const Identifier& GetPurportedAccountID() const
     {
         return m_AcctID;
     }
-    inline void SetPurportedAccountID(const OTIdentifier& theID)
+    inline void SetPurportedAccountID(const Identifier& theID)
     {
         m_AcctID = theID;
     }
 
     // Used for: Load or save a filename based on this ID.
-    inline const OTIdentifier& GetRealServerID() const
+    inline const Identifier& GetRealServerID() const
     {
         return m_ServerID;
     }
-    inline void SetRealServerID(const OTIdentifier& theID)
+    inline void SetRealServerID(const Identifier& theID)
     {
         m_ServerID = theID;
     }
 
     // Used for: Load or save the ID in the file contents into/out of this ID.
-    inline const OTIdentifier& GetPurportedServerID() const
+    inline const Identifier& GetPurportedServerID() const
     {
         return m_AcctServerID;
     }
-    inline void SetPurportedServerID(const OTIdentifier& theID)
+    inline void SetPurportedServerID(const Identifier& theID)
     {
         m_AcctServerID = theID;
     }
@@ -901,12 +901,12 @@ public:
     // Thus, while OTContract instituted a constructor with an ID,
     // OTTransactionType will require
     // both the Account ID and the ServerID.
-    OTTransactionType(const OTIdentifier& theUserID,
-                      const OTIdentifier& theAccountID,
-                      const OTIdentifier& theServerID);
-    OTTransactionType(const OTIdentifier& theUserID,
-                      const OTIdentifier& theAccountID,
-                      const OTIdentifier& theServerID, int64_t lTransactionNum);
+    OTTransactionType(const Identifier& theUserID,
+                      const Identifier& theAccountID,
+                      const Identifier& theServerID);
+    OTTransactionType(const Identifier& theUserID,
+                      const Identifier& theAccountID,
+                      const Identifier& theServerID, int64_t lTransactionNum);
 
     void InitTransactionType();
     virtual ~OTTransactionType();

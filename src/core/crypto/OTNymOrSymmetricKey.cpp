@@ -326,7 +326,7 @@ void OTNym_or_SymmetricKey::Release_Nym_or_SymmetricKey()
 
 bool OTNym_or_SymmetricKey::CompareID(const OTNym_or_SymmetricKey& rhs) const
 {
-    OTIdentifier idTHIS, idRHS;
+    Identifier idTHIS, idRHS;
 
     GetIdentifier(idTHIS);
     rhs.GetIdentifier(idRHS);
@@ -334,7 +334,7 @@ bool OTNym_or_SymmetricKey::CompareID(const OTNym_or_SymmetricKey& rhs) const
     return (idTHIS == idRHS);
 }
 
-void OTNym_or_SymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
+void OTNym_or_SymmetricKey::GetIdentifier(Identifier& theIdentifier) const
 {
     if (IsNym()) {
         m_pNym->GetIdentifier(theIdentifier);

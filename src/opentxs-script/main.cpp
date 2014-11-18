@@ -224,7 +224,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
     // Below this point, pWallet is available :-)
 
     if (str_ServerID.size() > 0) {
-        const OTIdentifier SERVER_ID(str_ServerID.c_str());
+        const Identifier SERVER_ID(str_ServerID.c_str());
 
         pServerContract = pWallet->GetServerContract(SERVER_ID);
         // If failure, then we try PARTIAL match.
@@ -256,7 +256,7 @@ bool SetupPointersForWalletMyNymAndServerContract(
     //
 
     if (str_MyNym.size() > 0) {
-        const OTIdentifier MY_NYM_ID(str_MyNym.c_str());
+        const Identifier MY_NYM_ID(str_MyNym.c_str());
 
         pMyNym = pWallet->GetNymByID(MY_NYM_ID);
 
@@ -876,7 +876,7 @@ int32_t main(int32_t argc, char* argv[])
             //          return 0;
         }
 
-        OTIdentifier theServerID;
+        Identifier theServerID;
         String strServerID;
 
         if (nullptr != pServerContract) {
@@ -909,7 +909,7 @@ int32_t main(int32_t argc, char* argv[])
         Account* pHisAccount = nullptr;
 
         if (str_MyAcct.size() > 0) {
-            const OTIdentifier MY_ACCOUNT_ID(str_MyAcct.c_str());
+            const Identifier MY_ACCOUNT_ID(str_MyAcct.c_str());
 
             pMyAccount = pWallet->GetAccount(MY_ACCOUNT_ID);
 
@@ -940,7 +940,7 @@ int32_t main(int32_t argc, char* argv[])
         // to be able to do PARTIAL MATCHES...)
         //
         if (str_HisAcct.size() > 0) {
-            const OTIdentifier HIS_ACCOUNT_ID(str_HisAcct.c_str());
+            const Identifier HIS_ACCOUNT_ID(str_HisAcct.c_str());
 
             pHisAccount = pWallet->GetAccount(HIS_ACCOUNT_ID);
 
@@ -995,13 +995,13 @@ int32_t main(int32_t argc, char* argv[])
             //          return 0;
         }
 
-        OTIdentifier MY_NYM_ID;
+        Identifier MY_NYM_ID;
 
         if (nullptr != pMyNym) pMyNym->GetIdentifier(MY_NYM_ID);
         OTPseudonym* pHisNym = nullptr;
 
         if (str_HisNym.size() > 0) {
-            const OTIdentifier HIS_NYM_ID(str_HisNym.c_str());
+            const Identifier HIS_NYM_ID(str_HisNym.c_str());
 
             pHisNym = pWallet->GetNymByID(HIS_NYM_ID);
             // If failure, then we try PARTIAL match.
@@ -1026,11 +1026,11 @@ int32_t main(int32_t argc, char* argv[])
         // it)
         // based on the ID that the user has entered here.
 
-        OTIdentifier thePurseAssetTypeID;
+        Identifier thePurseAssetTypeID;
         AssetContract* pMyAssetContract = nullptr;
 
         if (str_MyPurse.size() > 0) {
-            const OTIdentifier MY_ASSET_TYPE_ID(str_MyPurse.c_str());
+            const Identifier MY_ASSET_TYPE_ID(str_MyPurse.c_str());
             pMyAssetContract = pWallet->GetAssetContract(MY_ASSET_TYPE_ID);
 
             // If failure, then we try PARTIAL match.
@@ -1066,10 +1066,10 @@ int32_t main(int32_t argc, char* argv[])
         // There's no guarantee that it's available, but if it IS, then it WILL
         // be
         // available below this point.
-        OTIdentifier hisPurseAssetTypeID;
+        Identifier hisPurseAssetTypeID;
 
         if (str_HisPurse.size() > 0) {
-            const OTIdentifier HIS_ASSET_TYPE_ID(str_HisPurse.c_str());
+            const Identifier HIS_ASSET_TYPE_ID(str_HisPurse.c_str());
             AssetContract* pHisAssetContract =
                 pWallet->GetAssetContract(HIS_ASSET_TYPE_ID);
 
@@ -1415,9 +1415,9 @@ int32_t main(int32_t argc, char* argv[])
 
             const int64_t lAmount = String::StringToLong(opt->getValue('c'));
 
-            OTIdentifier HIS_NYM_ID((str_HisNym.size() > 0)
-                                        ? str_HisNym.c_str()
-                                        : "aaaaaaaa"); // todo hardcoding
+            Identifier HIS_NYM_ID((str_HisNym.size() > 0)
+                                      ? str_HisNym.c_str()
+                                      : "aaaaaaaa"); // todo hardcoding
 
             OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
                 OTClient::writeCheque, theMessage, *pMyNym, *pServerContract,
@@ -1843,7 +1843,7 @@ int32_t main(int32_t argc, char* argv[])
             std::string str_Trim2 = String::trim(str_Trim);
             strDecodedText.Set(str_Trim2.c_str());
 
-            OTIdentifier theIdentifier;
+            Identifier theIdentifier;
             theIdentifier.CalculateDigest(strDecodedText);
 
             String strHash(theIdentifier);

@@ -308,7 +308,7 @@ int64_t OTMarket::GetTotalAvailableAssets()
 
 // Get list of offers for a particular Nym, to send that Nym
 //
-bool OTMarket::GetNym_OfferList(const OTIdentifier& NYM_ID,
+bool OTMarket::GetNym_OfferList(const Identifier& NYM_ID,
                                 OTDB::OfferListNym& theOutputList,
                                 int32_t& nNymOfferCount)
 {
@@ -349,15 +349,15 @@ bool OTMarket::GetNym_OfferList(const OTIdentifier& NYM_ID,
 
         const time64_t tDateAddedToMarket = pOffer->GetDateAddedToMarket();
 
-        const OTIdentifier& theServerID = pOffer->GetServerID();
+        const Identifier& theServerID = pOffer->GetServerID();
         const String strServerID(theServerID);
-        const OTIdentifier& theAssetID = pOffer->GetAssetID();
+        const Identifier& theAssetID = pOffer->GetAssetID();
         const String strAssetID(theAssetID);
-        const OTIdentifier& theAssetAcctID = pTrade->GetSenderAcctID();
+        const Identifier& theAssetAcctID = pTrade->GetSenderAcctID();
         const String strAssetAcctID(theAssetAcctID);
-        const OTIdentifier& theCurrencyID = pOffer->GetCurrencyID();
+        const Identifier& theCurrencyID = pOffer->GetCurrencyID();
         const String strCurrencyID(theCurrencyID);
-        const OTIdentifier& theCurrencyAcctID = pTrade->GetCurrencyAcctID();
+        const Identifier& theCurrencyAcctID = pTrade->GetCurrencyAcctID();
         const String strCurrencyAcctID(theCurrencyAcctID);
 
         const bool bSelling = pOffer->IsAsk();
@@ -827,7 +827,7 @@ bool OTMarket::LoadMarket()
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
-    OTIdentifier MARKET_ID(*this);
+    Identifier MARKET_ID(*this);
     String str_MARKET_ID(MARKET_ID);
 
     const char* szFoldername = OTFolders::Market().Get();
@@ -860,7 +860,7 @@ bool OTMarket::SaveMarket()
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
-    OTIdentifier MARKET_ID(*this);
+    Identifier MARKET_ID(*this);
     String str_MARKET_ID(MARKET_ID);
 
     const char* szFoldername = OTFolders::Market().Get();
@@ -901,7 +901,7 @@ bool OTMarket::SaveMarket()
 
 // A Market's ID is based on the asset type, the currency type, and the scale.
 //
-void OTMarket::GetIdentifier(OTIdentifier& theIdentifier) const
+void OTMarket::GetIdentifier(Identifier& theIdentifier) const
 {
     String strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
 
@@ -1045,7 +1045,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                   "there is no Server Nym on the Cron "
                   "object authorizing the trades.");
 
-    const OTIdentifier SERVER_ID(pCron->GetServerID());
+    const Identifier SERVER_ID(pCron->GetServerID());
 
     if (pCron->GetTransactionCount() < 1) {
         otOut << "Failed to process trades: Out of transaction numbers!\n";
@@ -1097,7 +1097,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     // the pointers accordingly, and then operate
     // using the pointers from there.
 
-    const OTIdentifier FIRST_NYM_ID(
+    const Identifier FIRST_NYM_ID(
         theTrade.GetSenderUserID()),                  // The newest trade's Nym.
         OTHER_NYM_ID(pOtherTrade->GetSenderUserID()), // The Nym of the trade
                                                       // that was already on the
@@ -2759,9 +2759,8 @@ OTMarket::OTMarket()
     InitMarket();
 }
 
-OTMarket::OTMarket(const OTIdentifier& SERVER_ID,
-                   const OTIdentifier& ASSET_TYPE_ID,
-                   const OTIdentifier& CURRENCY_TYPE_ID, const int64_t& lScale)
+OTMarket::OTMarket(const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+                   const Identifier& CURRENCY_TYPE_ID, const int64_t& lScale)
     : Contract()
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)

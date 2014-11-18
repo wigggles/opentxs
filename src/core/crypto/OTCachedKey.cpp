@@ -191,7 +191,7 @@ bool OTCachedKey::HasHashCheck()
 // Otherwise it will use "the" global Master Key (the one used for the Nyms.)
 //
 // static
-std::shared_ptr<OTCachedKey> OTCachedKey::It(OTIdentifier* pIdentifier)
+std::shared_ptr<OTCachedKey> OTCachedKey::It(Identifier* pIdentifier)
 {
     // For now we're only allowing a single global instance, unless you pass in
     // an ID, in which case we keep a map.
@@ -278,7 +278,7 @@ std::shared_ptr<OTCachedKey> OTCachedKey::It(OTCachedKey& theSourceKey)
 
     std::lock_guard<std::mutex> lock_keys(OTCachedKey::s_mutexCachedKeys);
 
-    const OTIdentifier theSourceID(theSourceKey);
+    const Identifier theSourceID(theSourceKey);
 
     const String strIdentifier(theSourceID);
     const std::string str_identifier(strIdentifier.Get());
@@ -550,7 +550,7 @@ bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput)
 // and does NOT include salt, IV, iteration count, etc when
 // generating the hash for the ID.
 //
-bool OTCachedKey::GetIdentifier(OTIdentifier& theIdentifier) const
+bool OTCachedKey::GetIdentifier(Identifier& theIdentifier) const
 {
     std::lock_guard<std::mutex> lock((const_cast<OTCachedKey*>(this))->m_Mutex);
 
@@ -734,7 +734,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
         // passphrase...
         //
 
-        const OTIdentifier idCachedKey(
+        const Identifier idCachedKey(
             *m_pSymmetricKey); // Grab the ID of this symmetric key.
         const String strCachedKeyHash(
             idCachedKey); // Same thing, in string form.
@@ -1049,7 +1049,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
                 //
                 if (IsUsingSystemKeyring() && (nullptr != pDerivedKey)) {
 
-                    const OTIdentifier idCachedKey(*m_pSymmetricKey);
+                    const Identifier idCachedKey(*m_pSymmetricKey);
                     const String strCachedKeyHash(
                         idCachedKey); // Same thing, in string form.
 
@@ -1254,7 +1254,7 @@ void OTCachedKey::DestroyMasterPassword()
     if (nullptr != m_pSymmetricKey) {
         const std::string str_display;
 
-        const OTIdentifier idCachedKey(*m_pSymmetricKey);
+        const Identifier idCachedKey(*m_pSymmetricKey);
         const String strCachedKeyHash(
             idCachedKey); // Same thing, in string form.
 
@@ -1301,7 +1301,7 @@ void OTCachedKey::ResetMasterPassword()
         //
         const std::string str_display;
 
-        const OTIdentifier idCachedKey(
+        const Identifier idCachedKey(
             *m_pSymmetricKey); // Symmetric Key ID of the Master key.
         const String strCachedKeyHash(
             idCachedKey); // Same thing, in string form.

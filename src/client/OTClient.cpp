@@ -218,7 +218,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
 //
 bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                   // OTServerConnection& theConnection,
-                                  const OTIdentifier& theServerID,
+                                  const Identifier& theServerID,
                                   const OTServerContract& theServerContract,
                                   OTPseudonym& theNym, Message& theMessage)
 {
@@ -241,7 +241,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
     //    OTIdentifier theServerID;
     //    theConnection.GetServerID(theServerID);
     //
-    const OTIdentifier theNymID(*pNym);
+    const Identifier theNymID(*pNym);
     const String strServerID(theServerID), strNymID(theNymID);
 
     int64_t lHighestNum = 0;
@@ -1053,12 +1053,9 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
 // I'm doing this so I can declare a local function, INSIDE this function :-)
 // (To avoid duplicating code.)  Watch and learn...
 //
-void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
-                                            const String& str_trans,
-                                            String str_box_type,
-                                            const int64_t& lTransNum,
-                                            OTPseudonym& the_nym,
-                                            OTLedger& ledger) const
+void OTClient::load_str_trans_add_to_ledger(
+    const Identifier& the_nym_id, const String& str_trans, String str_box_type,
+    const int64_t& lTransNum, OTPseudonym& the_nym, OTLedger& ledger) const
 {
     if (nullptr == ledger.GetTransaction(lTransNum)) // (Only add it if it's not
                                                      // already there.)
@@ -1167,11 +1164,11 @@ void OTClient::load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
 void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                            const Message& theReply) const
 {
-    const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
-    OTIdentifier SERVER_ID;
+    const Identifier ACCOUNT_ID(theReply.m_strAcctID);
+    Identifier SERVER_ID;
     theConnection.GetServerID(SERVER_ID);
     OTPseudonym* pNym = theConnection.GetNym();
-    OTIdentifier USER_ID;
+    Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
     const String strNymID(USER_ID);
     String strServerID(SERVER_ID),
@@ -2365,11 +2362,11 @@ void OTClient::ProcessPayDividendResponse(
     OTTransaction& theTransaction, const OTServerConnection& theConnection,
     const Message& theReply) const
 {
-    const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
-    OTIdentifier SERVER_ID;
+    const Identifier ACCOUNT_ID(theReply.m_strAcctID);
+    Identifier SERVER_ID;
     theConnection.GetServerID(SERVER_ID);
     OTPseudonym* pNym = theConnection.GetNym();
-    OTIdentifier USER_ID;
+    Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
     //    OTWallet * pWallet = theConnection.GetWallet();
 
@@ -2400,11 +2397,11 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                       const OTServerConnection& theConnection,
                                       const Message& theReply) const
 {
-    const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
-    OTIdentifier SERVER_ID;
+    const Identifier ACCOUNT_ID(theReply.m_strAcctID);
+    Identifier SERVER_ID;
     theConnection.GetServerID(SERVER_ID);
     OTPseudonym* pNym = theConnection.GetNym();
-    OTIdentifier USER_ID;
+    Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
     //    OTWallet * pWallet = theConnection.GetWallet();
 
@@ -2678,14 +2675,14 @@ void OTClient::ProcessWithdrawalResponse(
     OTTransaction& theTransaction, const OTServerConnection& theConnection,
     const Message& theReply) const
 {
-    const OTIdentifier ACCOUNT_ID(theReply.m_strAcctID);
-    OTIdentifier SERVER_ID;
+    const Identifier ACCOUNT_ID(theReply.m_strAcctID);
+    Identifier SERVER_ID;
     theConnection.GetServerID(SERVER_ID);
 
     String strServerID(SERVER_ID);
 
     OTPseudonym* pNym = theConnection.GetNym();
-    OTIdentifier USER_ID;
+    Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
 
     const String strUserID(USER_ID);
@@ -2859,9 +2856,9 @@ void OTClient::ProcessWithdrawalResponse(
 
 struct OTClient::ProcessServerReplyArgs
 {
-    OTIdentifier ACCOUNT_ID, SERVER_ID;
+    Identifier ACCOUNT_ID, SERVER_ID;
     OTPseudonym* pNym;
-    OTIdentifier USER_ID;
+    Identifier USER_ID;
     String strServerID, strNymID;
     OTPseudonym* pServerNym;
 };
@@ -2869,7 +2866,7 @@ struct OTClient::ProcessServerReplyArgs
 void OTClient::setRecentHash(const Message& theReply, const String& strServerID,
                              OTPseudonym* pNym, bool setNymboxHash)
 {
-    OTIdentifier NYMBOX_HASH, RECENT_HASH;
+    Identifier NYMBOX_HASH, RECENT_HASH;
     const std::string str_server(strServerID.Get());
 
     if (theReply.m_strNymboxHash.Exists()) {
@@ -5272,7 +5269,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                               // or payment
                                                               // plan object.
                                     {
-                                        OTIdentifier theCancelerNymID;
+                                        Identifier theCancelerNymID;
                                         const int64_t lNymOpeningNumber =
                                             pCronItem->GetOpeningNumber(
                                                 pNym->GetConstID());
@@ -6794,7 +6791,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
                 // VerifyAccount() tries to load
                 // those, which would fail here...
                 {
-                    OTIdentifier THE_HASH;
+                    Identifier THE_HASH;
 
                     if (theReply.m_strInboxHash.Exists()) {
                         THE_HASH.SetString(theReply.m_strInboxHash);
@@ -6921,7 +6918,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
                 // chance to download the box receipts
                 // yet...
                 {
-                    OTIdentifier THE_HASH;
+                    Identifier THE_HASH;
 
                     if (theReply.m_strOutboxHash.Exists()) {
                         THE_HASH.SetString(theReply.m_strOutboxHash);
@@ -7399,7 +7396,7 @@ bool OTClient::processServerReplyDeleteAssetAccount(
         theOriginalMessage.m_strCommand.Compare("deleteAssetAccount")) {
         // O-kayy!!
 
-        const OTIdentifier theAccountID(theReply.m_strAcctID);
+        const Identifier theAccountID(theReply.m_strAcctID);
 
         Account* pDeletedAcct = m_pWallet->GetAccount(theAccountID);
 
@@ -7571,10 +7568,10 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     OTServerConnection& theConnection = *m_pConnection;
 
     ProcessServerReplyArgs args;
-    args.ACCOUNT_ID = OTIdentifier(theReply.m_strAcctID);
+    args.ACCOUNT_ID = Identifier(theReply.m_strAcctID);
     theConnection.GetServerID(args.SERVER_ID);
     args.pNym = theConnection.GetNym();
-    args.USER_ID = OTIdentifier(*args.pNym);
+    args.USER_ID = Identifier(*args.pNym);
     args.strServerID = args.SERVER_ID;
     args.strNymID = args.USER_ID;
     args.pServerNym = const_cast<OTPseudonym*>(
@@ -7822,19 +7819,19 @@ int32_t OTClient::ProcessUserCommand(
     // OTAssetContract& theContract,
     const OTServerContract& theServer, const Account* pAccount,
     int64_t lTransactionAmount, AssetContract* pMyAssetContract,
-    const OTIdentifier* pHisNymID, const OTIdentifier* pHisAcctID)
+    const Identifier* pHisNymID, const Identifier* pHisAcctID)
 {
     // This is all preparatory work to get the various pieces of data together
     // -- only
     // then can we put those pieces into a message.
-    OTIdentifier CONTRACT_ID;
+    Identifier CONTRACT_ID;
     String strNymID, strContractID, strServerID, strNymPublicKey, strAccountID;
     int64_t lRequestNumber = 0;
 
     theNym.GetIdentifier(strNymID);
     theServer.GetIdentifier(strServerID);
 
-    const OTIdentifier SERVER_ID(strServerID);
+    const Identifier SERVER_ID(strServerID);
 
     if (nullptr != pAccount) {
         pAccount->GetIdentifier(strAccountID);
@@ -7922,7 +7919,7 @@ int32_t OTClient::ProcessUserCommand(
                           << ": Adding new keyCredential to master credential: "
                           << strMasterCredID << "\n";
 
-                    const OTIdentifier theMasterCredID(strMasterCredID);
+                    const Identifier theMasterCredID(strMasterCredID);
 
                     const bool bAddedSubkey =
                         theNym.AddNewSubkey(theMasterCredID);
@@ -8095,7 +8092,7 @@ int32_t OTClient::ProcessUserCommand(
                                                // theMessage.m_strServerID is
                                                // already set. (It uses it.)
 
-        OTIdentifier EXISTING_NYMBOX_HASH;
+        Identifier EXISTING_NYMBOX_HASH;
         const std::string str_server_id(strServerID.Get());
 
         const bool bSuccess =
@@ -8129,7 +8126,7 @@ int32_t OTClient::ProcessUserCommand(
 
             if (strFromAcct.GetLength() < 2) return (-1);
 
-            const OTIdentifier ACCOUNT_ID(strFromAcct);
+            const Identifier ACCOUNT_ID(strFromAcct);
 
             if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
@@ -8163,7 +8160,7 @@ int32_t OTClient::ProcessUserCommand(
 
         //
         // "from acct" is the acct we are depositing this cash to. aka MyAcct.
-        const OTIdentifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
+        const Identifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
 
         Purse thePurse(SERVER_ID, CONTRACT_ID);
 
@@ -8248,7 +8245,7 @@ int32_t OTClient::ProcessUserCommand(
 
         // By this point, theSourcePurse is DEFINITELY good,
         // and strAssetTypeID contains its ID.
-        const OTIdentifier ASSET_TYPE_ID(strAssetTypeID);
+        const Identifier ASSET_TYPE_ID(strAssetTypeID);
 
         if (ASSET_TYPE_ID != CONTRACT_ID) {
             otOut << "Asset ID on purse didn't match asset ID on account. "
@@ -8454,7 +8451,7 @@ int32_t OTClient::ProcessUserCommand(
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
 
-            OTIdentifier NYMBOX_HASH;
+            Identifier NYMBOX_HASH;
             const std::string str_server(strServerID.Get());
             const bool bNymboxHash =
                 theNym.GetNymboxHash(str_server, NYMBOX_HASH);
@@ -8500,7 +8497,7 @@ int32_t OTClient::ProcessUserCommand(
 
             if (strFromAcct.GetLength() < 2) return (-1);
 
-            const OTIdentifier ACCOUNT_ID(strFromAcct);
+            const Identifier ACCOUNT_ID(strFromAcct);
 
             if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
@@ -8532,7 +8529,7 @@ int32_t OTClient::ProcessUserCommand(
             return (-1);
         }
 
-        const OTIdentifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
+        const Identifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
 
         Cheque theCheque(SERVER_ID, CONTRACT_ID);
 
@@ -8696,7 +8693,7 @@ int32_t OTClient::ProcessUserCommand(
                     theMessage.m_strAcctID = strFromAcct;
                     theMessage.m_ascPayload = ascLedger;
 
-                    OTIdentifier NYMBOX_HASH;
+                    Identifier NYMBOX_HASH;
                     const std::string str_server(strServerID.Get());
                     const bool bNymboxHash =
                         theNym.GetNymboxHash(str_server, NYMBOX_HASH);
@@ -8749,7 +8746,7 @@ int32_t OTClient::ProcessUserCommand(
                                                // theMessage.m_strServerID is
                                                // already set. (It uses it.)
 
-        OTIdentifier NYMBOX_HASH;
+        Identifier NYMBOX_HASH;
         const std::string str_server(strServerID.Get());
         const bool bNymboxHash = theNym.GetNymboxHash(str_server, NYMBOX_HASH);
 
@@ -8781,7 +8778,7 @@ int32_t OTClient::ProcessUserCommand(
 
             if (strFromAcct.GetLength() < 2) return (-1);
 
-            const OTIdentifier ACCOUNT_ID(strFromAcct);
+            const Identifier ACCOUNT_ID(strFromAcct);
 
             if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
@@ -8806,7 +8803,7 @@ int32_t OTClient::ProcessUserCommand(
             CONTRACT_ID.GetString(strContractID);
         }
 
-        const OTIdentifier ACCOUNT_ID(strFromAcct);
+        const Identifier ACCOUNT_ID(strFromAcct);
 
         if (pAccount->GetPurportedServerID() != SERVER_ID) {
             otErr << "OTClient::ProcessUserCommand: "
@@ -8835,9 +8832,9 @@ int32_t OTClient::ProcessUserCommand(
 
         // Todo add partial lookups here from wallet and/or address book.
 
-        const OTIdentifier MY_NYM_ID(theNym);
+        const Identifier MY_NYM_ID(theNym);
 
-        const OTIdentifier HIS_NYM_ID(strRecipientNym);
+        const Identifier HIS_NYM_ID(strRecipientNym);
 
         String strAmount;
         if (0 == lTransactionAmount) {
@@ -8942,7 +8939,7 @@ int32_t OTClient::ProcessUserCommand(
     } break;
     case OTClient::paymentPlan: // Activate a PAYMENT PLAN
     {
-        const OTIdentifier USER_ID(theNym);
+        const Identifier USER_ID(theNym);
 
         OTPaymentPlan thePlan;
 
@@ -8967,7 +8964,7 @@ int32_t OTClient::ProcessUserCommand(
         } while (decode_buffer[0] != '~');
 
         if (thePlan.LoadContractFromString(strPlan)) {
-            const OTIdentifier ACCOUNT_ID(thePlan.GetSenderAcctID());
+            const Identifier ACCOUNT_ID(thePlan.GetSenderAcctID());
 
             Account* pSenderAccount = m_pWallet->GetAccount(ACCOUNT_ID);
 
@@ -9075,7 +9072,7 @@ int32_t OTClient::ProcessUserCommand(
                 theMessage.m_strAcctID = strFromAcct;
                 theMessage.m_ascPayload = ascLedger;
 
-                OTIdentifier NYMBOX_HASH;
+                Identifier NYMBOX_HASH;
                 const std::string str_server(strServerID.Get());
                 const bool bNymboxHash =
                     theNym.GetNymboxHash(str_server, NYMBOX_HASH);

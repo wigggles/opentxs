@@ -200,9 +200,9 @@ protected:
     OTTrade* m_pTrade; // If this offer is actually connected to a trade, it
                        // will have a pointer.
 
-    OTIdentifier m_CURRENCY_TYPE_ID; // GOLD (Asset) is trading for DOLLARS
-                                     // (Currency).
-    bool m_bSelling;                 // true = ask. false = bid.
+    Identifier m_CURRENCY_TYPE_ID; // GOLD (Asset) is trading for DOLLARS
+                                   // (Currency).
+    bool m_bSelling;               // true = ask. false = bid.
     // If a bid, this is the most I will pay. If an ask, this is the least I
     // will sell for. My limit.
     // (Normally the price I get is whatever is the best one on the market right
@@ -303,11 +303,11 @@ public:
         return m_lScale;
     }
 
-    inline const OTIdentifier& GetCurrencyID() const
+    inline const Identifier& GetCurrencyID() const
     {
         return m_CURRENCY_TYPE_ID;
     }
-    inline void SetCurrencyID(const OTIdentifier& CURRENCY_ID)
+    inline void SetCurrencyID(const Identifier& CURRENCY_ID)
     {
         m_CURRENCY_TYPE_ID = CURRENCY_ID;
     }
@@ -345,13 +345,12 @@ public:
                                                       // adding/loading offers.
     EXPORT OTOffer(); // The constructor contains the 3 variables needed to
                       // identify any market.
-    EXPORT OTOffer(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-                   const OTIdentifier& CURRENCY_ID,
-                   const int64_t& MARKET_SCALE);
+    EXPORT OTOffer(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+                   const Identifier& CURRENCY_ID, const int64_t& MARKET_SCALE);
     EXPORT virtual ~OTOffer();
 
     // Overridden from OTContract.
-    virtual void GetIdentifier(OTIdentifier& theIdentifier) const;
+    virtual void GetIdentifier(Identifier& theIdentifier) const;
 
     void InitOffer();
 

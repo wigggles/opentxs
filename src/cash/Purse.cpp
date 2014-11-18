@@ -151,7 +151,7 @@ namespace opentxs
 
 typedef std::map<std::string, Token*> mapOfTokenPointers;
 
-bool Purse::GetNymID(OTIdentifier& theOutput) const
+bool Purse::GetNymID(Identifier& theOutput) const
 {
     bool bSuccess = false;
     theOutput.Release();
@@ -533,8 +533,8 @@ bool Purse::Merge(const OTPseudonym& theSigner,
 // static -- class factory.
 //
 Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
-                                  const OTIdentifier& SERVER_ID,
-                                  const OTIdentifier& ASSET_ID)
+                                  const Identifier& SERVER_ID,
+                                  const Identifier& ASSET_ID)
 {
     Purse* pPurse = nullptr;
     if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----")) // this string is
@@ -549,7 +549,7 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
 }
 
 Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
-                                  const OTIdentifier& SERVER_ID)
+                                  const Identifier& SERVER_ID)
 {
     Purse* pPurse = nullptr;
     if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----")) // this string is
@@ -581,8 +581,8 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
 //
 // Checks the serverID / AssetID, so you don't have to.
 //
-Purse* Purse::PurseFactory(String strInput, const OTIdentifier& SERVER_ID,
-                           const OTIdentifier& ASSET_ID)
+Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID,
+                           const Identifier& ASSET_ID)
 {
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
@@ -632,7 +632,7 @@ Purse* Purse::PurseFactory(String strInput, const OTIdentifier& SERVER_ID,
 
 // Checks the serverID, so you don't have to.
 //
-Purse* Purse::PurseFactory(String strInput, const OTIdentifier& SERVER_ID)
+Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID)
 {
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
@@ -726,7 +726,7 @@ Purse::Purse(const Purse& thePurse)
 // Don't use this unless you really don't have the asset type handy.
 // Perhaps you know you're about to read this purse from a string and you
 // know the asset type is in there anyway. So you use this constructor.
-Purse::Purse(const OTIdentifier& SERVER_ID)
+Purse::Purse(const Identifier& SERVER_ID)
     : Contract()
     , m_ServerID(SERVER_ID)
     , m_lTotalValue(0)
@@ -739,7 +739,7 @@ Purse::Purse(const OTIdentifier& SERVER_ID)
     InitPurse();
 }
 
-Purse::Purse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
+Purse::Purse(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
     : Contract()
     , m_ServerID(SERVER_ID)
     , m_AssetID(ASSET_ID)
@@ -753,8 +753,8 @@ Purse::Purse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
     InitPurse();
 }
 
-Purse::Purse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-             const OTIdentifier& USER_ID)
+Purse::Purse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+             const Identifier& USER_ID)
     : Contract()
     , m_UserID(USER_ID)
     , m_ServerID(SERVER_ID)

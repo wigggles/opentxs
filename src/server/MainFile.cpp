@@ -204,8 +204,8 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
         String strBasketID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
-        const OTIdentifier BASKET_ACCOUNT_ID(strBasketAcctID);
-        OTIdentifier BASKET_CONTRACT_ID;
+        const Identifier BASKET_ACCOUNT_ID(strBasketAcctID);
+        Identifier BASKET_CONTRACT_ID;
 
         bool bContractID =
             server_->transactor_.lookupBasketContractIDByAccountID(
@@ -553,7 +553,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     String strBasketContractID =
                         xml->getAttributeValue("basketContractID");
 
-                    const OTIdentifier BASKET_ID(strBasketID),
+                    const Identifier BASKET_ID(strBasketID),
                         BASKET_ACCT_ID(strBasketAcctID),
                         BASKET_CONTRACT_ID(strBasketContractID);
 
@@ -688,7 +688,7 @@ bool MainFile::LoadServerUserAndContract()
         // (I WAS loading this erroneously in Server.Init(), before
         // the Nym had actually been loaded from disk. That didn't work.)
         //
-        const OTIdentifier SERVER_ID(server_->m_strServerID);
+        const Identifier SERVER_ID(server_->m_strServerID);
 
         // Make sure the Cron object has a pointer to the server's Nym.
         // (For signing stuff...)

@@ -193,7 +193,7 @@ int32_t OTCredential::GetPublicKeysBySignature(
 bool OTCredential::VerifyInternally() const
 {
 
-    OTIdentifier theActualMasterCredID;
+    Identifier theActualMasterCredID;
     theActualMasterCredID.CalculateDigest(m_Masterkey.GetPubCredential());
     const String strActualMasterCredID(theActualMasterCredID);
 
@@ -295,7 +295,7 @@ void OTCredential::SetSourceForNymID(const String& strSourceForNymID)
     //  Now re-calculate the NymID...
     //
     m_strNymID.Release();
-    OTIdentifier theTempID;
+    Identifier theTempID;
     const bool bCalculate = theTempID.CalculateDigest(m_strSourceForNymID);
     OT_ASSERT(bCalculate);
     theTempID.GetString(m_strNymID);
@@ -424,7 +424,7 @@ bool OTCredential::SignNewMaster(const OTPasswordData* pPWData)
             // hash of
             // the contents.
             //
-            OTIdentifier theNewID;
+            Identifier theNewID;
             m_Masterkey.CalculateContractID(theNewID);
             m_Masterkey.SetIdentifier(theNewID); // Usually this will be set
                                                  // based on an expected value
@@ -568,7 +568,7 @@ bool OTCredential::ReEncryptPrivateCredentials(
 }
 
 bool OTCredential::SignNewSubcredential(OTSubcredential& theSubCred,
-                                        OTIdentifier& theSubCredID_out,
+                                        Identifier& theSubCredID_out,
                                         const OTPasswordData* pPWData)
 {
     OTPasswordData thePWData(
@@ -1068,7 +1068,7 @@ bool OTCredential::AddNewSubkey(
            // sign it...
         OTPasswordData thePWData(
             "Signing new subkey... OTCredential::AddNewSubkey");
-        OTIdentifier theSubCredID;
+        Identifier theSubCredID;
 
         // SignNewSubcredential uses m_Masterkey's actual signing key to sign
         // "pSub the contract."
@@ -1145,7 +1145,7 @@ bool OTCredential::AddNewSubcredential(
         // it...
         OTPasswordData thePWData(
             "Signing new subcredential... OTCredential::AddNewSubcredential");
-        OTIdentifier theSubCredID;
+        Identifier theSubCredID;
 
         // SignNewSubcredential uses m_Masterkey's actual signing key to sign
         // "pSub the contract."

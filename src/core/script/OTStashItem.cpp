@@ -157,7 +157,7 @@ OTStashItem::OTStashItem(const String& strAssetTypeID, int64_t lAmount)
 {
 }
 
-OTStashItem::OTStashItem(const OTIdentifier& theAssetTypeID, int64_t lAmount)
+OTStashItem::OTStashItem(const Identifier& theAssetTypeID, int64_t lAmount)
     : m_strAssetTypeID(theAssetTypeID)
     , m_lAmount(lAmount)
 {

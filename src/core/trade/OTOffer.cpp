@@ -204,7 +204,7 @@ bool OTOffer::isPowerOfTen(const int64_t& x)
     // (Done.)
  }
  */
-void OTOffer::GetIdentifier(OTIdentifier& theIdentifier) const
+void OTOffer::GetIdentifier(Identifier& theIdentifier) const
 {
     String strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
 
@@ -261,7 +261,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
-        const OTIdentifier SERVER_ID(strServerID), ASSET_ID(strAssetTypeID),
+        const Identifier SERVER_ID(strServerID), ASSET_ID(strAssetTypeID),
             CURRENCY_TYPE_ID(strCurrencyTypeID);
 
         SetServerID(SERVER_ID);
@@ -526,8 +526,8 @@ OTOffer::OTOffer()
     InitOffer();
 }
 
-OTOffer::OTOffer(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-                 const OTIdentifier& CURRENCY_ID, const int64_t& lScale)
+OTOffer::OTOffer(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+                 const Identifier& CURRENCY_ID, const int64_t& lScale)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)

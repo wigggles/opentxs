@@ -185,7 +185,7 @@ namespace opentxs
 {
 
 void Basket::HarvestClosingNumbers(OTPseudonym& theNym,
-                                   const OTIdentifier& theServerID, bool bSave)
+                                   const Identifier& theServerID, bool bSave)
 {
     const String strServerID(theServerID);
     bool bNeedToSave = false;
@@ -235,8 +235,8 @@ void Basket::HarvestClosingNumbers(OTPseudonym& theNym,
 
 // For generating a user request to EXCHANGE in/out of a basket.
 // Assumes that SetTransferMultiple has already been called.
-void Basket::AddRequestSubContract(const OTIdentifier& SUB_CONTRACT_ID,
-                                   const OTIdentifier& SUB_ACCOUNT_ID,
+void Basket::AddRequestSubContract(const Identifier& SUB_CONTRACT_ID,
+                                   const Identifier& SUB_ACCOUNT_ID,
                                    const int64_t& lClosingTransactionNo)
 {
     BasketItem* pItem = new BasketItem;
@@ -262,7 +262,7 @@ void Basket::AddRequestSubContract(const OTIdentifier& SUB_CONTRACT_ID,
 }
 
 // For generating a real basket
-void Basket::AddSubContract(const OTIdentifier& SUB_CONTRACT_ID,
+void Basket::AddSubContract(const Identifier& SUB_CONTRACT_ID,
                             int64_t lMinimumTransferAmount)
 {
     BasketItem* pItem = new BasketItem;
@@ -443,7 +443,7 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
 // removed.
 // This way, the basket will produce a consistent ID across multiple different
 // servers.
-void Basket::CalculateContractID(OTIdentifier& newID) const
+void Basket::CalculateContractID(Identifier& newID) const
 {
     // Produce a version of the file without account IDs (which are different
     // from server to server.)

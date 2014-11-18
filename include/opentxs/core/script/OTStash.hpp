@@ -151,7 +151,7 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 namespace opentxs
 {
 
-class OTIdentifier;
+class Identifier;
 class OTStashItem;
 class String;
 
@@ -185,7 +185,7 @@ public:
     {
     }
     OTStash(const String& strAssetTypeID, int64_t lAmount = 0);
-    OTStash(const OTIdentifier& theAssetTypeID, int64_t lAmount = 0);
+    OTStash(const Identifier& theAssetTypeID, int64_t lAmount = 0);
     virtual ~OTStash();
 };
 

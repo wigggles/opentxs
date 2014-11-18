@@ -349,7 +349,7 @@ protected:
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the ledger saves its contents
-    OTIdentifier m_AcctToID;       // DESTINATION ACCOUNT for transfers. NOT the
+    Identifier m_AcctToID;         // DESTINATION ACCOUNT for transfers. NOT the
                                    // account holder.
     int64_t m_lAmount; // For balance, or fee, etc. Only an item can actually
                        // have an amount. (Or a "TO" account.)
@@ -484,36 +484,36 @@ public:
     EXPORT void SetNote(const String& theStr);
     EXPORT void GetAttachment(String& theStr) const;
     EXPORT void SetAttachment(const String& theStr);
-    inline const OTIdentifier& GetDestinationAcctID() const
+    inline const Identifier& GetDestinationAcctID() const
     {
         return m_AcctToID;
     }
-    inline void SetDestinationAcctID(const OTIdentifier& theID)
+    inline void SetDestinationAcctID(const Identifier& theID)
     {
         m_AcctToID = theID;
     }
     EXPORT static OTItem* CreateItemFromString(const String& strItem,
-                                               const OTIdentifier& theServerID,
+                                               const Identifier& theServerID,
                                                int64_t lTransactionNumber);
 
     EXPORT static OTItem* CreateItemFromTransaction(
         const OTTransaction& theOwner, OTItem::itemType theType,
-        const OTIdentifier* pDestinationAcctID = nullptr);
+        const Identifier* pDestinationAcctID = nullptr);
     EXPORT static void GetStringFromType(OTItem::itemType theType,
                                          String& strType);
     inline void GetTypeString(String& strType) const
     {
         GetStringFromType(GetType(), strType);
     }
-    OTItem(const OTIdentifier& theUserID,
+    OTItem(const Identifier& theUserID,
            const OTItem& theOwner); // From owner we can get acct ID, server ID,
                                     // and transaction Num
-    OTItem(const OTIdentifier& theUserID,
+    OTItem(const Identifier& theUserID,
            const OTTransaction& theOwner); // From owner we can get acct ID,
                                            // server ID, and transaction Num
-    OTItem(const OTIdentifier& theUserID, const OTTransaction& theOwner,
+    OTItem(const Identifier& theUserID, const OTTransaction& theOwner,
            OTItem::itemType theType,
-           const OTIdentifier* pDestinationAcctID = nullptr);
+           const Identifier* pDestinationAcctID = nullptr);
 
     virtual ~OTItem();
     //    OTItem& operator=(const OTItem& rhs);

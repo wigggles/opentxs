@@ -140,7 +140,7 @@ namespace opentxs
 
 class Account;
 class OTAgent;
-class OTIdentifier;
+class Identifier;
 class OTParty;
 class OTPseudonym;
 class OTScript;
@@ -256,7 +256,7 @@ public:
     EXPORT OTAgent* GetAuthorizedAgent();
     Account* LoadAccount(OTPseudonym& theSignerNym, const String& strServerID);
     bool IsAccount(Account& theAccount);
-    bool IsAccountByID(const OTIdentifier& theAcctID) const;
+    bool IsAccountByID(const Identifier& theAcctID) const;
     bool VerifyOwnership() const; // I have a ptr to my owner (party), as well
                                   // as to the actual account. I will ask him to
                                   // verify whether he actually owns it.

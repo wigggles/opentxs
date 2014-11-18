@@ -148,8 +148,8 @@ namespace opentxs
 {
 
 bool OTAgreement::SendNoticeToAllParties(
-    bool bSuccessMsg, OTPseudonym& theServerNym,
-    const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
+    bool bSuccessMsg, OTPseudonym& theServerNym, const Identifier& theServerID,
+    const int64_t& lNewTransactionNumber,
     //                                       const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const String& strReference, String* pstrNote, String* pstrAttachment,
@@ -172,7 +172,7 @@ bool OTAgreement::SendNoticeToAllParties(
     }
 
     if (nullptr == pRecipient) {
-        const OTIdentifier NYM_ID(GetRecipientUserID());
+        const Identifier NYM_ID(GetRecipientUserID());
         theRecipientNym.SetIdentifier(NYM_ID);
 
         if (!theRecipientNym.LoadPublicKey()) {
@@ -213,7 +213,7 @@ bool OTAgreement::SendNoticeToAllParties(
     }
 
     if (nullptr == pSender) {
-        const OTIdentifier NYM_ID(GetSenderUserID());
+        const Identifier NYM_ID(GetSenderUserID());
         theSenderNym.SetIdentifier(NYM_ID);
 
         if (!theSenderNym.LoadPublicKey()) {
@@ -271,8 +271,8 @@ bool OTAgreement::SendNoticeToAllParties(
 bool OTAgreement::DropServerNoticeToNymbox(
     bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
                       // OTItem::rejection.
-    OTPseudonym& theServerNym, const OTIdentifier& SERVER_ID,
-    const OTIdentifier& USER_ID, const int64_t& lNewTransactionNumber,
+    OTPseudonym& theServerNym, const Identifier& SERVER_ID,
+    const Identifier& USER_ID, const int64_t& lNewTransactionNumber,
     const int64_t& lInReferenceTo, const String& strReference, String* pstrNote,
     String* pstrAttachment, OTPseudonym* pActualNym)
 {
@@ -374,7 +374,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
 
         // TODO: Better rollback capabilities in case of failures here:
 
-        OTIdentifier theNymboxHash;
+        Identifier theNymboxHash;
 
         // Save nymbox to storage. (File, DB, wherever it goes.)
         theLedger.SaveNymbox(&theNymboxHash);
@@ -386,7 +386,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
 
         // Update the NymboxHash (in the nymfile.)
         //
-        const OTIdentifier ACTUAL_NYM_ID = USER_ID;
+        const Identifier ACTUAL_NYM_ID = USER_ID;
         OTPseudonym theActualNym; // unused unless it's really not already
                                   // loaded. (use pActualNym.)
 
@@ -580,7 +580,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         // but for whatever reason, I'm checking the userID on the original
         // version. Sue me.
         //
-        const OTIdentifier NYM_ID(GetRecipientUserID());
+        const Identifier NYM_ID(GetRecipientUserID());
 
         theRecipientNym.SetIdentifier(NYM_ID);
 
@@ -658,7 +658,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                                       false); // bSave=false
         theOriginator.SaveSignedNymfile(*pServerNym);
 
-        const OTIdentifier& ACTUAL_NYM_ID = GetSenderUserID();
+        const Identifier& ACTUAL_NYM_ID = GetSenderUserID();
 
         if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
             pActualNym = pServerNym;
@@ -958,18 +958,18 @@ void OTAgreement::HarvestClosingNumbers(OTPseudonym& theNym)
     }
 }
 
-int64_t OTAgreement::GetOpeningNumber(const OTIdentifier& theNymID) const
+int64_t OTAgreement::GetOpeningNumber(const Identifier& theNymID) const
 {
-    const OTIdentifier& theRecipientNymID = GetRecipientUserID();
+    const Identifier& theRecipientNymID = GetRecipientUserID();
 
     if (theNymID == theRecipientNymID) return GetRecipientOpeningNum();
     // else...
     return ot_super::GetOpeningNumber(theNymID);
 }
 
-int64_t OTAgreement::GetClosingNumber(const OTIdentifier& theAcctID) const
+int64_t OTAgreement::GetClosingNumber(const Identifier& theAcctID) const
 {
-    const OTIdentifier& theRecipientAcctID = GetRecipientAcctID();
+    const Identifier& theRecipientAcctID = GetRecipientAcctID();
 
     if (theAcctID == theRecipientAcctID) return GetRecipientClosingNum();
     // else...
@@ -1162,7 +1162,7 @@ bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
                                                  // valid_from)
 {
 
-    OTIdentifier id_MERCHANT_NYM;
+    Identifier id_MERCHANT_NYM;
     MERCHANT_NYM.GetIdentifier(id_MERCHANT_NYM);
 
     if (GetRecipientUserID() != id_MERCHANT_NYM) {
@@ -1280,10 +1280,10 @@ bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
 //
 // (Transaction number and closing number are retrieved from Nym at this time.)
 bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
-                          const OTIdentifier* p_id_MERCHANT_NYM)
+                          const Identifier* p_id_MERCHANT_NYM)
 {
 
-    OTIdentifier id_PAYER_NYM;
+    Identifier id_PAYER_NYM;
     PAYER_NYM.GetIdentifier(id_PAYER_NYM);
 
     if (GetRecipientUserID() == GetSenderUserID()) {
@@ -1460,19 +1460,19 @@ OTAgreement::OTAgreement()
     InitAgreement();
 }
 
-OTAgreement::OTAgreement(const OTIdentifier& SERVER_ID,
-                         const OTIdentifier& ASSET_ID)
+OTAgreement::OTAgreement(const Identifier& SERVER_ID,
+                         const Identifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
 {
     InitAgreement();
 }
 
-OTAgreement::OTAgreement(const OTIdentifier& SERVER_ID,
-                         const OTIdentifier& ASSET_ID,
-                         const OTIdentifier& SENDER_ACCT_ID,
-                         const OTIdentifier& SENDER_USER_ID,
-                         const OTIdentifier& RECIPIENT_ACCT_ID,
-                         const OTIdentifier& RECIPIENT_USER_ID)
+OTAgreement::OTAgreement(const Identifier& SERVER_ID,
+                         const Identifier& ASSET_ID,
+                         const Identifier& SENDER_ACCT_ID,
+                         const Identifier& SENDER_USER_ID,
+                         const Identifier& RECIPIENT_ACCT_ID,
+                         const Identifier& RECIPIENT_USER_ID)
     : ot_super(SERVER_ID, ASSET_ID, SENDER_ACCT_ID, SENDER_USER_ID)
 {
     InitAgreement();
@@ -1577,7 +1577,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_pCancelerNymID->Release();
         }
 
-        const OTIdentifier SERVER_ID(strServerID), ASSET_ID(strAssetTypeID),
+        const Identifier SERVER_ID(strServerID), ASSET_ID(strAssetTypeID),
             SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID),
             RECIPIENT_ACCT_ID(strRecipientAcctID),
             RECIPIENT_USER_ID(strRecipientUserID);

@@ -659,8 +659,8 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
 // contents.
 
 bool OTScriptable::SendNoticeToAllParties(
-    bool bSuccessMsg, OTPseudonym& theServerNym,
-    const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
+    bool bSuccessMsg, OTPseudonym& theServerNym, const Identifier& theServerID,
+    const int64_t& lNewTransactionNumber,
     // const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const String& strReference, String* pstrNote, String* pstrAttachment,
@@ -817,7 +817,7 @@ OTPartyAccount* OTScriptable::GetPartyAccount(std::string str_acct_name) const
 }
 
 OTPartyAccount* OTScriptable::GetPartyAccountByID(
-    const OTIdentifier& theAcctID) const
+    const Identifier& theAcctID) const
 {
     for (const auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -832,8 +832,8 @@ OTPartyAccount* OTScriptable::GetPartyAccountByID(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
-    const OTIdentifier& theNymID, OTAgent** ppAgent) const
+OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(const Identifier& theNymID,
+                                                    OTAgent** ppAgent) const
 {
     for (const auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -845,7 +845,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
-    const OTIdentifier& theNymID, OTAgent** ppAgent) const
+    const Identifier& theNymID, OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -858,7 +858,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnAccountID(
-    const OTIdentifier& theAcctID, OTPartyAccount** ppPartyAccount) const
+    const Identifier& theAcctID, OTPartyAccount** ppPartyAccount) const
 {
     for (auto& it : m_mapParties) {
         OTParty* pParty = it.second;
@@ -2277,7 +2277,7 @@ bool OTScriptable::Compare(OTScriptable& rhs) const
 // contract
 // such as an OTAssetContract.)
 //
-void OTScriptable::CalculateContractID(OTIdentifier& newID) const
+void OTScriptable::CalculateContractID(Identifier& newID) const
 {
     // Produce a template version of the scriptable.
     OTStringXML xmlUnsigned;

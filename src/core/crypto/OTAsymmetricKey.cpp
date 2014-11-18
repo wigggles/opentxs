@@ -762,9 +762,9 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
     return len;
 }
 
-bool OTAsymmetricKey::CalculateID(OTIdentifier& theOutput) const // Only works
-                                                                 // for public
-                                                                 // keys.
+bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const // Only works
+                                                               // for public
+                                                               // keys.
 {
     const char* szFunc = "OTAsymmetricKey::CalculateID";
 

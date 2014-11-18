@@ -236,7 +236,7 @@ Token::Token()
 // bool                m_bSavePrivateKeys; // Determines whether it serializes
 // private keys 1 time (yes if true)
 
-Token::Token(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
+Token::Token(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
@@ -337,8 +337,8 @@ void Token::ReleasePrototokens()
 // static -- class factory.
 //
 Token* Token::LowLevelInstantiate(const String& strFirstLine,
-                                  const OTIdentifier& SERVER_ID,
-                                  const OTIdentifier& ASSET_ID)
+                                  const Identifier& SERVER_ID,
+                                  const Identifier& ASSET_ID)
 {
     Token* pToken = nullptr;
 
@@ -455,8 +455,8 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine)
 
 // static -- class factory.
 //
-Token* Token::TokenFactory(String strInput, const OTIdentifier& SERVER_ID,
-                           const OTIdentifier& ASSET_ID)
+Token* Token::TokenFactory(String strInput, const Identifier& SERVER_ID,
+                           const Identifier& ASSET_ID)
 {
     //  const char * szFunc = "Token::TokenFactory";
 
@@ -549,7 +549,7 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
     String strAssetID(GetAssetID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
-    OTIdentifier theTokenHash;
+    Identifier theTokenHash;
     theTokenHash.CalculateDigest(theCleartextToken);
 
     // Grab the new hash into a string (for use as a filename)
@@ -582,7 +582,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     String strAssetID(GetAssetID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
-    OTIdentifier theTokenHash;
+    Identifier theTokenHash;
     theTokenHash.CalculateDigest(theCleartextToken);
 
     // Grab the new hash into a string (for use as a filename)

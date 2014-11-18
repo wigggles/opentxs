@@ -570,7 +570,7 @@ uint8_t* OTCrypto_OpenSSL::Base64Decode(const char* input, size_t* out_len,
 
 // Decode formatted OT ID to the binary hash ID.
 void OTCrypto_OpenSSL::SetIDFromEncoded(const String& strInput,
-                                        OTIdentifier& theOutput) const
+                                        Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -590,7 +590,7 @@ void OTCrypto_OpenSSL::SetIDFromEncoded(const String& strInput,
 }
 
 // Encode binary hash ID to the formatted OT ID.
-void OTCrypto_OpenSSL::EncodeID(const OTIdentifier& theInput,
+void OTCrypto_OpenSSL::EncodeID(const Identifier& theInput,
                                 String& strOutput) const
 {
     strOutput.Release();
@@ -3397,7 +3397,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::SignContract(
     };
 
     const bool bUsesDefaultHashAlgorithm =
-        strHashType.Compare(OTIdentifier::DefaultHashAlgorithm);
+        strHashType.Compare(Identifier::DefaultHashAlgorithm);
     EVP_MD* md = nullptr;
 
     if (bUsesDefaultHashAlgorithm) {
@@ -3532,7 +3532,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifySignature(
     const char* szFunc = "OTCrypto_OpenSSL::VerifySignature";
 
     const bool bUsesDefaultHashAlgorithm =
-        strHashType.Compare(OTIdentifier::DefaultHashAlgorithm);
+        strHashType.Compare(Identifier::DefaultHashAlgorithm);
     EVP_MD* md = nullptr;
 
     if (bUsesDefaultHashAlgorithm) {

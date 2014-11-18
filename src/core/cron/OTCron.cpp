@@ -201,8 +201,8 @@ bool OTCron::SaveCron()
 // *pOfferList) for each.
 // Returns a list of all the offers that a specific Nym has on all the markets.
 //
-bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput,
-                              const OTIdentifier& NYM_ID, int32_t& nOfferCount)
+bool OTCron::GetNym_OfferList(OTASCIIArmor& ascOutput, const Identifier& NYM_ID,
+                              int32_t& nOfferCount)
 {
     nOfferCount = 0; // Outputs the number of offers on this nym.
 
@@ -297,7 +297,7 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
             dynamic_cast<OTDB::MarketData*>(
                 OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_DATA)));
 
-        const OTIdentifier MARKET_ID(*pMarket);
+        const Identifier MARKET_ID(*pMarket);
         const String str_MARKET_ID(MARKET_ID);
         const String str_ServerID(pMarket->GetServerID());
         const String str_ASSET_ID(pMarket->GetAssetID());
@@ -547,7 +547,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const int64_t lScale =
             String::StringToLong(xml->getAttributeValue("marketScale"));
 
-        const OTIdentifier ASSET_ID(strAssetID), CURRENCY_ID(strCurrencyID);
+        const Identifier ASSET_ID(strAssetID), CURRENCY_ID(strCurrencyID);
 
         otWarn << "Loaded cron entry for Market:\n" << strMarketID << ".\n";
 
@@ -603,7 +603,7 @@ void OTCron::UpdateContents()
         OTMarket* pMarket = it.second;
         OT_ASSERT(nullptr != pMarket);
 
-        OTIdentifier MARKET_ID(*pMarket);
+        Identifier MARKET_ID(*pMarket);
         String str_MARKET_ID(MARKET_ID);
 
         String str_ASSET_ID(pMarket->GetAssetID());
@@ -1012,7 +1012,7 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
     theMarket.SetCronPointer(
         *this); // This way every Market has a pointer to Cron.
 
-    OTIdentifier MARKET_ID(theMarket);
+    Identifier MARKET_ID(theMarket);
     String str_MARKET_ID(MARKET_ID);
     std::string std_MARKET_ID = str_MARKET_ID.Get();
 
@@ -1069,8 +1069,8 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
 }
 
 // Create it if it's not there.
-OTMarket* OTCron::GetOrCreateMarket(const OTIdentifier& ASSET_ID,
-                                    const OTIdentifier& CURRENCY_ID,
+OTMarket* OTCron::GetOrCreateMarket(const Identifier& ASSET_ID,
+                                    const Identifier& CURRENCY_ID,
                                     const int64_t& lScale)
 {
     OTMarket* pMarket =
@@ -1078,7 +1078,7 @@ OTMarket* OTCron::GetOrCreateMarket(const OTIdentifier& ASSET_ID,
 
     OT_ASSERT(nullptr != pMarket);
 
-    OTIdentifier MARKET_ID(*pMarket);
+    Identifier MARKET_ID(*pMarket);
 
     OTMarket* pExistingMarket = GetMarket(MARKET_ID);
 
@@ -1109,7 +1109,7 @@ OTMarket* OTCron::GetOrCreateMarket(const OTIdentifier& ASSET_ID,
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-OTMarket* OTCron::GetMarket(const OTIdentifier& MARKET_ID)
+OTMarket* OTCron::GetMarket(const Identifier& MARKET_ID)
 {
     String str_MARKET_ID(MARKET_ID);
     std::string std_MARKET_ID = str_MARKET_ID.Get();
@@ -1127,7 +1127,7 @@ OTMarket* OTCron::GetMarket(const OTIdentifier& MARKET_ID)
 
         OT_ASSERT((nullptr != pMarket));
 
-        const OTIdentifier LOOP_MARKET_ID(*pMarket);
+        const Identifier LOOP_MARKET_ID(*pMarket);
         const String str_LOOP_MARKET_ID(LOOP_MARKET_ID);
 
         if (MARKET_ID == LOOP_MARKET_ID)
@@ -1150,7 +1150,7 @@ OTCron::OTCron()
     otLog3 << "OTCron::OTCron: Finished calling InitCron 0.\n";
 }
 
-OTCron::OTCron(const OTIdentifier& SERVER_ID)
+OTCron::OTCron(const Identifier& SERVER_ID)
     : Contract()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr) // just here for convenience, not responsible to

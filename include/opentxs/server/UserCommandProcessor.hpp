@@ -141,7 +141,7 @@ class String;
 class Message;
 class OTPseudonym;
 class OTServer;
-class OTIdentifier;
+class Identifier;
 class ClientConnection;
 
 class UserCommandProcessor
@@ -153,14 +153,14 @@ public:
                             ClientConnection* connection, OTPseudonym* nym);
 
 private:
-    bool SendMessageToNym(const OTIdentifier& serverId,
-                          const OTIdentifier& senderUserId,
-                          const OTIdentifier& recipientUserId,
+    bool SendMessageToNym(const Identifier& serverId,
+                          const Identifier& senderUserId,
+                          const Identifier& recipientUserId,
                           Message* msg = nullptr,
                           const String* messageString = nullptr);
 
-    void DropReplyNoticeToNymbox(const OTIdentifier& serverId,
-                                 const OTIdentifier& userId,
+    void DropReplyNoticeToNymbox(const Identifier& serverId,
+                                 const Identifier& userId,
                                  const String& messageString,
                                  const int64_t& requestNum,
                                  const bool replyTransSuccess,

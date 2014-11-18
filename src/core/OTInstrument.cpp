@@ -184,8 +184,8 @@ OTInstrument::OTInstrument()
     InitInstrument();
 }
 
-OTInstrument::OTInstrument(const OTIdentifier& SERVER_ID,
-                           const OTIdentifier& ASSET_ID)
+OTInstrument::OTInstrument(const Identifier& SERVER_ID,
+                           const Identifier& ASSET_ID)
     : OTScriptable()
     , m_AssetTypeID(ASSET_ID)
     , m_ServerID(SERVER_ID)
