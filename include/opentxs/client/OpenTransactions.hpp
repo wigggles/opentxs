@@ -141,7 +141,6 @@
 namespace opentxs
 {
 
-class TransportCallback;
 class OT_API;
 class Account;
 class AssetContract;
@@ -184,7 +183,6 @@ private:
     bool m_bInitialized;
     bool m_bDefaultStore;
 
-    TransportCallback* m_pTransportCallback;
     OTSocket* m_pSocket;
 
     String m_strDataPath;
@@ -216,8 +214,6 @@ public:
         return m_bInitialized;
     }
 
-    EXPORT bool SetTransportCallback(TransportCallback* pTransportCallback);
-    EXPORT TransportCallback* GetTransportCallback() const;
     EXPORT bool TransportFunction(const OTServerContract& theServerContract,
                                   const OTEnvelope& theEnvelope) const;
     EXPORT bool GetWalletFilename(String& strPath) const;

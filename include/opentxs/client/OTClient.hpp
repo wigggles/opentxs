@@ -141,7 +141,6 @@
 namespace opentxs
 {
 
-class TransportCallback;
 class Account;
 class AssetContract;
 class OTLedger;
@@ -337,7 +336,6 @@ public:
     bool m_bInitialized; // this will be false until InitClient() is called.
     // These functions manipulate the internal m_pConnection member:
     void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
-                           TransportCallback* pCallback,
                            const Message& theMessage);
     bool ProcessInBuffer(const Message& theServerReply) const;
     // These functions are for command processing:

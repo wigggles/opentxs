@@ -138,7 +138,6 @@
 #include <opentxs/client/OTClient.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include <opentxs/client/ot_otapi_ot.hpp>
-#include <opentxs/client/TransportCallback.hpp>
 
 #include <opentxs/cash/Purse.hpp>
 
@@ -1521,8 +1520,8 @@ int32_t main(int32_t argc, char* argv[])
                                     // Envelope
             theEnvelope.Seal(*pServerNym, strEnvelopeContents);
 
-            OTAPI_Wrap::OTAPI()->GetTransportCallback()->operator()(
-                *pServerContract, theEnvelope);
+            // TOMMY OTAPI_Wrap::OTAPI()->GetTransportCallback()->operator()(
+            //    *pServerContract, theEnvelope);
 
         } // if bSendCommand
 
@@ -2156,8 +2155,8 @@ int32_t main(int32_t argc, char* argv[])
             OTEnvelope theEnvelope;
             theEnvelope.Seal(*pServerNym, strEnvelopeContents);
 
-            OTAPI_Wrap::OTAPI()->GetTransportCallback()->operator()(
-                *pServerContract, theEnvelope);
+            // TOMMY OTAPI_Wrap::OTAPI()->GetTransportCallback()->operator()(
+            //    *pServerContract, theEnvelope);
 
         } // if bSendCommand
     }     // for

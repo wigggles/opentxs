@@ -138,7 +138,6 @@
 namespace opentxs
 {
 
-class TransportCallback;
 class OTClient;
 class Identifier;
 class OTPseudonym;
@@ -180,7 +179,6 @@ public:
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
     void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
-                           TransportCallback* pCallback,
                            const Message& theMessage);
 };
 

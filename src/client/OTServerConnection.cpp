@@ -133,7 +133,6 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OTServerConnection.hpp>
-#include <opentxs/client/TransportCallback.hpp>
 
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -202,12 +201,10 @@ OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient)
 
 void OTServerConnection::ProcessMessageOut(OTServerContract* pServerContract,
                                            OTPseudonym* pNym,
-                                           TransportCallback* pCallback,
                                            const Message& theMessage)
 {
     OT_ASSERT(nullptr != pServerContract);
     OT_ASSERT(nullptr != pNym)
-    OT_ASSERT(nullptr != pCallback);
     const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
     OT_ASSERT(nullptr != pServerNym);
 
@@ -224,7 +221,7 @@ void OTServerConnection::ProcessMessageOut(OTServerContract* pServerContract,
     // set state needed by the callback, it will go away
     m_pServerContract = pServerContract;
     m_pNym = pNym;
-    (*pCallback)(*pServerContract, theEnvelope);
+    // TOMMY (*pCallback)(*pServerContract, theEnvelope);
 
     otWarn << "<=====END Finished sending " << theMessage.m_strCommand
            << " message (and hopefully receiving "

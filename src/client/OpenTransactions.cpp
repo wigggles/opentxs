@@ -138,7 +138,6 @@
 #include <opentxs/client/OTServerConnection.hpp>
 #include "Helpers.hpp"
 #include <opentxs/client/OTWallet.hpp>
-#include <opentxs/client/TransportCallback.hpp>
 
 #include <opentxs/ext/InstantiateContract.hpp>
 #include <opentxs/ext/OTPayment.hpp>
@@ -623,7 +622,6 @@ bool OT_API::CleanupOTApp()
 OT_API::OT_API()
     : m_pPid(new Pid())
     , m_bInitialized(false)
-    , m_pTransportCallback(nullptr)
     , m_pSocket(new OTSocket_ZMQ_4())
     , m_strDataPath("")
     , m_strWalletFilename("")
@@ -646,8 +644,6 @@ OT_API::~OT_API()
     if (nullptr != m_pSocket) delete m_pSocket;
     m_pSocket = nullptr;
 
-    if (nullptr != m_pTransportCallback) delete m_pTransportCallback;
-    m_pTransportCallback = nullptr;
     if (nullptr != m_pWallet) delete m_pWallet;
     m_pWallet = nullptr;
     if (nullptr != m_pClient) delete m_pClient;
@@ -801,26 +797,6 @@ bool OT_API::SetWalletFilename(const String& strPath)
     }
     else
         return false;
-}
-
-bool OT_API::SetTransportCallback(TransportCallback* pTransportCallback)
-{
-    if (nullptr != pTransportCallback) {
-        m_pTransportCallback = pTransportCallback;
-        return true;
-    }
-    else
-        return false;
-}
-
-TransportCallback* OT_API::GetTransportCallback() const
-{
-    if (nullptr != m_pTransportCallback) {
-        return m_pTransportCallback;
-    }
-    else {
-        OT_FAIL;
-    }
 }
 
 // Load the configuration file.
@@ -13842,8 +13818,7 @@ void OT_API::AddAssetContract(const AssetContract& theContract) const
 void OT_API::SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
                          Message& message) const
 {
-    m_pClient->ProcessMessageOut(pServerContract, pNym, m_pTransportCallback,
-                                 message);
+    m_pClient->ProcessMessageOut(pServerContract, pNym, message);
 }
 
 // Calls SendMessage() and does some request number magic
