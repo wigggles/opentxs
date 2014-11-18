@@ -149,7 +149,6 @@ class OTPasswordData;
 class OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp
 {
 private:
-    friend class OTAsymmetricKey;   // For the factory.
     friend class OTLowLevelKeyData; // For access to OpenSSL-specific calls that
                                     // are otherwise private.
     friend class OTCrypto_OpenSSL;  // For OpenSSL-specific crypto functions to

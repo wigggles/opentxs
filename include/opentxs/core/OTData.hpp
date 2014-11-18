@@ -142,11 +142,6 @@ class OTASCIIArmor;
 
 class OTData
 {
-    friend class OTASCIIArmor;
-    friend class OTIdentifier;
-    friend class OTEnvelope;
-    friend class OTCrypto;
-
 public:
     EXPORT OTData();
     EXPORT OTData(const void* data, uint32_t size);

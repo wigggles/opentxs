@@ -179,13 +179,9 @@ class String;
 
 class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
 {
-private: // Private prevents erroneous use by other classes.
+private:
     typedef OTAsymmetricKey ot_super;
-    friend class OTAsymmetricKey;   // For the factory.
-    friend class OTLowLevelKeyData; // For access to OpenSSL-specific calls that
-                                    // are otherwise private.
-    friend class OTCrypto_OpenSSL;  // For OpenSSL-specific crypto functions to
-                                    // access OpenSSL-specific methods.
+    friend class OTAsymmetricKey; // For the factory.
 public:
     // Load Private Key From Cert String
     //

@@ -403,9 +403,6 @@ EndInterface
     //
     class Storable
 {
-    friend class Storage; // for instantiation of storable objects by their
-                          // storage context.
-
 protected:
     Storable()
         : m_Type("Storable")
