@@ -149,15 +149,6 @@ class OTSettings;
 
 class OTServerConnection
 {
-    OTSocket* m_pSocket;
-    OTMessageBuffer m_listIn;
-    OTMessageBuffer m_listOut;
-
-    OTPseudonym* m_pNym;
-    OTServerContract* m_pServerContract;
-    OTWallet* m_pWallet;
-    OTClient* m_pClient;
-
 public:
     OTServerConnection(OTWallet* theWallet, OTClient* theClient,
                        OTSettings* pConfig);
@@ -187,6 +178,16 @@ public:
 
 private:
     bool send(const OTServerContract& contract, const OTEnvelope& envelope);
+
+private:
+    OTSocket* m_pSocket;
+    OTMessageBuffer m_listIn;
+    OTMessageBuffer m_listOut;
+
+    OTPseudonym* m_pNym;
+    OTServerContract* m_pServerContract;
+    OTWallet* m_pWallet;
+    OTClient* m_pClient;
 };
 
 } // namespace opentxs
