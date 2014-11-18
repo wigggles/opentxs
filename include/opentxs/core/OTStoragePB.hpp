@@ -189,7 +189,7 @@ EndInterface
     class BufferPB : public PackedBuffer
 {
     friend class PackerSubclass<BufferPB>;
-    friend OTInterface IStorablePB;
+    friend class IStorablePB;
     std::string m_buffer;
 
 public:

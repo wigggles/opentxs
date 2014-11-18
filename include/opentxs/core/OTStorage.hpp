@@ -164,10 +164,8 @@
 // Much of OT might be separable out into a more general-purpose utility
 // lib, which I will get to whenever it is more important than anything else.
 //
-#define OTInterface class
-
 #define DeclareInterface(name)                                                 \
-    OTInterface name                                                           \
+    class name                                                                 \
     {                                                                          \
     public:                                                                    \
         virtual ~name()                                                        \
