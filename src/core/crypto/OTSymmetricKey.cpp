@@ -137,7 +137,7 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
@@ -163,7 +163,7 @@ namespace opentxs
 // and does NOT include salt, IV, iteration count, etc when
 // generating the hash for the ID.
 //
-void OTSymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
+void OTSymmetricKey::GetIdentifier(Identifier& theIdentifier) const
 {
     //  const bool bCalc =
     theIdentifier.CalculateDigest(m_dataEncryptedKey);
@@ -171,7 +171,7 @@ void OTSymmetricKey::GetIdentifier(OTIdentifier& theIdentifier) const
 
 void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
 {
-    OTIdentifier theIdentifier;
+    Identifier theIdentifier;
     const bool bCalc = theIdentifier.CalculateDigest(m_dataEncryptedKey);
     if (bCalc) theIdentifier.GetString(strIdentifier);
 }

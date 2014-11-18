@@ -524,22 +524,19 @@ public:
 public:
     OTTransaction(const OTLedger& theOwner);
 
-    EXPORT OTTransaction(const OTIdentifier& theUserID,
-                         const OTIdentifier& theAccountID,
-                         const OTIdentifier& theServerID);
+    EXPORT OTTransaction(const Identifier& theUserID,
+                         const Identifier& theAccountID,
+                         const Identifier& theServerID);
 
-    OTTransaction(const OTIdentifier& theUserID,
-                  const OTIdentifier& theAccountID,
-                  const OTIdentifier& theServerID, int64_t lTransactionNum);
+    OTTransaction(const Identifier& theUserID, const Identifier& theAccountID,
+                  const Identifier& theServerID, int64_t lTransactionNum);
 
     // THIS constructor only used when loading an abbreviated box receipt
     // (inbox, nymbox, or outbox receipt).
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
-    OTTransaction(const OTIdentifier& theUserID,
-                  const OTIdentifier& theAccountID,
-                  const OTIdentifier& theServerID,
-                  const int64_t& lNumberOfOrigin,
+    OTTransaction(const Identifier& theUserID, const Identifier& theAccountID,
+                  const Identifier& theServerID, const int64_t& lNumberOfOrigin,
                   const int64_t& lTransactionNum, const int64_t& lInRefTo,
                   const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
                   transactionType theType, const String& strHash,
@@ -646,11 +643,11 @@ public:
                                                 /// you actually have to load up
                                                 /// the original cheque.)
 
-    EXPORT bool GetSenderUserIDForDisplay(OTIdentifier& theReturnID);
-    EXPORT bool GetRecipientUserIDForDisplay(OTIdentifier& theReturnID);
+    EXPORT bool GetSenderUserIDForDisplay(Identifier& theReturnID);
+    EXPORT bool GetRecipientUserIDForDisplay(Identifier& theReturnID);
 
-    EXPORT bool GetSenderAcctIDForDisplay(OTIdentifier& theReturnID);
-    EXPORT bool GetRecipientAcctIDForDisplay(OTIdentifier& theReturnID);
+    EXPORT bool GetSenderAcctIDForDisplay(Identifier& theReturnID);
+    EXPORT bool GetRecipientAcctIDForDisplay(Identifier& theReturnID);
     EXPORT bool GetMemo(String& strMemo);
 
     inline time64_t GetDateSigned() const
@@ -666,8 +663,8 @@ public:
                                        // it.
 
     EXPORT static OTTransaction* GenerateTransaction(
-        const OTIdentifier& theUserID, const OTIdentifier& theAccountID,
-        const OTIdentifier& theServerID, transactionType theType,
+        const Identifier& theUserID, const Identifier& theAccountID,
+        const Identifier& theServerID, transactionType theType,
         int64_t lTransactionNum = 0);
 
     EXPORT static OTTransaction* GenerateTransaction(
@@ -865,8 +862,8 @@ protected:
     // longer care about this variable at all, and do not save it again, since
     // it can be re-calculated the next time we
     // save again in abbreviated form.
-    OTIdentifier m_Hash; // todo: make this const and force it to be set during
-                         // construction.
+    Identifier m_Hash; // todo: make this const and force it to be set during
+                       // construction.
 
     time64_t m_DATE_SIGNED;  // The date, in seconds, when the instrument was
                              // last signed.

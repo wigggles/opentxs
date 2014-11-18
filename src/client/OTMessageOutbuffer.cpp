@@ -481,7 +481,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
              */
             if (nullptr != pNym) {
                 OT_ASSERT(nullptr != pstrNymID && pstrNymID->Exists());
-                const OTIdentifier MSG_NYM_ID(*pstrNymID);
+                const Identifier MSG_NYM_ID(*pstrNymID);
                 OT_ASSERT(pNym->CompareID(MSG_NYM_ID));
 
                 OT_ASSERT(nullptr != pstrServerID && pstrServerID->Exists());

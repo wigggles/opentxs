@@ -252,7 +252,7 @@ void OTWallet::RemovePendingWithdrawal()
 bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 {
     if (GetNymCount() > 0) {
-        OTIdentifier NYM_ID;
+        Identifier NYM_ID;
         String NYM_NAME;
 
         if (GetNym(0, // index 0
@@ -272,14 +272,14 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 // The wallet presumably has multiple Nyms listed within.
 // I should be able to pass in a Nym ID and, if the Nym is there,
 // the wallet returns a pointer to that nym.
-OTPseudonym* OTWallet::GetNymByID(const OTIdentifier& NYM_ID)
+OTPseudonym* OTWallet::GetNymByID(const Identifier& NYM_ID)
 {
     for (auto& it : m_mapNyms) {
         OTPseudonym* pNym = it.second;
         OT_ASSERT_MSG((nullptr != pNym),
                       "nullptr pseudonym pointer in OTWallet::GetNymByID.");
 
-        OTIdentifier id_CurrentNym;
+        Identifier id_CurrentNym;
         pNym->GetIdentifier(id_CurrentNym);
 
         if (id_CurrentNym == NYM_ID) return pNym;
@@ -349,7 +349,7 @@ int32_t OTWallet::GetAccountCount()
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetNym(int32_t iIndex, OTIdentifier& NYM_ID, String& NYM_NAME)
+bool OTWallet::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
     if (iIndex < GetNymCount() && iIndex >= 0) {
@@ -374,7 +374,7 @@ bool OTWallet::GetNym(int32_t iIndex, OTIdentifier& NYM_ID, String& NYM_NAME)
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetServer(int32_t iIndex, OTIdentifier& THE_ID, String& THE_NAME)
+bool OTWallet::GetServer(int32_t iIndex, Identifier& THE_ID, String& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
     if (iIndex < GetServerCount() && iIndex >= 0) {
@@ -400,7 +400,7 @@ bool OTWallet::GetServer(int32_t iIndex, OTIdentifier& THE_ID, String& THE_NAME)
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
+bool OTWallet::GetAssetType(int32_t iIndex, Identifier& THE_ID,
                             String& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
@@ -427,8 +427,7 @@ bool OTWallet::GetAssetType(int32_t iIndex, OTIdentifier& THE_ID,
 }
 
 // used by high-level wrapper.
-bool OTWallet::GetAccount(int32_t iIndex, OTIdentifier& THE_ID,
-                          String& THE_NAME)
+bool OTWallet::GetAccount(int32_t iIndex, Identifier& THE_ID, String& THE_NAME)
 {
     // if iIndex is within proper bounds (0 through count minus 1)
     if (iIndex < GetAccountCount() && iIndex >= 0) {
@@ -521,8 +520,8 @@ void OTWallet::DisplayStatistics(String& strOutput)
 //
 void OTWallet::AddNym(const OTPseudonym& theNym)
 {
-    const OTIdentifier NYM_ID(theNym);
-    OTIdentifier aNymID;
+    const Identifier NYM_ID(theNym);
+    Identifier aNymID;
 
     String strName;
 
@@ -558,12 +557,12 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
 
 void OTWallet::AddAccount(const Account& theAcct)
 {
-    const OTIdentifier ACCOUNT_ID(theAcct);
+    const Identifier ACCOUNT_ID(theAcct);
 
     // See if there is already an account object on this wallet with the same ID
     // (Otherwise if we don't delete it, this would be a memory leak.)
     // Should use a smart pointer.
-    OTIdentifier anAccountID;
+    Identifier anAccountID;
 
     for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
         Account* pAccount = it->second;
@@ -593,7 +592,7 @@ void OTWallet::AddAccount(const Account& theAcct)
 
 // Look up an account by ID and see if it is in the wallet.
 // If it is, return a pointer to it, otherwise return nullptr.
-Account* OTWallet::GetAccount(const OTIdentifier& theAccountID)
+Account* OTWallet::GetAccount(const Identifier& theAccountID)
 {
     // loop through the accounts and find one with a specific ID.
     //
@@ -601,7 +600,7 @@ Account* OTWallet::GetAccount(const OTIdentifier& theAccountID)
         Account* pAccount = it.second;
         OT_ASSERT(nullptr != pAccount);
 
-        OTIdentifier anAccountID;
+        Identifier anAccountID;
         pAccount->GetIdentifier(anAccountID);
 
         if (anAccountID == theAccountID) return pAccount;
@@ -620,7 +619,7 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
         Account* pAccount = it.second;
         OT_ASSERT(nullptr != pAccount);
 
-        OTIdentifier anAccountID;
+        Identifier anAccountID;
         pAccount->GetIdentifier(anAccountID);
         String strTemp(anAccountID);
         std::string strIdentifier = strTemp.Get();
@@ -646,7 +645,7 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
     return nullptr;
 }
 
-Account* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
+Account* OTWallet::GetIssuerAccount(const Identifier& theAssetTypeID)
 {
     // loop through the accounts and find one with a specific asset type ID.
     // (And with the issuer type set.)
@@ -664,7 +663,7 @@ Account* OTWallet::GetIssuerAccount(const OTIdentifier& theAssetTypeID)
 }
 
 // Pass in the Server ID and get the pointer back.
-OTServerContract* OTWallet::GetServerContract(const OTIdentifier& SERVER_ID)
+OTServerContract* OTWallet::GetServerContract(const Identifier& SERVER_ID)
 {
     for (auto& it : m_mapServers) {
         Contract* pServer = it.second;
@@ -672,7 +671,7 @@ OTServerContract* OTWallet::GetServerContract(const OTIdentifier& SERVER_ID)
                                             "OTWallet::m_mapServers, "
                                             "OTWallet::GetServerContract");
 
-        OTIdentifier id_CurrentContract;
+        Identifier id_CurrentContract;
         pServer->GetIdentifier(id_CurrentContract);
 
         if (id_CurrentContract == SERVER_ID)
@@ -691,7 +690,7 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
                                             "OTWallet::m_mapServers, "
                                             "OTWallet::GetServerContract");
 
-        OTIdentifier id_CurrentContract;
+        Identifier id_CurrentContract;
         pServer->GetIdentifier(id_CurrentContract);
 
         String strTemp(id_CurrentContract);
@@ -724,7 +723,7 @@ OTServerContract* OTWallet::GetServerContractPartialMatch(
 // So make SURE you allocate it on the heap.
 void OTWallet::AddServerContract(const OTServerContract& theContract)
 {
-    OTIdentifier CONTRACT_ID(theContract);
+    Identifier CONTRACT_ID(theContract);
     String STR_CONTRACT_ID(CONTRACT_ID);
 
     OTServerContract* pContract = GetServerContract(CONTRACT_ID);
@@ -751,7 +750,7 @@ void OTWallet::AddServerContract(const OTServerContract& theContract)
 // So make SURE you allocate it on the heap.
 void OTWallet::AddAssetContract(const AssetContract& theContract)
 {
-    OTIdentifier CONTRACT_ID(theContract);
+    Identifier CONTRACT_ID(theContract);
     String STR_CONTRACT_ID(CONTRACT_ID);
 
     AssetContract* pContract = GetAssetContract(CONTRACT_ID);
@@ -775,7 +774,7 @@ void OTWallet::AddAssetContract(const AssetContract& theContract)
 }
 
 bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
-                                  const OTIdentifier& SERVER_ID,
+                                  const Identifier& SERVER_ID,
                                   const String& strAcctID,
                                   const char* szFuncName)
 {
@@ -791,7 +790,7 @@ bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
         return false;
     }
 
-    const OTIdentifier theNymID(theNym);
+    const Identifier theNymID(theNym);
     const String strNymID(theNymID);
 
     if (!theAcct.VerifyOwner(theNym)) // Verifies Ownership.
@@ -820,8 +819,8 @@ bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
 // No need to cleanup the account returned, it's owned by the wallet.
 //
 Account* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
-                                    const OTIdentifier& ACCT_ID,
-                                    const OTIdentifier& SERVER_ID,
+                                    const Identifier& ACCT_ID,
+                                    const Identifier& SERVER_ID,
                                     const char* szFuncName)
 {
     const char* szFunc =
@@ -861,8 +860,8 @@ Account* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
 // is being called to load the new one from storage and update the wallet.
 //
 Account* OTWallet::LoadAccount(const OTPseudonym& theNym,
-                               const OTIdentifier& ACCT_ID,
-                               const OTIdentifier& SERVER_ID,
+                               const Identifier& ACCT_ID,
+                               const Identifier& SERVER_ID,
                                const char* szFuncName)
 {
     const char* szFunc =
@@ -907,7 +906,7 @@ Account* OTWallet::LoadAccount(const OTPseudonym& theNym,
 // This function only tries to load as a public Nym.
 // No need to cleanup, since it adds the Nym to the wallet.
 //
-OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
+OTPseudonym* OTWallet::GetOrLoadPublicNym(const Identifier& NYM_ID,
                                           const char* szFuncName)
 {
     const String strNymID(NYM_ID);
@@ -953,7 +952,7 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const OTIdentifier& NYM_ID,
 // sees that it's only a public nym (no private key) then it
 // reloads it as a private nym at that time.
 //
-OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
+OTPseudonym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID,
                                            bool bChecking,
                                            const char* szFuncName,
                                            const OTPasswordData* pPWData,
@@ -1070,7 +1069,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const OTIdentifier& NYM_ID,
 // No need to cleanup, since either function called will add the loaded
 // Nym to the wallet, which will take ownership.
 //
-OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID, bool bChecking,
+OTPseudonym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
                                     const char* szFuncName,
                                     const OTPasswordData* pPWData)
 {
@@ -1098,7 +1097,7 @@ OTPseudonym* OTWallet::GetOrLoadNym(const OTIdentifier& NYM_ID, bool bChecking,
 
 // higher level version of this will require a server message, in addition to
 // removing from wallet.
-bool OTWallet::RemoveNym(const OTIdentifier& theTargetID)
+bool OTWallet::RemoveNym(const Identifier& theTargetID)
 {
     for (auto it(m_mapNyms.begin()); it != m_mapNyms.end(); ++it) {
         OTPseudonym* pNym = it->second;
@@ -1113,7 +1112,7 @@ bool OTWallet::RemoveNym(const OTIdentifier& theTargetID)
             // ID from that set.
             //
             for (const auto& it_master : m_setNymsOnCachedKey) {
-                const OTIdentifier& theNymID = it_master;
+                const Identifier& theNymID = it_master;
                 if (theTargetID == theNymID) {
                     m_setNymsOnCachedKey.erase(it_master);
                     break;
@@ -1128,11 +1127,11 @@ bool OTWallet::RemoveNym(const OTIdentifier& theTargetID)
     return false;
 }
 
-bool OTWallet::RemoveAssetContract(const OTIdentifier& theTargetID)
+bool OTWallet::RemoveAssetContract(const Identifier& theTargetID)
 {
     // loop through the items that make up this transaction and print them out
     // here, base64-encoded, of course.
-    OTIdentifier aContractID;
+    Identifier aContractID;
 
     for (auto it(m_mapContracts.begin()); it != m_mapContracts.end(); ++it) {
         AssetContract* pContract = it->second;
@@ -1152,7 +1151,7 @@ bool OTWallet::RemoveAssetContract(const OTIdentifier& theTargetID)
     return false;
 }
 
-bool OTWallet::RemoveServerContract(const OTIdentifier& theTargetID)
+bool OTWallet::RemoveServerContract(const Identifier& theTargetID)
 {
     for (auto it(m_mapServers.begin()); it != m_mapServers.end(); ++it) {
         Contract* pServer = it->second;
@@ -1160,7 +1159,7 @@ bool OTWallet::RemoveServerContract(const OTIdentifier& theTargetID)
                                             "OTWallet::m_mapServers, "
                                             "OTWallet::RemoveServerContract");
 
-        OTIdentifier id_CurrentContract;
+        Identifier id_CurrentContract;
         pServer->GetIdentifier(id_CurrentContract);
 
         if (id_CurrentContract == theTargetID) {
@@ -1179,10 +1178,10 @@ bool OTWallet::RemoveServerContract(const OTIdentifier& theTargetID)
 
 // higher level version of this will require a server message, in addition to
 // removing from wallet.
-bool OTWallet::RemoveAccount(const OTIdentifier& theTargetID)
+bool OTWallet::RemoveAccount(const Identifier& theTargetID)
 {
     // loop through the accounts and find one with a specific ID.
-    OTIdentifier anAccountID;
+    Identifier anAccountID;
 
     for (auto it(m_mapAccounts.begin()); it != m_mapAccounts.end(); ++it) {
         Account* pAccount = it->second;
@@ -1200,13 +1199,13 @@ bool OTWallet::RemoveAccount(const OTIdentifier& theTargetID)
     return false;
 }
 
-AssetContract* OTWallet::GetAssetContract(const OTIdentifier& theContractID)
+AssetContract* OTWallet::GetAssetContract(const Identifier& theContractID)
 {
     for (auto& it : m_mapContracts) {
         AssetContract* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
-        OTIdentifier aContractID;
+        Identifier aContractID;
         pContract->GetIdentifier(aContractID);
 
         if (aContractID == theContractID) return pContract;
@@ -1222,7 +1221,7 @@ AssetContract* OTWallet::GetAssetContractPartialMatch(
         AssetContract* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
-        OTIdentifier aContractID;
+        Identifier aContractID;
         pContract->GetIdentifier(aContractID);
 
         String strTemp(aContractID);
@@ -1309,7 +1308,7 @@ bool OTWallet::SaveContract(String& strContract)
     // in LoadWallet before the Nyms themselves are loaded.
     //
     for (const auto& it : m_setNymsOnCachedKey) {
-        const OTIdentifier& theNymID = it;
+        const Identifier& theNymID = it;
         String strNymID(theNymID);
 
         strContract.Concatenate("<nymUsingCachedKey id=\"%s\" />\n\n",
@@ -1773,7 +1772,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         OT_FAIL;
                     }
 
-                    const OTIdentifier theNymID(NymID);
+                    const Identifier theNymID(NymID);
 
                     m_setNymsOnCachedKey.insert(theNymID);
                 }
@@ -1828,7 +1827,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         OT_FAIL;
                     }
 
-                    const OTIdentifier theNymID(NymID);
+                    const Identifier theNymID(NymID);
 
                     // What's going on here? We need to see if the MASTER KEY
                     // exists at this point. If it's GENERATED.
@@ -2001,7 +2000,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                            << "\n   Account ID: " << AcctID
                            << "\n    Server ID: " << ServerID << "\n";
 
-                    const OTIdentifier ACCOUNT_ID(AcctID), SERVER_ID(ServerID);
+                    const Identifier ACCOUNT_ID(AcctID), SERVER_ID(ServerID);
 
                     Account* pAccount =
                         Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
@@ -2139,8 +2138,8 @@ bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
 // already.)
 // Todo: serialize?
 //
-bool OTWallet::IsNymOnCachedKey(const OTIdentifier& needle) const // needle and
-                                                                  // haystack.
+bool OTWallet::IsNymOnCachedKey(const Identifier& needle) const // needle and
+                                                                // haystack.
 {
     for (const auto& it : m_setNymsOnCachedKey) {
         if (needle == it) return true;

@@ -143,14 +143,14 @@ namespace opentxs
 {
 
 PayDividendVisitor::PayDividendVisitor(
-    const OTIdentifier& theServerID, const OTIdentifier& theUserID,
-    const OTIdentifier& thePayoutAssetID, const OTIdentifier& theVoucherAcctID,
+    const Identifier& theServerID, const Identifier& theUserID,
+    const Identifier& thePayoutAssetID, const Identifier& theVoucherAcctID,
     const String& strMemo, OTServer& theServer, int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
     : AccountVisitor(theServerID, pLoadedAccounts)
-    , m_pUserID(new OTIdentifier(theUserID))
-    , m_pPayoutAssetID(new OTIdentifier(thePayoutAssetID))
-    , m_pVoucherAcctID(new OTIdentifier(theVoucherAcctID))
+    , m_pUserID(new Identifier(theUserID))
+    , m_pPayoutAssetID(new Identifier(thePayoutAssetID))
+    , m_pVoucherAcctID(new Identifier(theVoucherAcctID))
     , m_pstrMemo(new String(strMemo))
     , m_pServer(&theServer)
     , m_lPayoutPerShare(lPayoutPerShare)
@@ -198,19 +198,19 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                      // Success!
     }
     OT_ASSERT(nullptr != GetServerID());
-    const OTIdentifier& theServerID = *(GetServerID());
+    const Identifier& theServerID = *(GetServerID());
     OT_ASSERT(nullptr != GetPayoutAssetID());
-    const OTIdentifier& thePayoutAssetID = *(GetPayoutAssetID());
+    const Identifier& thePayoutAssetID = *(GetPayoutAssetID());
     OT_ASSERT(nullptr != GetVoucherAcctID());
-    const OTIdentifier& theVoucherAcctID = *(GetVoucherAcctID());
+    const Identifier& theVoucherAcctID = *(GetVoucherAcctID());
     OT_ASSERT(nullptr != GetServer());
     OTServer& theServer = *(GetServer());
     OTPseudonym& theServerNym =
         const_cast<OTPseudonym&>(theServer.GetServerNym());
-    const OTIdentifier theServerNymID(theServerNym);
-    const OTIdentifier& RECIPIENT_ID = theSharesAccount.GetUserID();
+    const Identifier theServerNymID(theServerNym);
+    const Identifier& RECIPIENT_ID = theSharesAccount.GetUserID();
     OT_ASSERT(nullptr != GetUserID());
-    const OTIdentifier& theSenderUserID = *(GetUserID());
+    const Identifier& theSenderUserID = *(GetUserID());
     OT_ASSERT(nullptr != GetMemo());
     const String& strMemo = *(GetMemo());
     // Note: theSenderUserID is the originator of the Dividend Payout.

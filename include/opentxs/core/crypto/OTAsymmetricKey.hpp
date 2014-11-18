@@ -142,7 +142,7 @@ namespace opentxs
 class OTASCIIArmor;
 class OTAsymmetricKey;
 class OTCaller;
-class OTIdentifier;
+class Identifier;
 class OTPassword;
 class OTSignatureMetadata;
 class String;
@@ -363,8 +363,8 @@ public: // DESTRUCTION
     // Ultimately
     // the best solution here is an extern hardware such as a smart card.
 
-    virtual bool CalculateID(OTIdentifier& theOutput) const; // Only works for
-                                                             // public keys.
+    virtual bool CalculateID(Identifier& theOutput) const; // Only works for
+                                                           // public keys.
 
     // Load private or public key from local storage.
     //

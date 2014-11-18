@@ -687,7 +687,7 @@ String::String()
 // This constructor gets the string version of the ID passed in,
 // and sets that string on this object. (For when you need a string
 // version of an ID.)
-String::String(const OTIdentifier& theValue)
+String::String(const Identifier& theValue)
     : length_(0)
     , position_(0)
     , data_(nullptr)

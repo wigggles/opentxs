@@ -976,7 +976,7 @@ OTPartyAccount    * GetPartyAccountByID(const OTIdentifier& theAcctID);
 // Otherwise, if it wasn't empty (it had been already set) then
 // it will fail to set in this call, and return false.
 //
-bool OTSmartContract::SetServerIDIfEmpty(const OTIdentifier& theID)
+bool OTSmartContract::SetServerIDIfEmpty(const Identifier& theID)
 {
     if (GetServerID().IsEmpty()) {
         SetServerID(theID);
@@ -1023,7 +1023,7 @@ void OTSmartContract::GetAllTransactionNumbers(OTNumList& numlistOutput) const
     }
 }
 
-int64_t OTSmartContract::GetOpeningNumber(const OTIdentifier& theNymID) const
+int64_t OTSmartContract::GetOpeningNumber(const Identifier& theNymID) const
 {
     OTAgent* pAgent = nullptr;
     OTParty* pParty = FindPartyBasedOnNymIDAsAgent(theNymID, &pAgent);
@@ -1038,7 +1038,7 @@ int64_t OTSmartContract::GetOpeningNumber(const OTIdentifier& theNymID) const
     return 0;
 }
 
-int64_t OTSmartContract::GetClosingNumber(const OTIdentifier& theAcctID) const
+int64_t OTSmartContract::GetClosingNumber(const Identifier& theAcctID) const
 {
     OTPartyAccount* pPartyAcct =
         GetPartyAccountByID(theAcctID); // from OTScriptable.
@@ -1295,7 +1295,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    OTIdentifier theFromAgentID;
+    Identifier theFromAgentID;
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1310,18 +1310,18 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
         return 0;
     }
 
-    const OTIdentifier theFromAcctID(pFromAcct->GetAcctID());
+    const Identifier theFromAcctID(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
-    const OTIdentifier SERVER_ID(pCron->GetServerID());
-    const OTIdentifier SERVER_USER_ID(*pServerNym);
+    const Identifier SERVER_ID(pCron->GetServerID());
+    const Identifier SERVER_USER_ID(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
     const String strPartyID(str_party_id);
-    const OTIdentifier PARTY_USER_ID(strPartyID);
+    const Identifier PARTY_USER_ID(strPartyID);
 
-    const OTIdentifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
+    const Identifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
     //
@@ -1512,7 +1512,7 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    OTIdentifier theFromAgentID;
+    Identifier theFromAgentID;
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1527,18 +1527,18 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
         return str_return_value;
     }
 
-    const OTIdentifier theFromAcctID(pFromAcct->GetAcctID());
+    const Identifier theFromAcctID(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
-    const OTIdentifier SERVER_ID(pCron->GetServerID());
-    const OTIdentifier SERVER_USER_ID(*pServerNym);
+    const Identifier SERVER_ID(pCron->GetServerID());
+    const Identifier SERVER_USER_ID(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
     const String strPartyID(str_party_id);
-    const OTIdentifier PARTY_USER_ID(strPartyID);
+    const Identifier PARTY_USER_ID(strPartyID);
 
-    const OTIdentifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
+    const Identifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
 
     // Load up the party's account and get the asset type.
     //
@@ -1965,7 +1965,7 @@ bool OTSmartContract::StashAcctFunds(std::string from_acct_name,
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    OTIdentifier theFromAgentID;
+    Identifier theFromAgentID;
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1980,7 +1980,7 @@ bool OTSmartContract::StashAcctFunds(std::string from_acct_name,
         return false;
     }
 
-    const OTIdentifier theFromAcctID(pFromAcct->GetAcctID());
+    const Identifier theFromAcctID(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
@@ -2195,7 +2195,7 @@ bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    OTIdentifier theToAgentID;
+    Identifier theToAgentID;
     const bool bToAgentID = pToAgent->GetSignerID(theToAgentID);
 
     if (!bToAgentID) {
@@ -2210,7 +2210,7 @@ bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
         return false;
     }
 
-    const OTIdentifier theToAcctID(pToAcct->GetAcctID());
+    const Identifier theToAcctID(pToAcct->GetAcctID());
     //
     // BELOW THIS POINT, theToAcctID and theToAgentID available.
 
@@ -2257,8 +2257,8 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                                                          // means UNstash.
                                                          // Positive means
                                                          // STASH.
-                                 const OTIdentifier& PARTY_ACCT_ID,
-                                 const OTIdentifier& PARTY_USER_ID,
+                                 const Identifier& PARTY_ACCT_ID,
+                                 const Identifier& PARTY_USER_ID,
                                  OTStash& theStash)
 {
     OTCron* pCron = GetCron();
@@ -2272,8 +2272,8 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
 
-    const OTIdentifier SERVER_ID(pCron->GetServerID());
-    const OTIdentifier SERVER_USER_ID(*pServerNym);
+    const Identifier SERVER_ID(pCron->GetServerID());
+    const Identifier SERVER_USER_ID(*pServerNym);
 
     // Load up the party's account and get the asset type, so we know which
     // stash to get off the stash.
@@ -2423,7 +2423,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     // account to transfer
     // to itself, there would be no difference in balance than disallowing it.)
     //
-    const OTIdentifier STASH_ACCT_ID(pStashAccount->GetRealAccountID());
+    const Identifier STASH_ACCT_ID(pStashAccount->GetRealAccountID());
 
     if (PARTY_ACCT_ID == STASH_ACCT_ID) {
         otErr << "OTSmartContract::StashFunds: ERROR: both account IDs were "
@@ -2448,7 +2448,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         FlagForRemoval(); // Remove from Cron
         return false;
     }
-    const OTIdentifier STASH_USER_ID(pStashAccount->GetUserID());
+    const Identifier STASH_USER_ID(pStashAccount->GetUserID());
 
     bool bSuccess = false; // The return value.
 
@@ -3270,7 +3270,7 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
     // then we can error out here if he's not.  We can then pass in his Nym ID
     //
 
-    OTIdentifier theFromAgentID, theToAgentID;
+    Identifier theFromAgentID, theToAgentID;
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
     const bool bToAgentID = pToAgent->GetSignerID(theToAgentID);
 
@@ -3296,7 +3296,7 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
         return false;
     }
 
-    const OTIdentifier theFromAcctID(pFromAcct->GetAcctID()),
+    const Identifier theFromAcctID(pFromAcct->GetAcctID()),
         theToAcctID(pToAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID, theFromAgentID, theToAcctID, and
@@ -3547,7 +3547,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
 
         // pServerNym
         {
-            const OTIdentifier theServerNymID(*pServerNym);
+            const Identifier theServerNymID(*pServerNym);
             const String strServerNymID(theServerNymID);
 
             if (nym_map.end() == nym_map.find(strServerNymID.Get()))
@@ -3557,7 +3557,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
 
         // theOriginator
         {
-            const OTIdentifier theOriginatorNymID(theOriginator);
+            const Identifier theOriginatorNymID(theOriginator);
             const String strOriginatorNymID(theOriginatorNymID);
 
             if (nym_map.end() == nym_map.find(strOriginatorNymID.Get()))
@@ -3566,7 +3566,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         }
 
         if (nullptr != pActingNym) {
-            const OTIdentifier theActingNymID(*pActingNym);
+            const Identifier theActingNymID(*pActingNym);
             const String strActingNymID(theActingNymID);
 
             if (nym_map.end() == nym_map.find(strActingNymID.Get()))
@@ -3575,7 +3575,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         }
 
         if (nullptr != pPartyNym) {
-            const OTIdentifier thePartyNymID(*pPartyNym);
+            const Identifier thePartyNymID(*pPartyNym);
             const String strPartyNymID(thePartyNymID);
 
             if (nym_map.end() == nym_map.find(strPartyNymID.Get()))
@@ -5303,7 +5303,7 @@ OTSmartContract::OTSmartContract()
     InitSmartContract();
 }
 
-OTSmartContract::OTSmartContract(const OTIdentifier& SERVER_ID)
+OTSmartContract::OTSmartContract(const Identifier& SERVER_ID)
     : ot_super()
     , m_StashAccts(Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
@@ -5550,8 +5550,8 @@ void OTSmartContract::ReleaseLastSenderRecipientIDs()
 //
 void OTSmartContract::PrepareToActivate(const int64_t& lOpeningTransNo,
                                         const int64_t& lClosingTransNo,
-                                        const OTIdentifier& theUserID,
-                                        const OTIdentifier& theAcctID)
+                                        const Identifier& theUserID,
+                                        const Identifier& theAcctID)
 {
     SetTransactionNum(lOpeningTransNo);
 
@@ -5611,15 +5611,15 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("cancelerUserID"));
 
         if (strServerID.Exists()) {
-            const OTIdentifier SERVER_ID(strServerID);
+            const Identifier SERVER_ID(strServerID);
             SetServerID(SERVER_ID);
         }
         if (strActivatorUserID.Exists()) {
-            const OTIdentifier ACTIVATOR_USER_ID(strActivatorUserID);
+            const Identifier ACTIVATOR_USER_ID(strActivatorUserID);
             SetSenderUserID(ACTIVATOR_USER_ID);
         }
         if (strActivatorAcctID.Exists()) {
-            const OTIdentifier ACTIVATOR_ACCT_ID(strActivatorAcctID);
+            const Identifier ACTIVATOR_ACCT_ID(strActivatorAcctID);
             SetSenderAcctID(ACTIVATOR_ACCT_ID);
         }
 
@@ -5739,10 +5739,10 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 //
 bool OTSmartContract::MoveFunds(
     const mapOfNyms& map_NymsAlreadyLoaded, const int64_t& lAmount,
-    const OTIdentifier& SOURCE_ACCT_ID,    // GetSenderAcctID();
-    const OTIdentifier& SENDER_USER_ID,    // GetSenderUserID();
-    const OTIdentifier& RECIPIENT_ACCT_ID, // GetRecipientAcctID();
-    const OTIdentifier& RECIPIENT_USER_ID) // GetRecipientUserID();
+    const Identifier& SOURCE_ACCT_ID,    // GetSenderAcctID();
+    const Identifier& SENDER_USER_ID,    // GetSenderUserID();
+    const Identifier& RECIPIENT_ACCT_ID, // GetRecipientAcctID();
+    const Identifier& RECIPIENT_USER_ID) // GetRecipientUserID();
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -5758,8 +5758,8 @@ bool OTSmartContract::MoveFunds(
 
     bool bSuccess = false; // The return value.
 
-    const OTIdentifier SERVER_ID(pCron->GetServerID());
-    const OTIdentifier SERVER_USER_ID(*pServerNym);
+    const Identifier SERVER_ID(pCron->GetServerID());
+    const Identifier SERVER_USER_ID(*pServerNym);
 
     String strSenderUserID(SENDER_USER_ID),
         strRecipientUserID(RECIPIENT_USER_ID), strSourceAcctID(SOURCE_ACCT_ID),

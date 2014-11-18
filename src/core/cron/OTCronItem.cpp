@@ -261,7 +261,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
 // static
 OTCronItem* OTCronItem::LoadActiveCronReceipt(
     const int64_t& lTransactionNum,
-    const OTIdentifier& serverID) // Client-side only.
+    const Identifier& serverID) // Client-side only.
 {
     String strFilename, strServerID(serverID);
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
@@ -301,8 +301,8 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
 // static
 // Client-side only.
 bool OTCronItem::GetActiveCronTransNums(OTNumList& output,
-                                        const OTIdentifier& nymID,
-                                        const OTIdentifier& serverID)
+                                        const Identifier& nymID,
+                                        const Identifier& serverID)
 {
     const char* szFoldername = OTFolders::Cron().Get();
 
@@ -342,8 +342,8 @@ bool OTCronItem::GetActiveCronTransNums(OTNumList& output,
 // static
 // Client-side only.
 bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
-                                        const OTIdentifier& nymID,
-                                        const OTIdentifier& serverID)
+                                        const Identifier& nymID,
+                                        const Identifier& serverID)
 {
     String strFilename, strServerID(serverID);
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
@@ -451,7 +451,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
 }
 
 bool OTCronItem::SaveActiveCronReceipt(
-    const OTIdentifier& theNymID) // Client-side only.
+    const Identifier& theNymID) // Client-side only.
 {
     const int64_t lOpeningNum = GetOpeningNumber(theNymID);
 
@@ -935,7 +935,7 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
             // but for whatever reason, I'm checking the userID on the original
             // version. Sue me.
             //
-            const OTIdentifier NYM_ID(pOrigCronItem->GetSenderUserID());
+            const Identifier NYM_ID(pOrigCronItem->GetSenderUserID());
 
             theOriginatorNym.SetIdentifier(NYM_ID);
 
@@ -1054,7 +1054,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         // remains ISSUED, until the final receipt itself is accepted during a
         // process inbox.
         //
-        const OTIdentifier& ACTUAL_NYM_ID = GetSenderUserID();
+        const Identifier& ACTUAL_NYM_ID = GetSenderUserID();
         OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
         if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
@@ -1159,7 +1159,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 // transaction number.
 //
 bool OTCronItem::DropFinalReceiptToInbox(
-    const OTIdentifier& USER_ID, const OTIdentifier& ACCOUNT_ID,
+    const Identifier& USER_ID, const Identifier& ACCOUNT_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
     Account* pActualAcct)
@@ -1344,7 +1344,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 // ref to" number
 // from your issued list (so your balance agreements will work :P)
 //
-bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
+bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
                                           const int64_t& lNewTransactionNumber,
                                           const String& strOrigCronItem,
                                           String* pstrNote,
@@ -1477,7 +1477,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
 
         // TODO: Better rollback capabilities in case of failures here:
 
-        OTIdentifier theNymboxHash;
+        Identifier theNymboxHash;
 
         // Save nymbox to storage. (File, DB, wherever it goes.)
         theLedger.SaveNymbox(&theNymboxHash);
@@ -1490,7 +1490,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const OTIdentifier& USER_ID,
         // Update the NymboxHash (in the nymfile.)
         //
 
-        const OTIdentifier ACTUAL_NYM_ID = USER_ID;
+        const Identifier ACTUAL_NYM_ID = USER_ID;
         OTPseudonym theActualNym; // unused unless it's really not already
                                   // loaded. (use pActualNym.)
 
@@ -1578,18 +1578,18 @@ bool OTCronItem::IsValidOpeningNumber(const int64_t& lOpeningNum) const
     return false;
 }
 
-int64_t OTCronItem::GetOpeningNumber(const OTIdentifier& theNymID) const
+int64_t OTCronItem::GetOpeningNumber(const Identifier& theNymID) const
 {
-    const OTIdentifier& theSenderNymID = GetSenderUserID();
+    const Identifier& theSenderNymID = GetSenderUserID();
 
     if (theNymID == theSenderNymID) return GetOpeningNum();
 
     return 0;
 }
 
-int64_t OTCronItem::GetClosingNumber(const OTIdentifier& theAcctID) const
+int64_t OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
 {
-    const OTIdentifier& theSenderAcctID = GetSenderAcctID();
+    const Identifier& theSenderAcctID = GetSenderAcctID();
 
     if (theAcctID == theSenderAcctID) return GetClosingNum();
 
@@ -1681,15 +1681,14 @@ OTCronItem::OTCronItem()
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
     , // Default for any cron item is to execute once per second.
-    m_pCancelerNymID(new OTIdentifier)
+    m_pCancelerNymID(new Identifier)
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
 {
     InitCronItem();
 }
 
-OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
-                       const OTIdentifier& ASSET_ID)
+OTCronItem::OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
@@ -1698,16 +1697,15 @@ OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
     , // Default for any cron item is to execute once per second.
-    m_pCancelerNymID(new OTIdentifier)
+    m_pCancelerNymID(new Identifier)
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
 {
     InitCronItem();
 }
 
-OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
-                       const OTIdentifier& ASSET_ID,
-                       const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID)
+OTCronItem::OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+                       const Identifier& ACCT_ID, const Identifier& USER_ID)
     : ot_super(SERVER_ID, ASSET_ID, ACCT_ID, USER_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
@@ -1716,7 +1714,7 @@ OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
     , // Default for any cron item is to execute once per second.
-    m_pCancelerNymID(new OTIdentifier)
+    m_pCancelerNymID(new Identifier)
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
 
@@ -1724,7 +1722,7 @@ OTCronItem::OTCronItem(const OTIdentifier& SERVER_ID,
     InitCronItem();
 }
 
-bool OTCronItem::GetCancelerID(OTIdentifier& theOutput) const
+bool OTCronItem::GetCancelerID(Identifier& theOutput) const
 {
     if (!IsCanceled()) {
         theOutput.Release();

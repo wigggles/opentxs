@@ -175,7 +175,7 @@ void OTServerConnection::OnServerResponseToGetRequestNumber(
     }
 }
 
-bool OTServerConnection::GetServerID(OTIdentifier& theID) const
+bool OTServerConnection::GetServerID(Identifier& theID) const
 {
     if (m_pServerContract) {
         m_pServerContract->GetIdentifier(theID);

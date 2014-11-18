@@ -170,8 +170,8 @@ private:
     mapOfMarkets m_mapMarkets;     // A list of all valid markets.
     mapOfCronItems m_mapCronItems; // Cron Items are found on both lists.
     multimapOfCronItems m_multimapCronItems;
-    OTIdentifier m_SERVER_ID; // Always store this in any object that's
-                              // associated with a specific server.
+    Identifier m_SERVER_ID; // Always store this in any object that's
+                            // associated with a specific server.
 
     listOfLongNumbers m_listTransactionNumbers; // I can't put receipts in
                                                 // people's inboxes without a
@@ -246,19 +246,19 @@ public:
     // MARKETS
     //
     bool AddMarket(OTMarket& theMarket, bool bSaveMarketFile = true);
-    bool RemoveMarket(const OTIdentifier& MARKET_ID); // if returns false,
-                                                      // market wasn't found.
+    bool RemoveMarket(const Identifier& MARKET_ID); // if returns false,
+                                                    // market wasn't found.
 
-    EXPORT OTMarket* GetMarket(const OTIdentifier& MARKET_ID);
-    OTMarket* GetOrCreateMarket(const OTIdentifier& ASSET_ID,
-                                const OTIdentifier& CURRENCY_ID,
+    EXPORT OTMarket* GetMarket(const Identifier& MARKET_ID);
+    OTMarket* GetOrCreateMarket(const Identifier& ASSET_ID,
+                                const Identifier& CURRENCY_ID,
                                 const int64_t& lScale);
     // This is informational only. It returns OTStorage-type data objects,
     // packed in a string.
     //
     EXPORT bool GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount);
     EXPORT bool GetNym_OfferList(OTASCIIArmor& ascOutput,
-                                 const OTIdentifier& NYM_ID,
+                                 const Identifier& NYM_ID,
                                  int32_t& nOfferCount);
     // TRANSACTION NUMBERS
     //
@@ -286,11 +286,11 @@ public:
     //
     EXPORT void ProcessCronItems();
 
-    inline void SetServerID(const OTIdentifier& SERVER_ID)
+    inline void SetServerID(const Identifier& SERVER_ID)
     {
         m_SERVER_ID = SERVER_ID;
     }
-    inline const OTIdentifier& GetServerID() const
+    inline const Identifier& GetServerID() const
     {
         return m_SERVER_ID;
     }
@@ -309,7 +309,7 @@ public:
     EXPORT bool SaveCron();
 
     EXPORT OTCron();
-    OTCron(const OTIdentifier& SERVER_ID);
+    OTCron(const Identifier& SERVER_ID);
     OTCron(const char* szFilename);
 
     EXPORT virtual ~OTCron();

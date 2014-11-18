@@ -174,15 +174,15 @@ private:
     mapOfOffersTrnsNum m_mapOffers; // All of the offers on a single list,
                                     // ordered by transaction number.
 
-    OTIdentifier m_SERVER_ID; // Always store this in any object that's
-                              // associated with a specific server.
+    Identifier m_SERVER_ID; // Always store this in any object that's
+                            // associated with a specific server.
 
     // Every market involves a certain asset type being traded in a certain
     // currency.
-    OTIdentifier m_ASSET_TYPE_ID; // This is the GOLD market. (Say.)    | (GOLD
-                                  // for
-    OTIdentifier m_CURRENCY_TYPE_ID; // Gold is trading for DOLLARS.        |
-                                     // DOLLARS, for example.)
+    Identifier m_ASSET_TYPE_ID;    // This is the GOLD market. (Say.)    | (GOLD
+                                   // for
+    Identifier m_CURRENCY_TYPE_ID; // Gold is trading for DOLLARS.        |
+                                   // DOLLARS, for example.)
 
     // Each Offer on the market must have a minimum increment that this divides
     // equally into.
@@ -230,7 +230,7 @@ public:
                                    int32_t& nTradeCount);
 
     // Returns more detailed information about offers for a specific Nym.
-    bool GetNym_OfferList(const OTIdentifier& NYM_ID,
+    bool GetNym_OfferList(const Identifier& NYM_ID,
                           OTDB::OfferListNym& theOutputList,
                           int32_t& nNymOfferCount);
 
@@ -255,28 +255,28 @@ public:
     {
         return m_mapAsks.size();
     }
-    void SetAssetID(const OTIdentifier& ASSET_ID)
+    void SetAssetID(const Identifier& ASSET_ID)
     {
         m_ASSET_TYPE_ID = ASSET_ID;
     }
-    void SetCurrencyID(const OTIdentifier& CURRENCY_ID)
+    void SetCurrencyID(const Identifier& CURRENCY_ID)
     {
         m_CURRENCY_TYPE_ID = CURRENCY_ID;
     }
-    void SetServerID(const OTIdentifier& SERVER_ID)
+    void SetServerID(const Identifier& SERVER_ID)
     {
         m_SERVER_ID = SERVER_ID;
     }
 
-    inline const OTIdentifier& GetAssetID() const
+    inline const Identifier& GetAssetID() const
     {
         return m_ASSET_TYPE_ID;
     }
-    inline const OTIdentifier& GetCurrencyID() const
+    inline const Identifier& GetCurrencyID() const
     {
         return m_CURRENCY_TYPE_ID;
     }
-    inline const OTIdentifier& GetServerID() const
+    inline const Identifier& GetServerID() const
     {
         return m_SERVER_ID;
     }
@@ -309,13 +309,13 @@ public:
     int64_t GetTotalAvailableAssets();
     OTMarket();
     OTMarket(const char* szFilename);
-    OTMarket(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_TYPE_ID,
-             const OTIdentifier& CURRENCY_TYPE_ID, const int64_t& lScale);
+    OTMarket(const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+             const Identifier& CURRENCY_TYPE_ID, const int64_t& lScale);
 
     virtual ~OTMarket();
 
     // Overridden from OTContract.
-    virtual void GetIdentifier(OTIdentifier& theIdentifier) const;
+    virtual void GetIdentifier(Identifier& theIdentifier) const;
 
     inline void SetCronPointer(OTCron& theCron)
     {

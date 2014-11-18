@@ -146,7 +146,7 @@ class Mint;
 class OTServer;
 class OTPseudonym;
 class AssetContract;
-class OTIdentifier;
+class Identifier;
 class Account;
 class MainFile;
 
@@ -186,18 +186,18 @@ public:
     // When a new asset type is added, a new Mint is added as well. It goes into
     // the mints folder.
     bool addAssetContract(AssetContract& contract);
-    AssetContract* getAssetContract(const OTIdentifier& id);
+    AssetContract* getAssetContract(const Identifier& id);
 
-    bool addBasketAccountID(const OTIdentifier& basketId,
-                            const OTIdentifier& basketAccountId,
-                            const OTIdentifier& basketContractId);
-    bool lookupBasketAccountID(const OTIdentifier& basketId,
-                               OTIdentifier& basketAccountId);
+    bool addBasketAccountID(const Identifier& basketId,
+                            const Identifier& basketAccountId,
+                            const Identifier& basketContractId);
+    bool lookupBasketAccountID(const Identifier& basketId,
+                               Identifier& basketAccountId);
 
-    bool lookupBasketAccountIDByContractID(const OTIdentifier& basketContractId,
-                                           OTIdentifier& basketAccountId);
-    bool lookupBasketContractIDByAccountID(const OTIdentifier& basketAccountId,
-                                           OTIdentifier& basketContractId);
+    bool lookupBasketAccountIDByContractID(const Identifier& basketContractId,
+                                           Identifier& basketAccountId);
+    bool lookupBasketContractIDByAccountID(const Identifier& basketAccountId,
+                                           Identifier& basketContractId);
 
     // Whenever the server issues a voucher (like a cashier's cheque), it puts
     // the funds in one
@@ -212,10 +212,10 @@ public:
     // server operator is free to
     // remove that total from the Voucher Account once the cheque has expired:
     // it is his money now.
-    std::shared_ptr<Account> getVoucherAccount(const OTIdentifier& assetTypeId);
+    std::shared_ptr<Account> getVoucherAccount(const Identifier& assetTypeId);
 
     // Each asset contract has its own series of Mints
-    Mint* getMint(const OTIdentifier& assetTypeId, int32_t seriesCount);
+    Mint* getMint(const Identifier& assetTypeId, int32_t seriesCount);
 
 private:
     // Why does the map of mints use multimap instead of map?

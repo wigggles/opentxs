@@ -137,7 +137,7 @@ namespace opentxs
 {
 
 class OTEnvelope;
-class OTIdentifier;
+class Identifier;
 class OTPassword;
 class OTPseudonym;
 class String;
@@ -194,7 +194,7 @@ public:
         return (nullptr != m_pPassword);
     } // for symmetric key (optional)
 
-    EXPORT void GetIdentifier(OTIdentifier& theIdentifier) const;
+    EXPORT void GetIdentifier(Identifier& theIdentifier) const;
     EXPORT void GetIdentifier(String& strIdentifier) const;
 
     EXPORT bool CompareID(const OTNym_or_SymmetricKey& rhs) const;

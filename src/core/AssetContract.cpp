@@ -501,7 +501,7 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
     // this function.
     //
     if (nullptr != pMap) {
-        OTIdentifier* pServerID = visitor.GetServerID();
+        Identifier* pServerID = visitor.GetServerID();
         OT_ASSERT_MSG(nullptr != pServerID,
                       "Assert: nullptr Server ID on functor. "
                       "(How did you even construct the "
@@ -530,7 +530,7 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
                 Account* pAccount = nullptr;
                 std::unique_ptr<Account> theAcctAngel;
 
-                const OTIdentifier theAccountID(str_acct_id.c_str());
+                const Identifier theAccountID(str_acct_id.c_str());
 
                 // Before loading it from local storage, let's first make sure
                 // it's not already loaded.
@@ -607,7 +607,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
         return false;
     }
 
-    const OTIdentifier theAcctID(theAccount);
+    const Identifier theAcctID(theAccount);
     const String strAcctID(theAcctID);
 
     String strAssetTypeID, strAcctRecordFile;
@@ -696,7 +696,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     return true;
 }
 
-bool AssetContract::EraseAccountRecord(const OTIdentifier& theAcctID)
+bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
     const // removes the account from the list. (When
           // account is deleted.)
 {

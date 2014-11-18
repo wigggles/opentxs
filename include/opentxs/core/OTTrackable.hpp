@@ -148,9 +148,9 @@ class OTTrackable : public OTInstrument
 {
 public:
     OTTrackable();
-    OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
-    OTTrackable(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-                const OTIdentifier& ACCT_ID, const OTIdentifier& USER_ID);
+    OTTrackable(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
+    OTTrackable(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+                const Identifier& ACCT_ID, const Identifier& USER_ID);
 
     virtual ~OTTrackable();
 
@@ -173,23 +173,23 @@ public:
         m_lTransactionNum = lTransactionNum;
     }
 
-    inline const OTIdentifier& GetSenderAcctID() const
+    inline const Identifier& GetSenderAcctID() const
     {
         return m_SENDER_ACCT_ID;
     }
 
-    inline const OTIdentifier& GetSenderUserID() const
+    inline const Identifier& GetSenderUserID() const
     {
         return m_SENDER_USER_ID;
     }
 
 protected:
-    inline void SetSenderAcctID(const OTIdentifier& ACCT_ID)
+    inline void SetSenderAcctID(const Identifier& ACCT_ID)
     {
         m_SENDER_ACCT_ID = ACCT_ID;
     }
 
-    inline void SetSenderUserID(const OTIdentifier& USER_ID)
+    inline void SetSenderUserID(const Identifier& USER_ID)
     {
         m_SENDER_USER_ID = USER_ID;
     }
@@ -197,10 +197,10 @@ protected:
 protected:
     int64_t m_lTransactionNum;
     // The asset account the instrument is drawn on.
-    OTIdentifier m_SENDER_ACCT_ID;
+    Identifier m_SENDER_ACCT_ID;
     // This ID must match the user ID on that asset account,
     // AND must verify the instrument's signature with that user's key.
-    OTIdentifier m_SENDER_USER_ID;
+    Identifier m_SENDER_USER_ID;
 };
 
 } // namespace opentxs

@@ -141,7 +141,7 @@ namespace opentxs
 {
 
 class Account;
-class OTIdentifier;
+class Identifier;
 class OTServer;
 class String;
 
@@ -156,9 +156,9 @@ class String;
 //
 class PayDividendVisitor : public AccountVisitor
 {
-    OTIdentifier* m_pUserID;
-    OTIdentifier* m_pPayoutAssetID;
-    OTIdentifier* m_pVoucherAcctID;
+    Identifier* m_pUserID;
+    Identifier* m_pPayoutAssetID;
+    Identifier* m_pVoucherAcctID;
     String* m_pstrMemo;  // contains the original payDividend item from the
                          // payDividend transaction request. (Stored in the
                          // memo field for each voucher.)
@@ -170,24 +170,24 @@ class PayDividendVisitor : public AccountVisitor
                                // count.
 
 public:
-    PayDividendVisitor(const OTIdentifier& theServerID,
-                       const OTIdentifier& theUserID,
-                       const OTIdentifier& thePayoutAssetID,
-                       const OTIdentifier& theVoucherAcctID,
+    PayDividendVisitor(const Identifier& theServerID,
+                       const Identifier& theUserID,
+                       const Identifier& thePayoutAssetID,
+                       const Identifier& theVoucherAcctID,
                        const String& strMemo, OTServer& theServer,
                        int64_t lPayoutPerShare,
                        mapOfAccounts* pLoadedAccounts = nullptr);
     virtual ~PayDividendVisitor();
 
-    OTIdentifier* GetUserID()
+    Identifier* GetUserID()
     {
         return m_pUserID;
     }
-    OTIdentifier* GetPayoutAssetID()
+    Identifier* GetPayoutAssetID()
     {
         return m_pPayoutAssetID;
     }
-    OTIdentifier* GetVoucherAcctID()
+    Identifier* GetVoucherAcctID()
     {
         return m_pVoucherAcctID;
     }

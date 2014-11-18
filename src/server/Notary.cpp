@@ -192,7 +192,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, Account& theFromAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym),
+    const Identifier SERVER_ID(server_->m_strServerID), USER_ID(theNym),
         ACCOUNT_ID(theFromAccount),
         ASSET_TYPE_ID(theFromAccount.GetAssetTypeID());
 
@@ -262,7 +262,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, Account& theFromAccount,
         // are currently examining.
         // IDItemToAccount is the "to" account ID on the transaction item we are
         // currently examining.
-        OTIdentifier IDFromAccount(theFromAccount);
+        Identifier IDFromAccount(theFromAccount);
 
         // Server response item being added to server response transaction
         // (tranOut)
@@ -681,7 +681,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, Account& theAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym),
+    const Identifier SERVER_ID(server_->m_strServerID), USER_ID(theNym),
         ACCOUNT_ID(theAccount), SERVER_USER_ID(server_->m_nymServer),
         ASSET_TYPE_ID(theAccount.GetAssetTypeID());
 
@@ -846,7 +846,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, Account& theAccount,
             pItem->GetAttachment(strVoucherRequest);
 
             Account& theVoucherReserveAcct = (*pVoucherReserveAcct);
-            OTIdentifier VOUCHER_ACCOUNT_ID(theVoucherReserveAcct);
+            Identifier VOUCHER_ACCOUNT_ID(theVoucherReserveAcct);
 
             Cheque theVoucher(SERVER_ID, ASSET_TYPE_ID),
                 theVoucherRequest(SERVER_ID, ASSET_TYPE_ID);
@@ -923,7 +923,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, Account& theAccount,
                     theVoucherRequest.GetAmount(); // when the cheque is
                                                    // deposited, the server nym,
                                                    // as the owner of
-                const OTIdentifier& RECIPIENT_ID =
+                const Identifier& RECIPIENT_ID =
                     theVoucherRequest.GetRecipientUserID(); // the voucher
                                                             // account, needs to
                                                             // verify the
@@ -1492,7 +1492,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     //
-    const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym),
+    const Identifier SERVER_ID(server_->m_strServerID), USER_ID(theNym),
         SOURCE_ACCT_ID(theSourceAccount), SERVER_USER_ID(server_->m_nymServer),
         PAYOUT_ASSET_ID(theSourceAccount.GetAssetTypeID()); // Ex: Pepsi shares,
                                                             // Dollar dividend.
@@ -1635,7 +1635,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
             //
             const int64_t lAmountPerShare =
                 theVoucherRequest.GetAmount(); // already validated, just above.
-            const OTIdentifier SHARES_ISSUER_ACCT_ID =
+            const Identifier SHARES_ISSUER_ACCT_ID =
                 theVoucherRequest.GetSenderAcctID();
 
             const String strSharesIssuerAcct(SHARES_ISSUER_ACCT_ID);
@@ -1644,7 +1644,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
             //       (Make sure it's NOT the same asset type as
             // theSourceAccount.)
             //
-            const OTIdentifier SHARES_ASSET_ID = theVoucherRequest.GetAssetID();
+            const Identifier SHARES_ASSET_ID = theVoucherRequest.GetAssetID();
             AssetContract* pSharesContract =
                 server_->transactor_.getAssetContract(SHARES_ASSET_ID);
             Account* pSharesIssuerAccount = nullptr;
@@ -1803,8 +1803,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
                 // nym...
                 {
                     Account& theVoucherReserveAcct = (*pVoucherReserveAcct);
-                    const OTIdentifier VOUCHER_ACCOUNT_ID(
-                        theVoucherReserveAcct);
+                    const Identifier VOUCHER_ACCOUNT_ID(theVoucherReserveAcct);
 
                     // This amount must be the total amount based on the amount
                     // issued.
@@ -2093,7 +2092,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
                                     // cheque (to prevent double-spending of
                                     // cheques.)
                                     if (bGotNextTransNum) {
-                                        const OTIdentifier SERVER_NYM_ID(
+                                        const Identifier SERVER_NYM_ID(
                                             server_->m_nymServer);
                                         const bool bIssueVoucher =
                                             theVoucher.IssueCheque(
@@ -2285,7 +2284,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, Account& theAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym),
+    const Identifier SERVER_ID(server_->m_strServerID), USER_ID(theNym),
         ACCOUNT_ID(theAccount), SERVER_USER_ID(server_->m_nymServer),
         ASSET_TYPE_ID(theAccount.GetAssetTypeID());
 
@@ -2702,15 +2701,15 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, Account& theAccount,
             }     // ABOVE: Cheque cancellation
             else  // BELOW: Cheque deposit
             {
-                const OTIdentifier& SOURCE_ACCT_ID(
+                const Identifier& SOURCE_ACCT_ID(
                     theCheque.GetSenderAcctID()); // relevant for both vouchers
                                                   // AND cheques.
-                const OTIdentifier& SENDER_USER_ID(theCheque.GetSenderUserID());
+                const Identifier& SENDER_USER_ID(theCheque.GetSenderUserID());
 
-                const OTIdentifier& REMITTER_ACCT_ID(
+                const Identifier& REMITTER_ACCT_ID(
                     theCheque.GetRemitterAcctID()); // only relevant in case of
                                                     // vouchers.
-                const OTIdentifier& REMITTER_USER_ID(
+                const Identifier& REMITTER_USER_ID(
                     theCheque.GetRemitterUserID());
 
                 // If the cheque has a remitter ...and the depositor IS the
@@ -2726,7 +2725,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, Account& theAccount,
                 // vouchers. Basically allows
                 // them to "cancel" the voucher, and get their money back.
                 //
-                const OTIdentifier& RECIPIENT_USER_ID(
+                const Identifier& RECIPIENT_USER_ID(
                     bRemitterCancelling ? USER_ID
                                         : theCheque.GetRecipientUserID());
 
@@ -4090,7 +4089,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID),
+    const Identifier SERVER_ID(server_->m_strServerID),
         DEPOSITOR_USER_ID(theNym), SERVER_USER_ID(server_->m_nymServer),
         DEPOSITOR_ACCT_ID(theDepositorAccount), USER_ID(theNym);
 
@@ -4203,17 +4202,17 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                 // inbox) then the sender (customer) will
                 // be the depositor.
 
-                OTIdentifier theCancelerNymID;
+                Identifier theCancelerNymID;
                 const bool bCancelling =
                     (pPlan->IsCanceled() &&
                      pPlan->GetCancelerID(theCancelerNymID));
                 const int64_t lExpectedNum =
                     bCancelling ? 0 : pItem->GetTransactionNum();
                 const int64_t lFoundNum = pPlan->GetTransactionNum();
-                const OTIdentifier& FOUND_USER_ID =
+                const Identifier& FOUND_USER_ID =
                     bCancelling ? pPlan->GetRecipientUserID()
                                 : pPlan->GetSenderUserID();
-                const OTIdentifier& FOUND_ACCT_ID =
+                const Identifier& FOUND_ACCT_ID =
                     bCancelling ? pPlan->GetRecipientAcctID()
                                 : pPlan->GetSenderAcctID();
                 const int64_t lFoundOpeningNum =
@@ -4297,7 +4296,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                 {
                     // The RECIPIENT_ACCT_ID is the ID on the "To" Account.
                     // (When doing a transfer, normally 2nd acct is the Payee.)
-                    const OTIdentifier RECIPIENT_ACCT_ID(
+                    const Identifier RECIPIENT_ACCT_ID(
                         pPlan->GetRecipientAcctID()),
                         RECIPIENT_USER_ID(pPlan->GetRecipientUserID());
 
@@ -4832,7 +4831,7 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID),
+    const Identifier SERVER_ID(server_->m_strServerID),
         ACTIVATOR_USER_ID(theNym), SERVER_USER_ID(server_->m_nymServer),
         ACTIVATOR_ACCT_ID(theActivatingAccount), USER_ID(theNym);
     const String strUserID(USER_ID);
@@ -4929,7 +4928,7 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
             else {
                 // CANCELING, or ACTIVATING?
                 //
-                OTIdentifier theCancelerNymID;
+                Identifier theCancelerNymID;
                 const bool bCancelling =
                     (pContract->IsCanceled() &&
                      pContract->GetCancelerID(theCancelerNymID));
@@ -4938,8 +4937,8 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
                 int64_t lFoundOpeningNum = 0;
                 int64_t lFoundClosingNum = 0;
 
-                OTIdentifier FOUND_USER_ID;
-                OTIdentifier FOUND_ACCT_ID;
+                Identifier FOUND_USER_ID;
+                Identifier FOUND_ACCT_ID;
 
                 if (!bCancelling) // ACTIVATING
                 {
@@ -5566,7 +5565,7 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
+    const Identifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
 
     const String strUserID(USER_ID);
 
@@ -5611,7 +5610,7 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
 
         // ASSET_ACCT_ID is the ID on the "from" Account that was passed in.
         //
-        const OTIdentifier ASSET_ACCT_ID(theAssetAccount);
+        const Identifier ASSET_ACCT_ID(theAssetAccount);
 
         // Server response item being added to server response transaction
         // (tranOut)
@@ -5753,7 +5752,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, Account& theAccount,
     String strInReferenceTo;
     String strBalanceItem;
 
-    const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
+    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
         BASKET_CONTRACT_ID(theAccount.GetAssetTypeID()), ACCOUNT_ID(theAccount);
 
     const String strUserID(USER_ID);
@@ -5851,7 +5850,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, Account& theAccount,
             // Now we have the Contract ID from the basket account,
             // we can get a pointer to its asset contract...
 
-            OTIdentifier BASKET_ACCOUNT_ID;
+            Identifier BASKET_ACCOUNT_ID;
 
             Account* pBasketAcct = nullptr;
             std::unique_ptr<Account> theBasketAcctGuardian;
@@ -5922,7 +5921,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, Account& theAccount,
                         // Let's make sure that the same asset account doesn't
                         // appear twice on the request.
                         //
-                        std::set<OTIdentifier> setOfAccounts;
+                        std::set<Identifier> setOfAccounts;
                         setOfAccounts.insert(
                             theRequestBasket.GetRequestAccountID());
 
@@ -5931,7 +5930,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, Account& theAccount,
                         for (int32_t i = 0; i < theRequestBasket.Count(); i++) {
                             BasketItem* item = theRequestBasket.At(i);
                             OT_ASSERT(nullptr != item);
-                            std::set<OTIdentifier>::iterator it_account =
+                            std::set<Identifier>::iterator it_account =
                                 setOfAccounts.find(item->SUB_ACCOUNT_ID);
 
                             if (setOfAccounts.end() !=
@@ -6649,7 +6648,7 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym, Account& theAssetAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
+    const Identifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
     const String strUserID(USER_ID);
 
     pItem = tranIn.GetItem(OTItem::marketOffer);
@@ -6705,7 +6704,7 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym, Account& theAssetAccount,
         // ASSET_ACCT_ID is the ID on the "from" Account that was passed in.
         // The CURRENCY_ACCT_ID is the ID on the "To" Account. (When doing a
         // transfer, normally 2nd acct is the Payee.)
-        const OTIdentifier ASSET_ACCT_ID(theAssetAccount),
+        const Identifier ASSET_ACCT_ID(theAssetAccount),
             CURRENCY_ACCT_ID(pItem->GetDestinationAcctID());
 
         // Server response item being added to server response transaction
@@ -7035,8 +7034,8 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
                                  OTTransaction& tranOut, bool& bOutSuccess)
 {
     const int64_t lTransactionNumber = tranIn.GetTransactionNum();
-    const OTIdentifier SERVER_ID(server_->m_strServerID);
-    OTIdentifier USER_ID;
+    const Identifier SERVER_ID(server_->m_strServerID);
+    Identifier USER_ID;
     theNym.GetIdentifier(USER_ID);
     const String strIDNym(USER_ID);
 
@@ -7071,7 +7070,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     // otherwise any asshole
     // could do transactions on your account, no?
     else if (!theFromAccount.VerifyOwner(theNym)) {
-        const OTIdentifier idAcct(theFromAccount);
+        const Identifier idAcct(theFromAccount);
         const String strIDAcct(idAcct);
         OTLog::vOutput(
             0, "%s: Error verifying account ownership... Nym: %s  Acct: %s\n",
@@ -7079,7 +7078,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     }
     // Make sure I, the server, have signed this file.
     else if (!theFromAccount.VerifySignature(server_->m_nymServer)) {
-        const OTIdentifier idAcct(theFromAccount);
+        const Identifier idAcct(theFromAccount);
         const String strIDAcct(idAcct);
         OTLog::vError(
             "%s: Error verifying server signature on account: %s for Nym: %s\n",
@@ -7089,7 +7088,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     // beyond that method.
     else if (!server_->transactor_.verifyTransactionNumber(
                  theNym, lTransactionNumber)) {
-        const OTIdentifier idAcct(theFromAccount);
+        const Identifier idAcct(theFromAccount);
         const String strIDAcct(idAcct);
         // The user may not submit a transaction using a number he's already
         // used before.
@@ -7108,7 +7107,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
     // again in the subsequent calls.
     //
     else if (!tranIn.VerifyItems(theNym)) {
-        const OTIdentifier idAcct(theFromAccount);
+        const Identifier idAcct(theFromAccount);
         const String strIDAcct(idAcct);
         OTLog::vOutput(
             0, "%s: Error verifying transaction items. Trans: %" PRId64 " "
@@ -7423,7 +7422,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
+    const Identifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
     OTPseudonym theTempNym;
 
     OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
@@ -7441,8 +7440,8 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
                                             // cleanup the item. It "owns" it
                                             // now.
     bool bNymboxHashRegenerated = false;
-    OTIdentifier NYMBOX_HASH; // In case the Nymbox hash is updated, we will
-                              // have the updated version here.
+    Identifier NYMBOX_HASH; // In case the Nymbox hash is updated, we will
+                            // have the updated version here.
     if (!bSuccessLoadingNymbox) {
         OTLog::vOutput(
             0, "Notary::%s: Failed loading or verifying Nymbox for user:\n%s\n",
@@ -8116,8 +8115,8 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, Account& theAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const OTIdentifier SERVER_ID(server_->m_strServerID),
-        ACCOUNT_ID(theAccount), USER_ID(theNym);
+    const Identifier SERVER_ID(server_->m_strServerID), ACCOUNT_ID(theAccount),
+        USER_ID(theNym);
 
     const String strUserID(USER_ID);
 
@@ -9139,9 +9138,9 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, Account& theAccount,
                                     // to accept the transfer located in
                                     // theOriginalItem.
                                     // Now we have both items.
-                                    OTIdentifier IDFromAccount(
+                                    Identifier IDFromAccount(
                                         pOriginalItem->GetPurportedAccountID());
-                                    OTIdentifier IDToAccount(
+                                    Identifier IDToAccount(
                                         pOriginalItem->GetDestinationAcctID());
 
                                     // I'm using the operator== because it

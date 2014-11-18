@@ -264,9 +264,9 @@ OTTransactionType::OTTransactionType()
     //    InitTransactionType(); // Just in case.
 }
 
-OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
-                                     const OTIdentifier& theAccountID,
-                                     const OTIdentifier& theServerID)
+OTTransactionType::OTTransactionType(const Identifier& theUserID,
+                                     const Identifier& theAccountID,
+                                     const Identifier& theServerID)
     : Contract(theAccountID)
     , m_ServerID(theServerID)
     , m_AcctUserID(theUserID)
@@ -284,9 +284,9 @@ OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
     // them or GENERATE them.
 }
 
-OTTransactionType::OTTransactionType(const OTIdentifier& theUserID,
-                                     const OTIdentifier& theAccountID,
-                                     const OTIdentifier& theServerID,
+OTTransactionType::OTTransactionType(const Identifier& theUserID,
+                                     const Identifier& theAccountID,
+                                     const Identifier& theServerID,
                                      int64_t lTransactionNum)
     : Contract(theAccountID)
     , m_ServerID(theServerID)

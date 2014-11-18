@@ -635,7 +635,7 @@ bool OTSubcredential::VerifyNymID() const
 
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
     //
-    OTIdentifier theTempID;
+    Identifier theTempID;
     const bool bCalculate = theTempID.CalculateDigest(m_strSourceForNymID);
     OT_ASSERT(bCalculate);
 
@@ -682,7 +682,7 @@ bool OTSubcredential::VerifyInternally()
     // m_pOwner->GetMasterkey().GetPubCredential()
     // (the master credentialID is a hash of the master credential.)
     //
-    OTIdentifier theActualMasterID;
+    Identifier theActualMasterID;
     const bool bCalcMasterCredID =
         theActualMasterID.CalculateDigest(m_pOwner->GetPubCredential());
     OT_ASSERT(bCalcMasterCredID);
@@ -751,7 +751,7 @@ bool OTSubcredential::VerifyContract()
 }
 
 // Overriding from OTContract.
-void OTSubcredential::CalculateContractID(OTIdentifier& newID) const
+void OTSubcredential::CalculateContractID(Identifier& newID) const
 {
     if (!newID.CalculateDigest(GetPubCredential()))
         otErr << __FUNCTION__ << ": Error calculating credential digest.\n";

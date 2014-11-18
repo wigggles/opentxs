@@ -453,7 +453,7 @@ void OTRecordList::AddAssetID(std::string str_id)
     OT_ASSERT_MSG(nullptr != pWallet,
                   "Wallet was nullptr. Should never happen.");
     const String strAssetTypeID(str_id);
-    const OTIdentifier theAssetTypeID(strAssetTypeID);
+    const Identifier theAssetTypeID(strAssetTypeID);
     std::string str_asset_name;
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
@@ -576,7 +576,7 @@ bool OTRecordList::PerformAutoAccept()
                       << __FUNCTION__ << ": Beginning auto-accept loop through "
                                          "Nyms...\n";
             const std::string& str_nym_id(it_nym);
-            const OTIdentifier theNymID(str_nym_id);
+            const Identifier theNymID(str_nym_id);
             const String strNymID(theNymID);
             OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
             if (nullptr == pNym) continue;
@@ -588,7 +588,7 @@ bool OTRecordList::PerformAutoAccept()
             for (auto& it_server : m_servers) {
                 ++nServerIndex;
                 const std::string& str_server_id(it_server);
-                const OTIdentifier theServerID(str_server_id);
+                const Identifier theServerID(str_server_id);
                 OTServerContract* pServer =
                     pWallet->GetServerContract(theServerID);
                 OT_ASSERT(nullptr != pServer);
@@ -642,7 +642,7 @@ bool OTRecordList::PerformAutoAccept()
                         //
                         else if (pPayment->IsValid() &&
                                  pPayment->SetTempValues()) {
-                            OTIdentifier theAssetTypeID;
+                            Identifier theAssetTypeID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
                                 String strTemp(theAssetTypeID);
@@ -759,7 +759,7 @@ bool OTRecordList::PerformAutoAccept()
                                      "(Skipping.)\n";
                             continue;
                         }
-                        OTIdentifier paymentAssetType;
+                        Identifier paymentAssetType;
                         bool bGotAsset =
                             pPayment->GetAssetTypeID(paymentAssetType);
 
@@ -779,15 +779,15 @@ bool OTRecordList::PerformAutoAccept()
                         // pick an account to deposit the cheque into.
                         for (auto& it_acct : m_accounts) {
                             const std::string& str_account_id(it_acct);
-                            const OTIdentifier theAccountID(str_account_id);
+                            const Identifier theAccountID(str_account_id);
                             Account* pAccount =
                                 pWallet->GetAccount(theAccountID);
                             OT_ASSERT(nullptr != pAccount);
-                            const OTIdentifier& theAcctNymID =
+                            const Identifier& theAcctNymID =
                                 pAccount->GetUserID();
-                            const OTIdentifier& theAcctServerID =
+                            const Identifier& theAcctServerID =
                                 pAccount->GetPurportedServerID();
-                            const OTIdentifier& theAcctAssetID =
+                            const Identifier& theAcctAssetID =
                                 pAccount->GetAssetTypeID();
                             const std::string str_acct_type =
                                 pAccount->GetTypeString();
@@ -861,12 +861,12 @@ bool OTRecordList::PerformAutoAccept()
                          "accounts in the wallet...\n";
             // For each account, loop through its inbox, outbox, and record box.
             const std::string& str_account_id(it_acct);
-            const OTIdentifier theAccountID(str_account_id);
+            const Identifier theAccountID(str_account_id);
             Account* pAccount = pWallet->GetAccount(theAccountID);
             OT_ASSERT(nullptr != pAccount);
-            const OTIdentifier& theNymID = pAccount->GetUserID();
-            const OTIdentifier& theServerID = pAccount->GetPurportedServerID();
-            const OTIdentifier& theAssetID = pAccount->GetAssetTypeID();
+            const Identifier& theNymID = pAccount->GetUserID();
+            const Identifier& theServerID = pAccount->GetPurportedServerID();
+            const Identifier& theAssetID = pAccount->GetAssetTypeID();
             const String strNymID(theNymID);
             const String strServerID(theServerID);
             const String strAssetID(theAssetID);
@@ -1093,7 +1093,7 @@ bool OTRecordList::Populate()
             otOut << "=============== " << __FUNCTION__
                   << ": Beginning loop through Nyms...\n";
         const std::string& str_nym_id(it_nym);
-        const OTIdentifier theNymID(str_nym_id);
+        const Identifier theNymID(str_nym_id);
         const String strNymID(theNymID);
         OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
         if (nullptr == pNym) continue;
@@ -1140,7 +1140,7 @@ bool OTRecordList::Populate()
                 strTemp.Format("%" PRId64 "", lAmount);
                 str_amount = strTemp.Get();
             }
-            OTIdentifier theAssetTypeID;
+            Identifier theAssetTypeID;
             const std::string* p_str_asset_type =
                 &OTRecordList::s_blank; // <========== ASSET TYPE
             const std::string* p_str_asset_name =
@@ -1182,7 +1182,7 @@ bool OTRecordList::Populate()
             OT_ASSERT(nullptr != p_str_asset_name); // and it's either blank, or
             // it's one of the asset types
             // we care about.
-            OTIdentifier theAccountID;
+            Identifier theAccountID;
             const std::string* p_str_account =
                 &OTRecordList::s_blank;     // <========== ACCOUNT
             std::string str_outpmt_account; // The accountID we found on the
@@ -1535,7 +1535,7 @@ bool OTRecordList::Populate()
         int32_t nServerIndex = -1;
         for (auto& it_server : m_servers) {
             ++nServerIndex;
-            const OTIdentifier theServerID(it_server);
+            const Identifier theServerID(it_server);
             OTServerContract* pServer = pWallet->GetServerContract(theServerID);
             OT_ASSERT(nullptr != pServer);
             const String strServerID(theServerID);
@@ -1571,7 +1571,7 @@ bool OTRecordList::Populate()
                     std::string str_sender_acct_id;
 
                     if (!pBoxTrans->IsAbbreviated()) {
-                        OTIdentifier theSenderID;
+                        Identifier theSenderID;
 
                         if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
@@ -1675,7 +1675,7 @@ bool OTRecordList::Populate()
                                 str_memo = strMemo.Get();
                             }
                             pPayment->GetPaymentContents(strContents);
-                            OTIdentifier theAssetTypeID, theSenderAcctID;
+                            Identifier theAssetTypeID, theSenderAcctID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
                                 String strTemp(theAssetTypeID);
@@ -1826,8 +1826,8 @@ bool OTRecordList::Populate()
                     std::string str_other_acct_id;
 
                     if (!pBoxTrans->IsAbbreviated()) {
-                        OTIdentifier theSenderID, theSenderAcctID;
-                        OTIdentifier theRecipientID, theRecipientAcctID;
+                        Identifier theSenderID, theSenderAcctID;
+                        Identifier theRecipientID, theRecipientAcctID;
 
                         if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
@@ -2027,7 +2027,7 @@ bool OTRecordList::Populate()
                                 str_date = strFrom.Get();
                             }
                             pPayment->GetPaymentContents(strContents);
-                            OTIdentifier theAccountID;
+                            Identifier theAccountID;
 
                             if (bOutgoing) // Nym is sender.
                             {
@@ -2108,7 +2108,7 @@ bool OTRecordList::Populate()
                                                       // one of the
                                                       // accounts we
                                                       // care about.
-                            OTIdentifier theAssetTypeID;
+                            Identifier theAssetTypeID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
                                 String strTemp(theAssetTypeID);
@@ -2257,8 +2257,8 @@ bool OTRecordList::Populate()
                     std::string str_other_acct_id;
 
                     if (!pBoxTrans->IsAbbreviated()) {
-                        OTIdentifier theSenderID, theSenderAcctID;
-                        OTIdentifier theRecipientID, theRecipientAcctID;
+                        Identifier theSenderID, theSenderAcctID;
+                        Identifier theRecipientID, theRecipientAcctID;
 
                         if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
@@ -2458,7 +2458,7 @@ bool OTRecordList::Populate()
                                 str_date = strFrom.Get();
                             }
                             pPayment->GetPaymentContents(strContents);
-                            OTIdentifier theAccountID;
+                            Identifier theAccountID;
 
                             if (bOutgoing) // Nym is sender.
                             {
@@ -2540,7 +2540,7 @@ bool OTRecordList::Populate()
                                                       // one of the
                                                       // accounts we
                                                       // care about.
-                            OTIdentifier theAssetTypeID;
+                            Identifier theAssetTypeID;
 
                             if (pPayment->GetAssetTypeID(theAssetTypeID)) {
                                 String strTemp(theAssetTypeID);
@@ -2674,12 +2674,12 @@ bool OTRecordList::Populate()
         // For each account, loop through its inbox, outbox, and record box.
         //
         const std::string& str_account_id(it_acct);
-        const OTIdentifier theAccountID(str_account_id);
+        const Identifier theAccountID(str_account_id);
         Account* pAccount = pWallet->GetAccount(theAccountID);
         OT_ASSERT(nullptr != pAccount);
-        const OTIdentifier& theNymID = pAccount->GetUserID();
-        const OTIdentifier& theServerID = pAccount->GetPurportedServerID();
-        const OTIdentifier& theAssetID = pAccount->GetAssetTypeID();
+        const Identifier& theNymID = pAccount->GetUserID();
+        const Identifier& theServerID = pAccount->GetPurportedServerID();
+        const Identifier& theAssetID = pAccount->GetAssetTypeID();
         const String strNymID(theNymID);
         const String strServerID(theServerID);
         const String strAssetID(theAssetID);
@@ -2774,7 +2774,7 @@ bool OTRecordList::Populate()
                         //                        str_memo =
                         // OTAPI_Wrap::Pending_GetNote(*pstr_server_id,
                         // *pstr_nym_id, str_account_id, strBoxTrans.Get());
-                        OTIdentifier theSenderID, theSenderAcctID;
+                        Identifier theSenderID, theSenderAcctID;
 
                         if (pBoxTrans->GetSenderAcctIDForDisplay(
                                 theSenderAcctID)) // ACCOUNT name.
@@ -2857,7 +2857,7 @@ bool OTRecordList::Populate()
                     }    // end: (if pending)
                     else // else it's a receipt.
                     {
-                        OTIdentifier theRecipientID, theRecipientAcctID;
+                        Identifier theRecipientID, theRecipientAcctID;
 
                         if (pBoxTrans->GetRecipientUserIDForDisplay(
                                 theRecipientID)) {
@@ -3021,7 +3021,7 @@ bool OTRecordList::Populate()
                 std::string str_memo;
 
                 if (!pBoxTrans->IsAbbreviated()) {
-                    OTIdentifier theRecipientID, theRecipientAcctID;
+                    Identifier theRecipientID, theRecipientAcctID;
 
                     if (pBoxTrans->GetRecipientUserIDForDisplay(
                             theRecipientID)) {
@@ -3191,8 +3191,8 @@ bool OTRecordList::Populate()
                 std::string str_memo;
 
                 if (!pBoxTrans->IsAbbreviated()) {
-                    OTIdentifier theSenderID, theSenderAcctID;
-                    OTIdentifier theRecipientID, theRecipientAcctID;
+                    Identifier theSenderID, theSenderAcctID;
+                    Identifier theRecipientID, theRecipientAcctID;
 
                     if (pBoxTrans->GetSenderAcctIDForDisplay(theSenderAcctID)) {
                         const String strSenderAcctID(theSenderAcctID);

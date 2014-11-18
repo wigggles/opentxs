@@ -137,7 +137,7 @@
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
-#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
@@ -762,9 +762,9 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
     return len;
 }
 
-bool OTAsymmetricKey::CalculateID(OTIdentifier& theOutput) const // Only works
-                                                                 // for public
-                                                                 // keys.
+bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const // Only works
+                                                               // for public
+                                                               // keys.
 {
     const char* szFunc = "OTAsymmetricKey::CalculateID";
 

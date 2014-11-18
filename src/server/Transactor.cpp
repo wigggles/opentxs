@@ -136,7 +136,7 @@
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/OTPseudonym.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/AssetContract.hpp>
@@ -212,7 +212,7 @@ bool Transactor::issueNextTransactionNumber(OTPseudonym& theNym,
                                             int64_t& lTransactionNumber,
                                             bool bStoreTheNumber)
 {
-    OTIdentifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
+    Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
 
     // If theNym has the same ID as server_->m_nymServer, then we'll use
     // server_->m_nymServer
@@ -281,7 +281,7 @@ bool Transactor::verifyTransactionNumber(
                                                             // speed, but not a
                                                             // return value.
 {
-    OTIdentifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
+    Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
 
     // If theNym has the same ID as server_->m_nymServer, then we'll use
     // server_->m_nymServer
@@ -321,7 +321,7 @@ bool Transactor::removeTransactionNumber(OTPseudonym& theNym,
                                          const int64_t& lTransactionNumber,
                                          bool bSave)
 {
-    OTIdentifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
+    Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
 
     // If theNym has the same ID as server_->m_nymServer, then we'll use
     // server_->m_nymServer
@@ -355,7 +355,7 @@ bool Transactor::removeIssuedNumber(OTPseudonym& theNym,
                                     const int64_t& lTransactionNumber,
                                     bool bSave)
 {
-    OTIdentifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
+    Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
 
     // If theNym has the same ID as server_->m_nymServer, then we'll use
     // server_->m_nymServer
@@ -391,13 +391,13 @@ bool Transactor::removeIssuedNumber(OTPseudonym& theNym,
 /// this purpose. Right now I'm using the "contract" key which is already used
 /// to verify
 /// any asset or server contract.
-AssetContract* Transactor::getAssetContract(const OTIdentifier& ASSET_TYPE_ID)
+AssetContract* Transactor::getAssetContract(const Identifier& ASSET_TYPE_ID)
 {
     for (auto& it : contractsMap_) {
         AssetContract* pContract = it.second;
         OT_ASSERT(nullptr != pContract);
 
-        OTIdentifier theContractID;
+        Identifier theContractID;
         pContract->GetIdentifier(theContractID);
 
         if (theContractID == ASSET_TYPE_ID) return pContract;
@@ -413,7 +413,7 @@ bool Transactor::addAssetContract(AssetContract& theContract)
     AssetContract* pContract = nullptr;
 
     String STR_CONTRACT_ID;
-    OTIdentifier CONTRACT_ID;
+    Identifier CONTRACT_ID;
     theContract.GetIdentifier(STR_CONTRACT_ID);
     theContract.GetIdentifier(CONTRACT_ID);
 
@@ -429,11 +429,11 @@ bool Transactor::addAssetContract(AssetContract& theContract)
 }
 
 // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID.
-bool Transactor::addBasketAccountID(const OTIdentifier& BASKET_ID,
-                                    const OTIdentifier& BASKET_ACCOUNT_ID,
-                                    const OTIdentifier& BASKET_CONTRACT_ID)
+bool Transactor::addBasketAccountID(const Identifier& BASKET_ID,
+                                    const Identifier& BASKET_ACCOUNT_ID,
+                                    const Identifier& BASKET_CONTRACT_ID)
 {
-    OTIdentifier theBasketAcctID;
+    Identifier theBasketAcctID;
 
     if (lookupBasketAccountID(BASKET_ID, theBasketAcctID)) {
         OTLog::Output(0, "User attempted to add Basket that already exists.\n");
@@ -455,7 +455,7 @@ bool Transactor::addBasketAccountID(const OTIdentifier& BASKET_ID,
 /// using the contract ID to look it up. (The basket contract ID is unique to
 /// this server.)
 bool Transactor::lookupBasketAccountIDByContractID(
-    const OTIdentifier& BASKET_CONTRACT_ID, OTIdentifier& BASKET_ACCOUNT_ID)
+    const Identifier& BASKET_CONTRACT_ID, Identifier& BASKET_ACCOUNT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -463,7 +463,7 @@ bool Transactor::lookupBasketAccountIDByContractID(
         String strBasketContractID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
-        OTIdentifier id_BASKET_CONTRACT(strBasketContractID),
+        Identifier id_BASKET_CONTRACT(strBasketContractID),
             id_BASKET_ACCT(strBasketAcctID);
 
         if (BASKET_CONTRACT_ID == id_BASKET_CONTRACT) // if the basket contract
@@ -482,7 +482,7 @@ bool Transactor::lookupBasketAccountIDByContractID(
 /// using the contract ID to look it up. (The basket contract ID is unique to
 /// this server.)
 bool Transactor::lookupBasketContractIDByAccountID(
-    const OTIdentifier& BASKET_ACCOUNT_ID, OTIdentifier& BASKET_CONTRACT_ID)
+    const Identifier& BASKET_ACCOUNT_ID, Identifier& BASKET_CONTRACT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -490,7 +490,7 @@ bool Transactor::lookupBasketContractIDByAccountID(
         String strBasketContractID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
-        OTIdentifier id_BASKET_CONTRACT(strBasketContractID),
+        Identifier id_BASKET_CONTRACT(strBasketContractID),
             id_BASKET_ACCT(strBasketAcctID);
 
         if (BASKET_ACCOUNT_ID == id_BASKET_ACCT) // if the basket contract ID
@@ -508,8 +508,8 @@ bool Transactor::lookupBasketContractIDByAccountID(
 /// server)
 /// using the basket ID to look it up (the Basket ID is the same for all
 /// servers)
-bool Transactor::lookupBasketAccountID(const OTIdentifier& BASKET_ID,
-                                       OTIdentifier& BASKET_ACCOUNT_ID)
+bool Transactor::lookupBasketAccountID(const Identifier& BASKET_ID,
+                                       Identifier& BASKET_ACCOUNT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -517,7 +517,7 @@ bool Transactor::lookupBasketAccountID(const OTIdentifier& BASKET_ID,
         String strBasketID = it.first.c_str();
         String strBasketAcctID = it.second.c_str();
 
-        OTIdentifier id_BASKET(strBasketID), id_BASKET_ACCT(strBasketAcctID);
+        Identifier id_BASKET(strBasketID), id_BASKET_ACCT(strBasketAcctID);
 
         if (BASKET_ID ==
             id_BASKET) // if the basket ID passed in matches this one...
@@ -534,10 +534,10 @@ bool Transactor::lookupBasketAccountID(const OTIdentifier& BASKET_ID,
 /// exist, and since it's being requested, also will GENERATE it if it cannot
 /// be found, add it to the list, and return the pointer. Should always succeed.
 std::shared_ptr<Account> Transactor::getVoucherAccount(
-    const OTIdentifier& ASSET_TYPE_ID)
+    const Identifier& ASSET_TYPE_ID)
 {
     std::shared_ptr<Account> pAccount;
-    const OTIdentifier SERVER_USER_ID(server_->m_nymServer),
+    const Identifier SERVER_USER_ID(server_->m_nymServer),
         SERVER_ID(server_->m_strServerID);
     bool bWasAcctCreated = false;
     pAccount = voucherAccounts_.GetOrCreateAccount(
@@ -562,7 +562,7 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
 }
 
 /// Lookup the current mint for any given asset type ID and series.
-Mint* Transactor::getMint(const OTIdentifier& ASSET_TYPE_ID,
+Mint* Transactor::getMint(const Identifier& ASSET_TYPE_ID,
                           int32_t nSeries) // Each asset contract has its own
                                            // Mint.
 {
@@ -573,7 +573,7 @@ Mint* Transactor::getMint(const OTIdentifier& ASSET_TYPE_ID,
         OT_ASSERT_MSG(nullptr != pMint,
                       "nullptr mint pointer in Transactor::getMint\n");
 
-        OTIdentifier theID;
+        Identifier theID;
         pMint->GetIdentifier(theID);
 
         if ((ASSET_TYPE_ID ==

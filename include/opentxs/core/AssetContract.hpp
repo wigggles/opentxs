@@ -140,7 +140,7 @@ namespace opentxs
 
 class Account;
 class AccountVisitor;
-class OTIdentifier;
+class Identifier;
 class OTPseudonym;
 class String;
 
@@ -176,7 +176,7 @@ public:
     EXPORT bool AddAccountRecord(const Account& theAccount) const;
 
     // removes the account from the list. (When account is deleted.)
-    EXPORT bool EraseAccountRecord(const OTIdentifier& theAcctID) const;
+    EXPORT bool EraseAccountRecord(const Identifier& theAcctID) const;
 
     EXPORT bool VisitAccountRecords(AccountVisitor& visitor) const;
 

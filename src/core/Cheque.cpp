@@ -237,7 +237,7 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
             strRemitterUserID(xml->getAttributeValue("remitterUserID")),
             strRemitterAcctID(xml->getAttributeValue("remitterAcctID"));
 
-        OTIdentifier ASSET_ID(strAssetTypeID), SERVER_ID(strServerID),
+        Identifier ASSET_ID(strAssetTypeID), SERVER_ID(strServerID),
             SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID);
 
         SetAssetID(ASSET_ID);
@@ -326,15 +326,15 @@ bool Cheque::IssueCheque(
     const time64_t& VALID_FROM,
     const time64_t& VALID_TO, // The expiration date (valid from/to dates) of
                               // the cheque
-    const OTIdentifier& SENDER_ACCT_ID, // The asset account the cheque is drawn
-                                        // on.
-    const OTIdentifier& SENDER_USER_ID, // This ID must match the user ID on the
-                                        // asset account,
+    const Identifier& SENDER_ACCT_ID, // The asset account the cheque is drawn
+                                      // on.
+    const Identifier& SENDER_USER_ID, // This ID must match the user ID on the
+                                      // asset account,
     // AND must verify the cheque signature with that user's key.
-    const String& strMemo,                  // Optional memo field.
-    const OTIdentifier* pRECIPIENT_USER_ID) // Recipient optional.
-                                            // (Might be a blank
-                                            // cheque.)
+    const String& strMemo,                // Optional memo field.
+    const Identifier* pRECIPIENT_USER_ID) // Recipient optional.
+                                          // (Might be a blank
+                                          // cheque.)
 {
     m_lAmount = lAmount;
     m_strMemo = strMemo;
@@ -381,7 +381,7 @@ Cheque::Cheque()
     InitCheque();
 }
 
-Cheque::Cheque(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
+Cheque::Cheque(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_lAmount(0)
     , m_bHasRecipient(false)

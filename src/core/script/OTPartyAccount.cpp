@@ -227,7 +227,7 @@ OTPartyAccount::~OTPartyAccount()
     m_pAccount = nullptr;
 }
 
-bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
+bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
 {
     if (!m_strAcctID.Exists()) {
         return false;
@@ -237,7 +237,7 @@ bool OTPartyAccount::IsAccountByID(const OTIdentifier& theAcctID) const
         return false;
     }
 
-    const OTIdentifier theMemberAcctID(m_strAcctID);
+    const Identifier theMemberAcctID(m_strAcctID);
     if (!(theAcctID == theMemberAcctID)) {
         String strRHS(theAcctID);
         otLog4 << "OTPartyAccount::IsAccountByID: Account IDs don't match: "
@@ -264,7 +264,7 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
         return false;
     }
 
-    const OTIdentifier theAcctID(m_strAcctID);
+    const Identifier theAcctID(m_strAcctID);
     if (!(theAccount.GetRealAccountID() == theAcctID)) {
         String strRHS(theAccount.GetRealAccountID());
         otLog4 << "OTPartyAccount::IsAccount: Account IDs don't match: "
@@ -274,7 +274,7 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
         return false;
     }
 
-    const OTIdentifier theAssetTypeID(m_strAssetTypeID);
+    const Identifier theAssetTypeID(m_strAssetTypeID);
     if (!(theAccount.GetAssetTypeID() == theAssetTypeID)) {
         String strRHS(theAccount.GetAssetTypeID());
         otOut << "OTPartyAccount::IsAccount: Asset Type IDs don't match ( "
@@ -372,7 +372,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
     if (nullptr == pAgent)
         otErr << szFunc << ": named agent wasn't found on party.\n";
     else {
-        const OTIdentifier theAccountID(m_strAcctID);
+        const Identifier theAccountID(m_strAcctID);
 
         return pAgent->DropFinalReceiptToInbox(
             pNymMap, strServerID, theServerNym, theSmartContract,
@@ -399,7 +399,7 @@ Account* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
         return nullptr;
     }
 
-    const OTIdentifier theAcctID(m_strAcctID), theServerID(strServerID);
+    const Identifier theAcctID(m_strAcctID), theServerID(strServerID);
 
     Account* pAccount = Account::LoadExistingAccount(theAcctID, theServerID);
 

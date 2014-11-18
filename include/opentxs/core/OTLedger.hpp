@@ -140,7 +140,7 @@ namespace opentxs
 
 class Account;
 class Cheque;
-class OTIdentifier;
+class Identifier;
 class OTItem;
 class OTPseudonym;
 class String;
@@ -289,28 +289,28 @@ public:
     // "Deletes" it by adding MARKED_FOR_DELETION to the bottom of the file.
     EXPORT bool DeleteBoxReceipt(const int64_t& lTransactionNum);
     EXPORT bool LoadInbox();
-    EXPORT bool SaveInbox(OTIdentifier* pInboxHash = nullptr); // If you pass
-                                                               // the
-                                                               // identifier in,
-                                                               // the hash is
-                                                               // recorded there
+    EXPORT bool SaveInbox(Identifier* pInboxHash = nullptr); // If you pass
+                                                             // the
+                                                             // identifier in,
+                                                             // the hash is
+                                                             // recorded there
     EXPORT bool LoadNymbox();
-    EXPORT bool SaveNymbox(OTIdentifier* pNymboxHash = nullptr); // If you pass
-                                                                 // the
+    EXPORT bool SaveNymbox(Identifier* pNymboxHash = nullptr); // If you pass
+                                                               // the
     // identifier in,
     // the hash is
     // recorded there.
     EXPORT bool LoadOutbox();
-    EXPORT bool SaveOutbox(OTIdentifier* pOutboxHash = nullptr); // If you pass
-                                                                 // the
+    EXPORT bool SaveOutbox(Identifier* pOutboxHash = nullptr); // If you pass
+                                                               // the
     // identifier in,
     // the hash is
     // recorded there
 
-    EXPORT bool CalculateHash(OTIdentifier& theOutput);
-    EXPORT bool CalculateInboxHash(OTIdentifier& theOutput);
-    EXPORT bool CalculateOutboxHash(OTIdentifier& theOutput);
-    EXPORT bool CalculateNymboxHash(OTIdentifier& theOutput);
+    EXPORT bool CalculateHash(Identifier& theOutput);
+    EXPORT bool CalculateInboxHash(Identifier& theOutput);
+    EXPORT bool CalculateOutboxHash(Identifier& theOutput);
+    EXPORT bool CalculateNymboxHash(Identifier& theOutput);
     EXPORT bool SavePaymentInbox();
     EXPORT bool LoadPaymentInbox();
 
@@ -338,9 +338,8 @@ public:
                                            // lookup the total value of pending
                                            // transfers within.
     EXPORT const mapOfTransactions& GetTransactionMap() const;
-    EXPORT OTLedger(const OTIdentifier& theUserID,
-                    const OTIdentifier& theAccountID,
-                    const OTIdentifier& theServerID);
+    EXPORT OTLedger(const Identifier& theUserID, const Identifier& theAccountID,
+                    const Identifier& theServerID);
     EXPORT virtual ~OTLedger();
 
     EXPORT virtual void Release();
@@ -355,17 +354,17 @@ public:
     // function to get it
     // loaded up, and the UserID will hopefully be loaded up with the rest of
     // it.
-    EXPORT OTLedger(const OTIdentifier& theAccountID,
-                    const OTIdentifier& theServerID);
+    EXPORT OTLedger(const Identifier& theAccountID,
+                    const Identifier& theServerID);
     EXPORT void InitLedger();
-    EXPORT static OTLedger* GenerateLedger(const OTIdentifier& theUserID,
-                                           const OTIdentifier& theAcctID,
-                                           const OTIdentifier& theServerID,
+    EXPORT static OTLedger* GenerateLedger(const Identifier& theUserID,
+                                           const Identifier& theAcctID,
+                                           const Identifier& theServerID,
                                            ledgerType theType,
                                            bool bCreateFile = false);
 
-    EXPORT bool GenerateLedger(const OTIdentifier& theAcctID,
-                               const OTIdentifier& theServerID,
+    EXPORT bool GenerateLedger(const Identifier& theAcctID,
+                               const Identifier& theServerID,
                                ledgerType theType, bool bCreateFile = false);
 
     EXPORT static char const* _GetTypeString(ledgerType theType);

@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTCONTRACT_HPP
 #define OPENTXS_CORE_OTCONTRACT_HPP
 
-#include "OTIdentifier.hpp"
+#include "Identifier.hpp"
 #include "OTStringXML.hpp"
 #include "util/Common.hpp" // TODO: remove this when feasible
 
@@ -168,8 +168,8 @@ protected:
     String m_strFoldername; // Foldername for this contract (nyms, contracts,
                             // accounts, etc)
     String m_strFilename;   // Filename for this contract (usually an ID.)
-    OTIdentifier m_ID; // Hash of the contract, including signatures. (the "raw
-                       // file")
+    Identifier m_ID; // Hash of the contract, including signatures. (the "raw
+                     // file")
     OTStringXML m_xmlUnsigned; // The Unsigned Clear Text (XML contents without
                                // signatures.)
     String m_strRawFile;       // The complete raw file including signatures.
@@ -263,7 +263,7 @@ public:
     {
         return m_strSigHashType.Get();
     }
-    inline void SetIdentifier(const OTIdentifier& theID)
+    inline void SetIdentifier(const Identifier& theID)
     {
         m_ID = theID;
     }
@@ -271,7 +271,7 @@ public:
     EXPORT Contract(const String& name, const String& foldername,
                     const String& filename, const String& strID);
     EXPORT Contract(const String& strID);
-    EXPORT Contract(const OTIdentifier& theID);
+    EXPORT Contract(const Identifier& theID);
     void Initialize();
 
     // TODO: a contract needs to have certain required fields in order to be
@@ -374,7 +374,7 @@ public:
 
     // Overriden for example in OTOffer, OTMarket.
     // You can get it in string or binary form.
-    EXPORT virtual void GetIdentifier(OTIdentifier& theIdentifier) const;
+    EXPORT virtual void GetIdentifier(Identifier& theIdentifier) const;
     // The Contract ID is a hash of the contract raw file.
     EXPORT void GetIdentifier(String& theIdentifier) const;
     EXPORT void GetFilename(String& strFilename) const;
@@ -494,7 +494,7 @@ public:
     // account ID
     // which is a giant int64_t number.
     EXPORT virtual bool VerifyContractID() const;
-    EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
+    EXPORT virtual void CalculateContractID(Identifier& newID) const;
 
     // So far not overridden anywhere (used to be OTTrade.)
     EXPORT virtual bool VerifySignature(

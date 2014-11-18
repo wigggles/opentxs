@@ -249,7 +249,7 @@ OTStash::OTStash(const String& strAssetTypeID, int64_t lAmount)
         std::pair<std::string, OTStashItem*>(strAssetTypeID.Get(), pItem));
 }
 
-OTStash::OTStash(const OTIdentifier& theAssetTypeID, int64_t lAmount)
+OTStash::OTStash(const Identifier& theAssetTypeID, int64_t lAmount)
 {
     OTStashItem* pItem = new OTStashItem(theAssetTypeID, lAmount);
     OT_ASSERT(nullptr != pItem);

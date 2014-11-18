@@ -539,14 +539,14 @@ protected:
 
 public:
     EXPORT OTPaymentPlan();
-    EXPORT OTPaymentPlan(const OTIdentifier& SERVER_ID,
-                         const OTIdentifier& ASSET_ID);
-    EXPORT OTPaymentPlan(const OTIdentifier& SERVER_ID,
-                         const OTIdentifier& ASSET_ID,
-                         const OTIdentifier& SENDER_ACCT_ID,
-                         const OTIdentifier& SENDER_USER_ID,
-                         const OTIdentifier& RECIPIENT_ACCT_ID,
-                         const OTIdentifier& RECIPIENT_USER_ID);
+    EXPORT OTPaymentPlan(const Identifier& SERVER_ID,
+                         const Identifier& ASSET_ID);
+    EXPORT OTPaymentPlan(const Identifier& SERVER_ID,
+                         const Identifier& ASSET_ID,
+                         const Identifier& SENDER_ACCT_ID,
+                         const Identifier& SENDER_USER_ID,
+                         const Identifier& RECIPIENT_ACCT_ID,
+                         const Identifier& RECIPIENT_USER_ID);
     EXPORT virtual ~OTPaymentPlan();
     void InitPaymentPlan();
     virtual void Release();

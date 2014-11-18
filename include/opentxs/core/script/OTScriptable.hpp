@@ -269,16 +269,16 @@ public:
         OTPseudonym& theNym, OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccount(
         Account& theAccount, OTPartyAccount** ppPartyAccount = nullptr) const;
-    OTParty* FindPartyBasedOnNymIDAsAgent(const OTIdentifier& theNymID,
+    OTParty* FindPartyBasedOnNymIDAsAgent(const Identifier& theNymID,
                                           OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAuthAgent(
-        const OTIdentifier& theNymID, OTAgent** ppAgent = nullptr) const;
+        const Identifier& theNymID, OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccountID(
-        const OTIdentifier& theAcctID,
+        const Identifier& theAcctID,
         OTPartyAccount** ppPartyAccount = nullptr) const;
     OTAgent* GetAgent(std::string str_agent_name) const;
     OTPartyAccount* GetPartyAccount(std::string str_acct_name) const;
-    OTPartyAccount* GetPartyAccountByID(const OTIdentifier& theAcctID) const;
+    OTPartyAccount* GetPartyAccountByID(const Identifier& theAcctID) const;
     // This function returns the count of how many trans#s a Nym needs in order
     // to confirm as
     // a specific agent for a contract. (An opening number is needed for every
@@ -392,7 +392,7 @@ public:
                        // again.)
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg, OTPseudonym& theServerNym,
-        const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
+        const Identifier& theServerID, const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference, String* pstrNote = nullptr,
@@ -439,7 +439,7 @@ public:
     virtual ~OTScriptable();
 
     void UpdateContentsToString(String& strAppend, bool bCalculatingID) const;
-    EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
+    EXPORT virtual void CalculateContractID(Identifier& newID) const;
 
     virtual void Release();
     void Release_Scriptable();

@@ -223,7 +223,7 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 //
 OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
 {
-    OTIdentifier theAgentNymID;
+    Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
@@ -295,7 +295,7 @@ OTAgent::OTAgent(std::string str_agent_name, OTPseudonym& theNym,
       m_strName(str_agent_name.c_str())
 {
     // Grab m_strNymID
-    OTIdentifier theNymID;
+    Identifier theNymID;
     theNym.GetIdentifier(theNymID);
     theNymID.GetString(m_strNymID);
 
@@ -470,7 +470,7 @@ bool OTAgent::IsAGroup() const
 // (whether he DoesRepresentHimself() or DoesRepresentAnEntity() -- either way).
 // Otherwise if IsGroup(), this returns false.
 //
-bool OTAgent::GetNymID(OTIdentifier& theOutput) const
+bool OTAgent::GetNymID(Identifier& theOutput) const
 {
     if (IsAnIndividual()) {
         theOutput.SetString(m_strNymID);
@@ -485,7 +485,7 @@ bool OTAgent::GetNymID(OTIdentifier& theOutput) const
 // that Entity. Otherwise, if IsGroup() or DoesRepresentHimself(), then this
 // returns false.
 
-bool OTAgent::GetRoleID(OTIdentifier& theOutput) const
+bool OTAgent::GetRoleID(Identifier& theOutput) const
 {
     if (IsAnIndividual() && DoesRepresentAnEntity()) {
         theOutput.SetString(m_strRoleID);
@@ -511,7 +511,7 @@ bool OTAgent::GetRoleID(OTIdentifier& theOutput) const
 // needing that,
 // as part of the script, would also therefore be impossible.
 //
-bool OTAgent::GetSignerID(OTIdentifier& theOutput) const
+bool OTAgent::GetSignerID(Identifier& theOutput) const
 {
     // If IsIndividual() and DoesRepresentAnEntity() then this returns
     // GetRoleID().
@@ -534,9 +534,9 @@ bool OTAgent::GetSignerID(OTIdentifier& theOutput) const
     return false;
 }
 
-bool OTAgent::IsValidSignerID(const OTIdentifier& theNymID)
+bool OTAgent::IsValidSignerID(const Identifier& theNymID)
 {
-    OTIdentifier theAgentNymID;
+    Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
 
     // If there's a NymID on this agent, and it matches theNymID...
@@ -552,7 +552,7 @@ bool OTAgent::IsValidSignerID(const OTIdentifier& theNymID)
 //
 bool OTAgent::IsValidSigner(OTPseudonym& theNym)
 {
-    OTIdentifier theAgentNymID;
+    Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
 
     // If there's a NymID on this agent, and it matches theNym's ID...
@@ -598,7 +598,7 @@ bool OTAgent::IsValidSigner(OTPseudonym& theNym)
 // I'm debating making this function private along with DoesRepresentHimself /
 // DoesRepresentAnEntity().
 //
-bool OTAgent::GetEntityID(OTIdentifier& theOutput) const
+bool OTAgent::GetEntityID(Identifier& theOutput) const
 {
     // IF represents an entity, then this is its ID. Else fail.
     //
@@ -660,7 +660,7 @@ bool OTAgent::GetGroupName(String& strGroupName)
 
 // PARTY is either a NYM or an ENTITY. This returns ID for that Nym or Entity.
 //
-bool OTAgent::GetPartyID(OTIdentifier& theOutput) const
+bool OTAgent::GetPartyID(Identifier& theOutput) const
 {
     if (DoesRepresentHimself()) return GetNymID(theOutput);
 
@@ -698,7 +698,7 @@ void OTAgent::RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded)
 
 bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 {
-    OTIdentifier theSignerID;
+    Identifier theSignerID;
 
     if (!GetSignerID(theSignerID)) {
         otErr << "OTAgent::VerifyAgencyOfAccount: ERROR: Entities and roles "
@@ -716,7 +716,7 @@ bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 
 bool OTAgent::DropFinalReceiptToInbox(
     mapOfNyms* pNymMap, const String& strServerID, OTPseudonym& theServerNym,
-    OTSmartContract& theSmartContract, const OTIdentifier& theAccountID,
+    OTSmartContract& theSmartContract, const Identifier& theAccountID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment)
 {
@@ -724,7 +724,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     // accommodate them.
     const char* szFunc = "OTAgent::DropFinalReceiptToInbox";
 
-    OTIdentifier theAgentNymID;
+    Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
@@ -815,7 +815,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
                              // Nym, so need to check before actually
                              // using for anything.
 {
-    OTIdentifier theAgentNymID;
+    Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
@@ -840,12 +840,12 @@ bool OTAgent::DropFinalReceiptToNymbox(
 bool OTAgent::DropServerNoticeToNymbox(
     bool bSuccessMsg, // Added this so we can notify smart contract parties when
                       // it FAILS to activate.
-    OTPseudonym& theServerNym, const OTIdentifier& theServerID,
+    OTPseudonym& theServerNym, const Identifier& theServerID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
     const String& strReference, String* pstrNote, String* pstrAttachment,
     OTPseudonym* pActualNym)
 {
-    OTIdentifier theAgentNymID;
+    Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
@@ -953,7 +953,7 @@ bool OTAgent::HarvestTransactionNumber(
         //
         if (nullptr == pSignerNym) pSignerNym = m_pNym;
 
-        const OTIdentifier theServerID(strServerID);
+        const Identifier theServerID(strServerID);
 
         // This won't "add it back" unless we're SURE he had it in the first
         // place...

@@ -227,7 +227,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             currencyTypeID(xml->getAttributeValue("currencyTypeID")),
             currencyAcctID(xml->getAttributeValue("currencyAcctID"));
 
-        const OTIdentifier SERVER_ID(serverID), USER_ID(userID),
+        const Identifier SERVER_ID(serverID), USER_ID(userID),
             ASSET_TYPE_ID(assetTypeID), ASSET_ACCT_ID(assetAcctID),
             CURRENCY_TYPE_ID(currencyTypeID), CURRENCY_ACCT_ID(currencyAcctID);
 
@@ -420,7 +420,7 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
 // Otherwise it will fail. (Perhaps it's a stop order, and not ready to activate
 // yet.)
 //
-OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId, OTMarket** market)
+OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
 {
     OT_ASSERT(GetCron() != nullptr);
 
@@ -435,7 +435,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId, OTMarket** market)
 
         // It loaded. Let's get the Market ID off of it so we can locate the
         // market.
-        const OTIdentifier OFFER_MARKET_ID(*offer_);
+        const Identifier OFFER_MARKET_ID(*offer_);
 
         if (market != nullptr) {
             OTMarket* pMarket = GetCron()->GetMarket(OFFER_MARKET_ID);
@@ -490,7 +490,7 @@ OTOffer* OTTrade::GetOffer(OTIdentifier* offerMarketId, OTMarket** market)
     // *Also remember we saved a copy of the original in the cron folder.
 
     // It loaded. Let's get the Market ID off of it so we can locate the market.
-    OTIdentifier OFFER_MARKET_ID(*offer);
+    Identifier OFFER_MARKET_ID(*offer);
 
     if (offerMarketId != nullptr) {
         // Sometimes the caller function would like a copy of this ID. So I
@@ -789,7 +789,7 @@ void OTTrade::onRemovalFromCron()
 //    GetSenderAcctID()    -- asset account.
 //    GetCurrencyAcctID()    -- currency account.
 
-int64_t OTTrade::GetClosingNumber(const OTIdentifier& acctId) const
+int64_t OTTrade::GetClosingNumber(const Identifier& acctId) const
 {
     if (acctId == GetSenderAcctID())
         return GetAssetAcctClosingNum();
@@ -1001,7 +1001,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
                                                   // since multiple things
                                                   // have changed.
 
-        const OTIdentifier& actualNymId = GetSenderUserID();
+        const Identifier& actualNymId = GetSenderUserID();
 
         OTPseudonym* actualNym = nullptr; // use this. DON'T use theActualNym.
         if ((serverNym != nullptr) && serverNym->CompareID(actualNymId))
@@ -1183,7 +1183,7 @@ bool OTTrade::ProcessCron()
     bool bStayOnMarket =
         true; // by default stay on the market (until some rule expires me.)
 
-    OTIdentifier OFFER_MARKET_ID;
+    Identifier OFFER_MARKET_ID;
     OTMarket* market = nullptr;
 
     // If the Offer is already active on a market, then I already have a pointer
@@ -1334,10 +1334,9 @@ OTTrade::OTTrade()
     InitTrade();
 }
 
-OTTrade::OTTrade(const OTIdentifier& serverId, const OTIdentifier& assetId,
-                 const OTIdentifier& assetAcctId, const OTIdentifier& userId,
-                 const OTIdentifier& currencyId,
-                 const OTIdentifier& currencyAcctId)
+OTTrade::OTTrade(const Identifier& serverId, const Identifier& assetId,
+                 const Identifier& assetAcctId, const Identifier& userId,
+                 const Identifier& currencyId, const Identifier& currencyAcctId)
     : ot_super(serverId, assetId, assetAcctId, userId)
     , offer_(nullptr)
     , hasTradeActivated_(false)

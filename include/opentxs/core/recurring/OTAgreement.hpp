@@ -172,8 +172,8 @@ private: // Private prevents erroneous use by other classes.
     typedef OTCronItem ot_super;
 
 private:
-    OTIdentifier m_RECIPIENT_ACCT_ID;
-    OTIdentifier m_RECIPIENT_USER_ID;
+    Identifier m_RECIPIENT_ACCT_ID;
+    Identifier m_RECIPIENT_USER_ID;
 
 protected:
     String m_strConsideration; // Presumably an agreement is in return for
@@ -227,7 +227,7 @@ public:
 
     EXPORT bool Confirm(OTPseudonym& PAYER_NYM,
                         OTPseudonym* pMERCHANT_NYM = nullptr,
-                        const OTIdentifier* p_id_MERCHANT_NYM =
+                        const Identifier* p_id_MERCHANT_NYM =
                             nullptr); // Merchant Nym is passed here so we can
                                       // verify the signature before confirming.
 
@@ -343,19 +343,19 @@ public:
 
     virtual bool CompareAgreement(const OTAgreement& rhs) const;
 
-    inline const OTIdentifier& GetRecipientAcctID() const
+    inline const Identifier& GetRecipientAcctID() const
     {
         return m_RECIPIENT_ACCT_ID;
     }
-    inline const OTIdentifier& GetRecipientUserID() const
+    inline const Identifier& GetRecipientUserID() const
     {
         return m_RECIPIENT_USER_ID;
     }
-    inline void SetRecipientAcctID(const OTIdentifier& ACCT_ID)
+    inline void SetRecipientAcctID(const Identifier& ACCT_ID)
     {
         m_RECIPIENT_ACCT_ID = ACCT_ID;
     }
-    inline void SetRecipientUserID(const OTIdentifier& USER_ID)
+    inline void SetRecipientUserID(const Identifier& USER_ID)
     {
         m_RECIPIENT_USER_ID = USER_ID;
     }
@@ -471,7 +471,7 @@ public:
      */
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg, OTPseudonym& theServerNym,
-        const OTIdentifier& theServerID, const int64_t& lNewTransactionNumber,
+        const Identifier& theServerID, const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference, String* pstrNote = nullptr,
@@ -481,18 +481,18 @@ public:
     EXPORT static bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
                           // OTItem::rejection.
-        OTPseudonym& theServerNym, const OTIdentifier& SERVER_ID,
-        const OTIdentifier& USER_ID, const int64_t& lNewTransactionNumber,
+        OTPseudonym& theServerNym, const Identifier& SERVER_ID,
+        const Identifier& USER_ID, const int64_t& lNewTransactionNumber,
         const int64_t& lInReferenceTo, const String& strReference,
         String* pstrNote = nullptr, String* pstrAttachment = nullptr,
         OTPseudonym* pActualNym = nullptr);
     OTAgreement();
-    OTAgreement(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
-    OTAgreement(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-                const OTIdentifier& SENDER_ACCT_ID,
-                const OTIdentifier& SENDER_USER_ID,
-                const OTIdentifier& RECIPIENT_ACCT_ID,
-                const OTIdentifier& RECIPIENT_USER_ID);
+    OTAgreement(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
+    OTAgreement(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+                const Identifier& SENDER_ACCT_ID,
+                const Identifier& SENDER_USER_ID,
+                const Identifier& RECIPIENT_ACCT_ID,
+                const Identifier& RECIPIENT_USER_ID);
     virtual ~OTAgreement();
 
     void InitAgreement();
@@ -500,8 +500,8 @@ public:
     virtual void Release();
     void Release_Agreement();
     virtual bool IsValidOpeningNumber(const int64_t& lOpeningNum) const;
-    EXPORT virtual int64_t GetOpeningNumber(const OTIdentifier& theNymID) const;
-    virtual int64_t GetClosingNumber(const OTIdentifier& theAcctID) const;
+    EXPORT virtual int64_t GetOpeningNumber(const Identifier& theNymID) const;
+    virtual int64_t GetClosingNumber(const Identifier& theAcctID) const;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     virtual void UpdateContents(); // Before transmission or serialization, this

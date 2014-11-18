@@ -176,8 +176,8 @@ public:
     }
 
     EXPORT std::shared_ptr<Account> GetOrCreateAccount(
-        OTPseudonym& serverNym, const OTIdentifier& ACCOUNT_OWNER_ID,
-        const OTIdentifier& ASSET_TYPE_ID, const OTIdentifier& SERVER_ID,
+        OTPseudonym& serverNym, const Identifier& ACCOUNT_OWNER_ID,
+        const Identifier& ASSET_TYPE_ID, const Identifier& SERVER_ID,
         bool& wasAcctCreated, // this will be set to true if the acct is
         // created here. Otherwise set to false;
         int64_t stashTransNum = 0);

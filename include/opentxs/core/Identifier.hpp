@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTIdentifier.cpp
+ *  OTIdentifier.hpp
  *
  */
 
@@ -130,180 +130,66 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
+#define OPENTXS_CORE_OTIDENTIFIER_HPP
 
-#include <opentxs/core/OTIdentifier.hpp>
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
-#include <opentxs/core/crypto/OTSymmetricKey.hpp>
-#include <bitcoin-base58/hash.h>
-#include <cstring>
-#include <iostream>
+#include "OTData.hpp"
+
+#include <string>
+
+// An Identifier is basically a 256 bit hash value.
+// This class makes it easy to convert IDs back and forth to strings.
 
 namespace opentxs
 {
 
-OTIdentifier::OTIdentifier()
-    : OTData()
+class OTCachedKey;
+class Contract;
+class OTPseudonym;
+class String;
+class OTSymmetricKey;
+
+class Identifier : public OTData
 {
-}
+private:
+    bool CalculateDigest(const unsigned char* data, size_t len);
 
-OTIdentifier::OTIdentifier(const OTIdentifier& theID)
-    : OTData(theID)
-{
-}
+public:
+    EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
-OTIdentifier::OTIdentifier(const char* szStr)
-    : OTData()
-{
-    OT_ASSERT(nullptr != szStr);
-    SetString(szStr);
-}
+    EXPORT static const String DefaultHashAlgorithm;
+    EXPORT Identifier();
 
-OTIdentifier::OTIdentifier(const std::string& theStr)
-    : OTData()
-{
-    OT_ASSERT(!theStr.empty());
-    SetString(theStr.c_str());
-}
+    EXPORT Identifier(const Identifier& theID);
+    EXPORT Identifier(const char* szStr);
+    EXPORT Identifier(const std::string& szStr);
+    EXPORT Identifier(const String& theStr);
+    EXPORT Identifier(const OTPseudonym& theNym);
+    EXPORT Identifier(const Contract& theContract);
+    EXPORT Identifier(const OTSymmetricKey& theKey);
+    EXPORT Identifier(const OTCachedKey& theKey);
 
-OTIdentifier::OTIdentifier(const String& theStr)
-    : OTData()
-{
-    SetString(theStr);
-}
+    EXPORT virtual ~Identifier();
+    using OTData::swap;
+    using OTData::operator=;
+    EXPORT bool operator==(const Identifier& s2) const;
+    EXPORT bool operator!=(const Identifier& s2) const;
 
-OTIdentifier::OTIdentifier(const Contract& theContract)
-    : OTData() // Get the contract's ID into this identifier.
-{
-    (const_cast<Contract&>(theContract)).GetIdentifier(*this);
-}
+    EXPORT bool operator>(const Identifier& s2) const;
+    EXPORT bool operator<(const Identifier& s2) const;
+    EXPORT bool operator<=(const Identifier& s2) const;
+    EXPORT bool operator>=(const Identifier& s2) const;
+    EXPORT bool CalculateDigest(const OTData& dataInput);
+    EXPORT bool CalculateDigest(const String& strInput);
 
-OTIdentifier::OTIdentifier(const OTPseudonym& theNym)
-    : OTData() // Get the Nym's ID into this identifier.
-{
-    (const_cast<OTPseudonym&>(theNym)).GetIdentifier(*this);
-}
-
-OTIdentifier::OTIdentifier(const OTSymmetricKey& theKey)
-    : OTData() // Get the Symmetric Key's ID into *this. (It's a hash of the
-               // encrypted form of the symmetric key.)
-{
-    (const_cast<OTSymmetricKey&>(theKey)).GetIdentifier(*this);
-}
-
-OTIdentifier::OTIdentifier(const OTCachedKey& theKey)
-    : OTData() // Cached Key stores a symmetric key inside, so this actually
-               // captures the ID for that symmetrickey.
-{
-    const bool bSuccess =
-        (const_cast<OTCachedKey&>(theKey)).GetIdentifier(*this);
-
-    OT_ASSERT(bSuccess); // should never fail. If it does, then we are calling
-                         // this function at a time we shouldn't, when we aren't
-                         // sure the master key has even been generated yet. (If
-                         // this asserts, need to examine the line of code that
-                         // tried to do this, and figure out where its logic
-                         // went wrong, since it should have made sure this
-                         // would not happen, before constructing like this.)
-}
-
-void OTIdentifier::SetString(const char* szString)
-{
-    OT_ASSERT(nullptr != szString);
-    const String theStr(szString);
-    SetString(theStr);
-}
-
-bool OTIdentifier::operator==(const OTIdentifier& s2) const
-{
-    const String ots1(*this), ots2(s2);
-    return ots1.Compare(ots2);
-}
-
-bool OTIdentifier::operator!=(const OTIdentifier& s2) const
-{
-    const String ots1(*this), ots2(s2);
-    return !(ots1.Compare(ots2));
-}
-
-bool OTIdentifier::operator>(const OTIdentifier& s2) const
-{
-    const String ots1(*this), ots2(s2);
-    return ots1.operator>(ots2);
-}
-
-bool OTIdentifier::operator<(const OTIdentifier& s2) const
-{
-    const String ots1(*this), ots2(s2);
-    return ots1.operator<(ots2);
-}
-
-bool OTIdentifier::operator<=(const OTIdentifier& s2) const
-{
-    const String ots1(*this), ots2(s2);
-    return ots1.operator<=(ots2);
-}
-
-bool OTIdentifier::operator>=(const OTIdentifier& s2) const
-{
-    const String ots1(*this), ots2(s2);
-    return ots1.operator>=(ots2);
-}
-
-OTIdentifier::~OTIdentifier()
-{
-}
-
-// When calling SignContract or VerifySignature with "HASH256" as the hash type,
-// the signature will use (sha256 . sha256) as a message digest.
-// In this case, SignContractDefaultHash and VerifyContractDefaultHash are used,
-// which resort to low level calls to accomplish non standard message digests.
-// Otherwise, it will use whatever OpenSSL provides by that name (see
-// GetOpenSSLDigestByName).
-const String OTIdentifier::DefaultHashAlgorithm("HASH256");
-
-// This method implements the (ripemd160 . sha256) hash,
-// so the result is 20 bytes long.
-bool OTIdentifier::CalculateDigest(const unsigned char* data, size_t len)
-{
-    // The Hash160 function comes from the Bitcoin reference client, where
-    // it is implemented as RIPEMD160 ( SHA256 ( x ) ) => 20 byte hash
-    auto hash160 = Hash160(data, data + len);
-    SetSize(20);
-    memcpy(const_cast<void*>(GetPointer()), hash160, 20);
-    return true;
-}
-
-bool OTIdentifier::CalculateDigest(const String& strInput)
-{
-    return CalculateDigest(
-        reinterpret_cast<const unsigned char*>(strInput.Get()),
-        static_cast<size_t>(strInput.GetLength()));
-}
-
-bool OTIdentifier::CalculateDigest(const OTData& dataInput)
-{
-    auto dataPtr = static_cast<const unsigned char*>(dataInput.GetPointer());
-    return CalculateDigest(dataPtr, dataInput.GetSize());
-}
-
-// SET (binary id) FROM ENCODED STRING
-//
-void OTIdentifier::SetString(const String& theStr)
-{
-    OTCrypto::It()->SetIDFromEncoded(theStr, *this);
-}
-
-// This Identifier is stored in binary form.
-// But what if you want a pretty string version of it?
-// Just call this function.
-//
-void OTIdentifier::GetString(String& theStr) const
-{
-    OTCrypto::It()->EncodeID(*this, theStr); // *this input, theStr output.
-}
+    // If someone passes in the pretty string of hex digits,
+    // convert it to the actual binary hash and set it internally.
+    EXPORT void SetString(const char* szString);
+    EXPORT void SetString(const String& theStr);
+    // theStr will contain pretty hex string after call.
+    EXPORT void GetString(String& theStr) const;
+};
 
 } // namespace opentxs
+
+#endif // OPENTXS_CORE_OTIDENTIFIER_HPP

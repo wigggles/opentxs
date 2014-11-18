@@ -177,7 +177,7 @@ private:
     // wasn't used to startup, (which would mean we're executing a script) then
     // it's A-Okay to fire those auto messages.
 
-    void load_str_trans_add_to_ledger(const OTIdentifier& the_nym_id,
+    void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
                                       const String& str_trans,
                                       String str_box_type,
                                       const int64_t& lTransNum,
@@ -349,8 +349,8 @@ public:
                                       const Account* pAccount = nullptr,
                                       int64_t lTransactionAmount = 0,
                                       AssetContract* pMyAssetContract = nullptr,
-                                      const OTIdentifier* pHisNymID = nullptr,
-                                      const OTIdentifier* pHisAcctID = nullptr);
+                                      const Identifier* pHisNymID = nullptr,
+                                      const Identifier* pHisAcctID = nullptr);
 
     bool processServerReply(std::shared_ptr<Message> theReply,
                             OTLedger* pNymbox = nullptr); // IF the Nymbox is
@@ -372,8 +372,7 @@ public:
     //  void AcceptEntireNymbox(OTLedger& theNymbox, OTServerConnection&
     // theConnection);
 
-    bool AcceptEntireNymbox(OTLedger& theNymbox,
-                            const OTIdentifier& theServerID,
+    bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theServerID,
                             const OTServerContract& theServerContract,
                             OTPseudonym& theNym, Message& theMessage);
 

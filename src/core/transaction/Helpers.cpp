@@ -136,7 +136,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/OTIdentifier.hpp>
+#include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/OTNumList.hpp>
 #include <irrxml/irrXML.hpp>
 #include <string>
@@ -353,11 +353,11 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 }
 
 bool VerifyBoxReceiptExists(
-    const OTIdentifier& SERVER_ID,
-    const OTIdentifier& USER_ID, // Unused here for now, but still convention.
-    const OTIdentifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                    // USER_ID in this field also.
-    const int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
+    const Identifier& SERVER_ID,
+    const Identifier& USER_ID,    // Unused here for now, but still convention.
+    const Identifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
+                                  // USER_ID in this field also.
+    const int32_t nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum)
 {
     const int64_t lLedgerType = static_cast<int64_t>(nBoxType);

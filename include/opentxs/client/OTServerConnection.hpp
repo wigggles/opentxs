@@ -140,7 +140,7 @@ namespace opentxs
 
 class TransportCallback;
 class OTClient;
-class OTIdentifier;
+class Identifier;
 class OTPseudonym;
 class OTServerContract;
 class OTWallet;
@@ -162,7 +162,7 @@ public:
     {
     }
 
-    bool GetServerID(OTIdentifier& theID) const;
+    bool GetServerID(Identifier& theID) const;
 
     inline OTPseudonym* GetNym() const
     {

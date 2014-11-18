@@ -146,7 +146,7 @@ namespace opentxs
 
 class OTAsymmetricKey;
 class OTData;
-class OTIdentifier;
+class Identifier;
 class OTPassword;
 class OTPasswordData;
 class OTData;
@@ -257,8 +257,8 @@ public:
     bool IsBase62(const std::string& str) const;
 
     virtual void SetIDFromEncoded(const String& strInput,
-                                  OTIdentifier& theOutput) const = 0;
-    virtual void EncodeID(const OTIdentifier& theInput,
+                                  Identifier& theOutput) const = 0;
+    virtual void EncodeID(const Identifier& theInput,
                           String& strOutput) const = 0;
     // BASE 64 ENCODING
     // Caller is responsible to delete. Todo: return a unqiue pointer.

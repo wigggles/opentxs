@@ -156,7 +156,7 @@
 namespace opentxs
 {
 
-OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
+OTPseudonym* OTPseudonym::LoadPublicNym(const Identifier& NYM_ID,
                                         const String* pstrName,
                                         const char* szFuncName)
 {
@@ -283,7 +283,7 @@ OTPseudonym* OTPseudonym::LoadPublicNym(const OTIdentifier& NYM_ID,
  */
 
 // static
-OTPseudonym* OTPseudonym::LoadPrivateNym(const OTIdentifier& NYM_ID,
+OTPseudonym* OTPseudonym::LoadPrivateNym(const Identifier& NYM_ID,
                                          bool bChecking, const String* pstrName,
                                          const char* szFuncName,
                                          const OTPasswordData* pPWData,
@@ -491,7 +491,7 @@ bool OTPseudonym::AddNewMasterCredential(
         //
         // Therefore we need to check here to see if the Nym is self-signed:
         //
-        OTIdentifier theSelfSignedNymID;
+        Identifier theSelfSignedNymID;
         m_pkeypair->CalculateID(theSelfSignedNymID);
 
         if ((m_mapCredentials.empty() ||
@@ -721,7 +721,7 @@ bool OTPseudonym::AddNewMasterCredential(
 
         // Hash the purported source, and see if it matches the existing NymID.
         //
-        OTIdentifier theTempID;
+        Identifier theTempID;
         theTempID.CalculateDigest(*pstrSourceToUse);
         //      m_pkeypair->CalculateID(theTempID);
 
@@ -729,7 +729,7 @@ bool OTPseudonym::AddNewMasterCredential(
             String strNymID;
             GetIdentifier(strNymID);
 
-            OTIdentifier theKeypairNymID;
+            Identifier theKeypairNymID;
             m_pkeypair->CalculateID(theKeypairNymID);
 
             const String strKeypairNymID(theKeypairNymID),
@@ -840,7 +840,7 @@ bool OTPseudonym::AddNewMasterCredential(
     GetIdentifier(strNymID);
 
     if (!pMaster->VerifyInternally()) {
-        OTIdentifier theTempID;
+        Identifier theTempID;
         theTempID.CalculateDigest(*pstrSourceToUse);
         const String strTempID(theTempID);
         otErr << __FUNCTION__
@@ -910,7 +910,7 @@ bool OTPseudonym::AddNewMasterCredential(
 }
 
 bool OTPseudonym::AddNewSubkey(
-    const OTIdentifier& idMasterCredential,
+    const Identifier& idMasterCredential,
     int32_t nBits,                  // Ignored unless pmapPrivate is nullptr.
     const String::Map* pmapPrivate, // If nullptr, then the keys are
                                     // generated in here.
@@ -993,7 +993,7 @@ bool OTPseudonym::AddNewSubkey(
 }
 
 bool OTPseudonym::AddNewSubcredential(
-    const OTIdentifier& idMasterCredential,
+    const Identifier& idMasterCredential,
     const String::Map* pmapPrivate, // If nullptr, then the keys are
                                     // generated in here.
     const String::Map* pmapPublic,  // In the case of key credentials,
@@ -1484,7 +1484,7 @@ bool OTPseudonym::GenerateNym(int32_t nBits, bool bCreateFile, // By default, it
 
             if (bAddedMaster && strMasterCredID.Exists() &&
                 (GetMasterCredentialCount() > 0)) {
-                const OTIdentifier theMasterCredID(strMasterCredID);
+                const Identifier theMasterCredID(strMasterCredID);
                 const bool bAddedSubkey = AddNewSubkey(theMasterCredID);
 
                 if (bAddedSubkey) {
@@ -1634,8 +1634,8 @@ void OTPseudonym::RemoveAllNumbers(const String* pstrServerID,
 //  mapOfIdentifiers    m_mapNymboxHash;    // (Client-side) Hash of Nymbox
 // (OTIdentifier) mapped by ServerID (std::string)
 
-bool OTPseudonym::GetNymboxHashServerSide(
-    const OTIdentifier& theServerID, OTIdentifier& theOutput) // server-side
+bool OTPseudonym::GetNymboxHashServerSide(const Identifier& theServerID,
+                                          Identifier& theOutput) // server-side
 {
     if (m_NymboxHash.IsEmpty()) {
         OTLedger theNymbox(m_nymID, m_nymID, theServerID);
@@ -1648,62 +1648,62 @@ bool OTPseudonym::GetNymboxHashServerSide(
 }
 
 void OTPseudonym::SetNymboxHashServerSide(
-    const OTIdentifier& theInput) // server-side
+    const Identifier& theInput) // server-side
 {
     m_NymboxHash = theInput;
 }
 
 bool OTPseudonym::GetNymboxHash(const std::string& server_id,
-                                OTIdentifier& theOutput) const // client-side
+                                Identifier& theOutput) const // client-side
 {
     return GetHash(m_mapNymboxHash, server_id, theOutput);
 }
 
 bool OTPseudonym::SetNymboxHash(const std::string& server_id,
-                                const OTIdentifier& theInput) // client-side
+                                const Identifier& theInput) // client-side
 {
     return SetHash(m_mapNymboxHash, server_id, theInput);
 }
 
 bool OTPseudonym::GetRecentHash(const std::string& server_id,
-                                OTIdentifier& theOutput) const // client-side
+                                Identifier& theOutput) const // client-side
 {
     return GetHash(m_mapRecentHash, server_id, theOutput);
 }
 
 bool OTPseudonym::SetRecentHash(const std::string& server_id,
-                                const OTIdentifier& theInput) // client-side
+                                const Identifier& theInput) // client-side
 {
     return SetHash(m_mapRecentHash, server_id, theInput);
 }
 
 bool OTPseudonym::GetInboxHash(const std::string& acct_id,
-                               OTIdentifier& theOutput) const // client-side
+                               Identifier& theOutput) const // client-side
 {
     return GetHash(m_mapInboxHash, acct_id, theOutput);
 }
 
 bool OTPseudonym::SetInboxHash(const std::string& acct_id,
-                               const OTIdentifier& theInput) // client-side
+                               const Identifier& theInput) // client-side
 {
     return SetHash(m_mapInboxHash, acct_id, theInput);
 }
 
 bool OTPseudonym::GetOutboxHash(const std::string& acct_id,
-                                OTIdentifier& theOutput) const // client-side
+                                Identifier& theOutput) const // client-side
 {
     return GetHash(m_mapOutboxHash, acct_id, theOutput);
 }
 
 bool OTPseudonym::SetOutboxHash(const std::string& acct_id,
-                                const OTIdentifier& theInput) // client-side
+                                const Identifier& theInput) // client-side
 {
     return SetHash(m_mapOutboxHash, acct_id, theInput);
 }
 
 bool OTPseudonym::GetHash(const mapOfIdentifiers& the_map,
                           const std::string& str_id,
-                          OTIdentifier& theOutput) const // client-side
+                          Identifier& theOutput) const // client-side
 {
     bool bRetVal =
         false; // default is false: "No, I didn't find a hash for that id."
@@ -1733,7 +1733,7 @@ bool OTPseudonym::GetHash(const mapOfIdentifiers& the_map,
 }
 
 bool OTPseudonym::SetHash(mapOfIdentifiers& the_map, const std::string& str_id,
-                          const OTIdentifier& theInput) // client-side
+                          const Identifier& theInput) // client-side
 {
     bool bSuccess = false;
 
@@ -1989,7 +1989,7 @@ bool OTPseudonym::ResyncWithServer(const OTLedger& theNymbox,
 {
     bool bSuccess = true;
 
-    const OTIdentifier& theServerID = theNymbox.GetRealServerID();
+    const Identifier& theServerID = theNymbox.GetRealServerID();
     const String strServerID(theServerID);
     const String strNymID(m_nymID);
 
@@ -2317,7 +2317,7 @@ bool OTPseudonym::AddGenericNum(mapOfTransNums& THE_MAP,
 // Returns count of transaction numbers available for a given server.
 //
 int32_t OTPseudonym::GetGenericNumCount(const mapOfTransNums& THE_MAP,
-                                        const OTIdentifier& theServerID) const
+                                        const Identifier& theServerID) const
 {
     int32_t nReturnValue = 0;
 
@@ -2353,7 +2353,7 @@ int32_t OTPseudonym::GetGenericNumCount(const mapOfTransNums& THE_MAP,
 
 // by index.
 int64_t OTPseudonym::GetGenericNum(const mapOfTransNums& THE_MAP,
-                                   const OTIdentifier& theServerID,
+                                   const Identifier& theServerID,
                                    int32_t nIndex) const
 {
     int64_t lRetVal = 0;
@@ -2393,21 +2393,21 @@ int64_t OTPseudonym::GetGenericNum(const mapOfTransNums& THE_MAP,
 }
 
 // by index.
-int64_t OTPseudonym::GetIssuedNum(const OTIdentifier& theServerID,
+int64_t OTPseudonym::GetIssuedNum(const Identifier& theServerID,
                                   int32_t nIndex) const
 {
     return GetGenericNum(m_mapIssuedNum, theServerID, nIndex);
 }
 
 // by index.
-int64_t OTPseudonym::GetTransactionNum(const OTIdentifier& theServerID,
+int64_t OTPseudonym::GetTransactionNum(const Identifier& theServerID,
                                        int32_t nIndex) const
 {
     return GetGenericNum(m_mapTransNum, theServerID, nIndex);
 }
 
 // by index.
-int64_t OTPseudonym::GetAcknowledgedNum(const OTIdentifier& theServerID,
+int64_t OTPseudonym::GetAcknowledgedNum(const Identifier& theServerID,
                                         int32_t nIndex) const
 {
     return GetGenericNum(m_mapAcknowledgedNum, theServerID, nIndex);
@@ -2441,8 +2441,7 @@ bool OTPseudonym::RemoveTransactionNum(const String& strServerID,
 
 // Returns count of transaction numbers available for a given server.
 //
-int32_t OTPseudonym::GetTransactionNumCount(
-    const OTIdentifier& theServerID) const
+int32_t OTPseudonym::GetTransactionNumCount(const Identifier& theServerID) const
 {
     return GetGenericNumCount(m_mapTransNum, theServerID);
 }
@@ -2482,7 +2481,7 @@ bool OTPseudonym::RemoveIssuedNum(const String& strServerID,
 
 // Returns count of transaction numbers not yet cleared for a given server.
 //
-int32_t OTPseudonym::GetIssuedNumCount(const OTIdentifier& theServerID) const
+int32_t OTPseudonym::GetIssuedNumCount(const Identifier& theServerID) const
 {
     return GetGenericNumCount(m_mapIssuedNum, theServerID);
 }
@@ -2575,7 +2574,7 @@ bool OTPseudonym::RemoveAcknowledgedNum(const String& strServerID,
 // told me he has already seen the reply to.)
 //
 int32_t OTPseudonym::GetAcknowledgedNumCount(
-    const OTIdentifier& theServerID) const
+    const Identifier& theServerID) const
 {
     return GetGenericNumCount(m_mapAcknowledgedNum, theServerID);
 }
@@ -2745,7 +2744,7 @@ bool OTPseudonym::RemoveAcknowledgedNum(OTPseudonym& SIGNER_NYM,
 /// does (OTPseudonym::HarvestIssuedNumbers), EXCEPT it only adds numbers that
 /// aren't on the TENTATIVE list. Also, it will set the new "highest" trans num
 /// for the appropriate server, based on the new numbers being harvested.
-void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
+void OTPseudonym::HarvestTransactionNumbers(const Identifier& theServerID,
                                             OTPseudonym& SIGNER_NYM,
                                             OTPseudonym& theOtherNym,
                                             bool bSave)
@@ -2761,7 +2760,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
         OT_ASSERT(nullptr != pDeque);
 
         String OTstrServerID = strServerID.c_str();
-        const OTIdentifier theTempID(OTstrServerID);
+        const Identifier theTempID(OTstrServerID);
 
         if (!(pDeque->empty()) &&
             (theServerID == theTempID)) // only for the matching serverID.
@@ -2880,7 +2879,7 @@ void OTPseudonym::HarvestTransactionNumbers(const OTIdentifier& theServerID,
 // has no tentative
 // list, because he's not a nym in the first place.
 //
-void OTPseudonym::HarvestIssuedNumbers(const OTIdentifier& theServerID,
+void OTPseudonym::HarvestIssuedNumbers(const Identifier& theServerID,
                                        OTPseudonym& SIGNER_NYM,
                                        OTPseudonym& theOtherNym, bool bSave)
 {
@@ -2895,7 +2894,7 @@ void OTPseudonym::HarvestIssuedNumbers(const OTIdentifier& theServerID,
 
         String OTstrServerID =
             ((strServerID.size()) > 0 ? strServerID.c_str() : "");
-        const OTIdentifier theTempID(OTstrServerID);
+        const Identifier theTempID(OTstrServerID);
 
         if (!(pDeque->empty()) && (theServerID == theTempID)) {
             for (uint32_t i = 0; i < pDeque->size(); i++) {
@@ -2932,7 +2931,7 @@ void OTPseudonym::HarvestIssuedNumbers(const OTIdentifier& theServerID,
 /// them on a different transaction.)
 ///
 bool OTPseudonym::ClawbackTransactionNumber(
-    const OTIdentifier& theServerID,
+    const Identifier& theServerID,
     const int64_t& lTransClawback, // the number being clawed back.
     bool bSave, // false because you might call this function 10
                 // times in a loop, and not want to save EVERY
@@ -3514,7 +3513,7 @@ bool OTPseudonym::VerifyPseudonym() const
             const OTCredential* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
-            const OTIdentifier theCredentialNymID(pCredential->GetNymID());
+            const Identifier theCredentialNymID(pCredential->GetNymID());
             if (!CompareID(theCredentialNymID)) {
                 String strNymID;
                 GetIdentifier(strNymID);
@@ -4595,7 +4594,7 @@ bool OTPseudonym::SavePseudonym(String& strNym)
     // client-side
     for (auto& it : m_mapNymboxHash) {
         std::string strServerID = it.first;
-        OTIdentifier& theID = it.second;
+        Identifier& theID = it.second;
 
         if ((strServerID.size() > 0) && !theID.IsEmpty()) {
             const String strNymboxHash(theID);
@@ -4610,7 +4609,7 @@ bool OTPseudonym::SavePseudonym(String& strNym)
     // client-side
     for (auto& it : m_mapRecentHash) {
         std::string strServerID = it.first;
-        OTIdentifier& theID = it.second;
+        Identifier& theID = it.second;
 
         if ((strServerID.size() > 0) && !theID.IsEmpty()) {
             const String strRecentHash(theID);
@@ -4634,7 +4633,7 @@ bool OTPseudonym::SavePseudonym(String& strNym)
     // client-side
     for (auto& it : m_mapInboxHash) {
         std::string strAcctID = it.first;
-        OTIdentifier& theID = it.second;
+        Identifier& theID = it.second;
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
@@ -4649,7 +4648,7 @@ bool OTPseudonym::SavePseudonym(String& strNym)
     // client-side
     for (auto& it : m_mapOutboxHash) {
         std::string strAcctID = it.first;
-        OTIdentifier& theID = it.second;
+        Identifier& theID = it.second;
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
@@ -5200,7 +5199,7 @@ bool OTPseudonym::LoadFromString(
                 // my
                 // internal map so that it is available for future lookups.
                 if (strServerID.Exists() && strNymboxHash.Exists()) {
-                    const OTIdentifier theID(strNymboxHash);
+                    const Identifier theID(strNymboxHash);
                     m_mapNymboxHash[strServerID.Get()] = theID;
                 }
             }
@@ -5216,7 +5215,7 @@ bool OTPseudonym::LoadFromString(
                 // my
                 // internal map so that it is available for future lookups.
                 if (strServerID.Exists() && strRecentHash.Exists()) {
-                    const OTIdentifier theID(strRecentHash);
+                    const Identifier theID(strRecentHash);
                     m_mapRecentHash[strServerID.Get()] = theID;
                 }
             }
@@ -5232,7 +5231,7 @@ bool OTPseudonym::LoadFromString(
                 // internal map so that it is available for future lookups.
                 //
                 if (strAccountID.Exists() && strHashValue.Exists()) {
-                    const OTIdentifier theID(strHashValue);
+                    const Identifier theID(strHashValue);
                     m_mapInboxHash[strAccountID.Get()] = theID;
                 }
             }
@@ -5248,7 +5247,7 @@ bool OTPseudonym::LoadFromString(
                 // internal map so that it is available for future lookups.
                 //
                 if (strAccountID.Exists() && strHashValue.Exists()) {
-                    const OTIdentifier theID(strHashValue);
+                    const Identifier theID(strHashValue);
                     m_mapOutboxHash[strAccountID.Get()] = theID;
                 }
             }
@@ -6302,13 +6301,13 @@ int32_t OTPseudonym::GetPublicKeysBySignature(listOfAsymmetricKeys& listOutput,
 }
 
 // sets internal member based in ID passed in
-void OTPseudonym::SetIdentifier(const OTIdentifier& theIdentifier)
+void OTPseudonym::SetIdentifier(const Identifier& theIdentifier)
 {
     m_nymID = theIdentifier;
 }
 
 // sets argument based on internal member
-void OTPseudonym::GetIdentifier(OTIdentifier& theIdentifier) const
+void OTPseudonym::GetIdentifier(Identifier& theIdentifier) const
 {
     theIdentifier = m_nymID;
 }
@@ -6356,7 +6355,7 @@ OTPseudonym::OTPseudonym(const String& name, const String& filename,
     m_nymID.SetString(nymID);
 }
 
-OTPseudonym::OTPseudonym(const OTIdentifier& nymID)
+OTPseudonym::OTPseudonym(const Identifier& nymID)
     : m_bMarkForDeletion(false)
     , m_pkeypair(new OTKeypair)
     , m_lUsageCredits(0)

@@ -184,9 +184,9 @@ protected:
     // or is for a temp Nym
     // which must be ATTACHED to the purse, if that boolean is set to true.
 
-    OTIdentifier m_UserID;     // Optional
-    OTIdentifier m_ServerID;   // Mandatory
-    OTIdentifier m_AssetID;    // Mandatory
+    Identifier m_UserID;       // Optional
+    Identifier m_ServerID;     // Mandatory
+    Identifier m_AssetID;      // Mandatory
     int64_t m_lTotalValue;     // Push increments this by denomination, and Pop
                                // decrements it by denomination.
     bool m_bPasswordProtected; // this purse might be encrypted to a passphrase,
@@ -229,16 +229,16 @@ public:
     // in advance. I decided to add a factory for OTPurse to facilitate that.
     EXPORT static Purse* PurseFactory(String strInput);
     EXPORT static Purse* PurseFactory(String strInput,
-                                      const OTIdentifier& SERVER_ID);
+                                      const Identifier& SERVER_ID);
     EXPORT static Purse* PurseFactory(String strInput,
-                                      const OTIdentifier& SERVER_ID,
-                                      const OTIdentifier& ASSET_ID);
+                                      const Identifier& SERVER_ID,
+                                      const Identifier& ASSET_ID);
     EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine);
     EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine,
-                                             const OTIdentifier& SERVER_ID);
+                                             const Identifier& SERVER_ID);
     EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine,
-                                             const OTIdentifier& SERVER_ID,
-                                             const OTIdentifier& ASSET_ID);
+                                             const Identifier& SERVER_ID,
+                                             const Identifier& ASSET_ID);
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     // What if you DON'T want to encrypt the purse to your Nym??
     // What if you just want to use a passphrase instead?
@@ -274,7 +274,7 @@ public:
         return m_bPasswordProtected;
     }
     // This will return false every time, if IsNymIDIncluded() is false.
-    EXPORT bool GetNymID(OTIdentifier& theOutput) const;
+    EXPORT bool GetNymID(Identifier& theOutput) const;
     // FYI: OTPurse::Push makes its own copy of theToken and does NOT take
     // ownership of the one passed in.
     EXPORT bool Push(OTNym_or_SymmetricKey theOwner, const Token& theToken);
@@ -309,15 +309,15 @@ public:
                       OTNym_or_SymmetricKey theNewNym, Purse& theNewPurse);
     EXPORT Purse(const Purse& thePurse); // just for copy another purse's
                                          // Server and Asset ID
-    EXPORT Purse(const OTIdentifier& SERVER_ID,
-                 const OTIdentifier& ASSET_ID);  // similar thing
-    EXPORT Purse(const OTIdentifier& SERVER_ID); // Don't use this unless you
-                                                 // really don't know the
-                                                 // asset type
+    EXPORT Purse(const Identifier& SERVER_ID,
+                 const Identifier& ASSET_ID);  // similar thing
+    EXPORT Purse(const Identifier& SERVER_ID); // Don't use this unless you
+                                               // really don't know the
+                                               // asset type
     // (Like if you're about to read it out of a string.)
     // Normally you really really want to set the asset type.
-    EXPORT Purse(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID,
-                 const OTIdentifier& USER_ID); // UserID optional
+    EXPORT Purse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+                 const Identifier& USER_ID); // UserID optional
     EXPORT virtual ~Purse();
     EXPORT bool LoadPurse(const char* szServerID = nullptr,
                           const char* szUserID = nullptr,
@@ -328,11 +328,11 @@ public:
 
     virtual bool LoadContract();
 
-    inline const OTIdentifier& GetServerID() const
+    inline const Identifier& GetServerID() const
     {
         return m_ServerID;
     }
-    inline const OTIdentifier& GetAssetID() const
+    inline const Identifier& GetAssetID() const
     {
         return m_AssetID;
     }

@@ -525,7 +525,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
                             String strNymContents;
                             pNym->SavePseudonym(strNymContents);
-                            OTIdentifier theNewNymID,
+                            Identifier theNewNymID,
                                 SERVER_ID(server_->m_strServerID);
                             pNym->GetIdentifier(theNewNymID);
                             OTLedger theNymbox(theNewNymID, theNewNymID,
@@ -602,7 +602,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                          "account verification "
                                          "file.\n");
 
-                        OTIdentifier theNewNymID,
+                        Identifier theNewNymID,
                             SERVER_ID(server_->m_strServerID);
                         pNym->GetIdentifier(theNewNymID);
                         OTLedger theNymbox(theNewNymID, theNewNymID, SERVER_ID);
@@ -949,7 +949,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // as well.
     //
 
-    const OTIdentifier SERVER_ID(server_->m_strServerID);
+    const Identifier SERVER_ID(server_->m_strServerID);
 
     // The server reads the list of acknowledged replies from the incoming
     // client message...
@@ -1524,7 +1524,7 @@ void UserCommandProcessor::UserCmdGetMarketOffers(OTPseudonym&, Message& MsgIn,
     int64_t lDepth = MsgIn.m_lDepth;
     if (lDepth < 0) lDepth = 0;
 
-    const OTIdentifier MARKET_ID(MsgIn.m_strNymID2);
+    const Identifier MARKET_ID(MsgIn.m_strNymID2);
 
     OTMarket* pMarket = server_->m_Cron.GetMarket(MARKET_ID);
 
@@ -1575,7 +1575,7 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(OTPseudonym&,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // Market ID.
 
-    const OTIdentifier MARKET_ID(MsgIn.m_strNymID2);
+    const Identifier MARKET_ID(MsgIn.m_strNymID2);
 
     OTMarket* pMarket = server_->m_Cron.GetMarket(MARKET_ID);
 
@@ -1626,7 +1626,7 @@ void UserCommandProcessor::UserCmdGetNym_MarketOffers(OTPseudonym& theNym,
         "getNym_MarketOffersResponse";    // reply to getMarketOffers
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
-    OTIdentifier NYM_ID;
+    Identifier NYM_ID;
     theNym.GetIdentifier(NYM_ID);
 
     OTASCIIArmor ascOutput;
@@ -1693,7 +1693,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
         "getTransactionNumResponse";      // reply to getTransactionNum
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
-    const OTIdentifier SERVER_ID(server_->m_strServerID);
+    const Identifier SERVER_ID(server_->m_strServerID);
 
     // A few client requests, and a few server replies (not exactly matched up)
     // will include a copy of the NymboxHash.  The server may reject certain
@@ -1702,10 +1702,10 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
     // re-download the nymbox and other intermediary files.
     //
     int32_t nCount = theNym.GetTransactionNumCount(SERVER_ID);
-    const OTIdentifier theMsgNymboxHash(
+    const Identifier theMsgNymboxHash(
         MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash sent by the
                                 // client side
-    OTIdentifier EXISTING_NYMBOX_HASH;
+    Identifier EXISTING_NYMBOX_HASH;
 
     const bool bGotNymboxHashServerSide =
         theNym.GetNymboxHashServerSide(SERVER_ID, EXISTING_NYMBOX_HASH);
@@ -1737,7 +1737,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
             MsgIn.m_strNymID.Get());
     }
     else {
-        OTIdentifier USER_ID, NYMBOX_HASH;
+        Identifier USER_ID, NYMBOX_HASH;
         theNym.GetIdentifier(USER_ID);
 
         bool bSuccess = true;
@@ -1932,12 +1932,12 @@ void UserCommandProcessor::UserCmdGetRequest(OTPseudonym& theNym,
     else
         msgOut.m_lNewRequestNum = lReqNum;
 
-    const OTIdentifier SERVER_ID(server_->m_strServerID);
-    OTIdentifier EXISTING_NYMBOX_HASH;
+    const Identifier SERVER_ID(server_->m_strServerID);
+    Identifier EXISTING_NYMBOX_HASH;
     if (theNym.GetNymboxHashServerSide(SERVER_ID, EXISTING_NYMBOX_HASH))
         EXISTING_NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
     else {
-        const OTIdentifier theNymID(theNym);
+        const Identifier theNymID(theNym);
         OTLedger theLedger(theNymID, theNymID, SERVER_ID);
 
         if (theLedger.LoadNymbox() && theLedger.VerifyContractID() &&
@@ -1974,7 +1974,7 @@ void UserCommandProcessor::UserCmdSendUserMessage(OTPseudonym& theNym,
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
-    const OTIdentifier SENDER_USER_ID(theNym),
+    const Identifier SENDER_USER_ID(theNym),
         RECIPIENT_USER_ID(MsgIn.m_strNymID2), SERVER_ID(server_->m_strServerID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
     const bool bSent =
@@ -2014,7 +2014,7 @@ void UserCommandProcessor::UserCmdSendUserInstrument(OTPseudonym& theNym,
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
-    const OTIdentifier SENDER_USER_ID(theNym),
+    const Identifier SENDER_USER_ID(theNym),
         RECIPIENT_USER_ID(MsgIn.m_strNymID2), SERVER_ID(server_->m_strServerID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
     const bool bSent = server_->SendInstrumentToNym(
@@ -2163,7 +2163,7 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
 
     msgOut.m_lDepth = 0; // Returns total Usage Credits on Nym at the end.
     OTPseudonym nym2;
-    OTIdentifier nym2ID, SERVER_ID(server_->m_strServerID);
+    Identifier nym2ID, SERVER_ID(server_->m_strServerID);
     nym2.SetIdentifier(MsgIn.m_strNymID2);
     nym2.GetIdentifier(nym2ID);
 
@@ -2355,7 +2355,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
     msgOut.m_strAssetID =
         MsgIn.m_strAssetID; // Asset Type ID, a hash of the asset contract.
 
-    const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
+    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
         ASSET_TYPE_ID(MsgIn.m_strAssetID);
 
     AssetContract* pAssetContract =
@@ -2378,7 +2378,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
         pAssetContract = new AssetContract(MsgIn.m_strAssetID, strFoldername,
                                            strFilename, MsgIn.m_strAssetID);
 
-        OTIdentifier ASSET_USER_ID;
+        Identifier ASSET_USER_ID;
         bool bSuccessCalculateDigest = false;
 
         if (nullptr == pAssetContract) {
@@ -2485,7 +2485,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
                         // time.
                         pAssetContract->SaveContract(
                             OTFolders::Contract().Get(), strFilename.Get());
-                        OTIdentifier theNewAccountID;
+                        Identifier theNewAccountID;
                         pNewAccount->GetIdentifier(theNewAccountID);
                         OTLog::Output(
                             0,
@@ -2681,7 +2681,7 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
-    const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
+    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
         SERVER_USER_ID(server_->m_nymServer);
 
     String strBasket(MsgIn.m_ascPayload);
@@ -2703,7 +2703,7 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
         // portion of the contract
         // (so it is unique on every server) and for the same reason with the
         // AccountID removed before calculating.
-        OTIdentifier BASKET_ID, BASKET_ACCOUNT_ID, BASKET_CONTRACT_ID;
+        Identifier BASKET_ID, BASKET_ACCOUNT_ID, BASKET_CONTRACT_ID;
         theBasket.CalculateContractID(BASKET_ID);
 
         // Use BASKET_ID to look up the Basket account and see if it already
@@ -2972,7 +2972,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
     String tempInMessage(MsgIn);
     msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
-    const OTIdentifier USER_ID(theNym), SERVER_ID(server_->m_strServerID);
+    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strServerID);
 
     std::unique_ptr<Account> pNewAccount(Account::GenerateNewAccount(
         USER_ID, SERVER_ID, server_->m_nymServer, MsgIn));
@@ -3003,7 +3003,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
                 return; // error
             }
         }
-        OTIdentifier theNewAccountID;
+        Identifier theNewAccountID;
         pNewAccount->GetIdentifier(theNewAccountID);
 
         OTLedger theOutbox(USER_ID, theNewAccountID, SERVER_ID),
@@ -3139,7 +3139,7 @@ void UserCommandProcessor::UserCmdGetAccount(OTPseudonym&, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+    const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);
 
     Account* pAccount = Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
@@ -3186,7 +3186,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+    const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);
 
     String strAccount, strInbox, strOutbox, strInboxHash, strOutboxHash;
@@ -3259,7 +3259,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&, Message& MsgIn,
             if (bSuccessLoadingInbox) {
                 theInbox.SaveContractRaw(strInbox);
 
-                OTIdentifier theHash;
+                Identifier theHash;
                 if (theInbox.CalculateInboxHash(theHash))
                     theHash.GetString(strInboxHash);
             }
@@ -3324,7 +3324,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&, Message& MsgIn,
             if (bSuccessLoadingOutbox) {
                 theOutbox.SaveContractRaw(strOutbox);
 
-                OTIdentifier theHash;
+                Identifier theHash;
                 if (theOutbox.CalculateOutboxHash(theHash))
                     theHash.GetString(strOutboxHash);
             }
@@ -3407,7 +3407,7 @@ void UserCommandProcessor::UserCmdGetInbox(OTPseudonym&, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+    const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);
 
     OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID);
@@ -3466,7 +3466,7 @@ void UserCommandProcessor::UserCmdGetInbox(OTPseudonym&, Message& MsgIn,
                                                    // its payload in base64
                                                    // form.
 
-        OTIdentifier theHash;
+        Identifier theHash;
         if (theLedger.CalculateInboxHash(theHash))
             theHash.GetString(msgOut.m_strInboxHash);
     }
@@ -3502,7 +3502,7 @@ void UserCommandProcessor::UserCmdGetOutbox(OTPseudonym&, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+    const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(MsgIn.m_strServerID);
 
     OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID);
@@ -3556,7 +3556,7 @@ void UserCommandProcessor::UserCmdGetOutbox(OTPseudonym&, Message& MsgIn,
                                                    // its payload in base64
                                                    // form.
 
-        OTIdentifier theHash;
+        Identifier theHash;
         if (theLedger.CalculateOutboxHash(theHash))
             theHash.GetString(msgOut.m_strOutboxHash);
     }
@@ -3629,7 +3629,7 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&, Message& MsgIn,
                 if ((str1.size() > 0) &&
                     (str2.compare("exists") == 0)) // todo hardcoding
                 {
-                    const OTIdentifier theAssetID(str1.c_str());
+                    const Identifier theAssetID(str1.c_str());
                     AssetContract* pAssetContract =
                         server_->transactor_.getAssetContract(theAssetID);
                     if (nullptr != pAssetContract) // Yes, it exists.
@@ -3680,7 +3680,7 @@ void UserCommandProcessor::UserCmdGetContract(Message& MsgIn, Message& msgOut)
     msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 
-    const OTIdentifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
+    const Identifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
 
     AssetContract* pContract =
         server_->transactor_.getAssetContract(ASSET_TYPE_ID);
@@ -3730,10 +3730,10 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
     msgOut.m_strCommand = "triggerClauseResponse"; // reply to triggerClause
     msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
     msgOut.m_bSuccess = false;                     // Default value.
-    const OTIdentifier SERVER_ID(server_->m_strServerID),
+    const Identifier SERVER_ID(server_->m_strServerID),
         theMsgNymboxHash(MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash
                                                  // sent by the client side
-    OTIdentifier theSrvrNymboxHash;
+    Identifier theSrvrNymboxHash;
 
     bool bGotNymboxHashServerSide =
         theNym.GetNymboxHashServerSide(SERVER_ID, theSrvrNymboxHash);
@@ -3880,7 +3880,7 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
 
-    const OTIdentifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
+    const Identifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
     const String ASSET_ID_STR(ASSET_TYPE_ID);
     bool bSuccessLoadingMint = false;
 
@@ -3947,8 +3947,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
         "deleteUserAccountResponse";      // reply to deleteUserAccount
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID),
-        SERVER_ID(MsgIn.m_strServerID);
+    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID);
 
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
 
@@ -4099,8 +4098,8 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
     msgOut.m_lDepth = MsgIn.m_lDepth;
     msgOut.m_bSuccess = false;
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID),
-        SERVER_ID(MsgIn.m_strServerID), ACCOUNT_ID(MsgIn.m_strAcctID);
+    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID),
+        ACCOUNT_ID(MsgIn.m_strAcctID);
 
     std::unique_ptr<OTLedger> pLedger(
         new OTLedger(USER_ID, ACCOUNT_ID, SERVER_ID));
@@ -4301,8 +4300,8 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account being deleted.
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID),
-        SERVER_ID(MsgIn.m_strServerID), ACCOUNT_ID(MsgIn.m_strAcctID);
+    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID),
+        ACCOUNT_ID(MsgIn.m_strAcctID);
 
     std::unique_ptr<Account> pAccount(
         Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID));
@@ -4441,9 +4440,8 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym, Message& MsgIn,
     msgOut.m_strCommand = "getNymboxResponse"; // reply to getNymbox
     msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID),
-        SERVER_ID(MsgIn.m_strServerID);
-    OTIdentifier NYMBOX_HASH;
+    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID);
+    Identifier NYMBOX_HASH;
     bool bSavedNymbox = false;
 
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
@@ -4532,7 +4530,7 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym, Message& MsgIn,
             msgOut.m_strNymboxHash); // Get the hash onto the message
     }
     else {
-        OTIdentifier EXISTING_NYMBOX_HASH;
+        Identifier EXISTING_NYMBOX_HASH;
         if (theNym.GetNymboxHashServerSide(
                 SERVER_ID,
                 EXISTING_NYMBOX_HASH)) // if hash exists already for nym...
@@ -4560,7 +4558,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
     msgOut.m_strCommand = "processNymboxResponse"; // reply to processNymbox
     msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
-    const OTIdentifier USER_ID(msgOut.m_strNymID),
+    const Identifier USER_ID(msgOut.m_strNymID),
         SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
 
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID); // These are ledgers used
@@ -4576,10 +4574,10 @@ void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
 
     bool bTransSuccess = false;
 
-    const OTIdentifier theMsgNymboxHash(
+    const Identifier theMsgNymboxHash(
         MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash sent by the
                                 // client side
-    OTIdentifier theSrvrNymboxHash;
+    Identifier theSrvrNymboxHash;
 
     bool bGotNymboxHashServerSide =
         theNym.GetNymboxHashServerSide(SERVER_ID, theSrvrNymboxHash);
@@ -4794,9 +4792,8 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
     msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID;       // The Account ID in question
 
-    const OTIdentifier USER_ID(msgOut.m_strNymID),
-        ACCOUNT_ID(MsgIn.m_strAcctID), SERVER_ID(server_->m_strServerID),
-        SERVER_USER_ID(server_->m_nymServer);
+    const Identifier USER_ID(msgOut.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+        SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
 
     OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID); // These are ledgers
                                                         // used as messages. The
@@ -4814,10 +4811,10 @@ void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
     String strLedger(MsgIn.m_ascPayload);
 
     bool bTransSuccess = false;
-    const OTIdentifier theMsgNymboxHash(
+    const Identifier theMsgNymboxHash(
         MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash sent by the
                                 // client side
-    OTIdentifier theSrvrNymboxHash;
+    Identifier theSrvrNymboxHash;
 
     bool bGotNymboxHashServerSide =
         theNym.GetNymboxHashServerSide(SERVER_ID, theSrvrNymboxHash);
@@ -5127,7 +5124,7 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(OTPseudonym& theNym,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
-    const OTIdentifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+    const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
 
     OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID); // These are ledgers
@@ -5151,10 +5148,10 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(OTPseudonym& theNym,
 
     String strLedger(MsgIn.m_ascPayload);
 
-    const OTIdentifier theMsgNymboxHash(
+    const Identifier theMsgNymboxHash(
         MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash sent by the
                                 // client side
-    OTIdentifier theSrvrNymboxHash;
+    Identifier theSrvrNymboxHash;
 
     bool bGotNymboxHashServerSide =
         theNym.GetNymboxHashServerSide(SERVER_ID, theSrvrNymboxHash);
@@ -5404,8 +5401,8 @@ send_message:
 // or pass pPayment instead: we will create our own msg here (with payment
 // inside) to be attached to the receipt.
 bool UserCommandProcessor::SendMessageToNym(
-    const OTIdentifier& SERVER_ID, const OTIdentifier& SENDER_USER_ID,
-    const OTIdentifier& RECIPIENT_USER_ID,
+    const Identifier& SERVER_ID, const Identifier& SENDER_USER_ID,
+    const Identifier& RECIPIENT_USER_ID,
     Message* pMsg,             // the request msg from payer, which is attached
                                // WHOLE to the Nymbox receipt. contains message
                                // already.
@@ -5426,7 +5423,7 @@ bool UserCommandProcessor::SendMessageToNym(
 // never get out of sync.)  This is the function used for doing that.
 //
 void UserCommandProcessor::DropReplyNoticeToNymbox(
-    const OTIdentifier& SERVER_ID, const OTIdentifier& USER_ID,
+    const Identifier& SERVER_ID, const Identifier& USER_ID,
     const String& strMessage, const int64_t& lRequestNum,
     const bool bReplyTransSuccess, OTPseudonym* pActualNym)
 {
@@ -5505,7 +5502,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
             theNymbox.SignContract(server_->m_nymServer);
             theNymbox.SaveContract();
 
-            OTIdentifier NYMBOX_HASH;
+            Identifier NYMBOX_HASH;
             theNymbox.SaveNymbox(&NYMBOX_HASH);
 
             pReplyNotice->SaveBoxReceipt(theNymbox);

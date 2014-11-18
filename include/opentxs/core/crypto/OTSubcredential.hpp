@@ -175,7 +175,7 @@ namespace opentxs
 
 class Contract;
 class OTCredential;
-class OTIdentifier;
+class Identifier;
 class OTPassword;
 class String;
 
@@ -332,7 +332,7 @@ public:
     // keys.) So we override CalculateContractID
     // to account for that.
     //
-    EXPORT virtual void CalculateContractID(OTIdentifier& newID) const;
+    EXPORT virtual void CalculateContractID(Identifier& newID) const;
 
     // We also inherit OTContract::VerifyContract() which tries to find the
     // "contract" key. Of course, there is no

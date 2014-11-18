@@ -612,7 +612,7 @@ std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
         otErr << __FUNCTION__ << ": nullptr SERVER_ID passed in!\n";
         return "";
     }
-    const OTIdentifier nymId(NYM_ID), serverId(SERVER_ID);
+    const Identifier nymId(NYM_ID), serverId(SERVER_ID);
     OTNumList numlist;
     std::string str_return;
 
@@ -636,7 +636,7 @@ std::string OTAPI_Exec::GetActiveCronItem(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Negative: lTransNum passed in!\n";
         return "";
     }
-    const OTIdentifier serverId(SERVER_ID);
+    const Identifier serverId(SERVER_ID);
     std::string str_return;
     const int64_t lTransactionNum = lTransNum;
 
@@ -657,7 +657,7 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -675,7 +675,7 @@ std::string OTAPI_Exec::GetNym_AltSourceLocation(
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -692,7 +692,7 @@ int32_t OTAPI_Exec::GetNym_CredentialCount(const std::string& NYM_ID) const
         return OT_ERROR;
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -711,7 +711,7 @@ std::string OTAPI_Exec::GetNym_CredentialID(const std::string& NYM_ID,
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -734,7 +734,7 @@ std::string OTAPI_Exec::GetNym_CredentialContents(
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -756,7 +756,7 @@ int32_t OTAPI_Exec::GetNym_RevokedCredCount(const std::string& NYM_ID) const
         return OT_ERROR;
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -775,7 +775,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredID(const std::string& NYM_ID,
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -799,7 +799,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -826,7 +826,7 @@ int32_t OTAPI_Exec::GetNym_SubcredentialCount(
         return OT_ERROR;
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -859,7 +859,7 @@ std::string OTAPI_Exec::GetNym_SubCredentialID(
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -892,7 +892,7 @@ std::string OTAPI_Exec::GetNym_SubCredentialContents(
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -929,7 +929,7 @@ std::string OTAPI_Exec::AddSubcredential(const std::string& NYM_ID,
         return "";
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -944,7 +944,7 @@ std::string OTAPI_Exec::AddSubcredential(const std::string& NYM_ID,
               << "\n";
     else // Found the master credential...
     {
-        const OTIdentifier idMasterCredential(strCredID);
+        const Identifier idMasterCredential(strCredID);
         String strNewSubcredID;
 
         const bool bAdded =
@@ -978,7 +978,7 @@ bool OTAPI_Exec::RevokeSubcredential(const std::string& NYM_ID,
         return false;
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier nym_id(NYM_ID);
+    Identifier nym_id(NYM_ID);
     // This tries to get, then tries to load as public, then tries to load as
     // private.
     OTPseudonym* pNym =
@@ -1040,7 +1040,7 @@ std::string OTAPI_Exec::CalculateAssetContractID(
     AssetContract theContract;
 
     if (theContract.LoadContractFromString(strContract)) {
-        OTIdentifier idOutput;
+        Identifier idOutput;
         theContract.CalculateContractID(idOutput);
         const String strOutput(idOutput);
         std::string pBuf = strOutput.Get();
@@ -1074,7 +1074,7 @@ std::string OTAPI_Exec::CalculateServerContractID(
     OTServerContract theContract;
 
     if (theContract.LoadContractFromString(strContract)) {
-        OTIdentifier idOutput;
+        Identifier idOutput;
         theContract.CalculateContractID(idOutput);
         const String strOutput(idOutput);
         std::string pBuf = strOutput.Get();
@@ -1113,7 +1113,7 @@ std::string OTAPI_Exec::CreateServerContract(
         OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return "";
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    const OTIdentifier theNymID(NYM_ID);
+    const Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     std::string str_Trim(strXMLcontents);
@@ -1182,7 +1182,7 @@ std::string OTAPI_Exec::CreateServerContract(
     // server contract.
     // So we can proceed to add it to the wallet...
     //
-    OTIdentifier idOutput;
+    Identifier idOutput;
     pContract->CalculateContractID(idOutput);
     const String strOutput(idOutput);
 
@@ -1213,7 +1213,7 @@ std::string OTAPI_Exec::CreateAssetContract(
         OTAPI()->GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return "";
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    const OTIdentifier theNymID(NYM_ID);
+    const Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     std::string str_Trim(strXMLcontents);
@@ -1271,7 +1271,7 @@ std::string OTAPI_Exec::CreateAssetContract(
     // the NymID passed into this function.
     // So we can proceed to add it to the wallet...
     //
-    OTIdentifier idOutput;
+    Identifier idOutput;
     pContract->CalculateContractID(idOutput);
     const String strOutput(idOutput);
 
@@ -1305,7 +1305,7 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& SERVER_ID)
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
+    const Identifier theServerID(SERVER_ID);
     OTServerContract* pServer = OTAPI()->GetServer(theServerID, __FUNCTION__);
     if (nullptr == pServer) return "";
     // By this point, pServer is a good pointer.  (No need to cleanup.)
@@ -1330,7 +1330,7 @@ int64_t OTAPI_Exec::StringToAmount(const std::string& ASSET_TYPE_ID,
         otErr << __FUNCTION__ << ": Empty ASSET_TYPE_ID passed in!\n";
         return OT_ERROR_AMOUNT;
     }
-    const OTIdentifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theAssetID(ASSET_TYPE_ID);
     AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
     if (nullptr == pContract) return OT_ERROR_AMOUNT;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1363,7 +1363,7 @@ std::string OTAPI_Exec::FormatAmount(const std::string& ASSET_TYPE_ID,
     // OTAPI_Exec::LongToString(THE_AMOUNT) << "\n";
     //      OT_FAIL;
     //  }
-    const OTIdentifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theAssetID(ASSET_TYPE_ID);
     AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1395,7 +1395,7 @@ std::string OTAPI_Exec::GetAssetType_Contract(const std::string& ASSET_TYPE_ID)
         return "";
     }
 
-    const OTIdentifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theAssetID(ASSET_TYPE_ID);
     AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
@@ -1430,7 +1430,7 @@ bool OTAPI_Exec::AddServerContract(const std::string& strContract) const
     //    if (pContract->LoadContract() && pContract->VerifyContract())
     if (otstrContract.Exists() &&
         pContract->LoadContractFromString(otstrContract)) {
-        OTIdentifier theContractID;
+        Identifier theContractID;
 
         pContract->CalculateContractID(theContractID);
         pContract->SetIdentifier(theContractID);
@@ -1477,7 +1477,7 @@ bool OTAPI_Exec::AddAssetContract(const std::string& strContract) const
     //    if (pContract->LoadContract() && pContract->VerifyContract())
     if (otstrContract.Exists() &&
         pContract->LoadContractFromString(otstrContract)) {
-        OTIdentifier theContractID;
+        Identifier theContractID;
 
         pContract->CalculateContractID(theContractID);
         pContract->SetIdentifier(theContractID);
@@ -1540,7 +1540,7 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& SERVER_ID) const
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return false;
     }
-    OTIdentifier theID(SERVER_ID);
+    Identifier theID(SERVER_ID);
     const int32_t& nCount = OTAPI_Exec::GetAccountCount();
 
     // Loop through all the accounts.
@@ -1550,7 +1550,7 @@ bool OTAPI_Exec::Wallet_CanRemoveServer(const std::string& SERVER_ID) const
 
         std::string pID =
             OTAPI_Exec::GetAccountWallet_ServerID(strAcctID.Get());
-        OTIdentifier theCompareID(pID);
+        Identifier theCompareID(pID);
 
         if (theID == theCompareID) {
             otOut << __FUNCTION__ << ": Unable to remove server contract "
@@ -1624,7 +1624,7 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& SERVER_ID) const
         return false;
     }
 
-    OTIdentifier theID(SERVER_ID);
+    Identifier theID(SERVER_ID);
 
     if (pWallet->RemoveServerContract(theID)) {
         pWallet->SaveWallet();
@@ -1658,7 +1658,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(const std::string& ASSET_ID) const
         return false;
     }
 
-    OTIdentifier theID(ASSET_ID);
+    Identifier theID(ASSET_ID);
     const int32_t& nCount = OTAPI_Exec::GetAccountCount();
 
     // Loop through all the accounts.
@@ -1668,7 +1668,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(const std::string& ASSET_ID) const
 
         std::string pID =
             OTAPI_Exec::GetAccountWallet_AssetTypeID(strAcctID.Get());
-        OTIdentifier theCompareID(pID);
+        Identifier theCompareID(pID);
 
         if (theID == theCompareID) {
             otOut << __FUNCTION__ << ": Unable to remove asset contract "
@@ -1712,7 +1712,7 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(const std::string& ASSET_ID) const
         return false;
     }
 
-    OTIdentifier theID(ASSET_ID);
+    Identifier theID(ASSET_ID);
 
     if (pWallet->RemoveAssetContract(theID)) {
         pWallet->SaveWallet();
@@ -1748,7 +1748,7 @@ bool OTAPI_Exec::Wallet_CanRemoveNym(const std::string& NYM_ID) const
         return false;
     }
 
-    OTIdentifier theID(NYM_ID);
+    Identifier theID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theID, __FUNCTION__);
     if (nullptr == pNym) return false;
     // Make sure the Nym doesn't have any accounts in the wallet.
@@ -1769,7 +1769,7 @@ bool OTAPI_Exec::Wallet_CanRemoveNym(const std::string& NYM_ID) const
             return false;
         }
 
-        OTIdentifier theCompareID(pID);
+        Identifier theCompareID(pID);
 
         // Looks like the Nym still has some accounts in this wallet.
         if (theID == theCompareID) {
@@ -1850,7 +1850,7 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
         return false;
     }
 
-    OTIdentifier theID(NYM_ID);
+    Identifier theID(NYM_ID);
 
     if (pWallet->RemoveNym(theID)) {
         otOut << __FUNCTION__ << ": Success erasing Nym from wallet: " << NYM_ID
@@ -1889,7 +1889,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
         return false;
     }
 
-    const OTIdentifier theAccountID(ACCOUNT_ID);
+    const Identifier theAccountID(ACCOUNT_ID);
 
     Account* pAccount = OTAPI()->GetAccount(theAccountID, __FUNCTION__);
     if (nullptr == pAccount) return false;
@@ -1902,8 +1902,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
     }
     bool BOOL_RETURN_VALUE = false;
 
-    const OTIdentifier& theServerID = pAccount->GetPurportedServerID();
-    const OTIdentifier& theUserID = pAccount->GetUserID();
+    const Identifier& theServerID = pAccount->GetPurportedServerID();
+    const Identifier& theUserID = pAccount->GetUserID();
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -1967,7 +1967,7 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
         otErr << __FUNCTION__ << ": Negative: TRANSACTION_NUMBER passed in!\n";
         return false;
     }
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     switch (nBoxType) {
@@ -2025,7 +2025,7 @@ int32_t OTAPI_Exec::getBoxReceipt(
         otErr << __FUNCTION__ << ": Negative: TRANSACTION_NUMBER passed in!\n";
         return OT_ERROR;
     }
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     switch (nBoxType) {
@@ -2075,7 +2075,7 @@ int32_t OTAPI_Exec::deleteAssetAccount(const std::string& SERVER_ID,
 
     if (!OTAPI_Exec::Wallet_CanRemoveAccount(ACCOUNT_ID)) return 0;
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     return OTAPI()->deleteAssetAccount(theServerID, theUserID, theAccountID);
@@ -2100,7 +2100,7 @@ std::string OTAPI_Exec::Wallet_ExportNym(const std::string& NYM_ID) const
         return "";
     }
 
-    const OTIdentifier theNymID(NYM_ID);
+    const Identifier theNymID(NYM_ID);
 
     // Create a StringMap object with these values:
     //
@@ -2142,7 +2142,7 @@ std::string OTAPI_Exec::Wallet_ExportCert(const std::string& NYM_ID) const
         return "";
     }
 
-    const OTIdentifier theNymID(NYM_ID);
+    const Identifier theNymID(NYM_ID);
 
     String strOutput;
 
@@ -2182,7 +2182,7 @@ std::string OTAPI_Exec::Wallet_ImportNym(const std::string& FILE_CONTENTS) const
     //
     const String strFileContents(FILE_CONTENTS);
 
-    OTIdentifier theNymID;
+    Identifier theNymID;
 
     const bool& bImported =
         OTAPI()->Wallet_ImportNym(strFileContents, &theNymID);
@@ -2247,7 +2247,7 @@ std::string OTAPI_Exec::Wallet_ImportCert(
 
     const String strDisplayName(DISPLAY_NAME), strFileContents(FILE_CONTENTS);
 
-    OTIdentifier theNymID;
+    Identifier theNymID;
 
     const bool& bImported =
         OTAPI()->Wallet_ImportCert(strDisplayName, strFileContents, &theNymID);
@@ -2319,7 +2319,7 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
     }
-    OTIdentifier thePartialID(PARTIAL_ID);
+    Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
@@ -2372,7 +2372,7 @@ std::string OTAPI_Exec::Wallet_GetServerIDFromPartial(
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
     }
-    OTIdentifier thePartialID(PARTIAL_ID);
+    Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
@@ -2428,7 +2428,7 @@ std::string OTAPI_Exec::Wallet_GetAssetIDFromPartial(
         return "";
     }
 
-    OTIdentifier thePartialID(PARTIAL_ID);
+    Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
@@ -2481,7 +2481,7 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
         return "";
     }
 
-    OTIdentifier thePartialID(PARTIAL_ID);
+    Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
@@ -2523,7 +2523,7 @@ std::string OTAPI_Exec::GetNym_ID(const int32_t& nIndex) const
         return "";
     }
 
-    OTIdentifier theNymID;
+    Identifier theNymID;
     String strName;
 
     bool bGetNym = OTAPI()->GetNym(nIndex, theNymID, strName);
@@ -2546,7 +2546,7 @@ std::string OTAPI_Exec::GetNym_Name(const std::string& NYM_ID) const
         otErr << __FUNCTION__ << ": Null NYM_ID passed in!\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID);
 
     if (nullptr != pNym) {
@@ -2570,7 +2570,7 @@ bool OTAPI_Exec::IsNym_RegisteredAtServer(const std::string& NYM_ID,
         return false;
     }
 
-    const OTIdentifier theNymID(NYM_ID), theServerID(SERVER_ID);
+    const Identifier theNymID(NYM_ID), theServerID(SERVER_ID);
 
     bool bSuccess = OTAPI()->IsNym_RegisteredAtServer(theNymID, theServerID);
 
@@ -2586,7 +2586,7 @@ std::string OTAPI_Exec::GetNym_Stats(const std::string& NYM_ID) const
         return "";
     }
 
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
@@ -2617,11 +2617,11 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
         return "";
     }
 
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
-        OTIdentifier theNymboxHash;
+        Identifier theNymboxHash;
         const std::string str_server_id(SERVER_ID);
         const bool& bGothash = pNym->GetNymboxHash(
             str_server_id, theNymboxHash); // (theNymboxHash is output.)
@@ -2668,11 +2668,11 @@ std::string OTAPI_Exec::GetNym_RecentHash(
         return "";
     }
 
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
-        OTIdentifier theHash;
+        Identifier theHash;
         const std::string str_server_id(SERVER_ID);
         const bool& bGothash =
             pNym->GetRecentHash(str_server_id, theHash); // (theHash is output.)
@@ -2718,11 +2718,11 @@ std::string OTAPI_Exec::GetNym_InboxHash(const std::string& ACCOUNT_ID,
         return "";
     }
 
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
-        OTIdentifier theHash;
+        Identifier theHash;
         const std::string str_acct_id(ACCOUNT_ID);
         const bool& bGothash =
             pNym->GetInboxHash(str_acct_id, theHash); // (theHash is output.)
@@ -2768,11 +2768,11 @@ std::string OTAPI_Exec::GetNym_OutboxHash(const std::string& ACCOUNT_ID,
         return "";
     }
 
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
-        OTIdentifier theHash;
+        Identifier theHash;
         const std::string str_acct_id(ACCOUNT_ID);
         const bool& bGothash =
             pNym->GetOutboxHash(str_acct_id, theHash); // (theHash is output.)
@@ -2810,7 +2810,7 @@ int32_t OTAPI_Exec::GetNym_MailCount(const std::string& NYM_ID) const
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return OT_ERROR;
     return pNym->GetMailCount();
@@ -2829,7 +2829,7 @@ std::string OTAPI_Exec::GetNym_MailContentsByIndex(const std::string& NYM_ID,
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetMailByIndex(nIndex);
@@ -2866,7 +2866,7 @@ std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(const std::string& NYM_ID,
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetMailByIndex(nIndex);
@@ -2899,7 +2899,7 @@ std::string OTAPI_Exec::GetNym_MailServerIDByIndex(const std::string& NYM_ID,
         return "";
     }
 
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetMailByIndex(nIndex);
@@ -2928,7 +2928,7 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(const std::string& NYM_ID,
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return false;
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
     OTPseudonym* pSignerNym = pNym;
@@ -2976,14 +2976,14 @@ bool OTAPI_Exec::Nym_VerifyMailByIndex(const std::string& NYM_ID,
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return false;
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
     Message* pMessage = pNym->GetMailByIndex(nIndex);
 
     if (nullptr != pMessage) {
         // Grab the NymID of the sender.
-        const OTIdentifier theSenderNymID(pMessage->m_strNymID);
+        const Identifier theSenderNymID(pMessage->m_strNymID);
 
         // Grab a pointer to that Nym (if its public key is in my wallet.)
         OTPseudonym* pSenderNym = OTAPI()->GetNym(theSenderNymID, __FUNCTION__);
@@ -3007,7 +3007,7 @@ int32_t OTAPI_Exec::GetNym_OutmailCount(const std::string& NYM_ID) const
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return OT_ERROR;
     return pNym->GetOutmailCount();
@@ -3026,7 +3026,7 @@ std::string OTAPI_Exec::GetNym_OutmailContentsByIndex(
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetOutmailByIndex(nIndex);
@@ -3059,7 +3059,7 @@ std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetOutmailByIndex(nIndex);
@@ -3089,7 +3089,7 @@ std::string OTAPI_Exec::GetNym_OutmailServerIDByIndex(
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetOutmailByIndex(nIndex);
@@ -3118,7 +3118,7 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return false;
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
     OTPseudonym* pSignerNym = pNym;
@@ -3166,13 +3166,13 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(const std::string& NYM_ID,
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return false;
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
     Message* pMessage = pNym->GetOutmailByIndex(nIndex);
     if (nullptr != pMessage) {
         // Grab the NymID of the sender.
-        const OTIdentifier theSenderNymID(pMessage->m_strNymID);
+        const Identifier theSenderNymID(pMessage->m_strNymID);
 
         // Grab a pointer to that Nym (if its public key is in my wallet.)
         OTPseudonym* pSenderNym = OTAPI()->GetNym(theSenderNymID, __FUNCTION__);
@@ -3203,7 +3203,7 @@ int32_t OTAPI_Exec::GetNym_OutpaymentsCount(const std::string& NYM_ID) const
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return OT_ERROR;
     return pNym->GetOutpaymentsCount();
@@ -3223,7 +3223,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
@@ -3263,7 +3263,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
@@ -3293,7 +3293,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsServerIDByIndex(
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return "";
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
@@ -3329,7 +3329,7 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(const std::string& NYM_ID,
         return false;
     }
 
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
     OTPseudonym* pSignerNym = pNym;
@@ -3377,13 +3377,13 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(const std::string& NYM_ID,
               << ": nIndex is out of bounds (it's in the negative!)\n";
         return false;
     }
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theNymID(NYM_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return false;
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
         // Grab the NymID of the sender.
-        const OTIdentifier theSenderNymID(pMessage->m_strNymID);
+        const Identifier theSenderNymID(pMessage->m_strNymID);
 
         // Grab a pointer to that Nym (if its public key is in my wallet.)
         OTPseudonym* pSenderNym = OTAPI()->GetNym(theSenderNymID, __FUNCTION__);
@@ -3643,7 +3643,7 @@ std::string OTAPI_Exec::Instrmnt_GetServerID(
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotData = thePayment.GetServerID(theOutput); // <========
 
     if (bGotData) {
@@ -3682,7 +3682,7 @@ std::string OTAPI_Exec::Instrmnt_GetAssetID(
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotData = thePayment.GetAssetTypeID(theOutput); // <========
 
     if (bGotData) {
@@ -3721,7 +3721,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterUserID(
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotData = thePayment.GetRemitterUserID(theOutput); // <========
 
     if (bGotData) {
@@ -3760,7 +3760,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotData = thePayment.GetRemitterAcctID(theOutput); // <========
 
     if (bGotData) {
@@ -3799,7 +3799,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderUserID(
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotData = thePayment.GetSenderUserID(theOutput); // <========
 
     if (bGotData) {
@@ -3838,7 +3838,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotData = thePayment.GetSenderAcctID(theOutput); // <========
 
     if (bGotData) {
@@ -3877,7 +3877,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientUserID(
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotData =
         thePayment.GetRecipientUserID(theOutput); // <========
 
@@ -3916,7 +3916,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
     // into the OTPayment object. (Meaning we can now return the requested
     // data...)
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotData =
         thePayment.GetRecipientAcctID(theOutput); // <========
 
@@ -3964,7 +3964,7 @@ bool OTAPI_Exec::SetNym_Name(const std::string& NYM_ID,
         return false;
     }
 
-    const OTIdentifier theNymID(NYM_ID), theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theNymID(NYM_ID), theSignerNymID(SIGNER_NYM_ID);
     const String strNymName(NYM_NEW_NAME);
 
     bool bSuccess = OTAPI()->SetNym_Name(theNymID, theSignerNymID, strNymName);
@@ -3985,7 +3985,7 @@ bool OTAPI_Exec::SetServer_Name(const std::string& SERVER_ID,
         return false;
     }
 
-    const OTIdentifier theContractID(SERVER_ID);
+    const Identifier theContractID(SERVER_ID);
     const String strNewName(STR_NEW_NAME);
 
     bool bSuccess = OTAPI()->SetServer_Name(theContractID, strNewName);
@@ -4006,7 +4006,7 @@ bool OTAPI_Exec::SetAssetType_Name(const std::string& ASSET_ID,
         return false;
     }
 
-    const OTIdentifier theContractID(ASSET_ID);
+    const Identifier theContractID(ASSET_ID);
     const String strNewName(STR_NEW_NAME);
 
     bool bSuccess = OTAPI()->SetAssetType_Name(theContractID, strNewName);
@@ -4036,8 +4036,8 @@ int32_t OTAPI_Exec::GetNym_TransactionNumCount(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID);
-    OTIdentifier theNymID(NYM_ID);
+    Identifier theServerID(SERVER_ID);
+    Identifier theNymID(NYM_ID);
 
     OTPseudonym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
 
@@ -4055,7 +4055,7 @@ std::string OTAPI_Exec::GetServer_ID(const int32_t& nIndex) const
         return "";
     }
 
-    OTIdentifier theID;
+    Identifier theID;
     String strName;
     bool bGetServer = OTAPI()->GetServer(nIndex, theID, strName);
 
@@ -4076,7 +4076,7 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
         otErr << __FUNCTION__ << ": Null: THE_ID passed in!\n";
         return "";
     }
-    OTIdentifier theID(THE_ID);
+    Identifier theID(THE_ID);
 
     OTServerContract* pServer = OTAPI()->GetServer(theID, __FUNCTION__);
     if (nullptr == pServer) return "";
@@ -4096,7 +4096,7 @@ std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
         return "";
     }
 
-    OTIdentifier theID;
+    Identifier theID;
     String strName;
 
     bool bGetServer = OTAPI()->GetAssetType(nIndex, theID, strName);
@@ -4118,7 +4118,7 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
         return "";
     }
 
-    OTIdentifier theID(THE_ID);
+    Identifier theID(THE_ID);
     AssetContract* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
     if (nullptr == pContract) return "";
     String strName;
@@ -4136,7 +4136,7 @@ std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
         return "";
     }
 
-    OTIdentifier theID(THE_ID);
+    Identifier theID(THE_ID);
     AssetContract* pContract = OTAPI()->GetAssetType(theID, __FUNCTION__);
     if (nullptr == pContract) return "";
     String strTLA;
@@ -4155,7 +4155,7 @@ std::string OTAPI_Exec::GetAccountWallet_ID(const int32_t& nIndex) const
         return "";
     }
 
-    OTIdentifier theID;
+    Identifier theID;
     String strName;
 
     bool bGetServer = OTAPI()->GetAccount(nIndex, theID, strName);
@@ -4178,7 +4178,7 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
         return "";
     }
 
-    OTIdentifier theID(THE_ID);
+    Identifier theID(THE_ID);
 
     std::string strFunc = "OTAPI_Exec::GetAccountWallet_Name";
     Account* pAccount = OTAPI()->GetAccount(theID, strFunc.c_str());
@@ -4201,12 +4201,12 @@ std::string OTAPI_Exec::GetAccountWallet_InboxHash(
         return "";
     }
 
-    OTIdentifier theID(ACCOUNT_ID);
+    Identifier theID(ACCOUNT_ID);
 
     Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotHash = pAccount->GetInboxHash(theOutput);
 
     String strOutput;
@@ -4229,12 +4229,12 @@ std::string OTAPI_Exec::GetAccountWallet_OutboxHash(
         return "";
     }
 
-    OTIdentifier theID(ACCOUNT_ID);
+    Identifier theID(ACCOUNT_ID);
 
     Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
     const bool& bGotHash = pAccount->GetOutboxHash(theOutput);
 
     String strOutput;
@@ -4360,7 +4360,7 @@ std::string OTAPI_Exec::Encrypt(const std::string& RECIPIENT_NYM_ID,
         return "";
     }
     const String otstrPlaintext(strPlaintext);
-    const OTIdentifier theRecipientNymID(RECIPIENT_NYM_ID);
+    const Identifier theRecipientNymID(RECIPIENT_NYM_ID);
     String strOutput;
 
     bool bEncrypted =
@@ -4409,7 +4409,7 @@ std::string OTAPI_Exec::Decrypt(const std::string& RECIPIENT_NYM_ID,
         return "";
     }
     const String otstrCiphertext(strCiphertext);
-    const OTIdentifier theRecipientNymID(RECIPIENT_NYM_ID);
+    const Identifier theRecipientNymID(RECIPIENT_NYM_ID);
     String strOutput;
 
     bool bDecrypted =
@@ -4545,7 +4545,7 @@ std::string OTAPI_Exec::SignContract(const std::string& SIGNER_NYM_ID,
     }
 
     const String strContract(THE_CONTRACT);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bSigned =
@@ -4594,7 +4594,7 @@ std::string OTAPI_Exec::FlatSign(const std::string& SIGNER_NYM_ID,
 
     const String strContract(THE_INPUT);
     const String strContractType(CONTRACT_TYPE);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bSigned = OTAPI()->FlatSign(theSignerNymID, strContract,
@@ -4645,7 +4645,7 @@ std::string OTAPI_Exec::AddSignature(const std::string& SIGNER_NYM_ID,
     }
 
     const String strContract(THE_CONTRACT);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bSigned =
@@ -4674,7 +4674,7 @@ bool OTAPI_Exec::VerifySignature(const std::string& SIGNER_NYM_ID,
         return false;
     }
     const String strContract(THE_CONTRACT);
-    const OTIdentifier theNymID(SIGNER_NYM_ID);
+    const Identifier theNymID(SIGNER_NYM_ID);
     const bool& bVerified = OTAPI()->VerifySignature(
         strContract, theNymID); /*ppContract="" (optional third parameter for
                                    retrieving loaded contract.)*/
@@ -4702,7 +4702,7 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
     }
 
     const String strContract(THE_CONTRACT);
-    const OTIdentifier theSignerID(SIGNER_ID);
+    const Identifier theSignerID(SIGNER_ID);
     String strOutput;
 
     if (false ==
@@ -4741,7 +4741,7 @@ bool OTAPI_Exec::VerifyAccountReceipt(const std::string& SERVER_ID,
         return false;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theNymID(NYM_ID),
+    const Identifier theServerID(SERVER_ID), theNymID(NYM_ID),
         theAcctID(ACCT_ID);
     const bool& bVerified =
         OTAPI()->VerifyAccountReceipt(theServerID, theNymID, theAcctID);
@@ -4769,7 +4769,7 @@ bool OTAPI_Exec::SetAccountWallet_Name(const std::string& ACCT_ID,
         return false;
     }
 
-    OTIdentifier theAcctID(ACCT_ID), theSignerNymID(SIGNER_NYM_ID);
+    Identifier theAcctID(ACCT_ID), theSignerNymID(SIGNER_NYM_ID);
     String strAcctNewName(ACCT_NEW_NAME);
 
     return OTAPI()->SetAccount_Name(theAcctID, theSignerNymID, strAcctNewName);
@@ -4783,7 +4783,7 @@ int64_t OTAPI_Exec::GetAccountWallet_Balance(const std::string& THE_ID) const
         return OT_ERROR_AMOUNT;
     }
 
-    OTIdentifier theID(THE_ID);
+    Identifier theID(THE_ID);
     Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     return nullptr == pAccount ? OT_ERROR_AMOUNT : pAccount->GetBalance();
 }
@@ -4796,7 +4796,7 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
         return "";
     }
 
-    OTIdentifier theID(THE_ID);
+    Identifier theID(THE_ID);
     Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
     std::string pBuf = pAccount->GetTypeString();
@@ -4814,10 +4814,10 @@ std::string OTAPI_Exec::GetAccountWallet_AssetTypeID(
         return "";
     }
 
-    OTIdentifier theID(THE_ID);
+    Identifier theID(THE_ID);
     Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
-    OTIdentifier theAssetID(pAccount->GetAssetTypeID());
+    Identifier theAssetID(pAccount->GetAssetTypeID());
 
     String strAssetTypeID(theAssetID);
 
@@ -4839,10 +4839,10 @@ std::string OTAPI_Exec::GetAccountWallet_ServerID(
         return "";
     }
 
-    OTIdentifier theID(THE_ID);
+    Identifier theID(THE_ID);
     Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
-    OTIdentifier theServerID(pAccount->GetPurportedServerID());
+    Identifier theServerID(pAccount->GetPurportedServerID());
     String strServerID(theServerID);
 
     std::string pBuf = strServerID.Get();
@@ -4859,11 +4859,11 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
         return "";
     }
 
-    const OTIdentifier theID(THE_ID);
+    const Identifier theID(THE_ID);
 
     Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
-    OTIdentifier theUserID(pAccount->GetUserID());
+    Identifier theUserID(pAccount->GetUserID());
     String strUserID(theUserID);
 
     std::string pBuf = strUserID.Get();
@@ -4940,10 +4940,10 @@ std::string OTAPI_Exec::WriteCheque(
     const time64_t time_From = static_cast<time64_t>(VALID_FROM),
                    time_To = static_cast<time64_t>(VALID_TO);
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theSenderAcctID(SENDER_ACCT_ID);
-    const OTIdentifier theSenderUserID(SENDER_USER_ID);
-    OTIdentifier theRecipientUserID;
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theSenderAcctID(SENDER_ACCT_ID);
+    const Identifier theSenderUserID(SENDER_USER_ID);
+    Identifier theRecipientUserID;
     bool bHasRecipient = !RECIPIENT_USER_ID.empty();
     if (bHasRecipient) theRecipientUserID.SetString(RECIPIENT_USER_ID);
     String strMemo;
@@ -4991,7 +4991,7 @@ bool OTAPI_Exec::DiscardCheque(const std::string& SERVER_ID,
         return false;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
     String strCheque(THE_CHEQUE);
 
     return OTAPI()->DiscardCheque(theServerID, theUserID, theAcctID, strCheque);
@@ -5112,15 +5112,15 @@ std::string OTAPI_Exec::ProposePaymentPlan(
         return "";
     }
     std::unique_ptr<OTPaymentPlan> pPlan(OTAPI()->ProposePaymentPlan(
-        OTIdentifier(SERVER_ID), VALID_FROM, // Default (0) == NOW
+        Identifier(SERVER_ID), VALID_FROM, // Default (0) == NOW
         VALID_TO, // Default (0) == no expiry / cancel anytime
-        OTIdentifier(SENDER_ACCT_ID), OTIdentifier(SENDER_USER_ID),
+        Identifier(SENDER_ACCT_ID), Identifier(SENDER_USER_ID),
         PLAN_CONSIDERATION.empty() ? "(Consideration for the agreement between "
                                      "the parties is meant to be recorded "
                                      "here.)"
                                    : PLAN_CONSIDERATION, // Like a memo.
-        OTIdentifier(RECIPIENT_ACCT_ID),
-        OTIdentifier(RECIPIENT_USER_ID),
+        Identifier(RECIPIENT_ACCT_ID),
+        Identifier(RECIPIENT_USER_ID),
         static_cast<int64_t>(INITIAL_PAYMENT_AMOUNT), INITIAL_PAYMENT_DELAY,
         static_cast<int64_t>(PAYMENT_PLAN_AMOUNT), PAYMENT_PLAN_DELAY,
         PAYMENT_PLAN_PERIOD, PAYMENT_PLAN_LENGTH,
@@ -5320,10 +5320,10 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theSenderUserID(SENDER_USER_ID);
-    const OTIdentifier theSenderAcctID(SENDER_ACCT_ID);
-    const OTIdentifier theRecipientUserID(RECIPIENT_USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theSenderUserID(SENDER_USER_ID);
+    const Identifier theSenderAcctID(SENDER_ACCT_ID);
+    const Identifier theRecipientUserID(RECIPIENT_USER_ID);
 
     OTPaymentPlan thePlan;
     const String strPlan(PAYMENT_PLAN);
@@ -5370,7 +5370,7 @@ std::string OTAPI_Exec::Create_SmartContract(
         otErr << __FUNCTION__ << ": Negative: VALID_TO passed in!\n";
         return "";
     }
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     time64_t tValidFrom = VALID_FROM;
     time64_t tValidTo = VALID_TO;
     String strOutput;
@@ -5415,7 +5415,7 @@ std::string OTAPI_Exec::SmartContract_AddBylaw(
         return "";
     }
     const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddBylaw(
@@ -5468,7 +5468,7 @@ std::string OTAPI_Exec::SmartContract_AddClause(
 
     const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
         strClauseName(CLAUSE_NAME), strSourceCode(SOURCE_CODE);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddClause(
@@ -5537,7 +5537,7 @@ std::string OTAPI_Exec::SmartContract_AddVariable(
     const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
         strVarName(VAR_NAME), strVarAccess(VAR_ACCESS), strVarType(VAR_TYPE),
         strVarValue(VAR_VALUE);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddVariable(
@@ -5600,7 +5600,7 @@ std::string OTAPI_Exec::SmartContract_AddCallback(
 
     const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
         strCallbackName(CALLBACK_NAME), strClauseName(CLAUSE_NAME);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddCallback(
@@ -5660,7 +5660,7 @@ std::string OTAPI_Exec::SmartContract_AddHook(
 
     const String strContract(THE_CONTRACT), strBylawName(BYLAW_NAME),
         strHookName(HOOK_NAME), strClauseName(CLAUSE_NAME);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddHook(
@@ -5716,7 +5716,7 @@ std::string OTAPI_Exec::SmartContract_AddParty(
     }
     const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME),
         strAgentName(AGENT_NAME);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddParty(
@@ -5772,7 +5772,7 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
 
     const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME),
         strAcctName(ACCT_NAME), strAssetTypeID(ASSET_TYPE_ID);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
     const bool& bAdded = OTAPI()->SmartContract_AddAccount(
@@ -5864,7 +5864,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmAccount(
     const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME);
     const String strAccountID(ACCT_ID), strAcctName(ACCT_NAME),
         strAgentName(AGENT_NAME);
-    const OTIdentifier theSignerNymID(SIGNER_NYM_ID), theAcctID(strAccountID);
+    const Identifier theSignerNymID(SIGNER_NYM_ID), theAcctID(strAccountID);
     String strOutput;
 
     const bool& bConfirmed = OTAPI()->SmartContract_ConfirmAccount(
@@ -5902,7 +5902,7 @@ std::string OTAPI_Exec::SmartContract_ConfirmParty(
         otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
-    const OTIdentifier theNymID(NYM_ID);
+    const Identifier theNymID(NYM_ID);
     const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME);
     String strOutput;
 
@@ -7218,7 +7218,7 @@ std::string OTAPI_Exec::Party_GetAgentID(const std::string& THE_CONTRACT,
             else // We found the agent...
             {
                 std::string str_return;
-                OTIdentifier theAgentID;
+                Identifier theAgentID;
                 if (pAgent->IsAnIndividual() && pAgent->GetNymID(theAgentID)) {
                     const String strTemp(theAgentID);
                     str_return = strTemp.Get();
@@ -7262,7 +7262,7 @@ int32_t OTAPI_Exec::activateSmartContract(
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
     const String strContract(THE_SMART_CONTRACT);
 
     return OTAPI()->activateSmartContract(theServerID, theUserID, strContract);
@@ -7306,7 +7306,7 @@ int32_t OTAPI_Exec::triggerClause(
     // STR_PARAM passed
     // in!\n"; OT_FAIL; }  // optional
     // param
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
     const String strClauseName(CLAUSE_NAME);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     const String strParam((STR_PARAM.empty()) ? "" : STR_PARAM);
@@ -7395,7 +7395,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
         return false;
     }
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theUserID(USER_ID);
     Message theMessage;
     const String strMsg(THE_MESSAGE);
     if (!strMsg.Exists()) {
@@ -7591,7 +7591,7 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
     }
     String strPubkey; // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier NYM_ID(USER_ID);
+    Identifier NYM_ID(USER_ID);
     OTPseudonym* pNym =
         OTAPI()->GetOrLoadNym(NYM_ID, false, __FUNCTION__,
                               &thePWData); // This tries to get, then tries to
@@ -7624,7 +7624,7 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
     }
     String strPubkey; // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTIdentifier NYM_ID(USER_ID);
+    Identifier NYM_ID(USER_ID);
     OTPseudonym* pNym =
         OTAPI()->GetOrLoadNym(NYM_ID, false, __FUNCTION__,
                               &thePWData); // This tries to get, then tries to
@@ -7660,7 +7660,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
         return "";
     }
     String strPubkey; // For the output
-    OTIdentifier NYM_ID(USER_ID);
+    Identifier NYM_ID(USER_ID);
     OTPseudonym* pNym =
         OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
     if (nullptr == pNym) return "";
@@ -7686,7 +7686,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
         return "";
     }
     String strPubkey; // For the output
-    OTIdentifier NYM_ID(USER_ID);
+    Identifier NYM_ID(USER_ID);
     OTPseudonym* pNym =
         OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
     if (nullptr == pNym) return "";
@@ -7718,7 +7718,7 @@ bool OTAPI_Exec::VerifyUserPrivateKey(
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
         return false;
     }
-    OTIdentifier NYM_ID(USER_ID);
+    Identifier NYM_ID(USER_ID);
     OTPseudonym* pNym =
         OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
     if (nullptr == pNym) return false;
@@ -7741,7 +7741,7 @@ bool OTAPI_Exec::Mint_IsStillGood(const std::string& SERVER_ID,
         return false;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetID(ASSET_TYPE_ID);
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
     std::unique_ptr<Mint> pMint(OTAPI()->LoadMint(theServerID, theAssetID));
@@ -7774,8 +7774,8 @@ std::string OTAPI_Exec::LoadMint(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theAssetID(ASSET_TYPE_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -7802,7 +7802,7 @@ std::string OTAPI_Exec::LoadAssetContract(
         return "";
     }
 
-    const OTIdentifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theAssetID(ASSET_TYPE_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -7831,7 +7831,7 @@ std::string OTAPI_Exec::LoadServerContract(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
+    const Identifier theServerID(SERVER_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -7874,9 +7874,9 @@ std::string OTAPI_Exec::LoadAssetAccount(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
-    const OTIdentifier theAccountID(ACCOUNT_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
+    const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -7939,8 +7939,8 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     const int64_t lRequestNumber = REQUEST_NUMBER;
     // There is an OT_ASSERT in here for memory failure,
@@ -8076,8 +8076,8 @@ bool OTAPI_Exec::HaveAlreadySeenReply(
         return false;
     }
 
-    OTIdentifier theServerID(SERVER_ID);
-    OTIdentifier theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID);
+    Identifier theUserID(USER_ID);
 
     const int64_t lRequestNumber = REQUEST_NUMBER;
 
@@ -8104,8 +8104,8 @@ std::string OTAPI_Exec::LoadNymbox(const std::string& SERVER_ID,
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8138,8 +8138,8 @@ std::string OTAPI_Exec::LoadNymboxNoVerify(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8178,9 +8178,9 @@ std::string OTAPI_Exec::LoadInbox(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
-    const OTIdentifier theAccountID(ACCOUNT_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
+    const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8219,9 +8219,9 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
-    const OTIdentifier theAccountID(ACCOUNT_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
+    const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8260,9 +8260,9 @@ std::string OTAPI_Exec::LoadOutbox(const std::string& SERVER_ID,
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
-    const OTIdentifier theAccountID(ACCOUNT_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
+    const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8301,9 +8301,9 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(const std::string& SERVER_ID,
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
-    const OTIdentifier theAccountID(ACCOUNT_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
+    const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8340,8 +8340,8 @@ std::string OTAPI_Exec::LoadPaymentInbox(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8376,8 +8376,8 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8417,9 +8417,9 @@ std::string OTAPI_Exec::LoadRecordBox(const std::string& SERVER_ID,
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
-    const OTIdentifier theAccountID(ACCOUNT_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
+    const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8455,9 +8455,9 @@ std::string OTAPI_Exec::LoadRecordBoxNoVerify(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
-    const OTIdentifier theAccountID(ACCOUNT_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
+    const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8489,8 +8489,8 @@ std::string OTAPI_Exec::LoadExpiredBox(const std::string& SERVER_ID,
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8522,8 +8522,8 @@ std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8561,8 +8561,8 @@ bool OTAPI_Exec::RecordPayment(
         return false;
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     return OTAPI()->RecordPayment(theServerID, theUserID, bIsInbox, nIndex,
                                   bSaveCopy);
@@ -8588,9 +8588,9 @@ bool OTAPI_Exec::ClearRecord(
         return false;
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
-    const OTIdentifier theAcctID(ACCOUNT_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
+    const Identifier theAcctID(ACCOUNT_ID);
 
     return OTAPI()->ClearRecord(theServerID, theUserID, theAcctID, nIndex,
                                 bClearAll);
@@ -8611,8 +8611,8 @@ bool OTAPI_Exec::ClearExpired(const std::string& SERVER_ID,
         return false;
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theUserID(USER_ID);
 
     return OTAPI()->ClearExpired(theServerID, theUserID, nIndex, bClearAll);
 }
@@ -8684,7 +8684,7 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -8730,7 +8730,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
     OTPseudonym* pNym = OTAPI()->GetOrLoadPrivateNym(
         theUserID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -8816,7 +8816,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -8940,7 +8940,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -9101,7 +9101,7 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
     OTPseudonym* pNym = OTAPI()->GetNym(theUserID, __FUNCTION__);
     if (nullptr == pNym) return "";
@@ -9220,7 +9220,7 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
         return -1;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -9296,7 +9296,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -9413,7 +9413,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAcctID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -9799,7 +9799,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& SERVER_ID,
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAcctID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER), strServerID(theServerID);
@@ -10515,7 +10515,7 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10609,7 +10609,7 @@ std::string OTAPI_Exec::Transaction_GetSenderUserID(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10661,7 +10661,7 @@ std::string OTAPI_Exec::Transaction_GetSenderUserID(
     }
     else
         pTransaction = &theTransaction;
-    OTIdentifier theOutput;
+    Identifier theOutput;
 
     bool bSuccess = pTransaction->GetSenderUserIDForDisplay(theOutput);
 
@@ -10702,7 +10702,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientUserID(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10755,7 +10755,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientUserID(
     else
         pTransaction = &theTransaction;
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
 
     bool bSuccess = pTransaction->GetRecipientUserIDForDisplay(theOutput);
 
@@ -10814,7 +10814,7 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10867,7 +10867,7 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
     else
         pTransaction = &theTransaction;
 
-    OTIdentifier theOutput;
+    Identifier theOutput;
 
     bool bSuccess = pTransaction->GetSenderAcctIDForDisplay(theOutput);
 
@@ -10908,7 +10908,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10961,7 +10961,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
     }
     else
         pTransaction = &theTransaction;
-    OTIdentifier theOutput;
+    Identifier theOutput;
 
     bool bSuccess = pTransaction->GetRecipientAcctIDForDisplay(theOutput);
 
@@ -11011,7 +11011,7 @@ std::string OTAPI_Exec::Pending_GetNote(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11125,7 +11125,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
         return -1;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11214,7 +11214,7 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
         return -1;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11264,7 +11264,7 @@ std::string OTAPI_Exec::Transaction_GetType(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11316,7 +11316,7 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
         return -1;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(USER_ID); // account IS user, for Nymbox (the only box that
                                // carries replyNotices...)
 
@@ -11375,7 +11375,7 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
         return OTTimeGetTimeFromSeconds(-1);
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11430,7 +11430,7 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11519,7 +11519,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11622,7 +11622,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11722,7 +11722,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strMessage(THE_MESSAGE);
@@ -11878,7 +11878,7 @@ bool OTAPI_Exec::SavePurse(const std::string& SERVER_ID,
     }
 
     std::string strFunc = __FUNCTION__;
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
         theUserID(USER_ID);
     const String strPurse(THE_PURSE);
     bool bSuccess = false;
@@ -11935,9 +11935,9 @@ std::string OTAPI_Exec::LoadPurse(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
         return "";
     }
-    const OTIdentifier theServerID(SERVER_ID);
-    const OTIdentifier theAssetID(ASSET_TYPE_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID);
+    const Identifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theUserID(USER_ID);
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
 
@@ -11979,7 +11979,7 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: THE_PURSE passed in!\n";
         return OT_ERROR_AMOUNT;
     }
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
     String strPurse(THE_PURSE);
     Purse thePurse(theServerID, theAssetTypeID);
 
@@ -12015,7 +12015,7 @@ int32_t OTAPI_Exec::Purse_Count(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
     const String strPurse(THE_PURSE);
     Purse thePurse(theServerID, theAssetTypeID);
 
@@ -12044,7 +12044,7 @@ bool OTAPI_Exec::Purse_HasPassword(const std::string& SERVER_ID,
         return false;
     }
 
-    const OTIdentifier theServerID(SERVER_ID);
+    const Identifier theServerID(SERVER_ID);
     const String strPurse(THE_PURSE);
     Purse thePurse(theServerID);
 
@@ -12082,7 +12082,7 @@ std::string OTAPI_Exec::CreatePurse(const std::string& SERVER_ID,
 
     std::string strFunc = __FUNCTION__;
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
         theOwnerID(OWNER_ID), theSignerID(SIGNER_ID);
     OTPasswordData thePWData(
         "Creating a cash purse. Enter wallet master password.");
@@ -12134,7 +12134,7 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
         otErr << __FUNCTION__ << ": Null: SIGNER_ID passed in!\n";
         return "";
     }
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
         theSignerID(SIGNER_ID);
     OTPasswordData thePWData("Creating a password-protected cash purse.");
     OTPseudonym* pNym = OTAPI()->GetOrLoadPrivateNym(
@@ -12199,7 +12199,7 @@ std::string OTAPI_Exec::Purse_Peek(
                                                      // not true, then the purse
                                                      // MUST be
                                                      // password-protected.
-    OTIdentifier theOwnerID;
+    Identifier theOwnerID;
     if (bDoesOwnerIDExist) {
         const String strOwnerID(OWNER_ID);
         OTPseudonym* pNym = nullptr;
@@ -12213,7 +12213,7 @@ std::string OTAPI_Exec::Purse_Peek(
     }
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
     const String strPurse(THE_PURSE);
     std::unique_ptr<Token> pToken(OTAPI()->Purse_Peek(
         theServerID, theAssetTypeID, strPurse,
@@ -12278,7 +12278,7 @@ std::string OTAPI_Exec::Purse_Pop(
     std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Purse_Pop";
     const String strReason("Popping a token off of a cash purse.");
     OTPasswordData thePWData(strReason);
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
         theNymID(OWNER_OR_SIGNER_ID);
     const String strPurse(THE_PURSE);
     OTPseudonym* pNym = OTAPI()->GetOrLoadPrivateNym(
@@ -12383,7 +12383,7 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& SERVER_ID,
     std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Purse_Empty";
     const String strReason("Creating an empty copy of a cash purse.");
     OTPasswordData thePWData(strReason);
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
         theNymID(SIGNER_ID);
     const String strPurse(THE_PURSE);
     OTPseudonym* pNym = OTAPI()->GetOrLoadPrivateNym(
@@ -12472,7 +12472,7 @@ std::string OTAPI_Exec::Purse_Push(
                                                      // not true, then the purse
                                                      // MUST be
                                                      // password-protected.
-    OTIdentifier theOwnerID;
+    Identifier theOwnerID;
     if (bDoesOwnerIDExist) {
         const String strOwnerID(OWNER_ID);
         OTPseudonym* pOwnerNym = nullptr;
@@ -12486,7 +12486,7 @@ std::string OTAPI_Exec::Purse_Push(
     }
     // By this point, pOwnerNym is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
     const String strPurse(THE_PURSE), strToken(THE_TOKEN);
     std::unique_ptr<Purse> pPurse(OTAPI()->Purse_Push(
         theServerID, theAssetTypeID, strPurse, strToken,
@@ -12495,7 +12495,7 @@ std::string OTAPI_Exec::Purse_Push(
         // parameter should be "".
         &strReason));
     if (nullptr != pPurse) {
-        const OTIdentifier theSignerID(SIGNER_ID);
+        const Identifier theSignerID(SIGNER_ID);
         OTPseudonym* pSignerNym = OTAPI()->GetOrLoadPrivateNym(
             theSignerID, false, strFunc.c_str(),
             &thePWData); // These copiously log, and ASSERT.
@@ -12545,7 +12545,7 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& SERVER_ID,
 
     String strReason("Importing a cash purse into the wallet.");
     //  OTPasswordData thePWData(strReason);
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
         theUserID(USER_ID);
     const String strNewPurse(THE_PURSE);
     // THE_PURSE (the new purse) either is for a Nym, or a Symmetric Key.
@@ -12677,7 +12677,7 @@ std::string OTAPI_Exec::Token_ChangeOwner(
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
         theSignerNymID(SIGNER_NYM_ID);
     const String strOldOwner(OLD_OWNER), // Either of these MIGHT contain a
                                          // Nym ID, OR might contain a
@@ -12730,7 +12730,7 @@ std::string OTAPI_Exec::Token_GetID(const std::string& SERVER_ID,
         return "";
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
 
     String strOutput("0");
 
@@ -12771,7 +12771,7 @@ int64_t OTAPI_Exec::Token_GetDenomination(const std::string& SERVER_ID,
         return -1;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
 
     String strOutput("0");
 
@@ -12808,7 +12808,7 @@ int32_t OTAPI_Exec::Token_GetSeries(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
 
     String strOutput;
 
@@ -12842,7 +12842,7 @@ time64_t OTAPI_Exec::Token_GetValidFrom(const std::string& SERVER_ID,
         return OTTimeGetTimeFromSeconds(-1);
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
 
     String strOutput;
 
@@ -12877,7 +12877,7 @@ time64_t OTAPI_Exec::Token_GetValidTo(const std::string& SERVER_ID,
         return OTTimeGetTimeFromSeconds(-1);
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theServerID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
 
     String strOutput;
 
@@ -12906,7 +12906,7 @@ std::string OTAPI_Exec::Token_GetAssetID(const std::string& THE_TOKEN) const
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
-        const OTIdentifier& theID = pToken->GetAssetID();
+        const Identifier& theID = pToken->GetAssetID();
         theID.GetString(strOutput);
     }
 
@@ -12929,7 +12929,7 @@ std::string OTAPI_Exec::Token_GetServerID(const std::string& THE_TOKEN) const
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
-        const OTIdentifier& theID = pToken->GetServerID();
+        const Identifier& theID = pToken->GetServerID();
         theID.GetString(strOutput);
     }
 
@@ -12951,7 +12951,7 @@ bool OTAPI_Exec::IsBasketCurrency(const std::string& ASSET_TYPE_ID) const
         return false;
     }
 
-    const OTIdentifier theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theAssetTypeID(ASSET_TYPE_ID);
 
     if (OTAPI()->IsBasketCurrency(theAssetTypeID))
         return true;
@@ -12972,7 +12972,7 @@ int32_t OTAPI_Exec::Basket_GetMemberCount(
         return 0;
     }
 
-    const OTIdentifier theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theAssetTypeID(ASSET_TYPE_ID);
 
     return OTAPI()->GetBasketMemberCount(theAssetTypeID);
 }
@@ -12995,9 +12995,9 @@ std::string OTAPI_Exec::Basket_GetMemberType(
         return "";
     }
 
-    const OTIdentifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
+    const Identifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
 
-    OTIdentifier theOutputMemberType;
+    Identifier theOutputMemberType;
 
     bool bGotType = OTAPI()->GetBasketMemberType(theAssetTypeID, nIndex,
                                                  theOutputMemberType);
@@ -13030,7 +13030,7 @@ int64_t OTAPI_Exec::Basket_GetMinimumTransferAmount(
         return OT_ERROR_AMOUNT;
     }
 
-    const OTIdentifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
+    const Identifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
 
     int64_t lMinTransAmount =
         OTAPI()->GetBasketMinimumTransferAmount(theAssetTypeID);
@@ -13073,7 +13073,7 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
         return OT_ERROR_AMOUNT;
     }
 
-    const OTIdentifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
+    const Identifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
 
     int64_t lMinTransAmount =
         OTAPI()->GetBasketMemberMinimumTransferAmount(theAssetTypeID, nIndex);
@@ -13110,7 +13110,7 @@ int32_t OTAPI_Exec::checkServerID(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->checkServerID(theServerID, theUserID);
 }
@@ -13135,7 +13135,7 @@ int32_t OTAPI_Exec::registerNym(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->registerNym(theServerID, theUserID);
 }
@@ -13160,7 +13160,7 @@ int32_t OTAPI_Exec::deleteUserAccount(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->deleteUserAccount(theServerID, theUserID);
 }
@@ -13267,7 +13267,7 @@ int32_t OTAPI_Exec::usageCredits(const std::string& SERVER_ID,
     //    OT_ASSERT_MSG("" != ADJUSTMENT, "OTAPI_Exec::usageCredits: Null
     // ADJUSTMENT passed in."); // "" is allowed here.
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theOtherUserID(USER_ID_CHECK);
 
     const int64_t lAdjustment = ADJUSTMENT; // "" resolves as 0.
@@ -13301,7 +13301,7 @@ int32_t OTAPI_Exec::checkUser(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theOtherUserID(USER_ID_CHECK);
 
     return OTAPI()->checkUser(theServerID, theUserID, theOtherUserID);
@@ -13342,7 +13342,7 @@ int32_t OTAPI_Exec::sendUserMessage(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theOtherUserID(USER_ID_RECIPIENT);
     String strRecipPubkey(RECIPIENT_PUBKEY);
     String strMessage(THE_MESSAGE);
@@ -13399,7 +13399,7 @@ int32_t OTAPI_Exec::sendUserInstrument(
     // passed in!\n"; OT_FAIL; }
     // (INSTRUMENT_FOR_SENDER is optional, so we allow it to be empty.)
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theOtherUserID(USER_ID_RECIPIENT);
     String strRecipPubkey(RECIPIENT_PUBKEY), strInstrument(THE_INSTRUMENT);
     // Note: this was removed and can be deleted from the code.
@@ -13470,7 +13470,7 @@ int32_t OTAPI_Exec::getRequest(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->getRequest(theServerID, theUserID);
 }
@@ -13500,7 +13500,7 @@ int32_t OTAPI_Exec::issueAssetType(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     String strContract(THE_CONTRACT);
 
@@ -13532,8 +13532,7 @@ int32_t OTAPI_Exec::getContract(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
-        theAssetID(ASSET_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAssetID(ASSET_ID);
 
     return OTAPI()->getContract(theServerID, theUserID, theAssetID);
 }
@@ -13563,8 +13562,7 @@ int32_t OTAPI_Exec::getMint(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
-        theAssetID(ASSET_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAssetID(ASSET_ID);
 
     return OTAPI()->getMint(theServerID, theUserID, theAssetID);
 }
@@ -13594,8 +13592,7 @@ int32_t OTAPI_Exec::createAssetAccount(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
-        theAssetID(ASSET_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAssetID(ASSET_ID);
 
     return OTAPI()->createAssetAccount(theServerID, theUserID, theAssetID);
 }
@@ -13627,7 +13624,7 @@ int32_t OTAPI_Exec::getAccount(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
 
     return OTAPI()->getAccount(theServerID, theUserID, theAcctID);
 }
@@ -13658,7 +13655,7 @@ int32_t OTAPI_Exec::getAccountFiles(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
 
     return OTAPI()->getAccountFiles(theServerID, theUserID, theAcctID);
 }
@@ -13683,7 +13680,7 @@ std::string OTAPI_Exec::GenerateBasketCreation(
         return "";
     }
 
-    const OTIdentifier theUserID(USER_ID);
+    const Identifier theUserID(USER_ID);
 
     int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
 
@@ -13738,7 +13735,7 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     }
 
     String strBasket(THE_BASKET);
-    const OTIdentifier theUserID(USER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theUserID(USER_ID), theAssetTypeID(ASSET_TYPE_ID);
     int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
     Basket theBasket;
 
@@ -13802,7 +13799,7 @@ int32_t OTAPI_Exec::issueBasket(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     String strBasketInfo(THE_BASKET);
 
@@ -13841,7 +13838,7 @@ std::string OTAPI_Exec::GenerateBasketExchange(
         return "";
     }
 
-    const OTIdentifier theUserID(USER_ID), theServerID(SERVER_ID),
+    const Identifier theUserID(USER_ID), theServerID(SERVER_ID),
         theBasketAssetTypeID(BASKET_ASSET_TYPE_ID),
         theBasketAssetAcctID(BASKET_ASSET_ACCT_ID);
     int32_t nTransferMultiple = 1; // Just a default value.
@@ -13899,7 +13896,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     }
 
     String strBasket(THE_BASKET);
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAssetTypeID(ASSET_TYPE_ID), theAssetAcctID(ASSET_ACCT_ID);
     Basket theBasket;
 
@@ -13972,7 +13969,7 @@ int32_t OTAPI_Exec::exchangeBasket(
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theBasketAssetID(BASKET_ASSET_ID);
 
     String strBasketInfo(THE_BASKET);
@@ -14005,7 +14002,7 @@ int32_t OTAPI_Exec::getTransactionNumber(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->getTransactionNumber(theServerID, theUserID);
 }
@@ -14040,7 +14037,7 @@ int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
 
     return OTAPI()->notarizeWithdrawal(theServerID, theUserID, theAcctID,
                                        static_cast<int64_t>(AMOUNT));
@@ -14076,7 +14073,7 @@ int32_t OTAPI_Exec::notarizeDeposit(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
     String strPurse(THE_PURSE);
 
     return OTAPI()->notarizeDeposit(theServerID, theUserID, theAcctID,
@@ -14119,8 +14116,8 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
-    OTIdentifier theFromAcct(ACCT_FROM), theToAcct(ACCT_TO);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theFromAcct(ACCT_FROM), theToAcct(ACCT_TO);
 
     String strNote(NOTE.empty() ? "" : NOTE);
 
@@ -14155,7 +14152,7 @@ int32_t OTAPI_Exec::getInbox(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
 
     return OTAPI()->getInbox(theServerID, theUserID, theAcctID);
 }
@@ -14180,7 +14177,7 @@ int32_t OTAPI_Exec::getNymbox(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->getNymbox(theServerID, theUserID);
 }
@@ -14210,7 +14207,7 @@ int32_t OTAPI_Exec::getOutbox(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
 
     return OTAPI()->getOutbox(theServerID, theUserID, theAcctID);
 }
@@ -14251,7 +14248,7 @@ int32_t OTAPI_Exec::processInbox(const std::string& SERVER_ID,
     //        "ACCT_ID: " << ACCT_ID << " \n"
     //        "ACCT_LEDGER:\n" << ACCT_LEDGER << "\n\n";
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
     String strLedger(ACCT_LEDGER);
 
     //    OTString temp1(SERVER_ID), temp2(USER_ID), temp3(ACCT_ID),
@@ -14283,7 +14280,7 @@ int32_t OTAPI_Exec::processNymbox(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->processNymbox(theServerID, theUserID);
 }
@@ -14327,7 +14324,7 @@ int32_t OTAPI_Exec::withdrawVoucher(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID),
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID),
         theRecipientUserID(RECIPIENT_USER_ID);
 
     String strMemo(CHEQUE_MEMO);
@@ -14379,7 +14376,7 @@ int32_t OTAPI_Exec::payDividend(
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theIssuerUserID(ISSUER_USER_ID),
+    Identifier theServerID(SERVER_ID), theIssuerUserID(ISSUER_USER_ID),
         theDividendFromAcctID(DIVIDEND_FROM_ACCT_ID),
         theSharesAssetTypeID(SHARES_ASSET_TYPE_ID);
 
@@ -14421,7 +14418,7 @@ int32_t OTAPI_Exec::depositCheque(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
 
     String strCheque(THE_CHEQUE);
 
@@ -14457,7 +14454,7 @@ int32_t OTAPI_Exec::depositPaymentPlan(
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
     const String strPlan(THE_PAYMENT_PLAN);
 
     return OTAPI()->depositPaymentPlan(theServerID, theUserID, strPlan);
@@ -14499,7 +14496,7 @@ int32_t OTAPI_Exec::killMarketOffer(const std::string& SERVER_ID,
 
     const int64_t lTransactionNumber = TRANSACTION_NUMBER;
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAssetAcctID(ASSET_ACCT_ID);
 
     return OTAPI()->cancelCronItem(theServerID, theUserID, theAssetAcctID,
@@ -14541,7 +14538,7 @@ int32_t OTAPI_Exec::killPaymentPlan(const std::string& SERVER_ID,
 
     const int64_t lTransactionNumber = TRANSACTION_NUMBER;
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theFromAcctID(FROM_ACCT_ID);
 
     return OTAPI()->cancelCronItem(theServerID, theUserID, theFromAcctID,
@@ -14622,7 +14619,7 @@ int32_t OTAPI_Exec::issueMarketOffer(
                                  "must be non-zero.\n";
         return OT_ERROR;
     }
-    const OTIdentifier theAssetAcctID(ASSET_ACCT_ID),
+    const Identifier theAssetAcctID(ASSET_ACCT_ID),
         theCurrencyAcctID(CURRENCY_ACCT_ID);
     const std::string str_asset_server_id =
         OTAPI_Exec::GetAccountWallet_ServerID(ASSET_ACCT_ID);
@@ -14638,7 +14635,7 @@ int32_t OTAPI_Exec::issueMarketOffer(
                                  "either asset or currency account.\n";
         return OT_ERROR;
     }
-    const OTIdentifier theAssetServerID(str_asset_server_id),
+    const Identifier theAssetServerID(str_asset_server_id),
         theAssetUserID(str_asset_nym_id),
         theCurrencyServerID(str_currency_server_id),
         theCurrencyUserID(str_currency_nym_id);
@@ -14686,7 +14683,7 @@ int32_t OTAPI_Exec::getMarketList(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->getMarketList(theServerID, theUserID);
 }
@@ -14717,7 +14714,7 @@ int32_t OTAPI_Exec::getMarketOffers(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theMarketID(MARKET_ID);
 
     const int64_t lDepth = MAX_DEPTH;
@@ -14756,7 +14753,7 @@ int32_t OTAPI_Exec::getMarketRecentTrades(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theMarketID(MARKET_ID);
 
     return OTAPI()->getMarketRecentTrades(theServerID, theUserID, theMarketID);
@@ -14782,7 +14779,7 @@ int32_t OTAPI_Exec::getNym_MarketOffers(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->getNym_MarketOffers(theServerID, theUserID);
 }
@@ -14830,7 +14827,7 @@ std::string OTAPI_Exec::PopMessageBuffer(const int64_t& REQUEST_NUMBER,
     }
 
     const int64_t lRequestNum = REQUEST_NUMBER;
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
     std::shared_ptr<Message> pMsg(OTAPI()->PopMessageBuffer(
         static_cast<int64_t>(lRequestNum), theServerID,
         theUserID)); // caller responsible to delete.
@@ -14893,7 +14890,7 @@ std::string OTAPI_Exec::GetSentMessage(const int64_t& REQUEST_NUMBER,
         return "";
     }
     const int64_t lRequestNum = REQUEST_NUMBER;
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
     Message* pMsg = OTAPI()->GetSentMessage(static_cast<int64_t>(lRequestNum),
                                             theServerID, theUserID);
 
@@ -14936,7 +14933,7 @@ bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
         return false;
     }
     const int64_t lRequestNum = REQUEST_NUMBER;
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
     const bool& bSuccess = OTAPI()->RemoveSentMessage(
         static_cast<int64_t>(lRequestNum), theServerID, theUserID);
 
@@ -14989,7 +14986,7 @@ void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
         return;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID);
     const String strLedger(THE_NYMBOX);
     OTLedger theLedger(theUserID, theUserID, theServerID);
     if (strLedger.Exists() && theLedger.LoadContractFromString(strLedger))
@@ -15053,7 +15050,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& SERVER_ID,
         return false;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theNymID(USER_ID);
+    Identifier theServerID(SERVER_ID), theNymID(USER_ID);
     const String strMessage(THE_MESSAGE), strNymID(theNymID);
 
     OTPseudonym* pNym = OTAPI()->GetOrLoadPrivateNym(theNymID, false);
@@ -15159,7 +15156,7 @@ int32_t OTAPI_Exec::queryAssetTypes(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID);
+    Identifier theServerID(SERVER_ID), theUserID(USER_ID);
     OTASCIIArmor theArmor(ENCODED_MAP);
 
     return OTAPI()->queryAssetTypes(theServerID, theUserID, theArmor);
@@ -15579,7 +15576,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strMessage(THE_MESSAGE);
@@ -15676,7 +15673,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
         return OT_ERROR;
     }
 
-    const OTIdentifier theServerID(SERVER_ID), theUserID(USER_ID),
+    const Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theAccountID(ACCOUNT_ID);
 
     String strMessage(THE_MESSAGE);

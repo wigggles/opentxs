@@ -175,7 +175,7 @@ namespace opentxs
 {
 
 class OTCredential;
-class OTIdentifier;
+class Identifier;
 class OTPassword;
 class OTPasswordData;
 class OTSubcredential;
@@ -264,7 +264,7 @@ private:
     // when creating master
     // credential.
     bool SignNewSubcredential(OTSubcredential& theSubCred,
-                              OTIdentifier& theSubCredID_out,
+                              Identifier& theSubCredID_out,
                               const OTPasswordData* pPWData = nullptr); // Used
                                                                         // when
     // creating a new

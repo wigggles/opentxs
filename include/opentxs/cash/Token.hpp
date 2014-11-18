@@ -139,7 +139,7 @@
 namespace opentxs
 {
 
-class OTIdentifier;
+class Identifier;
 class Mint;
 class OTNym_or_SymmetricKey;
 class OTPseudonym;
@@ -274,7 +274,7 @@ protected:
     bool ChooseIndex(int32_t nIndex);
     EXPORT Token();
     EXPORT Token& operator=(const Token& rhs);
-    EXPORT Token(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID);
+    EXPORT Token(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
     EXPORT Token(const Purse& thePurse);
 
 public:
@@ -287,15 +287,15 @@ public:
     EXPORT static Token* TokenFactory(String strInput);
     EXPORT static Token* TokenFactory(String strInput, const Purse& thePurse);
     EXPORT static Token* TokenFactory(String strInput,
-                                      const OTIdentifier& SERVER_ID,
-                                      const OTIdentifier& ASSET_ID);
+                                      const Identifier& SERVER_ID,
+                                      const Identifier& ASSET_ID);
     EXPORT static Token* LowLevelInstantiate(const Purse& thePurse);
     EXPORT static Token* LowLevelInstantiate(const String& strFirstLine);
     EXPORT static Token* LowLevelInstantiate(const String& strFirstLine,
                                              const Purse& thePurse);
     EXPORT static Token* LowLevelInstantiate(const String& strFirstLine,
-                                             const OTIdentifier& SERVER_ID,
-                                             const OTIdentifier& ASSET_ID);
+                                             const Identifier& SERVER_ID,
+                                             const Identifier& ASSET_ID);
     EXPORT virtual ~Token();
 
     EXPORT void Release_Token();
