@@ -214,8 +214,6 @@ public:
         return m_bInitialized;
     }
 
-    EXPORT bool TransportFunction(const OTServerContract& theServerContract,
-                                  const OTEnvelope& theEnvelope) const;
     EXPORT bool GetWalletFilename(String& strPath) const;
     EXPORT bool SetWalletFilename(const String& strPath);
     EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;
