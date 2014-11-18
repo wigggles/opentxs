@@ -8617,50 +8617,6 @@ bool OTAPI_Exec::ClearExpired(const std::string& SERVER_ID,
     return OTAPI()->ClearExpired(theServerID, theUserID, nIndex, bClearAll);
 }
 
-/**
-SO HOW WOULD YOU **USE** THIS?  To process your inbox...
-
--- First you call OTAPI_Exec::getInbox to grab the latest inbox from the server.
-(You will also want to call OTAPI_Exec::getOutbox as well as
-OTAPI_Exec::getAccount, since you need to have the latest versions of
-those files, or your balance agreement will be calculated wrong,
-causing your transaction to fail.)
-
--- Then you call OTAPI_Exec::LoadInbox to load it from local storage.
-
-During this time, your user has the opportunity to peruse the
-inbox, and to decide which transactions therein he wishes to
-accept or reject.  If you want to display the inbox items on
-the screen, use these functions to loop through them:
-OTAPI_Exec::Ledger_GetCount
-OTAPI_Exec::Ledger_GetTransactionByIndex
-OTAPI_Exec::Ledger_GetTransactionIDByIndex
-
-You will probably ask me for more introspection on the transactions themselves.
-(Just ask -- No problem.)  Here's what you have right now:
-OTAPI_Exec::Transaction_GetType
-
--- Then call OTAPI_Exec::Ledger_CreateResponse in order to create a
-'response' ledger for that inbox, which will be sent to the server.
-
--- Then call OTAPI_Exec::Ledger_GetCount (pass it the inbox) to find out how
-many
-transactions are inside of it.  Use that count to LOOP through them...
-
--- Use OTAPI_Exec::Ledger_GetTransactionByIndex to grab each transaction as
-you iterate through the inbox.
-
--- Call OTAPI_Exec::Transaction_CreateResponse to create a response for each
-transaction, accepting or rejecting it, and adding it to the response
-ledger.
-
--- Penultimately, call OTAPI_Exec::Ledger_FinalizeResponse() which will create
-a Balance Agreement for the ledger.
-
--- Finally, call OTAPI_Exec::processInbox to send that response ledger to the
-server and process the various items.
-*/
-
 // Returns number of transactions within, or -1 for error.
 int32_t OTAPI_Exec::Ledger_GetCount(const std::string& SERVER_ID,
                                     const std::string& USER_ID,
@@ -13606,38 +13562,6 @@ int32_t OTAPI_Exec::createAssetAccount(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-// NOTE: Deprecated. Replaced by getAccountFiles
-int32_t OTAPI_Exec::getAccount(const std::string& SERVER_ID,
-                               const std::string& USER_ID,
-                               const std::string& ACCT_ID) const
-{
-    if (SERVER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
-        return OT_ERROR;
-    }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
-        return OT_ERROR;
-    }
-    if (ACCT_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ACCT_ID passed in!\n";
-        return OT_ERROR;
-    }
-
-    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
-
-    return OTAPI()->getAccount(theServerID, theUserID, theAcctID);
-}
-
-// Sends a message to the server to retrieve latest copy of an asset acct.
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
 int32_t OTAPI_Exec::getAccountFiles(const std::string& SERVER_ID,
                                     const std::string& USER_ID,
                                     const std::string& ACCT_ID) const
@@ -14135,36 +14059,6 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getInbox(const std::string& SERVER_ID,
-                             const std::string& USER_ID,
-                             const std::string& ACCT_ID) const
-{
-    if (SERVER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
-        return OT_ERROR;
-    }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
-        return OT_ERROR;
-    }
-    if (ACCT_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ACCT_ID passed in!\n";
-        return OT_ERROR;
-    }
-
-    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
-
-    return OTAPI()->getInbox(theServerID, theUserID, theAcctID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
 int32_t OTAPI_Exec::getNymbox(const std::string& SERVER_ID,
                               const std::string& USER_ID) const
 {
@@ -14180,36 +14074,6 @@ int32_t OTAPI_Exec::getNymbox(const std::string& SERVER_ID,
     Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
     return OTAPI()->getNymbox(theServerID, theUserID);
-}
-
-// Returns int32_t:
-// -1 means error; no message was sent.
-//  0 means NO error, but also: no message was sent.
-// >0 means NO error, and the message was sent, and the request number fits into
-// an integer...
-//  ...and in fact the requestNum IS the return value!
-//  ===> In 99% of cases, this LAST option is what actually happens!!
-//
-int32_t OTAPI_Exec::getOutbox(const std::string& SERVER_ID,
-                              const std::string& USER_ID,
-                              const std::string& ACCT_ID) const
-{
-    if (SERVER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
-        return OT_ERROR;
-    }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
-        return OT_ERROR;
-    }
-    if (ACCT_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ACCT_ID passed in!\n";
-        return OT_ERROR;
-    }
-
-    Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
-
-    return OTAPI()->getOutbox(theServerID, theUserID, theAcctID);
 }
 
 // Returns int32_t:
@@ -15191,7 +15055,8 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
 //
 // This way you can discover what kind of command it was.
 // All server replies are pre-pended with the @ sign. For example, if
-// you send a "getAccount" message, the server reply is "@getAccount",
+// you send a "getAccountFiles" message, the server reply is
+// "getAccountResponse",
 // and if you send "getMint" the reply is "getMintResponse", and so on.
 //
 std::string OTAPI_Exec::Message_GetCommand(const std::string& THE_MESSAGE) const

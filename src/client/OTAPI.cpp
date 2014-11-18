@@ -2100,13 +2100,6 @@ int32_t OTAPI_Wrap::createAssetAccount(const std::string& SERVER_ID,
     return Exec()->createAssetAccount(SERVER_ID, USER_ID, ASSET_ID);
 }
 
-int32_t OTAPI_Wrap::getAccount(const std::string& SERVER_ID,
-                               const std::string& USER_ID,
-                               const std::string& ACCT_ID)
-{
-    return Exec()->getAccount(SERVER_ID, USER_ID, ACCT_ID);
-}
-
 int32_t OTAPI_Wrap::getAccountFiles(const std::string& SERVER_ID,
                                     const std::string& USER_ID,
                                     const std::string& ACCT_ID)
@@ -2199,24 +2192,10 @@ int32_t OTAPI_Wrap::notarizeTransfer(const std::string& SERVER_ID,
                                     AMOUNT, NOTE);
 }
 
-int32_t OTAPI_Wrap::getInbox(const std::string& SERVER_ID,
-                             const std::string& USER_ID,
-                             const std::string& ACCT_ID)
-{
-    return Exec()->getInbox(SERVER_ID, USER_ID, ACCT_ID);
-}
-
 int32_t OTAPI_Wrap::getNymbox(const std::string& SERVER_ID,
                               const std::string& USER_ID)
 {
     return Exec()->getNymbox(SERVER_ID, USER_ID);
-}
-
-int32_t OTAPI_Wrap::getOutbox(const std::string& SERVER_ID,
-                              const std::string& USER_ID,
-                              const std::string& ACCT_ID)
-{
-    return Exec()->getOutbox(SERVER_ID, USER_ID, ACCT_ID);
 }
 
 int32_t OTAPI_Wrap::processInbox(const std::string& SERVER_ID,

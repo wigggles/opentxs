@@ -2974,26 +2974,6 @@ public:
                                       const std::string& USER_ID,
                                       const std::string& ASSET_ID) const;
 
-    /**
-    --------------------------------------------------------------------------
-    // GET ACCOUNT -- Send a message to the server asking it to send you the
-    latest
-    // copy of any of your asset accounts (incl. the current balance.)
-    //
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    */
-
-    // NOTE: Deprecated. Replaced by getAccountFiles.
-    EXPORT int32_t getAccount(const std::string& SERVER_ID,
-                              const std::string& USER_ID,
-                              const std::string& ACCT_ID) const;
-
     EXPORT int32_t getAccountFiles(const std::string& SERVER_ID,
                                    const std::string& USER_ID,
                                    const std::string& ACCT_ID) const;
@@ -3219,100 +3199,6 @@ public:
                                     const std::string& ACCT_TO,
                                     const int64_t& AMOUNT,
                                     const std::string& NOTE) const;
-
-    /**
-    --------------------------------------------------------------------------
-    // GET A COPY OF MY INBOX
-    //
-    // Each asset account has its own inbox/outbox.
-    // If a pending transfer is in my inbox, or a new receipt, I might want to
-    see
-    // that. This message asks the server to send me the latest copy of the
-    inbox
-    // for any given account (and will save it to my local storage, so I can
-    then
-    // load it using LoadInbox, which I haven't written yet.
-
-    NOTE: the test client, upon receiving a @getInbox response from the server,
-    will automatically process that into a processInbox command back to the
-    server,
-    automatically accepting all of the transactions, resulting in a final
-    processInboxResponse reply from the server. Obviously a real GUI client
-    would
-    merely
-    display the inbox to the user, where the user could choose to accept the
-    items
-    individually.
-    */
-    /**
-    SO HOW WOULD YOU **USE** THIS? To process your inbox...
-
-    -- First you call getInbox to grab the latest inbox from the server.
-    (You will also want to call getOutbox as well as
-    getAccount, since you need to have the latest versions of
-    those files, or your balance agreement will be calculated wrong,
-    causing your transaction to fail.)
-
-    -- Then you call LoadInbox to load it from local storage.
-
-    During this time, your user has the opportunity to peruse the
-    inbox, and to decide which transactions therein he wishes to
-    accept or reject. If you want to display the inbox items on
-    the screen, use these functions to loop through them:
-    Ledger_GetCount
-    Ledger_GetTransactionByIndex
-    Ledger_GetTransactionIDByIndex
-
-    You will probably ask me for more introspection on the transactions
-    themselves.
-    (Just ask -- No problem.) Here's what you have right now:
-    Transaction_GetType
-
-    -- Then call Ledger_CreateResponse in order to create a
-    'response' ledger for that inbox, which will be sent to the server.
-
-    -- Then call Ledger_GetCount (pass it the inbox) to find out how many
-    transactions are inside of it. Use that count to LOOP through them...
-
-    -- Use Ledger_GetTransactionByIndex to grab each transaction as
-    you iterate through the inbox.
-
-    -- Call Transaction_CreateResponse to create a response for each
-    transaction, accepting or rejecting it, and adding it to the response
-    ledger.
-
-    -- Penultimately, call Ledger_FinalizeResponse() which will create
-    a Balance Agreement for the ledger.
-
-    -- Finally, call processInbox to send that response ledger to the
-    server and process the various items.
-    */
-
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    // NOTE: Deprecated. Replaced by getAccountFiles.
-    EXPORT int32_t getInbox(const std::string& SERVER_ID,
-                            const std::string& USER_ID,
-                            const std::string& ACCT_ID) const;
-
-    // Returns int32_t:
-    // -1 means error; no message was sent.
-    // 0 means NO error, but also: no message was sent.
-    // >0 means NO error, and the message was sent, and the request number fits
-    // into an integer...
-    // ...and in fact the requestNum IS the return value!
-    // ===> In 99% of cases, this LAST option is what actually happens!!
-    //
-    // NOTE: Deprecated. Replaced by getAccountFiles.
-    EXPORT int32_t getOutbox(const std::string& SERVER_ID,
-                             const std::string& USER_ID,
-                             const std::string& ACCT_ID) const;
 
     // from server (pop message buf for the response)
     // Returns int32_t:
@@ -3857,8 +3743,8 @@ public:
     //
     // This way you can discover what kind of command it was.
     // All server replies are pre-pended with the @ sign. For example, if
-    // you send a "getAccount" message, the server reply is
-    "getAccountResponse",
+    // you send a "getAccountFiles" message, the server reply is
+    "getAccountFilesResponse",
     // and if you send "getMint" the reply is "getMintResponse", and so on.
     */
     EXPORT std::string Message_GetCommand(const std::string& THE_MESSAGE) const;

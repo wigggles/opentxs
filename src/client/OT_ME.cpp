@@ -2273,8 +2273,6 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::getMint), "OT_API_getMint");
         theScript.chai->add(fun(&OTAPI_Wrap::createAssetAccount),
                             "OT_API_createAssetAccount");
-        theScript.chai->add(fun(&OTAPI_Wrap::getAccount),
-                            "OT_API_getAccount"); // Deprecated
         theScript.chai->add(fun(&OTAPI_Wrap::getAccountFiles),
                             "OT_API_getAccountFiles"); // Replaces getAccount,
                                                        // getInbox, getOutbox.
@@ -2298,10 +2296,6 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::notarizeTransfer),
                             "OT_API_notarizeTransfer");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::getInbox),
-                            "OT_API_getInbox"); // Deprecated
-        theScript.chai->add(fun(&OTAPI_Wrap::getOutbox),
-                            "OT_API_getOutbox"); // Deprecated
         theScript.chai->add(fun(&OTAPI_Wrap::getNymbox), "OT_API_getNymbox");
 
         theScript.chai->add(fun(&OTAPI_Wrap::Nymbox_GetReplyNotice),
