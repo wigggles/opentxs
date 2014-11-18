@@ -134,6 +134,8 @@
 #define OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 
 #include <opentxs/client/OTMessageBuffer.hpp>
+#include <opentxs/ext/OTSocket.hpp>
+#include <memory>
 
 namespace opentxs
 {
@@ -152,7 +154,6 @@ class OTServerConnection
 public:
     OTServerConnection(OTWallet* theWallet, OTClient* theClient,
                        OTSettings* pConfig);
-    ~OTServerConnection();
 
     bool GetServerID(Identifier& theID) const;
 
@@ -180,7 +181,7 @@ private:
     bool send(const OTServerContract& contract, const OTEnvelope& envelope);
 
 private:
-    OTSocket* m_pSocket;
+    std::unique_ptr<OTSocket> m_pSocket;
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 

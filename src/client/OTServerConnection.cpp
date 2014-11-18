@@ -180,25 +180,13 @@ OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
     m_pWallet = theWallet;
     m_pClient = theClient;
 
-    if (!m_pSocket) {
-        OT_FAIL;
-    }
-
-    const OTSocket::Defaults socketDefaults(
+    OTSocket::Defaults socketDefaults(
         CLIENT_DEFAULT_LATENCY_SEND_MS, CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES,
         CLIENT_DEFAULT_LATENCY_RECEIVE_MS,
         CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES,
         CLIENT_DEFAULT_LATENCY_DELAY_AFTER, CLIENT_DEFAULT_IS_BLOCKING);
 
     m_pSocket->Init(socketDefaults, pConfig);
-}
-
-OTServerConnection::~OTServerConnection()
-{
-    if (m_pSocket) {
-        delete m_pSocket;
-        m_pSocket = nullptr;
-    }
 }
 
 // When the server sends a reply back with our new request number, we
