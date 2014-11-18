@@ -168,10 +168,9 @@
 namespace opentxs
 {
 
-OTClient::OTClient()
-    : m_pConnection(nullptr)
-    , m_bInitialized(false)
-    , m_pWallet(nullptr)
+OTClient::OTClient(OTWallet* theWallet, OTSettings* pConfig)
+    : m_pConnection(new OTServerConnection(theWallet, this, pConfig))
+    , m_pWallet(theWallet)
     , m_MessageBuffer()
     , m_MessageOutbuffer()
     , m_bRunningAsScript(false)
@@ -184,19 +183,6 @@ OTClient::~OTClient()
         delete m_pConnection;
         m_pConnection = nullptr;
     }
-}
-
-bool OTClient::InitClient(OTWallet& theWallet, OTSettings* pConfig)
-{
-    if (m_bInitialized) {
-        return false;
-    }
-    m_bInitialized = true;
-
-    m_pConnection = new OTServerConnection(theWallet, *this, pConfig);
-    m_pWallet = &theWallet;
-
-    return true;
 }
 
 void OTClient::ProcessMessageOut(OTServerContract* pServerContract,

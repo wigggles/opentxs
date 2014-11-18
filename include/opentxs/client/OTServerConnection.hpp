@@ -159,7 +159,7 @@ class OTServerConnection
     OTClient* m_pClient;
 
 public:
-    OTServerConnection(OTWallet& theWallet, OTClient& theClient,
+    OTServerConnection(OTWallet* theWallet, OTClient* theClient,
                        OTSettings* pConfig);
     ~OTServerConnection();
 

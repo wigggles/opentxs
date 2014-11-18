@@ -214,10 +214,8 @@ public:
     };
 
 public:
-    OTClient();
+    OTClient(OTWallet* theWallet, OTSettings* pConfig);
     ~OTClient();
-
-    bool InitClient(OTWallet& theWallet, OTSettings* pConfig);
 
     inline OTMessageBuffer& GetMessageBuffer()
     {
@@ -319,8 +317,6 @@ private:
 
 private:
     OTServerConnection* m_pConnection;
-    bool m_bInitialized;
-
     OTWallet* m_pWallet;
     OTMessageBuffer m_MessageBuffer;
     OTMessageOutbuffer m_MessageOutbuffer;

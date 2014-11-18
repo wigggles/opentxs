@@ -202,14 +202,14 @@ bool OTServerConnection::GetServerID(Identifier& theID) const
 // There might be MORE THAN ONE connection per wallet, or only one,
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
-OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient,
+OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
                                        OTSettings* pConfig)
     : m_pSocket(new OTSocket_ZMQ_4())
 {
     m_pNym = nullptr;
     m_pServerContract = nullptr;
-    m_pWallet = &theWallet;
-    m_pClient = &theClient;
+    m_pWallet = theWallet;
+    m_pClient = theClient;
 
     if (!m_pSocket) {
         OT_FAIL;
