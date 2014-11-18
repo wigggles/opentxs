@@ -162,37 +162,6 @@ extern "C" {
 
 namespace opentxs
 {
-// When the server sends a reply back with our new request number, we
-// need to update our records accordingly.
-//
-// This function is meant to be called when that happens, so that we
-// can do just that.
-//
-void OTServerConnection::OnServerResponseToGetRequestNumber(
-    int64_t lNewRequestNumber) const
-{
-    if (m_pNym && m_pServerContract) {
-        otOut << "Received new request number from the server: "
-              << lNewRequestNumber << ". Updating Nym records...\n";
-
-        String strServerID;
-        m_pServerContract->GetIdentifier(strServerID);
-        m_pNym->OnUpdateRequestNum(*m_pNym, strServerID, lNewRequestNumber);
-    }
-    else {
-        otErr << "Expected m_pNym or m_pServerContract to be not null in "
-                 "OTServerConnection::OnServerResponseToGetRequestNumber.\n";
-    }
-}
-
-bool OTServerConnection::GetServerID(Identifier& theID) const
-{
-    if (m_pServerContract) {
-        m_pServerContract->GetIdentifier(theID);
-        return true;
-    }
-    return false;
-}
 
 // When a certain Nym opens a certain account on a certain server,
 // that account is put onto a list of accounts inside the wallet.
@@ -230,6 +199,38 @@ OTServerConnection::~OTServerConnection()
         delete m_pSocket;
         m_pSocket = nullptr;
     }
+}
+
+// When the server sends a reply back with our new request number, we
+// need to update our records accordingly.
+//
+// This function is meant to be called when that happens, so that we
+// can do just that.
+//
+void OTServerConnection::OnServerResponseToGetRequestNumber(
+    int64_t lNewRequestNumber) const
+{
+    if (m_pNym && m_pServerContract) {
+        otOut << "Received new request number from the server: "
+              << lNewRequestNumber << ". Updating Nym records...\n";
+
+        String strServerID;
+        m_pServerContract->GetIdentifier(strServerID);
+        m_pNym->OnUpdateRequestNum(*m_pNym, strServerID, lNewRequestNumber);
+    }
+    else {
+        otErr << "Expected m_pNym or m_pServerContract to be not null in "
+                 "OTServerConnection::OnServerResponseToGetRequestNumber.\n";
+    }
+}
+
+bool OTServerConnection::GetServerID(Identifier& theID) const
+{
+    if (m_pServerContract) {
+        m_pServerContract->GetIdentifier(theID);
+        return true;
+    }
+    return false;
 }
 
 void OTServerConnection::ProcessMessageOut(OTServerContract* pServerContract,
