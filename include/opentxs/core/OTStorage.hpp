@@ -180,10 +180,6 @@
         {                                                                      \
         }
 
-#define EndInterface                                                           \
-    }                                                                          \
-    ;
-
 #define implements public
 
 #endif // (not) SWIG
@@ -361,7 +357,7 @@ virtual void hookAfterUnpack()
 {
 } // This is called just after unpacking a storable. (Opportunity to copy
   // values...)
-EndInterface
+};
 
 #endif // (not) SWIG
 
@@ -395,11 +391,11 @@ EndInterface
     }
 #endif // (not) SWIG
 
-    // STORABLE
-    //
-    // Abstract base class for OT serializable object types.
-    //
-    class Storable
+// STORABLE
+//
+// Abstract base class for OT serializable object types.
+//
+class Storable
 {
 protected:
     Storable()

@@ -180,13 +180,13 @@ DeclareBasedInterface(IStorablePB,
 virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj);
 virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj);
 OT_USING_ISTORABLE_HOOKS;
-EndInterface
+};
 
-    // BUFFER for Protocol Buffers.
-    // Google's protocol buffers serializes to std::strings and streams. How
-    // conveeeeeenient.
+// BUFFER for Protocol Buffers.
+// Google's protocol buffers serializes to std::strings and streams. How
+// conveeeeeenient.
 
-    class BufferPB : public PackedBuffer
+class BufferPB : public PackedBuffer
 {
     friend class PackerSubclass<BufferPB>;
     friend class IStorablePB;
