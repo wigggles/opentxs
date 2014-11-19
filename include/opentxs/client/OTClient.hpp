@@ -271,10 +271,10 @@ private:
                                          ProcessServerReplyArgs& args);
     bool processServerReplyGetRequest(const Message& theReply,
                                       ProcessServerReplyArgs& args);
-    bool processServerReplyCheckUser(const Message& theReply,
-                                     ProcessServerReplyArgs& args);
-    bool processServerReplyNotarizeTransactions(const Message& theReply,
-                                                ProcessServerReplyArgs& args);
+    bool processServerReplyCheckNym(const Message& theReply,
+                                    ProcessServerReplyArgs& args);
+    bool processServerReplyNotarizeTransaction(const Message& theReply,
+                                               ProcessServerReplyArgs& args);
     bool processServerReplyGetTransactionNum(const Message& theReply,
                                              ProcessServerReplyArgs& args);
     bool processServerReplyGetNymBox(const Message& theReply, OTLedger* pNymbox,
@@ -285,9 +285,9 @@ private:
     bool processServerReplyProcessInbox(const Message& theReply,
                                         OTLedger* pNymbox,
                                         ProcessServerReplyArgs& args);
-    bool processServerReplyGetAccountFiles(const Message& theReply,
-                                           OTLedger* pNymbox,
-                                           ProcessServerReplyArgs& args);
+    bool processServerReplyGetAccountData(const Message& theReply,
+                                          OTLedger* pNymbox,
+                                          ProcessServerReplyArgs& args);
     bool processServerReplyGetContract(const Message& theReply,
                                        ProcessServerReplyArgs& args);
     bool processServerReplyGetMint(const Message& theReply);

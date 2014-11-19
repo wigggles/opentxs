@@ -167,7 +167,7 @@ private:
                                  Nym* actualNym = nullptr);
 
     void UserCmdCheckServerID(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdCheckUser(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdCheckNym(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendUserMessage(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendUserInstrument(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetRequest(Nym& nym, Message& msgIn, Message& msgOut);
@@ -178,16 +178,16 @@ private:
     void UserCmdDeleteUser(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdDeleteAssetAcct(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdCreateAccount(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdNotarizeTransactions(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdNotarizeTransaction(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetNymbox(Nym& nym, Message& msgIn, Message& msgOut);
-    // Deprecated (replaced by UserCmdGetAccountFiles)
+    // Deprecated (replaced by UserCmdGetAccountData)
     void UserCmdGetInbox(Nym& nym, Message& msgIn, Message& msgOut);
-    // Deprecated (replaced by UserCmdGetAccountFiles)
+    // Deprecated (replaced by UserCmdGetAccountData)
     void UserCmdGetOutbox(Nym& nym, Message& msgIn, Message& msgOut);
-    // Deprecated (replaced by UserCmdGetAccountFiles)
+    // Deprecated (replaced by UserCmdGetAccountData)
     void UserCmdGetAccount(Nym& nym, Message& msgIn, Message& msgOut);
     // This combines GetInbox, GetOutbox, and GetAccount.
-    void UserCmdGetAccountFiles(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetAccountData(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetContract(Message& msgIn, Message& msgOut);
     void UserCmdGetMint(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdProcessInbox(Nym& nym, Message& msgIn, Message& msgOut);

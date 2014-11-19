@@ -884,7 +884,7 @@ protected:
     // came from.
     int64_t m_lRequestNumber;  // Unused except by "replyNotice" in Nymbox.
     bool m_bReplyTransSuccess; // Used only by replyNotice
-    // Unused except for notarizeTransactionsResponse, specifically for
+    // Unused except for notarizeTransactionResponse, specifically for
     // @paymentPlan
     // and @smartContract. (And maybe @depositCheque...) There are specific
     // cases where the user sends through a transaction that is MEANT to be

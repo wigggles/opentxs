@@ -1149,13 +1149,13 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("checkUser")) {
-        OTLog::vOutput(0, "\n==> Received a checkUser message. Nym: %s ...\n",
+    else if (theMessage.m_strCommand.Compare("checkNym")) {
+        OTLog::vOutput(0, "\n==> Received a checkNym message. Nym: %s ...\n",
                        strMsgNymID.Get());
 
-        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_user);
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_nym);
 
-        UserCmdCheckUser(*pNym, theMessage, msgOut);
+        UserCmdCheckNym(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -1236,14 +1236,14 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("notarizeTransactions")) {
-        OTLog::vOutput(0, "\n==> Received a notarizeTransactions message.  "
+    else if (theMessage.m_strCommand.Compare("notarizeTransaction")) {
+        OTLog::vOutput(0, "\n==> Received a notarizeTransaction message.  "
                           "Acct: %s Nym: %s  ...\n",
                        theMessage.m_strAcctID.Get(), strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_notarize_transaction);
 
-        UserCmdNotarizeTransactions(*pNym, theMessage, msgOut);
+        UserCmdNotarizeTransaction(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -1276,8 +1276,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("getAccountFiles")) {
-        OTLog::vOutput(0, "\n==> Received a getAccountFiles message.  Acct: %s "
+    else if (theMessage.m_strCommand.Compare("getAccountData")) {
+        OTLog::vOutput(0, "\n==> Received a getAccountData message.  Acct: %s "
                           "Nym: %s  ...\n",
                        theMessage.m_strAcctID.Get(), strMsgNymID.Get());
 
@@ -1285,7 +1285,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_outbox);
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_acct);
 
-        UserCmdGetAccountFiles(*pNym, theMessage, msgOut);
+        UserCmdGetAccountData(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -2007,12 +2007,12 @@ void UserCommandProcessor::UserCmdSendUserInstrument(Nym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdCheckUser(Nym&, Message& MsgIn,
-                                            Message& msgOut)
+void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
+                                           Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "checkUserResponse"; // reply to checkUser
-    msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
+    msgOut.m_strCommand = "checkNymResponse"; // reply to checkNym
+    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strNymID2 =
         MsgIn.m_strNymID2; // UserID of public key requested by user.
 
@@ -3093,12 +3093,12 @@ void UserCommandProcessor::UserCmdCreateAccount(Nym& theNym, Message& MsgIn,
     }
 }
 
-void UserCommandProcessor::UserCmdGetAccountFiles(Nym&, Message& MsgIn,
-                                                  Message& msgOut)
+void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
+                                                 Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "getAccountFilesResponse"; // reply to getAccountFiles
-    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strCommand = "getAccountDataResponse"; // reply to getAccountData
+    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
@@ -4842,13 +4842,13 @@ send_message:
 /// a test response back to make sure the communication works.
 ///
 /// An existing user is sending a list of transactions to be notarized.
-void UserCommandProcessor::UserCmdNotarizeTransactions(Nym& theNym,
-                                                       Message& MsgIn,
-                                                       Message& msgOut)
+void UserCommandProcessor::UserCmdNotarizeTransaction(Nym& theNym,
+                                                      Message& MsgIn,
+                                                      Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "notarizeTransactionsResponse";     // reply to notarizeTransactions
+        "notarizeTransactionResponse";      // reply to notarizeTransaction
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
@@ -4985,7 +4985,7 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(Nym& theNym,
             // Then each ITEM in each transaction contains a copy of each item
             // it's responding to.
             //
-            // Therefore, for the "notarizeTransactions" message, I have decided
+            // Therefore, for the "notarizeTransaction" message, I have decided
             // (for now) to have
             // the extra copy in the items themselves, and in the overall
             // message, but not in the
@@ -5040,7 +5040,7 @@ void UserCommandProcessor::UserCmdNotarizeTransactions(Nym& theNym,
     }
     else {
         OTLog::Error("ERROR loading ledger from message in "
-                     "UserCommandProcessor::UserCmdNotarizeTransactions\n");
+                     "UserCommandProcessor::UserCmdNotarizeTransaction\n");
     }
 
 send_message:
@@ -5084,7 +5084,7 @@ send_message:
     // its member, m_strRawFile
     msgOut.SaveContract();
 
-    // (You are in UserCmdNotarizeTransactions.)
+    // (You are in UserCmdNotarizeTransaction.)
 
     // REPLY NOTICE TO NYMBOX
     //

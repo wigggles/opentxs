@@ -2806,7 +2806,7 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(const string& serverID,
 }
 
 // NOTE: This is a new version, that uses getInboxAccount new version, which
-// uses getAccountFiles instead of getAccount, getInbox, and getOutbox.
+// uses getAccountData instead of getAccount, getInbox, and getOutbox.
 OT_UTILITY_OT bool Utility::getIntermediaryFiles(
     const string& serverID, const string& nymID, const string& accountID,
     bool bForceDownload) // booleanbForceDownload = false;
@@ -2836,14 +2836,14 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
         getInboxAccount(serverID, nymID, accountID, bWasSentInbox,
                         bWasSentAccount, bForceDownload);
 
-    // if we received an error state, and the "getAccountFiles" message wasn't
+    // if we received an error state, and the "getAccountData" message wasn't
     // even sent,
     // then no point doing a bunch of retries -- it failed.
     //
     if (-1 == nGetInboxAcct) {
         if (!bWasSentAccount) {
             otOut << strLocation << ": this.getInboxAccount failed, without "
-                                    "even sending getAccountFiles. (Returning "
+                                    "even sending getAccountData. (Returning "
                                     "false.)\n";
             return false;
         }
@@ -2877,12 +2877,12 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
                             bWasSentAccount, bForceDownload);
 
         if ((-1 == nSecondtry) && !bWasSentAccount) {
-            // if we received an error state, and the "getAccountFiles" message
+            // if we received an error state, and the "getAccountData" message
             // wasn't even sent,
             // then no point doing a bunch of retries -- it failed.
             //
             otOut << strLocation << ": getInboxAccount failed a second time, "
-                                    "without even sending getAccountFiles. "
+                                    "without even sending getAccountData. "
                                     "(Returning false.)\n";
             return false;
         }
@@ -2905,7 +2905,7 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
     return true;
 }
 
-// NOTE: This is a new version that uses the new server message, getAccountFiles
+// NOTE: This is a new version that uses the new server message, getAccountData
 // (Which combines getAccount, getInbox, and getOutbox into a single message.)
 OT_UTILITY_OT int32_t
     Utility::getInboxAccount(const string& serverID, const string& nymID,
@@ -2926,24 +2926,23 @@ OT_UTILITY_OT int32_t
     //
     OTAPI_Wrap::FlushMessageBuffer();
 
-    int32_t nRequestNum = OTAPI_Wrap::getAccountFiles(
+    int32_t nRequestNum = OTAPI_Wrap::getAccountData(
         serverID, nymID, accountID); // <===== ATTEMPT TO SEND MESSAGE;
     if (-1 == nRequestNum) {
         otOut << strLocation
-              << ": Failed to send getAccountFiles message due to error.\n";
+              << ": Failed to send getAccountData message due to error.\n";
         return -1;
     }
     if (0 == nRequestNum) {
-        otOut << strLocation << ": Didn't send getAccountFiles message, but NO "
+        otOut << strLocation << ": Didn't send getAccountData message, but NO "
                                 "error occurred, either. (In this case, SHOULD "
                                 "NEVER HAPPEN. Treating as Error.)\n";
         return -1;
     }
     if (nRequestNum < 0) {
-        otOut
-            << strLocation
-            << ": Unexpected failure sending getAccountFiles. Request number: "
-            << nRequestNum << "\n";
+        otOut << strLocation
+              << ": Unexpected failure sending getAccountData. Request number: "
+              << nRequestNum << "\n";
         return -1;
     }
 
@@ -2959,7 +2958,7 @@ OT_UTILITY_OT int32_t
         "getInboxAccount"); // <============ RETURN VALUE;
     if (nReturn < 0)        // error
     {
-        otOut << strLocation << ": Error in getAccountFiles: " << nReturn
+        otOut << strLocation << ": Error in getAccountData: " << nReturn
               << ".  (I give up.)\n";
         return -1;
     }
@@ -2993,7 +2992,7 @@ OT_UTILITY_OT int32_t
 
     if (1 != nReturn) {
         otOut << strLocation
-              << ": getAccountFiles failed, returning: " << nReturn << "\n";
+              << ": getAccountData failed, returning: " << nReturn << "\n";
         return nReturn;
     }
 
@@ -3001,7 +3000,7 @@ OT_UTILITY_OT int32_t
     if (!insureHaveAllBoxReceipts(serverID, nymID, accountID,
                                   1)) // <===== nBoxType = 1 aka INBOX;
     {
-        otOut << strLocation << ": getAccountFiles succeeded, but then "
+        otOut << strLocation << ": getAccountData succeeded, but then "
                                 "insureHaveAllBoxReceipts failed on the inbox. "
                                 "(I give up.)\n";
         return -1;
@@ -3010,7 +3009,7 @@ OT_UTILITY_OT int32_t
     if (!insureHaveAllBoxReceipts(serverID, nymID, accountID,
                                   2)) // <===== nBoxType = 2 aka OUTBOX;
     {
-        otOut << strLocation << ": getAccountFiles succeeded, but then "
+        otOut << strLocation << ": getAccountData succeeded, but then "
                                 "insureHaveAllBoxReceipts failed on the "
                                 "outbox. (I give up.)\n";
         return -1;

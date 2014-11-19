@@ -8743,7 +8743,7 @@ bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
  transactions.
     A message might fail due to out-of-sync request number, meaning it was cut
  off
-    before even having a chance to call the NotarizeTransactions code.
+    before even having a chance to call the NotarizeTransaction code.
 
  3. If the message failed, that means the transaction has not yet even been
  tried, so
@@ -9040,7 +9040,7 @@ int32_t OT_API::exchangeBasket(
                                              // request, I have to increment it
 
                     // (1) Set up member variables
-                    theMessage.m_strCommand = "notarizeTransactions";
+                    theMessage.m_strCommand = "notarizeTransaction";
                     theMessage.m_strNymID = strUserID;
                     theMessage.m_strServerID = strServerID;
                     theMessage.SetAcknowledgments(
@@ -9333,7 +9333,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -9595,7 +9595,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -9931,7 +9931,7 @@ int32_t OT_API::payDividend(
                                                            // increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -10142,7 +10142,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -10555,7 +10555,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
                                                            // increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -10742,7 +10742,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -10993,7 +10993,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
         // the original difference between transactions (vs normal messages) was
         // that transactions dealt
         // with asset accounts, whereas normal messages did not. (Such as,
-        // "checkUser" or "getRequest".)
+        // "checkNym" or "getRequest".)
         //
         // A big piece of this is the BALANCE AGREEMENT. Obviously it wasn't
         // anticipated that "balance
@@ -11191,7 +11191,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
                                                        // server request, I have
                                                        // to increment it
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -11387,7 +11387,7 @@ int32_t OT_API::cancelCronItem(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -11713,7 +11713,7 @@ int32_t OT_API::issueMarketOffer(
                                                            // increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -12155,7 +12155,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
                                                            // increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -12979,9 +12979,9 @@ int32_t OT_API::getBoxReceipt(
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::getAccountFiles(const Identifier& SERVER_ID,
-                                const Identifier& USER_ID,
-                                const Identifier& ACCT_ID) const
+int32_t OT_API::getAccountData(const Identifier& SERVER_ID,
+                               const Identifier& USER_ID,
+                               const Identifier& ACCT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13011,7 +13011,7 @@ int32_t OT_API::getAccountFiles(const Identifier& SERVER_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "getAccountFiles";
+    theMessage.m_strCommand = "getAccountData";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strServerID = strServerID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -13109,9 +13109,8 @@ int32_t OT_API::usageCredits(const Identifier& SERVER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::checkUser(const Identifier& SERVER_ID,
-                          const Identifier& USER_ID,
-                          const Identifier& USER_ID_CHECK) const
+int32_t OT_API::checkNym(const Identifier& SERVER_ID, const Identifier& USER_ID,
+                         const Identifier& USER_ID_CHECK) const
 {
     // Request a user's public key based on User ID included with
     // the request.
@@ -13142,7 +13141,7 @@ int32_t OT_API::checkUser(const Identifier& SERVER_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "checkUser";
+    theMessage.m_strCommand = "checkNym";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strServerID = strServerID;

@@ -2936,8 +2936,8 @@ bool OTAPI_Exec::Nym_RemoveMailByIndex(const std::string& NYM_ID,
 // there.)
 //
 // A good wallet might be designed to automatically download any keys that
-// it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the checkUserResponse response auto-saves the
+// it doesn't already have, using OTAPI_Exec::checkNym(). I'll probably need to
+// add something to OTClient where the checkNymResponse response auto-saves the
 // new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
@@ -3126,8 +3126,8 @@ bool OTAPI_Exec::Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
 // there.)
 //
 // A good wallet might be designed to automatically download any keys that
-// it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the checkUserResponse response auto-saves the
+// it doesn't already have, using OTAPI_Exec::checkNym(). I'll probably need to
+// add something to OTClient where the checkNymResponse response auto-saves the
 // new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
@@ -3337,8 +3337,8 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(const std::string& NYM_ID,
 // there.)
 //
 // A good wallet might be designed to automatically download any keys that
-// it doesn't already have, using OTAPI_Exec::checkUser(). I'll probably need to
-// add something to OTClient where the checkUserResponse response auto-saves the
+// it doesn't already have, using OTAPI_Exec::checkNym(). I'll probably need to
+// add something to OTClient where the checkNymResponse response auto-saves the
 // new
 // key into the wallet. That way you can wait for a tenth of a second and then
 // just read the Nym (by ID) straight out of your own wallet. Nifty, eh?
@@ -11676,7 +11676,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+         theMessage.m_strCommand.Compare("notarizeTransactionResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse"))) {
         otOut << __FUNCTION__
@@ -13220,9 +13220,9 @@ int32_t OTAPI_Exec::usageCredits(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::checkUser(const std::string& SERVER_ID,
-                              const std::string& USER_ID,
-                              const std::string& USER_ID_CHECK) const
+int32_t OTAPI_Exec::checkNym(const std::string& SERVER_ID,
+                             const std::string& USER_ID,
+                             const std::string& USER_ID_CHECK) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13240,7 +13240,7 @@ int32_t OTAPI_Exec::checkUser(const std::string& SERVER_ID,
     Identifier theServerID(SERVER_ID), theUserID(USER_ID),
         theOtherUserID(USER_ID_CHECK);
 
-    return OTAPI()->checkUser(theServerID, theUserID, theOtherUserID);
+    return OTAPI()->checkNym(theServerID, theUserID, theOtherUserID);
 }
 
 // Returns int32_t:
@@ -13542,9 +13542,9 @@ int32_t OTAPI_Exec::createAssetAccount(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getAccountFiles(const std::string& SERVER_ID,
-                                    const std::string& USER_ID,
-                                    const std::string& ACCT_ID) const
+int32_t OTAPI_Exec::getAccountData(const std::string& SERVER_ID,
+                                   const std::string& USER_ID,
+                                   const std::string& ACCT_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13561,7 +13561,7 @@ int32_t OTAPI_Exec::getAccountFiles(const std::string& SERVER_ID,
 
     Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
 
-    return OTAPI()->getAccountFiles(theServerID, theUserID, theAcctID);
+    return OTAPI()->getAccountData(theServerID, theUserID, theAcctID);
 }
 
 // GENERATE BASKET CREATION REQUEST
@@ -15035,7 +15035,7 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
 //
 // This way you can discover what kind of command it was.
 // All server replies are pre-pended with the @ sign. For example, if
-// you send a "getAccountFiles" message, the server reply is
+// you send a "getAccountData" message, the server reply is
 // "getAccountResponse",
 // and if you send "getMint" the reply is "getMintResponse", and so on.
 //
@@ -15088,9 +15088,9 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("notarizeTransactions")) &&
+    if ((false == theMessage.m_strCommand.Compare("notarizeTransaction")) &&
         (false ==
-         theMessage.m_strCommand.Compare("notarizeTransactionsResponse"))) {
+         theMessage.m_strCommand.Compare("notarizeTransactionResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15278,7 +15278,7 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
 
     // So far these are the only messages that use m_strNymboxHash:
     if ((false == theMessage.m_strCommand.Compare("processNymbox")) &&
-        (false == theMessage.m_strCommand.Compare("notarizeTransactions")) &&
+        (false == theMessage.m_strCommand.Compare("notarizeTransaction")) &&
         (false == theMessage.m_strCommand.Compare("getTransactionNum")) &&
         (false == theMessage.m_strCommand.Compare("processInbox")) &&
         (false == theMessage.m_strCommand.Compare("triggerClause")) &&
@@ -15439,7 +15439,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+         theMessage.m_strCommand.Compare("notarizeTransactionResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__
@@ -15536,7 +15536,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+         theMessage.m_strCommand.Compare("notarizeTransactionResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__

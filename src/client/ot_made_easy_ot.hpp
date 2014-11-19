@@ -164,7 +164,7 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string cancel_payment_plan(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);
-    EXPORT OT_MADE_EASY_OT static std::string check_user(
+    EXPORT OT_MADE_EASY_OT static std::string check_nym(
         const std::string& SERVER_ID, const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string create_asset_acct(

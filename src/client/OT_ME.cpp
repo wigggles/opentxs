@@ -408,11 +408,11 @@ std::string OT_ME::register_nym(const std::string& SERVER_ID,
 
 // CHECK USER (download a public key)
 //
-std::string OT_ME::check_user(const std::string& SERVER_ID,
-                              const std::string& NYM_ID,
-                              const std::string& TARGET_NYM_ID) const
+std::string OT_ME::check_nym(const std::string& SERVER_ID,
+                             const std::string& NYM_ID,
+                             const std::string& TARGET_NYM_ID) const
 {
-    return MadeEasy::check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
+    return MadeEasy::check_nym(SERVER_ID, NYM_ID, TARGET_NYM_ID);
 }
 
 // CREATE NYM
@@ -605,7 +605,7 @@ std::string OT_ME::load_public_signing_key(const std::string& NYM_ID) const
 //
 // Load TARGET_NYM_ID from local storage.
 // If not there, then retrieve TARGET_NYM_ID from server,
-// using NYM_ID to send check_user request. Then re-load
+// using NYM_ID to send check_nym request. Then re-load
 // and return. (Might still return null.)
 //
 std::string OT_ME::load_or_retrieve_encrypt_key(
@@ -2255,7 +2255,7 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_deleteUserAccount");
         theScript.chai->add(fun(&OTAPI_Wrap::deleteAssetAccount),
                             "OT_API_deleteAssetAccount");
-        theScript.chai->add(fun(&OTAPI_Wrap::checkUser), "OT_API_checkUser");
+        theScript.chai->add(fun(&OTAPI_Wrap::checkNym), "OT_API_checkNym");
         theScript.chai->add(fun(&OTAPI_Wrap::usageCredits),
                             "OT_API_usageCredits");
         theScript.chai->add(fun(&OTAPI_Wrap::sendUserMessage),
@@ -2273,9 +2273,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::getMint), "OT_API_getMint");
         theScript.chai->add(fun(&OTAPI_Wrap::createAssetAccount),
                             "OT_API_createAssetAccount");
-        theScript.chai->add(fun(&OTAPI_Wrap::getAccountFiles),
-                            "OT_API_getAccountFiles"); // Replaces getAccount,
-                                                       // getInbox, getOutbox.
+        theScript.chai->add(fun(&OTAPI_Wrap::getAccountData),
+                            "OT_API_getAccountData"); // Replaces getAccount,
+                                                      // getInbox, getOutbox.
         theScript.chai->add(fun(&OTAPI_Wrap::GenerateBasketCreation),
                             "OT_API_GenerateBasketCreation");
 

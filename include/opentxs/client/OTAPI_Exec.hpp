@@ -2763,9 +2763,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t checkUser(const std::string& SERVER_ID,
-                             const std::string& USER_ID,
-                             const std::string& USER_ID_CHECK) const;
+    EXPORT int32_t checkNym(const std::string& SERVER_ID,
+                            const std::string& USER_ID,
+                            const std::string& USER_ID_CHECK) const;
 
     /**
     SEND USER MESSAGE --- (Send a message to another user, encrypted to his
@@ -2974,9 +2974,9 @@ public:
                                       const std::string& USER_ID,
                                       const std::string& ASSET_ID) const;
 
-    EXPORT int32_t getAccountFiles(const std::string& SERVER_ID,
-                                   const std::string& USER_ID,
-                                   const std::string& ACCT_ID) const;
+    EXPORT int32_t getAccountData(const std::string& SERVER_ID,
+                                  const std::string& USER_ID,
+                                  const std::string& ACCT_ID) const;
 
     /** ----------------------------------------------------
     // GENERATE BASKET CREATION REQUEST
@@ -3743,8 +3743,8 @@ public:
     //
     // This way you can discover what kind of command it was.
     // All server replies are pre-pended with the @ sign. For example, if
-    // you send a "getAccountFiles" message, the server reply is
-    "getAccountFilesResponse",
+    // you send a "getAccountData" message, the server reply is
+    "getAccountDataResponse",
     // and if you send "getMint" the reply is "getMintResponse", and so on.
     */
     EXPORT std::string Message_GetCommand(const std::string& THE_MESSAGE) const;

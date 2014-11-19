@@ -403,8 +403,8 @@ bool ConfigLoader::load(String& walletFilename)
                              ServerSettings::__cmd_create_user_acct);
     p_Config->SetOption_bool("permissions", "cmd_del_user_acct",
                              ServerSettings::__cmd_del_user_acct);
-    p_Config->SetOption_bool("permissions", "cmd_check_user",
-                             ServerSettings::__cmd_check_user);
+    p_Config->SetOption_bool("permissions", "cmd_check_nym",
+                             ServerSettings::__cmd_check_nym);
     p_Config->SetOption_bool("permissions", "cmd_get_request",
                              ServerSettings::__cmd_get_request);
     p_Config->SetOption_bool("permissions", "cmd_get_trans_num",

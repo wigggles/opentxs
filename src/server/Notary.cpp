@@ -7021,9 +7021,9 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
     pResponseBalanceItem->SaveContract();
 }
 
-/// If the server receives a notarizeTransactions command, it will be
+/// If the server receives a notarizeTransaction command, it will be
 /// accompanied by a payload
-/// containing a ledger to be notarized.  UserCmdNotarizeTransactions will loop
+/// containing a ledger to be notarized.  UserCmdNotarizeTransaction will loop
 /// through that ledger,
 /// and for each transaction within, it calls THIS method.
 /// TODO think about error reporting here and sending a message back to user.

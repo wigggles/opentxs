@@ -260,14 +260,14 @@ OT_MADE_EASY_OT int32_t
 
 // CHECK USER (download a public key)
 //
-OT_MADE_EASY_OT string MadeEasy::check_user(const string& SERVER_ID,
-                                            const string& NYM_ID,
-                                            const string& TARGET_NYM_ID)
+OT_MADE_EASY_OT string MadeEasy::check_nym(const string& SERVER_ID,
+                                           const string& NYM_ID,
+                                           const string& TARGET_NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(CHECK_USER, SERVER_ID, NYM_ID, TARGET_NYM_ID);
-    string strResponse = theRequest.SendRequest(theRequest, "CHECK_USER");
+    OTAPI_Func theRequest(CHECK_NYM, SERVER_ID, NYM_ID, TARGET_NYM_ID);
+    string strResponse = theRequest.SendRequest(theRequest, "CHECK_NYM");
 
     return strResponse;
 }
@@ -527,7 +527,7 @@ OT_MADE_EASY_OT string
 //
 // Load TARGET_NYM_ID from local storage.
 // If not there, then retrieve TARGET_NYM_ID from server,
-// using NYM_ID to send check_user request. Then re-load
+// using NYM_ID to send check_nym request. Then re-load
 // and return. (Might still return null.)
 //
 OT_MADE_EASY_OT string
@@ -540,7 +540,7 @@ OT_MADE_EASY_OT string
     string strPubkey = load_public_encryption_key(TARGET_NYM_ID);
 
     if (!VerifyStringVal(strPubkey)) {
-        string strResponse = check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
+        string strResponse = check_nym(SERVER_ID, NYM_ID, TARGET_NYM_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strPubkey = load_public_encryption_key(TARGET_NYM_ID);
@@ -559,7 +559,7 @@ OT_MADE_EASY_OT string
     string strPubkey = load_public_signing_key(TARGET_NYM_ID);
 
     if (!VerifyStringVal(strPubkey)) {
-        string strResponse = check_user(SERVER_ID, NYM_ID, TARGET_NYM_ID);
+        string strResponse = check_nym(SERVER_ID, NYM_ID, TARGET_NYM_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strPubkey = load_public_signing_key(TARGET_NYM_ID);
@@ -799,7 +799,7 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
                                                        const string& NYM_ID,
                                                        const string& ASSET_ID)
 {
-    string response = check_user(SERVER_ID, NYM_ID, NYM_ID);
+    string response = check_nym(SERVER_ID, NYM_ID, NYM_ID);
     if (1 != VerifyMessageSuccess(response)) {
         otOut << "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n";
         otOut << "  Server ID: " << SERVER_ID << "\n";
@@ -1999,11 +1999,11 @@ inbox, write cheque.
 Next ones:  show purse, withdraw cash, deposit cash, withdraw voucher, deposit
 cheque.
 
-Need to add functions (like check_user above) for all of these:
+Need to add functions (like check_nym above) for all of these:
 
 attr OTAPI_Func::CREATE_USER_ACCT (register nym)DONE
 attr OTAPI_Func::DELETE_USER_ACCT
-attr OTAPI_Func::CHECK_USER DONE
+attr OTAPI_Func::CHECK_NYM DONE
 attr OTAPI_Func::SEND_USER_MESSAGE DONE
 attr OTAPI_Func::ISSUE_ASSET_TYPE               DONE
 attr OTAPI_Func::ISSUE_BASKET                   DONE

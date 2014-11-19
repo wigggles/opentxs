@@ -42,7 +42,7 @@ r            -- Register a new user account (using first Nym in wallet.)
                 with this Nym. So you can just START USING IT, since it's
                 already registered. Ignore this command, in other words.)
  
-u            -- Sends a checkUser command (retrieves public key based on
+u            -- Sends a checkNym command (retrieves public key based on
                 userID)
 
 g            -- Ask the server to send me the current request number.

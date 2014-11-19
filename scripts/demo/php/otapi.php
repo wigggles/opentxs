@@ -1542,8 +1542,8 @@ class OTAPI_Basic {
 		return OTAPI_Basic_Message_GetUsageCredits($THE_MESSAGE);
 	}
 
-	static function checkUser($SERVER_ID,$USER_ID,$USER_ID_CHECK) {
-		return OTAPI_Basic_checkUser($SERVER_ID,$USER_ID,$USER_ID_CHECK);
+	static function checkNym($SERVER_ID,$USER_ID,$USER_ID_CHECK) {
+		return OTAPI_Basic_checkNym($SERVER_ID,$USER_ID,$USER_ID_CHECK);
 	}
 
 	static function sendUserMessage($SERVER_ID,$USER_ID,$USER_ID_RECIPIENT,$RECIPIENT_PUBKEY,$THE_MESSAGE) {

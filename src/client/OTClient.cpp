@@ -1198,7 +1198,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
         OTTransaction* pTransaction = it.second;
         OT_ASSERT_MSG(nullptr != pTransaction, "nullptr transaction pointer in "
                                                "OTServer::"
-                                               "UserCmdNotarizeTransactions\n");
+                                               "UserCmdNotarizeTransaction\n");
 
         // See note above function. In this loop, it's possible that we've
         // already processed these
@@ -2919,8 +2919,8 @@ bool OTClient::processServerReplyGetRequest(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyCheckUser(const Message& theReply,
-                                           ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyCheckNym(const Message& theReply,
+                                          ProcessServerReplyArgs& args)
 {
     const String strNymID2(theReply.m_strNymID2),
         strPubkey(theReply.m_strNymPublicKey.Get()); // Old style (It's
@@ -2947,7 +2947,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 dynamic_cast<OTDB::StringMap*>(pStorable.get());
             if (nullptr == pMap)
                 otOut << __FUNCTION__ << ": Failed decoding StringMap "
-                                         "object in checkUserResponse.\n";
+                                         "object in checkNymResponse.\n";
             else // IF the list saved, then we save the credentials
                  // themselves...
             {
@@ -2958,7 +2958,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 if (false ==
                     theTargetNym.LoadFromString(strCredentialList, &theMap)) {
                     otErr << __FUNCTION__
-                          << ": checkUserResponse: Failure loading nym "
+                          << ": checkNymResponse: Failure loading nym "
                           << strNymID2 << " from credential string.\n";
                 }
                 // Now that the Nym has been loaded up from the message
@@ -2971,7 +2971,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                 // storage.
                 //
                 else if (!theTargetNym.VerifyPseudonym()) {
-                    otErr << __FUNCTION__ << ": checkUserResponse: Loaded nym "
+                    otErr << __FUNCTION__ << ": checkNymResponse: Loaded nym "
                           << strNymID2 << " from credentials, but then it "
                                           "failed verifying.\n";
                 }
@@ -3000,7 +3000,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                               << ": Failed trying to armor or store "
                               << strFilename << ".\n";
                     else {
-                        otOut << "checkUserResponse: Success saving public "
+                        otOut << "checkNymResponse: Success saving public "
                                  "credential list for Nym: " << strNymID2
                               << "\n";
                         for (auto& it : theMap) {
@@ -3024,7 +3024,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                                          "credential " << str_cred_id
                                       << " for nym " << str_nym_id << ".\n";
                             else
-                                otOut << "checkUserResponse: Success saving "
+                                otOut << "checkNymResponse: Success saving "
                                          "public "
                                          "credential ID: " << str_cred_id
                                       << "\n";
@@ -3046,7 +3046,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
             thePubkeyNym.VerifyPseudonym()) {
             if (thePubkeyNym.SavePublicKey(strPath))
                 otOut
-                    << "checkUserResponse: (Deprecated.) Success saving public "
+                    << "checkNymResponse: (Deprecated.) Success saving public "
                        "key file for Nym: " << strNymID2 << "\n";
         }
     }
@@ -3054,7 +3054,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyNotarizeTransactions(
+bool OTClient::processServerReplyNotarizeTransaction(
     const Message& theReply, ProcessServerReplyArgs& args)
 {
     otOut << "Received server response to notarize Transactions message.\n";
@@ -3063,7 +3063,7 @@ bool OTClient::processServerReplyNotarizeTransactions(
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
     // todo (gui):
-    // This block assumes that the above "notarizeTransactionsResponse", being
+    // This block assumes that the above "notarizeTransactionResponse", being
     // successful, probably changed
     // the account balance. A nice GUI would probably interpret the reply
     // and edit the local files
@@ -6668,9 +6668,9 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
-                                                 OTLedger* pNymbox,
-                                                 ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyGetAccountData(const Message& theReply,
+                                                OTLedger* pNymbox,
+                                                ProcessServerReplyArgs& args)
 {
 
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -6679,7 +6679,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
     const auto& pServerNym = args.pServerNym;
     const auto& pNym = args.pNym;
 
-    otOut << "Received server response to getAccountFiles message.\n";
+    otOut << "Received server response to getAccountData message.\n";
 
     const OTASCIIArmor& ascArmor = theReply.m_ascPayload; // containing account
                                                           // file + inbox and
@@ -6691,7 +6691,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
         OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
         if (nullptr == pMap)
             otOut << __FUNCTION__ << ": Failed decoding StringMap object "
-                                     "in getAccountFilesResponse.\n";
+                                     "in getAccountDataResponse.\n";
         else {
             String::Map& theMap = pMap->the_map;
             String strAccount, strInbox, strOutbox;
@@ -7705,11 +7705,11 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("getRequestResponse")) {
         return processServerReplyGetRequest(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("checkUserResponse")) {
-        return processServerReplyCheckUser(theReply, args);
+    if (theReply.m_strCommand.Compare("checkNymResponse")) {
+        return processServerReplyCheckNym(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("notarizeTransactionsResponse")) {
-        return processServerReplyNotarizeTransactions(theReply, args);
+    if (theReply.m_strCommand.Compare("notarizeTransactionResponse")) {
+        return processServerReplyNotarizeTransaction(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getTransactionNumResponse")) {
         return processServerReplyGetTransactionNum(theReply, args);
@@ -7724,13 +7724,13 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
          theReply.m_strCommand.Compare("processNymboxResponse"))) {
         return processServerReplyProcessInbox(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("getAccountFilesResponse")) // Replaces
-                                                                  // getAccount,
-                                                                  // getInbox,
-                                                                  // and
-                                                                  // getOutbox
+    if (theReply.m_strCommand.Compare("getAccountDataResponse")) // Replaces
+                                                                 // getAccount,
+                                                                 // getInbox,
+                                                                 // and
+                                                                 // getOutbox
     {
-        return processServerReplyGetAccountFiles(theReply, pNymbox, args);
+        return processServerReplyGetAccountData(theReply, pNymbox, args);
     }
     if (theReply.m_strCommand.Compare("getContractResponse")) {
         return processServerReplyGetContract(theReply, args);
@@ -8406,7 +8406,7 @@ int32_t OTClient::ProcessUserCommand(
                                                              // to increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(theNym); // Must be called AFTER
@@ -8647,7 +8647,7 @@ int32_t OTClient::ProcessUserCommand(
                                               // request, I have to increment it
 
                     // (1) Set up member variables
-                    theMessage.m_strCommand = "notarizeTransactions";
+                    theMessage.m_strCommand = "notarizeTransaction";
                     theMessage.m_strNymID = strNymID;
                     theMessage.m_strServerID = strServerID;
                     theMessage.SetAcknowledgments(
@@ -9021,7 +9021,7 @@ int32_t OTClient::ProcessUserCommand(
                                           // request, I have to increment it
 
                 // (1) Set up member variables
-                theMessage.m_strCommand = "notarizeTransactions";
+                theMessage.m_strCommand = "notarizeTransaction";
                 theMessage.m_strNymID = strNymID;
                 theMessage.m_strServerID = strServerID;
                 theMessage.SetAcknowledgments(

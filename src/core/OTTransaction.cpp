@@ -3670,13 +3670,13 @@ bool OTTransaction::GetSuccess()
             // from the other items in this transaction otherwise.
             //
             case OTItem::atBalanceStatement: // processInbox and
-                                             // notarizeTransactions. server's
+                                             // notarizeTransaction. server's
                                              // reply to a
             // balance statement. One of these items appears inside any
             // transaction reply.
             case OTItem::atTransactionStatement: // processNymbox and also for
                                                  // starting/stopping any cron
-                // items. (notarizeTransactions: payment plan, market offer,
+                // items. (notarizeTransaction: payment plan, market offer,
                 // smart contract, trigger clause, cancel cron item, etc.) The
                 // server's reply to a transaction statement. Like a balance
                 // statement, except no asset acct is involved.
@@ -3825,14 +3825,14 @@ bool OTTransaction::GetSuccess()
         // from the other items in this transaction otherwise.
         //
         case OTItem::atBalanceStatement: // processInbox and
-                                         // notarizeTransactions. server's reply
+                                         // notarizeTransaction. server's reply
                                          // to a
         // balance statement. One of these items appears inside any
         // transaction reply.
         case OTItem::atTransactionStatement: // processNymbox and also for
                                              // starting/stopping any cron
                                              // items.
-            // (notarizeTransactions: payment plan, market offer, smart
+            // (notarizeTransaction: payment plan, market offer, smart
             // contract, trigger clause, cancel cron item, etc.) The server's
             // reply to a transaction statement. Like a balance statement,
             // except no asset acct is involved.
@@ -3875,7 +3875,7 @@ bool OTTransaction::GetSuccess()
         // If any of these are a success, then the transaction as a whole is a
         // success also.
 
-        case OTItem::atTransfer: // notarizeTransactions. server's reply to
+        case OTItem::atTransfer: // notarizeTransaction. server's reply to
                                  // nym's request to initiate a transfer
 
         case OTItem::atWithdrawal: // notarizeTransaction. server's reply to

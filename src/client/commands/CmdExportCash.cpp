@@ -218,7 +218,7 @@ int32_t CmdExportCash::run(string server, string mynym, string mypurse,
 // (since maybe it's HIS account and thus it's not IN your wallet...)
 //
 // Similarly, HisNym will call the script even when not found, giving the script
-// the opportunity to download the appropriate pubkey ("check_user" aka
+// the opportunity to download the appropriate pubkey ("check_nym" aka
 // "checknym") and continue operating.
 //
 // All of the above, plus Server, ALREADY attempt a partial match search.
