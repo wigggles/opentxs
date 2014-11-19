@@ -13160,13 +13160,13 @@ int32_t OT_API::checkNym(const Identifier& SERVER_ID, const Identifier& USER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
-                                const Identifier& USER_ID,
-                                const Identifier& USER_ID_RECIPIENT,
-                                const String& RECIPIENT_PUBKEY, // unescaped
-                                                                // and
-                                                                // bookended.
-                                const String& THE_MESSAGE) const
+int32_t OT_API::sendNymMessage(const Identifier& SERVER_ID,
+                               const Identifier& USER_ID,
+                               const Identifier& USER_ID_RECIPIENT,
+                               const String& RECIPIENT_PUBKEY, // unescaped
+                                                               // and
+                                                               // bookended.
+                               const String& THE_MESSAGE) const
 {
     // Send a message to another user, encrypted to his
     // public key and dropped into his nymbox.
@@ -13195,7 +13195,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "sendUserMessage";
+    theMessage.m_strCommand = "sendNymMessage";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strServerID = strServerID;
@@ -13210,7 +13210,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
     int32_t nReturnValue = -1;
 
     if (!pPubkey->SetPublicKey(RECIPIENT_PUBKEY)) {
-        otOut << "OT_API::sendUserMessage: Failed setting public key.\n";
+        otOut << "OT_API::sendNymMessage: Failed setting public key.\n";
     }
     else if (THE_MESSAGE.Exists() &&
                theEnvelope.Seal(*pPubkey, THE_MESSAGE) &&
@@ -13248,7 +13248,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
         nReturnValue = SendMessage(pServer, pNym, theMessage, lRequestNumber);
     }
     else
-        otOut << "OT_API::sendUserMessage: Failed sealing envelope.\n";
+        otOut << "OT_API::sendNymMessage: Failed sealing envelope.\n";
 
     return nReturnValue;
 }

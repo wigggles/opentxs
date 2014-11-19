@@ -2790,13 +2790,13 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t sendUserMessage(const std::string& SERVER_ID,
-                                   const std::string& USER_ID,
-                                   const std::string& USER_ID_RECIPIENT,
-                                   const std::string& RECIPIENT_PUBKEY,
-                                   const std::string& THE_MESSAGE) const;
+    EXPORT int32_t sendNymMessage(const std::string& SERVER_ID,
+                                  const std::string& USER_ID,
+                                  const std::string& USER_ID_RECIPIENT,
+                                  const std::string& RECIPIENT_PUBKEY,
+                                  const std::string& THE_MESSAGE) const;
     /**
-    sendUserMessage does this:
+    sendNymMessage does this:
     -- Puts user message as encrypted Payload on an OTMessage (1)...
     -- Also puts user message as a CLEAR payload on an OTMessage (2)...
     -- (1) is sent to server, and (2) is added to Outmail messages.

@@ -690,8 +690,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case DELETE_USER_ACCT:
         return OTAPI_Wrap::deleteUserAccount(serverID, nymID);
     case SEND_USER_MESSAGE:
-        return OTAPI_Wrap::sendUserMessage(serverID, nymID, nymID2, strData,
-                                           strData2);
+        return OTAPI_Wrap::sendNymMessage(serverID, nymID, nymID2, strData,
+                                          strData2);
     case SEND_USER_INSTRUMENT:
         // accountID stores here the sender's copy of the instrument, which is
         // used only in the case of a cash purse.

@@ -13251,11 +13251,11 @@ int32_t OTAPI_Exec::checkNym(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::sendUserMessage(const std::string& SERVER_ID,
-                                    const std::string& USER_ID,
-                                    const std::string& USER_ID_RECIPIENT,
-                                    const std::string& RECIPIENT_PUBKEY,
-                                    const std::string& THE_MESSAGE) const
+int32_t OTAPI_Exec::sendNymMessage(const std::string& SERVER_ID,
+                                   const std::string& USER_ID,
+                                   const std::string& USER_ID_RECIPIENT,
+                                   const std::string& RECIPIENT_PUBKEY,
+                                   const std::string& THE_MESSAGE) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13283,8 +13283,8 @@ int32_t OTAPI_Exec::sendUserMessage(const std::string& SERVER_ID,
     String strRecipPubkey(RECIPIENT_PUBKEY);
     String strMessage(THE_MESSAGE);
 
-    return OTAPI()->sendUserMessage(theServerID, theUserID, theOtherUserID,
-                                    strRecipPubkey, strMessage);
+    return OTAPI()->sendNymMessage(theServerID, theUserID, theOtherUserID,
+                                   strRecipPubkey, strMessage);
 }
 
 // Returns int32_t:

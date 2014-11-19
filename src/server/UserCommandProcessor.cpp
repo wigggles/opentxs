@@ -1159,14 +1159,14 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("sendUserMessage")) {
-        OTLog::vOutput(
-            0, "\n==> Received a sendUserMessage message. Nym: %s ...\n",
-            strMsgNymID.Get());
+    else if (theMessage.m_strCommand.Compare("sendNymMessage")) {
+        OTLog::vOutput(0,
+                       "\n==> Received a sendNymMessage message. Nym: %s ...\n",
+                       strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
 
-        UserCmdSendUserMessage(*pNym, theMessage, msgOut);
+        UserCmdSendNymMessage(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -1929,12 +1929,12 @@ void UserCommandProcessor::UserCmdGetRequest(Nym& theNym, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdSendUserMessage(Nym& theNym, Message& MsgIn,
-                                                  Message& msgOut)
+void UserCommandProcessor::UserCmdSendNymMessage(Nym& theNym, Message& MsgIn,
+                                                 Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "sendUserMessageResponse"; // reply to sendUserMessage
-    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strCommand = "sendNymMessageResponse"; // reply to sendNymMessage
+    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
@@ -1946,7 +1946,7 @@ void UserCommandProcessor::UserCmdSendUserMessage(Nym& theNym, Message& MsgIn,
                          &MsgIn); // pstrMessage=nullptr
 
     if (!bSent) {
-        OTLog::vError("UserCommandProcessor::UserCmdSendUserMessage: Failed "
+        OTLog::vError("UserCommandProcessor::UserCmdSendNymMessage: Failed "
                       "while calling "
                       "SendMessageToNym.\n");
         msgOut.m_bSuccess = false;

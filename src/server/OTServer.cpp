@@ -688,7 +688,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
         else {
             switch (theType) {
             case OTTransaction::message:
-                pMsg->m_strCommand = "sendUserMessage";
+                pMsg->m_strCommand = "sendNymMessage";
                 break;
             case OTTransaction::instrumentNotice:
                 pMsg->m_strCommand = "sendUserInstrument";

@@ -2044,14 +2044,14 @@ int32_t OTAPI_Wrap::checkNym(const std::string& SERVER_ID,
     return Exec()->checkNym(SERVER_ID, USER_ID, USER_ID_CHECK);
 }
 
-int32_t OTAPI_Wrap::sendUserMessage(const std::string& SERVER_ID,
-                                    const std::string& USER_ID,
-                                    const std::string& USER_ID_RECIPIENT,
-                                    const std::string& RECIPIENT_PUBKEY,
-                                    const std::string& THE_MESSAGE)
+int32_t OTAPI_Wrap::sendNymMessage(const std::string& SERVER_ID,
+                                   const std::string& USER_ID,
+                                   const std::string& USER_ID_RECIPIENT,
+                                   const std::string& RECIPIENT_PUBKEY,
+                                   const std::string& THE_MESSAGE)
 {
-    return Exec()->sendUserMessage(SERVER_ID, USER_ID, USER_ID_RECIPIENT,
-                                   RECIPIENT_PUBKEY, THE_MESSAGE);
+    return Exec()->sendNymMessage(SERVER_ID, USER_ID, USER_ID_RECIPIENT,
+                                  RECIPIENT_PUBKEY, THE_MESSAGE);
 }
 
 int32_t OTAPI_Wrap::sendUserInstrument(const std::string& SERVER_ID,

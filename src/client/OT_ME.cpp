@@ -2258,8 +2258,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::checkNym), "OT_API_checkNym");
         theScript.chai->add(fun(&OTAPI_Wrap::usageCredits),
                             "OT_API_usageCredits");
-        theScript.chai->add(fun(&OTAPI_Wrap::sendUserMessage),
-                            "OT_API_sendUserMessage");
+        theScript.chai->add(fun(&OTAPI_Wrap::sendNymMessage),
+                            "OT_API_sendNymMessage");
         theScript.chai->add(fun(&OTAPI_Wrap::sendUserInstrument),
                             "OT_API_sendUserInstrument");
 

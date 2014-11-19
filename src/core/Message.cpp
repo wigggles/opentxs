@@ -1651,7 +1651,7 @@ RegisterStrategy StrategyOutpaymentsMessageOrOutmailMessage::reg(
 RegisterStrategy StrategyOutpaymentsMessageOrOutmailMessage::reg2(
     "outmailMessage", new StrategyOutpaymentsMessageOrOutmailMessage());
 
-class StrategySendUserMessage : public OTMessageStrategy
+class StrategySendNymMessage : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1705,10 +1705,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategySendUserMessage::reg("sendUserMessage",
-                                              new StrategySendUserMessage());
+RegisterStrategy StrategySendNymMessage::reg("sendNymMessage",
+                                             new StrategySendNymMessage());
 
-class StrategySendUserMessageResponse : public OTMessageStrategy
+class StrategySendNymMessageResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1751,8 +1751,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategySendUserMessageResponse::reg(
-    "sendUserMessageResponse", new StrategySendUserMessageResponse());
+RegisterStrategy StrategySendNymMessageResponse::reg(
+    "sendNymMessageResponse", new StrategySendNymMessageResponse());
 
 class StrategySendUserInstrumentOrPayDividend : public OTMessageStrategy
 {

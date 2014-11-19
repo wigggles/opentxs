@@ -762,11 +762,11 @@ public:
     EXPORT int32_t getRequest(const Identifier& SERVER_ID,
                               const Identifier& USER_ID) const;
 
-    EXPORT int32_t sendUserMessage(const Identifier& SERVER_ID,
-                                   const Identifier& USER_ID,
-                                   const Identifier& USER_ID_RECIPIENT,
-                                   const String& RECIPIENT_PUBKEY,
-                                   const String& THE_MESSAGE) const;
+    EXPORT int32_t sendNymMessage(const Identifier& SERVER_ID,
+                                  const Identifier& USER_ID,
+                                  const Identifier& USER_ID_RECIPIENT,
+                                  const String& RECIPIENT_PUBKEY,
+                                  const String& THE_MESSAGE) const;
 
     EXPORT int32_t sendUserInstrument(
         const Identifier& SERVER_ID, const Identifier& USER_ID,
