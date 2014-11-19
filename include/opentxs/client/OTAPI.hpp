@@ -2607,8 +2607,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t deleteUserAccount(const std::string& SERVER_ID,
-                                            const std::string& USER_ID);
+    EXPORT static int32_t deleteNym(const std::string& SERVER_ID,
+                                    const std::string& USER_ID);
 
     /** This allows you to delete an asset account from a server,
     // provided that the balance is 0 and the inbox and outbox are

@@ -184,13 +184,13 @@ public:
         // that users will connect to when they import the contract, as well as
         // the private
         // key that matches the public key from the contract.
-        registerNym,       // Create user account on a specific server, with
-                           // public key. User ID will be hash of said public
-                           // key.
-        deleteUserAccount, // Delete user account from a specific server.
-        getRequestNumber,  // Get the next request number from the server (for
-                           // this
-                           // user). Most requests must be
+        registerNym,      // Create user account on a specific server, with
+                          // public key. User ID will be hash of said public
+                          // key.
+        deleteNym,        // Delete user account from a specific server.
+        getRequestNumber, // Get the next request number from the server (for
+                          // this
+                          // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
         getTransactionNum, // Every transaction requires a transaction number.
@@ -296,8 +296,8 @@ private:
     bool processServerReplyGetMarketOffers(const Message& theReply);
     bool processServerReplyGetMarketRecentTrades(const Message& theReply);
     bool processServerReplyGetNymMarketOffers(const Message& theReply);
-    bool processServerReplyDeleteUserAccount(const Message& theReply,
-                                             ProcessServerReplyArgs& args);
+    bool processServerReplyDeleteNym(const Message& theReply,
+                                     ProcessServerReplyArgs& args);
     bool processServerReplyDeleteAssetAccount(const Message& theReply,
                                               ProcessServerReplyArgs& args);
     bool processServerReplyIssueAssetType(const Message& theReply,

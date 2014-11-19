@@ -2003,7 +2003,7 @@ cheque.
 Need to add functions (like check_nym above) for all of these:
 
 attr OTAPI_Func::CREATE_USER_ACCT (register nym)DONE
-attr OTAPI_Func::DELETE_USER_ACCT
+attr OTAPI_Func::DELETE_NYM
 attr OTAPI_Func::CHECK_NYM DONE
 attr OTAPI_Func::SEND_USER_MESSAGE DONE
 attr OTAPI_Func::ISSUE_ASSET_TYPE               DONE
@@ -2068,8 +2068,8 @@ in ot.
 Here are parameters for the first group above.
 (They are called in OTAPI_Func, this code is from there):
 
-else if (funcType == DELETE_USER_ACCT)
-{ OTAPI_Wrap::deleteUserAccount(serverID, nymID); }
+else if (funcType == DELETE_NYM)
+{ OTAPI_Wrap::deleteNym(serverID, nymID); }
 else if (funcType == GET_NYM_MARKET_OFFERS)
 { OTAPI_Wrap::getNym_MarketOffers(serverID, nymID); }
 else if (funcType == CREATE_ASSET_ACCT)

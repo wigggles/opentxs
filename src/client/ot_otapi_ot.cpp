@@ -687,8 +687,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
         return OTAPI_Wrap::checkNym(serverID, nymID, nymID2);
     case CREATE_USER_ACCT:
         return OTAPI_Wrap::registerNym(serverID, nymID);
-    case DELETE_USER_ACCT:
-        return OTAPI_Wrap::deleteUserAccount(serverID, nymID);
+    case DELETE_NYM:
+        return OTAPI_Wrap::deleteNym(serverID, nymID);
     case SEND_USER_MESSAGE:
         return OTAPI_Wrap::sendNymMessage(serverID, nymID, nymID2, strData,
                                           strData2);

@@ -7297,8 +7297,8 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyDeleteUserAccount(const Message& theReply,
-                                                   ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyDeleteNym(const Message& theReply,
+                                           ProcessServerReplyArgs& args)
 {
     const auto& pNym = args.pNym;
     const auto& SERVER_ID = args.SERVER_ID;
@@ -7315,7 +7315,7 @@ bool OTClient::processServerReplyDeleteUserAccount(const Message& theReply,
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
         theOriginalMessage.VerifySignature(*pNym) &&
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
-        theOriginalMessage.m_strCommand.Compare("deleteUserAccount")) {
+        theOriginalMessage.m_strCommand.Compare("deleteNym")) {
 
         while (pNym->GetTransactionNumCount(SERVER_ID) > 0) {
             int64_t lTemp = pNym->GetTransactionNum(SERVER_ID, 0); // index 0
@@ -7750,8 +7750,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("getNym_MarketOffersResponse")) {
         return processServerReplyGetNymMarketOffers(theReply);
     }
-    if (theReply.m_strCommand.Compare("deleteUserAccountResponse")) {
-        return processServerReplyDeleteUserAccount(theReply, args);
+    if (theReply.m_strCommand.Compare("deleteNymResponse")) {
+        return processServerReplyDeleteNym(theReply, args);
     }
     if (theReply.m_strCommand.Compare("deleteAssetAccountResponse")) {
         return processServerReplyDeleteAssetAccount(theReply, args);
@@ -8017,7 +8017,7 @@ int32_t OTClient::ProcessUserCommand(
     // send them to the server twice. Better that new requests requre new
     // request numbers :-)
     break;
-    case OTClient::deleteUserAccount: {
+    case OTClient::deleteNym: {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
@@ -8027,7 +8027,7 @@ int32_t OTClient::ProcessUserCommand(
                                                          // have to increment it
 
         // (1) set up member variables
-        theMessage.m_strCommand = "deleteUserAccount";
+        theMessage.m_strCommand = "deleteNym";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER

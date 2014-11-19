@@ -13514,8 +13514,8 @@ int32_t OT_API::registerNym(const Identifier& SERVER_ID,
     return -1;
 }
 
-int32_t OT_API::deleteUserAccount(const Identifier& SERVER_ID,
-                                  const Identifier& USER_ID) const
+int32_t OT_API::deleteNym(const Identifier& SERVER_ID,
+                          const Identifier& USER_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13529,15 +13529,15 @@ int32_t OT_API::deleteUserAccount(const Identifier& SERVER_ID,
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::deleteUserAccount, theMessage, *pNym, *pServer,
+        OTClient::deleteNym, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
-        otErr << "Error processing deleteUserAccount command in "
-                 "OT_API::deleteUserAccount\n";
+        otErr << "Error processing deleteNym command in "
+                 "OT_API::deleteNym\n";
 
     return -1;
 }

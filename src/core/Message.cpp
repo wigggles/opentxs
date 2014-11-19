@@ -1216,7 +1216,7 @@ public:
 RegisterStrategy StrategyCreateUserAccountResponse::reg(
     "registerNymResponse", new StrategyCreateUserAccountResponse());
 
-class StrategyDeleteUserAccount : public OTMessageStrategy
+class StrategyDeleteNym : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1249,10 +1249,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyDeleteUserAccount::reg(
-    "deleteUserAccount", new StrategyDeleteUserAccount());
+RegisterStrategy StrategyDeleteNym::reg("deleteNym", new StrategyDeleteNym());
 
-class StrategyDeleteUserAccountResponse : public OTMessageStrategy
+class StrategyDeleteNymResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1306,8 +1305,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyDeleteUserAccountResponse::reg(
-    "deleteUserAccountResponse", new StrategyDeleteUserAccountResponse());
+RegisterStrategy StrategyDeleteNymResponse::reg(
+    "deleteNymResponse", new StrategyDeleteNymResponse());
 
 class StrategyCheckNym : public OTMessageStrategy
 {
