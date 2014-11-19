@@ -147,7 +147,7 @@ namespace opentxs
 // primary goal is for the signature to continue to verify.  But when first
 // creating a basket contract, we have to rewrite the contents, which is done
 // here.
-BasketContract::BasketContract(Basket& theBasket, OTPseudonym& theSigner)
+BasketContract::BasketContract(Basket& theBasket, Nym& theSigner)
     : AssetContract()
 {
     // Grab a string copy of the basket information.

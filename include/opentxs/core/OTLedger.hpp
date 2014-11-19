@@ -142,7 +142,7 @@ class Account;
 class Cheque;
 class Identifier;
 class OTItem;
-class OTPseudonym;
+class Nym;
 class String;
 
 // transaction ID is a int64_t, assigned by the server. Each transaction has
@@ -234,7 +234,7 @@ public:
     // and the outbox hash.
     EXPORT OTItem* GenerateBalanceStatement(int64_t lAdjustment,
                                             const OTTransaction& theOwner,
-                                            OTPseudonym& theNym,
+                                            Nym& theNym,
                                             const Account& theAccount,
                                             OTLedger& theOutbox);
 
@@ -272,7 +272,7 @@ public:
     // expects/uses a pubkey from inside the contract in order to verify
     // it.
     //
-    EXPORT virtual bool VerifyAccount(const OTPseudonym& theNym);
+    EXPORT virtual bool VerifyAccount(const Nym& theNym);
     // For ALL abbreviated transactions, load the actual box receipt for each.
     EXPORT bool LoadBoxReceipts(std::set<int64_t>* psetUnloaded =
                                     nullptr); // if psetUnloaded passed in, then

@@ -234,9 +234,9 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 }
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
-    const OTPseudonym& theNym,
+    const Nym& theNym,
     const String* pstrDisplay) // construct with nym
-    : m_pNym(const_cast<OTPseudonym*>(&theNym)),
+    : m_pNym(const_cast<Nym*>(&theNym)),
       m_pKey(nullptr),
       m_pPassword(nullptr),
       m_bCleanupPassword(false),

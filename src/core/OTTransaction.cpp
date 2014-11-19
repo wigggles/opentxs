@@ -170,7 +170,7 @@ void OTTransaction::SetClosingNum(int64_t lClosingNum)
 //
 // This overrides from OTTransactionType::VerifyAccount()
 //
-bool OTTransaction::VerifyAccount(const OTPseudonym& theNym)
+bool OTTransaction::VerifyAccount(const Nym& theNym)
 {
     OTLedger* pParent = const_cast<OTLedger*>(m_pParent);
 
@@ -300,7 +300,7 @@ currency.
 // Returns true/false whether it actually harvested a number.
 //
 bool OTTransaction::HarvestOpeningNumber(
-    OTPseudonym& theNym,
+    Nym& theNym,
     bool bHarvestingForRetry,    // The message was sent, failed somehow, and
                                  // is now being re-tried.
     bool bReplyWasSuccess,       // false until positively asserted.
@@ -896,7 +896,7 @@ bool OTTransaction::HarvestOpeningNumber(
 // but any others are still salvageable.)
 //
 bool OTTransaction::HarvestClosingNumbers(
-    OTPseudonym& theNym,
+    Nym& theNym,
     bool bHarvestingForRetry,    // false until positively asserted.
     bool bReplyWasSuccess,       // false until positively asserted.
     bool bReplyWasFailure,       // false until positively asserted.
@@ -1275,9 +1275,9 @@ bool OTTransaction::HarvestClosingNumbers(
 // automatically saved to a disputes folder, etc.
 //
 bool OTTransaction::VerifyBalanceReceipt(
-    OTPseudonym& SERVER_NYM, // For verifying a signature.
-    OTPseudonym& THE_NYM)    // transaction numbers issued according to nym must
-                             // match this.
+    Nym& SERVER_NYM, // For verifying a signature.
+    Nym& THE_NYM)    // transaction numbers issued according to nym must
+                     // match this.
 // OTLedger& THE_INBOX,    // All inbox items on *this must also be found in
 // THE_INBOX. All new items (on THE_INBOX only) must be accounted for in the
 // balance.
@@ -1731,7 +1731,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // LOAD MESSAGE NYM (THE LIST OF ISSUED NUMBERS ACCORDING TO THE RECEIPT.)
 
-    OTPseudonym theMessageNym;
+    Nym theMessageNym;
     String strMessageNym; // Okay now we have the transaction numbers in this
                           // MessageNym string.
 
@@ -3165,7 +3165,7 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 // make sure that the items on it also have the right owner, as well as that
 // owner's signature, and a matching transaction number to boot.
 //
-bool OTTransaction::VerifyItems(OTPseudonym& theNym)
+bool OTTransaction::VerifyItems(Nym& theNym)
 {
     const Identifier NYM_ID(theNym);
 

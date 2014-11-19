@@ -141,7 +141,7 @@
 namespace opentxs
 {
 
-class OTPseudonym;
+class Nym;
 
 // The server needs to store a list of accounts, by asset type ID, to store the
 // backing funds for vouchers. The below class is useful for that. It's also
@@ -176,7 +176,7 @@ public:
     }
 
     EXPORT std::shared_ptr<Account> GetOrCreateAccount(
-        OTPseudonym& serverNym, const Identifier& ACCOUNT_OWNER_ID,
+        Nym& serverNym, const Identifier& ACCOUNT_OWNER_ID,
         const Identifier& ASSET_TYPE_ID, const Identifier& SERVER_ID,
         bool& wasAcctCreated, // this will be set to true if the acct is
         // created here. Otherwise set to false;

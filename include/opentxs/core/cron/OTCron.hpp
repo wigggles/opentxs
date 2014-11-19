@@ -145,7 +145,7 @@ namespace opentxs
 
 class OTCronItem;
 class OTMarket;
-class OTPseudonym;
+class Nym;
 
 // mapOfCronItems:      Mapped (uniquely) to transaction number.
 // multimapOfCronItems: Mapped to date the item was added to Cron.
@@ -180,7 +180,7 @@ private:
     bool m_bIsActivated; // I don't want to start Cron processing until
                          // everything else is all loaded up and ready to go.
 
-    OTPseudonym* m_pServerNym;            // I'll need this for later.
+    Nym* m_pServerNym;                    // I'll need this for later.
     static int32_t __trans_refill_amount; // Number of transaction numbers Cron
                                           // will grab for itself, when it gets
                                           // low, before each round.
@@ -231,13 +231,13 @@ public:
     }
     // RECURRING TRANSACTIONS
     //
-    EXPORT bool AddCronItem(OTCronItem& theItem, OTPseudonym* pActivator,
+    EXPORT bool AddCronItem(OTCronItem& theItem, Nym* pActivator,
                             bool bSaveReceipt,
                             time64_t tDateAdded); // Date it was FIRST added to
                                                   // Cron.
     EXPORT bool RemoveCronItem(int64_t lTransactionNum,
-                               OTPseudonym& theRemover); // if returns false,
-                                                         // item wasn't found.
+                               Nym& theRemover); // if returns false,
+                                                 // item wasn't found.
     EXPORT OTCronItem* GetItemByOfficialNum(int64_t lTransactionNum);
     EXPORT OTCronItem* GetItemByValidOpeningNum(int64_t lOpeningNum);
     EXPORT mapOfCronItems::iterator FindItemOnMap(int64_t lTransactionNum);
@@ -295,12 +295,12 @@ public:
         return m_SERVER_ID;
     }
 
-    inline void SetServerNym(OTPseudonym* pServerNym)
+    inline void SetServerNym(Nym* pServerNym)
     {
         OT_ASSERT(nullptr != pServerNym);
         m_pServerNym = pServerNym;
     }
-    inline OTPseudonym* GetServerNym() const
+    inline Nym* GetServerNym() const
     {
         return m_pServerNym;
     }

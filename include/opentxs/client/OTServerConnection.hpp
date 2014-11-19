@@ -142,7 +142,7 @@ namespace opentxs
 
 class OTClient;
 class Identifier;
-class OTPseudonym;
+class Nym;
 class OTServerContract;
 class OTWallet;
 class OTEnvelope;
@@ -157,7 +157,7 @@ public:
 
     bool GetServerID(Identifier& theID) const;
 
-    inline OTPseudonym* GetNym() const
+    inline Nym* GetNym() const
     {
         return m_pNym;
     }
@@ -174,7 +174,7 @@ public:
 
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
-    void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
+    void ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
                            const Message& theMessage);
 
 private:
@@ -185,7 +185,7 @@ private:
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 
-    OTPseudonym* m_pNym;
+    Nym* m_pNym;
     OTServerContract* m_pServerContract;
     OTWallet* m_pWallet;
     OTClient* m_pClient;

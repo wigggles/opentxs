@@ -142,7 +142,7 @@ namespace opentxs
 class String;
 class OTLedger;
 class Message;
-class OTPseudonym;
+class Nym;
 
 class Account : public OTTransactionType
 {
@@ -220,13 +220,12 @@ public:
     EXPORT void Release_Account();
     EXPORT static Account* GenerateNewAccount(const Identifier& userId,
                                               const Identifier& serverId,
-                                              const OTPseudonym& serverNym,
+                                              const Nym& serverNym,
                                               const Message& message,
                                               AccountType acctType = simple,
                                               int64_t stashTransNum = 0);
 
-    EXPORT bool GenerateNewAccount(const OTPseudonym& server,
-                                   const Message& message,
+    EXPORT bool GenerateNewAccount(const Nym& server, const Message& message,
                                    AccountType acctType = simple,
                                    int64_t stashTransNum = 0);
     // Let's say you don't have or know the UserID, and you just want to load
@@ -235,9 +234,9 @@ public:
     EXPORT static Account* LoadExistingAccount(const Identifier& accountId,
                                                const Identifier& serverId);
     // Caller responsible to delete.
-    EXPORT OTLedger* LoadInbox(OTPseudonym& nym) const;
+    EXPORT OTLedger* LoadInbox(Nym& nym) const;
     // Caller responsible to delete.
-    EXPORT OTLedger* LoadOutbox(OTPseudonym& nym) const;
+    EXPORT OTLedger* LoadOutbox(Nym& nym) const;
 
     // If you pass the identifier in, the inbox hash is recorded there
     EXPORT bool SaveInbox(OTLedger& box, Identifier* hash = nullptr);
@@ -253,7 +252,7 @@ public:
     EXPORT bool Credit(const int64_t& amount);
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
-    EXPORT bool VerifyOwner(const OTPseudonym& candidate) const;
+    EXPORT bool VerifyOwner(const Nym& candidate) const;
     EXPORT bool VerifyOwnerByID(const Identifier& nymId) const;
     // generates filename based on accounts path and account ID. Saves to the
     // standard location for an acct.

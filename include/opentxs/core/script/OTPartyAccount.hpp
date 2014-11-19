@@ -142,11 +142,11 @@ class Account;
 class OTAgent;
 class Identifier;
 class OTParty;
-class OTPseudonym;
+class Nym;
 class OTScript;
 class OTSmartContract;
 
-typedef std::map<std::string, OTPseudonym*> mapOfNyms;
+typedef std::map<std::string, Nym*> mapOfNyms;
 
 // Each party has a list of accounts. Just as the agent, depending on context,
 // MAY
@@ -254,7 +254,7 @@ public:
         m_strAcctID = strAccountID;
     }
     EXPORT OTAgent* GetAuthorizedAgent();
-    Account* LoadAccount(OTPseudonym& theSignerNym, const String& strServerID);
+    Account* LoadAccount(Nym& theSignerNym, const String& strServerID);
     bool IsAccount(Account& theAccount);
     bool IsAccountByID(const Identifier& theAcctID) const;
     bool VerifyOwnership() const; // I have a ptr to my owner (party), as well
@@ -273,7 +273,7 @@ public:
     }
     bool Compare(const OTPartyAccount& rhs) const;
     bool DropFinalReceiptToInbox(mapOfNyms* pNymMap, const String& strServerID,
-                                 OTPseudonym& theServerNym,
+                                 Nym& theServerNym,
                                  OTSmartContract& theSmartContract,
                                  const int64_t& lNewTransactionNumber,
                                  const String& strOrigCronItem,

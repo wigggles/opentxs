@@ -208,7 +208,7 @@ Transactor::~Transactor()
 /// number. Instead it would just check its own server signature on the inbox.
 /// But I digress...
 ///
-bool Transactor::issueNextTransactionNumber(OTPseudonym& theNym,
+bool Transactor::issueNextTransactionNumber(Nym& theNym,
                                             int64_t& lTransactionNumber,
                                             bool bStoreTheNumber)
 {
@@ -218,7 +218,7 @@ bool Transactor::issueNextTransactionNumber(OTPseudonym& theNym,
     // server_->m_nymServer
     // instead of theNym.  (Since it's the same nym anyway, we'll stick to the
     // one we already loaded so any changes don't get overwritten later.)
-    OTPseudonym* pNym = nullptr;
+    Nym* pNym = nullptr;
 
     if (NYM_ID == SERVER_NYM_ID)
         pNym = &server_->m_nymServer;
@@ -276,10 +276,10 @@ bool Transactor::issueNextTransactionNumber(OTPseudonym& theNym,
 /// number is present and valid
 /// for any specific nym (i.e. for the nym passed in.)
 bool Transactor::verifyTransactionNumber(
-    OTPseudonym& theNym, const int64_t& lTransactionNumber) // passed by
-                                                            // reference for
-                                                            // speed, but not a
-                                                            // return value.
+    Nym& theNym, const int64_t& lTransactionNumber) // passed by
+                                                    // reference for
+                                                    // speed, but not a
+                                                    // return value.
 {
     Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
 
@@ -287,7 +287,7 @@ bool Transactor::verifyTransactionNumber(
     // server_->m_nymServer
     // instead of theNym.  (Since it's the same nym anyway, we'll stick to the
     // one we already loaded so any changes don't get overwritten later.)
-    OTPseudonym* pNym = nullptr;
+    Nym* pNym = nullptr;
 
     if (NYM_ID == SERVER_NYM_ID)
         pNym = &server_->m_nymServer;
@@ -317,7 +317,7 @@ bool Transactor::verifyTransactionNumber(
 
 /// Remove a transaction number from the Nym record once it's officially
 /// used/spent.
-bool Transactor::removeTransactionNumber(OTPseudonym& theNym,
+bool Transactor::removeTransactionNumber(Nym& theNym,
                                          const int64_t& lTransactionNumber,
                                          bool bSave)
 {
@@ -327,7 +327,7 @@ bool Transactor::removeTransactionNumber(OTPseudonym& theNym,
     // server_->m_nymServer
     // instead of theNym.  (Since it's the same nym anyway, we'll stick to the
     // one we already loaded so any changes don't get overwritten later.)
-    OTPseudonym* pNym = nullptr;
+    Nym* pNym = nullptr;
 
     if (NYM_ID == SERVER_NYM_ID)
         pNym = &server_->m_nymServer;
@@ -351,7 +351,7 @@ bool Transactor::removeTransactionNumber(OTPseudonym& theNym,
 
 /// Remove an issued number from the Nym record once that nym accepts the
 /// receipt from his inbox.
-bool Transactor::removeIssuedNumber(OTPseudonym& theNym,
+bool Transactor::removeIssuedNumber(Nym& theNym,
                                     const int64_t& lTransactionNumber,
                                     bool bSave)
 {
@@ -361,7 +361,7 @@ bool Transactor::removeIssuedNumber(OTPseudonym& theNym,
     // server_->m_nymServer
     // instead of theNym.  (Since it's the same nym anyway, we'll stick to the
     // one we already loaded so any changes don't get overwritten later.)
-    OTPseudonym* pNym = nullptr;
+    Nym* pNym = nullptr;
 
     if (NYM_ID == SERVER_NYM_ID)
         pNym = &server_->m_nymServer;

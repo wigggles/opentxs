@@ -304,7 +304,7 @@ bool CmdBase::checkNym(const char* name, string& nym) const
     }
 
     OTWallet* wallet = getWallet();
-    OTPseudonym* theNym = wallet->GetNymByID(nym);
+    Nym* theNym = wallet->GetNymByID(nym);
     if (theNym == nullptr) {
         theNym = wallet->GetNymByIDPartialMatch(nym);
         if (theNym == nullptr) {

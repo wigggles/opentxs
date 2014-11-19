@@ -502,7 +502,7 @@ bool Mint::SaveMint(const char* szAppend)
 
 // Make sure this contract checks out. Very high level.
 // Verifies ID and signature.
-bool Mint::VerifyMint(const OTPseudonym& theOperator)
+bool Mint::VerifyMint(const Nym& theOperator)
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -879,11 +879,11 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
                            time64_t VALID_TO, time64_t MINT_EXPIRATION,
                            const Identifier& theAssetID,
-                           const Identifier& theServerID,
-                           OTPseudonym& theNotary, int64_t nDenom1,
-                           int64_t nDenom2, int64_t nDenom3, int64_t nDenom4,
-                           int64_t nDenom5, int64_t nDenom6, int64_t nDenom7,
-                           int64_t nDenom8, int64_t nDenom9, int64_t nDenom10)
+                           const Identifier& theServerID, Nym& theNotary,
+                           int64_t nDenom1, int64_t nDenom2, int64_t nDenom3,
+                           int64_t nDenom4, int64_t nDenom5, int64_t nDenom6,
+                           int64_t nDenom7, int64_t nDenom8, int64_t nDenom9,
+                           int64_t nDenom10)
 {
     Release();
 

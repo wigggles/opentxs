@@ -139,7 +139,7 @@ namespace opentxs
 {
 class String;
 class Message;
-class OTPseudonym;
+class Nym;
 class OTServer;
 class Identifier;
 class ClientConnection;
@@ -150,7 +150,7 @@ public:
     UserCommandProcessor(OTServer* server);
 
     bool ProcessUserCommand(Message& msgIn, Message& msgOut,
-                            ClientConnection* connection, OTPseudonym* nym);
+                            ClientConnection* connection, Nym* nym);
 
 private:
     bool SendMessageToNym(const Identifier& serverId,
@@ -164,67 +164,52 @@ private:
                                  const String& messageString,
                                  const int64_t& requestNum,
                                  const bool replyTransSuccess,
-                                 OTPseudonym* actualNym = nullptr);
+                                 Nym* actualNym = nullptr);
 
-    void UserCmdCheckServerID(OTPseudonym& nym, Message& msgIn,
-                              Message& msgOut);
-    void UserCmdCheckUser(OTPseudonym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdSendUserMessage(OTPseudonym& nym, Message& msgIn,
-                                Message& msgOut);
-    void UserCmdSendUserInstrument(OTPseudonym& nym, Message& msgIn,
-                                   Message& msgOut);
-    void UserCmdGetRequest(OTPseudonym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdGetTransactionNum(OTPseudonym& nym, Message& msgIn,
-                                  Message& msgOut);
-    void UserCmdIssueAssetType(OTPseudonym& nym, Message& msgIn,
-                               Message& msgOut);
-    void UserCmdIssueBasket(OTPseudonym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdCheckServerID(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdCheckUser(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdSendUserMessage(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdSendUserInstrument(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetRequest(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetTransactionNum(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdIssueAssetType(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdIssueBasket(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetBoxReceipt(Message& msgIn, Message& msgOut);
-    void UserCmdDeleteUser(OTPseudonym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdDeleteAssetAcct(OTPseudonym& nym, Message& msgIn,
-                                Message& msgOut);
-    void UserCmdCreateAccount(OTPseudonym& nym, Message& msgIn,
-                              Message& msgOut);
-    void UserCmdNotarizeTransactions(OTPseudonym& nym, Message& msgIn,
-                                     Message& msgOut);
-    void UserCmdGetNymbox(OTPseudonym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdDeleteUser(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdDeleteAssetAcct(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdCreateAccount(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdNotarizeTransactions(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetNymbox(Nym& nym, Message& msgIn, Message& msgOut);
     // Deprecated (replaced by UserCmdGetAccountFiles)
-    void UserCmdGetInbox(OTPseudonym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetInbox(Nym& nym, Message& msgIn, Message& msgOut);
     // Deprecated (replaced by UserCmdGetAccountFiles)
-    void UserCmdGetOutbox(OTPseudonym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetOutbox(Nym& nym, Message& msgIn, Message& msgOut);
     // Deprecated (replaced by UserCmdGetAccountFiles)
-    void UserCmdGetAccount(OTPseudonym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetAccount(Nym& nym, Message& msgIn, Message& msgOut);
     // This combines GetInbox, GetOutbox, and GetAccount.
-    void UserCmdGetAccountFiles(OTPseudonym& nym, Message& msgIn,
-                                Message& msgOut);
+    void UserCmdGetAccountFiles(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetContract(Message& msgIn, Message& msgOut);
-    void UserCmdGetMint(OTPseudonym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdProcessInbox(OTPseudonym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdProcessNymbox(OTPseudonym& nym, Message& msgIn,
-                              Message& msgOut);
+    void UserCmdGetMint(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdProcessInbox(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdProcessNymbox(Nym& nym, Message& msgIn, Message& msgOut);
 
-    void UserCmdUsageCredits(OTPseudonym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdTriggerClause(OTPseudonym& nym, Message& msgIn,
-                              Message& msgOut);
+    void UserCmdUsageCredits(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdTriggerClause(Nym& nym, Message& msgIn, Message& msgOut);
 
-    void UserCmdQueryAssetTypes(OTPseudonym& nym, Message& msgIn,
-                                Message& msgOut);
+    void UserCmdQueryAssetTypes(Nym& nym, Message& msgIn, Message& msgOut);
 
     // Get the list of markets on this server.
-    void UserCmdGetMarketList(OTPseudonym& nym, Message& msgIn,
-                              Message& msgOut);
+    void UserCmdGetMarketList(Nym& nym, Message& msgIn, Message& msgOut);
 
     // Get the publicly-available list of offers on a specific market.
-    void UserCmdGetMarketOffers(OTPseudonym& nym, Message& msgIn,
-                                Message& msgOut);
+    void UserCmdGetMarketOffers(Nym& nym, Message& msgIn, Message& msgOut);
 
     // Get a report of recent trades that have occurred on a specific market.
-    void UserCmdGetMarketRecentTrades(OTPseudonym& nym, Message& msgIn,
+    void UserCmdGetMarketRecentTrades(Nym& nym, Message& msgIn,
                                       Message& msgOut);
 
     // Get the offers that a specific Nym has placed on a specific market.
-    void UserCmdGetNym_MarketOffers(OTPseudonym& nym, Message& msgIn,
-                                    Message& msgOut);
+    void UserCmdGetNym_MarketOffers(Nym& nym, Message& msgIn, Message& msgOut);
 
 private:
     OTServer* server_;

@@ -140,7 +140,7 @@ namespace opentxs
 
 class Identifier;
 class Mint;
-class OTPseudonym;
+class Nym;
 class Purse;
 
 /*
@@ -205,11 +205,11 @@ protected:
     EXPORT Token_Lucre(const Purse& thePurse);
 
     EXPORT virtual bool GenerateTokenRequest(
-        const OTPseudonym& theNym, Mint& theMint, int64_t lDenomination,
+        const Nym& theNym, Mint& theMint, int64_t lDenomination,
         int32_t nTokenCount = Token::GetMinimumPrototokenCount());
 
 public:
-    EXPORT virtual bool ProcessToken(const OTPseudonym& theNym, Mint& theMint,
+    EXPORT virtual bool ProcessToken(const Nym& theNym, Mint& theMint,
                                      Token& theRequest);
 
     EXPORT virtual ~Token_Lucre();

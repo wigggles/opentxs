@@ -265,7 +265,7 @@ OTTransaction* GetPaymentReceipt(const mapOfTransactions& transactionsMap,
     return nullptr;
 }
 
-bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM, OTPseudonym& THE_NYM,
+bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
                           const Identifier& SERVER_ID,
                           const Identifier& ACCT_ID)
 {
@@ -1131,7 +1131,7 @@ OTWallet* OT_API::GetWallet(const char* szFuncName) const
     return pWallet;
 }
 
-OTPseudonym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
+Nym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -1140,7 +1140,7 @@ OTPseudonym* OT_API::GetNym(const Identifier& NYM_ID, const char* szFunc) const
 
     OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
     if (nullptr != pWallet) {
-        OTPseudonym* pNym = pWallet->GetNymByID(NYM_ID);
+        Nym* pNym = pWallet->GetNymByID(NYM_ID);
         if ((nullptr == pNym) &&
             (nullptr != szFunc)) // We only log if the caller asked us to.
         {
@@ -1209,8 +1209,8 @@ Account* OT_API::GetAccount(const Identifier& THE_ID, const char* szFunc) const
     return nullptr;
 }
 
-OTPseudonym* OT_API::GetNymByIDPartialMatch(const std::string PARTIAL_ID,
-                                            const char* szFuncName) const
+Nym* OT_API::GetNymByIDPartialMatch(const std::string PARTIAL_ID,
+                                    const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
     OTWallet* pWallet = GetWallet(szFunc); // This logs and ASSERTs already.
@@ -1255,9 +1255,8 @@ Account* OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID,
 //
 // Adds to wallet. (No need to delete.)
 //
-OTPseudonym* OT_API::CreateNym(int32_t nKeySize,
-                               const std::string str_id_source,
-                               const std::string str_alt_location) const
+Nym* OT_API::CreateNym(int32_t nKeySize, const std::string str_id_source,
+                       const std::string str_alt_location) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     switch (nKeySize) {
@@ -1276,7 +1275,7 @@ OTPseudonym* OT_API::CreateNym(int32_t nKeySize,
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return nullptr;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    OTPseudonym* pNym = new OTPseudonym;
+    Nym* pNym = new Nym;
     OT_ASSERT(nullptr != pNym);
     if (false ==
         pNym->GenerateNym(nKeySize, true, str_id_source, str_alt_location)) {
@@ -1367,8 +1366,7 @@ bool OT_API::IsNym_RegisteredAtServer(const Identifier& NYM_ID,
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
     }
-    OTPseudonym* pNym =
-        GetNym(NYM_ID, __FUNCTION__); // This logs and ASSERTs already.
+    Nym* pNym = GetNym(NYM_ID, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
@@ -1459,11 +1457,11 @@ bool OT_API::Wallet_ChangePassphrase() const
                                          strReason.Get()));
     class ot_change_pw
     {
-        std::list<OTPseudonym*>* m_plist_nyms; // We'll be responsible in this
-                                               // class for cleaning these up.
+        std::list<Nym*>* m_plist_nyms; // We'll be responsible in this
+                                       // class for cleaning these up.
 
     public:
-        ot_change_pw(std::list<OTPseudonym*>& list_nyms)
+        ot_change_pw(std::list<Nym*>& list_nyms)
             : m_plist_nyms(&list_nyms)
         {
         }
@@ -1473,7 +1471,7 @@ bool OT_API::Wallet_ChangePassphrase() const
                 while (!m_plist_nyms->empty()) // Here's the cleanup.
                 {
                     auto it = m_plist_nyms->begin();
-                    OTPseudonym* pNym = *it;
+                    Nym* pNym = *it;
                     OT_ASSERT(nullptr != pNym);
 
                     delete pNym;
@@ -1483,9 +1481,9 @@ bool OT_API::Wallet_ChangePassphrase() const
             }
         }
     };
-    std::list<OTPseudonym*> list_nyms; // Any Nyms on this list will be cleaned
-                                       // up automatically in the ot_change_pw
-                                       // destructor. Thus
+    std::list<Nym*> list_nyms; // Any Nyms on this list will be cleaned
+                               // up automatically in the ot_change_pw
+                               // destructor. Thus
     ot_change_pw the_cleanup(list_nyms); // we cannot add Nyms here that are
                                          // also on the Wallet. We load our own
                                          // copies just for this list.
@@ -1505,13 +1503,13 @@ bool OT_API::Wallet_ChangePassphrase() const
         const String strNymID(NYM_ID);
 
         // otherwise it's a public Nym, so we just skip it.
-        if (OTPseudonym::DoesCertfileExist(strNymID)) // is there a private key
-                                                      // or credential available
-                                                      // for this Nym?
+        if (Nym::DoesCertfileExist(strNymID)) // is there a private key
+                                              // or credential available
+                                              // for this Nym?
         { // In here, we know there's a private key...
 
             // CALLER responsible to delete!
-            OTPseudonym* pNym = LoadPrivateNym(
+            Nym* pNym = LoadPrivateNym(
                 NYM_ID, false /*bChecking*/,
                 __FUNCTION__); // This also loads credentials, if there are any.
 
@@ -1574,7 +1572,7 @@ bool OT_API::Wallet_ChangePassphrase() const
                                                // after this function is done.)
         bool bSuccessReEncrypting = true;
         for (auto& it : list_nyms) {
-            OTPseudonym* pNym = it;
+            Nym* pNym = it;
             OT_ASSERT(nullptr != pNym);
             // We know at least one Nym has credentials. Does this one?
             //
@@ -1688,7 +1686,7 @@ bool OT_API::Wallet_ChangePassphrase() const
 
         // Let's save all these Nyms under the new master key.
         for (auto& it : list_nyms) {
-            OTPseudonym* pNym = it;
+            Nym* pNym = it;
             OT_ASSERT(nullptr != pNym);
             bool bSaved = false;
 
@@ -2002,7 +2000,7 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
         OT_FAIL;
     }
 
-    OTPseudonym* pNym = OTAPI_Wrap::OTAPI()->GetNym(NYM_ID, __FUNCTION__);
+    Nym* pNym = OTAPI_Wrap::OTAPI()->GetNym(NYM_ID, __FUNCTION__);
     if (nullptr == pNym) return false;
     // Make sure the Nym doesn't have any accounts in the wallet.
     // (Client must close those before calling this.)
@@ -2293,7 +2291,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     OTPasswordData thePWDataLoad("Enter wallet master passphrase.");
     OTPasswordData thePWDataSave("Create new passphrase for exported Nym.");
     String strReasonToSave(thePWDataSave.GetDisplayString());
-    OTPseudonym* pNym =
+    Nym* pNym =
         GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__,
                             &thePWDataLoad); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
@@ -2530,7 +2528,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
     }
     // MAKE SURE IT'S NOT ALREADY IN THE WALLET.
     //
-    std::unique_ptr<OTPseudonym> pNym(GetOrLoadPrivateNym(
+    std::unique_ptr<Nym> pNym(GetOrLoadPrivateNym(
         theNymID, true, __FUNCTION__)); // This logs and ASSERTs already.
 
     if (nullptr != pNym) // already there.
@@ -2544,7 +2542,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
     // Create a new Nym object.
     //
     const String strNymID(theNymID);
-    pNym.reset(new OTPseudonym(theNymID));
+    pNym.reset(new Nym(theNymID));
 
     pNym->SetNymName(strNymName);
 
@@ -2774,7 +2772,7 @@ bool OT_API::Wallet_ImportCert(const String& DISPLAY_NAME,
     // false.
     // Create a new Nym object.
     //
-    std::unique_ptr<OTPseudonym> pNym(new OTPseudonym);
+    std::unique_ptr<Nym> pNym(new Nym);
 
     if (DISPLAY_NAME.Exists()) pNym->SetNymName(DISPLAY_NAME);
     // Pause the master key, since this Nym is coming from outside
@@ -2797,7 +2795,7 @@ bool OT_API::Wallet_ImportCert(const String& DISPLAY_NAME,
     }
     if (bIfNymLoadKeys && pNym->SetIdentifierByPubkey()) {
         if (nullptr != pNymID) *pNymID = pNym->GetConstID();
-        OTPseudonym* pTempNym =
+        Nym* pTempNym =
             GetOrLoadPrivateNym(pNym->GetConstID(), false,
                                 __FUNCTION__); // This logs and ASSERTs already.
 
@@ -2843,7 +2841,7 @@ bool OT_API::Wallet_ExportCert(const Identifier& NYM_ID,
         "Need Wallet Master passphrase to export any Cert.");
     OTPasswordData thePWDataSave("Create new passphrase for exported Cert.");
     String strReasonToSave(thePWDataSave.GetDisplayString());
-    OTPseudonym* pNym =
+    Nym* pNym =
         GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__,
                             &thePWDataLoad); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
@@ -3036,7 +3034,7 @@ bool OT_API::Encrypt(const Identifier& theRecipientNymID,
                      const String& strPlaintext, String& strOutput) const
 {
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTPseudonym* pRecipientNym =
+    Nym* pRecipientNym =
         GetOrLoadNym(theRecipientNymID, false, __FUNCTION__,
                      &thePWData); // This logs and ASSERTs already.
     if (nullptr == pRecipientNym) return false;
@@ -3081,7 +3079,7 @@ bool OT_API::Encrypt(const Identifier& theRecipientNymID,
 bool OT_API::Decrypt(const Identifier& theRecipientNymID,
                      const String& strCiphertext, String& strOutput) const
 {
-    OTPseudonym* pRecipientNym =
+    Nym* pRecipientNym =
         GetOrLoadPrivateNym(theRecipientNymID, false,
                             __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pRecipientNym) return false;
@@ -3110,7 +3108,7 @@ bool OT_API::Decrypt(const Identifier& theRecipientNymID,
 bool OT_API::FlatSign(const Identifier& theSignerNymID, const String& strInput,
                       const String& strContractType, String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3149,7 +3147,7 @@ bool OT_API::FlatSign(const Identifier& theSignerNymID, const String& strInput,
 bool OT_API::SignContract(const Identifier& theSignerNymID,
                           const String& strContract, String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3203,7 +3201,7 @@ bool OT_API::SignContract(const Identifier& theSignerNymID,
 bool OT_API::AddSignature(const Identifier& theSignerNymID,
                           const String& strContract, String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         theSignerNymID, false, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3261,9 +3259,8 @@ bool OT_API::VerifySignature(const String& strContract,
                                                           // up.
 {
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    OTPseudonym* pNym =
-        GetOrLoadNym(theSignerNymID, false, __FUNCTION__,
-                     &thePWData); // This logs and ASSERTs already.
+    Nym* pNym = GetOrLoadNym(theSignerNymID, false, __FUNCTION__,
+                             &thePWData); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -3371,7 +3368,7 @@ bool OT_API::VerifyAccountReceipt(const Identifier& SERVER_ID,
                                   const Identifier& USER_ID,
                                   const Identifier& ACCOUNT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3380,8 +3377,7 @@ bool OT_API::VerifyAccountReceipt(const Identifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return false;
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTPseudonym* pServerNym =
-        const_cast<OTPseudonym*>(pServer->GetContractPublicNym());
+    Nym* pServerNym = const_cast<Nym*>(pServer->GetContractPublicNym());
     if (nullptr == pServerNym) {
         otErr << "OT_API::VerifyAccountReceipt: should never happen. "
                  "pServerNym is nullptr.\n";
@@ -3398,7 +3394,7 @@ bool OT_API::Create_SmartContract(
     time64_t VALID_TO, // Default (0 or nullptr) == no expiry / cancel anytime
     String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3432,7 +3428,7 @@ bool OT_API::SmartContract_AddParty(
                               // party. Need Agent NAME.
     String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3491,7 +3487,7 @@ bool OT_API::SmartContract_AddAccount(
     const String& ASSET_TYPE_ID, // Asset Type ID for the Account.
     String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3577,7 +3573,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     const String& PARTY_NAME, const String& ACCT_NAME, const String& AGENT_NAME,
     const String& ACCT_ID, String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3739,7 +3735,7 @@ bool OT_API::SmartContract_ConfirmParty(
                                 // party.
                                 // (For now, until I code entities)
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3822,7 +3818,7 @@ bool OT_API::SmartContract_ConfirmParty(
 
     pNym->AddOutpayments(*pMessage); // Now the Nym is responsible to delete it.
                                      // It's in his "outpayments".
-    OTPseudonym* pSignerNym = pNym;
+    Nym* pSignerNym = pNym;
     pNym->SaveSignedNymfile(*pSignerNym);
     return true;
 }
@@ -3838,7 +3834,7 @@ bool OT_API::SmartContract_AddBylaw(
     String& strOutput) const
 {
     const char* BYLAW_LANGUAGE = "chai"; // todo hardcoding.
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3897,7 +3893,7 @@ bool OT_API::SmartContract_AddHook(
                                // same hook.)
     String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -3950,7 +3946,7 @@ bool OT_API::SmartContract_AddCallback(
                                  // the callback. (Must exist.)
     String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4009,7 +4005,7 @@ bool OT_API::SmartContract_AddClause(
     const String& SOURCE_CODE, // The actual source code for the clause.
     String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4075,7 +4071,7 @@ bool OT_API::SmartContract_AddVariable(
     // bool.
     String& strOutput) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4178,9 +4174,8 @@ bool OT_API::SetNym_Name(const Identifier& NYM_ID,
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     // -----------------------------------------------------}
-    OTPseudonym* pNym = GetNym(NYM_ID, __FUNCTION__);
-    OTPseudonym* pSignerNym =
-        GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+    Nym* pNym = GetNym(NYM_ID, __FUNCTION__);
+    Nym* pSignerNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
     if ((nullptr == pNym) || (nullptr == pSignerNym)) return false;
     // By this point, pNym and pSignerNym are good pointers.  (No need to
     // cleanup.)
@@ -4220,7 +4215,7 @@ bool OT_API::SetAccount_Name(const Identifier& ACCT_ID,
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    OTPseudonym* pSignerNym = GetOrLoadPrivateNym(
+    Nym* pSignerNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pSignerNym) return false;
     Account* pAccount =
@@ -4249,8 +4244,8 @@ bool OT_API::SetAccount_Name(const Identifier& ACCT_ID,
 
 /// CALLER is responsible to delete this Nym!
 /// (Low level.)
-OTPseudonym* OT_API::LoadPublicNym(const Identifier& NYM_ID,
-                                   const char* szFuncName) const
+Nym* OT_API::LoadPublicNym(const Identifier& NYM_ID,
+                           const char* szFuncName) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4263,19 +4258,18 @@ OTPseudonym* OT_API::LoadPublicNym(const Identifier& NYM_ID,
     // That way if we have to reload it, we'll be able to preserve the name.
     String strName;
     const String strNymID(NYM_ID);
-    OTPseudonym* pNym =
-        GetNym(NYM_ID, szFuncName); // This already logs and ASSERTs
+    Nym* pNym = GetNym(NYM_ID, szFuncName); // This already logs and ASSERTs
     strName = (nullptr != pNym) ? pNym->GetNymName().Get() : strNymID.Get();
     // now strName contains either "" or the Nym's name from wallet.
-    return OTPseudonym::LoadPublicNym(NYM_ID, &strName, szFuncName);
+    return Nym::LoadPublicNym(NYM_ID, &strName, szFuncName);
 }
 
 /// CALLER is responsible to delete the Nym that's returned here!
 /// (Low level.)
-OTPseudonym* OT_API::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
-                                    const char* szFuncName,
-                                    const OTPasswordData* pPWData,
-                                    const OTPassword* pImportPassword) const
+Nym* OT_API::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
+                            const char* szFuncName,
+                            const OTPasswordData* pPWData,
+                            const OTPassword* pImportPassword) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4289,15 +4283,13 @@ OTPseudonym* OT_API::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     // we can
     // set the same name onto that Nym again when he's re-loaded.
     //
-    OTPseudonym* pNym =
-        GetNym(NYM_ID, szFuncName); // This already logs and ASSERTs
+    Nym* pNym = GetNym(NYM_ID, szFuncName); // This already logs and ASSERTs
     strName = (nullptr != pNym) ? pNym->GetNymName().Get() : strNymID.Get();
     // now strName contains either "" or the Nym's name from wallet.
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
-    return OTPseudonym::LoadPrivateNym(NYM_ID, bChecking, &strName, szFuncName,
-                                       pPWData,
-                                       pImportPassword); // CALLER must delete!
+    return Nym::LoadPrivateNym(NYM_ID, bChecking, &strName, szFuncName, pPWData,
+                               pImportPassword); // CALLER must delete!
 }
 
 /*
@@ -4370,7 +4362,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     bool bTransactionWasSuccess,       // false until positively asserted.
     bool bTransactionWasFailure) const // false until positively asserted.
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4420,7 +4412,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(
 bool OT_API::HarvestClosingNumbers(const Identifier&, const Identifier& NYM_ID,
                                    const String& THE_CRON_ITEM) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4464,7 +4456,7 @@ bool OT_API::HarvestClosingNumbers(const Identifier&, const Identifier& NYM_ID,
 bool OT_API::HarvestAllNumbers(const Identifier&, const Identifier& NYM_ID,
                                const String& THE_CRON_ITEM) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4493,8 +4485,8 @@ bool OT_API::HarvestAllNumbers(const Identifier&, const Identifier& NYM_ID,
 /// This function only tries to load as a public Nym.
 /// No need to cleanup, since it adds the Nym to the wallet.
 ///
-OTPseudonym* OT_API::GetOrLoadPublicNym(const Identifier& NYM_ID,
-                                        const char* szFuncName) const
+Nym* OT_API::GetOrLoadPublicNym(const Identifier& NYM_ID,
+                                const char* szFuncName) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4517,9 +4509,10 @@ OTPseudonym* OT_API::GetOrLoadPublicNym(const Identifier& NYM_ID,
 /// sees that it's only a public nym (no private key) then it
 /// reloads it as a private nym at that time.
 ///
-OTPseudonym* OT_API::GetOrLoadPrivateNym(
-    const Identifier& NYM_ID, bool bChecking, const char* szFuncName,
-    const OTPasswordData* pPWData, const OTPassword* pImportPassword) const
+Nym* OT_API::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
+                                 const char* szFuncName,
+                                 const OTPasswordData* pPWData,
+                                 const OTPassword* pImportPassword) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4547,9 +4540,9 @@ OTPseudonym* OT_API::GetOrLoadPrivateNym(
 /// No need to cleanup the Nym returned here, since it's added to the wallet and
 /// the wallet takes ownership.
 ///
-OTPseudonym* OT_API::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
-                                  const char* szFuncName,
-                                  const OTPasswordData* pPWData) const
+Nym* OT_API::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
+                          const char* szFuncName,
+                          const OTPasswordData* pPWData) const
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
@@ -4572,8 +4565,7 @@ OTPseudonym* OT_API::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
 /** Tries to get the account from the wallet.
  Otherwise loads it from local storage.
  */
-Account* OT_API::GetOrLoadAccount(const OTPseudonym& theNym,
-                                  const Identifier& ACCT_ID,
+Account* OT_API::GetOrLoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
                                   const Identifier& SERVER_ID,
                                   const char* szFuncName) const
 {
@@ -4594,7 +4586,7 @@ Account* OT_API::GetOrLoadAccount(const Identifier& NYM_ID,
                                   const char* szFuncName) const
 {
     const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
-    OTPseudonym* pNym = GetOrLoadPrivateNym(NYM_ID, false, szFunc);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, szFunc);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -4613,8 +4605,7 @@ Cheque* OT_API::WriteCheque(
     const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_USER_ID,
     const String& CHEQUE_MEMO, const Identifier* pRECIPIENT_USER_ID) const
 {
-    OTPseudonym* pNym =
-        GetOrLoadPrivateNym(SENDER_USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(SENDER_USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -4694,7 +4685,7 @@ Cheque* OT_API::WriteCheque(
 
     pNym->AddOutpayments(*pMessage); // Now the Nym is responsible to delete it.
                                      // It's in his "outpayments".
-    OTPseudonym* pSignerNym = pNym;
+    Nym* pSignerNym = pNym;
     pNym->SaveSignedNymfile(*pSignerNym);
     return pCheque;
 }
@@ -4753,8 +4744,8 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     int32_t PAYMENT_PLAN_MAX_PAYMENTS // expires, or after the maximum
     ) const                           // number of payments. These last
 {                                     // two arguments are optional.
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
-        RECIPIENT_USER_ID, false, __FUNCTION__); // This logs, ASSERTs, etc.
+    Nym* pNym = GetOrLoadPrivateNym(RECIPIENT_USER_ID, false,
+                                    __FUNCTION__); // This logs, ASSERTs, etc.
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -4882,7 +4873,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 
     pNym->AddOutpayments(*pMessage); // Now the Nym is responsible to delete it.
                                      // It's in his "outpayments".
-    OTPseudonym* pSignerNym = pNym;
+    Nym* pSignerNym = pNym;
     pNym->SaveSignedNymfile(*pSignerNym);
     return pPlan;
 }
@@ -4908,8 +4899,8 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& SERVER_ID,
                                 const Identifier& RECIPIENT_USER_ID,
                                 OTPaymentPlan& thePlan) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
-        SENDER_USER_ID, false, __FUNCTION__); // This logs, ASSERTs, etc.
+    Nym* pNym = GetOrLoadPrivateNym(SENDER_USER_ID, false,
+                                    __FUNCTION__); // This logs, ASSERTs, etc.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -4918,7 +4909,7 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& SERVER_ID,
     if (nullptr == pAccount) return false;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    std::unique_ptr<OTPseudonym> pMerchantNym(
+    std::unique_ptr<Nym> pMerchantNym(
         LoadPublicNym(RECIPIENT_USER_ID, __FUNCTION__));
 
     //  if (nullptr == pMerchantNym) // We don't have this Nym in our storage
@@ -4979,7 +4970,7 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& SERVER_ID,
 
     pNym->AddOutpayments(*pMessage); // Now the Nym is responsible to delete it.
                                      // It's in his "outpayments".
-    OTPseudonym* pSignerNym = pNym;
+    Nym* pSignerNym = pNym;
     pNym->SaveSignedNymfile(*pSignerNym);
     return true;
 }
@@ -5002,7 +4993,7 @@ Purse* OT_API::LoadPurse(const Identifier& SERVER_ID,
     const String strServerID(SERVER_ID);
     const String strUserID(USER_ID);
     const String strAssetTypeID(ASSET_ID);
-    OTPseudonym* pNym =
+    Nym* pNym =
         GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__,
                             &thePWData); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
@@ -5140,7 +5131,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
             ? "Enter the passphrase for this purse. "
               "(LoadPurseAndOwnerFromString)"
             : pstrDisplay2->Get()); // for password-protected purses.
-    OTPseudonym* pOwnerNym =
+    Nym* pOwnerNym =
         nullptr; // In the case where there is an owner, this will point to it.
     if (bDoesOwnerIDExist) {
         pOwnerNym =
@@ -5315,7 +5306,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                          "function. (Failure. Unable to access purse.)\n";
                 return nullptr;
             }
-            OTPseudonym* pOwnerNym =
+            Nym* pOwnerNym =
                 bCanBePublic
                     ? GetOrLoadNym(*pActualOwnerID, false, __FUNCTION__,
                                    &thePWData)
@@ -5697,7 +5688,7 @@ bool OT_API::Wallet_ImportPurse(
         (nullptr == pstrDisplay) ? OT_PW_DISPLAY : pstrDisplay->Get());
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         SIGNER_ID, false, __FUNCTION__,
         &thePWDataWallet); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
@@ -5833,7 +5824,7 @@ Token* OT_API::Token_ChangeOwner(
             ? "Enter the passphrase for this purse. (Token_ChangeOwner.)"
             : pstrDisplay->Get());
     OTPasswordData thePWDataWallet(strWalletReason);
-    OTPseudonym* pSignerNym = GetOrLoadPrivateNym(
+    Nym* pSignerNym = GetOrLoadPrivateNym(
         SIGNER_NYM_ID, false, __FUNCTION__,
         &thePWDataWallet); // These copiously log, and ASSERT.
     if (nullptr == pSignerNym) return nullptr;
@@ -5860,7 +5851,7 @@ Token* OT_API::Token_ChangeOwner(
     if (!bOldOwnerIsPurse) // The old owner is a NYM (public/private keys.)
     {
         oldOwnerNymID.SetString(OLD_OWNER);
-        OTPseudonym* pOldNym = GetOrLoadPrivateNym(
+        Nym* pOldNym = GetOrLoadPrivateNym(
             oldOwnerNymID, false, __FUNCTION__,
             &thePWDataWallet); // These copiously log, and ASSERT.
                                //      if (nullptr == pOldNym)    pOldNym =
@@ -5904,7 +5895,7 @@ Token* OT_API::Token_ChangeOwner(
     if (!bNewOwnerIsPurse) // The new owner is a NYM
     {
         newOwnerNymID.SetString(NEW_OWNER);
-        OTPseudonym* pNewNym =
+        Nym* pNewNym =
             GetOrLoadNym(newOwnerNymID, false, __FUNCTION__,
                          &thePWDataWallet); // These copiously log, and ASSERT.
         if (nullptr == pNewNym) return nullptr;
@@ -5982,7 +5973,7 @@ Mint* OT_API::LoadMint(const Identifier& SERVER_ID,
     const String strAssetTypeID(ASSET_ID);
     OTServerContract* pServerContract = GetServer(SERVER_ID, __FUNCTION__);
     if (nullptr == pServerContract) return nullptr;
-    const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
+    const Nym* pServerNym = pServerContract->GetContractPublicNym();
     if (nullptr == pServerNym) {
         otErr << __FUNCTION__
               << ": Failed trying to get contract public Nym for ServerID: "
@@ -6096,7 +6087,7 @@ Account* OT_API::LoadAssetAccount(const Identifier& SERVER_ID,
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return nullptr;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6110,7 +6101,7 @@ Account* OT_API::LoadAssetAccount(const Identifier& SERVER_ID,
 OTLedger* OT_API::LoadNymbox(const Identifier& SERVER_ID,
                              const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6145,7 +6136,7 @@ OTLedger* OT_API::LoadNymbox(const Identifier& SERVER_ID,
 OTLedger* OT_API::LoadNymboxNoVerify(const Identifier& SERVER_ID,
                                      const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6176,7 +6167,7 @@ OTLedger* OT_API::LoadInbox(const Identifier& SERVER_ID,
                             const Identifier& USER_ID,
                             const Identifier& ACCOUNT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6214,7 +6205,7 @@ OTLedger* OT_API::LoadInboxNoVerify(const Identifier& SERVER_ID,
                                     const Identifier& USER_ID,
                                     const Identifier& ACCOUNT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6246,7 +6237,7 @@ OTLedger* OT_API::LoadOutbox(const Identifier& SERVER_ID,
                              const Identifier& USER_ID,
                              const Identifier& ACCOUNT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6288,7 +6279,7 @@ OTLedger* OT_API::LoadOutboxNoVerify(const Identifier& SERVER_ID,
                                      const Identifier& USER_ID,
                                      const Identifier& ACCOUNT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6317,7 +6308,7 @@ OTLedger* OT_API::LoadOutboxNoVerify(const Identifier& SERVER_ID,
 OTLedger* OT_API::LoadPaymentInbox(const Identifier& SERVER_ID,
                                    const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6343,7 +6334,7 @@ OTLedger* OT_API::LoadPaymentInbox(const Identifier& SERVER_ID,
 OTLedger* OT_API::LoadPaymentInboxNoVerify(const Identifier& SERVER_ID,
                                            const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6371,7 +6362,7 @@ OTLedger* OT_API::LoadRecordBox(const Identifier& SERVER_ID,
                                 const Identifier& USER_ID,
                                 const Identifier& ACCOUNT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6405,7 +6396,7 @@ OTLedger* OT_API::LoadRecordBoxNoVerify(const Identifier& SERVER_ID,
                                         const Identifier& USER_ID,
                                         const Identifier& ACCOUNT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6432,7 +6423,7 @@ OTLedger* OT_API::LoadRecordBoxNoVerify(const Identifier& SERVER_ID,
 OTLedger* OT_API::LoadExpiredBox(const Identifier& SERVER_ID,
                                  const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -6465,7 +6456,7 @@ OTLedger* OT_API::LoadExpiredBox(const Identifier& SERVER_ID,
 OTLedger* OT_API::LoadExpiredBoxNoVerify(const Identifier& SERVER_ID,
                                          const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6492,7 +6483,7 @@ bool OT_API::ClearExpired(const Identifier& SERVER_ID,
                           bool bClearAll) const // if true, nIndex is
                                                 // ignored.
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6765,7 +6756,7 @@ bool OT_API::RecordPayment(
                     // outpayments box) and moves to record box.
     bool bSaveCopy) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -7933,7 +7924,7 @@ bool OT_API::ClearRecord(const Identifier& SERVER_ID, const Identifier& USER_ID,
                          int32_t nIndex,
                          bool bClearAll) const // if true, nIndex is ignored.
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8005,8 +7996,8 @@ bool OT_API::ClearRecord(const Identifier& SERVER_ID, const Identifier& USER_ID,
 // message, with both objects being loaded and passed as arguments here, ready
 // to go.
 //
-bool OT_API::ResyncNymWithServer(OTPseudonym& theNym, const OTLedger& theNymbox,
-                                 const OTPseudonym& theMessageNym) const
+bool OT_API::ResyncNymWithServer(Nym& theNym, const OTLedger& theNymbox,
+                                 const Nym& theMessageNym) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (OTLedger::nymbox != theNymbox.GetType()) {
@@ -8179,8 +8170,7 @@ void OT_API::FlushSentMessages(bool bHarvestingForRetry,
 {
     OT_ASSERT_MSG(m_bInitialized && (m_pClient != nullptr),
                   "Not initialized; call OT_API::Init first.");
-    OTPseudonym* pNym =
-        GetNym(USER_ID, __FUNCTION__); // This logs and ASSERTs already.
+    Nym* pNym = GetNym(USER_ID, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pNym) return;
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
@@ -8256,7 +8246,7 @@ bool OT_API::HaveAlreadySeenReply(const Identifier& SERVER_ID,
                                   const Identifier& USER_ID,
                                   const int64_t& lRequestNumber) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8446,7 +8436,7 @@ Basket* OT_API::GenerateBasketCreation(
     int64_t MINIMUM_TRANSFER) const // Must be above zero. If <= 0, defaults to
                                     // 10.
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8472,7 +8462,7 @@ bool OT_API::AddBasketCreationItem(const Identifier& USER_ID, // for
                                    const Identifier& ASSET_TYPE_ID,
                                    int64_t MINIMUM_TRANSFER) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8505,7 +8495,7 @@ int32_t OT_API::issueBasket(const Identifier& SERVER_ID,
     // a single currency,
     // when in fact the issuence is delegated and distributed across
     // multiple issuers.
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8577,7 +8567,7 @@ Basket* OT_API::GenerateBasketExchange(const Identifier& SERVER_ID,
                                        const Identifier& BASKET_ASSET_ACCT_ID,
                                        int32_t TRANSFER_MULTIPLE) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -8666,7 +8656,7 @@ bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
                                    const Identifier& ASSET_TYPE_ID,
                                    const Identifier& ASSET_ACCT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -8863,7 +8853,7 @@ int32_t OT_API::exchangeBasket(
     // Use this to exchange assets in and out of a basket
     // currency.
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -9091,7 +9081,7 @@ int32_t OT_API::exchangeBasket(
 int32_t OT_API::getTransactionNumber(const Identifier& SERVER_ID,
                                      const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -9142,7 +9132,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return (-1);
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -9211,11 +9201,11 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
     String strNote("Gimme cash!"); // TODO: Note is unnecessary for cash
                                    // withdrawal. Research uses / risks.
     pItem->SetNote(strNote);
-    const OTPseudonym* pServerNym = pServer->GetContractPublicNym();
+    const Nym* pServerNym = pServer->GetContractPublicNym();
 
     const Identifier SERVER_USER_ID(*pServerNym);
     if ((nullptr != pServerNym) && pMint->LoadMint() &&
-        pMint->VerifyMint(const_cast<OTPseudonym&>(*pServerNym))) {
+        pMint->VerifyMint(const_cast<Nym&>(*pServerNym))) {
         int64_t lRequestNumber = 0;
         Purse* pPurse = new Purse(SERVER_ID, CONTRACT_ID, SERVER_USER_ID);
         Purse* pPurseMyCopy = new Purse(SERVER_ID, CONTRACT_ID, USER_ID);
@@ -9392,7 +9382,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
         "Depositing a cash purse. Enter passphrase for the purse.");
     OTPasswordData thePWDataWallet(
         "Depositing a cash purse. Enter master passphrase for wallet.");
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__,
         &thePWDataWallet); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
@@ -9416,7 +9406,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
 
     String strServerID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
 
-    const OTPseudonym* pServerNym = pServer->GetContractPublicNym();
+    const Nym* pServerNym = pServer->GetContractPublicNym();
     const Identifier SERVER_USER_ID(*pServerNym);
     Purse thePurse(SERVER_ID, CONTRACT_ID, SERVER_USER_ID);
 
@@ -9670,7 +9660,7 @@ int32_t OT_API::payDividend(
 // SHARE (multiplied by total number of
 // shares issued.)
 {
-    OTPseudonym* pNym =
+    Nym* pNym =
         GetOrLoadPrivateNym(ISSUER_USER_ID, false,
                             __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
@@ -9991,7 +9981,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
     // Request the server to withdraw from an asset account
     // and issue a voucher (cashier's cheque)
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -10248,7 +10238,7 @@ bool OT_API::DiscardCheque(const Identifier& SERVER_ID,
                            const Identifier& USER_ID, const Identifier& ACCT_ID,
                            const String& THE_CHEQUE) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -10324,7 +10314,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
                               const Identifier& ACCT_ID,
                               const String& THE_CHEQUE) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -10618,7 +10608,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& SERVER_ID,
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer.  (No need to cleanup.)
@@ -10801,7 +10791,7 @@ int32_t OT_API::triggerClause(const Identifier& SERVER_ID,
                               const String& strClauseName,
                               const String* pStrParam) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -10864,7 +10854,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
                                       const Identifier& USER_ID,
                                       const String& THE_SMART_CONTRACT) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -11295,7 +11285,7 @@ int32_t OT_API::cancelCronItem(const Identifier& SERVER_ID,
 // can lookup the
 // offer in Cron.
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -11458,7 +11448,7 @@ int32_t OT_API::issueMarketOffer(
     // as the rules
     // for processing and expiring it.)
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -11790,7 +11780,7 @@ int32_t OT_API::issueMarketOffer(
 int32_t OT_API::getMarketList(const Identifier& SERVER_ID,
                               const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -11844,7 +11834,7 @@ int32_t OT_API::getMarketOffers(const Identifier& SERVER_ID,
                                 const Identifier& MARKET_ID,
                                 const int64_t& lDepth) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -11906,7 +11896,7 @@ int32_t OT_API::getMarketRecentTrades(const Identifier& SERVER_ID,
                                       const Identifier& USER_ID,
                                       const Identifier& MARKET_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -11960,7 +11950,7 @@ int32_t OT_API::getMarketRecentTrades(const Identifier& SERVER_ID,
 int32_t OT_API::getNym_MarketOffers(const Identifier& SERVER_ID,
                                     const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -12015,7 +12005,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
     // Request the server to transfer from one account to
     // another.
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12215,7 +12205,7 @@ int32_t OT_API::getNymbox(const Identifier& SERVER_ID,
     // Grab a copy of my nymbox (contains messages and new
     // transaction numbers)
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12264,7 +12254,7 @@ int32_t OT_API::getNymbox(const Identifier& SERVER_ID,
 int32_t OT_API::processNymbox(const Identifier& SERVER_ID,
                               const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12280,7 +12270,7 @@ int32_t OT_API::processNymbox(const Identifier& SERVER_ID,
     bool bIsEmpty = true;
 
     {
-        OTPseudonym& theNym = *pNym;
+        Nym& theNym = *pNym;
         OTServerContract& theServer = *pServer;
 
         // Load up the appropriate Nymbox...
@@ -12366,7 +12356,7 @@ int32_t OT_API::processInbox(const Identifier& SERVER_ID,
                              const Identifier& ACCT_ID,
                              const String& ACCT_LEDGER) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12453,7 +12443,7 @@ int32_t OT_API::issueAssetType(const Identifier& SERVER_ID,
 
     OTWallet* pWallet = GetWallet(__FUNCTION__);
     if (nullptr == pWallet) return (-1);
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12567,7 +12557,7 @@ int32_t OT_API::getContract(const Identifier& SERVER_ID,
     // Grab the server's copy of any asset contract. Input is
     // the asset type ID.
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12615,7 +12605,7 @@ int32_t OT_API::getMint(const Identifier& SERVER_ID, const Identifier& USER_ID,
     // Grab the server's copy of any mint based on Asset ID. (For
     // blinded tokens.)
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12752,7 +12742,7 @@ int32_t OT_API::queryAssetTypes(const Identifier& SERVER_ID,
         }
 
      */
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12808,7 +12798,7 @@ int32_t OT_API::createAssetAccount(const Identifier& SERVER_ID,
     // number of accounts
     // for any asset type that they choose.
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12858,7 +12848,7 @@ int32_t OT_API::deleteAssetAccount(const Identifier& SERVER_ID,
                                    const Identifier& USER_ID,
                                    const Identifier& ACCOUNT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12929,7 +12919,7 @@ int32_t OT_API::getBoxReceipt(
     int32_t nBoxType,             // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12993,7 +12983,7 @@ int32_t OT_API::getAccountFiles(const Identifier& SERVER_ID,
                                 const Identifier& USER_ID,
                                 const Identifier& ACCT_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13044,7 +13034,7 @@ int32_t OT_API::getAccountFiles(const Identifier& SERVER_ID,
 int32_t OT_API::getRequest(const Identifier& SERVER_ID,
                            const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13073,7 +13063,7 @@ int32_t OT_API::usageCredits(const Identifier& SERVER_ID,
                              const Identifier& USER_ID_CHECK,
                              int64_t lAdjustment) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13129,7 +13119,7 @@ int32_t OT_API::checkUser(const Identifier& SERVER_ID,
     // portions
     // of the tokens, etc, to the Nym of the recipient.)
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13182,7 +13172,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
     // Send a message to another user, encrypted to his
     // public key and dropped into his nymbox.
 
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13253,7 +13243,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
 
         pNym->AddOutmail(*pMessage); // Now the Nym is responsible to delete it.
                                      // It's in his "outmail".
-        OTPseudonym* pSignerNym = pNym;
+        Nym* pSignerNym = pNym;
         pNym->SaveSignedNymfile(*pSignerNym); // commented out temp for testing.
 
         nReturnValue = SendMessage(pServer, pNym, theMessage, lRequestNumber);
@@ -13292,7 +13282,7 @@ int32_t OT_API::sendUserInstrument(
 // can retrieve those tokens if
 // he needs to.
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13424,7 +13414,7 @@ int32_t OT_API::sendUserInstrument(
             pMessage->SaveContract();
 
             pNym->AddOutpayments(*(pMessage.release()));
-            OTPseudonym* pSignerNym = pNym;
+            Nym* pSignerNym = pNym;
             pNym->SaveSignedNymfile(*pSignerNym); // <==== SAVED.
             // (Send it)
             nReturnValue =
@@ -13462,7 +13452,7 @@ int32_t OT_API::sendUserInstrument(
         pMessage->SaveContract();
 
         pNym->AddOutpayments(*(pMessage.release()));
-        OTPseudonym* pSignerNym = pNym;
+        Nym* pSignerNym = pNym;
         pNym->SaveSignedNymfile(*pSignerNym); // <==== SAVED.
         nReturnValue = 0; // 0 means, nothing was sent, but no error occurred.
     }
@@ -13498,7 +13488,7 @@ int32_t OT_API::sendUserInstrument(
 int32_t OT_API::registerNym(const Identifier& SERVER_ID,
                             const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13527,7 +13517,7 @@ int32_t OT_API::registerNym(const Identifier& SERVER_ID,
 int32_t OT_API::deleteUserAccount(const Identifier& SERVER_ID,
                                   const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13555,7 +13545,7 @@ int32_t OT_API::deleteUserAccount(const Identifier& SERVER_ID,
 int32_t OT_API::checkServerID(const Identifier& SERVER_ID,
                               const Identifier& USER_ID) const
 {
-    OTPseudonym* pNym = GetOrLoadPrivateNym(
+    Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
@@ -13591,7 +13581,7 @@ void OT_API::AddAssetContract(const AssetContract& theContract) const
 }
 
 // Calls ProcessMessageOut method.
-void OT_API::SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
+void OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
                          Message& message) const
 {
     m_pClient->ProcessMessageOut(pServerContract, pNym, message);
@@ -13599,9 +13589,8 @@ void OT_API::SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
 
 // Calls SendMessage() and does some request number magic
 // Returns the requestNumber parameter cast down to int32_t.
-int32_t OT_API::SendMessage(OTServerContract* pServerContract,
-                            OTPseudonym* pNym, Message& message,
-                            int64_t requestNumber) const
+int32_t OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
+                            Message& message, int64_t requestNumber) const
 {
     SendMessage(pServerContract, pNym, message);
 

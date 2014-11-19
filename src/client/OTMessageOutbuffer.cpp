@@ -392,7 +392,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 // See comments below for more details.
 //
 void OTMessageOutbuffer::Clear(const String* pstrServerID,
-                               const String* pstrNymID, OTPseudonym* pNym,
+                               const String* pstrNymID, Nym* pNym,
                                const bool* pbHarvestingForRetry)
 {
     //  const char * szFuncName        = "OTMessageOutbuffer::Clear";

@@ -578,7 +578,7 @@ bool OTRecordList::PerformAutoAccept()
             const std::string& str_nym_id(it_nym);
             const Identifier theNymID(str_nym_id);
             const String strNymID(theNymID);
-            OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
+            Nym* pNym = pWallet->GetNymByID(theNymID);
             if (nullptr == pNym) continue;
             // LOOP SERVERS
             //
@@ -1095,7 +1095,7 @@ bool OTRecordList::Populate()
         const std::string& str_nym_id(it_nym);
         const Identifier theNymID(str_nym_id);
         const String strNymID(theNymID);
-        OTPseudonym* pNym = pWallet->GetNymByID(theNymID);
+        Nym* pNym = pWallet->GetNymByID(theNymID);
         if (nullptr == pNym) continue;
         // For each Nym, loop through his OUTPAYMENTS box.
         //

@@ -150,7 +150,7 @@ class Identifier;
 class Message;
 class OTPassword;
 class OTPasswordData;
-class OTPseudonym;
+class Nym;
 class Purse;
 class OTServerContract;
 class String;
@@ -158,7 +158,7 @@ class OTSymmetricKey;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, AssetContract*> mapOfContracts;
-typedef std::map<std::string, OTPseudonym*> mapOfNyms;
+typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, OTServerContract*> mapOfServers;
 typedef std::map<std::string, std::shared_ptr<OTSymmetricKey>>
     mapOfSymmetricKeys;
@@ -173,26 +173,24 @@ public:
     EXPORT bool IsNymOnCachedKey(const Identifier& needle) const; // needle
                                                                   // and
                                                                   // haystack.
-    EXPORT bool ConvertNymToCachedKey(OTPseudonym& theNym);
+    EXPORT bool ConvertNymToCachedKey(Nym& theNym);
 
-    EXPORT OTPseudonym* GetOrLoadNym(const Identifier& NYM_ID,
-                                     bool bChecking = false,
-                                     const char* szFuncName = nullptr,
-                                     const OTPasswordData* pPWData = nullptr);
-    EXPORT OTPseudonym* GetOrLoadPublicNym(const Identifier& NYM_ID,
-                                           const char* szFuncName = nullptr);
-    EXPORT OTPseudonym* GetOrLoadPrivateNym(
+    EXPORT Nym* GetOrLoadNym(const Identifier& NYM_ID, bool bChecking = false,
+                             const char* szFuncName = nullptr,
+                             const OTPasswordData* pPWData = nullptr);
+    EXPORT Nym* GetOrLoadPublicNym(const Identifier& NYM_ID,
+                                   const char* szFuncName = nullptr);
+    EXPORT Nym* GetOrLoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
-    EXPORT Account* LoadAccount(const OTPseudonym& theNym,
-                                const Identifier& ACCT_ID,
+    EXPORT Account* LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
                                 const Identifier& SERVER_ID,
                                 const char* szFuncName = nullptr);
 
-    EXPORT Account* GetOrLoadAccount(const OTPseudonym& theNym,
+    EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
                                      const Identifier& SERVER_ID,
                                      const char* szFuncName = nullptr);
@@ -212,23 +210,24 @@ public:
 
     EXPORT void DisplayStatistics(String& strOutput);
 
-    EXPORT OTPseudonym* GetNymByID(const Identifier& NYM_ID);
-    EXPORT OTPseudonym* GetNymByIDPartialMatch(
-        std::string PARTIAL_ID); // wallet name for nym also accepted.
+    EXPORT Nym* GetNymByID(const Identifier& NYM_ID);
+    EXPORT Nym* GetNymByIDPartialMatch(std::string PARTIAL_ID); // wallet name
+                                                                // for nym also
+                                                                // accepted.
 
     EXPORT void AddServerContract(const OTServerContract& theContract);
     EXPORT OTServerContract* GetServerContract(const Identifier& SERVER_ID);
     EXPORT OTServerContract* GetServerContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for server also accepted.
 
-    EXPORT void AddNym(const OTPseudonym& theNym);
+    EXPORT void AddNym(const Nym& theNym);
     EXPORT void AddAccount(const Account& theAcct);
 
     EXPORT void AddAssetContract(const AssetContract& theContract);
     EXPORT AssetContract* GetAssetContract(const Identifier& theContractID);
     EXPORT AssetContract* GetAssetContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for asset also accepted.
-    bool VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
+    bool VerifyAssetAccount(const Nym& theNym, Account& theAcct,
                             const Identifier& SERVER_ID,
                             const String& strAcctID,
                             const char* szFuncName = nullptr);

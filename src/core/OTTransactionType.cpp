@@ -394,7 +394,7 @@ void OTTransactionType::SetReferenceString(const String& theStr)
 // wish to verify its signature on this account, even though
 // the server may not be the actual owner.
 // So if you wish to VerifyOwner(), then call it.
-bool OTTransactionType::VerifyAccount(const OTPseudonym& theNym)
+bool OTTransactionType::VerifyAccount(const Nym& theNym)
 {
     // Make sure that the supposed AcctID matches the one read from the file.
     //

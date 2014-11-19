@@ -160,13 +160,12 @@ protected:
                      const String& strAssetTypeID);
 
 public:
-    virtual bool AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
+    virtual bool AddDenomination(Nym& theNotary, int64_t lDenomination,
                                  int32_t nPrimeLength = 1024);
 
-    EXPORT virtual bool SignToken(OTPseudonym& theNotary, Token& theToken,
+    EXPORT virtual bool SignToken(Nym& theNotary, Token& theToken,
                                   String& theOutput, int32_t nTokenIndex);
-    EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
-                                    String& theCleartextToken,
+    EXPORT virtual bool VerifyToken(Nym& theNotary, String& theCleartextToken,
                                     int64_t lDenomination);
 
     EXPORT virtual ~MintLucre();

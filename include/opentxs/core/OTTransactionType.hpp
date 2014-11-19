@@ -889,7 +889,7 @@ public:
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of OTContract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(const OTPseudonym& theNym);
+    virtual bool VerifyAccount(const Nym& theNym);
 
     // The parameters to the constructor are supposed to be the ACTUAL account
     // ID and server ID.

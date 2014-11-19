@@ -141,7 +141,7 @@ namespace opentxs
 class Account;
 class AccountVisitor;
 class Identifier;
-class OTPseudonym;
+class Nym;
 class String;
 
 class AssetContract : public Contract

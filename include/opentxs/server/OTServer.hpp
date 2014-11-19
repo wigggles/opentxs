@@ -171,7 +171,7 @@ public:
 
     bool GetConnectInfo(String& hostname, int32_t& port) const;
 
-    const OTPseudonym& GetServerNym() const;
+    const Nym& GetServerNym() const;
 
     EXPORT void ActivateCron();
     void ProcessCron();
@@ -215,7 +215,7 @@ private:
     // connect info.
     std::unique_ptr<OTServerContract> m_pServerContract;
 
-    OTPseudonym m_nymServer;
+    Nym m_nymServer;
 
     OTCron m_Cron; // This is where re-occurring and expiring tasks go.
 };

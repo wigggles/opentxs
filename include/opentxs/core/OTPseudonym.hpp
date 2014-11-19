@@ -164,11 +164,11 @@ typedef std::map<std::string, Identifier> mapOfIdentifiers;
 typedef std::map<std::string, OTCredential*> mapOfCredentials;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 
-class OTPseudonym
+class Nym
 {
 private:
-    OTPseudonym(const OTPseudonym&);
-    OTPseudonym& operator=(const OTPseudonym&);
+    Nym(const Nym&);
+    Nym& operator=(const Nym&);
 
     bool m_bMarkForDeletion; // Default FALSE. When set to true, saves a
                              // "DELETED" flag with this Nym,
@@ -496,12 +496,11 @@ public:
 
     // EXPORT    bool ConvertToCachedKey();  // Replaced by
     // Savex509CertAndPrivateKey().
-    EXPORT OTPseudonym();
-    EXPORT OTPseudonym(const Identifier& nymID);
-    EXPORT OTPseudonym(const String& strNymID);
-    EXPORT OTPseudonym(const String& name, const String& filename,
-                       const String& nymID);
-    EXPORT virtual ~OTPseudonym();
+    EXPORT Nym();
+    EXPORT Nym(const Identifier& nymID);
+    EXPORT Nym(const String& strNymID);
+    EXPORT Nym(const String& name, const String& filename, const String& nymID);
+    EXPORT virtual ~Nym();
     EXPORT void Initialize();
     EXPORT void ReleaseTransactionNumbers();
     EXPORT bool VerifyPseudonym() const;
@@ -542,11 +541,11 @@ public:
     // CALLER is responsible to delete the Nym ptr being returned
     // in these functions!
     //
-    EXPORT static OTPseudonym* LoadPublicNym(const Identifier& NYM_ID,
-                                             const String* pstrName = nullptr,
-                                             const char* szFuncName = nullptr);
+    EXPORT static Nym* LoadPublicNym(const Identifier& NYM_ID,
+                                     const String* pstrName = nullptr,
+                                     const char* szFuncName = nullptr);
 
-    EXPORT static OTPseudonym* LoadPrivateNym(
+    EXPORT static Nym* LoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const String* pstrName = nullptr, const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
@@ -587,8 +586,8 @@ public:
     // changed.
     // Usually that means the server nym.  Most of the time, m_nymServer will be
     // used as signer.
-    EXPORT bool LoadSignedNymfile(OTPseudonym& SIGNER_NYM);
-    EXPORT bool SaveSignedNymfile(OTPseudonym& SIGNER_NYM);
+    EXPORT bool LoadSignedNymfile(Nym& SIGNER_NYM);
+    EXPORT bool SaveSignedNymfile(Nym& SIGNER_NYM);
     EXPORT bool LoadFromString(const String& strNym,
                                String::Map* pMapCredentials =
                                    nullptr, // pMapCredentials can be passed, if
@@ -632,7 +631,7 @@ public:
         return (theIdentifier == m_nymID);
     }
 
-    EXPORT bool CompareID(const OTPseudonym& RHS) const;
+    EXPORT bool CompareID(const Nym& RHS) const;
     EXPORT const String& GetNymIDSource() const
     {
         return m_strSourceForNymID;
@@ -665,23 +664,23 @@ public:
     EXPORT void GetIdentifier(String& theIdentifier) const; // STRING VERSION
     EXPORT void SetIdentifier(const String& theIdentifier);
     EXPORT void HarvestTransactionNumbers(
-        const Identifier& theServerID, OTPseudonym& SIGNER_NYM,
-        OTPseudonym& theOtherNym, // OtherNym is used as a container for the
-                                  // server to send
-        bool bSave = true);       // us new transaction numbers.
+        const Identifier& theServerID, Nym& SIGNER_NYM,
+        Nym& theOtherNym,   // OtherNym is used as a container for the
+                            // server to send
+        bool bSave = true); // us new transaction numbers.
 
     EXPORT void HarvestIssuedNumbers(
-        const Identifier& theServerID, OTPseudonym& SIGNER_NYM,
-        OTPseudonym& theOtherNym, // OtherNym is used as container for us to
-                                  // send a list
+        const Identifier& theServerID, Nym& SIGNER_NYM,
+        Nym& theOtherNym,    // OtherNym is used as container for us to
+                             // send a list
         bool bSave = false); // of issued numbers to the server (for balance
                              // agreement)
 
     EXPORT bool ClawbackTransactionNumber(
         const Identifier& theServerID,
         const int64_t& lTransClawback, // the number being clawed back.
-        bool bSave = false, OTPseudonym* pSIGNER_NYM = nullptr);
-    EXPORT void IncrementRequestNum(OTPseudonym& SIGNER_NYM,
+        bool bSave = false, Nym* pSIGNER_NYM = nullptr);
+    EXPORT void IncrementRequestNum(Nym& SIGNER_NYM,
                                     const String& strServerID); // Increment
                                                                 // the counter
                                                                 // or create a
@@ -690,8 +689,7 @@ public:
                                                                 // serverID
                                                                 // starting at
                                                                 // 1
-    EXPORT void OnUpdateRequestNum(OTPseudonym& SIGNER_NYM,
-                                   const String& strServerID,
+    EXPORT void OnUpdateRequestNum(Nym& SIGNER_NYM, const String& strServerID,
                                    int64_t lNewRequestNumber); // if the server
                                                                // sends us a
     // getRequestResponse
@@ -705,12 +703,13 @@ public:
                                                            // last/current
     // highest transaction
     // number for the serverID.
-    EXPORT int64_t UpdateHighestNum(
-        OTPseudonym& SIGNER_NYM, const String& strServerID,
-        std::set<int64_t>& setNumbers, std::set<int64_t>& setOutputGood,
-        std::set<int64_t>& setOutputBad,
-        bool bSave = false); // Returns 0 if success, otherwise #
-                             // of the violator.
+    EXPORT int64_t UpdateHighestNum(Nym& SIGNER_NYM, const String& strServerID,
+                                    std::set<int64_t>& setNumbers,
+                                    std::set<int64_t>& setOutputGood,
+                                    std::set<int64_t>& setOutputBad,
+                                    bool bSave = false); // Returns 0 if
+                                                         // success, otherwise #
+                                                         // of the violator.
 
     inline mapOfTransNums& GetMapTransNum()
     {
@@ -771,13 +770,13 @@ public:
     // that those pieces were already done
     // just prior to this call.
     EXPORT bool ResyncWithServer(const OTLedger& theNymbox,
-                                 const OTPseudonym& theMessageNym);
+                                 const Nym& theMessageNym);
     // HIGH LEVEL:
-    EXPORT bool AddTransactionNum(OTPseudonym& SIGNER_NYM,
-                                  const String& strServerID, int64_t lTransNum,
+    EXPORT bool AddTransactionNum(Nym& SIGNER_NYM, const String& strServerID,
+                                  int64_t lTransNum,
                                   bool bSave); // We have received a new trans
                                                // num from server. Store it.
-    EXPORT bool GetNextTransactionNum(OTPseudonym& SIGNER_NYM,
+    EXPORT bool GetNextTransactionNum(Nym& SIGNER_NYM,
                                       const String& strServerID,
                                       int64_t& lTransNum,
                                       bool bSave = true); // Get the next
@@ -786,13 +785,12 @@ public:
                                                           // for the serverID
                                                           // passed. Saves by
                                                           // default.
-    EXPORT bool RemoveIssuedNum(OTPseudonym& SIGNER_NYM,
-                                const String& strServerID,
+    EXPORT bool RemoveIssuedNum(Nym& SIGNER_NYM, const String& strServerID,
                                 const int64_t& lTransNum,
                                 bool bSave); // SAVE OR NOT (your choice)
-    bool RemoveTentativeNum(OTPseudonym& SIGNER_NYM, const String& strServerID,
+    bool RemoveTentativeNum(Nym& SIGNER_NYM, const String& strServerID,
                             const int64_t& lTransNum, bool bSave);
-    EXPORT bool RemoveAcknowledgedNum(OTPseudonym& SIGNER_NYM,
+    EXPORT bool RemoveAcknowledgedNum(Nym& SIGNER_NYM,
                                       const String& strServerID,
                                       const int64_t& lRequestNum,
                                       bool bSave); // Used on both client and
@@ -842,8 +840,8 @@ public:
     // need to verify it against the last signed receipt to make sure you aren't
     // getting screwed.
     //
-    EXPORT bool VerifyIssuedNumbersOnNym(OTPseudonym& THE_NYM);
-    EXPORT bool VerifyTransactionStatementNumbersOnNym(OTPseudonym& THE_NYM);
+    EXPORT bool VerifyIssuedNumbersOnNym(Nym& THE_NYM);
+    EXPORT bool VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM);
     // These functions are for transaction numbers that were assigned to me,
     // until I accept the receipts or put stop payment onto them.
     //
@@ -855,8 +853,7 @@ public:
     EXPORT bool AddIssuedNum(const String& strServerID,
                              const int64_t& lTransNum); // doesn't save
 
-    EXPORT bool RemoveIssuedNum(OTPseudonym& SIGNER_NYM,
-                                const String& strServerID,
+    EXPORT bool RemoveIssuedNum(Nym& SIGNER_NYM, const String& strServerID,
                                 const int64_t& lTransNum); // saves
     EXPORT bool RemoveIssuedNum(const String& strServerID,
                                 const int64_t& lTransNum); // doesn't save
@@ -871,8 +868,7 @@ public:
     EXPORT bool AddTransactionNum(const String& strServerID,
                                   int64_t lTransNum); // doesn't save
 
-    EXPORT bool RemoveTransactionNum(OTPseudonym& SIGNER_NYM,
-                                     const String& strServerID,
+    EXPORT bool RemoveTransactionNum(Nym& SIGNER_NYM, const String& strServerID,
                                      const int64_t& lTransNum); // server
                                                                 // removes spent
                                                                 // number from
@@ -912,8 +908,7 @@ public:
     EXPORT bool AddTentativeNum(const String& strServerID,
                                 const int64_t& lTransNum); // doesn't save
 
-    EXPORT bool RemoveTentativeNum(OTPseudonym& SIGNER_NYM,
-                                   const String& strServerID,
+    EXPORT bool RemoveTentativeNum(Nym& SIGNER_NYM, const String& strServerID,
                                    const int64_t& lTransNum);
     EXPORT bool RemoveTentativeNum(const String& strServerID,
                                    const int64_t& lTransNum); // doesn't save.
@@ -954,7 +949,7 @@ public:
     EXPORT bool AddAcknowledgedNum(const String& strServerID,
                                    const int64_t& lRequestNum); // doesn't save
 
-    EXPORT bool RemoveAcknowledgedNum(OTPseudonym& SIGNER_NYM,
+    EXPORT bool RemoveAcknowledgedNum(Nym& SIGNER_NYM,
                                       const String& strServerID,
                                       const int64_t& lRequestNum);
     EXPORT bool RemoveAcknowledgedNum(const String& strServerID,
@@ -970,8 +965,7 @@ public:
                                  const String& strServerID,
                                  const int64_t& lTransNum) const;
 
-    EXPORT bool RemoveGenericNum(mapOfTransNums& THE_MAP,
-                                 OTPseudonym& SIGNER_NYM,
+    EXPORT bool RemoveGenericNum(mapOfTransNums& THE_MAP, Nym& SIGNER_NYM,
                                  const String& strServerID,
                                  const int64_t& lTransNum); // saves
     EXPORT bool RemoveGenericNum(mapOfTransNums& THE_MAP,

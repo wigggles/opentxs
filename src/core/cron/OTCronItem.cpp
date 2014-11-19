@@ -697,7 +697,7 @@ void OTCronItem::AddClosingTransactionNo(const int64_t& lClosingTransactionNo)
 
 /// See if theNym has rights to remove this item from Cron.
 ///
-bool OTCronItem::CanRemoveItemFromCron(OTPseudonym& theNym)
+bool OTCronItem::CanRemoveItemFromCron(Nym& theNym)
 {
     // You don't just go willy-nilly and remove a cron item from a market unless
     // you check first
@@ -794,7 +794,7 @@ bool OTCronItem::ProcessCron()
 // activated for the very first time. (Versus being re-added
 // to cron after a server reboot.)
 //
-void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes nullptr.
+void OTCronItem::HookActivationOnCron(Nym*, // sometimes nullptr.
                                       bool bForTheFirstTime)
 {
     // Put anything else in here, that needs to be done in the
@@ -812,10 +812,9 @@ void OTCronItem::HookActivationOnCron(OTPseudonym*, // sometimes nullptr.
 // This gives each item a chance to drop a final receipt,
 // and clean up any memory, before being destroyed.
 //
-void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
-                                     int64_t newTransactionNo)
+void OTCronItem::HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo)
 {
-    OTPseudonym* pServerNym = serverNym_;
+    Nym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     // Generate new transaction number for these new inbox receipts.
@@ -887,8 +886,8 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
         // I now have a String copy of the original CronItem...
         const String strOrigCronItem(*pOrigCronItem);
 
-        OTPseudonym theOriginatorNym; // Don't use this... use the pointer just
-                                      // below.
+        Nym theOriginatorNym; // Don't use this... use the pointer just
+                              // below.
 
         // The Nym who is actively requesting to remove a cron item will be
         // passed in as pRemover.
@@ -898,7 +897,7 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
         // Otherwise the originator
         // pointer just pointers to *pRemover.
         //
-        OTPseudonym* pOriginator = nullptr;
+        Nym* pOriginator = nullptr;
 
         if (pServerNym->CompareID(pOrigCronItem->GetSenderUserID())) {
             pOriginator = pServerNym; // Just in case the originator Nym is also
@@ -992,12 +991,12 @@ void OTCronItem::HookRemovalFromCron(OTPseudonym* pRemover,
 //
 void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
                                 const int64_t& lNewTransactionNumber,
-                                OTPseudonym& theOriginator,
-                                OTPseudonym* pRemover) // may already point to
-                                                       // theOriginator... or
-                                                       // someone else...
+                                Nym& theOriginator,
+                                Nym* pRemover) // may already point to
+                                               // theOriginator... or
+                                               // someone else...
 {
-    OTPseudonym* pServerNym = serverNym_;
+    Nym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
@@ -1022,8 +1021,8 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     const String strServerID(GetServerID());
 
-    OTPseudonym theActualNym; // unused unless it's really not already loaded.
-                              // (use pActualNym.)
+    Nym theActualNym; // unused unless it's really not already loaded.
+                      // (use pActualNym.)
 
     // I'm ASSUMING here that pRemover is also theOriginator.
     //
@@ -1055,7 +1054,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         // process inbox.
         //
         const Identifier& ACTUAL_NYM_ID = GetSenderUserID();
-        OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
+        Nym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
         if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
             pActualNym = pServerNym;
@@ -1164,7 +1163,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
     Account* pActualAcct)
 {
-    OTPseudonym* pServerNym = serverNym_;
+    Nym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
@@ -1349,9 +1348,9 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
                                           const String& strOrigCronItem,
                                           String* pstrNote,
                                           String* pstrAttachment,
-                                          OTPseudonym* pActualNym)
+                                          Nym* pActualNym)
 {
-    OTPseudonym* pServerNym = serverNym_;
+    Nym* pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc =
@@ -1491,8 +1490,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
         //
 
         const Identifier ACTUAL_NYM_ID = USER_ID;
-        OTPseudonym theActualNym; // unused unless it's really not already
-                                  // loaded. (use pActualNym.)
+        Nym theActualNym; // unused unless it's really not already
+                          // loaded. (use pActualNym.)
 
         // We couldn't find the Nym among those already loaded--so we have to
         // load
@@ -1605,7 +1604,7 @@ int64_t OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
 //
 // client-side
 //
-void OTCronItem::HarvestOpeningNumber(OTPseudonym& theNym)
+void OTCronItem::HarvestOpeningNumber(Nym& theNym)
 {
     // The Nym is the original sender. (If Compares true).
     // IN CASES where GetTransactionNum() isn't already burned, we can harvest
@@ -1642,7 +1641,7 @@ void OTCronItem::HarvestOpeningNumber(OTPseudonym& theNym)
 // This is a good default implementation.
 // Also, some subclasses override this, but they STILL CALL IT.
 //
-void OTCronItem::HarvestClosingNumbers(OTPseudonym& theNym)
+void OTCronItem::HarvestClosingNumbers(Nym& theNym)
 {
     // The Nym is the original sender. (If Compares true).
     // GetTransactionNum() is usually already burned, but we can harvest the
@@ -1735,7 +1734,7 @@ bool OTCronItem::GetCancelerID(Identifier& theOutput) const
 
 // When canceling a cron item before it has been activated, use this.
 //
-bool OTCronItem::CancelBeforeActivation(OTPseudonym& theCancelerNym)
+bool OTCronItem::CancelBeforeActivation(Nym& theCancelerNym)
 {
     OT_ASSERT(nullptr != m_pCancelerNymID);
 

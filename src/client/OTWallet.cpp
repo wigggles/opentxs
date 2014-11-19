@@ -170,7 +170,7 @@ void OTWallet::Release()
     // 1) Go through the map of Nyms and delete them. (They were dynamically
     // allocated.)
     while (!m_mapNyms.empty()) {
-        OTPseudonym* pNym = m_mapNyms.begin()->second;
+        Nym* pNym = m_mapNyms.begin()->second;
 
         OT_ASSERT(nullptr != pNym);
 
@@ -257,7 +257,7 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 
         if (GetNym(0, // index 0
                    NYM_ID, NYM_NAME)) {
-            OTPseudonym* pNym = GetNymByID(NYM_ID);
+            Nym* pNym = GetNymByID(NYM_ID);
 
             if (nullptr != pNym) {
                 theContract.SignContract(*pNym);
@@ -272,10 +272,10 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 // The wallet presumably has multiple Nyms listed within.
 // I should be able to pass in a Nym ID and, if the Nym is there,
 // the wallet returns a pointer to that nym.
-OTPseudonym* OTWallet::GetNymByID(const Identifier& NYM_ID)
+Nym* OTWallet::GetNymByID(const Identifier& NYM_ID)
 {
     for (auto& it : m_mapNyms) {
-        OTPseudonym* pNym = it.second;
+        Nym* pNym = it.second;
         OT_ASSERT_MSG((nullptr != pNym),
                       "nullptr pseudonym pointer in OTWallet::GetNymByID.");
 
@@ -288,13 +288,13 @@ OTPseudonym* OTWallet::GetNymByID(const Identifier& NYM_ID)
     return nullptr;
 }
 
-OTPseudonym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID) // works
-                                                                      // with
-                                                                      // name as
-                                                                      // well.
+Nym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID) // works
+                                                              // with
+                                                              // name as
+                                                              // well.
 {
     for (auto& it : m_mapNyms) {
-        OTPseudonym* pNym = it.second;
+        Nym* pNym = it.second;
         OT_ASSERT_MSG(
             (nullptr != pNym),
             "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
@@ -311,7 +311,7 @@ OTPseudonym* OTWallet::GetNymByIDPartialMatch(std::string PARTIAL_ID) // works
     // OK, let's try it by the name, then...
     //
     for (auto& it : m_mapNyms) {
-        OTPseudonym* pNym = it.second;
+        Nym* pNym = it.second;
         OT_ASSERT_MSG(
             (nullptr != pNym),
             "nullptr pseudonym pointer in OTWallet::GetNymByIDPartialMatch.");
@@ -356,7 +356,7 @@ bool OTWallet::GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
         int32_t iCurrentIndex = (-1);
 
         for (auto& it : m_mapNyms) {
-            OTPseudonym* pNym = it.second;
+            Nym* pNym = it.second;
             OT_ASSERT(nullptr != pNym);
 
             iCurrentIndex++; // On first iteration, this becomes 0 here. (For 0
@@ -461,7 +461,7 @@ void OTWallet::DisplayStatistics(String& strOutput)
     strOutput.Concatenate("\nPSEUDONYM(s):\n\n");
 
     for (auto& it : m_mapNyms) {
-        OTPseudonym* pNym = it.second;
+        Nym* pNym = it.second;
         OT_ASSERT_MSG((nullptr != pNym), "nullptr pseudonym pointer in "
                                          "OTWallet::m_mapNyms, "
                                          "OTWallet::DisplayStatistics.");
@@ -518,7 +518,7 @@ void OTWallet::DisplayStatistics(String& strOutput)
 // This function assumes the Nym has already been loaded, verified, etc.
 // AND that it's been dynamically allocated.
 //
-void OTWallet::AddNym(const OTPseudonym& theNym)
+void OTWallet::AddNym(const Nym& theNym)
 {
     const Identifier NYM_ID(theNym);
     Identifier aNymID;
@@ -526,7 +526,7 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
     String strName;
 
     for (auto it(m_mapNyms.begin()); it != m_mapNyms.end(); ++it) {
-        OTPseudonym* pNym = it->second;
+        Nym* pNym = it->second;
         OT_ASSERT(nullptr != pNym);
 
         pNym->GetIdentifier(aNymID);
@@ -549,10 +549,9 @@ void OTWallet::AddNym(const OTPseudonym& theNym)
     }
 
     const String strNymID(NYM_ID);
-    m_mapNyms[strNymID.Get()] = const_cast<OTPseudonym*>(&theNym);
+    m_mapNyms[strNymID.Get()] = const_cast<Nym*>(&theNym);
 
-    if (strName.Exists())
-        (const_cast<OTPseudonym&>(theNym)).SetNymName(strName);
+    if (strName.Exists()) (const_cast<Nym&>(theNym)).SetNymName(strName);
 }
 
 void OTWallet::AddAccount(const Account& theAcct)
@@ -773,7 +772,7 @@ void OTWallet::AddAssetContract(const AssetContract& theContract)
     }
 }
 
-bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
+bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
                                   const Identifier& SERVER_ID,
                                   const String& strAcctID,
                                   const char* szFuncName)
@@ -818,7 +817,7 @@ bool OTWallet::VerifyAssetAccount(const OTPseudonym& theNym, Account& theAcct,
 
 // No need to cleanup the account returned, it's owned by the wallet.
 //
-Account* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
+Account* OTWallet::GetOrLoadAccount(const Nym& theNym,
                                     const Identifier& ACCT_ID,
                                     const Identifier& SERVER_ID,
                                     const char* szFuncName)
@@ -859,8 +858,7 @@ Account* OTWallet::GetOrLoadAccount(const OTPseudonym& theNym,
 // from the server, and the one in the wallet is old, so now this function
 // is being called to load the new one from storage and update the wallet.
 //
-Account* OTWallet::LoadAccount(const OTPseudonym& theNym,
-                               const Identifier& ACCT_ID,
+Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
                                const Identifier& SERVER_ID,
                                const char* szFuncName)
 {
@@ -906,22 +904,22 @@ Account* OTWallet::LoadAccount(const OTPseudonym& theNym,
 // This function only tries to load as a public Nym.
 // No need to cleanup, since it adds the Nym to the wallet.
 //
-OTPseudonym* OTWallet::GetOrLoadPublicNym(const Identifier& NYM_ID,
-                                          const char* szFuncName)
+Nym* OTWallet::GetOrLoadPublicNym(const Identifier& NYM_ID,
+                                  const char* szFuncName)
 {
     const String strNymID(NYM_ID);
     const char* szFunc = "OTWallet::GetOrLoadPublicNym";
 
     szFuncName = (szFuncName == nullptr) ? "" : szFuncName;
 
-    OTPseudonym* pNym = GetNymByID(NYM_ID); // <===========
+    Nym* pNym = GetNymByID(NYM_ID); // <===========
 
     if (nullptr == pNym) // Wasn't already in the wallet. Try loading it.
     {
         otWarn << szFunc << " " << szFuncName
                << ": There's no Nym already loaded with that ID. "
                   "Attempting to load public key...\n";
-        pNym = OTPseudonym::LoadPublicNym(NYM_ID); // <===========
+        pNym = Nym::LoadPublicNym(NYM_ID); // <===========
         // It worked!
         if (nullptr !=
             pNym) // LoadPublicNym has plenty of error logging already.
@@ -952,11 +950,10 @@ OTPseudonym* OTWallet::GetOrLoadPublicNym(const Identifier& NYM_ID,
 // sees that it's only a public nym (no private key) then it
 // reloads it as a private nym at that time.
 //
-OTPseudonym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID,
-                                           bool bChecking,
-                                           const char* szFuncName,
-                                           const OTPasswordData* pPWData,
-                                           const OTPassword* pImportPassword)
+Nym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
+                                   const char* szFuncName,
+                                   const OTPasswordData* pPWData,
+                                   const OTPassword* pImportPassword)
 {
     if (NYM_ID.IsEmpty()) {
         otErr << __FUNCTION__ << ":" << szFuncName
@@ -973,7 +970,7 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID,
     // See if it's already there. (Could be the public version
     // though :P Still might have to reload it.)
     //
-    OTPseudonym* pNym = GetNymByID(NYM_ID); // <===========
+    Nym* pNym = GetNymByID(NYM_ID); // <===========
 
     if (nullptr ==
         pNym) // Wasn't already in the wallet. Let's try loading it...
@@ -981,9 +978,9 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID,
         otWarn << __FUNCTION__ << " " << szFuncName
                << ": There's no Nym already loaded with that ID. "
                   "Attempting to load private key...\n";
-        pNym = OTPseudonym::LoadPrivateNym(NYM_ID, bChecking, nullptr,
-                                           szFuncName, // <===========
-                                           pPWData, pImportPassword);
+        pNym = Nym::LoadPrivateNym(NYM_ID, bChecking, nullptr,
+                                   szFuncName, // <===========
+                                   pPWData, pImportPassword);
         // It worked!
         if (nullptr !=
             pNym)          // LoadPublicNym has plenty of error logging already.
@@ -1038,9 +1035,9 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID,
                 pNym->GetNymName().Get(); // Get returns "" if string is empty.
 
             if (RemoveNym(NYM_ID)) {
-                pNym = OTPseudonym::LoadPrivateNym(NYM_ID, false, &strName,
-                                                   szFuncName, // <===========
-                                                   pPWData, pImportPassword);
+                pNym = Nym::LoadPrivateNym(NYM_ID, false, &strName,
+                                           szFuncName, // <===========
+                                           pPWData, pImportPassword);
                 // It worked!
                 if (nullptr !=
                     pNym) // LoadPrivateNym has plenty of error logging already.
@@ -1069,11 +1066,11 @@ OTPseudonym* OTWallet::GetOrLoadPrivateNym(const Identifier& NYM_ID,
 // No need to cleanup, since either function called will add the loaded
 // Nym to the wallet, which will take ownership.
 //
-OTPseudonym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
-                                    const char* szFuncName,
-                                    const OTPasswordData* pPWData)
+Nym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
+                            const char* szFuncName,
+                            const OTPasswordData* pPWData)
 {
-    OTPseudonym* pNym = GetOrLoadPublicNym(NYM_ID, szFuncName);
+    Nym* pNym = GetOrLoadPublicNym(NYM_ID, szFuncName);
 
     // It tries to load as public Nym first, so as not to force the user to
     // enter his passphrase unnecessarily.
@@ -1100,7 +1097,7 @@ OTPseudonym* OTWallet::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
 bool OTWallet::RemoveNym(const Identifier& theTargetID)
 {
     for (auto it(m_mapNyms.begin()); it != m_mapNyms.end(); ++it) {
-        OTPseudonym* pNym = it->second;
+        Nym* pNym = it->second;
         OT_ASSERT_MSG((nullptr != pNym),
                       "nullptr pseudonym pointer in OTWallet::RemoveNym.");
 
@@ -1316,7 +1313,7 @@ bool OTWallet::SaveContract(String& strContract)
     }
 
     for (auto& it : m_mapNyms) {
-        OTPseudonym* pNym = it.second;
+        Nym* pNym = it.second;
         OT_ASSERT_MSG(nullptr != pNym, "nullptr pseudonym pointer in "
                                        "OTWallet::m_mapNyms, "
                                        "OTWallet::SaveContract");
@@ -1850,12 +1847,11 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         OTCachedKey::It()->Pause();
                     }
 
-                    OTPseudonym* pNym =
-                        OTPseudonym::LoadPrivateNym(theNymID, false, &NymName);
+                    Nym* pNym = Nym::LoadPrivateNym(theNymID, false, &NymName);
                     // If it fails loading as a private Nym, then maybe it's a
                     // public one...
                     if (nullptr == pNym)
-                        pNym = OTPseudonym::LoadPublicNym(theNymID, &NymName);
+                        pNym = Nym::LoadPublicNym(theNymID, &NymName);
 
                     if (nullptr == pNym) // STILL null ??
                         otOut << __FUNCTION__ << ": Failed loading Nym ("
@@ -2034,7 +2030,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
         // loaded.
 
         for (auto& it : m_mapNyms) {
-            OTPseudonym* pNym = it.second;
+            Nym* pNym = it.second;
             OT_ASSERT_MSG(
                 (nullptr != pNym),
                 "ASSERT: OTWallet::LoadWallet: nullptr pseudonym pointer.");
@@ -2057,7 +2053,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
     return true;
 }
 
-bool OTWallet::ConvertNymToCachedKey(OTPseudonym& theNym)
+bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
 {
     // If he's not ALREADY on the master key...
     //

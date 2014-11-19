@@ -171,7 +171,7 @@ using namespace opentxs;
 
 void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt);
 bool SetupPointersForWalletMyNymAndServerContract(
-    std::string& str_ServerID, std::string& str_MyNym, OTPseudonym*& pMyNym,
+    std::string& str_ServerID, std::string& str_MyNym, Nym*& pMyNym,
     OTWallet*& pWallet, OTServerContract*& pServerContract);
 void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
                               std::string& str_MyAcct, std::string& str_MyNym,
@@ -196,7 +196,7 @@ ACCT starting j43k)
 // If false, error happened, usually based on what user just attemped.
 //
 bool SetupPointersForWalletMyNymAndServerContract(
-    std::string& str_ServerID, std::string& str_MyNym, OTPseudonym*& pMyNym,
+    std::string& str_ServerID, std::string& str_MyNym, Nym*& pMyNym,
     OTWallet*& pWallet, OTServerContract*& pServerContract)
 {
     // If we got down here, that means there were no commands on the command
@@ -840,7 +840,7 @@ int32_t main(int32_t argc, char* argv[])
     {
         OTWallet* pWallet = nullptr;
         OTServerContract* pServerContract = nullptr;
-        OTPseudonym* pMyNym = nullptr;
+        Nym* pMyNym = nullptr;
 
         // This does LoadWallet, andif Nym or Server IDs were provided, loads
         // those
@@ -997,7 +997,7 @@ int32_t main(int32_t argc, char* argv[])
         Identifier MY_NYM_ID;
 
         if (nullptr != pMyNym) pMyNym->GetIdentifier(MY_NYM_ID);
-        OTPseudonym* pHisNym = nullptr;
+        Nym* pHisNym = nullptr;
 
         if (str_HisNym.size() > 0) {
             const Identifier HIS_NYM_ID(str_HisNym.c_str());
@@ -1491,7 +1491,7 @@ int32_t main(int32_t argc, char* argv[])
         }
 
         //
-        const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
+        const Nym* pServerNym = pServerContract->GetContractPublicNym();
 
         if ((nullptr == pServerNym) ||
             (false == pServerNym->VerifyPseudonym())) {
@@ -1543,7 +1543,7 @@ int32_t main(int32_t argc, char* argv[])
     //    them all.
     //    Then continue back up to the prompt at step (1).
 
-    OTPseudonym* pMyNym = nullptr;
+    Nym* pMyNym = nullptr;
     OTWallet* pWallet = nullptr;
     OTServerContract* pServerContract = nullptr;
 
@@ -2129,7 +2129,7 @@ int32_t main(int32_t argc, char* argv[])
             continue;
         }
 
-        const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
+        const Nym* pServerNym = pServerContract->GetContractPublicNym();
 
         if (bSendCommand && (nullptr != pServerNym) &&
             pServerNym->VerifyPseudonym()) {

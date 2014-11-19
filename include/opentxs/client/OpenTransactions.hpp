@@ -200,11 +200,11 @@ private:
     EXPORT bool Init();    // Per instance. (called automaticly by constructor)
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
 
-    int32_t SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
+    int32_t SendMessage(OTServerContract* pServerContract, Nym* pNym,
                         Message& message, int64_t requestNum) const;
 
 public:
-    void SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
+    void SendMessage(OTServerContract* pServerContract, Nym* pNym,
                      Message& message) const;
 
     EXPORT bool IsInitialized() const
@@ -252,8 +252,8 @@ public:
                            String& THE_NAME) const;
     // In this case, the ID is input, the pointer is output.
     // Gets the data from Wallet.
-    EXPORT OTPseudonym* GetNym(const Identifier& NYM_ID,
-                               const char* szFuncName = nullptr) const;
+    EXPORT Nym* GetNym(const Identifier& NYM_ID,
+                       const char* szFuncName = nullptr) const;
     EXPORT OTServerContract* GetServer(const Identifier& THE_ID,
                                        const char* szFuncName = nullptr) const;
     EXPORT AssetContract* GetAssetType(const Identifier& THE_ID,
@@ -261,27 +261,26 @@ public:
     EXPORT Account* GetAccount(const Identifier& THE_ID,
                                const char* szFuncName = nullptr) const;
 
-    EXPORT OTPseudonym* GetNymByIDPartialMatch(
-        const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
+    EXPORT Nym* GetNymByIDPartialMatch(const std::string PARTIAL_ID,
+                                       const char* szFuncName = nullptr) const;
     EXPORT OTServerContract* GetServerContractPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT AssetContract* GetAssetContractPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
     EXPORT Account* GetAccountPartialMatch(
         const std::string PARTIAL_ID, const char* szFuncName = nullptr) const;
-    EXPORT OTPseudonym* GetOrLoadPublicNym(
-        const Identifier& NYM_ID, const char* szFuncName = nullptr) const;
-    EXPORT OTPseudonym* GetOrLoadPrivateNym(
+    EXPORT Nym* GetOrLoadPublicNym(const Identifier& NYM_ID,
+                                   const char* szFuncName = nullptr) const;
+    EXPORT Nym* GetOrLoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
-    EXPORT OTPseudonym* GetOrLoadNym(
-        const Identifier& NYM_ID, bool bChecking = false,
-        const char* szFuncName = nullptr,
-        const OTPasswordData* pPWData = nullptr) const;
+    EXPORT Nym* GetOrLoadNym(const Identifier& NYM_ID, bool bChecking = false,
+                             const char* szFuncName = nullptr,
+                             const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT Account* GetOrLoadAccount(const OTPseudonym& theNym,
+    EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
                                      const Identifier& SERVER_ID,
                                      const char* szFuncName = nullptr) const;
@@ -307,18 +306,18 @@ public:
                                const String& STR_NEW_NAME) const;
     // Accessing local storage...
     // (Caller responsible to delete.)
-    EXPORT OTPseudonym* LoadPublicNym(const Identifier& NYM_ID,
-                                      const char* szFuncName = nullptr) const;
-    EXPORT OTPseudonym* LoadPrivateNym(
+    EXPORT Nym* LoadPublicNym(const Identifier& NYM_ID,
+                              const char* szFuncName = nullptr) const;
+    EXPORT Nym* LoadPrivateNym(
         const Identifier& NYM_ID, bool bChecking = false,
         const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
-    EXPORT OTPseudonym* CreateNym(int32_t nKeySize = 1024,
-                                  const std::string str_id_source = "",
-                                  const std::string str_alt_location = "")
-        const; // returns a new nym (with key pair)
+    EXPORT Nym* CreateNym(int32_t nKeySize = 1024,
+                          const std::string str_id_source = "",
+                          const std::string str_alt_location =
+                              "") const; // returns a new nym (with key pair)
     // and files created. (Or nullptr.) Adds
     // to wallet.
 
@@ -737,9 +736,8 @@ public:
                                      const Identifier& USER_ID,
                                      const int64_t& lRequestNumber) const;
 
-    EXPORT bool ResyncNymWithServer(OTPseudonym& theNym,
-                                    const OTLedger& theNymbox,
-                                    const OTPseudonym& theMessageNym) const;
+    EXPORT bool ResyncNymWithServer(Nym& theNym, const OTLedger& theNymbox,
+                                    const Nym& theMessageNym) const;
 
     // These commands below send messages to the server:
 

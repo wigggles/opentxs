@@ -276,7 +276,7 @@ public:
 
     int64_t GetDenomination(int32_t nIndex);
     EXPORT int64_t GetLargestDenomination(int64_t lAmount);
-    virtual bool AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
+    virtual bool AddDenomination(Nym& theNotary, int64_t lDenomination,
                                  int32_t nPrimeLength = 1024) = 0;
 
     inline int32_t GetDenominationCount() const
@@ -286,7 +286,7 @@ public:
 
     virtual bool VerifyContractID() const;
 
-    EXPORT bool VerifyMint(const OTPseudonym& theOperator);
+    EXPORT bool VerifyMint(const Nym& theOperator);
 
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the token saves its contents
@@ -300,25 +300,23 @@ public:
     EXPORT void GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
                                 time64_t VALID_TO, time64_t MINT_EXPIRATION,
                                 const Identifier& theAssetID,
-                                const Identifier& theServerID,
-                                OTPseudonym& theNotary, int64_t nDenom1 = 0,
-                                int64_t nDenom2 = 0, int64_t nDenom3 = 0,
-                                int64_t nDenom4 = 0, int64_t nDenom5 = 0,
-                                int64_t nDenom6 = 0, int64_t nDenom7 = 0,
-                                int64_t nDenom8 = 0, int64_t nDenom9 = 0,
-                                int64_t nDenom10 = 0);
+                                const Identifier& theServerID, Nym& theNotary,
+                                int64_t nDenom1 = 0, int64_t nDenom2 = 0,
+                                int64_t nDenom3 = 0, int64_t nDenom4 = 0,
+                                int64_t nDenom5 = 0, int64_t nDenom6 = 0,
+                                int64_t nDenom7 = 0, int64_t nDenom8 = 0,
+                                int64_t nDenom9 = 0, int64_t nDenom10 = 0);
 
     // step 2: (coin request is in Token)
 
     // Lucre step 3: mint signs token
-    EXPORT virtual bool SignToken(OTPseudonym& theNotary, Token& theToken,
+    EXPORT virtual bool SignToken(Nym& theNotary, Token& theToken,
                                   String& theOutput, int32_t nTokenIndex) = 0;
 
     // step 4: (unblind coin is in Token)
 
     // Lucre step 5: mint verifies token when it is redeemed by merchant.
-    EXPORT virtual bool VerifyToken(OTPseudonym& theNotary,
-                                    String& theCleartextToken,
+    EXPORT virtual bool VerifyToken(Nym& theNotary, String& theCleartextToken,
                                     int64_t lDenomination) = 0;
 };
 

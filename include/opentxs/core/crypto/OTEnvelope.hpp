@@ -146,12 +146,12 @@ class OTASCIIArmor;
 class OTAsymmetricKey;
 class OTPassword;
 class OTPasswordData;
-class OTPseudonym;
+class Nym;
 class String;
 class OTSymmetricKey;
 
 typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
-typedef std::set<OTPseudonym*> setOfNyms;
+typedef std::set<Nym*> setOfNyms;
 
 class OTEnvelope
 {
@@ -174,7 +174,7 @@ public:
 
     // Single recipient:
     //
-    EXPORT bool Seal(const OTPseudonym& theRecipient,
+    EXPORT bool Seal(const Nym& theRecipient,
                      const String& theInput); // Put data into this object
                                               // with Seal().
     EXPORT bool Seal(const OTAsymmetricKey& RecipPubKey,
@@ -192,7 +192,7 @@ public:
 
     // (Opposite of Seal.)
     //
-    EXPORT bool Open(const OTPseudonym& theRecipient, String& theOutput,
+    EXPORT bool Open(const Nym& theRecipient, String& theOutput,
                      const OTPasswordData* pPWData = nullptr);
 
     // Should be called "Get Envelope's binary Ciphertext data into an

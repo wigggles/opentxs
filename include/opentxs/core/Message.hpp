@@ -144,7 +144,7 @@ namespace opentxs
 {
 
 class OTPasswordData;
-class OTPseudonym;
+class Nym;
 class Message;
 
 class OTMessageStrategy
@@ -199,14 +199,13 @@ public:
 
     virtual bool VerifyContractID() const;
 
-    EXPORT virtual bool SignContract(const OTPseudonym& theNym,
+    EXPORT virtual bool SignContract(const Nym& theNym,
                                      const OTPasswordData* pPWData = nullptr);
     EXPORT virtual bool VerifySignature(
-        const OTPseudonym& theNym,
-        const OTPasswordData* pPWData = nullptr) const;
+        const Nym& theNym, const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool HarvestTransactionNumbers(
-        OTPseudonym& theNym,
+        Nym& theNym,
         bool bHarvestingForRetry,           // false until positively asserted.
         bool bReplyWasSuccess,              // false until positively asserted.
         bool bReplyWasFailure,              // false until positively asserted.
@@ -223,7 +222,7 @@ public:
     // function. (It will
     // ASSERT if you don't...)
     //
-    EXPORT void SetAcknowledgments(OTPseudonym& theNym);
+    EXPORT void SetAcknowledgments(Nym& theNym);
 
     EXPORT static void registerStrategy(std::string name,
                                         OTMessageStrategy* strategy);

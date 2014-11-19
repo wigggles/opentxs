@@ -141,7 +141,7 @@ namespace opentxs
 
 class Account;
 class OTParty;
-class OTPseudonym;
+class Nym;
 class OTStash;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
@@ -215,8 +215,7 @@ protected:
 
     virtual void onFinalReceipt(OTCronItem& theOrigCronItem,
                                 const int64_t& lNewTransactionNumber,
-                                OTPseudonym& theOriginator,
-                                OTPseudonym* pRemover);
+                                Nym& theOriginator, Nym* pRemover);
     virtual void onRemovalFromCron();
     // Above are stored the user and acct IDs of the last sender and recipient
     // of funds.
@@ -291,16 +290,16 @@ public:
     //
     virtual bool Compare(OTScriptable& rhs) const;
     // From OTCronItem (parent class of this)
-    virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
+    virtual bool CanRemoveItemFromCron(Nym& theNym);
 
-    virtual void HarvestOpeningNumber(OTPseudonym& theNym);  // Used on
-                                                             // client-side.
-    virtual void HarvestClosingNumbers(OTPseudonym& theNym); // Used on
-                                                             // client-side.
+    virtual void HarvestOpeningNumber(Nym& theNym);  // Used on
+                                                     // client-side.
+    virtual void HarvestClosingNumbers(Nym& theNym); // Used on
+                                                     // client-side.
 
-    void CloseoutOpeningNumbers(
-        OTPseudonym* pSignerNym = nullptr); // Server-side. Similar to below:
-    void HarvestClosingNumbers(OTPseudonym* pSignerNym = nullptr,
+    void CloseoutOpeningNumbers(Nym* pSignerNym = nullptr); // Server-side.
+                                                            // Similar to below:
+    void HarvestClosingNumbers(Nym* pSignerNym = nullptr,
                                std::set<OTParty*>* pFailedParties =
                                    nullptr); // Used on server-side. Assumes the
     // related Nyms are already loaded and
@@ -329,8 +328,8 @@ public:
     // Returns true if it was empty (and thus successfully set).
     EXPORT bool SetServerIDIfEmpty(const Identifier& theID);
 
-    EXPORT bool VerifySmartContract(OTPseudonym& theNym, Account& theAcct,
-                                    OTPseudonym& theServerNym,
+    EXPORT bool VerifySmartContract(Nym& theNym, Account& theAcct,
+                                    Nym& theServerNym,
                                     bool bBurnTransNo = false);
 
     // theNym is trying to activate the smart contract, and has

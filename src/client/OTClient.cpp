@@ -184,8 +184,8 @@ OTClient::~OTClient()
     }
 }
 
-void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
-                                 OTPseudonym* pNym, const Message& theMessage)
+void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
+                                 const Message& theMessage)
 {
     const String strMessage(theMessage);
 
@@ -228,7 +228,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
 bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                   const Identifier& theServerID,
                                   const OTServerContract& theServerContract,
-                                  OTPseudonym& theNym, Message& theMessage)
+                                  Nym& theNym, Message& theMessage)
 {
     if (theNymbox.GetTransactionCount() < 1) {
         // If there aren't any notices in the nymbox, no point wasting a # to
@@ -243,7 +243,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
         otErr << __FUNCTION__ << ": Error: VerifyAccount() failed.\n";
         return false;
     }
-    OTPseudonym* pNym = &theNym;
+    Nym* pNym = &theNym;
 
     const Identifier theNymID(*pNym);
     const String strServerID(theServerID), strNymID(theNymID);
@@ -330,7 +330,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
     // theTentativeNym  == transaction numbers being tentatively added. (I keep
     // a )
     //
-    OTPseudonym theIssuedNym, theRemovedNym;
+    Nym theIssuedNym, theRemovedNym;
 
     std::set<int64_t> setNoticeNumbers; // Trans#s I've successfully signed for,
                                         // and have a notice of this from the
@@ -409,7 +409,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             if (pMessage->LoadContractFromString(strRespTo)) {
                 pNym->AddMail(*pMessage); // Now the Nym is responsible to
                                           // delete it. It's in his "mail".
-                OTPseudonym* pSignerNym = pNym;
+                Nym* pSignerNym = pNym;
                 pNym->SaveSignedNymfile(*pSignerNym);
             }
             else {
@@ -1044,7 +1044,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
 //
 void OTClient::load_str_trans_add_to_ledger(
     const Identifier& the_nym_id, const String& str_trans, String str_box_type,
-    const int64_t& lTransNum, OTPseudonym& the_nym, OTLedger& ledger) const
+    const int64_t& lTransNum, Nym& the_nym, OTLedger& ledger) const
 {
     if (nullptr == ledger.GetTransaction(lTransNum)) // (Only add it if it's not
                                                      // already there.)
@@ -1156,7 +1156,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     const Identifier ACCOUNT_ID(theReply.m_strAcctID);
     Identifier SERVER_ID;
     theConnection.GetServerID(SERVER_ID);
-    OTPseudonym* pNym = theConnection.GetNym();
+    Nym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
     const String strNymID(USER_ID);
@@ -1166,7 +1166,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                         // or balance statement.
 
     // todo fix cast.
-    OTPseudonym* pServerNym = const_cast<OTPseudonym*>(
+    Nym* pServerNym = const_cast<Nym*>(
         theConnection.GetServerContract()->GetContractPublicNym());
     // The only incoming transactions that we actually care about are responses
     // to cash
@@ -2352,7 +2352,7 @@ void OTClient::ProcessPayDividendResponse(
     const Identifier ACCOUNT_ID(theReply.m_strAcctID);
     Identifier SERVER_ID;
     theConnection.GetServerID(SERVER_ID);
-    OTPseudonym* pNym = theConnection.GetNym();
+    Nym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
 
@@ -2386,7 +2386,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
     const Identifier ACCOUNT_ID(theReply.m_strAcctID);
     Identifier SERVER_ID;
     theConnection.GetServerID(SERVER_ID);
-    OTPseudonym* pNym = theConnection.GetNym();
+    Nym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
 
@@ -2666,14 +2666,14 @@ void OTClient::ProcessWithdrawalResponse(
 
     String strServerID(SERVER_ID);
 
-    OTPseudonym* pNym = theConnection.GetNym();
+    Nym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
 
     const String strUserID(USER_ID);
 
     OTWallet* pWallet = theConnection.GetWallet();
-    OTPseudonym* pServerNym = const_cast<OTPseudonym*>(
+    Nym* pServerNym = const_cast<Nym*>(
         theConnection.GetServerContract()->GetContractPublicNym());
 
     // loop through the ALL items that make up this transaction and check to see
@@ -2841,14 +2841,14 @@ void OTClient::ProcessWithdrawalResponse(
 struct OTClient::ProcessServerReplyArgs
 {
     Identifier ACCOUNT_ID, SERVER_ID;
-    OTPseudonym* pNym;
+    Nym* pNym;
     Identifier USER_ID;
     String strServerID, strNymID;
-    OTPseudonym* pServerNym;
+    Nym* pServerNym;
 };
 
 void OTClient::setRecentHash(const Message& theReply, const String& strServerID,
-                             OTPseudonym* pNym, bool setNymboxHash)
+                             Nym* pNym, bool setNymboxHash)
 {
     Identifier NYMBOX_HASH, RECENT_HASH;
     const std::string str_server(strServerID.Get());
@@ -2875,7 +2875,7 @@ void OTClient::setRecentHash(const Message& theReply, const String& strServerID,
                   << str_server << "\n";
         }
         if (bRecentHash || (setNymboxHash && bNymboxHash)) {
-            OTPseudonym* pSignerNym = pNym;
+            Nym* pSignerNym = pNym;
             pNym->SaveSignedNymfile(*pSignerNym);
         }
     }
@@ -2952,7 +2952,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
                  // themselves...
             {
                 String::Map& theMap = pMap->the_map;
-                OTPseudonym theTargetNym;
+                Nym theTargetNym;
                 theTargetNym.SetIdentifier(strNymID2);
 
                 if (false ==
@@ -3040,7 +3040,7 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
         String strPath = strNymID2.Get();
         // Next we save the public key in the pubkeys folder...
         //
-        OTPseudonym thePubkeyNym(strNymID2);
+        Nym thePubkeyNym(strNymID2);
 
         if (thePubkeyNym.SetPublicKey(strPubkey) &&
             thePubkeyNym.VerifyPseudonym()) {
@@ -4753,7 +4753,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     }
                     else {
                         String strMessageNym;
-                        OTPseudonym theMessageNym;
+                        Nym theMessageNym;
 
                         pStatementItem->GetAttachment(strMessageNym);
 
@@ -6777,7 +6777,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
                                   << ": Failed setting InboxHash on Nym "
                                      "for account: " << str_acct_id << "\n";
                         else {
-                            OTPseudonym* pSignerNym = pNym;
+                            Nym* pSignerNym = pNym;
                             pNym->SaveSignedNymfile(*pSignerNym);
                         }
                     }
@@ -6904,7 +6904,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
                                   << ": Failed setting OutboxHash on Nym "
                                      "for account: " << str_acct_id << "\n";
                         else {
-                            OTPseudonym* pSignerNym = pNym;
+                            Nym* pSignerNym = pNym;
                             pNym->SaveSignedNymfile(*pSignerNym);
                         }
                     }
@@ -7330,7 +7330,7 @@ bool OTClient::processServerReplyDeleteUserAccount(const Message& theReply,
 
         // SAVE the updated Nym to local storage.
         //
-        OTPseudonym& extraNym = *pNym;
+        Nym& extraNym = *pNym;
         pNym->SaveSignedNymfile(extraNym);
 
         otOut << "Successfully DELETED Nym from Server: removed request "
@@ -7544,13 +7544,13 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     args.USER_ID = Identifier(*args.pNym);
     args.strServerID = args.SERVER_ID;
     args.strNymID = args.USER_ID;
-    args.pServerNym = const_cast<OTPseudonym*>(
+    args.pServerNym = const_cast<Nym*>(
         theConnection.GetServerContract()->GetContractPublicNym());
 
-    OTPseudonym* pNym = args.pNym;
+    Nym* pNym = args.pNym;
     const String& strServerID = args.strServerID;
     const String& strNymID = args.strNymID;
-    OTPseudonym* pServerNym = args.pServerNym;
+    Nym* pServerNym = args.pServerNym;
 
     // Just like the server verifies all messages before processing them,
     // so does the client need to verify the signatures against each message
@@ -7653,7 +7653,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     {
         for (auto& it : numlist_ack_reply) {
             const int64_t lTempRequestNum = it;
-            OTPseudonym* pSignerNym = pNym;
+            Nym* pSignerNym = pNym;
 
             if (pNym->RemoveAcknowledgedNum(*pSignerNym, strServerID,
                                             lTempRequestNum,
@@ -7663,7 +7663,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     }
 
     if (bDirtyNym) {
-        OTPseudonym* pSignerNym = pNym;
+        Nym* pSignerNym = pNym;
         pNym->SaveSignedNymfile(*pSignerNym);
     }
 
@@ -7785,7 +7785,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
 ///
 int32_t OTClient::ProcessUserCommand(
     OTClient::OT_CLIENT_CMD_TYPE requestedCommand, Message& theMessage,
-    OTPseudonym& theNym,
+    Nym& theNym,
     // OTAssetContract& theContract,
     const OTServerContract& theServer, const Account* pAccount,
     int64_t lTransactionAmount, AssetContract* pMyAssetContract,
@@ -8130,7 +8130,7 @@ int32_t OTClient::ProcessUserCommand(
 
         Purse thePurse(SERVER_ID, CONTRACT_ID);
 
-        const OTPseudonym* pServerNym = theServer.GetContractPublicNym();
+        const Nym* pServerNym = theServer.GetContractPublicNym();
 
         Purse theSourcePurse(thePurse);
 

@@ -553,7 +553,7 @@ public:
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of OTContract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(const OTPseudonym& theNym);
+    virtual bool VerifyAccount(const Nym& theNym);
 
     void InitTransaction();
 
@@ -692,14 +692,13 @@ public:
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
 
-    EXPORT bool VerifyBalanceReceipt(OTPseudonym& SERVER_NYM,
-                                     OTPseudonym& THE_NYM);
+    EXPORT bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM);
 
     // First VerifyContractID() is performed already on all the items when
     // they are first loaded up. ServerID and AccountID have been verified.
     // Now we check ownership, and signatures, and transaction #s, etc.
     // (We go deeper.)
-    EXPORT bool VerifyItems(OTPseudonym& theNym);
+    EXPORT bool VerifyItems(Nym& theNym);
 
     inline int32_t GetItemCount() const
     {
@@ -757,7 +756,7 @@ public:
     // you are accurate
     // when you tell it the circumstances (bools!)
     bool HarvestOpeningNumber(
-        OTPseudonym& theNym,
+        Nym& theNym,
         bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
                                       // clawback the opening # because it
                                       // will be using another opening # the
@@ -775,7 +774,7 @@ public:
     // of your transaction numbers back. (The opening number is already gone,
     // but any others are still salvageable.)
     bool HarvestClosingNumbers(
-        OTPseudonym& theNym,
+        Nym& theNym,
         bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
                                       // clawback the opening # because it
                                       // will be using another opening # the

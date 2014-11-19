@@ -737,7 +737,7 @@ String::String(const OTSignature& strValue)
     if (strValue.Exists()) strValue.GetString(*this);
 }
 
-String::String(OTPseudonym& theValue)
+String::String(Nym& theValue)
     : length_(0)
     , position_(0)
     , data_(nullptr)

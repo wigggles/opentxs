@@ -184,8 +184,8 @@
 namespace opentxs
 {
 
-void Basket::HarvestClosingNumbers(OTPseudonym& theNym,
-                                   const Identifier& theServerID, bool bSave)
+void Basket::HarvestClosingNumbers(Nym& theNym, const Identifier& theServerID,
+                                   bool bSave)
 {
     const String strServerID(theServerID);
     bool bNeedToSave = false;
@@ -228,7 +228,7 @@ void Basket::HarvestClosingNumbers(OTPseudonym& theNym,
     // Therefore another vote for my "dirty instances" theory.
     //
     if (bSave && bNeedToSave) {
-        OTPseudonym* pSignerNym = &theNym; // probably unnecessary.
+        Nym* pSignerNym = &theNym; // probably unnecessary.
         theNym.SaveSignedNymfile(*pSignerNym);
     }
 }

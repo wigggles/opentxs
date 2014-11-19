@@ -162,9 +162,9 @@ enum { TradeProcessIntervalSeconds = 10 };
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
-                               OTPseudonym&, // Not needed in this version of
-                                             // the override.
+bool OTTrade::VerifyNymAsAgent(Nym& nym,
+                               Nym&, // Not needed in this version of
+                                     // the override.
                                mapOfNyms*) const
 {
     return VerifySignature(nym);
@@ -172,8 +172,7 @@ bool OTTrade::VerifyNymAsAgent(OTPseudonym& nym,
 
 // This is an override. See note above.
 //
-bool OTTrade::VerifyNymAsAgentForAccount(OTPseudonym& nym,
-                                         Account& account) const
+bool OTTrade::VerifyNymAsAgentForAccount(Nym& nym, Account& account) const
 {
     return account.VerifyOwner(nym);
 }
@@ -812,7 +811,7 @@ int64_t OTTrade::GetCurrencyAcctClosingNum() const
 
 /// See if nym has rights to remove this item from Cron.
 ///
-bool OTTrade::CanRemoveItemFromCron(OTPseudonym& nym)
+bool OTTrade::CanRemoveItemFromCron(Nym& nym)
 {
     // I don't call the parent class' version of this function, in the case of
     // OTTrade,
@@ -893,14 +892,14 @@ bool OTTrade::CanRemoveItemFromCron(OTPseudonym& nym)
 //
 void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
                              const int64_t& newTransactionNumber,
-                             OTPseudonym& originator, OTPseudonym* remover)
+                             Nym& originator, Nym* remover)
 {
     const char* szFunc = "OTTrade::onFinalReceipt";
 
     OTCron* cron = GetCron();
     OT_ASSERT(cron != nullptr);
 
-    OTPseudonym* serverNym = cron->GetServerNym();
+    Nym* serverNym = cron->GetServerNym();
     OT_ASSERT(serverNym != nullptr);
 
     // First, we are closing the transaction number ITSELF, of this cron item,
@@ -975,8 +974,8 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
 
     const String strOrigCronItem(origCronItem);
 
-    OTPseudonym theActualNym; // unused unless it's really not already loaded.
-                              // (use actualNym.)
+    Nym theActualNym; // unused unless it's really not already loaded.
+                      // (use actualNym.)
 
     // The OPENING transaction number must still be signed-out.
     // It is this act of placing the final receipt, which then finally closes
@@ -1003,7 +1002,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
 
         const Identifier& actualNymId = GetSenderUserID();
 
-        OTPseudonym* actualNym = nullptr; // use this. DON'T use theActualNym.
+        Nym* actualNym = nullptr; // use this. DON'T use theActualNym.
         if ((serverNym != nullptr) && serverNym->CompareID(actualNymId))
             actualNym = serverNym;
         else if (originator.CompareID(actualNymId))

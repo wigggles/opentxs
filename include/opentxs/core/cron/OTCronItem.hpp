@@ -145,7 +145,7 @@ namespace opentxs
 
 class OTCron;
 class Identifier;
-class OTPseudonym;
+class Nym;
 class String;
 
 class OTCronItem : public OTTrackable
@@ -158,7 +158,7 @@ private: // Private prevents erroneous use by other classes.
 
 private:
     OTCron* m_pCron;
-    OTPseudonym* serverNym_;
+    Nym* serverNym_;
     Identifier* serverId_;
     time64_t m_CREATION_DATE;     // The date, in seconds, when the CronItem was
                                   // authorized.
@@ -191,10 +191,11 @@ protected:
     {
     } // called by HookActivationOnCron().
 
-    virtual void onFinalReceipt(
-        OTCronItem& theOrigCronItem, const int64_t& lNewTransactionNumber,
-        OTPseudonym& theOriginator,
-        OTPseudonym* pRemover); // called by HookRemovalFromCron().
+    virtual void onFinalReceipt(OTCronItem& theOrigCronItem,
+                                const int64_t& lNewTransactionNumber,
+                                Nym& theOriginator,
+                                Nym* pRemover); // called by
+                                                // HookRemovalFromCron().
 
     virtual void onRemovalFromCron()
     {
@@ -216,16 +217,16 @@ public:
                                   const String& strOrigCronItem,
                                   String* pstrNote = nullptr,
                                   String* pstrAttachment = nullptr,
-                                  OTPseudonym* pActualNym = nullptr);
-    virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
-    virtual void HarvestOpeningNumber(OTPseudonym& theNym);
-    virtual void HarvestClosingNumbers(OTPseudonym& theNym);
+                                  Nym* pActualNym = nullptr);
+    virtual bool CanRemoveItemFromCron(Nym& theNym);
+    virtual void HarvestOpeningNumber(Nym& theNym);
+    virtual void HarvestClosingNumbers(Nym& theNym);
     // pActivator and pRemover are both "SOMETIMES nullptr"
     // I don't default the parameter, because I want to force the programmer to
     // choose.
 
     // Called in OTCron::AddCronItem.
-    void HookActivationOnCron(OTPseudonym* pActivator,
+    void HookActivationOnCron(Nym* pActivator,
                               bool bForTheFirstTime = false); // This calls
                                                               // onActivate,
                                                               // which is
@@ -233,7 +234,7 @@ public:
 
     // Called in OTCron::RemoveCronItem as well as OTCron::ProcessCron.
     // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
-    void HookRemovalFromCron(OTPseudonym* pRemover, int64_t newTransactionNo);
+    void HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo);
 
     inline bool IsFlaggedForRemoval() const
     {
@@ -294,7 +295,7 @@ public:
     {
         return m_pCron;
     }
-    void setServerNym(OTPseudonym* serverNym)
+    void setServerNym(Nym* serverNym)
     {
         serverNym_ = serverNym;
     }
@@ -325,9 +326,10 @@ public:
     {
         return m_bCanceled;
     }
-    EXPORT bool CancelBeforeActivation(
-        OTPseudonym& theCancelerNym); // When canceling a cron item before it
-                                      // has been activated, use this.
+    EXPORT bool CancelBeforeActivation(Nym& theCancelerNym); // When canceling a
+                                                             // cron item before
+                                                             // it
+    // has been activated, use this.
     // These are for     std::deque<int64_t> m_dequeClosingNumbers;
     // They are numbers used for CLOSING a transaction. (finalReceipt.)
 

@@ -142,7 +142,7 @@ namespace opentxs
 class Identifier;
 class Mint;
 class OTNym_or_SymmetricKey;
-class OTPseudonym;
+class Nym;
 class Purse;
 class String;
 
@@ -356,12 +356,12 @@ public:
     // let nTokenCount default to 1, since that's how Lucre works.
 protected:
     EXPORT virtual bool GenerateTokenRequest(
-        const OTPseudonym& theNym, Mint& theMint, int64_t lDenomination,
+        const Nym& theNym, Mint& theMint, int64_t lDenomination,
         int32_t nTokenCount = Token::GetMinimumPrototokenCount()) = 0;
 
 public:
     EXPORT static Token* InstantiateAndGenerateTokenRequest(
-        const Purse& thePurse, const OTPseudonym& theNym, Mint& theMint,
+        const Purse& thePurse, const Nym& theNym, Mint& theMint,
         int64_t lDenomination,
         int32_t nTokenCount = Token::GetMinimumPrototokenCount());
     // Lucre Step 3: Mint signs token (in OTMint)
@@ -378,12 +378,12 @@ public:
     }
 
     // Lucre step 4: client unblinds token -- now it's ready for use.
-    EXPORT virtual bool ProcessToken(const OTPseudonym& theNym, Mint& theMint,
+    EXPORT virtual bool ProcessToken(const Nym& theNym, Mint& theMint,
                                      Token& theRequest) = 0;
 
     // Lucre step 5: token verifies when it is redeemed by merchant.
     //                 Now including spent token database!
-    EXPORT bool VerifyToken(OTPseudonym& theNotary, Mint& theMint);
+    EXPORT bool VerifyToken(Nym& theNotary, Mint& theMint);
     EXPORT bool IsTokenAlreadySpent(String& theCleartextToken); // Spent Token
                                                                 // Database
     EXPORT bool RecordTokenAsSpent(String& theCleartextToken);  // Spent Token

@@ -179,7 +179,7 @@
 namespace opentxs
 {
 
-bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
+bool OTItem::VerifyTransactionStatement(Nym& THE_NYM,
                                         OTTransaction& TARGET_TRANSACTION,
                                         bool bIsRealTransaction) // Sometimes
                                                                  // the trans#
@@ -202,7 +202,7 @@ bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
     //
     const String SERVER_ID(GetPurportedServerID());
 
-    OTPseudonym theRemovedNym;
+    Nym theRemovedNym;
 
     if (bIsRealTransaction) // Sometimes my "transaction number" is 0 since
                             // we're accepting numbers from the Nymbox (which is
@@ -282,7 +282,7 @@ bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
     String strMessageNym;
 
     GetAttachment(strMessageNym);
-    OTPseudonym theMessageNym;
+    Nym theMessageNym;
 
     if ((strMessageNym.GetLength() > 2) &&
         theMessageNym.LoadFromString(strMessageNym)) {
@@ -356,12 +356,13 @@ bool OTItem::VerifyTransactionStatement(OTPseudonym& THE_NYM,
 // being processed,
 //    are all still there.
 //
-bool OTItem::VerifyBalanceStatement(
-    int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
-    OTLedger& THE_OUTBOX, const Account& THE_ACCOUNT,
-    OTTransaction& TARGET_TRANSACTION,
-    int64_t lOutboxTrnsNum) // Only used in the case of transfer,
-                            // where the user
+bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
+                                    OTLedger& THE_INBOX, OTLedger& THE_OUTBOX,
+                                    const Account& THE_ACCOUNT,
+                                    OTTransaction& TARGET_TRANSACTION,
+                                    int64_t lOutboxTrnsNum) // Only used in the
+                                                            // case of transfer,
+                                                            // where the user
 { // doesn't know the outbox trans# in advance, so he sends
     if (GetType() != OTItem::balanceStatement) // a dummy number (currently '1')
                                                // which we verify against
@@ -755,7 +756,7 @@ bool OTItem::VerifyBalanceStatement(
     //    (in a message Nym attached to this.)  Check for presence of each, then
     // compare count, like above.
 
-    OTPseudonym theRemovedNym;
+    Nym theRemovedNym;
 
     String SERVER_ID(GetPurportedServerID());
 
@@ -864,7 +865,7 @@ bool OTItem::VerifyBalanceStatement(
     // But ALSO verify that each one exists on THE_NYM, so that each individual
     // number is checked.
     GetAttachment(strMessageNym);
-    OTPseudonym theMessageNym;
+    Nym theMessageNym;
 
     if ((strMessageNym.GetLength() > 2) &&
         theMessageNym.LoadFromString(strMessageNym)) {

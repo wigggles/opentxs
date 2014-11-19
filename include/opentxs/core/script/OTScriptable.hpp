@@ -264,9 +264,9 @@ public:
     EXPORT OTParty* GetPartyByIndex(int32_t nIndex) const;
     EXPORT OTBylaw* GetBylawByIndex(int32_t nIndex) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAgent(
-        OTPseudonym& theNym, OTAgent** ppAgent = nullptr) const;
+        Nym& theNym, OTAgent** ppAgent = nullptr) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(
-        OTPseudonym& theNym, OTAgent** ppAgent = nullptr) const;
+        Nym& theNym, OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccount(
         Account& theAccount, OTPartyAccount** ppPartyAccount = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAgent(const Identifier& theNymID,
@@ -297,7 +297,7 @@ public:
     // Basically this means that the agreement's owner approves of theNym.
     //
     EXPORT virtual bool VerifyNymAsAgent(
-        OTPseudonym& theNym, OTPseudonym& theSignerNym,
+        Nym& theNym, Nym& theSignerNym,
         mapOfNyms* pmap_ALREADY_LOADED = nullptr) const;
 
     // NEED TO CALL BOTH METHODS. (above / below)
@@ -307,13 +307,13 @@ public:
     // Also verifies that theNym is an agent for theAccount, according to the
     // ACCOUNT.
     //
-    EXPORT virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
+    EXPORT virtual bool VerifyNymAsAgentForAccount(Nym& theNym,
                                                    Account& theAccount) const;
     bool VerifyPartyAuthorization(
         OTParty& theParty, // The party that supposedly is authorized for this
                            // supposedly executed agreement.
-        OTPseudonym& theSignerNym, // For verifying signature on the authorizing
-                                   // Nym, when loading it
+        Nym& theSignerNym, // For verifying signature on the authorizing
+                           // Nym, when loading it
         const String& strServerID, // For verifying issued num, need the
                                    // serverID the # goes with.
         mapOfNyms* pmap_ALREADY_LOADED = nullptr, // If some nyms are already
@@ -337,7 +337,7 @@ public:
         OTPartyAccount& thePartyAcct, // The party is assumed to have been
                                       // verified already via
                                       // VerifyPartyAuthorization()
-        OTPseudonym& theSignerNym,  // For verifying signature on the authorized
+        Nym& theSignerNym,          // For verifying signature on the authorized
                                     // Nym
         const String& strServerID,  // For verifying issued num, need the
                                     // serverID the # goes with.
@@ -391,13 +391,12 @@ public:
                        // and see if any have been changed (if it's DIRTY
                        // again.)
     EXPORT bool SendNoticeToAllParties(
-        bool bSuccessMsg, OTPseudonym& theServerNym,
-        const Identifier& theServerID, const int64_t& lNewTransactionNumber,
+        bool bSuccessMsg, Nym& theServerNym, const Identifier& theServerID,
+        const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference, String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
-        OTPseudonym* pActualNym = nullptr) const;
+        String* pstrAttachment = nullptr, Nym* pActualNym = nullptr) const;
     // This is an OT Native call party_may_execute_clause
     // It returns true/false whether party is allowed to execute clause.
     // The default return value, for a legitimate party, is true.

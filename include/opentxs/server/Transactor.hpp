@@ -144,7 +144,7 @@ namespace opentxs
 
 class Mint;
 class OTServer;
-class OTPseudonym;
+class Nym;
 class AssetContract;
 class Identifier;
 class Account;
@@ -158,14 +158,12 @@ public:
     explicit Transactor(OTServer* server);
     ~Transactor();
 
-    bool issueNextTransactionNumber(OTPseudonym& nym, int64_t& txNumber,
+    bool issueNextTransactionNumber(Nym& nym, int64_t& txNumber,
                                     bool storeNumber = true);
-    bool verifyTransactionNumber(OTPseudonym& nym,
-                                 const int64_t& transactionNumber);
-    bool removeTransactionNumber(OTPseudonym& nym,
-                                 const int64_t& transactionNumber,
+    bool verifyTransactionNumber(Nym& nym, const int64_t& transactionNumber);
+    bool removeTransactionNumber(Nym& nym, const int64_t& transactionNumber,
                                  bool save = false);
-    bool removeIssuedNumber(OTPseudonym& nym, const int64_t& transactionNumber,
+    bool removeIssuedNumber(Nym& nym, const int64_t& transactionNumber,
                             bool save = false);
 
     int64_t transactionNumber() const

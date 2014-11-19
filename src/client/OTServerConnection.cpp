@@ -222,12 +222,11 @@ bool OTServerConnection::GetServerID(Identifier& theID) const
 }
 
 void OTServerConnection::ProcessMessageOut(OTServerContract* pServerContract,
-                                           OTPseudonym* pNym,
-                                           const Message& theMessage)
+                                           Nym* pNym, const Message& theMessage)
 {
     OT_ASSERT(nullptr != pServerContract);
     OT_ASSERT(nullptr != pNym)
-    const OTPseudonym* pServerNym = pServerContract->GetContractPublicNym();
+    const Nym* pServerNym = pServerContract->GetContractPublicNym();
     OT_ASSERT(nullptr != pServerNym);
 
     OTEnvelope theEnvelope;

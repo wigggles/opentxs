@@ -140,7 +140,7 @@ namespace opentxs
 {
 
 class Message;
-class OTPseudonym;
+class Nym;
 class OTTransaction;
 
 typedef std::multimap<int64_t, Message*> mapOfMessages;
@@ -171,7 +171,7 @@ public:
     EXPORT ~OTMessageOutbuffer();
 
     EXPORT void Clear(const String* serverId = nullptr,
-                      const String* nymId = nullptr, OTPseudonym* nym = nullptr,
+                      const String* nymId = nullptr, Nym* nym = nullptr,
                       const bool* harvestingForRetry = nullptr);
     // Allocate theMsg on the heap (takes ownership.) Mapped by request num.
     // Note: AddSentMessage, if it finds a message already on the map with the

@@ -181,10 +181,10 @@ Identifier::Identifier(const Contract& theContract)
     (const_cast<Contract&>(theContract)).GetIdentifier(*this);
 }
 
-Identifier::Identifier(const OTPseudonym& theNym)
+Identifier::Identifier(const Nym& theNym)
     : OTData() // Get the Nym's ID into this identifier.
 {
-    (const_cast<OTPseudonym&>(theNym)).GetIdentifier(*this);
+    (const_cast<Nym&>(theNym)).GetIdentifier(*this);
 }
 
 Identifier::Identifier(const OTSymmetricKey& theKey)

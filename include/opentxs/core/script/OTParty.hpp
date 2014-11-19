@@ -143,13 +143,13 @@ class OTAgent;
 class Identifier;
 class OTNumList;
 class OTPartyAccount;
-class OTPseudonym;
+class Nym;
 class OTScript;
 class OTScriptable;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, OTAgent*> mapOfAgents;
-typedef std::map<std::string, OTPseudonym*> mapOfNyms;
+typedef std::map<std::string, Nym*> mapOfNyms;
 typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
 
 // Party is always either an Owner Nym, or an Owner Entity formed by Contract.
@@ -211,8 +211,8 @@ public:
     EXPORT OTParty(const char* szName, bool bIsOwnerNym, const char* szOwnerID,
                    const char* szAuthAgent, bool bCreateAgent = false);
     EXPORT OTParty(std::string str_PartyName,
-                   OTPseudonym& theNym, // Nym is BOTH owner AND agent, when
-                                        // using this constructor.
+                   Nym& theNym, // Nym is BOTH owner AND agent, when
+                                // using this constructor.
                    std::string str_agent_name, Account* pAccount = nullptr,
                    const std::string* pstr_account_name = nullptr,
                    int64_t lClosingTransNo = 0);
@@ -241,30 +241,29 @@ public:
     void HarvestAllTransactionNumbers(const String& strServerID);
     void HarvestOpeningNumber(const String& strServerID);
     void HarvestOpeningNumber(OTAgent& theAgent, const String& strServerID);
-    void HarvestOpeningNumber(OTPseudonym& theNym, const String& strServerID);
+    void HarvestOpeningNumber(Nym& theNym, const String& strServerID);
     void CloseoutOpeningNumber(const String& strServerID, bool bSave = false,
-                               OTPseudonym* pSignerNym = nullptr);
+                               Nym* pSignerNym = nullptr);
     void HarvestClosingNumbers(const String& strServerID, bool bSave = false,
-                               OTPseudonym* pSignerNym = nullptr);
+                               Nym* pSignerNym = nullptr);
     void HarvestClosingNumbers(OTAgent& theAgent, const String& strServerID);
-    void HarvestClosingNumbers(OTPseudonym& theNym, const String& strServerID);
+    void HarvestClosingNumbers(Nym& theNym, const String& strServerID);
     // Iterates through the agents.
     //
     bool DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
                                     const String& strOrigCronItem,
                                     String* pstrNote = nullptr,
                                     String* pstrAttachment = nullptr,
-                                    OTPseudonym* pActualNym = nullptr);
+                                    Nym* pActualNym = nullptr);
     // Iterates through the accounts.
     //
     bool DropFinalReceiptToInboxes(mapOfNyms* pNymMap,
-                                   const String& strServerID,
-                                   OTPseudonym& theServerNym,
+                                   const String& strServerID, Nym& theServerNym,
                                    const int64_t& lNewTransactionNumber,
                                    const String& strOrigCronItem,
                                    String* pstrNote = nullptr,
                                    String* pstrAttachment = nullptr);
-    bool SendNoticeToParty(bool bSuccessMsg, OTPseudonym& theServerNym,
+    bool SendNoticeToParty(bool bSuccessMsg, Nym& theServerNym,
                            const Identifier& theServerID,
                            const int64_t& lNewTransactionNumber,
                            // const int64_t& lInReferenceTo,
@@ -272,7 +271,7 @@ public:
                            const String& strReference,
                            String* pstrNote = nullptr,
                            String* pstrAttachment = nullptr,
-                           OTPseudonym* pActualNym = nullptr);
+                           Nym* pActualNym = nullptr);
     // This pointer isn't owned -- just stored for convenience.
     //
     OTScriptable* GetOwnerAgreement()
@@ -360,22 +359,21 @@ public:
     // If Nym is authorizing agent for Party, set agent's pointer to Nym and
     // return true.
     //
-    bool HasAgent(OTPseudonym& theNym,
+    bool HasAgent(Nym& theNym,
                   OTAgent** ppAgent = nullptr) const; // If Nym is agent for
                                                       // Party,
     // set agent's pointer to Nym
     // and return true.
     bool HasAgentByNymID(const Identifier& theNymID,
                          OTAgent** ppAgent = nullptr) const;
-    bool HasAuthorizingAgent(OTPseudonym& theNym,
-                             OTAgent** ppAgent = nullptr) const;
+    bool HasAuthorizingAgent(Nym& theNym, OTAgent** ppAgent = nullptr) const;
     bool HasAuthorizingAgentByNymID(const Identifier& theNymID,
                                     OTAgent** ppAgent = nullptr)
         const; // ppAgent lets you get the agent ptr if it was there.
     // Load the authorizing agent from storage. Set agent's pointer to Nym.
     //
-    OTPseudonym* LoadAuthorizingAgentNym(OTPseudonym& theSignerNym,
-                                         OTAgent** ppAgent = nullptr);
+    Nym* LoadAuthorizingAgentNym(Nym& theSignerNym,
+                                 OTAgent** ppAgent = nullptr);
     // Often we endeavor to avoid loading the same Nym twice, and a higher-level
     // function
     // will ask an OTParty for a list of all the Nym pointers that it already
@@ -417,18 +415,18 @@ public:
     bool HasAccountByID(const Identifier& theAcctID,
                         OTPartyAccount** ppPartyAccount = nullptr) const;
     bool VerifyOwnershipOfAccount(const Account& theAccount) const;
-    bool VerifyAccountsWithTheirAgents(OTPseudonym& theSignerNym,
+    bool VerifyAccountsWithTheirAgents(Nym& theSignerNym,
                                        const String& strServerID,
                                        bool bBurnTransNo = false);
     EXPORT bool CopyAcctsToConfirmingParty(OTParty& theParty)
         const; // When confirming a party, a new version replaces the original.
                // This is part of that process.
     void RegisterAccountsForExecution(OTScript& theScript);
-    bool LoadAndVerifyAgentNyms(OTPseudonym& theServerNym,
+    bool LoadAndVerifyAgentNyms(Nym& theServerNym,
                                 mapOfNyms& map_Nyms_Already_Loaded,
                                 mapOfNyms& map_NewlyLoaded);
 
-    bool LoadAndVerifyAssetAccounts(OTPseudonym& theServerNym,
+    bool LoadAndVerifyAssetAccounts(Nym& theServerNym,
                                     const String& strServerID,
                                     mapOfAccounts& map_Accts_Already_Loaded,
                                     mapOfAccounts& map_NewlyLoaded);
