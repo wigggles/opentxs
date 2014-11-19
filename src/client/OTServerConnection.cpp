@@ -162,6 +162,33 @@ extern "C" {
 
 namespace opentxs
 {
+
+// When a certain Nym opens a certain account on a certain server,
+// that account is put onto a list of accounts inside the wallet.
+// Therefore, a certain Nym's connection to a certain server will
+// occasionally require access to those accounts. Therefore the
+// server connection object needs to have a pointer to the wallet.
+// There might be MORE THAN ONE connection per wallet, or only one,
+// but either way the connections need a pointer to the wallet
+// they are associated with, so they can access those accounts.
+OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
+                                       OTSettings* pConfig)
+    : m_pSocket(new OTSocket_ZMQ_4())
+{
+    m_pNym = nullptr;
+    m_pServerContract = nullptr;
+    m_pWallet = theWallet;
+    m_pClient = theClient;
+
+    OTSocket::Defaults socketDefaults(
+        CLIENT_DEFAULT_LATENCY_SEND_MS, CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES,
+        CLIENT_DEFAULT_LATENCY_RECEIVE_MS,
+        CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES,
+        CLIENT_DEFAULT_LATENCY_DELAY_AFTER, CLIENT_DEFAULT_IS_BLOCKING);
+
+    m_pSocket->Init(socketDefaults, pConfig);
+}
+
 // When the server sends a reply back with our new request number, we
 // need to update our records accordingly.
 //
@@ -192,44 +219,6 @@ bool OTServerConnection::GetServerID(Identifier& theID) const
         return true;
     }
     return false;
-}
-
-// When a certain Nym opens a certain account on a certain server,
-// that account is put onto a list of accounts inside the wallet.
-// Therefore, a certain Nym's connection to a certain server will
-// occasionally require access to those accounts. Therefore the
-// server connection object needs to have a pointer to the wallet.
-// There might be MORE THAN ONE connection per wallet, or only one,
-// but either way the connections need a pointer to the wallet
-// they are associated with, so they can access those accounts.
-OTServerConnection::OTServerConnection(OTWallet& theWallet, OTClient& theClient,
-                                       OTSettings* pConfig)
-    : m_pSocket(new OTSocket_ZMQ_4())
-{
-    m_pNym = nullptr;
-    m_pServerContract = nullptr;
-    m_pWallet = &theWallet;
-    m_pClient = &theClient;
-
-    if (!m_pSocket) {
-        OT_FAIL;
-    }
-
-    const OTSocket::Defaults socketDefaults(
-        CLIENT_DEFAULT_LATENCY_SEND_MS, CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES,
-        CLIENT_DEFAULT_LATENCY_RECEIVE_MS,
-        CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES,
-        CLIENT_DEFAULT_LATENCY_DELAY_AFTER, CLIENT_DEFAULT_IS_BLOCKING);
-
-    m_pSocket->Init(socketDefaults, pConfig);
-}
-
-OTServerConnection::~OTServerConnection()
-{
-    if (m_pSocket) {
-        delete m_pSocket;
-        m_pSocket = nullptr;
-    }
 }
 
 void OTServerConnection::ProcessMessageOut(OTServerContract* pServerContract,

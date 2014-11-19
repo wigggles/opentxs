@@ -149,90 +149,9 @@ class OTServerContract;
 class OTWallet;
 class OTSettings;
 
-// This class represents the "test client"
-//
-// I have it separate from the wallet because I would like to be
-// able to use the wallet in a "nice client" too, so I'm forcing
-// the separation to keep it designed that way.
-//
-
 class OTClient
 {
-private:
-    OTWallet* m_pWallet; // NOT owned, but this pointer is here for convenience.
-
-    OTMessageBuffer m_MessageBuffer; // Incoming server replies are copied here
-                                     // for easy access.
-    OTMessageOutbuffer m_MessageOutbuffer; // Outgoing messages are copied here
-                                           // for easy access.
-
-    bool m_bRunningAsScript; // This is used to determine whether to activate
-                             // certain messages automatically in
-    // the client based on various server replies to previous requests (based on
-    // what mode it's being used in...
-    // if we're using the API, then NO auto-messages!) Similarly, if we're using
-    // the interpreted script, then NO auto
-    // messages. But if we are using the test client, aka the command line in
-    // --prompt mode, and the --script switch
-    // wasn't used to startup, (which would mean we're executing a script) then
-    // it's A-Okay to fire those auto messages.
-
-    void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
-                                      const String& str_trans,
-                                      String str_box_type,
-                                      const int64_t& lTransNum,
-                                      OTPseudonym& the_nym,
-                                      OTLedger& ledger) const;
-
-    struct ProcessServerReplyArgs;
-    void setRecentHash(const Message& theReply, const String& strServerID,
-                       OTPseudonym* pNym, bool setNymboxHash);
-    bool processServerReplyTriggerClause(const Message& theReply,
-                                         ProcessServerReplyArgs& args);
-    bool processServerReplyGetRequest(const Message& theReply,
-                                      ProcessServerReplyArgs& args);
-    bool processServerReplyCheckUser(const Message& theReply,
-                                     ProcessServerReplyArgs& args);
-    bool processServerReplyNotarizeTransactions(const Message& theReply,
-                                                ProcessServerReplyArgs& args);
-    bool processServerReplyGetTransactionNum(const Message& theReply,
-                                             ProcessServerReplyArgs& args);
-    bool processServerReplyGetNymBox(const Message& theReply, OTLedger* pNymbox,
-                                     ProcessServerReplyArgs& args);
-    bool processServerReplyGetBoxReceipt(const Message& theReply,
-                                         OTLedger* pNymbox,
-                                         ProcessServerReplyArgs& args);
-    bool processServerReplyProcessInbox(const Message& theReply,
-                                        OTLedger* pNymbox,
-                                        ProcessServerReplyArgs& args);
-    bool processServerReplyGetAccountFiles(const Message& theReply,
-                                           OTLedger* pNymbox,
-                                           ProcessServerReplyArgs& args);
-    bool processServerReplyGetContract(const Message& theReply,
-                                       ProcessServerReplyArgs& args);
-    bool processServerReplyGetMint(const Message& theReply);
-    bool processServerReplyGetMarketList(const Message& theReply);
-    bool processServerReplyGetMarketOffers(const Message& theReply);
-    bool processServerReplyGetMarketRecentTrades(const Message& theReply);
-    bool processServerReplyGetNymMarketOffers(const Message& theReply);
-    bool processServerReplyDeleteUserAccount(const Message& theReply,
-                                             ProcessServerReplyArgs& args);
-    bool processServerReplyDeleteAssetAccount(const Message& theReply,
-                                              ProcessServerReplyArgs& args);
-    bool processServerReplyIssueAssetType(const Message& theReply,
-                                          ProcessServerReplyArgs& args);
-    bool processServerReplyCreateAccount(const Message& theReply,
-                                         ProcessServerReplyArgs& args);
-
 public:
-    bool IsRunningAsScript() const
-    {
-        return m_bRunningAsScript;
-    }
-    void SetRunningAsScript()
-    {
-        m_bRunningAsScript = true;
-    } // (default is false.)
     enum OT_CLIENT_CMD_TYPE {
         checkServerID, // Your public key is sent along with this message so the
                        // server can reply to
@@ -294,56 +213,26 @@ public:
         badID
     };
 
-    // Right now this wallet just supports a SINGLE server connection.
-    // Eventually it will be a whole list of server connections.
-    // For now one is good enough for testing.
-    // All commands for the server will be sent here.
-    //
-    // Here was the problem, you see: You can't attach the connection to the
-    // Nym,
-    // because the same Nym might have connections to different servers. And you
-    // can't
-    // attach it to the server contract, because the user might access that
-    // server
-    // through multiple nym accounts on the same server.
-    // So I decided the wallet should manage the connections, and when new
-    // connections
-    // are made, the serverconnection object will be given a pointer at that
-    // time to
-    // the server and nym for that connection. That way the two are always
-    // available
-    // for processing the commands.
-
-    OTServerConnection* m_pConnection;
+public:
+    OTClient(OTWallet* theWallet, OTSettings* pConfig);
+    ~OTClient();
 
     inline OTMessageBuffer& GetMessageBuffer()
     {
         return m_MessageBuffer;
     }
+
     inline OTMessageOutbuffer& GetMessageOutbuffer()
     {
         return m_MessageOutbuffer;
     }
 
-    // Eventually, the wallet will have a LIST of these server connections,
-    // and any use of the connection will first require to look up the right one
-    // on that list, based on ID. This will return a pointer, and then you do
-    // the same call you normally did from there.
-
-    OTClient();
-    ~OTClient();
-
-    bool InitClient(OTWallet& theWallet, OTSettings* pConfig);
-    bool m_bInitialized; // this will be false until InitClient() is called.
-    // These functions manipulate the internal m_pConnection member:
     void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
                            const Message& theMessage);
     bool ProcessInBuffer(const Message& theServerReply) const;
-    // These functions are for command processing:
 
     EXPORT int32_t ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
                                       Message& theMessage, OTPseudonym& theNym,
-                                      // OTAssetContract& theContract,
                                       const OTServerContract& theServer,
                                       const Account* pAccount = nullptr,
                                       int64_t lTransactionAmount = 0,
@@ -352,10 +241,7 @@ public:
                                       const Identifier* pHisAcctID = nullptr);
 
     bool processServerReply(std::shared_ptr<Message> theReply,
-                            OTLedger* pNymbox = nullptr); // IF the Nymbox is
-                                                          // passed in, then use
-    // that one, where appropriate, instead
-    // of loading it internally.
+                            OTLedger* pNymbox = nullptr);
     void ProcessIncomingTransactions(OTServerConnection& theConnection,
                                      const Message& theReply) const;
     void ProcessWithdrawalResponse(OTTransaction& theTransaction,
@@ -367,16 +253,63 @@ public:
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
                                     const OTServerConnection& theConnection,
                                     const Message& theReply) const;
-
-    //  void AcceptEntireNymbox(OTLedger& theNymbox, OTServerConnection&
-    // theConnection);
-
     bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theServerID,
                             const OTServerContract& theServerContract,
                             OTPseudonym& theNym, Message& theMessage);
 
-    // void HarvestTransactionNumbers(OTTransaction& theTransaction,
-    // OTPseudonym& theNym);
+private:
+    void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
+                                      const String& str_trans,
+                                      String str_box_type,
+                                      const int64_t& lTransNum,
+                                      OTPseudonym& the_nym,
+                                      OTLedger& ledger) const;
+
+    struct ProcessServerReplyArgs;
+    void setRecentHash(const Message& theReply, const String& strServerID,
+                       OTPseudonym* pNym, bool setNymboxHash);
+    bool processServerReplyTriggerClause(const Message& theReply,
+                                         ProcessServerReplyArgs& args);
+    bool processServerReplyGetRequest(const Message& theReply,
+                                      ProcessServerReplyArgs& args);
+    bool processServerReplyCheckUser(const Message& theReply,
+                                     ProcessServerReplyArgs& args);
+    bool processServerReplyNotarizeTransactions(const Message& theReply,
+                                                ProcessServerReplyArgs& args);
+    bool processServerReplyGetTransactionNum(const Message& theReply,
+                                             ProcessServerReplyArgs& args);
+    bool processServerReplyGetNymBox(const Message& theReply, OTLedger* pNymbox,
+                                     ProcessServerReplyArgs& args);
+    bool processServerReplyGetBoxReceipt(const Message& theReply,
+                                         OTLedger* pNymbox,
+                                         ProcessServerReplyArgs& args);
+    bool processServerReplyProcessInbox(const Message& theReply,
+                                        OTLedger* pNymbox,
+                                        ProcessServerReplyArgs& args);
+    bool processServerReplyGetAccountFiles(const Message& theReply,
+                                           OTLedger* pNymbox,
+                                           ProcessServerReplyArgs& args);
+    bool processServerReplyGetContract(const Message& theReply,
+                                       ProcessServerReplyArgs& args);
+    bool processServerReplyGetMint(const Message& theReply);
+    bool processServerReplyGetMarketList(const Message& theReply);
+    bool processServerReplyGetMarketOffers(const Message& theReply);
+    bool processServerReplyGetMarketRecentTrades(const Message& theReply);
+    bool processServerReplyGetNymMarketOffers(const Message& theReply);
+    bool processServerReplyDeleteUserAccount(const Message& theReply,
+                                             ProcessServerReplyArgs& args);
+    bool processServerReplyDeleteAssetAccount(const Message& theReply,
+                                              ProcessServerReplyArgs& args);
+    bool processServerReplyIssueAssetType(const Message& theReply,
+                                          ProcessServerReplyArgs& args);
+    bool processServerReplyCreateAccount(const Message& theReply,
+                                         ProcessServerReplyArgs& args);
+
+private:
+    OTServerConnection* m_pConnection;
+    OTWallet* m_pWallet;
+    OTMessageBuffer m_MessageBuffer;
+    OTMessageOutbuffer m_MessageOutbuffer;
 };
 
 } // namespace opentxs

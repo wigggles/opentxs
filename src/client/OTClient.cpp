@@ -1,8 +1,8 @@
 /************************************************************
-*
-*  OTClient.hpp
-*
-*/
+ *
+ *  OTClient.cpp
+ *
+ */
 
 /************************************************************
  -----BEGIN PGP SIGNED MESSAGE-----
@@ -134,17 +134,14 @@
 
 #include <opentxs/client/OTClient.hpp>
 #include <opentxs/client/OTServerConnection.hpp>
-#include "Helpers.hpp"
 #include <opentxs/client/OTWallet.hpp>
+#include "Helpers.hpp"
 
 #include <opentxs/ext/OTPayment.hpp>
-
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/cash/Token.hpp>
-
 #include <opentxs/basket/Basket.hpp>
-
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
@@ -171,6 +168,22 @@
 namespace opentxs
 {
 
+OTClient::OTClient(OTWallet* theWallet, OTSettings* pConfig)
+    : m_pConnection(new OTServerConnection(theWallet, this, pConfig))
+    , m_pWallet(theWallet)
+    , m_MessageBuffer()
+    , m_MessageOutbuffer()
+{
+}
+
+OTClient::~OTClient()
+{
+    if (m_pConnection) {
+        delete m_pConnection;
+        m_pConnection = nullptr;
+    }
+}
+
 void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
                                  OTPseudonym* pNym, const Message& theMessage)
 {
@@ -193,13 +206,12 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
     // later in the Nymbox, and then worst case, look it up in the Outbuffer and
     // get my fucking transaction numbers back again!
 
-    Message* pMsg = new Message; // a copy.
+    Message* pMsg = new Message;
     OT_ASSERT(nullptr != pMsg);
 
     if (pMsg->LoadContractFromString(strMessage))
         m_MessageOutbuffer.AddSentMessage(*pMsg);
     else {
-        // todo, log here.
         delete pMsg;
         pMsg = nullptr;
     }
@@ -214,7 +226,6 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
 /// That is, to just accept everything there.
 //
 bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
-                                  // OTServerConnection& theConnection,
                                   const Identifier& theServerID,
                                   const OTServerContract& theServerContract,
                                   OTPseudonym& theNym, Message& theMessage)
@@ -233,11 +244,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
         return false;
     }
     OTPseudonym* pNym = &theNym;
-    //    OTPseudonym * pNym    = theConnection.GetNym();
 
-    //    OTIdentifier theServerID;
-    //    theConnection.GetServerID(theServerID);
-    //
     const Identifier theNymID(*pNym);
     const String strServerID(theServerID), strNymID(theNymID);
 
@@ -351,18 +358,11 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                      "in Nymbox, even after supposedly loading "
                                      "all box receipts. (And it's not a "
                                      "replyNotice, either!)\n";
-            //            return false;
         }
-
-        //        OTString strTransaction(*pTransaction);
-        //        otErr << "TRANSACTION CONTENTS:\n" << strTransaction << "\n";
 
         String strRespTo;
         pTransaction->GetReferenceString(strRespTo);
-        //        otErr << "TRANSACTION \"IN REFERENCE TO\"
-        // CONTENTS:\n" << strRespTo << "\n";
-        // MESSAGE (From Another Nym)
-        //
+
         if ((OTTransaction::message == pTransaction->GetType())) {
             OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
                 *pAcceptTransaction, OTItem::acceptMessage);
@@ -416,7 +416,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                 delete pMessage; // Don't want to leak otherwise.
                 pMessage = nullptr;
             }
-        } // if message
+        }
 
         // INSTRUMENT (From Another Nym)
         //
@@ -444,7 +444,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             otInfo << __FUNCTION__
                    << ": Received an encrypted instrument in your Nymbox:\n"
                    << strRespTo << "\n";
-        } // if instrument
+        }
 
         // SERVER NOTIFICATION
         //
@@ -469,16 +469,12 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             pAcceptItem->SignContract(*pNym);
             pAcceptItem->SaveContract();
 
-            //            otOut << __FUNCTION__ << ": Received a server
-            // notification
-            // in your Nymbox:\n" << strRespTo << "\n";
-
             // Todo: stash these somewhere, just like messages are in the
             // pNym->AddMail() feature.
             // NOTE: Most likely we still stash these in the paymentInbox just
             // the same as instrumentNotice (above)
 
-        } // if notice
+        }
 
         // It's a NEW Transaction Number that I ALREADY signed for, and this
         // notice means it was a success.
@@ -939,12 +935,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             }
         }
 
-        if (ProcessUserCommand(
-                OTClient::processNymbox, theMessage, *pNym,
-                //                                *(pAssetContract),
-                theServerContract,
-                //                               *(theConnection.GetServerContract()),
-                nullptr) > 0) {
+        if (ProcessUserCommand(OTClient::processNymbox, theMessage, *pNym,
+                               theServerContract, nullptr) > 0) {
             // the message is all set up and ready to go out... it's even
             // signed.
             // Except the ledger we're sending, still needs to be added, and
@@ -1111,17 +1103,17 @@ void OTClient::load_str_trans_add_to_ledger(
                     else if (OTLedger::expiredBox == ledger.GetType())
                         ledger.SaveExpiredBox();
 
-                    if (!pCopy->SaveBoxReceipt(ledger)) // <===================
+                    if (!pCopy->SaveBoxReceipt(ledger))
                         otErr
                             << __FUNCTION__ << ": " << str_box_type
                             << " Failed trying to SaveBoxReceipt. Contents:\n\n"
                             << str_trans << "\n\n";
                 }
             }
-        } // else (pCopy not null.)
-    }     // if this transaction wasn't already in the paymentInbox / recordBox
-          // (whichever was passed in)...
-    // else it WAS already there, so do nothing. (No need to add it twice.)
+        }
+    } // if this transaction wasn't already in the paymentInbox / recordBox
+      // (whichever was passed in)...
+      // else it WAS already there, so do nothing. (No need to add it twice.)
 } // void load_str_trans_add_to_ledger
 
 /// We have received the server reply (ProcessServerReply) which has vetted it
@@ -1726,7 +1718,6 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                      .VerifyContractID() &&
                                                  thePmntInbox.VerifySignature(
                                                      *pNym));
-                                        //                                      bSuccessLoading1
                                         // =
                                         // (thePmntInbox.VerifyAccount(*pNym));
                                         // // (No need to load all the Box
@@ -1743,7 +1734,6 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                      .VerifyContractID() &&
                                                  theRecordBox.VerifySignature(
                                                      *pNym));
-                                        //                                      bSuccessLoading2
                                         // =
                                         // (theRecordBox.VerifyAccount(*pNym));
                                         // // (No need to load all the Box
@@ -2365,7 +2355,6 @@ void OTClient::ProcessPayDividendResponse(
     OTPseudonym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
-    //    OTWallet * pWallet = theConnection.GetWallet();
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to pay dividend.
@@ -2400,7 +2389,6 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
     OTPseudonym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
-    //    OTWallet * pWallet = theConnection.GetWallet();
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to deposit.
@@ -2762,7 +2750,6 @@ void OTClient::ProcessWithdrawalResponse(
 
                 theWalletPurse.LoadPurse(strServerID.Get(), strUserID.Get(),
                                          strAssetID.Get());
-                //                if Load, theWalletPurse.VerifySignature();
 
                 bool bSuccess = false;
 
@@ -2829,7 +2816,7 @@ void OTClient::ProcessWithdrawalResponse(
                             delete pOriginalToken;
                             pOriginalToken = nullptr;
                         }
-                    } // while (pToken = thePurse.Pop(*pNym))
+                    }
                 }
 
                 if (bSuccess) {
@@ -2846,9 +2833,9 @@ void OTClient::ProcessWithdrawalResponse(
                     otOut << "SUCCESSFULLY UNBLINDED token, and added the cash "
                              "to the local purse, and saved.\n";
                 }
-            } // if (thePurse.LoadContractFromString(strPurse))
+            }
         }
-    } // for
+    }
 }
 
 struct OTClient::ProcessServerReplyArgs
@@ -2950,8 +2937,6 @@ bool OTClient::processServerReplyCheckUser(const Message& theReply,
     if (bHasCredentials) // New style of doing things, for Nym keys.
                          // Credentials!
     {
-        // credentialList
-        //
         String strCredentialList;
         ascArmor.GetString(strCredentialList);
 
@@ -3073,8 +3058,7 @@ bool OTClient::processServerReplyNotarizeTransactions(
     const Message& theReply, ProcessServerReplyArgs& args)
 {
     otOut << "Received server response to notarize Transactions message.\n";
-    //        otOut << "Received server response to notarize
-    // Transactions message:\n" << strReply << "\n";
+
     setRecentHash(theReply, args.strServerID, args.pNym, false);
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
@@ -3096,10 +3080,7 @@ bool OTClient::processServerReplyNotarizeTransactions(
 bool OTClient::processServerReplyGetTransactionNum(const Message& theReply,
                                                    ProcessServerReplyArgs& args)
 {
-
     otOut << "Received server response to Get Transaction Num message.\n";
-    //        otOut << "Received server response to Get Transaction
-    // Num message:\n" << strReply << "\n";
 
     setRecentHash(theReply, args.strServerID, args.pNym, false);
     return true;
@@ -3236,11 +3217,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
         break;
     }
 
-    if (bSuccessLoading && !bErrorCondition)
-    //            &&  pLedger->VerifyAccount(*pServerNym)) // commenting
-    // this out for now -- unnecessary. Plus, it speeds things up to
-    // remove this.
-    {
+    if (bSuccessLoading && !bErrorCondition) {
         // At this point, the ledger is loaded. Now let's use it for what we
         // really
         // wanted: To save the Box Receipt!
@@ -3496,8 +3473,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
     String strServerID(SERVER_ID), strReply(theReply);
 
     otOut << "Received server response: " << theReply.m_strCommand << " \n";
-    //        otOut << "Received server response to processInbox or
-    // processNymbox message:\n" << strReply << "\n";
+
     setRecentHash(theReply, args.strServerID, args.pNym, false);
     // If the server acknowledges either of the above commands, then my
     // transaction
@@ -6980,7 +6956,6 @@ bool OTClient::processServerReplyGetContract(const Message& theReply,
     // is good enough?
     // After all, the message IS signed by the server and contains the
     // Account.
-    //        if (pContract->LoadContract() && pContract->VerifyContract())
     if (pContract->LoadContractFromString(strContract) &&
         pContract->VerifyContract()) {
         // Next make sure the wallet has this contract on its list...
@@ -6992,7 +6967,7 @@ bool OTClient::processServerReplyGetContract(const Message& theReply,
                                  // to clean it up.
         }
     }
-    // cleanup
+
     if (pContract) {
         delete pContract;
         pContract = nullptr;
@@ -7341,7 +7316,6 @@ bool OTClient::processServerReplyDeleteUserAccount(const Message& theReply,
         theOriginalMessage.VerifySignature(*pNym) &&
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
         theOriginalMessage.m_strCommand.Compare("deleteUserAccount")) {
-        // O-kayy!!
 
         while (pNym->GetTransactionNumCount(SERVER_ID) > 0) {
             int64_t lTemp = pNym->GetTransactionNum(SERVER_ID, 0); // index 0
@@ -7391,7 +7365,6 @@ bool OTClient::processServerReplyDeleteAssetAccount(
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
         theOriginalMessage.m_strAcctID.Compare(theReply.m_strAcctID) &&
         theOriginalMessage.m_strCommand.Compare("deleteAssetAccount")) {
-        // O-kayy!!
 
         const Identifier theAccountID(theReply.m_strAcctID);
 
@@ -8051,9 +8024,6 @@ int32_t OTClient::ProcessUserCommand(
                                                          // a server request, I
                                                          // have to increment it
 
-        //        otOut << "(User has instructed to send a deleteUserAccount
-        // command to the server...)\n";
-
         // (1) set up member variables
         theMessage.m_strCommand = "deleteUserAccount";
         theMessage.m_strNymID = strNymID;
@@ -8155,7 +8125,6 @@ int32_t OTClient::ProcessUserCommand(
             return (-1);
         }
 
-        //
         // "from acct" is the acct we are depositing this cash to. aka MyAcct.
         const Identifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
 
@@ -8480,8 +8449,7 @@ int32_t OTClient::ProcessUserCommand(
             delete pTransaction;
             pTransaction = nullptr;
         }
-    } // else if (OTClient::notarizePurse == requestedCommand) // NOTARIZE PURSE
-    break;
+    } break;
     case OTClient::notarizeCheque: // DEPOSIT CHEQUE
     {
         String strFromAcct;
@@ -8722,9 +8690,7 @@ int32_t OTClient::ProcessUserCommand(
                                      lStoredTransactionNumber,
                                      true); // bSave=true
         }
-    } // else if (OTClient::notarizeCheque == requestedCommand) // DEPOSIT
-      // CHEQUE
-    break;
+    } break;
     case OTClient::getTransactionNum: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -8818,10 +8784,6 @@ int32_t OTClient::ProcessUserCommand(
             // User input.
             // I need a from account
             strRecipientNym.OTfgets(std::cin);
-
-            //            if (strRecipientNym.GetLength() < 2) // blank cheques
-            // are allowed.
-            //                return (-1);
         }
         else {
             pHisNymID->GetString(strRecipientNym);
@@ -9095,79 +9057,14 @@ int32_t OTClient::ProcessUserCommand(
             otOut << "Unable to load payment plan from string. Sorry.\n";
         }
 
-    } // else if (OTClient::paymentPlan == requestedCommand) // PAYMENT PLAN
-
-    /*
-    else if (OTClient::withdrawTest == requestedCommand) // TEST OF TOKEN
-    BLINDING. NOT PART OF THE REAL PROTOCOL.
-    {
-    // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
-    theMessage.m_strRequestNum.Format("%" PRId64 "", lRequestNumber); // Always
-    have to
-    send this.
-    theNym.IncrementRequestNum(strServerID); // since I used it for a server
-    request, I have to increment it
-
-    // (1) Set up member variables
-    theMessage.m_strCommand            = "debitAccount";
-    theMessage.m_strNymID            = strNymID;
-    theMessage.m_strServerID        = strServerID;
-    theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-    theMessage.m_strServerID is already set. (It uses it.)
-
-    theMessage.m_strAssetID            = strContractID;// the hash of the
-    contract is the AssetID
-
-    // (2) Sign the Message
-    OTContract& aSigningDoc = theMessage;
-    aSigningDoc.SignContract(theNym);
-
-    // (3) Save the Message (with signatures and all, back to its internal
-    member m_strRawFile.)
-    theMessage.SaveContract();
-
-    bSendCommand = true;
-    }
-    */
-    break;
+    } break;
 
     default: {
         otOut << "\n";
     }
-    } // Get out og the big switch statement!
+    }
 
     return static_cast<int32_t>(lReturnValue);
-}
-
-/// Need to call this before using.
-bool OTClient::InitClient(OTWallet& theWallet, OTSettings* pConfig)
-{
-    if (m_bInitialized) {
-        otWarn
-            << "OTClient::InitClient: Already initialized. (Returning true.)\n";
-        return false;
-    }
-    m_bInitialized = true;
-
-    m_pConnection = new OTServerConnection(theWallet, *this, pConfig);
-    m_pWallet = &theWallet;
-
-    return true;
-}
-
-OTClient::OTClient()
-    : m_pWallet(nullptr)
-    , m_bRunningAsScript(false)
-    , m_pConnection(nullptr)
-    , m_bInitialized(false)
-{
-}
-
-OTClient::~OTClient()
-{
-    if (nullptr != m_pConnection) delete m_pConnection;
-    m_pConnection = nullptr;
 }
 
 } // namespace opentxs

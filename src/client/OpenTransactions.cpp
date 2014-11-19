@@ -680,14 +680,6 @@ bool OT_API::Init()
         OT_FAIL;
     }
 
-    static bool bConstruct = false;
-
-    if (!bConstruct) {
-        bConstruct = true;
-        m_pWallet = new OTWallet;
-        m_pClient = new OTClient;
-    }
-
     std::shared_ptr<OTSettings> pConfig(LoadConfigFile());
 
     if (!pConfig) {
@@ -731,19 +723,12 @@ bool OT_API::Init()
     {
         otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
-        if (m_bInitialized)
-            otWarn << __FUNCTION__ << ": m_pClient->InitClient() was already "
-                                      "initialized. (Skipping.)\n";
-        else {
-            m_bInitialized = m_pClient->InitClient(*m_pWallet, pConfig.get());
-            if (m_bInitialized)
-                otWarn << __FUNCTION__
-                       << ": Success invoking m_pClient->InitClient() \n";
-            else
-                otErr << __FUNCTION__
-                      << ": Failed invoking m_pClient->InitClient()\n";
+        if (!m_bInitialized) {
+            m_pWallet = new OTWallet();
+            m_pClient = new OTClient(m_pWallet, pConfig.get());
+            m_bInitialized = true;
         }
-        return m_bInitialized;
+        return true;
     }
     else
         otErr << __FUNCTION__ << ": Failed invoking OTDB::InitDefaultStorage\n";
