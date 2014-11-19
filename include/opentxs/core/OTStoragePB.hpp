@@ -166,57 +166,6 @@
 #pragma GCC diagnostic pop
 #endif
 
-// To make subclasses of the various data objects (for Protocol Buffers):
-//
-// typedef ProtobufSubclass<theBaseType, theInternalType> theType;
-//
-// Also, REMEMBER for each object type declared, to add the hooks to the CPP
-// file.
-// (Instructions are below.)
-//
-/*
-REPLACING OT_PROTOBUF_DECLARE() WITH A TEMPLATE FOR NOW...
-
-#define OT_PROTOBUF_DECLARE(theType, theBaseType, theInternalType) \
-class theType : public theBaseType, implements IStorablePB \
-{        \
-private: \
-theInternalType __pb_obj; \
-protected: \
-theType() : theBaseType() { } \
-public: \
-::google::protobuf::MessageLite& getPBMessage() { return
-dynamic_cast<::google::protobuf::MessageLite>(__pb_obj); } \
-static Storable* Instantiate() { return dynamic_cast<Storable*>(new
-theType()); } \
-virtual ~theType() { } \
-virtual void hookBeforePack(); \
-virtual void hookAfterUnpack(); \
-}
-//    OT_PROTOBUF_DECLARE(BitcoinAcctPB, BitcoinAcct, BitcoinAcct_InternalPB);
-//    OT_PROTOBUF_DECLARE(BitcoinServerPB, BitcoinServer,
-BitcoinServer_InternalPB);
-
-
-
-#define DECLARE_PACKED_BUFFER_SUBCLASS(theNewType, thePackerType,
-theInterfaceType, theInternalType) \
-class theNewType : public PackedBuffer \
-{ \
-friend class        thePackerType; \
-friend OTInterface    theInterfaceType; \
-theInternalType        m_buffer; \
-\
-public: \
-theNewType() : PackedBuffer() {} \
-virtual ~theNewType(); \
-virtual bool PackString(std::string& theString); \
-virtual bool UnpackString(std::string& theString); \
-virtual bool ReadFromIStream(std::istream &inStream, int64_t lFilesize); \
-virtual bool WriteToOStream(std::ostream &outStream); \
-}
-*/
-
 namespace opentxs
 {
 
@@ -236,11 +185,33 @@ EndInterface
     // BUFFER for Protocol Buffers.
     // Google's protocol buffers serializes to std::strings and streams. How
     // conveeeeeenient.
-    //
-    // typedef PackedBufferSubclass<PackerPB, IStorablePB, std::string>
-    // BufferPB;
-    DECLARE_PACKED_BUFFER_SUBCLASS(BufferPB, PackerSubclass<BufferPB>,
-                                   IStorablePB, std::string);
+
+    class BufferPB : public PackedBuffer
+{
+    friend class PackerSubclass<BufferPB>;
+    friend OTInterface IStorablePB;
+    std::string m_buffer;
+
+public:
+    BufferPB()
+        : PackedBuffer()
+    {
+    }
+    virtual ~BufferPB()
+    {
+    }
+    virtual bool PackString(std::string& theString);
+    virtual bool UnpackString(std::string& theString);
+    virtual bool ReadFromIStream(std::istream& inStream, int64_t lFilesize);
+    virtual bool WriteToOStream(std::ostream& outStream);
+    virtual const uint8_t* GetData();
+    virtual size_t GetSize();
+    virtual void SetData(const uint8_t* pData, size_t theSize);
+    std::string& GetBuffer()
+    {
+        return m_buffer;
+    }
+};
 
 // Protocol Buffers packer.
 //
