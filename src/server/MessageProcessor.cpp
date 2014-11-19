@@ -260,36 +260,33 @@ void MessageProcessor::run()
             // roll over every 15 heartbeats.
             // Therefore I will be using a real Timer for Cron, instead of the
             // damn intervals.
+
             bool received = socket_.Receive(messageString);
 
             if (received) {
-                if (messageString.size() <= 0) {
-                    OTLog::Error("server main: Received a message, but of 0 "
-                                 "length or less. Weird. (Skipping it.)\n");
+                OTLog::vOutput(0, "received message:\n");
+                OTLog::vOutput(0, "%s\n", messageString.c_str());
+
+                if (messageString.size() == 0) {
+                    OTLog::Error("skipping zero-length message\n");
                 }
                 else {
                     std::string reply;
-                    bool shouldDisconnect =
-                        processMessage(messageString, reply);
 
-                    if (reply.length() <= 0 || shouldDisconnect) {
-                        OTLog::vOutput(
-                            0, "server main: ERROR: Unfortunately, not every "
-                               "client request is "
-                               "legible or worthy of a server response. :-)  "
-                               "Msg:\n\n%s\n\n",
-                            messageString.c_str());
+                    bool error = processMessage(messageString, reply);
+
+                    if (error) {
+                        reply = "";
                     }
-                    else {
-                        bool successSending = socket_.Send(reply.c_str());
 
-                        if (!successSending) {
-                            OTLog::vError("server main: Socket ERROR: failed "
-                                          "while trying to send reply "
-                                          "back to client! \n\n "
-                                          "MESSAGE:\n%s\n\nREPLY:\n%s\n\n",
-                                          messageString.c_str(), reply.c_str());
-                        }
+                    bool successSending = socket_.Send(reply.c_str());
+
+                    if (!successSending) {
+                        OTLog::vError("server main: Socket ERROR: failed "
+                                      "while trying to send reply "
+                                      "back to client! \n\n "
+                                      "MESSAGE:\n%s\n\nREPLY:\n%s\n\n",
+                                      messageString.c_str(), reply.c_str());
                     }
                 }
             }

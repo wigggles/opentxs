@@ -373,11 +373,6 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
         OT_FAIL;
     }
 
-    if (0 >= ascEnvelope.GetLength()) {
-        OTLog::vError("%s: Error: %s is zero length!\n", __FUNCTION__,
-                      "ascEnvelope");
-        OT_FAIL;
-    }
     m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
 
     if (!m_HasContext) {
