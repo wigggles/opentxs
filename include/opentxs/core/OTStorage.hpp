@@ -164,14 +164,6 @@
 // Much of OT might be separable out into a more general-purpose utility
 // lib, which I will get to whenever it is more important than anything else.
 //
-#define DeclareInterface(name)                                                 \
-    class name                                                                 \
-    {                                                                          \
-    public:                                                                    \
-        virtual ~name()                                                        \
-        {                                                                      \
-        }
-
 #define DeclareBasedInterface(name, base)                                      \
     class name : public base                                                   \
     {                                                                          \
@@ -343,20 +335,31 @@ extern OTDB::mapOfFunctions* pFunctionMap; // This is a pointer so I can control
 // interface
 // derived from IStorable (They're all listed somewhere below.)
 //
-DeclareInterface(IStorable) virtual bool onPack(
-    PackedBuffer& theBuffer,
-    Storable& inObj) = 0; // buffer is output, inObj is input.
-virtual bool onUnpack(PackedBuffer& theBuffer,
-                      Storable& outObj) = 0; // buffer is input, outObj is
-                                             // output.
-virtual void hookBeforePack()
+
+class IStorable
 {
-} // This is called just before packing a storable. (Opportunity to copy
-  // values...)
-virtual void hookAfterUnpack()
-{
-} // This is called just after unpacking a storable. (Opportunity to copy
-  // values...)
+public:
+    virtual ~IStorable()
+    {
+    }
+
+    // buffer is output, inObj is input.
+    virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj) = 0;
+
+    // buffer is input, outObj is output.
+    virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj) = 0;
+
+    // This is called just before packing a storable. (Opportunity to copy
+    // values...)
+    virtual void hookBeforePack()
+    {
+    }
+
+    // This is called just after unpacking a storable. (Opportunity to copy
+    // values...)
+    virtual void hookAfterUnpack()
+    {
+    }
 };
 
 #endif // (not) SWIG
