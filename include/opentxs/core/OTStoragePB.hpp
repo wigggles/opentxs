@@ -174,22 +174,27 @@ namespace OTDB
 
 // Interface:    IStorablePB
 //
-DeclareBasedInterface(IStorablePB,
-                      IStorable) virtual ::google::protobuf::MessageLite
-    * getPBMessage();
-virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj);
-virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj);
-OT_USING_ISTORABLE_HOOKS;
-EndInterface
+class IStorablePB : public IStorable
+{
+public:
+    virtual ~IStorablePB()
+    {
+    }
 
-    // BUFFER for Protocol Buffers.
-    // Google's protocol buffers serializes to std::strings and streams. How
-    // conveeeeeenient.
+    virtual ::google::protobuf::MessageLite* getPBMessage();
+    virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj);
+    virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj);
+    OT_USING_ISTORABLE_HOOKS;
+};
 
-    class BufferPB : public PackedBuffer
+// BUFFER for Protocol Buffers.
+// Google's protocol buffers serializes to std::strings and streams. How
+// conveeeeeenient.
+
+class BufferPB : public PackedBuffer
 {
     friend class PackerSubclass<BufferPB>;
-    friend OTInterface IStorablePB;
+    friend class IStorablePB;
     std::string m_buffer;
 
 public:
@@ -221,7 +226,7 @@ typedef PackerSubclass<BufferPB> PackerPB;
 //
 template <class theBaseType, class theInternalType,
           StoredObjectType theObjectType>
-class ProtobufSubclass : public theBaseType, implements IStorablePB
+class ProtobufSubclass : public theBaseType, public IStorablePB
 {
 private:
     theInternalType __pb_obj;

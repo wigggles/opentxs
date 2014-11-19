@@ -150,44 +150,6 @@
 #define OTDB_DEFAULT_PACKER OTDB::PACK_PROTOCOL_BUFFERS
 #define OTDB_DEFAULT_STORAGE OTDB::STORE_FILESYSTEM
 
-// JAVA-STYLE INTERFACES.
-//
-// I'm doing some crazy stuff in this file.
-// What you see below is a set of preprocessor definitions that
-// allow me to use "Java-Style Interfaces" here in C++.
-//
-// It turns out that Storable needed a normal class hierarchy, AND Java-
-// style interfaces, to do everything I wanted it to do.
-//
-// I will probably create a more general-purpose header file for OT
-// and these sorts of #defines will probably end up there int64_t-term.
-// Much of OT might be separable out into a more general-purpose utility
-// lib, which I will get to whenever it is more important than anything else.
-//
-#define OTInterface class
-
-#define DeclareInterface(name)                                                 \
-    OTInterface name                                                           \
-    {                                                                          \
-    public:                                                                    \
-        virtual ~name()                                                        \
-        {                                                                      \
-        }
-
-#define DeclareBasedInterface(name, base)                                      \
-    class name : public base                                                   \
-    {                                                                          \
-    public:                                                                    \
-        virtual ~name()                                                        \
-        {                                                                      \
-        }
-
-#define EndInterface                                                           \
-    }                                                                          \
-    ;
-
-#define implements public
-
 #endif // (not) SWIG
 
 namespace opentxs
@@ -349,21 +311,32 @@ extern OTDB::mapOfFunctions* pFunctionMap; // This is a pointer so I can control
 // interface
 // derived from IStorable (They're all listed somewhere below.)
 //
-DeclareInterface(IStorable) virtual bool onPack(
-    PackedBuffer& theBuffer,
-    Storable& inObj) = 0; // buffer is output, inObj is input.
-virtual bool onUnpack(PackedBuffer& theBuffer,
-                      Storable& outObj) = 0; // buffer is input, outObj is
-                                             // output.
-virtual void hookBeforePack()
+
+class IStorable
 {
-} // This is called just before packing a storable. (Opportunity to copy
-  // values...)
-virtual void hookAfterUnpack()
-{
-} // This is called just after unpacking a storable. (Opportunity to copy
-  // values...)
-EndInterface
+public:
+    virtual ~IStorable()
+    {
+    }
+
+    // buffer is output, inObj is input.
+    virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj) = 0;
+
+    // buffer is input, outObj is output.
+    virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj) = 0;
+
+    // This is called just before packing a storable. (Opportunity to copy
+    // values...)
+    virtual void hookBeforePack()
+    {
+    }
+
+    // This is called just after unpacking a storable. (Opportunity to copy
+    // values...)
+    virtual void hookAfterUnpack()
+    {
+    }
+};
 
 #endif // (not) SWIG
 
@@ -397,11 +370,11 @@ EndInterface
     }
 #endif // (not) SWIG
 
-    // STORABLE
-    //
-    // Abstract base class for OT serializable object types.
-    //
-    class Storable
+// STORABLE
+//
+// Abstract base class for OT serializable object types.
+//
+class Storable
 {
 protected:
     Storable()
