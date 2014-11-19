@@ -6668,9 +6668,9 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
-                                                 OTLedger* pNymbox,
-                                                 ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyGetAccountData(const Message& theReply,
+                                                OTLedger* pNymbox,
+                                                ProcessServerReplyArgs& args)
 {
 
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -6679,7 +6679,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
     const auto& pServerNym = args.pServerNym;
     const auto& pNym = args.pNym;
 
-    otOut << "Received server response to getAccountFiles message.\n";
+    otOut << "Received server response to getAccountData message.\n";
 
     const OTASCIIArmor& ascArmor = theReply.m_ascPayload; // containing account
                                                           // file + inbox and
@@ -6691,7 +6691,7 @@ bool OTClient::processServerReplyGetAccountFiles(const Message& theReply,
         OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
         if (nullptr == pMap)
             otOut << __FUNCTION__ << ": Failed decoding StringMap object "
-                                     "in getAccountFilesResponse.\n";
+                                     "in getAccountDataResponse.\n";
         else {
             String::Map& theMap = pMap->the_map;
             String strAccount, strInbox, strOutbox;
@@ -7724,13 +7724,13 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
          theReply.m_strCommand.Compare("processNymboxResponse"))) {
         return processServerReplyProcessInbox(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("getAccountFilesResponse")) // Replaces
-                                                                  // getAccount,
-                                                                  // getInbox,
-                                                                  // and
-                                                                  // getOutbox
+    if (theReply.m_strCommand.Compare("getAccountDataResponse")) // Replaces
+                                                                 // getAccount,
+                                                                 // getInbox,
+                                                                 // and
+                                                                 // getOutbox
     {
-        return processServerReplyGetAccountFiles(theReply, pNymbox, args);
+        return processServerReplyGetAccountData(theReply, pNymbox, args);
     }
     if (theReply.m_strCommand.Compare("getContractResponse")) {
         return processServerReplyGetContract(theReply, args);

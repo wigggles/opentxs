@@ -3259,7 +3259,7 @@ public:
 RegisterStrategy StrategyGetNymboxResponse::reg(
     "getNymboxResponse", new StrategyGetNymboxResponse());
 
-class StrategyGetAccountFiles : public OTMessageStrategy
+class StrategyGetAccountData : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3297,10 +3297,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetAccountFiles::reg("getAccountFiles",
-                                              new StrategyGetAccountFiles());
+RegisterStrategy StrategyGetAccountData::reg("getAccountData",
+                                             new StrategyGetAccountData());
 
-class StrategyGetAccountFilesResponse : public OTMessageStrategy
+class StrategyGetAccountDataResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3384,8 +3384,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetAccountFilesResponse::reg(
-    "getAccountFilesResponse", new StrategyGetAccountFilesResponse());
+RegisterStrategy StrategyGetAccountDataResponse::reg(
+    "getAccountDataResponse", new StrategyGetAccountDataResponse());
 
 class StrategyGetContract : public OTMessageStrategy
 {

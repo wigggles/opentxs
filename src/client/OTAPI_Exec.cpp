@@ -13542,9 +13542,9 @@ int32_t OTAPI_Exec::createAssetAccount(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getAccountFiles(const std::string& SERVER_ID,
-                                    const std::string& USER_ID,
-                                    const std::string& ACCT_ID) const
+int32_t OTAPI_Exec::getAccountData(const std::string& SERVER_ID,
+                                   const std::string& USER_ID,
+                                   const std::string& ACCT_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13561,7 +13561,7 @@ int32_t OTAPI_Exec::getAccountFiles(const std::string& SERVER_ID,
 
     Identifier theServerID(SERVER_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
 
-    return OTAPI()->getAccountFiles(theServerID, theUserID, theAcctID);
+    return OTAPI()->getAccountData(theServerID, theUserID, theAcctID);
 }
 
 // GENERATE BASKET CREATION REQUEST
@@ -15035,7 +15035,7 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
 //
 // This way you can discover what kind of command it was.
 // All server replies are pre-pended with the @ sign. For example, if
-// you send a "getAccountFiles" message, the server reply is
+// you send a "getAccountData" message, the server reply is
 // "getAccountResponse",
 // and if you send "getMint" the reply is "getMintResponse", and so on.
 //

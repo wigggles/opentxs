@@ -12979,9 +12979,9 @@ int32_t OT_API::getBoxReceipt(
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::getAccountFiles(const Identifier& SERVER_ID,
-                                const Identifier& USER_ID,
-                                const Identifier& ACCT_ID) const
+int32_t OT_API::getAccountData(const Identifier& SERVER_ID,
+                               const Identifier& USER_ID,
+                               const Identifier& ACCT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13011,7 +13011,7 @@ int32_t OT_API::getAccountFiles(const Identifier& SERVER_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "getAccountFiles";
+    theMessage.m_strCommand = "getAccountData";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strServerID = strServerID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER

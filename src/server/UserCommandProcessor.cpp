@@ -1276,8 +1276,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("getAccountFiles")) {
-        OTLog::vOutput(0, "\n==> Received a getAccountFiles message.  Acct: %s "
+    else if (theMessage.m_strCommand.Compare("getAccountData")) {
+        OTLog::vOutput(0, "\n==> Received a getAccountData message.  Acct: %s "
                           "Nym: %s  ...\n",
                        theMessage.m_strAcctID.Get(), strMsgNymID.Get());
 
@@ -1285,7 +1285,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_outbox);
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_acct);
 
-        UserCmdGetAccountFiles(*pNym, theMessage, msgOut);
+        UserCmdGetAccountData(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -3093,12 +3093,12 @@ void UserCommandProcessor::UserCmdCreateAccount(Nym& theNym, Message& MsgIn,
     }
 }
 
-void UserCommandProcessor::UserCmdGetAccountFiles(Nym&, Message& MsgIn,
-                                                  Message& msgOut)
+void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
+                                                 Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "getAccountFilesResponse"; // reply to getAccountFiles
-    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strCommand = "getAccountDataResponse"; // reply to getAccountData
+    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),

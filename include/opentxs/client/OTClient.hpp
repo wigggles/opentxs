@@ -285,9 +285,9 @@ private:
     bool processServerReplyProcessInbox(const Message& theReply,
                                         OTLedger* pNymbox,
                                         ProcessServerReplyArgs& args);
-    bool processServerReplyGetAccountFiles(const Message& theReply,
-                                           OTLedger* pNymbox,
-                                           ProcessServerReplyArgs& args);
+    bool processServerReplyGetAccountData(const Message& theReply,
+                                          OTLedger* pNymbox,
+                                          ProcessServerReplyArgs& args);
     bool processServerReplyGetContract(const Message& theReply,
                                        ProcessServerReplyArgs& args);
     bool processServerReplyGetMint(const Message& theReply);

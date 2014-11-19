@@ -2273,9 +2273,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::getMint), "OT_API_getMint");
         theScript.chai->add(fun(&OTAPI_Wrap::createAssetAccount),
                             "OT_API_createAssetAccount");
-        theScript.chai->add(fun(&OTAPI_Wrap::getAccountFiles),
-                            "OT_API_getAccountFiles"); // Replaces getAccount,
-                                                       // getInbox, getOutbox.
+        theScript.chai->add(fun(&OTAPI_Wrap::getAccountData),
+                            "OT_API_getAccountData"); // Replaces getAccount,
+                                                      // getInbox, getOutbox.
         theScript.chai->add(fun(&OTAPI_Wrap::GenerateBasketCreation),
                             "OT_API_GenerateBasketCreation");
 
