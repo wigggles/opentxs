@@ -202,7 +202,7 @@ struct ServerSettings
     static bool __cmd_del_user_acct;
     static bool __cmd_check_nym;
     static bool __cmd_get_requestnumber;
-    static bool __cmd_get_trans_num;
+    static bool __cmd_get_trans_nums;
     static bool __cmd_send_message;
     static bool __cmd_get_nymbox;
     static bool __cmd_process_nymbox;

@@ -2382,7 +2382,7 @@ OT_UTILITY_OT int32_t
     }
     if (0 == nRequestNum) {
         otOut << strLocation << ": Unexpectedly returned 0. Didn't send "
-                                "getTransactionNum message, but NO error "
+                                "getTransactionNumbers message, but NO error "
                                 "occurred, either. (In this case, SHOULD NEVER "
                                 "HAPPEN. Treating as Error.)\n";
         return -1; // Even though '0' MEANS "didn't send, but no error" by
@@ -2399,8 +2399,8 @@ OT_UTILITY_OT int32_t
 
     //
     int32_t nReturn = receiveReplySuccessLowLevel(serverID, nymID, nRequestNum,
-                                                  "getTransactionNum");
-    //      otOut << "IN getTransactionNum " <<
+                                                  "getTransactionNumbers");
+    //      otOut << "IN getTransactionNumbers " <<
     // getLastReplyReceived());
 
     // BY this point, we definitely have the request number in nResult, which
@@ -2452,7 +2452,7 @@ OT_UTILITY_OT int32_t
     //
     //      if (nRemovedSentMsg < 1)
     //      {
-    //          otOut << "getTransactionNum: ERROR:
+    //          otOut << "getTransactionNumbers: ERROR:
     // OT_API_RemoveSentMessage returned: " << nRemovedSentMsg);
     //      }
 
@@ -2504,7 +2504,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
         }
     }
     // If value is LESS THAN -1 (which is an unexpected value)
-    // or if the getTransactionNum message WASN'T EVEN SENT, then return.
+    // or if the getTransactionNumbers message WASN'T EVEN SENT, then return.
     //
     else if ((nGetNumbers < -1) || !bWasSent) {
         otOut << strLocation << ": Failure: getTransactionNumLowLevel returned "
@@ -2691,7 +2691,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
 
             //              if ((nGetNumbers < -1) ||         // If value is
             // LESS THAN -1 (which is an unexpected value)
-            //                  !bWasSent)    // or if the getTransactionNum
+            //                  !bWasSent)    // or if the getTransactionNumbers
             // message WASN'T EVEN SENT, then return.
 
             if ((nGetNumbers < -1) || !bWasSent) {

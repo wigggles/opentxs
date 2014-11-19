@@ -3058,7 +3058,7 @@ public:
 RegisterStrategy StrategyNotarizeTransactionResponse::reg(
     "notarizeTransactionResponse", new StrategyNotarizeTransactionResponse());
 
-class StrategyGetTransactionNum : public OTMessageStrategy
+class StrategyGetTransactionNumbers : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3096,10 +3096,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetTransactionNum::reg(
-    "getTransactionNum", new StrategyGetTransactionNum());
+RegisterStrategy StrategyGetTransactionNumbers::reg(
+    "getTransactionNumbers", new StrategyGetTransactionNumbers());
 
-class StrategyGetTransactionNumResponse : public OTMessageStrategy
+class StrategyGetTransactionNumbersResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3141,8 +3141,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetTransactionNumResponse::reg(
-    "getTransactionNumResponse", new StrategyGetTransactionNumResponse());
+RegisterStrategy StrategyGetTransactionNumbersResponse::reg(
+    "getTransactionNumbersResponse",
+    new StrategyGetTransactionNumbersResponse());
 
 class StrategyGetNymbox : public OTMessageStrategy
 {

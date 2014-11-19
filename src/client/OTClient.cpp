@@ -7711,7 +7711,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("notarizeTransactionResponse")) {
         return processServerReplyNotarizeTransaction(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("getTransactionNumResponse")) {
+    if (theReply.m_strCommand.Compare("getTransactionNumbersResponse")) {
         return processServerReplyGetTransactionNum(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getNymboxResponse")) {
@@ -8693,7 +8693,7 @@ int32_t OTClient::ProcessUserCommand(
                                      true); // bSave=true
         }
     } break;
-    case OTClient::getTransactionNum: // GET TRANSACTION NUM
+    case OTClient::getTransactionNumbers: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
@@ -8704,7 +8704,7 @@ int32_t OTClient::ProcessUserCommand(
                                                          // have to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "getTransactionNum";
+        theMessage.m_strCommand = "getTransactionNumbers";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER

@@ -1139,12 +1139,12 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("getTransactionNum")) {
+    else if (theMessage.m_strCommand.Compare("getTransactionNumbers")) {
         OTLog::vOutput(
-            0, "\n==> Received a getTransactionNum message. Nym: %s ...\n",
+            0, "\n==> Received a getTransactionNumbers message. Nym: %s ...\n",
             strMsgNymID.Get());
 
-        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_trans_num);
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_trans_nums);
 
         UserCmdGetTransactionNum(*pNym, theMessage, msgOut);
 
@@ -1655,7 +1655,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "getTransactionNumResponse";      // reply to getTransactionNum
+        "getTransactionNumbersResponse";  // reply to getTransactionNumbers
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     const Identifier SERVER_ID(server_->m_strServerID);

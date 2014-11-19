@@ -510,7 +510,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                  REJECTING BAD HASHES, server is SENDING HASH in the
                  triggerClauseResponse reply
 
-                 getTransactionNum     -- client is SENDING HASH, server is
+                 getTransactionNumbers     -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
                  getTransactionNumResponse reply
 

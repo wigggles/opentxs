@@ -15279,14 +15279,14 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
     // So far these are the only messages that use m_strNymboxHash:
     if ((false == theMessage.m_strCommand.Compare("processNymbox")) &&
         (false == theMessage.m_strCommand.Compare("notarizeTransaction")) &&
-        (false == theMessage.m_strCommand.Compare("getTransactionNum")) &&
+        (false == theMessage.m_strCommand.Compare("getTransactionNumbers")) &&
         (false == theMessage.m_strCommand.Compare("processInbox")) &&
         (false == theMessage.m_strCommand.Compare("triggerClause")) &&
         (false == theMessage.m_strCommand.Compare("getNymboxResponse")) &&
         (false ==
          theMessage.m_strCommand.Compare("getRequestNumberResponse")) &&
         (false ==
-         theMessage.m_strCommand.Compare("getTransactionNumResponse"))) {
+         theMessage.m_strCommand.Compare("getTransactionNumbersResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type : " << theMessage.m_strCommand
               << " \nFYI, with m_strNymboxHash : " << theMessage.m_strNymboxHash

@@ -2052,7 +2052,7 @@ int32_t main(int32_t argc, char* argv[])
 
         }
 
-        // getTransactionNum
+        // getTransactionNumbers
         else if (buf[0] == 'n') {
             // I just coded (here) for myself a secret option (for testing)...
             // Optionally instead of JUST 'n', I can put n <number>, (without
@@ -2101,21 +2101,22 @@ int32_t main(int32_t argc, char* argv[])
                          "(on client side.)\n";
             }
             else {
-                otOut << "(User has instructed to send a getTransactionNum "
+                otOut << "(User has instructed to send a getTransactionNumbers "
                          "command to the server...)\n";
 
                 // if successful setting up the command payload...
 
                 if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                            OTClient::getTransactionNum, theMessage, *pMyNym,
-                            *pServerContract,
+                            OTClient::getTransactionNumbers, theMessage,
+                            *pMyNym, *pServerContract,
                             nullptr)) // nullptr pAccount on this command.
                 {
                     bSendCommand = true;
                 }
                 else
-                    otErr << "Error processing getTransactionNum command in "
-                             "ProcessMessage: " << buf[0] << "\n";
+                    otErr
+                        << "Error processing getTransactionNumbers command in "
+                           "ProcessMessage: " << buf[0] << "\n";
             }
 
         }

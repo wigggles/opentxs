@@ -407,8 +407,8 @@ bool ConfigLoader::load(String& walletFilename)
                              ServerSettings::__cmd_check_nym);
     p_Config->SetOption_bool("permissions", "cmd_get_requestnumber",
                              ServerSettings::__cmd_get_requestnumber);
-    p_Config->SetOption_bool("permissions", "cmd_get_trans_num",
-                             ServerSettings::__cmd_get_trans_num);
+    p_Config->SetOption_bool("permissions", "cmd_get_trans_nums",
+                             ServerSettings::__cmd_get_trans_nums);
     p_Config->SetOption_bool("permissions", "cmd_send_message",
                              ServerSettings::__cmd_send_message);
     p_Config->SetOption_bool("permissions", "cmd_get_nymbox",

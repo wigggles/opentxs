@@ -9110,7 +9110,7 @@ int32_t OT_API::getTransactionNumber(const Identifier& SERVER_ID,
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::getTransactionNum, theMessage, *pNym, *pServer,
+        OTClient::getTransactionNumbers, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         SendMessage(pServer, pNym, theMessage);

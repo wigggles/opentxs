@@ -193,8 +193,9 @@ public:
                           // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
-        getTransactionNum, // Every transaction requires a transaction number.
-                           // If your wallet doesn't have one,
+        getTransactionNumbers, // Every transaction requires a transaction
+                               // number.
+                               // If your wallet doesn't have one,
         // then here it can request the server to send one over. (Or several.)
         processNymbox, // Used by AcceptEntireNymbox() as it's setting
                        // everything up.
