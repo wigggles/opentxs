@@ -188,8 +188,9 @@ public:
                            // public key. User ID will be hash of said public
                            // key.
         deleteUserAccount, // Delete user account from a specific server.
-        getRequest, // Get the next request number from the server (for this
-                    // user). Most requests must be
+        getRequestNumber,  // Get the next request number from the server (for
+                           // this
+                           // user). Most requests must be
         // accompanied by a request number, which increments for each Nym with
         // each request.
         getTransactionNum, // Every transaction requires a transaction number.
@@ -269,8 +270,8 @@ private:
                        Nym* pNym, bool setNymboxHash);
     bool processServerReplyTriggerClause(const Message& theReply,
                                          ProcessServerReplyArgs& args);
-    bool processServerReplyGetRequest(const Message& theReply,
-                                      ProcessServerReplyArgs& args);
+    bool processServerReplyGetRequestNumber(const Message& theReply,
+                                            ProcessServerReplyArgs& args);
     bool processServerReplyCheckNym(const Message& theReply,
                                     ProcessServerReplyArgs& args);
     bool processServerReplyNotarizeTransaction(const Message& theReply,

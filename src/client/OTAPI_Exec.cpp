@@ -13392,10 +13392,10 @@ int32_t OTAPI_Exec::sendUserInstrument(
 // Returns int32_t:
 // -1 means error; no message was sent.
 //  0 means NO error, but also: no message was sent.
-//  1 means the "getRequest" message was successfully SENT.
+//  1 means the "getRequestNumber" message was successfully SENT.
 //
-int32_t OTAPI_Exec::getRequest(const std::string& SERVER_ID,
-                               const std::string& USER_ID) const
+int32_t OTAPI_Exec::getRequestNumber(const std::string& SERVER_ID,
+                                     const std::string& USER_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13408,7 +13408,7 @@ int32_t OTAPI_Exec::getRequest(const std::string& SERVER_ID,
 
     Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
-    return OTAPI()->getRequest(theServerID, theUserID);
+    return OTAPI()->getRequestNumber(theServerID, theUserID);
 }
 
 // Returns int32_t:
@@ -15283,7 +15283,8 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
         (false == theMessage.m_strCommand.Compare("processInbox")) &&
         (false == theMessage.m_strCommand.Compare("triggerClause")) &&
         (false == theMessage.m_strCommand.Compare("getNymboxResponse")) &&
-        (false == theMessage.m_strCommand.Compare("getRequestResponse")) &&
+        (false ==
+         theMessage.m_strCommand.Compare("getRequestNumberResponse")) &&
         (false ==
          theMessage.m_strCommand.Compare("getTransactionNumResponse"))) {
         otOut << __FUNCTION__

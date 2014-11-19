@@ -212,12 +212,13 @@ OT_MADE_EASY_OT string
     if (1 == nSuccess) {
         Utility MsgUtil;
 
-        // Use the getRequest command, thus insuring that the request number is
+        // Use the getRequestNumber command, thus insuring that the request
+        // number is
         // in sync.
         //
         if (1 != MsgUtil.getRequestNumber(SERVER_ID, NYM_ID)) {
             otOut << "\n Succeeded in register_nym, but strange: "
-                     "then failed calling getRequest, to sync the "
+                     "then failed calling getRequestNumber, to sync the "
                      "request number for the first time.\n";
             return "";
         }
@@ -242,7 +243,7 @@ OT_MADE_EASY_OT int32_t
     Utility MsgUtil;
 
     if (1 != MsgUtil.getRequestNumber(strServerID, strMyNymID)) {
-        otOut << "\n Failed calling getRequest, to sync the "
+        otOut << "\n Failed calling getRequestNumber, to sync the "
                  "request number. (Finished.)\n";
         return -1;
     }

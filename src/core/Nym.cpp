@@ -1772,9 +1772,10 @@ void Nym::RemoveReqNumbers(const String* pstrServerID)
 }
 
 // You can't go using a Nym at a certain server, if it's not registered there...
-// BTW -- if you have never called GetRequest(), then this will wrongly return
+// BTW -- if you have never called GetRequestNumber(), then this will wrongly
+// return
 // false!
-// But as long as you call getRequest() upon successsful registration (or
+// But as long as you call getRequestNumber() upon successsful registration (or
 // whenever) this
 // function will return an accurate answer after that point, and forever.
 //
@@ -3364,7 +3365,7 @@ void Nym::IncrementRequestNum(Nym& SIGNER_NYM, const String& strServerID)
     }
 }
 
-// if the server sends us a getRequestResponse
+// if the server sends us a getRequestNumberResponse
 void Nym::OnUpdateRequestNum(Nym& SIGNER_NYM, const String& strServerID,
                              int64_t lNewRequestNumber)
 {

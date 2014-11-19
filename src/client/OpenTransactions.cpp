@@ -10993,7 +10993,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
         // the original difference between transactions (vs normal messages) was
         // that transactions dealt
         // with asset accounts, whereas normal messages did not. (Such as,
-        // "checkNym" or "getRequest".)
+        // "checkNym" or "getRequestNumber".)
         //
         // A big piece of this is the BALANCE AGREEMENT. Obviously it wasn't
         // anticipated that "balance
@@ -13031,8 +13031,8 @@ int32_t OT_API::getAccountData(const Identifier& SERVER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::getRequest(const Identifier& SERVER_ID,
-                           const Identifier& USER_ID) const
+int32_t OT_API::getRequestNumber(const Identifier& SERVER_ID,
+                                 const Identifier& USER_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13046,14 +13046,15 @@ int32_t OT_API::getRequest(const Identifier& SERVER_ID,
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::getRequest, theMessage, *pNym, *pServer,
+        OTClient::getRequestNumber, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
-        otErr << "Error processing getRequest command in OT_API::getRequest\n";
+        otErr << "Error processing getRequestNumber command in "
+                 "OT_API::getRequestNumber\n";
 
     return (-1);
 }

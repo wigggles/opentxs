@@ -2066,10 +2066,10 @@ int32_t OTAPI_Wrap::sendUserInstrument(const std::string& SERVER_ID,
                                       INSTRUMENT_FOR_SENDER);
 }
 
-int32_t OTAPI_Wrap::getRequest(const std::string& SERVER_ID,
-                               const std::string& USER_ID)
+int32_t OTAPI_Wrap::getRequestNumber(const std::string& SERVER_ID,
+                                     const std::string& USER_ID)
 {
-    return Exec()->getRequest(SERVER_ID, USER_ID);
+    return Exec()->getRequestNumber(SERVER_ID, USER_ID);
 }
 
 int32_t OTAPI_Wrap::issueAssetType(const std::string& SERVER_ID,

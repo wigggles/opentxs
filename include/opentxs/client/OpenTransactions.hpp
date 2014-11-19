@@ -759,8 +759,8 @@ public:
                                 const Identifier& USER_ID_CHECK,
                                 int64_t lAdjustment = 0) const;
 
-    EXPORT int32_t getRequest(const Identifier& SERVER_ID,
-                              const Identifier& USER_ID) const;
+    EXPORT int32_t getRequestNumber(const Identifier& SERVER_ID,
+                                    const Identifier& USER_ID) const;
 
     EXPORT int32_t sendNymMessage(const Identifier& SERVER_ID,
                                   const Identifier& USER_ID,

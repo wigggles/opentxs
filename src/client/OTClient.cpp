@@ -2889,8 +2889,8 @@ bool OTClient::processServerReplyTriggerClause(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetRequest(const Message& theReply,
-                                            ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
+                                                  ProcessServerReplyArgs& args)
 {
 
     int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
@@ -2903,7 +2903,7 @@ bool OTClient::processServerReplyGetRequest(const Message& theReply,
     // In the future, I will have to write a function on the wallet that
     // actually
     // takes the reply, looks up the associated nym in the wallet, verifies
-    // that it was EXPECTING a response to GetRequest, (cause otherwise it
+    // that it was EXPECTING a response to GetRequestNumber, (cause otherwise it
     // won't
     // know which one to update) and then updates the request number there.
     // In the meantime there is only one connection, and it already has a
@@ -7702,8 +7702,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("triggerClauseResponse")) {
         return processServerReplyTriggerClause(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("getRequestResponse")) {
-        return processServerReplyGetRequest(theReply, args);
+    if (theReply.m_strCommand.Compare("getRequestNumberResponse")) {
+        return processServerReplyGetRequestNumber(theReply, args);
     }
     if (theReply.m_strCommand.Compare("checkNymResponse")) {
         return processServerReplyCheckNym(theReply, args);
@@ -7964,12 +7964,13 @@ int32_t OTClient::ProcessUserCommand(
             lReturnValue = 1;
         }
     } break;
-    case (OTClient::getRequest): {
-        //        otOut << "(User has instructed to send a getRequest command to
+    case (OTClient::getRequestNumber): {
+        //        otOut << "(User has instructed to send a getRequestNumber
+        //        command to
         // the server...)\n";
 
         // (1) set up member variables
-        theMessage.m_strCommand = "getRequest";
+        theMessage.m_strCommand = "getRequestNumber";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
 
@@ -7994,7 +7995,8 @@ int32_t OTClient::ProcessUserCommand(
     // number by calling theNym.IncrementRequestNum
     // Otherwise it will get out of sync, and future commands will start failing
     // (until it is resynchronized with
-    // a getRequest message to the server, which replies with the latest number.
+    // a getRequestNumber message to the server, which replies with the latest
+    // number.
     // The code on this side that processes
     // that server reply is already smart enough to update the local nym's copy
     // of the request number when it is received.

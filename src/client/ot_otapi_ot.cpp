@@ -1221,13 +1221,13 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                                              // Request...
     {
         bool bWasGetReqSent = false;
-        int32_t nGetRequest = MsgUtil.getRequestNumber(
+        int32_t nGetRequestNumber = MsgUtil.getRequestNumber(
             theFunction.serverID, theFunction.nymID,
             bWasGetReqSent); // <==== RE-SYNC ATTEMPT...;
 
         // GET REQUEST WAS A SUCCESS.
         //
-        if (bWasGetReqSent && (nGetRequest > 0)) {
+        if (bWasGetReqSent && (nGetRequestNumber > 0)) {
             bCanRetryAfterThis = true;
 
             // But--if it was a TRANSACTION, then we're not done syncing yet!
@@ -1306,11 +1306,12 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 }
             } // if (bIsTransaction)
 
-        } // if getRequest was success.
+        } // if getRequestNumber was success.
         else {
-            otOut << strLocation << ", Failure: Never got reply from server, "
-                                    "so tried getRequest, and that failed too. "
-                                    "(I give up.)\n";
+            otOut << strLocation
+                  << ", Failure: Never got reply from server, "
+                     "so tried getRequestNumber, and that failed too. "
+                     "(I give up.)\n";
 
             // Note: cannot harvest transaction nums here because I do NOT know
             // for sure

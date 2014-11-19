@@ -2031,22 +2031,23 @@ int32_t main(int32_t argc, char* argv[])
             continue;
         }
 
-        // getRequest
+        // getRequestNumber
         else if (buf[0] == 'g') {
-            otOut << "(User has instructed to send a getRequest command to "
-                     "the server...)\n";
+            otOut
+                << "(User has instructed to send a getRequestNumber command to "
+                   "the server...)\n";
 
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::getRequest, theMessage, *pMyNym,
+                        OTClient::getRequestNumber, theMessage, *pMyNym,
                         *pServerContract,
                         nullptr)) // nullptr pAccount on this command.
             {
                 bSendCommand = true;
             }
             else
-                otErr << "Error processing getRequest command in "
+                otErr << "Error processing getRequestNumber command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
         }

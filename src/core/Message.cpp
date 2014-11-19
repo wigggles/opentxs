@@ -1877,7 +1877,7 @@ public:
 RegisterStrategy StrategySendUserInstrumentResponse::reg(
     "sendUserInstrumentResponse", new StrategySendUserInstrumentResponse());
 
-class StrategyGetRequest : public OTMessageStrategy
+class StrategyGetRequestNumber : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1910,8 +1910,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetRequest::reg("getRequest",
-                                         new StrategyGetRequest());
+RegisterStrategy StrategyGetRequestNumber::reg("getRequestNumber",
+                                               new StrategyGetRequestNumber());
 
 class StrategyGetRequestResponse : public OTMessageStrategy
 {
@@ -1969,7 +1969,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetRequestResponse::reg(
-    "getRequestResponse", new StrategyGetRequestResponse());
+    "getRequestNumberResponse", new StrategyGetRequestResponse());
 
 class StrategyIssueAssetType : public OTMessageStrategy
 {

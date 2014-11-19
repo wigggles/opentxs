@@ -2825,8 +2825,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t getRequest(const std::string& SERVER_ID,
-                                     const std::string& USER_ID);
+    EXPORT static int32_t getRequestNumber(const std::string& SERVER_ID,
+                                           const std::string& USER_ID);
 
     /**
     GET TRANSACTION NUMBER
