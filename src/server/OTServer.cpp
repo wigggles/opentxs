@@ -601,7 +601,7 @@ bool OTServer::SendInstrumentToNym(
 // create a message "from the server", containing the instrument, and drop it
 // into the recipient's nymbox
 // as though it were some incoming message from a normal user.
-// This message, in the case of payDividend, should be an "@payDividend"
+// This message, in the case of payDividend, should be an "payDividendResponse"
 // message, "from" the server
 // and "to" the recipient. The payment instrument must be attached to that new
 // message, and therefore it
