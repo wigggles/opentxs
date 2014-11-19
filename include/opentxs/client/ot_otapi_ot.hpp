@@ -202,7 +202,7 @@ extern std::string Server;
 
 typedef enum {
     NO_FUNC = 0,
-    CREATE_USER_ACCT = 1,
+    REGISTER_NYM = 1,
     DELETE_NYM = 2,
     CHECK_NYM = 3,
     SEND_USER_MESSAGE = 4,

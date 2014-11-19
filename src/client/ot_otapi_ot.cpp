@@ -685,7 +685,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     switch (funcType) {
     case CHECK_NYM:
         return OTAPI_Wrap::checkNym(serverID, nymID, nymID2);
-    case CREATE_USER_ACCT:
+    case REGISTER_NYM:
         return OTAPI_Wrap::registerNym(serverID, nymID);
     case DELETE_NYM:
         return OTAPI_Wrap::deleteNym(serverID, nymID);

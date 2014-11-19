@@ -205,8 +205,8 @@ OT_MADE_EASY_OT string
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(CREATE_USER_ACCT, SERVER_ID, NYM_ID);
-    string strResponse = theRequest.SendRequest(theRequest, "CREATE_USER_ACCT");
+    OTAPI_Func theRequest(REGISTER_NYM, SERVER_ID, NYM_ID);
+    string strResponse = theRequest.SendRequest(theRequest, "REGISTER_NYM");
     int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 == nSuccess) {
@@ -2002,7 +2002,7 @@ cheque.
 
 Need to add functions (like check_nym above) for all of these:
 
-attr OTAPI_Func::CREATE_USER_ACCT (register nym)DONE
+attr OTAPI_Func::REGISTER_NYM (register nym)DONE
 attr OTAPI_Func::DELETE_NYM
 attr OTAPI_Func::CHECK_NYM DONE
 attr OTAPI_Func::SEND_USER_MESSAGE DONE
