@@ -164,14 +164,6 @@
 // Much of OT might be separable out into a more general-purpose utility
 // lib, which I will get to whenever it is more important than anything else.
 //
-#define DeclareBasedInterface(name, base)                                      \
-    class name : public base                                                   \
-    {                                                                          \
-    public:                                                                    \
-        virtual ~name()                                                        \
-        {                                                                      \
-        }
-
 #define implements public
 
 #endif // (not) SWIG

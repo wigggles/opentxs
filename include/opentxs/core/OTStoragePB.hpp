@@ -174,12 +174,17 @@ namespace OTDB
 
 // Interface:    IStorablePB
 //
-DeclareBasedInterface(IStorablePB,
-                      IStorable) virtual ::google::protobuf::MessageLite
-    * getPBMessage();
-virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj);
-virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj);
-OT_USING_ISTORABLE_HOOKS;
+class IStorablePB : public IStorable
+{
+public:
+    virtual ~IStorablePB()
+    {
+    }
+
+    virtual ::google::protobuf::MessageLite* getPBMessage();
+    virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj);
+    virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj);
+    OT_USING_ISTORABLE_HOOKS;
 };
 
 // BUFFER for Protocol Buffers.
