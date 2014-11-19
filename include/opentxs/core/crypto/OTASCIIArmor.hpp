@@ -237,34 +237,15 @@ public:
                                                        // right string.
                                  bool bEscaped = false) const;
 
-    // This function will base64 DECODE the string contents (This class is a
-    // string)
-    // and return them as BINARY in theData
-    // Should be called "Get From Internal String Into Data"
-    //
+    // Base64-decode
     EXPORT bool GetData(OTData& theData, bool bLineBreaks = true) const;
-    EXPORT bool GetAndUnpackData(OTData& theData,
-                                 bool bLineBreaks = true) const;
-
-    // This function will base64 ENCODE theData,
-    // and then Set() that as the string contents.
-    // Should be called "Encode Data And Set As Internal String"
+    // Base64-encode
     EXPORT bool SetData(const OTData& theData, bool bLineBreaks = true);
-    EXPORT bool SetAndPackData(const OTData& theData, bool bLineBreaks = true);
 
-    // This function will base64 DECODE the string contents
-    // and return them as a STRING in theData
-    //
+    // Base64-decode and decompress
     EXPORT bool GetString(String& theData, bool bLineBreaks = true) const;
-    EXPORT bool GetAndUnpackString(String& theData,
-                                   bool bLineBreaks = true) const;
-
-    // This function will base64 ENCODE the STRING stored in theData,
-    // and then Set() that as this string contents.
-    //
+    // compress and Base64-encode
     EXPORT bool SetString(const String& theData, bool bLineBreaks = true);
-    EXPORT bool SetAndPackString(const String& theData,
-                                 bool bLineBreaks = true);
 
 private:
     std::string compress_string(const std::string& str,
