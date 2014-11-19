@@ -257,6 +257,7 @@ public:
     // or a message envelope or request from another user etc) then
     // it can be put here in ascii-armored format.
     OTASCIIArmor m_ascPayload2; // Sometimes one payload just isn't enough.
+    OTASCIIArmor m_ascPayload3; // Sometimes two payload just isn't enough.
 
     // This list of request numbers is stored for optimization, so client/server
     // can communicate about

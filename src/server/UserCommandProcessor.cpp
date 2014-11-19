@@ -3262,43 +3262,12 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
     }
     else                                                  // SUCCESS.
     {
-        // Create an OTDB::StringMap object.
-        // (To return the three files in.)
-
-        // this asserts already, on failure.
-        std::unique_ptr<OTDB::Storable> pStorable(
-            OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
-        OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
-        // It exists.
-        //
-        if (nullptr == pMap)
-            OTLog::vError(
-                "%s: Error: failed trying to create a STORED_OBJ_STRING_MAP.\n",
-                __FUNCTION__);
-        else {
-            auto& theMap = pMap->the_map;
-            theMap.insert(std::pair<std::string, std::string>(
-                "account", strAccount.Get()));
-            theMap.insert(
-                std::pair<std::string, std::string>("inbox", strInbox.Get()));
-            theMap.insert(
-                std::pair<std::string, std::string>("outbox", strOutbox.Get()));
-            // Serialize the StringMap to a string...
-            //
-            std::string str_Encoded = OTDB::EncodeObject(*pMap);
-            const bool bSuccessEncoding = (str_Encoded.size() > 0);
-
-            if (!bSuccessEncoding)
-                OTLog::vError("%s: Error: failed trying to encode a "
-                              "STORED_OBJ_STRING_MAP.\n",
-                              __FUNCTION__);
-            else {
-                msgOut.m_ascPayload.Set(str_Encoded.c_str()); // <============
-                msgOut.m_strInboxHash = strInboxHash;
-                msgOut.m_strOutboxHash = strOutboxHash;
-                msgOut.m_bSuccess = true;
-            }
-        }
+        msgOut.m_ascPayload.SetString(strAccount);
+        msgOut.m_ascPayload2.SetString(strInbox);
+        msgOut.m_ascPayload3.SetString(strOutbox);
+        msgOut.m_strInboxHash = strInboxHash;
+        msgOut.m_strOutboxHash = strOutboxHash;
+        msgOut.m_bSuccess = true;
     }
     // (2) Sign the Message
     msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
