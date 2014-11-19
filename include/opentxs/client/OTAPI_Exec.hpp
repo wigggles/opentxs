@@ -2763,9 +2763,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t checkUser(const std::string& SERVER_ID,
-                             const std::string& USER_ID,
-                             const std::string& USER_ID_CHECK) const;
+    EXPORT int32_t checkNym(const std::string& SERVER_ID,
+                            const std::string& USER_ID,
+                            const std::string& USER_ID_CHECK) const;
 
     /**
     SEND USER MESSAGE --- (Send a message to another user, encrypted to his

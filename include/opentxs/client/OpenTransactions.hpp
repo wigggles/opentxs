@@ -750,9 +750,9 @@ public:
     EXPORT int32_t deleteUserAccount(const Identifier& SERVER_ID,
                                      const Identifier& USER_ID) const;
 
-    EXPORT int32_t checkUser(const Identifier& SERVER_ID,
-                             const Identifier& USER_ID,
-                             const Identifier& USER_ID_CHECK) const;
+    EXPORT int32_t checkNym(const Identifier& SERVER_ID,
+                            const Identifier& USER_ID,
+                            const Identifier& USER_ID_CHECK) const;
 
     EXPORT int32_t usageCredits(const Identifier& SERVER_ID,
                                 const Identifier& USER_ID,

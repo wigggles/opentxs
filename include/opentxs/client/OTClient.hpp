@@ -271,8 +271,8 @@ private:
                                          ProcessServerReplyArgs& args);
     bool processServerReplyGetRequest(const Message& theReply,
                                       ProcessServerReplyArgs& args);
-    bool processServerReplyCheckUser(const Message& theReply,
-                                     ProcessServerReplyArgs& args);
+    bool processServerReplyCheckNym(const Message& theReply,
+                                    ProcessServerReplyArgs& args);
     bool processServerReplyNotarizeTransactions(const Message& theReply,
                                                 ProcessServerReplyArgs& args);
     bool processServerReplyGetTransactionNum(const Message& theReply,

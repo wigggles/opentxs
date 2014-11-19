@@ -200,7 +200,7 @@ struct ServerSettings
 
     static bool __cmd_create_user_acct;
     static bool __cmd_del_user_acct;
-    static bool __cmd_check_user;
+    static bool __cmd_check_nym;
     static bool __cmd_get_request;
     static bool __cmd_get_trans_num;
     static bool __cmd_send_message;

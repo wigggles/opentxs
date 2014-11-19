@@ -1149,13 +1149,13 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("checkUser")) {
-        OTLog::vOutput(0, "\n==> Received a checkUser message. Nym: %s ...\n",
+    else if (theMessage.m_strCommand.Compare("checkNym")) {
+        OTLog::vOutput(0, "\n==> Received a checkNym message. Nym: %s ...\n",
                        strMsgNymID.Get());
 
-        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_user);
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_nym);
 
-        UserCmdCheckUser(*pNym, theMessage, msgOut);
+        UserCmdCheckNym(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -2007,12 +2007,12 @@ void UserCommandProcessor::UserCmdSendUserInstrument(Nym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdCheckUser(Nym&, Message& MsgIn,
-                                            Message& msgOut)
+void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
+                                           Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "checkUserResponse"; // reply to checkUser
-    msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
+    msgOut.m_strCommand = "checkNymResponse"; // reply to checkNym
+    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
     msgOut.m_strNymID2 =
         MsgIn.m_strNymID2; // UserID of public key requested by user.
 

@@ -10993,7 +10993,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
         // the original difference between transactions (vs normal messages) was
         // that transactions dealt
         // with asset accounts, whereas normal messages did not. (Such as,
-        // "checkUser" or "getRequest".)
+        // "checkNym" or "getRequest".)
         //
         // A big piece of this is the BALANCE AGREEMENT. Obviously it wasn't
         // anticipated that "balance
@@ -13109,9 +13109,8 @@ int32_t OT_API::usageCredits(const Identifier& SERVER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::checkUser(const Identifier& SERVER_ID,
-                          const Identifier& USER_ID,
-                          const Identifier& USER_ID_CHECK) const
+int32_t OT_API::checkNym(const Identifier& SERVER_ID, const Identifier& USER_ID,
+                         const Identifier& USER_ID_CHECK) const
 {
     // Request a user's public key based on User ID included with
     // the request.
@@ -13142,7 +13141,7 @@ int32_t OT_API::checkUser(const Identifier& SERVER_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "checkUser";
+    theMessage.m_strCommand = "checkNym";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strServerID = strServerID;

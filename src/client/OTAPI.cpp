@@ -2037,11 +2037,11 @@ int32_t OTAPI_Wrap::usageCredits(const std::string& SERVER_ID,
     return Exec()->usageCredits(SERVER_ID, USER_ID, USER_ID_CHECK, ADJUSTMENT);
 }
 
-int32_t OTAPI_Wrap::checkUser(const std::string& SERVER_ID,
-                              const std::string& USER_ID,
-                              const std::string& USER_ID_CHECK)
+int32_t OTAPI_Wrap::checkNym(const std::string& SERVER_ID,
+                             const std::string& USER_ID,
+                             const std::string& USER_ID_CHECK)
 {
-    return Exec()->checkUser(SERVER_ID, USER_ID, USER_ID_CHECK);
+    return Exec()->checkNym(SERVER_ID, USER_ID, USER_ID_CHECK);
 }
 
 int32_t OTAPI_Wrap::sendUserMessage(const std::string& SERVER_ID,

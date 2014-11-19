@@ -204,7 +204,7 @@ typedef enum {
     NO_FUNC = 0,
     CREATE_USER_ACCT = 1,
     DELETE_USER_ACCT = 2,
-    CHECK_USER = 3,
+    CHECK_NYM = 3,
     SEND_USER_MESSAGE = 4,
     SEND_USER_INSTRUMENT = 5,
     ISSUE_ASSET_TYPE = 6,

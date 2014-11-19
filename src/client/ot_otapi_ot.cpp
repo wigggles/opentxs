@@ -257,7 +257,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
                (theType == CREATE_ASSET_ACCT)) {
         assetID = p_strParam;
     }
-    else if (theType == CHECK_USER) {
+    else if (theType == CHECK_NYM) {
         nymID2 = p_strParam;
     }
     else if (theType == DELETE_ASSET_ACCT) {
@@ -683,8 +683,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     // >0 means (usually) the request number is being returned.
     //
     switch (funcType) {
-    case CHECK_USER:
-        return OTAPI_Wrap::checkUser(serverID, nymID, nymID2);
+    case CHECK_NYM:
+        return OTAPI_Wrap::checkNym(serverID, nymID, nymID2);
     case CREATE_USER_ACCT:
         return OTAPI_Wrap::registerNym(serverID, nymID);
     case DELETE_USER_ACCT:
