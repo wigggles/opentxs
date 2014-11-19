@@ -1171,14 +1171,14 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("sendUserInstrument")) {
+    else if (theMessage.m_strCommand.Compare("sendNymInstrument")) {
         OTLog::vOutput(
-            0, "\n==> Received a sendUserInstrument message. Nym: %s ...\n",
+            0, "\n==> Received a sendNymInstrument message. Nym: %s ...\n",
             strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
 
-        UserCmdSendUserInstrument(*pNym, theMessage, msgOut);
+        UserCmdSendNymInstrument(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -1968,13 +1968,12 @@ void UserCommandProcessor::UserCmdSendNymMessage(Nym& theNym, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdSendUserInstrument(Nym& theNym,
-                                                     Message& MsgIn,
-                                                     Message& msgOut)
+void UserCommandProcessor::UserCmdSendNymInstrument(Nym& theNym, Message& MsgIn,
+                                                    Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "sendUserInstrumentResponse";       // reply to sendUserInstrument
+        "sendNymInstrumentResponse";        // reply to sendNymInstrument
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
@@ -1988,7 +1987,7 @@ void UserCommandProcessor::UserCmdSendUserInstrument(Nym& theNym,
 
     if (!bSent) {
         OTLog::vError(
-            "UserCommandProcessor::UserCmdSendUserInstrument: Failed while "
+            "UserCommandProcessor::UserCmdSendNymInstrument: Failed while "
             "calling SendInstrumentToNym.\n");
         msgOut.m_bSuccess = false;
     }

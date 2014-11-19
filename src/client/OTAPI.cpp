@@ -2054,16 +2054,16 @@ int32_t OTAPI_Wrap::sendNymMessage(const std::string& SERVER_ID,
                                   RECIPIENT_PUBKEY, THE_MESSAGE);
 }
 
-int32_t OTAPI_Wrap::sendUserInstrument(const std::string& SERVER_ID,
-                                       const std::string& USER_ID,
-                                       const std::string& USER_ID_RECIPIENT,
-                                       const std::string& RECIPIENT_PUBKEY,
-                                       const std::string& THE_INSTRUMENT,
-                                       const std::string& INSTRUMENT_FOR_SENDER)
+int32_t OTAPI_Wrap::sendNymInstrument(const std::string& SERVER_ID,
+                                      const std::string& USER_ID,
+                                      const std::string& USER_ID_RECIPIENT,
+                                      const std::string& RECIPIENT_PUBKEY,
+                                      const std::string& THE_INSTRUMENT,
+                                      const std::string& INSTRUMENT_FOR_SENDER)
 {
-    return Exec()->sendUserInstrument(SERVER_ID, USER_ID, USER_ID_RECIPIENT,
-                                      RECIPIENT_PUBKEY, THE_INSTRUMENT,
-                                      INSTRUMENT_FOR_SENDER);
+    return Exec()->sendNymInstrument(SERVER_ID, USER_ID, USER_ID_RECIPIENT,
+                                     RECIPIENT_PUBKEY, THE_INSTRUMENT,
+                                     INSTRUMENT_FOR_SENDER);
 }
 
 int32_t OTAPI_Wrap::getRequestNumber(const std::string& SERVER_ID,

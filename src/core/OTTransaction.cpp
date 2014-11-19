@@ -6087,7 +6087,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
          is an *** instrumentNotice *** then I should expect
          GetReferenceString(strOutput) to:
 
-         1. load up from string as an OTMessage of type "sendUserInstrument",
+         1. load up from string as an OTMessage of type "sendNymInstrument",
          -------------------------------------------------------------------
          2. and I should expect the PAYLOAD of that message to contain an
          encrypted OTEnvelope,
@@ -6278,7 +6278,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(Identifier& theReturnID)
          is an *** instrumentNotice *** then I should expect
          GetReferenceString(strOutput) to:
 
-         1. load up from string as an OTMessage of type "sendUserInstrument",
+         1. load up from string as an OTMessage of type "sendNymInstrument",
          -------------------------------------------------------------------
          2. and I should expect the PAYLOAD of that message to contain an
          encrypted OTEnvelope,

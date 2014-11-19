@@ -1753,13 +1753,13 @@ public:
 RegisterStrategy StrategySendNymMessageResponse::reg(
     "sendNymMessageResponse", new StrategySendNymMessageResponse());
 
-class StrategySendUserInstrumentOrPayDividend : public OTMessageStrategy
+class StrategySendNymInstrumentOrPayDividend : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
     {
         String result;
-        // sendUserInstrument is sent from one user
+        // sendNymInstrument is sent from one user
         // to the server, which then attaches that
         // message as a payment, onto a transaction
         // on the Nymbox of the recipient.
@@ -1825,12 +1825,12 @@ public:
     static RegisterStrategy reg;
     static RegisterStrategy reg2;
 };
-RegisterStrategy StrategySendUserInstrumentOrPayDividend::reg(
-    "sendUserInstrument", new StrategySendUserInstrumentOrPayDividend());
-RegisterStrategy StrategySendUserInstrumentOrPayDividend::reg2(
-    "payDividend", new StrategySendUserInstrumentOrPayDividend());
+RegisterStrategy StrategySendNymInstrumentOrPayDividend::reg(
+    "sendNymInstrument", new StrategySendNymInstrumentOrPayDividend());
+RegisterStrategy StrategySendNymInstrumentOrPayDividend::reg2(
+    "payDividend", new StrategySendNymInstrumentOrPayDividend());
 
-class StrategySendUserInstrumentResponse : public OTMessageStrategy
+class StrategySendNymInstrumentResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1873,8 +1873,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategySendUserInstrumentResponse::reg(
-    "sendUserInstrumentResponse", new StrategySendUserInstrumentResponse());
+RegisterStrategy StrategySendNymInstrumentResponse::reg(
+    "sendNymInstrumentResponse", new StrategySendNymInstrumentResponse());
 
 class StrategyGetRequestNumber : public OTMessageStrategy
 {

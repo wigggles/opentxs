@@ -2010,7 +2010,7 @@ public:
     // Lookup a financial instrument (from within a transaction that is inside
     // a ledger) based on index or transaction number.
 
-    sendUserInstrument does this:
+    sendNymInstrument does this:
     -- Puts an OTPayment (a form of contract) as an encrypted Payload on an
     OTMessage(1).
     -- Also puts instrument (same contract) as CLEAR payload on an OTMessage(2).
@@ -2787,7 +2787,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t sendUserInstrument(
+    EXPORT static int32_t sendNymInstrument(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& USER_ID_RECIPIENT,
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT,

@@ -8978,7 +8978,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
 // Lookup a financial instrument (from within a transaction that is inside
 // a paymentInbox ledger) based on index.
 /*
-sendUserInstrument does this:
+sendNymInstrument does this:
 -- Puts instrument (a contract string) as encrypted Payload on an OTMessage(1).
 -- Also puts instrument (same contract string) as CLEAR payload on an
 OTMessage(2).
@@ -13295,7 +13295,7 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::sendUserInstrument(
+int32_t OTAPI_Exec::sendNymInstrument(
     const std::string& SERVER_ID, const std::string& USER_ID,
     const std::string& USER_ID_RECIPIENT, const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_INSTRUMENT,
@@ -13381,12 +13381,12 @@ int32_t OTAPI_Exec::sendUserInstrument(
                   << strInstrumentForSender << "\n\n";
             return OT_ERROR;
         }
-        return OTAPI()->sendUserInstrument(theServerID, theUserID,
-                                           theOtherUserID, strRecipPubkey,
-                                           thePayment, &theSenderPayment);
+        return OTAPI()->sendNymInstrument(theServerID, theUserID,
+                                          theOtherUserID, strRecipPubkey,
+                                          thePayment, &theSenderPayment);
     }
-    return OTAPI()->sendUserInstrument(theServerID, theUserID, theOtherUserID,
-                                       strRecipPubkey, thePayment);
+    return OTAPI()->sendNymInstrument(theServerID, theUserID, theOtherUserID,
+                                      strRecipPubkey, thePayment);
 }
 
 // Returns int32_t:

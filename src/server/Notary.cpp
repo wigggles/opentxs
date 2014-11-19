@@ -5184,7 +5184,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
 
                       BUT WHEN DO I REMOVE IT FROM THE payments *INBOX* ?
                       Answer: when the successful server reply is
-                      received from the sendUserInstrument. What if I don't send
+                      received from the sendNymInstrument. What if I don't send
                       it to another user? Perhaps I activate it.
                       In that case, whether the activation succeeds or fails, I
                       will get an acknowledgment (or rejection)
@@ -5193,7 +5193,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                       That will be from my outpayments box. But removing it from
                       my INBOX should happen when I get the server
                       response to the activation (just as when I get the server
-                      response to sendUserInstrument.)
+                      response to sendNymInstrument.)
                       If I never tried to activate it, and never tried to send
                       it to the next party, and never discarded it,
                       then it should remain in my inbox, until I choose to do
@@ -5291,7 +5291,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
 
                       ACTIONS:
 
-                      -- When successful "sendUserInstrument" server reply is
+                      -- When successful "sendNymInstrument" server reply is
                       received,
                       remove that instrument from payments inbox. (If it's there
                       -- it can be.)

@@ -13265,7 +13265,7 @@ int32_t OT_API::sendNymMessage(const Identifier& SERVER_ID,
 // are the same, it puts a copy in your outpayment box, without sending anything
 // at all.
 //
-int32_t OT_API::sendUserInstrument(
+int32_t OT_API::sendNymInstrument(
     const Identifier& SERVER_ID, const Identifier& USER_ID,
     const Identifier& USER_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
     const OTPayment& THE_INSTRUMENT,
@@ -13374,7 +13374,7 @@ int32_t OT_API::sendUserInstrument(
                                                        // to increment it
 
         // (1) set up member variables
-        theMessage.m_strCommand = "sendUserInstrument";
+        theMessage.m_strCommand = "sendNymInstrument";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNymID2 = strNymID2;
         theMessage.m_strServerID = strServerID;

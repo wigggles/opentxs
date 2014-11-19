@@ -768,7 +768,7 @@ public:
                                   const String& RECIPIENT_PUBKEY,
                                   const String& THE_MESSAGE) const;
 
-    EXPORT int32_t sendUserInstrument(
+    EXPORT int32_t sendNymInstrument(
         const Identifier& SERVER_ID, const Identifier& USER_ID,
         const Identifier& USER_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
         const OTPayment& THE_INSTRUMENT,

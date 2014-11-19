@@ -695,8 +695,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case SEND_USER_INSTRUMENT:
         // accountID stores here the sender's copy of the instrument, which is
         // used only in the case of a cash purse.
-        return OTAPI_Wrap::sendUserInstrument(serverID, nymID, nymID2, strData,
-                                              strData2, accountID);
+        return OTAPI_Wrap::sendNymInstrument(serverID, nymID, nymID2, strData,
+                                             strData2, accountID);
     case GET_NYM_MARKET_OFFERS:
         return OTAPI_Wrap::getNym_MarketOffers(serverID, nymID);
     case CREATE_ASSET_ACCT:

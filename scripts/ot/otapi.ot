@@ -567,12 +567,12 @@
             {
                 if (VerifyStringVal(this.accountID))
                 {
-                    nRetVal = OT_API_sendUserInstrument(this.serverID, this.nymID, this.nymID2, this.strData, this.strData2, this.accountID); // this.accountID stores here the sender's copy of the instrument, which is used only in the case of a cash purse.
+                    nRetVal = OT_API_sendNymInstrument(this.serverID, this.nymID, this.nymID2, this.strData, this.strData2, this.accountID); // this.accountID stores here the sender's copy of the instrument, which is used only in the case of a cash purse.
                 }
                 else
                 {
                     var strEmpty = ""
-                    nRetVal = OT_API_sendUserInstrument(this.serverID, this.nymID, this.nymID2, this.strData, this.strData2, strEmpty);
+                    nRetVal = OT_API_sendNymInstrument(this.serverID, this.nymID, this.nymID2, this.strData, this.strData2, strEmpty);
                 }
                 break;
             }

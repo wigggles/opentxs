@@ -524,7 +524,7 @@ void OTServer::Init(bool readOnly)
 // or pass pPayment instead: we will create our own msg here (with payment
 // inside) to be attached to the receipt.
 // szCommand for passing payDividend (as the message command instead of
-// sendUserInstrument, the default.)
+// sendNymInstrument, the default.)
 bool OTServer::SendInstrumentToNym(
     const Identifier& SERVER_ID, const Identifier& SENDER_USER_ID,
     const Identifier& RECIPIENT_USER_ID,
@@ -574,7 +574,7 @@ bool OTServer::SendInstrumentToNym(
 // About pMsg...
 // (Normally) when you send a cheque to someone, you encrypt it inside an
 // envelope, and that
-// envelope is attached to a OTMessage (sendUserInstrument) and sent to the
+// envelope is attached to a OTMessage (sendNymInstrument) and sent to the
 // server. The server
 // takes your entire OTMessage and attaches it to an instrumentNotice
 // (OTTransaction) which is
@@ -691,7 +691,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
                 pMsg->m_strCommand = "sendNymMessage";
                 break;
             case OTTransaction::instrumentNotice:
-                pMsg->m_strCommand = "sendUserInstrument";
+                pMsg->m_strCommand = "sendNymInstrument";
                 break;
             default:
                 break; // should never happen.
