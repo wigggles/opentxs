@@ -11676,7 +11676,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+         theMessage.m_strCommand.Compare("notarizeTransactionResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse"))) {
         otOut << __FUNCTION__
@@ -15088,9 +15088,9 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("notarizeTransactions")) &&
+    if ((false == theMessage.m_strCommand.Compare("notarizeTransaction")) &&
         (false ==
-         theMessage.m_strCommand.Compare("notarizeTransactionsResponse"))) {
+         theMessage.m_strCommand.Compare("notarizeTransactionResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
@@ -15278,7 +15278,7 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
 
     // So far these are the only messages that use m_strNymboxHash:
     if ((false == theMessage.m_strCommand.Compare("processNymbox")) &&
-        (false == theMessage.m_strCommand.Compare("notarizeTransactions")) &&
+        (false == theMessage.m_strCommand.Compare("notarizeTransaction")) &&
         (false == theMessage.m_strCommand.Compare("getTransactionNum")) &&
         (false == theMessage.m_strCommand.Compare("processInbox")) &&
         (false == theMessage.m_strCommand.Compare("triggerClause")) &&
@@ -15439,7 +15439,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+         theMessage.m_strCommand.Compare("notarizeTransactionResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__
@@ -15536,7 +15536,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage.m_strCommand.Compare("notarizeTransactionsResponse")) &&
+         theMessage.m_strCommand.Compare("notarizeTransactionResponse")) &&
         (false == theMessage.m_strCommand.Compare("processInboxResponse")) &&
         (false == theMessage.m_strCommand.Compare("processNymboxResponse"))) {
         otOut << __FUNCTION__

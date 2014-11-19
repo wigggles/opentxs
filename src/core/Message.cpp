@@ -1767,7 +1767,7 @@ public:
 
         // payDividend is not a normal user
         // message. Rather, the sender uses
-        // notarizeTransactions to do a
+        // notarizeTransaction to do a
         // payDividend transaction. On the
         // server side, this creates a new
         // message of type "payDividend"
@@ -2890,7 +2890,7 @@ public:
 RegisterStrategy StrategyDeleteAssetAccountResponse::reg(
     "deleteAssetAccountResponse", new StrategyDeleteAssetAccountResponse());
 
-class StrategyNotarizeTransactions : public OTMessageStrategy
+class StrategyNotarizeTransaction : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2952,10 +2952,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyNotarizeTransactions::reg(
-    "notarizeTransactions", new StrategyNotarizeTransactions());
+RegisterStrategy StrategyNotarizeTransaction::reg(
+    "notarizeTransaction", new StrategyNotarizeTransaction());
 
-class StrategyNotarizeTransactionsResponse : public OTMessageStrategy
+class StrategyNotarizeTransactionResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3038,7 +3038,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
-                     "notarizeTransactionsResponse reply\n";
+                     "notarizeTransactionResponse reply\n";
             return (-1); // error condition
         }
 
@@ -3056,8 +3056,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyNotarizeTransactionsResponse::reg(
-    "notarizeTransactionsResponse", new StrategyNotarizeTransactionsResponse());
+RegisterStrategy StrategyNotarizeTransactionResponse::reg(
+    "notarizeTransactionResponse", new StrategyNotarizeTransactionResponse());
 
 class StrategyGetTransactionNum : public OTMessageStrategy
 {

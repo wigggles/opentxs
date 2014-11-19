@@ -273,8 +273,8 @@ private:
                                       ProcessServerReplyArgs& args);
     bool processServerReplyCheckNym(const Message& theReply,
                                     ProcessServerReplyArgs& args);
-    bool processServerReplyNotarizeTransactions(const Message& theReply,
-                                                ProcessServerReplyArgs& args);
+    bool processServerReplyNotarizeTransaction(const Message& theReply,
+                                               ProcessServerReplyArgs& args);
     bool processServerReplyGetTransactionNum(const Message& theReply,
                                              ProcessServerReplyArgs& args);
     bool processServerReplyGetNymBox(const Message& theReply, OTLedger* pNymbox,

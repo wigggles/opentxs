@@ -1198,7 +1198,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
         OTTransaction* pTransaction = it.second;
         OT_ASSERT_MSG(nullptr != pTransaction, "nullptr transaction pointer in "
                                                "OTServer::"
-                                               "UserCmdNotarizeTransactions\n");
+                                               "UserCmdNotarizeTransaction\n");
 
         // See note above function. In this loop, it's possible that we've
         // already processed these
@@ -3054,7 +3054,7 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyNotarizeTransactions(
+bool OTClient::processServerReplyNotarizeTransaction(
     const Message& theReply, ProcessServerReplyArgs& args)
 {
     otOut << "Received server response to notarize Transactions message.\n";
@@ -3063,7 +3063,7 @@ bool OTClient::processServerReplyNotarizeTransactions(
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
     // todo (gui):
-    // This block assumes that the above "notarizeTransactionsResponse", being
+    // This block assumes that the above "notarizeTransactionResponse", being
     // successful, probably changed
     // the account balance. A nice GUI would probably interpret the reply
     // and edit the local files
@@ -7708,8 +7708,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("checkNymResponse")) {
         return processServerReplyCheckNym(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("notarizeTransactionsResponse")) {
-        return processServerReplyNotarizeTransactions(theReply, args);
+    if (theReply.m_strCommand.Compare("notarizeTransactionResponse")) {
+        return processServerReplyNotarizeTransaction(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getTransactionNumResponse")) {
         return processServerReplyGetTransactionNum(theReply, args);
@@ -8406,7 +8406,7 @@ int32_t OTClient::ProcessUserCommand(
                                                              // to increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(theNym); // Must be called AFTER
@@ -8647,7 +8647,7 @@ int32_t OTClient::ProcessUserCommand(
                                               // request, I have to increment it
 
                     // (1) Set up member variables
-                    theMessage.m_strCommand = "notarizeTransactions";
+                    theMessage.m_strCommand = "notarizeTransaction";
                     theMessage.m_strNymID = strNymID;
                     theMessage.m_strServerID = strServerID;
                     theMessage.SetAcknowledgments(
@@ -9021,7 +9021,7 @@ int32_t OTClient::ProcessUserCommand(
                                           // request, I have to increment it
 
                 // (1) Set up member variables
-                theMessage.m_strCommand = "notarizeTransactions";
+                theMessage.m_strCommand = "notarizeTransaction";
                 theMessage.m_strNymID = strNymID;
                 theMessage.m_strServerID = strServerID;
                 theMessage.SetAcknowledgments(

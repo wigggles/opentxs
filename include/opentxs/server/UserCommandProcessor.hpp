@@ -183,7 +183,7 @@ private:
     void UserCmdDeleteUser(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdDeleteAssetAcct(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdCreateAccount(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdNotarizeTransactions(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdNotarizeTransaction(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetNymbox(Nym& nym, Message& msgIn, Message& msgOut);
     // Deprecated (replaced by UserCmdGetAccountFiles)
     void UserCmdGetInbox(Nym& nym, Message& msgIn, Message& msgOut);

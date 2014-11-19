@@ -499,9 +499,9 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                  processNymbox        -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
                  processNymboxResponse  reply
-                 notarizeTransactions    -- client is SENDING HASH, server is
+                 notarizeTransaction    -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
-                 notarizeTransactionsResponse  reply
+                 notarizeTransactionResponse  reply
                  processInbox         -- client is SENDING HASH, server is
                  REJECTING BAD HASHES, server is SENDING HASH in the
                  processInboxResponse  reply
@@ -521,7 +521,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                 if (pThisMsg->m_ascPayload.Exists() &&
                     (pThisMsg->m_strCommand.Compare("processNymbox") ||
                      pThisMsg->m_strCommand.Compare("processInbox") ||
-                     pThisMsg->m_strCommand.Compare("notarizeTransactions") ||
+                     pThisMsg->m_strCommand.Compare("notarizeTransaction") ||
                      pThisMsg->m_strCommand.Compare("triggerClause"))) {
                     //
                     // If we are here in the first place (i.e. after

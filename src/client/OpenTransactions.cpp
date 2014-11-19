@@ -8743,7 +8743,7 @@ bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
  transactions.
     A message might fail due to out-of-sync request number, meaning it was cut
  off
-    before even having a chance to call the NotarizeTransactions code.
+    before even having a chance to call the NotarizeTransaction code.
 
  3. If the message failed, that means the transaction has not yet even been
  tried, so
@@ -9040,7 +9040,7 @@ int32_t OT_API::exchangeBasket(
                                              // request, I have to increment it
 
                     // (1) Set up member variables
-                    theMessage.m_strCommand = "notarizeTransactions";
+                    theMessage.m_strCommand = "notarizeTransaction";
                     theMessage.m_strNymID = strUserID;
                     theMessage.m_strServerID = strServerID;
                     theMessage.SetAcknowledgments(
@@ -9333,7 +9333,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -9595,7 +9595,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -9931,7 +9931,7 @@ int32_t OT_API::payDividend(
                                                            // increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -10142,7 +10142,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -10555,7 +10555,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
                                                            // increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -10742,7 +10742,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -11191,7 +11191,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
                                                        // server request, I have
                                                        // to increment it
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -11387,7 +11387,7 @@ int32_t OT_API::cancelCronItem(const Identifier& SERVER_ID,
                                                        // to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "notarizeTransactions";
+        theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -11713,7 +11713,7 @@ int32_t OT_API::issueMarketOffer(
                                                            // increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
@@ -12155,7 +12155,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
                                                            // increment it
 
             // (1) Set up member variables
-            theMessage.m_strCommand = "notarizeTransactions";
+            theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
             theMessage.m_strServerID = strServerID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
