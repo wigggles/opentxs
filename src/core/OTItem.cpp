@@ -1407,23 +1407,10 @@ void OTItem::SetAttachment(const String& theStr)
     m_ascAttachment.SetString(theStr);
 }
 
-#define MINIMUM_CLEARTEXT_SIZE_OTASCIIARMOR 100
-
-#define OTASSCIIARMOR_PADDING_TEXT                                             \
-    " IGNORE -- NOTE PADDING -- IGNORE -- NOTE PADDING \nIGNORE -- NOTE "      \
-    "PADDING -- IGNORE -- NOTE PADDING \n"
-
 void OTItem::SetNote(const String& theStr)
 {
     if (theStr.Exists() && theStr.GetLength() > 2) {
-        String theString(theStr);
-        if (theStr.GetLength() < MINIMUM_CLEARTEXT_SIZE_OTASCIIARMOR) {
-            String strPadding(OTASSCIIARMOR_PADDING_TEXT);
-
-            theString.Concatenate(strPadding);
-        }
-
-        m_ascNote.SetString(theString);
+        m_ascNote.SetString(theStr);
     }
     else {
         m_ascNote.Release();
@@ -1434,10 +1421,6 @@ void OTItem::GetNote(String& theStr) const
 {
     if (m_ascNote.GetLength() > 2) {
         m_ascNote.GetString(theStr);
-
-        if (theStr.Contains(OTASSCIIARMOR_PADDING_TEXT))
-            theStr.Truncate(theStr.GetLength() -
-                            MINIMUM_CLEARTEXT_SIZE_OTASCIIARMOR);
     }
     else {
         theStr.Release();
