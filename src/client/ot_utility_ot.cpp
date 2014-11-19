@@ -649,8 +649,8 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
         otOut << strLocation
               << ": FYI: this.getNymboxLowLevel returned -1. (Re-trying...)\n";
 
-        int32_t nGetRequest = getRequestNumber(serverID, nymID);
-        if (1 != nGetRequest) {
+        int32_t nGetRequestNumber = getRequestNumber(serverID, nymID);
+        if (1 != nGetRequestNumber) {
             otOut << strLocation << ": Failure: this.getNymboxLowLevel failed, "
                                     "then I tried to resync with "
                                     "this.getRequestNumber and then that "
@@ -675,10 +675,12 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
                        // getRequestNumber function.)
         }
 
-        // BY THIS POINT, we have received a server reply:  getRequestResponse
+        // BY THIS POINT, we have received a server reply:
+        // getRequestNumberResponse
         // (Unless it is malformed.) It's definitely not null, nor empty.
 
-        // Grab the NymboxHash on the getRequestResponse reply, and also the one
+        // Grab the NymboxHash on the getRequestNumberResponse reply, and also
+        // the one
         // I
         // already had on my client-side Nym... (So we can compare them.)
         //
@@ -696,7 +698,8 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
         *      Next, process the Nymbox (which processes that reply) and then
         *return strReply;
         *
-        *      (Clearly this is just going to be a normal part of the getRequest
+        *      (Clearly this is just going to be a normal part of the
+        *getRequestNumber
         *syncronization.)
         *
         *      By the time that much is done, I will KNOW the request number,
@@ -737,7 +740,7 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
         if (!bServerHash) {
             otOut << strLocation
                   << ": Warning: Unable to retrieve server-side NymboxHash "
-                     "from server getRequestResponse reply:\n\n"
+                     "from server getRequestNumberResponse reply:\n\n"
                   << lastReplyReceived << "\n";
         }
 
@@ -754,7 +757,7 @@ OT_UTILITY_OT int32_t Utility::getNymbox(const string& serverID,
         // latest nymbox.
         if (bForceDownload || !bLocalHash || !bServerHash ||
             (bServerHash && bLocalHash && !(strServerHash == strLocalHash))) {
-            // the getRequest worked, and the server hashes don't match,
+            // the getRequestNumber worked, and the server hashes don't match,
             // so let's try the call again...
 
             nGetNymbox = getNymboxLowLevel(serverID, nymID, bWasMsgSent);
@@ -889,7 +892,8 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
     // FAILED.
     // Since the message failed, perhaps the request number was out of sync, or
     // Nymbox hash
-    // was old? So, let's say that it then sent a getRequest message, in order
+    // was old? So, let's say that it then sent a getRequestNumber message, in
+    // order
     // to resync,
     // and discovered that the Nymbox hash has changed. Therefore the Nymbox is
     // now being
@@ -1678,7 +1682,7 @@ OT_UTILITY_OT int32_t
     return nTransSuccess;
 }
 
-// No need to deal with getRequest here when failure, since the calling
+// No need to deal with getRequestNumber here when failure, since the calling
 // function already goes through that crap before we get here.
 // Returns: the request number for the process Nymbox request.
 // OR returns 0 if the Nymbox was empty (and no message was sent.)
@@ -1807,20 +1811,21 @@ OT_UTILITY_OT int32_t
 
     OTAPI_Wrap::FlushMessageBuffer();
 
-    int32_t nResult = OTAPI_Wrap::getRequest(serverID, nymID);
+    int32_t nResult = OTAPI_Wrap::getRequestNumber(serverID, nymID);
     if (-1 == nResult) // if error -1, that means it DIDN'T SEND (error)
     {
         otOut << strLocation
-              << ": Failed to send getRequest message due to error.\n";
+              << ": Failed to send getRequestNumber message due to error.\n";
         return -1;
     }
     if (0 == nResult) // if 0 is returned, that also means it DIDN'T SEND (but
                       // there was NO error...)
     { // I don't know if this case can actually even HAPPEN... but if it does,
         // I'll log it.
-        otOut << strLocation << ": Didn't send this getRequest message, but NO "
-                                "error occurred, either. (Should never "
-                                "happen.)\n";
+        otOut << strLocation
+              << ": Didn't send this getRequestNumber message, but NO "
+                 "error occurred, either. (Should never "
+                 "happen.)\n";
         return -1; // Since the 0 case should never happen, I'm returning it as
                    // an ERROR (-1).
                    // Note: I could never return 0;
@@ -1830,7 +1835,8 @@ OT_UTILITY_OT int32_t
     }
     //
     // else it's >0  ==  successfully sent! (I BELIEVE this is 1, in this case,
-    // every time, since you don't NEED a request number to CALL getRequestNum
+    // every time, since you don't NEED a request number to CALL
+    // getRequestNumberNum
     // since you are only calling it in the first place because it must have
     // gotten out of sync.)
     //
@@ -1848,7 +1854,7 @@ OT_UTILITY_OT int32_t
     // later to query for a copy of that sent message.
     // Let's go ahead, in this case, and remove that now:
     //
-    // var nRemovedGetRequest =
+    // var nRemovedGetRequestNumber =
     // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nResult), serverID,
     // nymID);
 
@@ -1858,10 +1864,10 @@ OT_UTILITY_OT int32_t
     // already removed the sent message from the sent buffer (so no need to do
     // that here.)
 
-    //      if (nRemovedGetRequest < 1)
+    //      if (nRemovedGetRequestNumber < 1)
     //      {
     //          otOut << "getRequestNumber: ERROR:
-    // OT_API_RemoveSentMessage returned: " << nRemovedGetRequest);
+    // OT_API_RemoveSentMessage returned: " << nRemovedGetRequestNumber);
     //      }
 
     return nReturn;
@@ -1973,10 +1979,10 @@ OT_UTILITY_OT bool Utility::getBoxReceiptWithErrorCorrection(
                                 "up.)\n";
     }
     else {
-        otOut << strLocation << ": getBoxReceiptLowLevel failed, then "
-                                "getRequestNumber failed. (I give up.) Was "
-                                "getRequest message sent: " << bWasRequestSent
-              << "\n";
+        otOut << strLocation
+              << ": getBoxReceiptLowLevel failed, then "
+                 "getRequestNumber failed. (I give up.) Was "
+                 "getRequestNumber message sent: " << bWasRequestSent << "\n";
     }
     return false;
 }
@@ -2138,7 +2144,8 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
                                     // times, when
                                     // getBoxReceiptWithErrorCorrection()
                                     // already failed
-                                    // even doing the getRequest() trick and
+                                    // even doing the getRequestNumber() trick
+                                    // and
                                     // everything, and whatever retries are
                                     // inside OT, before it finally
                                     // gave up.
@@ -2350,7 +2357,7 @@ int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
 const string TRANSACTION_NUMBER);
 */
 // If the transaction number requests fail, this function will try to resync
-// the request number. But you still have to call getRequest() yourself if
+// the request number. But you still have to call getRequestNumber() yourself if
 // you have a failure in your own function, since you might already have
 // enough transaction numbers, and thus this function will never get called,
 // even if your request number IS out of sync. Sorry :-)
@@ -2375,7 +2382,7 @@ OT_UTILITY_OT int32_t
     }
     if (0 == nRequestNum) {
         otOut << strLocation << ": Unexpectedly returned 0. Didn't send "
-                                "getTransactionNum message, but NO error "
+                                "getTransactionNumbers message, but NO error "
                                 "occurred, either. (In this case, SHOULD NEVER "
                                 "HAPPEN. Treating as Error.)\n";
         return -1; // Even though '0' MEANS "didn't send, but no error" by
@@ -2392,8 +2399,8 @@ OT_UTILITY_OT int32_t
 
     //
     int32_t nReturn = receiveReplySuccessLowLevel(serverID, nymID, nRequestNum,
-                                                  "getTransactionNum");
-    //      otOut << "IN getTransactionNum " <<
+                                                  "getTransactionNumbers");
+    //      otOut << "IN getTransactionNumbers " <<
     // getLastReplyReceived());
 
     // BY this point, we definitely have the request number in nResult, which
@@ -2445,7 +2452,7 @@ OT_UTILITY_OT int32_t
     //
     //      if (nRemovedSentMsg < 1)
     //      {
-    //          otOut << "getTransactionNum: ERROR:
+    //          otOut << "getTransactionNumbers: ERROR:
     // OT_API_RemoveSentMessage returned: " << nRemovedSentMsg);
     //      }
 
@@ -2497,7 +2504,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
         }
     }
     // If value is LESS THAN -1 (which is an unexpected value)
-    // or if the getTransactionNum message WASN'T EVEN SENT, then return.
+    // or if the getTransactionNumbers message WASN'T EVEN SENT, then return.
     //
     else if ((nGetNumbers < -1) || !bWasSent) {
         otOut << strLocation << ": Failure: getTransactionNumLowLevel returned "
@@ -2525,8 +2532,8 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
                                     "(Re-trying...)\n";
         }
 
-        int32_t nGetRequest = getRequestNumber(serverID, nymID);
-        if (1 != nGetRequest) {
+        int32_t nGetRequestNumber = getRequestNumber(serverID, nymID);
+        if (1 != nGetRequestNumber) {
             otOut << strLocation << ": Failure: getTransactionNumLowLevel "
                                     "failed, then I tried to resync with "
                                     "getRequestNumber and then that failed "
@@ -2684,7 +2691,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
 
             //              if ((nGetNumbers < -1) ||         // If value is
             // LESS THAN -1 (which is an unexpected value)
-            //                  !bWasSent)    // or if the getTransactionNum
+            //                  !bWasSent)    // or if the getTransactionNumbers
             // message WASN'T EVEN SENT, then return.
 
             if ((nGetNumbers < -1) || !bWasSent) {
@@ -2750,7 +2757,7 @@ OT_UTILITY_OT bool Utility::getTransactionNumbers(
     //
     if (!bServerhash || !bLocalhash ||
         (bServerhash && bLocalhash && !(strServerHash == strLocalHash))) {
-        // the getRequest worked, and the server hashes don't match,
+        // the getRequestNumber worked, and the server hashes don't match,
         // so let's get and process the Nymbox...
         //
 
@@ -2859,8 +2866,8 @@ OT_UTILITY_OT bool Utility::getIntermediaryFiles(
         otOut << strLocation
               << ": getInboxAccount failed. (Trying one more time...)\n";
 
-        int32_t nGetRequest = getRequestNumber(serverID, nymID);
-        if (1 != nGetRequest) {
+        int32_t nGetRequestNumber = getRequestNumber(serverID, nymID);
+        if (1 != nGetRequestNumber) {
             otOut << strLocation << ": Failure: getInboxAccount failed, then I "
                                     "tried to resync with getRequestNumber and "
                                     "then that failed too. (I give up.)\n";

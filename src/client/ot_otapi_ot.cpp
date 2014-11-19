@@ -685,18 +685,18 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     switch (funcType) {
     case CHECK_NYM:
         return OTAPI_Wrap::checkNym(serverID, nymID, nymID2);
-    case CREATE_USER_ACCT:
+    case REGISTER_NYM:
         return OTAPI_Wrap::registerNym(serverID, nymID);
-    case DELETE_USER_ACCT:
-        return OTAPI_Wrap::deleteUserAccount(serverID, nymID);
+    case DELETE_NYM:
+        return OTAPI_Wrap::deleteNym(serverID, nymID);
     case SEND_USER_MESSAGE:
-        return OTAPI_Wrap::sendUserMessage(serverID, nymID, nymID2, strData,
-                                           strData2);
+        return OTAPI_Wrap::sendNymMessage(serverID, nymID, nymID2, strData,
+                                          strData2);
     case SEND_USER_INSTRUMENT:
         // accountID stores here the sender's copy of the instrument, which is
         // used only in the case of a cash purse.
-        return OTAPI_Wrap::sendUserInstrument(serverID, nymID, nymID2, strData,
-                                              strData2, accountID);
+        return OTAPI_Wrap::sendNymInstrument(serverID, nymID, nymID2, strData,
+                                             strData2, accountID);
     case GET_NYM_MARKET_OFFERS:
         return OTAPI_Wrap::getNym_MarketOffers(serverID, nymID);
     case CREATE_ASSET_ACCT:
@@ -1221,13 +1221,13 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                                              // Request...
     {
         bool bWasGetReqSent = false;
-        int32_t nGetRequest = MsgUtil.getRequestNumber(
+        int32_t nGetRequestNumber = MsgUtil.getRequestNumber(
             theFunction.serverID, theFunction.nymID,
             bWasGetReqSent); // <==== RE-SYNC ATTEMPT...;
 
         // GET REQUEST WAS A SUCCESS.
         //
-        if (bWasGetReqSent && (nGetRequest > 0)) {
+        if (bWasGetReqSent && (nGetRequestNumber > 0)) {
             bCanRetryAfterThis = true;
 
             // But--if it was a TRANSACTION, then we're not done syncing yet!
@@ -1306,11 +1306,12 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 }
             } // if (bIsTransaction)
 
-        } // if getRequest was success.
+        } // if getRequestNumber was success.
         else {
-            otOut << strLocation << ", Failure: Never got reply from server, "
-                                    "so tried getRequest, and that failed too. "
-                                    "(I give up.)\n";
+            otOut << strLocation
+                  << ", Failure: Never got reply from server, "
+                     "so tried getRequestNumber, and that failed too. "
+                     "(I give up.)\n";
 
             // Note: cannot harvest transaction nums here because I do NOT know
             // for sure

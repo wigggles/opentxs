@@ -8978,7 +8978,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
 // Lookup a financial instrument (from within a transaction that is inside
 // a paymentInbox ledger) based on index.
 /*
-sendUserInstrument does this:
+sendNymInstrument does this:
 -- Puts instrument (a contract string) as encrypted Payload on an OTMessage(1).
 -- Also puts instrument (same contract string) as CLEAR payload on an
 OTMessage(2).
@@ -13084,8 +13084,8 @@ int32_t OTAPI_Exec::registerNym(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::deleteUserAccount(const std::string& SERVER_ID,
-                                      const std::string& USER_ID) const
+int32_t OTAPI_Exec::deleteNym(const std::string& SERVER_ID,
+                              const std::string& USER_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13098,7 +13098,7 @@ int32_t OTAPI_Exec::deleteUserAccount(const std::string& SERVER_ID,
 
     Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
-    return OTAPI()->deleteUserAccount(theServerID, theUserID);
+    return OTAPI()->deleteNym(theServerID, theUserID);
 }
 
 // If THE_MESSAGE is of command type usageCreditsResponse, and IF it was a
@@ -13251,11 +13251,11 @@ int32_t OTAPI_Exec::checkNym(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::sendUserMessage(const std::string& SERVER_ID,
-                                    const std::string& USER_ID,
-                                    const std::string& USER_ID_RECIPIENT,
-                                    const std::string& RECIPIENT_PUBKEY,
-                                    const std::string& THE_MESSAGE) const
+int32_t OTAPI_Exec::sendNymMessage(const std::string& SERVER_ID,
+                                   const std::string& USER_ID,
+                                   const std::string& USER_ID_RECIPIENT,
+                                   const std::string& RECIPIENT_PUBKEY,
+                                   const std::string& THE_MESSAGE) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13283,8 +13283,8 @@ int32_t OTAPI_Exec::sendUserMessage(const std::string& SERVER_ID,
     String strRecipPubkey(RECIPIENT_PUBKEY);
     String strMessage(THE_MESSAGE);
 
-    return OTAPI()->sendUserMessage(theServerID, theUserID, theOtherUserID,
-                                    strRecipPubkey, strMessage);
+    return OTAPI()->sendNymMessage(theServerID, theUserID, theOtherUserID,
+                                   strRecipPubkey, strMessage);
 }
 
 // Returns int32_t:
@@ -13295,7 +13295,7 @@ int32_t OTAPI_Exec::sendUserMessage(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::sendUserInstrument(
+int32_t OTAPI_Exec::sendNymInstrument(
     const std::string& SERVER_ID, const std::string& USER_ID,
     const std::string& USER_ID_RECIPIENT, const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_INSTRUMENT,
@@ -13381,21 +13381,21 @@ int32_t OTAPI_Exec::sendUserInstrument(
                   << strInstrumentForSender << "\n\n";
             return OT_ERROR;
         }
-        return OTAPI()->sendUserInstrument(theServerID, theUserID,
-                                           theOtherUserID, strRecipPubkey,
-                                           thePayment, &theSenderPayment);
+        return OTAPI()->sendNymInstrument(theServerID, theUserID,
+                                          theOtherUserID, strRecipPubkey,
+                                          thePayment, &theSenderPayment);
     }
-    return OTAPI()->sendUserInstrument(theServerID, theUserID, theOtherUserID,
-                                       strRecipPubkey, thePayment);
+    return OTAPI()->sendNymInstrument(theServerID, theUserID, theOtherUserID,
+                                      strRecipPubkey, thePayment);
 }
 
 // Returns int32_t:
 // -1 means error; no message was sent.
 //  0 means NO error, but also: no message was sent.
-//  1 means the "getRequest" message was successfully SENT.
+//  1 means the "getRequestNumber" message was successfully SENT.
 //
-int32_t OTAPI_Exec::getRequest(const std::string& SERVER_ID,
-                               const std::string& USER_ID) const
+int32_t OTAPI_Exec::getRequestNumber(const std::string& SERVER_ID,
+                                     const std::string& USER_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13408,7 +13408,7 @@ int32_t OTAPI_Exec::getRequest(const std::string& SERVER_ID,
 
     Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
-    return OTAPI()->getRequest(theServerID, theUserID);
+    return OTAPI()->getRequestNumber(theServerID, theUserID);
 }
 
 // Returns int32_t:
@@ -15279,13 +15279,14 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
     // So far these are the only messages that use m_strNymboxHash:
     if ((false == theMessage.m_strCommand.Compare("processNymbox")) &&
         (false == theMessage.m_strCommand.Compare("notarizeTransaction")) &&
-        (false == theMessage.m_strCommand.Compare("getTransactionNum")) &&
+        (false == theMessage.m_strCommand.Compare("getTransactionNumbers")) &&
         (false == theMessage.m_strCommand.Compare("processInbox")) &&
         (false == theMessage.m_strCommand.Compare("triggerClause")) &&
         (false == theMessage.m_strCommand.Compare("getNymboxResponse")) &&
-        (false == theMessage.m_strCommand.Compare("getRequestResponse")) &&
         (false ==
-         theMessage.m_strCommand.Compare("getTransactionNumResponse"))) {
+         theMessage.m_strCommand.Compare("getRequestNumberResponse")) &&
+        (false ==
+         theMessage.m_strCommand.Compare("getTransactionNumbersResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type : " << theMessage.m_strCommand
               << " \nFYI, with m_strNymboxHash : " << theMessage.m_strNymboxHash

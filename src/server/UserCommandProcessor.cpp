@@ -794,8 +794,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // (This prevents attackers
     // from repeat-sending intercepted messages to the server.)
 
-    // IF it's NOT a getRequest CMD, (therefore requires a request number)
-    if (false == theMessage.m_strCommand.Compare("getRequest")) {
+    // IF it's NOT a getRequestNumber CMD, (therefore requires a request number)
+    if (false == theMessage.m_strCommand.Compare("getRequestNumber")) {
         // AND the request number attached does not match what we just
         // read out of the file...
         if (lRequestNumber != theMessage.m_strRequestNum.ToLong()) {
@@ -805,7 +805,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                            theMessage.m_strRequestNum.ToLong(), lRequestNumber);
             return false;
         }
-        // it's not a getRequest CMD, and the request number
+        // it's not a getRequestNumber CMD, and the request number
         // sent DOES match what we read out of the file!!
 
         // USAGE CREDITS...
@@ -852,7 +852,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                        lRequestNumber);
 
         // At this point, it is some OTHER command (besides
-        // getRequest)
+        // getRequestNumber)
         // AND the request number verifies, so we're going to
         // increment
         // the number, and let the command process.
@@ -871,7 +871,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         // NO RETURN HERE!!!! ON PURPOSE!!!!
     }
     else // If you entered this else, that means it IS a
-           // getRequest command
+           // getRequestNumber command
     // So we allow it to go through without verifying this step,
     // and without incrementing the counter.
     {
@@ -888,7 +888,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         // NO RETURN HERE!!!! ON PURPOSE!!!!
     }
 
-    // At this point, we KNOW that it is EITHER a GetRequest
+    // At this point, we KNOW that it is EITHER a GetRequestNumber
     // command, which doesn't require a request number,
     // OR it was some other command, but the request number they
     // sent in the command MATCHES the one that we
@@ -1119,31 +1119,32 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                       // msgOut.m_strServerID is already set.
                                       // (It uses it.)
 
-    if (theMessage.m_strCommand.Compare("getRequest")) // This command is
-                                                       // special because it's
-                                                       // the only one that
-                                                       // doesn't require a
-                                                       // request number.
+    if (theMessage.m_strCommand.Compare("getRequestNumber")) // This command is
+    // special because it's
+    // the only one that
+    // doesn't require a
+    // request number.
     // All of the other commands, below, will fail above if the proper
     // request number isn't included
     // in the message.  They will already have failed by this point if they
     // didn't verify.
     {
-        OTLog::vOutput(0, "\n==> Received a getRequest message. Nym: %s ...\n",
-                       strMsgNymID.Get());
+        OTLog::vOutput(
+            0, "\n==> Received a getRequestNumber message. Nym: %s ...\n",
+            strMsgNymID.Get());
 
-        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_request);
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_requestnumber);
 
-        UserCmdGetRequest(*pNym, theMessage, msgOut);
+        UserCmdGetRequestNumber(*pNym, theMessage, msgOut);
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("getTransactionNum")) {
+    else if (theMessage.m_strCommand.Compare("getTransactionNumbers")) {
         OTLog::vOutput(
-            0, "\n==> Received a getTransactionNum message. Nym: %s ...\n",
+            0, "\n==> Received a getTransactionNumbers message. Nym: %s ...\n",
             strMsgNymID.Get());
 
-        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_trans_num);
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_trans_nums);
 
         UserCmdGetTransactionNum(*pNym, theMessage, msgOut);
 
@@ -1159,32 +1160,31 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("sendUserMessage")) {
+    else if (theMessage.m_strCommand.Compare("sendNymMessage")) {
+        OTLog::vOutput(0,
+                       "\n==> Received a sendNymMessage message. Nym: %s ...\n",
+                       strMsgNymID.Get());
+
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
+
+        UserCmdSendNymMessage(*pNym, theMessage, msgOut);
+
+        return true;
+    }
+    else if (theMessage.m_strCommand.Compare("sendNymInstrument")) {
         OTLog::vOutput(
-            0, "\n==> Received a sendUserMessage message. Nym: %s ...\n",
+            0, "\n==> Received a sendNymInstrument message. Nym: %s ...\n",
             strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
 
-        UserCmdSendUserMessage(*pNym, theMessage, msgOut);
+        UserCmdSendNymInstrument(*pNym, theMessage, msgOut);
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("sendUserInstrument")) {
-        OTLog::vOutput(
-            0, "\n==> Received a sendUserInstrument message. Nym: %s ...\n",
-            strMsgNymID.Get());
-
-        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
-
-        UserCmdSendUserInstrument(*pNym, theMessage, msgOut);
-
-        return true;
-    }
-    else if (theMessage.m_strCommand.Compare("deleteUserAccount")) {
-        OTLog::vOutput(
-            0, "\n==> Received a deleteUserAccount message. Nym: %s ...\n",
-            strMsgNymID.Get());
+    else if (theMessage.m_strCommand.Compare("deleteNym")) {
+        OTLog::vOutput(0, "\n==> Received a deleteNym message. Nym: %s ...\n",
+                       strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_user_acct);
 
@@ -1655,7 +1655,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "getTransactionNumResponse";      // reply to getTransactionNum
+        "getTransactionNumbersResponse";  // reply to getTransactionNumbers
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     const Identifier SERVER_ID(server_->m_strServerID);
@@ -1870,12 +1870,13 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdGetRequest(Nym& theNym, Message& MsgIn,
-                                             Message& msgOut)
+void UserCommandProcessor::UserCmdGetRequestNumber(Nym& theNym, Message& MsgIn,
+                                                   Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "getRequestResponse"; // reply to getRequest
-    msgOut.m_strNymID = MsgIn.m_strNymID;       // UserID
+    msgOut.m_strCommand =
+        "getRequestNumberResponse";       // reply to getRequestNumber
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum); // Outoing reply contains
                                                        // same request num
@@ -1892,7 +1893,7 @@ void UserCommandProcessor::UserCmdGetRequest(Nym& theNym, Message& MsgIn,
     // should have already insured its existence.
     if (!msgOut.m_bSuccess) {
         OTLog::Error("Error loading request number in "
-                     "UserCommandProcessor::UserCmdGetRequest\n");
+                     "UserCommandProcessor::UserCmdGetRequestNumber\n");
     }
     else
         msgOut.m_lNewRequestNum = lReqNum;
@@ -1929,12 +1930,12 @@ void UserCommandProcessor::UserCmdGetRequest(Nym& theNym, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdSendUserMessage(Nym& theNym, Message& MsgIn,
-                                                  Message& msgOut)
+void UserCommandProcessor::UserCmdSendNymMessage(Nym& theNym, Message& MsgIn,
+                                                 Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "sendUserMessageResponse"; // reply to sendUserMessage
-    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strCommand = "sendNymMessageResponse"; // reply to sendNymMessage
+    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
@@ -1946,7 +1947,7 @@ void UserCommandProcessor::UserCmdSendUserMessage(Nym& theNym, Message& MsgIn,
                          &MsgIn); // pstrMessage=nullptr
 
     if (!bSent) {
-        OTLog::vError("UserCommandProcessor::UserCmdSendUserMessage: Failed "
+        OTLog::vError("UserCommandProcessor::UserCmdSendNymMessage: Failed "
                       "while calling "
                       "SendMessageToNym.\n");
         msgOut.m_bSuccess = false;
@@ -1967,13 +1968,12 @@ void UserCommandProcessor::UserCmdSendUserMessage(Nym& theNym, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdSendUserInstrument(Nym& theNym,
-                                                     Message& MsgIn,
-                                                     Message& msgOut)
+void UserCommandProcessor::UserCmdSendNymInstrument(Nym& theNym, Message& MsgIn,
+                                                    Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "sendUserInstrumentResponse";       // reply to sendUserInstrument
+        "sendNymInstrumentResponse";        // reply to sendNymInstrument
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
@@ -1987,7 +1987,7 @@ void UserCommandProcessor::UserCmdSendUserInstrument(Nym& theNym,
 
     if (!bSent) {
         OTLog::vError(
-            "UserCommandProcessor::UserCmdSendUserInstrument: Failed while "
+            "UserCommandProcessor::UserCmdSendNymInstrument: Failed while "
             "calling SendInstrumentToNym.\n");
         msgOut.m_bSuccess = false;
     }
@@ -3672,9 +3672,8 @@ void UserCommandProcessor::UserCmdDeleteUser(Nym& theNym, Message& MsgIn,
                                              Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand =
-        "deleteUserAccountResponse";      // reply to deleteUserAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strCommand = "deleteNymResponse"; // reply to deleteNym
+    msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
 
     const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID);
 

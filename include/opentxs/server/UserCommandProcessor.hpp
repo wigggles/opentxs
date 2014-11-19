@@ -168,9 +168,9 @@ private:
 
     void UserCmdCheckServerID(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdCheckNym(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdSendUserMessage(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdSendUserInstrument(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdGetRequest(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdSendNymMessage(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdSendNymInstrument(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetRequestNumber(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetTransactionNum(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdIssueAssetType(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdIssueBasket(Nym& nym, Message& msgIn, Message& msgOut);

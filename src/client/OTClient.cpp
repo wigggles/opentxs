@@ -2889,8 +2889,8 @@ bool OTClient::processServerReplyTriggerClause(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetRequest(const Message& theReply,
-                                            ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
+                                                  ProcessServerReplyArgs& args)
 {
 
     int64_t lNewRequestNumber = theReply.m_lNewRequestNum;
@@ -2903,7 +2903,7 @@ bool OTClient::processServerReplyGetRequest(const Message& theReply,
     // In the future, I will have to write a function on the wallet that
     // actually
     // takes the reply, looks up the associated nym in the wallet, verifies
-    // that it was EXPECTING a response to GetRequest, (cause otherwise it
+    // that it was EXPECTING a response to GetRequestNumber, (cause otherwise it
     // won't
     // know which one to update) and then updates the request number there.
     // In the meantime there is only one connection, and it already has a
@@ -7297,8 +7297,8 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     return true;
 }
 
-bool OTClient::processServerReplyDeleteUserAccount(const Message& theReply,
-                                                   ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyDeleteNym(const Message& theReply,
+                                           ProcessServerReplyArgs& args)
 {
     const auto& pNym = args.pNym;
     const auto& SERVER_ID = args.SERVER_ID;
@@ -7315,7 +7315,7 @@ bool OTClient::processServerReplyDeleteUserAccount(const Message& theReply,
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
         theOriginalMessage.VerifySignature(*pNym) &&
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
-        theOriginalMessage.m_strCommand.Compare("deleteUserAccount")) {
+        theOriginalMessage.m_strCommand.Compare("deleteNym")) {
 
         while (pNym->GetTransactionNumCount(SERVER_ID) > 0) {
             int64_t lTemp = pNym->GetTransactionNum(SERVER_ID, 0); // index 0
@@ -7702,8 +7702,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("triggerClauseResponse")) {
         return processServerReplyTriggerClause(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("getRequestResponse")) {
-        return processServerReplyGetRequest(theReply, args);
+    if (theReply.m_strCommand.Compare("getRequestNumberResponse")) {
+        return processServerReplyGetRequestNumber(theReply, args);
     }
     if (theReply.m_strCommand.Compare("checkNymResponse")) {
         return processServerReplyCheckNym(theReply, args);
@@ -7711,7 +7711,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("notarizeTransactionResponse")) {
         return processServerReplyNotarizeTransaction(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("getTransactionNumResponse")) {
+    if (theReply.m_strCommand.Compare("getTransactionNumbersResponse")) {
         return processServerReplyGetTransactionNum(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getNymboxResponse")) {
@@ -7750,8 +7750,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("getNym_MarketOffersResponse")) {
         return processServerReplyGetNymMarketOffers(theReply);
     }
-    if (theReply.m_strCommand.Compare("deleteUserAccountResponse")) {
-        return processServerReplyDeleteUserAccount(theReply, args);
+    if (theReply.m_strCommand.Compare("deleteNymResponse")) {
+        return processServerReplyDeleteNym(theReply, args);
     }
     if (theReply.m_strCommand.Compare("deleteAssetAccountResponse")) {
         return processServerReplyDeleteAssetAccount(theReply, args);
@@ -7964,12 +7964,13 @@ int32_t OTClient::ProcessUserCommand(
             lReturnValue = 1;
         }
     } break;
-    case (OTClient::getRequest): {
-        //        otOut << "(User has instructed to send a getRequest command to
+    case (OTClient::getRequestNumber): {
+        //        otOut << "(User has instructed to send a getRequestNumber
+        //        command to
         // the server...)\n";
 
         // (1) set up member variables
-        theMessage.m_strCommand = "getRequest";
+        theMessage.m_strCommand = "getRequestNumber";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
 
@@ -7994,7 +7995,8 @@ int32_t OTClient::ProcessUserCommand(
     // number by calling theNym.IncrementRequestNum
     // Otherwise it will get out of sync, and future commands will start failing
     // (until it is resynchronized with
-    // a getRequest message to the server, which replies with the latest number.
+    // a getRequestNumber message to the server, which replies with the latest
+    // number.
     // The code on this side that processes
     // that server reply is already smart enough to update the local nym's copy
     // of the request number when it is received.
@@ -8015,7 +8017,7 @@ int32_t OTClient::ProcessUserCommand(
     // send them to the server twice. Better that new requests requre new
     // request numbers :-)
     break;
-    case OTClient::deleteUserAccount: {
+    case OTClient::deleteNym: {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
@@ -8025,7 +8027,7 @@ int32_t OTClient::ProcessUserCommand(
                                                          // have to increment it
 
         // (1) set up member variables
-        theMessage.m_strCommand = "deleteUserAccount";
+        theMessage.m_strCommand = "deleteNym";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER
@@ -8691,7 +8693,7 @@ int32_t OTClient::ProcessUserCommand(
                                      true); // bSave=true
         }
     } break;
-    case OTClient::getTransactionNum: // GET TRANSACTION NUM
+    case OTClient::getTransactionNumbers: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
@@ -8702,7 +8704,7 @@ int32_t OTClient::ProcessUserCommand(
                                                          // have to increment it
 
         // (1) Set up member variables
-        theMessage.m_strCommand = "getTransactionNum";
+        theMessage.m_strCommand = "getTransactionNumbers";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strServerID = strServerID;
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER

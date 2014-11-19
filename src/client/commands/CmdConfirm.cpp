@@ -627,11 +627,13 @@ int32_t CmdConfirm::sendToNextParty(const string& server, const string& mynym,
     // Might as well remove that copy.
     //
     // We can't really expect to remove the payments inbox copy inside OT
-    // itself, when we receive the server's atSendUserInstrument reply message,
+    // itself, when we receive the server's SendNymInstrumentResponse reply
+    // message,
     // without opening up the (encrypted) contents. (Although that would
     // actually be ideal, since it would cover all cases included dropped
     // messages...) But we CAN easily remove it RIGHT HERE.
-    // Perhaps in the future I WILL move this code to the atSendUserInstrument
+    // Perhaps in the future I WILL move this code to the
+    // SendNymInstrumentResponse
     // reply processing, but that will require it to be encrypted to my own
     // key as well as the recipient's, which we already do for sending cash,
     // but which we up until now have not done for the other instruments.

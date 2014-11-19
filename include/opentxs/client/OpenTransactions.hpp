@@ -747,8 +747,8 @@ public:
     EXPORT int32_t registerNym(const Identifier& SERVER_ID,
                                const Identifier& USER_ID) const;
 
-    EXPORT int32_t deleteUserAccount(const Identifier& SERVER_ID,
-                                     const Identifier& USER_ID) const;
+    EXPORT int32_t
+        deleteNym(const Identifier& SERVER_ID, const Identifier& USER_ID) const;
 
     EXPORT int32_t checkNym(const Identifier& SERVER_ID,
                             const Identifier& USER_ID,
@@ -759,16 +759,16 @@ public:
                                 const Identifier& USER_ID_CHECK,
                                 int64_t lAdjustment = 0) const;
 
-    EXPORT int32_t getRequest(const Identifier& SERVER_ID,
-                              const Identifier& USER_ID) const;
+    EXPORT int32_t getRequestNumber(const Identifier& SERVER_ID,
+                                    const Identifier& USER_ID) const;
 
-    EXPORT int32_t sendUserMessage(const Identifier& SERVER_ID,
-                                   const Identifier& USER_ID,
-                                   const Identifier& USER_ID_RECIPIENT,
-                                   const String& RECIPIENT_PUBKEY,
-                                   const String& THE_MESSAGE) const;
+    EXPORT int32_t sendNymMessage(const Identifier& SERVER_ID,
+                                  const Identifier& USER_ID,
+                                  const Identifier& USER_ID_RECIPIENT,
+                                  const String& RECIPIENT_PUBKEY,
+                                  const String& THE_MESSAGE) const;
 
-    EXPORT int32_t sendUserInstrument(
+    EXPORT int32_t sendNymInstrument(
         const Identifier& SERVER_ID, const Identifier& USER_ID,
         const Identifier& USER_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
         const OTPayment& THE_INSTRUMENT,

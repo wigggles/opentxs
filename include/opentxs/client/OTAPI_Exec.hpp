@@ -2039,7 +2039,7 @@ public:
     // Lookup a financial instrument (from within a transaction that is inside
     // a ledger) based on index or transaction number.
 
-    sendUserInstrument does this:
+    sendNymInstrument does this:
     -- Puts an OTPayment (a form of contract) as an encrypted Payload on an
     OTMessage(1).
     -- Also puts instrument (same contract) as CLEAR payload on an OTMessage(2).
@@ -2656,8 +2656,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT int32_t deleteUserAccount(const std::string& SERVER_ID,
-                                     const std::string& USER_ID) const;
+    EXPORT int32_t deleteNym(const std::string& SERVER_ID,
+                             const std::string& USER_ID) const;
 
     /** This allows you to delete an asset account from a server,
     // provided that the balance is 0 and the inbox and outbox are
@@ -2790,13 +2790,13 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t sendUserMessage(const std::string& SERVER_ID,
-                                   const std::string& USER_ID,
-                                   const std::string& USER_ID_RECIPIENT,
-                                   const std::string& RECIPIENT_PUBKEY,
-                                   const std::string& THE_MESSAGE) const;
+    EXPORT int32_t sendNymMessage(const std::string& SERVER_ID,
+                                  const std::string& USER_ID,
+                                  const std::string& USER_ID_RECIPIENT,
+                                  const std::string& RECIPIENT_PUBKEY,
+                                  const std::string& THE_MESSAGE) const;
     /**
-    sendUserMessage does this:
+    sendNymMessage does this:
     -- Puts user message as encrypted Payload on an OTMessage (1)...
     -- Also puts user message as a CLEAR payload on an OTMessage (2)...
     -- (1) is sent to server, and (2) is added to Outmail messages.
@@ -2836,7 +2836,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t sendUserInstrument(
+    EXPORT int32_t sendNymInstrument(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& USER_ID_RECIPIENT,
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT,
@@ -2874,8 +2874,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t getRequest(const std::string& SERVER_ID,
-                              const std::string& USER_ID) const;
+    EXPORT int32_t getRequestNumber(const std::string& SERVER_ID,
+                                    const std::string& USER_ID) const;
 
     /**
     GET TRANSACTION NUMBER

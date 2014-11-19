@@ -2075,10 +2075,10 @@ bool OTRecordList::Populate()
                                 // Why is this here? Because if Nym is
                                 // recipient, let's say he received an
                                 // instrumentNotice containing
-                                // a sendUserInstrument message containing an
+                                // a sendNymInstrument message containing an
                                 // incoming cheque. Well... that incoming cheque
                                 // (the payload
-                                // on sendUserInstrument message) is ENCRYPTED.
+                                // on sendNymInstrument message) is ENCRYPTED.
                                 // Meaning the above calls to
                                 // pBoxReceipt->GetSenderAcctID
                                 // on the instrumentNotice transaction will
@@ -2507,10 +2507,10 @@ bool OTRecordList::Populate()
                                 // Why is this here? Because if Nym is
                                 // recipient, let's say he received an
                                 // instrumentNotice containing
-                                // a sendUserInstrument message containing an
+                                // a sendNymInstrument message containing an
                                 // incoming cheque. Well... that incoming cheque
                                 // (the payload
-                                // on sendUserInstrument message) is ENCRYPTED.
+                                // on sendNymInstrument message) is ENCRYPTED.
                                 // Meaning the above calls to
                                 // pBoxReceipt->GetSenderAcctID
                                 // on the instrumentNotice transaction will

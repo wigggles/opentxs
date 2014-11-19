@@ -692,7 +692,7 @@ public:
     EXPORT void OnUpdateRequestNum(Nym& SIGNER_NYM, const String& strServerID,
                                    int64_t lNewRequestNumber); // if the server
                                                                // sends us a
-    // getRequestResponse
+    // getRequestNumberResponse
     EXPORT bool GetCurrentRequestNum(const String& strServerID,
                                      int64_t& lReqNum) const; // get the current
     // request number for

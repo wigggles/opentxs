@@ -1216,7 +1216,7 @@ public:
 RegisterStrategy StrategyCreateUserAccountResponse::reg(
     "registerNymResponse", new StrategyCreateUserAccountResponse());
 
-class StrategyDeleteUserAccount : public OTMessageStrategy
+class StrategyDeleteNym : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1249,10 +1249,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyDeleteUserAccount::reg(
-    "deleteUserAccount", new StrategyDeleteUserAccount());
+RegisterStrategy StrategyDeleteNym::reg("deleteNym", new StrategyDeleteNym());
 
-class StrategyDeleteUserAccountResponse : public OTMessageStrategy
+class StrategyDeleteNymResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1306,8 +1305,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyDeleteUserAccountResponse::reg(
-    "deleteUserAccountResponse", new StrategyDeleteUserAccountResponse());
+RegisterStrategy StrategyDeleteNymResponse::reg(
+    "deleteNymResponse", new StrategyDeleteNymResponse());
 
 class StrategyCheckNym : public OTMessageStrategy
 {
@@ -1651,7 +1650,7 @@ RegisterStrategy StrategyOutpaymentsMessageOrOutmailMessage::reg(
 RegisterStrategy StrategyOutpaymentsMessageOrOutmailMessage::reg2(
     "outmailMessage", new StrategyOutpaymentsMessageOrOutmailMessage());
 
-class StrategySendUserMessage : public OTMessageStrategy
+class StrategySendNymMessage : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1705,10 +1704,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategySendUserMessage::reg("sendUserMessage",
-                                              new StrategySendUserMessage());
+RegisterStrategy StrategySendNymMessage::reg("sendNymMessage",
+                                             new StrategySendNymMessage());
 
-class StrategySendUserMessageResponse : public OTMessageStrategy
+class StrategySendNymMessageResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1751,16 +1750,16 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategySendUserMessageResponse::reg(
-    "sendUserMessageResponse", new StrategySendUserMessageResponse());
+RegisterStrategy StrategySendNymMessageResponse::reg(
+    "sendNymMessageResponse", new StrategySendNymMessageResponse());
 
-class StrategySendUserInstrumentOrPayDividend : public OTMessageStrategy
+class StrategySendNymInstrumentOrPayDividend : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
     {
         String result;
-        // sendUserInstrument is sent from one user
+        // sendNymInstrument is sent from one user
         // to the server, which then attaches that
         // message as a payment, onto a transaction
         // on the Nymbox of the recipient.
@@ -1826,12 +1825,12 @@ public:
     static RegisterStrategy reg;
     static RegisterStrategy reg2;
 };
-RegisterStrategy StrategySendUserInstrumentOrPayDividend::reg(
-    "sendUserInstrument", new StrategySendUserInstrumentOrPayDividend());
-RegisterStrategy StrategySendUserInstrumentOrPayDividend::reg2(
-    "payDividend", new StrategySendUserInstrumentOrPayDividend());
+RegisterStrategy StrategySendNymInstrumentOrPayDividend::reg(
+    "sendNymInstrument", new StrategySendNymInstrumentOrPayDividend());
+RegisterStrategy StrategySendNymInstrumentOrPayDividend::reg2(
+    "payDividend", new StrategySendNymInstrumentOrPayDividend());
 
-class StrategySendUserInstrumentResponse : public OTMessageStrategy
+class StrategySendNymInstrumentResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1874,10 +1873,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategySendUserInstrumentResponse::reg(
-    "sendUserInstrumentResponse", new StrategySendUserInstrumentResponse());
+RegisterStrategy StrategySendNymInstrumentResponse::reg(
+    "sendNymInstrumentResponse", new StrategySendNymInstrumentResponse());
 
-class StrategyGetRequest : public OTMessageStrategy
+class StrategyGetRequestNumber : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1910,8 +1909,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetRequest::reg("getRequest",
-                                         new StrategyGetRequest());
+RegisterStrategy StrategyGetRequestNumber::reg("getRequestNumber",
+                                               new StrategyGetRequestNumber());
 
 class StrategyGetRequestResponse : public OTMessageStrategy
 {
@@ -1969,7 +1968,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetRequestResponse::reg(
-    "getRequestResponse", new StrategyGetRequestResponse());
+    "getRequestNumberResponse", new StrategyGetRequestResponse());
 
 class StrategyIssueAssetType : public OTMessageStrategy
 {
@@ -3059,7 +3058,7 @@ public:
 RegisterStrategy StrategyNotarizeTransactionResponse::reg(
     "notarizeTransactionResponse", new StrategyNotarizeTransactionResponse());
 
-class StrategyGetTransactionNum : public OTMessageStrategy
+class StrategyGetTransactionNumbers : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3097,10 +3096,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetTransactionNum::reg(
-    "getTransactionNum", new StrategyGetTransactionNum());
+RegisterStrategy StrategyGetTransactionNumbers::reg(
+    "getTransactionNumbers", new StrategyGetTransactionNumbers());
 
-class StrategyGetTransactionNumResponse : public OTMessageStrategy
+class StrategyGetTransactionNumbersResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3142,8 +3141,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetTransactionNumResponse::reg(
-    "getTransactionNumResponse", new StrategyGetTransactionNumResponse());
+RegisterStrategy StrategyGetTransactionNumbersResponse::reg(
+    "getTransactionNumbersResponse",
+    new StrategyGetTransactionNumbersResponse());
 
 class StrategyGetNymbox : public OTMessageStrategy
 {

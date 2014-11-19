@@ -205,19 +205,20 @@ OT_MADE_EASY_OT string
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(CREATE_USER_ACCT, SERVER_ID, NYM_ID);
-    string strResponse = theRequest.SendRequest(theRequest, "CREATE_USER_ACCT");
+    OTAPI_Func theRequest(REGISTER_NYM, SERVER_ID, NYM_ID);
+    string strResponse = theRequest.SendRequest(theRequest, "REGISTER_NYM");
     int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
     if (1 == nSuccess) {
         Utility MsgUtil;
 
-        // Use the getRequest command, thus insuring that the request number is
+        // Use the getRequestNumber command, thus insuring that the request
+        // number is
         // in sync.
         //
         if (1 != MsgUtil.getRequestNumber(SERVER_ID, NYM_ID)) {
             otOut << "\n Succeeded in register_nym, but strange: "
-                     "then failed calling getRequest, to sync the "
+                     "then failed calling getRequestNumber, to sync the "
                      "request number for the first time.\n";
             return "";
         }
@@ -242,7 +243,7 @@ OT_MADE_EASY_OT int32_t
     Utility MsgUtil;
 
     if (1 != MsgUtil.getRequestNumber(strServerID, strMyNymID)) {
-        otOut << "\n Failed calling getRequest, to sync the "
+        otOut << "\n Failed calling getRequestNumber, to sync the "
                  "request number. (Finished.)\n";
         return -1;
     }
@@ -2001,8 +2002,8 @@ cheque.
 
 Need to add functions (like check_nym above) for all of these:
 
-attr OTAPI_Func::CREATE_USER_ACCT (register nym)DONE
-attr OTAPI_Func::DELETE_USER_ACCT
+attr OTAPI_Func::REGISTER_NYM (register nym)DONE
+attr OTAPI_Func::DELETE_NYM
 attr OTAPI_Func::CHECK_NYM DONE
 attr OTAPI_Func::SEND_USER_MESSAGE DONE
 attr OTAPI_Func::ISSUE_ASSET_TYPE               DONE
@@ -2067,8 +2068,8 @@ in ot.
 Here are parameters for the first group above.
 (They are called in OTAPI_Func, this code is from there):
 
-else if (funcType == DELETE_USER_ACCT)
-{ OTAPI_Wrap::deleteUserAccount(serverID, nymID); }
+else if (funcType == DELETE_NYM)
+{ OTAPI_Wrap::deleteNym(serverID, nymID); }
 else if (funcType == GET_NYM_MARKET_OFFERS)
 { OTAPI_Wrap::getNym_MarketOffers(serverID, nymID); }
 else if (funcType == CREATE_ASSET_ACCT)

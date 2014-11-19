@@ -9110,7 +9110,7 @@ int32_t OT_API::getTransactionNumber(const Identifier& SERVER_ID,
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::getTransactionNum, theMessage, *pNym, *pServer,
+        OTClient::getTransactionNumbers, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         SendMessage(pServer, pNym, theMessage);
@@ -10993,7 +10993,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
         // the original difference between transactions (vs normal messages) was
         // that transactions dealt
         // with asset accounts, whereas normal messages did not. (Such as,
-        // "checkNym" or "getRequest".)
+        // "checkNym" or "getRequestNumber".)
         //
         // A big piece of this is the BALANCE AGREEMENT. Obviously it wasn't
         // anticipated that "balance
@@ -13031,8 +13031,8 @@ int32_t OT_API::getAccountData(const Identifier& SERVER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::getRequest(const Identifier& SERVER_ID,
-                           const Identifier& USER_ID) const
+int32_t OT_API::getRequestNumber(const Identifier& SERVER_ID,
+                                 const Identifier& USER_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13046,14 +13046,15 @@ int32_t OT_API::getRequest(const Identifier& SERVER_ID,
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::getRequest, theMessage, *pNym, *pServer,
+        OTClient::getRequestNumber, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
-        otErr << "Error processing getRequest command in OT_API::getRequest\n";
+        otErr << "Error processing getRequestNumber command in "
+                 "OT_API::getRequestNumber\n";
 
     return (-1);
 }
@@ -13160,13 +13161,13 @@ int32_t OT_API::checkNym(const Identifier& SERVER_ID, const Identifier& USER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
-                                const Identifier& USER_ID,
-                                const Identifier& USER_ID_RECIPIENT,
-                                const String& RECIPIENT_PUBKEY, // unescaped
-                                                                // and
-                                                                // bookended.
-                                const String& THE_MESSAGE) const
+int32_t OT_API::sendNymMessage(const Identifier& SERVER_ID,
+                               const Identifier& USER_ID,
+                               const Identifier& USER_ID_RECIPIENT,
+                               const String& RECIPIENT_PUBKEY, // unescaped
+                                                               // and
+                                                               // bookended.
+                               const String& THE_MESSAGE) const
 {
     // Send a message to another user, encrypted to his
     // public key and dropped into his nymbox.
@@ -13195,7 +13196,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "sendUserMessage";
+    theMessage.m_strCommand = "sendNymMessage";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
     theMessage.m_strServerID = strServerID;
@@ -13210,7 +13211,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
     int32_t nReturnValue = -1;
 
     if (!pPubkey->SetPublicKey(RECIPIENT_PUBKEY)) {
-        otOut << "OT_API::sendUserMessage: Failed setting public key.\n";
+        otOut << "OT_API::sendNymMessage: Failed setting public key.\n";
     }
     else if (THE_MESSAGE.Exists() &&
                theEnvelope.Seal(*pPubkey, THE_MESSAGE) &&
@@ -13248,7 +13249,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
         nReturnValue = SendMessage(pServer, pNym, theMessage, lRequestNumber);
     }
     else
-        otOut << "OT_API::sendUserMessage: Failed sealing envelope.\n";
+        otOut << "OT_API::sendNymMessage: Failed sealing envelope.\n";
 
     return nReturnValue;
 }
@@ -13264,7 +13265,7 @@ int32_t OT_API::sendUserMessage(const Identifier& SERVER_ID,
 // are the same, it puts a copy in your outpayment box, without sending anything
 // at all.
 //
-int32_t OT_API::sendUserInstrument(
+int32_t OT_API::sendNymInstrument(
     const Identifier& SERVER_ID, const Identifier& USER_ID,
     const Identifier& USER_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
     const OTPayment& THE_INSTRUMENT,
@@ -13373,7 +13374,7 @@ int32_t OT_API::sendUserInstrument(
                                                        // to increment it
 
         // (1) set up member variables
-        theMessage.m_strCommand = "sendUserInstrument";
+        theMessage.m_strCommand = "sendNymInstrument";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNymID2 = strNymID2;
         theMessage.m_strServerID = strServerID;
@@ -13513,8 +13514,8 @@ int32_t OT_API::registerNym(const Identifier& SERVER_ID,
     return -1;
 }
 
-int32_t OT_API::deleteUserAccount(const Identifier& SERVER_ID,
-                                  const Identifier& USER_ID) const
+int32_t OT_API::deleteNym(const Identifier& SERVER_ID,
+                          const Identifier& USER_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13528,15 +13529,15 @@ int32_t OT_API::deleteUserAccount(const Identifier& SERVER_ID,
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::deleteUserAccount, theMessage, *pNym, *pServer,
+        OTClient::deleteNym, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
-        otErr << "Error processing deleteUserAccount command in "
-                 "OT_API::deleteUserAccount\n";
+        otErr << "Error processing deleteNym command in "
+                 "OT_API::deleteNym\n";
 
     return -1;
 }

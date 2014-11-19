@@ -2251,19 +2251,19 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_checkServerID");
         theScript.chai->add(fun(&OTAPI_Wrap::registerNym),
                             "OT_API_registerNym");
-        theScript.chai->add(fun(&OTAPI_Wrap::deleteUserAccount),
-                            "OT_API_deleteUserAccount");
+        theScript.chai->add(fun(&OTAPI_Wrap::deleteNym), "OT_API_deleteNym");
         theScript.chai->add(fun(&OTAPI_Wrap::deleteAssetAccount),
                             "OT_API_deleteAssetAccount");
         theScript.chai->add(fun(&OTAPI_Wrap::checkNym), "OT_API_checkNym");
         theScript.chai->add(fun(&OTAPI_Wrap::usageCredits),
                             "OT_API_usageCredits");
-        theScript.chai->add(fun(&OTAPI_Wrap::sendUserMessage),
-                            "OT_API_sendUserMessage");
-        theScript.chai->add(fun(&OTAPI_Wrap::sendUserInstrument),
-                            "OT_API_sendUserInstrument");
+        theScript.chai->add(fun(&OTAPI_Wrap::sendNymMessage),
+                            "OT_API_sendNymMessage");
+        theScript.chai->add(fun(&OTAPI_Wrap::sendNymInstrument),
+                            "OT_API_sendNymInstrument");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::getRequest), "OT_API_getRequest");
+        theScript.chai->add(fun(&OTAPI_Wrap::getRequestNumber),
+                            "OT_API_getRequestNumber");
         theScript.chai->add(fun(&OTAPI_Wrap::getTransactionNumber),
                             "OT_API_getTransactionNumber");
         theScript.chai->add(fun(&OTAPI_Wrap::issueAssetType),

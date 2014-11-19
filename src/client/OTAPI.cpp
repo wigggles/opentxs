@@ -2018,10 +2018,10 @@ int32_t OTAPI_Wrap::registerNym(const std::string& SERVER_ID,
     return Exec()->registerNym(SERVER_ID, USER_ID);
 }
 
-int32_t OTAPI_Wrap::deleteUserAccount(const std::string& SERVER_ID,
-                                      const std::string& USER_ID)
+int32_t OTAPI_Wrap::deleteNym(const std::string& SERVER_ID,
+                              const std::string& USER_ID)
 {
-    return Exec()->deleteUserAccount(SERVER_ID, USER_ID);
+    return Exec()->deleteNym(SERVER_ID, USER_ID);
 }
 
 int64_t OTAPI_Wrap::Message_GetUsageCredits(const std::string& THE_MESSAGE)
@@ -2044,32 +2044,32 @@ int32_t OTAPI_Wrap::checkNym(const std::string& SERVER_ID,
     return Exec()->checkNym(SERVER_ID, USER_ID, USER_ID_CHECK);
 }
 
-int32_t OTAPI_Wrap::sendUserMessage(const std::string& SERVER_ID,
-                                    const std::string& USER_ID,
-                                    const std::string& USER_ID_RECIPIENT,
-                                    const std::string& RECIPIENT_PUBKEY,
-                                    const std::string& THE_MESSAGE)
+int32_t OTAPI_Wrap::sendNymMessage(const std::string& SERVER_ID,
+                                   const std::string& USER_ID,
+                                   const std::string& USER_ID_RECIPIENT,
+                                   const std::string& RECIPIENT_PUBKEY,
+                                   const std::string& THE_MESSAGE)
 {
-    return Exec()->sendUserMessage(SERVER_ID, USER_ID, USER_ID_RECIPIENT,
-                                   RECIPIENT_PUBKEY, THE_MESSAGE);
+    return Exec()->sendNymMessage(SERVER_ID, USER_ID, USER_ID_RECIPIENT,
+                                  RECIPIENT_PUBKEY, THE_MESSAGE);
 }
 
-int32_t OTAPI_Wrap::sendUserInstrument(const std::string& SERVER_ID,
-                                       const std::string& USER_ID,
-                                       const std::string& USER_ID_RECIPIENT,
-                                       const std::string& RECIPIENT_PUBKEY,
-                                       const std::string& THE_INSTRUMENT,
-                                       const std::string& INSTRUMENT_FOR_SENDER)
+int32_t OTAPI_Wrap::sendNymInstrument(const std::string& SERVER_ID,
+                                      const std::string& USER_ID,
+                                      const std::string& USER_ID_RECIPIENT,
+                                      const std::string& RECIPIENT_PUBKEY,
+                                      const std::string& THE_INSTRUMENT,
+                                      const std::string& INSTRUMENT_FOR_SENDER)
 {
-    return Exec()->sendUserInstrument(SERVER_ID, USER_ID, USER_ID_RECIPIENT,
-                                      RECIPIENT_PUBKEY, THE_INSTRUMENT,
-                                      INSTRUMENT_FOR_SENDER);
+    return Exec()->sendNymInstrument(SERVER_ID, USER_ID, USER_ID_RECIPIENT,
+                                     RECIPIENT_PUBKEY, THE_INSTRUMENT,
+                                     INSTRUMENT_FOR_SENDER);
 }
 
-int32_t OTAPI_Wrap::getRequest(const std::string& SERVER_ID,
-                               const std::string& USER_ID)
+int32_t OTAPI_Wrap::getRequestNumber(const std::string& SERVER_ID,
+                                     const std::string& USER_ID)
 {
-    return Exec()->getRequest(SERVER_ID, USER_ID);
+    return Exec()->getRequestNumber(SERVER_ID, USER_ID);
 }
 
 int32_t OTAPI_Wrap::issueAssetType(const std::string& SERVER_ID,
