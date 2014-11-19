@@ -180,13 +180,6 @@ private:
     void UserCmdCreateAccount(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdNotarizeTransaction(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetNymbox(Nym& nym, Message& msgIn, Message& msgOut);
-    // Deprecated (replaced by UserCmdGetAccountData)
-    void UserCmdGetInbox(Nym& nym, Message& msgIn, Message& msgOut);
-    // Deprecated (replaced by UserCmdGetAccountData)
-    void UserCmdGetOutbox(Nym& nym, Message& msgIn, Message& msgOut);
-    // Deprecated (replaced by UserCmdGetAccountData)
-    void UserCmdGetAccount(Nym& nym, Message& msgIn, Message& msgOut);
-    // This combines GetInbox, GetOutbox, and GetAccount.
     void UserCmdGetAccountData(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetContract(Message& msgIn, Message& msgOut);
     void UserCmdGetMint(Nym& nym, Message& msgIn, Message& msgOut);
