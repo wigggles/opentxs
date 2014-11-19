@@ -104,7 +104,6 @@ set(cxx-sources
   commands/CmdWriteCheque.cpp
   commands/CmdWriteInvoice.cpp
   Helpers.cpp
-  TransportCallback.cpp
   OTMessageBuffer.cpp
   OTMessageOutbuffer.cpp
   OpenTransactions.cpp

@@ -138,7 +138,6 @@
 #include <opentxs/client/OTClient.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include <opentxs/client/ot_otapi_ot.hpp>
-#include <opentxs/client/TransportCallback.hpp>
 
 #include <opentxs/cash/Purse.hpp>
 
@@ -1516,13 +1515,8 @@ int32_t main(int32_t argc, char* argv[])
         //
 
         if (bSendCommand && pServerNym->VerifyPseudonym()) {
-            String strEnvelopeContents(theMessage);
-            OTEnvelope theEnvelope; // Seal the string up into an encrypted
-                                    // Envelope
-            theEnvelope.Seal(*pServerNym, strEnvelopeContents);
-
-            OTAPI_Wrap::OTAPI()->GetTransportCallback()->operator()(
-                *pServerContract, theEnvelope);
+            OTAPI_Wrap::OTAPI()->SendMessage(pServerContract, pMyNym,
+                                             theMessage);
 
         } // if bSendCommand
 
@@ -2152,12 +2146,8 @@ int32_t main(int32_t argc, char* argv[])
 
         if (bSendCommand && (nullptr != pServerNym) &&
             pServerNym->VerifyPseudonym()) {
-            String strEnvelopeContents(theMessage);
-            OTEnvelope theEnvelope;
-            theEnvelope.Seal(*pServerNym, strEnvelopeContents);
-
-            OTAPI_Wrap::OTAPI()->GetTransportCallback()->operator()(
-                *pServerContract, theEnvelope);
+            OTAPI_Wrap::OTAPI()->SendMessage(pServerContract, pMyNym,
+                                             theMessage);
 
         } // if bSendCommand
     }     // for

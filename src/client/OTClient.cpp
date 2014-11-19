@@ -172,9 +172,7 @@ namespace opentxs
 {
 
 void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
-                                 OTPseudonym* pNym,
-                                 TransportCallback* pCallback,
-                                 const Message& theMessage)
+                                 OTPseudonym* pNym, const Message& theMessage)
 {
     const String strMessage(theMessage);
 
@@ -209,8 +207,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract,
         nullptr != m_pConnection,
         "OTClient::ProcessMessageOut: ASSERT: nullptr != m_pConnection\n");
 
-    m_pConnection->ProcessMessageOut(pServerContract, pNym, pCallback,
-                                     theMessage);
+    m_pConnection->ProcessMessageOut(pServerContract, pNym, theMessage);
 }
 
 /// This is standard behavior for the Nymbox (NOT the inbox.)
@@ -9144,7 +9141,7 @@ int32_t OTClient::ProcessUserCommand(
 }
 
 /// Need to call this before using.
-bool OTClient::InitClient(OTWallet& theWallet)
+bool OTClient::InitClient(OTWallet& theWallet, OTSettings* pConfig)
 {
     if (m_bInitialized) {
         otWarn
@@ -9153,7 +9150,7 @@ bool OTClient::InitClient(OTWallet& theWallet)
     }
     m_bInitialized = true;
 
-    m_pConnection = new OTServerConnection(theWallet, *this);
+    m_pConnection = new OTServerConnection(theWallet, *this, pConfig);
     m_pWallet = &theWallet;
 
     return true;

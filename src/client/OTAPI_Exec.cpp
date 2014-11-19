@@ -135,7 +135,6 @@
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTWallet.hpp>
-#include <opentxs/client/TransportCallback.hpp>
 #include "Helpers.hpp"
 
 #include <opentxs/ext/OTPayment.hpp>
@@ -207,11 +206,8 @@ bool OTAPI_Exec::AppInit() // Call this ONLY ONCE, when your App first starts
                 OT_API* tmpOTAPI = new OT_API();
                 if (nullptr != tmpOTAPI) {
                     if (tmpOTAPI->IsInitialized()) {
-                        if (tmpOTAPI->SetTransportCallback(
-                                new TransportCallback(*tmpOTAPI))) {
-                            p_OTAPI = tmpOTAPI; // success
-                            return true;
-                        }
+                        p_OTAPI = tmpOTAPI;
+                        return true;
                     }
                     delete tmpOTAPI;
                     tmpOTAPI = nullptr;

@@ -141,7 +141,7 @@
 namespace opentxs
 {
 
-class TransportCallback;
+class OTSettings;
 class OT_API;
 class Account;
 class AssetContract;
@@ -158,7 +158,6 @@ class OTPasswordData;
 class OTPayment;
 class OTPaymentPlan;
 class OTServerContract;
-class OTSocket;
 class OTWallet;
 class Mint;
 class Purse;
@@ -184,9 +183,6 @@ private:
     bool m_bInitialized;
     bool m_bDefaultStore;
 
-    TransportCallback* m_pTransportCallback;
-    OTSocket* m_pSocket;
-
     String m_strDataPath;
     String m_strWalletFilename;
     String m_strWalletFilePath;
@@ -204,22 +200,18 @@ private:
     EXPORT bool Init();    // Per instance. (called automaticly by constructor)
     EXPORT bool Cleanup(); // Per instance. (called automaticly by constructor)
 
-    void SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
-                     Message& message) const;
-
     int32_t SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
                         Message& message, int64_t requestNum) const;
 
 public:
+    void SendMessage(OTServerContract* pServerContract, OTPseudonym* pNym,
+                     Message& message) const;
+
     EXPORT bool IsInitialized() const
     {
         return m_bInitialized;
     }
 
-    EXPORT bool SetTransportCallback(TransportCallback* pTransportCallback);
-    EXPORT TransportCallback* GetTransportCallback() const;
-    EXPORT bool TransportFunction(const OTServerContract& theServerContract,
-                                  const OTEnvelope& theEnvelope) const;
     EXPORT bool GetWalletFilename(String& strPath) const;
     EXPORT bool SetWalletFilename(const String& strPath);
     EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;
@@ -229,7 +221,6 @@ public:
         return m_pClient;
     }
 
-    EXPORT bool LoadConfigFile();
     EXPORT bool SetWallet(const String& strFilename);
     EXPORT bool WalletExists() const;
     EXPORT bool LoadWallet() const;
@@ -1113,6 +1104,9 @@ public:
 
     EXPORT void AddServerContract(const OTServerContract& pContract) const;
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
+
+private:
+    std::shared_ptr<OTSettings> LoadConfigFile();
 };
 
 } // namespace opentxs
