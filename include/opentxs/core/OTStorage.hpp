@@ -150,22 +150,6 @@
 #define OTDB_DEFAULT_PACKER OTDB::PACK_PROTOCOL_BUFFERS
 #define OTDB_DEFAULT_STORAGE OTDB::STORE_FILESYSTEM
 
-// JAVA-STYLE INTERFACES.
-//
-// I'm doing some crazy stuff in this file.
-// What you see below is a set of preprocessor definitions that
-// allow me to use "Java-Style Interfaces" here in C++.
-//
-// It turns out that Storable needed a normal class hierarchy, AND Java-
-// style interfaces, to do everything I wanted it to do.
-//
-// I will probably create a more general-purpose header file for OT
-// and these sorts of #defines will probably end up there int64_t-term.
-// Much of OT might be separable out into a more general-purpose utility
-// lib, which I will get to whenever it is more important than anything else.
-//
-#define implements public
-
 #endif // (not) SWIG
 
 namespace opentxs

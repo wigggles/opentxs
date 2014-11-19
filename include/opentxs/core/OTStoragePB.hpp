@@ -226,7 +226,7 @@ typedef PackerSubclass<BufferPB> PackerPB;
 //
 template <class theBaseType, class theInternalType,
           StoredObjectType theObjectType>
-class ProtobufSubclass : public theBaseType, implements IStorablePB
+class ProtobufSubclass : public theBaseType, public IStorablePB
 {
 private:
     theInternalType __pb_obj;
