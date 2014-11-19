@@ -158,7 +158,7 @@ class OTPasswordData;
 class OTSignature;
 
 typedef std::list<OTSignature*> listOfSignatures;
-typedef std::map<std::string, OTPseudonym*> mapOfNyms;
+typedef std::map<std::string, Nym*> mapOfNyms;
 
 class Contract
 {
@@ -336,7 +336,7 @@ public:
     // and
     // calculate its new ID from the finished result.
     EXPORT virtual bool CreateContract(const String& strContract,
-                                       const OTPseudonym& theSigner);
+                                       const Nym& theSigner);
 
     // CreateContract is great if you already know what kind of contract to
     // instantiate
@@ -347,10 +347,11 @@ public:
     // due to the fact that OT was never really designed for signing flat text,
     // only contracts.
     //
-    EXPORT static bool SignFlatText(
-        String& strFlatText,
-        const String& strContractType, // "LEDGER" or "PURSE" etc.
-        const OTPseudonym& theSigner, String& strOutput);
+    EXPORT static bool SignFlatText(String& strFlatText,
+                                    const String& strContractType, // "LEDGER"
+                                                                   // or "PURSE"
+                                                                   // etc.
+                                    const Nym& theSigner, String& strOutput);
 
     EXPORT bool InsertNym(const String& strKeyName, const String& strKeyValue);
 
@@ -446,19 +447,18 @@ public:
 
     // Save m_xmlUnsigned to a string that's passed in
     EXPORT virtual bool SaveContents(String& strContents) const;
-    EXPORT virtual bool SignContract(const OTPseudonym& theNym,
+    EXPORT virtual bool SignContract(const Nym& theNym,
                                      const OTPasswordData* pPWData = nullptr);
-    EXPORT bool SignContractAuthent(const OTPseudonym& theNym,
+    EXPORT bool SignContractAuthent(const Nym& theNym,
                                     const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignWithKey(const OTAsymmetricKey& theKey,
                             const OTPasswordData* pPWData = nullptr);
-    EXPORT bool SignContract(const OTPseudonym& theNym,
-                             OTSignature& theSignature,
+    EXPORT bool SignContract(const Nym& theNym, OTSignature& theSignature,
                              const OTPasswordData* pPWData = nullptr);
-    EXPORT bool SignContractAuthent(const OTPseudonym& theNym, // Uses
-                                                               // authentication
-                                                               // key instead of
-                                                               // signing key.
+    EXPORT bool SignContractAuthent(const Nym& theNym, // Uses
+                                                       // authentication
+                                                       // key instead of
+                                                       // signing key.
                                     OTSignature& theSignature,
                                     const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(const OTAsymmetricKey& theKey,
@@ -498,22 +498,20 @@ public:
 
     // So far not overridden anywhere (used to be OTTrade.)
     EXPORT virtual bool VerifySignature(
-        const OTPseudonym& theNym,
-        const OTPasswordData* pPWData = nullptr) const;
+        const Nym& theNym, const OTPasswordData* pPWData = nullptr) const;
     EXPORT virtual bool VerifySigAuthent(
-        const OTPseudonym& theNym,
-        const OTPasswordData* pPWData = nullptr) const;
+        const Nym& theNym, const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifyWithKey(const OTAsymmetricKey& theKey,
                               const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT bool VerifySignature(const OTPseudonym& theNym,
+    EXPORT bool VerifySignature(const Nym& theNym,
                                 const OTSignature& theSignature,
                                 const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT bool VerifySigAuthent(const OTPseudonym& theNym, // Uses
-                                                            // authentication
-                                                            // key
+    EXPORT bool VerifySigAuthent(const Nym& theNym, // Uses
+                                                    // authentication
+                                                    // key
                                  // instead of signing key.
                                  const OTSignature& theSignature,
                                  const OTPasswordData* pPWData = nullptr) const;
@@ -534,7 +532,7 @@ public:
     // If true, it proves that certain entities really did sign
     // it, and that the contract hasn't been tampered with since
     // it was signed.
-    EXPORT const OTPseudonym* GetContractPublicNym() const;
+    EXPORT const Nym* GetContractPublicNym() const;
 };
 
 } // namespace opentxs

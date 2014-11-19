@@ -140,7 +140,7 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/stacktrace.h>
@@ -2103,7 +2103,7 @@ EVP_OpenFinal() returns 0 if the decrypt failed or 1 for success.
 
 // RSA / AES
 
-bool OTCrypto_OpenSSL::Open(OTData& dataInput, const OTPseudonym& theRecipient,
+bool OTCrypto_OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
                             String& theOutput,
                             const OTPasswordData* pPWData) const
 {

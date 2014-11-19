@@ -141,7 +141,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 
 #include "Helpers.hpp"
 
@@ -224,7 +224,7 @@ char const* Account::_GetTypeString(AccountType accountType)
 }
 
 // Caller responsible to delete.
-OTLedger* Account::LoadInbox(OTPseudonym& nym) const
+OTLedger* Account::LoadInbox(Nym& nym) const
 {
     auto* box =
         new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
@@ -241,7 +241,7 @@ OTLedger* Account::LoadInbox(OTPseudonym& nym) const
 }
 
 // Caller responsible to delete.
-OTLedger* Account::LoadOutbox(OTPseudonym& nym) const
+OTLedger* Account::LoadOutbox(Nym& nym) const
 {
     auto* box =
         new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
@@ -472,7 +472,7 @@ void Account::InitAccount()
 // Verify Contract ID first, THEN Verify Owner.
 // Because we use the ID in this function, so make sure that it is verified
 // before calling this.
-bool Account::VerifyOwner(const OTPseudonym& candidate) const
+bool Account::VerifyOwner(const Nym& candidate) const
 {
     Identifier ID_CANDIDATE;
     // ID_CANDIDATE now contains the ID of the Nym we're testing.
@@ -542,7 +542,7 @@ Account* Account::LoadExistingAccount(const Identifier& accountId,
 
 Account* Account::GenerateNewAccount(const Identifier& userId,
                                      const Identifier& serverId,
-                                     const OTPseudonym& serverNym,
+                                     const Nym& serverNym,
                                      const Message& message,
                                      Account::AccountType acctType,
                                      int64_t stashTransNum)
@@ -569,8 +569,7 @@ message.m_strNymID;
 message.m_strAssetID;
 message.m_strServerID;
  */
-bool Account::GenerateNewAccount(const OTPseudonym& server,
-                                 const Message& message,
+bool Account::GenerateNewAccount(const Nym& server, const Message& message,
                                  Account::AccountType acctType,
                                  int64_t stashTransNum)
 {

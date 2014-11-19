@@ -137,7 +137,7 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
 extern "C" {
@@ -234,9 +234,9 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 }
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
-    const OTPseudonym& theNym,
+    const Nym& theNym,
     const String* pstrDisplay) // construct with nym
-    : m_pNym(const_cast<OTPseudonym*>(&theNym)),
+    : m_pNym(const_cast<Nym*>(&theNym)),
       m_pKey(nullptr),
       m_pPassword(nullptr),
       m_bCleanupPassword(false),

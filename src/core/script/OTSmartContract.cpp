@@ -602,7 +602,7 @@ various sequence numbers. Hm.
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/script/OTStash.hpp>
 #include <opentxs/core/script/OTStashItem.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -1148,7 +1148,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -1360,7 +1360,7 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -1578,7 +1578,7 @@ std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -1625,7 +1625,7 @@ bool OTSmartContract::SendANoticeToAllParties()
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -1668,7 +1668,7 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -1787,7 +1787,7 @@ bool OTSmartContract::StashAcctFunds(std::string from_acct_name,
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -2040,7 +2040,7 @@ bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -2264,7 +2264,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     if (0 == lAmount) {
@@ -2487,13 +2487,13 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     // the pointers accordingly, and then operate
     // using the pointers from there.
 
-    OTPseudonym thePartyNym;
+    Nym thePartyNym;
 
     // Find out if party Nym is actually also the server nym.
     const bool bPartyNymIsServerNym =
         ((PARTY_USER_ID == SERVER_USER_ID) ? true : false);
 
-    OTPseudonym* pPartyNym = nullptr;
+    Nym* pPartyNym = nullptr;
     //    OTPseudonym * pStashNym            = pServerNym;
 
     const std::string str_party_id = strPartyUserID.Get();
@@ -2551,13 +2551,13 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     mapOfNyms map_ALREADY_LOADED; // I know I passed in one of these, but now I
                                   // have processed the Nym pointers (above) and
                                   // have better data here now.
-    map_ALREADY_LOADED.insert(std::pair<std::string, OTPseudonym*>(
+    map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
         strServerNymID.Get(),
         pServerNym)); // Add Server Nym to list of Nyms already loaded.
 
     auto it_temp = map_ALREADY_LOADED.find(strPartyUserID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
-        map_ALREADY_LOADED.insert(std::pair<std::string, OTPseudonym*>(
+        map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
             strPartyUserID.Get(),
             pPartyNym)); // Add party Nym to list of Nyms already loaded.
 
@@ -3087,7 +3087,7 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -3340,16 +3340,16 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
 //
 void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
                                      const int64_t& lNewTransactionNumber,
-                                     OTPseudonym& theOriginator,
-                                     OTPseudonym* pActingNym) // AKA "pRemover"
-                                                              // in any other
-                                                              // onFinalReceipt.
+                                     Nym& theOriginator,
+                                     Nym* pActingNym) // AKA "pRemover"
+                                                      // in any other
+                                                      // onFinalReceipt.
 // Could be nullptr.
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     const String strServerID(GetServerID());
@@ -3426,8 +3426,8 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
         // Otherwise theOriginator
         // just points to *pActingNym also.
         //
-        OTPseudonym* pPartyNym = nullptr;
-        std::unique_ptr<OTPseudonym> thePartyNymAngel;
+        Nym* pPartyNym = nullptr;
+        std::unique_ptr<Nym> thePartyNymAngel;
 
         // See if the serverNym is an agent on this party.
         //
@@ -3551,7 +3551,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             const String strServerNymID(theServerNymID);
 
             if (nym_map.end() == nym_map.find(strServerNymID.Get()))
-                nym_map.insert(std::pair<std::string, OTPseudonym*>(
+                nym_map.insert(std::pair<std::string, Nym*>(
                     strServerNymID.Get(), pServerNym));
         }
 
@@ -3561,7 +3561,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             const String strOriginatorNymID(theOriginatorNymID);
 
             if (nym_map.end() == nym_map.find(strOriginatorNymID.Get()))
-                nym_map.insert(std::pair<std::string, OTPseudonym*>(
+                nym_map.insert(std::pair<std::string, Nym*>(
                     strOriginatorNymID.Get(), &theOriginator));
         }
 
@@ -3570,7 +3570,7 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             const String strActingNymID(theActingNymID);
 
             if (nym_map.end() == nym_map.find(strActingNymID.Get()))
-                nym_map.insert(std::pair<std::string, OTPseudonym*>(
+                nym_map.insert(std::pair<std::string, Nym*>(
                     strActingNymID.Get(), pActingNym));
         }
 
@@ -3579,8 +3579,8 @@ void OTSmartContract::onFinalReceipt(OTCronItem& theOrigCronItem,
             const String strPartyNymID(thePartyNymID);
 
             if (nym_map.end() == nym_map.find(strPartyNymID.Get()))
-                nym_map.insert(std::pair<std::string, OTPseudonym*>(
-                    strPartyNymID.Get(), pPartyNym));
+                nym_map.insert(std::pair<std::string, Nym*>(strPartyNymID.Get(),
+                                                            pPartyNym));
         }
 
         // NOTIFY the agent for EACH ACCOUNT listed by this party,
@@ -3882,7 +3882,7 @@ void OTSmartContract::ExecuteClauses(mapOfClauses& theClauses,
         OTCron* pCron = GetCron();
         OT_ASSERT(nullptr != pCron);
 
-        OTPseudonym* pServerNym = pCron->GetServerNym();
+        Nym* pServerNym = pCron->GetServerNym();
         OT_ASSERT(nullptr != pServerNym);
 
         const int64_t lNewTransactionNumber = pCron->GetNextTransactionNumber();
@@ -3935,7 +3935,7 @@ bool OTSmartContract::CanCancelContract(std::string str_party_name)
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     OTParty* pParty = GetParty(str_party_name);
@@ -4067,7 +4067,7 @@ bool OTSmartContract::CanCancelContract(std::string str_party_name)
 
 /// See if theNym has rights to remove this item from Cron.
 ///
-bool OTSmartContract::CanRemoveItemFromCron(OTPseudonym& theNym)
+bool OTSmartContract::CanRemoveItemFromCron(Nym& theNym)
 {
     // You don't just go willy-nilly and remove a cron item from a market unless
     // you check first
@@ -4352,9 +4352,8 @@ bool OTSmartContract::CanRemoveItemFromCron(OTPseudonym& theNym)
 // must be recorded. (Set bBurnTransNo to true if you want to enforce the stuff
 // about the opening and closing #s)
 //
-bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym, Account& theAcct,
-                                          OTPseudonym& theServerNym,
-                                          bool bBurnTransNo)
+bool OTSmartContract::VerifySmartContract(Nym& theNym, Account& theAcct,
+                                          Nym& theServerNym, bool bBurnTransNo)
 {
     OTAgent* pAuthAgent = nullptr;
     OTParty* pAuthParty = FindPartyBasedOnNymAsAuthAgent(theNym, &pAuthAgent);
@@ -4936,7 +4935,7 @@ bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym, Account& theAcct,
 //
 // (Server-side.)
 //
-void OTSmartContract::CloseoutOpeningNumbers(OTPseudonym* pSignerNym)
+void OTSmartContract::CloseoutOpeningNumbers(Nym* pSignerNym)
 {
     const String strServerID(GetServerID());
 
@@ -4968,7 +4967,7 @@ void OTSmartContract::CloseoutOpeningNumbers(OTPseudonym* pSignerNym)
 //
 // (Server-side.)
 //
-void OTSmartContract::HarvestClosingNumbers(OTPseudonym* pSignerNym,
+void OTSmartContract::HarvestClosingNumbers(Nym* pSignerNym,
                                             std::set<OTParty*>* pFailedParties)
 {
     const String strServerID(GetServerID());
@@ -5029,7 +5028,7 @@ void OTSmartContract::HarvestClosingNumbers(OTPseudonym* pSignerNym,
 // smart contract, or failing in trying to use it.
 // Client side.
 //
-void OTSmartContract::HarvestClosingNumbers(OTPseudonym& theNym)
+void OTSmartContract::HarvestClosingNumbers(Nym& theNym)
 {
     // We do NOT call the parent version.
     //  OTCronItem::HarvestClosingNumbers(theNym);
@@ -5073,7 +5072,7 @@ void OTSmartContract::HarvestClosingNumbers(OTPseudonym& theNym)
 //
 // Client-side.
 //
-void OTSmartContract::HarvestOpeningNumber(OTPseudonym& theNym)
+void OTSmartContract::HarvestOpeningNumber(Nym& theNym)
 {
     // We do NOT call the parent version.
     //  OTCronItem::HarvestOpeningNumber(theNym);
@@ -5113,7 +5112,7 @@ void OTSmartContract::CleanupNyms(mapOfNyms& theMap)
 {
 
     while (!theMap.empty()) {
-        OTPseudonym* pNym = theMap.begin()->second;
+        Nym* pNym = theMap.begin()->second;
         OT_ASSERT(nullptr != pNym);
 
         delete pNym;
@@ -5747,7 +5746,7 @@ bool OTSmartContract::MoveFunds(
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     if (lAmount <= 0) {
@@ -5826,9 +5825,9 @@ bool OTSmartContract::MoveFunds(
     // the pointers accordingly, and then operate
     // using the pointers from there.
 
-    OTPseudonym theSenderNym, theRecipientNym; // We MIGHT use ONE, OR BOTH, of
-                                               // these, or none. (But probably
-                                               // both.)
+    Nym theSenderNym, theRecipientNym; // We MIGHT use ONE, OR BOTH, of
+                                       // these, or none. (But probably
+                                       // both.)
 
     // Find out if either Nym is actually also the server.
     bool bSenderNymIsServerNym =
@@ -5842,8 +5841,8 @@ bool OTSmartContract::MoveFunds(
     bool bUsersAreSameNym =
         ((SENDER_USER_ID == RECIPIENT_USER_ID) ? true : false);
 
-    OTPseudonym* pSenderNym = nullptr;
-    OTPseudonym* pRecipientNym = nullptr;
+    Nym* pSenderNym = nullptr;
+    Nym* pRecipientNym = nullptr;
 
     auto it_sender = map_NymsAlreadyLoaded.find(strSenderUserID.Get());
     auto it_recipient = map_NymsAlreadyLoaded.find(strRecipientUserID.Get());
@@ -5957,17 +5956,17 @@ bool OTSmartContract::MoveFunds(
                                   // have better data here now.
     auto it_temp = map_ALREADY_LOADED.find(strServerNymID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
-        map_ALREADY_LOADED.insert(std::pair<std::string, OTPseudonym*>(
+        map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
             strServerNymID.Get(),
             pServerNym)); // Add Server Nym to list of Nyms already loaded.
     it_temp = map_ALREADY_LOADED.find(strSenderUserID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
-        map_ALREADY_LOADED.insert(std::pair<std::string, OTPseudonym*>(
+        map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
             strSenderUserID.Get(),
             pSenderNym)); // Add Sender Nym to list of Nyms already loaded.
     it_temp = map_ALREADY_LOADED.find(strRecipientUserID.Get());
     if (map_ALREADY_LOADED.end() == it_temp)
-        map_ALREADY_LOADED.insert(std::pair<std::string, OTPseudonym*>(
+        map_ALREADY_LOADED.insert(std::pair<std::string, Nym*>(
             strRecipientUserID.Get(), pRecipientNym)); // Add Recipient Nym to
                                                        // list of Nyms already
                                                        // loaded.

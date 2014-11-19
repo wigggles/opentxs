@@ -139,7 +139,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/transaction/Helpers.hpp>
 
@@ -184,7 +184,7 @@ char const* OTLedger::_GetTypeString(ledgerType theType)
 // expects/uses a pubkey from inside the contract in order to verify
 // it.
 //
-bool OTLedger::VerifyAccount(const OTPseudonym& theNym)
+bool OTLedger::VerifyAccount(const Nym& theNym)
 {
     switch (GetType()) {
     case OTLedger::message: // message ledgers do not load Box Receipts. (They
@@ -1529,7 +1529,7 @@ OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
 /// CALLER IS RESPONSIBLE TO DELETE.
 OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
                                            const OTTransaction& theOwner,
-                                           OTPseudonym& theNym,
+                                           Nym& theNym,
                                            const Account& theAccount,
                                            OTLedger& theOutbox)
 {
@@ -1572,7 +1572,7 @@ OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
 
     // COPY THE ISSUED TRANSACTION NUMBERS FROM THE NYM to the MESSAGE NYM.
 
-    OTPseudonym theMessageNym;
+    Nym theMessageNym;
 
     theMessageNym.HarvestIssuedNumbers(
         GetPurportedServerID(),

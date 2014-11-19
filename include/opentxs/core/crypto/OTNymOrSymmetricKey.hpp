@@ -139,7 +139,7 @@ namespace opentxs
 class OTEnvelope;
 class Identifier;
 class OTPassword;
-class OTPseudonym;
+class Nym;
 class String;
 class OTSymmetricKey;
 
@@ -150,7 +150,7 @@ class OTSymmetricKey;
 class OTNym_or_SymmetricKey
 {
 private:
-    OTPseudonym* m_pNym;
+    Nym* m_pNym;
 
     OTSymmetricKey* m_pKey;
     OTPassword* m_pPassword; // optional. Goes with m_pKey.
@@ -168,7 +168,7 @@ private:
     OTNym_or_SymmetricKey();
 
 public:
-    EXPORT OTPseudonym* GetNym() const
+    EXPORT Nym* GetNym() const
     {
         return m_pNym;
     }
@@ -214,7 +214,7 @@ public:
 
     EXPORT OTNym_or_SymmetricKey(const OTNym_or_SymmetricKey& rhs);
 
-    EXPORT OTNym_or_SymmetricKey(const OTPseudonym& theNym,
+    EXPORT OTNym_or_SymmetricKey(const Nym& theNym,
                                  const String* pstrDisplay = nullptr);
     EXPORT OTNym_or_SymmetricKey(const OTSymmetricKey& theKey,
                                  const String* pstrDisplay = nullptr);

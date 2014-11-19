@@ -184,7 +184,7 @@ Token_Lucre::~Token_Lucre()
 // nDenomination must be one of the denominations supported by the mint.
 // sets m_nTokenCount and populates the maps with prototokens (in ASCII-armored
 // format.)
-bool Token_Lucre::GenerateTokenRequest(const OTPseudonym& theNym, Mint& theMint,
+bool Token_Lucre::GenerateTokenRequest(const Nym& theNym, Mint& theMint,
                                        int64_t lDenomination,
                                        int32_t nTokenCount)
 {
@@ -333,7 +333,7 @@ bool Token_Lucre::GenerateTokenRequest(const OTPseudonym& theNym, Mint& theMint,
 // Lucre step 4: client unblinds token -- now it's ready for use.
 // Final unblinded spendable token is encrypted to theNym for safe storage.
 //
-bool Token_Lucre::ProcessToken(const OTPseudonym& theNym, Mint& theMint,
+bool Token_Lucre::ProcessToken(const Nym& theNym, Mint& theMint,
                                Token& theRequest)
 {
     //    otErr << "%s <bank public info> <private coin request> <signed coin

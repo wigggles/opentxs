@@ -346,7 +346,7 @@ bool Purse::GenerateInternalKey()
 // Take all the tokens from a purse and add them to this purse.
 // Don't allow duplicates.
 //
-bool Purse::Merge(const OTPseudonym& theSigner,
+bool Purse::Merge(const Nym& theSigner,
                   OTNym_or_SymmetricKey theOldNym, // must be private, if a nym.
                   OTNym_or_SymmetricKey theNewNym, // must be private, if a nym.
                   Purse& theNewPurse)

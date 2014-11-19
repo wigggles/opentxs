@@ -294,7 +294,7 @@ public:
     // Normally do this if your transaction failed so you can get most of your
     // numbers back
     //
-    EXPORT void HarvestClosingNumbers(OTPseudonym& theNym,
+    EXPORT void HarvestClosingNumbers(Nym& theNym,
                                       const Identifier& theServerID,
                                       bool bSave = true);
 

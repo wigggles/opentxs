@@ -137,7 +137,7 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 
 #include <memory>
@@ -221,13 +221,13 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 // This call may always fail for a specific agent, if the agent isn't a Nym
 // (the agent could be a voting group.)
 //
-OTPseudonym* OTAgent::LoadNym(OTPseudonym& theServerNym)
+Nym* OTAgent::LoadNym(Nym& theServerNym)
 {
     Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
-        OTPseudonym* pNym = new OTPseudonym;
+        Nym* pNym = new Nym;
         OT_ASSERT(nullptr != pNym);
 
         pNym->SetIdentifier(theAgentNymID);
@@ -285,7 +285,7 @@ OTAgent::OTAgent(bool bNymRepresentsSelf, bool bIsAnIndividual,
 {
 }
 
-OTAgent::OTAgent(std::string str_agent_name, OTPseudonym& theNym,
+OTAgent::OTAgent(std::string str_agent_name, Nym& theNym,
                  bool bNymRepresentsSelf)
     /*IF false, then: ROLE parameter goes here.*/
     : m_bNymRepresentsSelf(bNymRepresentsSelf),
@@ -550,7 +550,7 @@ bool OTAgent::IsValidSignerID(const Identifier& theNymID)
 
 // See if theNym is a valid signer for this agent.
 //
-bool OTAgent::IsValidSigner(OTPseudonym& theNym)
+bool OTAgent::IsValidSigner(Nym& theNym)
 {
     Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
@@ -684,8 +684,7 @@ void OTAgent::RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded)
         else if (map_Nyms_Already_Loaded.end() ==
                    map_Nyms_Already_Loaded.insert(
                        map_Nyms_Already_Loaded.begin(),
-                       std::pair<std::string, OTPseudonym*>(str_agent_name,
-                                                            m_pNym)))
+                       std::pair<std::string, Nym*>(str_agent_name, m_pNym)))
             otErr << "OTAgent::RetrieveNymPointer: Failed on insertion, as "
                      "though another nym were already "
                      "there with the same agent name! (" << m_strName << ")\n";
@@ -715,7 +714,7 @@ bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 }
 
 bool OTAgent::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap, const String& strServerID, OTPseudonym& theServerNym,
+    mapOfNyms* pNymMap, const String& strServerID, Nym& theServerNym,
     OTSmartContract& theSmartContract, const Identifier& theAccountID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment)
@@ -734,8 +733,8 @@ bool OTAgent::DropFinalReceiptToInbox(
 
     if (true == bNymID) // therefore IsAnIndividual() is definitely true.
     {
-        OTPseudonym* pNym = nullptr;
-        std::unique_ptr<OTPseudonym> theNymAngel;
+        Nym* pNym = nullptr;
+        std::unique_ptr<Nym> theNymAngel;
 
         // If a list of pre-loaded Nyms was passed in, see if one of them is
         // ours.
@@ -809,11 +808,11 @@ bool OTAgent::DropFinalReceiptToInbox(
 bool OTAgent::DropFinalReceiptToNymbox(
     OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
-    OTPseudonym* pActualNym) // IF the Nym was already loaded, then I
-                             // HAD to pass it here. But it may not be
-                             // here. Also: It may not be the right
-                             // Nym, so need to check before actually
-                             // using for anything.
+    Nym* pActualNym) // IF the Nym was already loaded, then I
+                     // HAD to pass it here. But it may not be
+                     // here. Also: It may not be the right
+                     // Nym, so need to check before actually
+                     // using for anything.
 {
     Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
@@ -821,7 +820,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
     // Not all agents have Nyms. (Might be a voting group.)
 
     if (true == bNymID) {
-        OTPseudonym* pToActualNym = nullptr;
+        Nym* pToActualNym = nullptr;
 
         if ((nullptr != pActualNym) && pActualNym->CompareID(theAgentNymID))
             pToActualNym = pActualNym;
@@ -840,10 +839,10 @@ bool OTAgent::DropFinalReceiptToNymbox(
 bool OTAgent::DropServerNoticeToNymbox(
     bool bSuccessMsg, // Added this so we can notify smart contract parties when
                       // it FAILS to activate.
-    OTPseudonym& theServerNym, const Identifier& theServerID,
+    Nym& theServerNym, const Identifier& theServerID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
     const String& strReference, String* pstrNote, String* pstrAttachment,
-    OTPseudonym* pActualNym)
+    Nym* pActualNym)
 {
     Identifier theAgentNymID;
     bool bNymID = GetNymID(theAgentNymID);
@@ -851,7 +850,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     // Not all agents have Nyms. (Might be a voting group.)
 
     if (true == bNymID) {
-        OTPseudonym* pToActualNym = nullptr;
+        Nym* pToActualNym = nullptr;
 
         if ((nullptr != pActualNym) && pActualNym->CompareID(theAgentNymID))
             pToActualNym = pActualNym;
@@ -930,10 +929,10 @@ bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
 //
 bool OTAgent::HarvestTransactionNumber(
     const int64_t& lNumber, const String& strServerID,
-    bool bSave, // Each agent's nym is used if pSignerNym is nullptr,
-                // whereas the server
-    OTPseudonym* pSignerNym) // uses this optional arg to substitute
-                             // serverNym as signer.
+    bool bSave,      // Each agent's nym is used if pSignerNym is nullptr,
+                     // whereas the server
+    Nym* pSignerNym) // uses this optional arg to substitute
+                     // serverNym as signer.
 {
 
     // Todo: this function may change when entities / roles are added.
@@ -1003,7 +1002,7 @@ bool OTAgent::HarvestTransactionNumber(
 //
 bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
                                       const String& strServerID,
-                                      OTPseudonym& SIGNER_NYM, bool bSave)
+                                      Nym& SIGNER_NYM, bool bSave)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -1048,7 +1047,7 @@ bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
 //
 bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
                                  const String& strServerID, bool bSave,
-                                 OTPseudonym* pSignerNym)
+                                 Nym* pSignerNym)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {

@@ -143,7 +143,7 @@ namespace opentxs
 class OTASCIIArmor;
 class OTNym_or_SymmetricKey;
 class OTPassword;
-class OTPseudonym;
+class Nym;
 class Token;
 
 // A token has no User ID, or Account ID, or even a traceable TokenID (the
@@ -304,8 +304,7 @@ public:
                                      // WITHIN the VALID FROM / TO dates.
     EXPORT bool IsExpired(); // Verify whether the CURRENT date is AFTER the the
                              // "VALID TO" date.
-    EXPORT bool Merge(const OTPseudonym& theSigner,
-                      OTNym_or_SymmetricKey theOldNym,
+    EXPORT bool Merge(const Nym& theSigner, OTNym_or_SymmetricKey theOldNym,
                       OTNym_or_SymmetricKey theNewNym, Purse& theNewPurse);
     EXPORT Purse(const Purse& thePurse); // just for copy another purse's
                                          // Server and Asset ID

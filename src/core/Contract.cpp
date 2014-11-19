@@ -139,7 +139,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <cstring>
@@ -266,7 +266,7 @@ void Contract::Release_Contract()
 
     // Go through the existing list of nyms at this point, and delete them all.
     while (!m_mapNyms.empty()) {
-        OTPseudonym* pNym = m_mapNyms.begin()->second;
+        Nym* pNym = m_mapNyms.begin()->second;
         OT_ASSERT(nullptr != pNym);
         delete pNym;
         pNym = nullptr;
@@ -333,7 +333,7 @@ bool Contract::VerifyContract()
 
     // Make sure we are able to read the official "contract" public key out of
     // this contract.
-    const OTPseudonym* pNym = GetContractPublicNym();
+    const Nym* pNym = GetContractPublicNym();
 
     if (nullptr == pNym) {
         otOut << __FUNCTION__
@@ -405,10 +405,10 @@ bool Contract::VerifyContractID() const
     }
 }
 
-const OTPseudonym* Contract::GetContractPublicNym() const
+const Nym* Contract::GetContractPublicNym() const
 {
     for (auto& it : m_mapNyms) {
-        OTPseudonym* pNym = it.second;
+        Nym* pNym = it.second;
         OT_ASSERT_MSG(
             nullptr != pNym,
             "nullptr pseudonym pointer in OTContract::GetContractPublicNym.\n");
@@ -439,8 +439,7 @@ const OTPseudonym* Contract::GetContractPublicNym() const
 // If you want the signature to remain on the contract and be handled
 // internally, then this is what you should call.
 //
-bool Contract::SignContract(const OTPseudonym& theNym,
-                            const OTPasswordData* pPWData)
+bool Contract::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
@@ -463,7 +462,7 @@ bool Contract::SignContract(const OTPseudonym& theNym,
 
 // Signs using authentication key instead of signing key.
 //
-bool Contract::SignContractAuthent(const OTPseudonym& theNym,
+bool Contract::SignContractAuthent(const Nym& theNym,
                                    const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
@@ -487,8 +486,7 @@ bool Contract::SignContractAuthent(const OTPseudonym& theNym,
 
 // The output signature will be in theSignature.
 // It is NOT attached to the contract.  This is just a utility function.
-bool Contract::SignContract(const OTPseudonym& theNym,
-                            OTSignature& theSignature,
+bool Contract::SignContract(const Nym& theNym, OTSignature& theSignature,
                             const OTPasswordData* pPWData)
 {
     return SignContract(theNym.GetPrivateSignKey(), theSignature,
@@ -496,8 +494,7 @@ bool Contract::SignContract(const OTPseudonym& theNym,
 }
 
 // Uses authentication key instead of signing key.
-bool Contract::SignContractAuthent(const OTPseudonym& theNym,
-                                   OTSignature& theSignature,
+bool Contract::SignContractAuthent(const Nym& theNym, OTSignature& theSignature,
                                    const OTPasswordData* pPWData)
 {
     return SignContract(theNym.GetPrivateAuthKey(), theSignature,
@@ -743,7 +740,7 @@ bool Contract::VerifySignature(const char* szFoldername,
     return true;
 }
 
-bool Contract::VerifySigAuthent(const OTPseudonym& theNym,
+bool Contract::VerifySigAuthent(const Nym& theNym,
                                 const OTPasswordData* pPWData) const
 {
     String strNymID;
@@ -773,7 +770,7 @@ bool Contract::VerifySigAuthent(const OTPseudonym& theNym,
     return false;
 }
 
-bool Contract::VerifySignature(const OTPseudonym& theNym,
+bool Contract::VerifySignature(const Nym& theNym,
                                const OTPasswordData* pPWData) const
 {
     String strNymID;
@@ -833,7 +830,7 @@ bool Contract::VerifyWithKey(const OTAsymmetricKey& theKey,
 // don't want
 // a legally binding signature, just a technically secure signature.)
 //
-bool Contract::VerifySigAuthent(const OTPseudonym& theNym,
+bool Contract::VerifySigAuthent(const Nym& theNym,
                                 const OTSignature& theSignature,
                                 const OTPasswordData* pPWData) const
 {
@@ -878,7 +875,7 @@ bool Contract::VerifySigAuthent(const OTPseudonym& theNym,
 // m_strHashType to decide
 // for you.  Choose the function you prefer, you can do it either way.
 //
-bool Contract::VerifySignature(const OTPseudonym& theNym,
+bool Contract::VerifySignature(const Nym& theNym,
                                const OTSignature& theSignature,
                                const OTPasswordData* pPWData) const
 {
@@ -1032,7 +1029,7 @@ void Contract::UpdateContents()
 //
 // static
 bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
-                            const OTPseudonym& theSigner, String& strOutput)
+                            const Nym& theSigner, String& strOutput)
 {
     const char* szFunc = "OTContract::SignFlatText";
 
@@ -2019,8 +2016,7 @@ bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
 // type
 // is unknown.
 //
-bool Contract::CreateContract(const String& strContract,
-                              const OTPseudonym& theSigner)
+bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
 {
     Release();
 
@@ -2079,7 +2075,7 @@ bool Contract::CreateContract(const String& strContract,
                 theSigner.GetIdentifier(strSignerNymID);
                 theSigner.GetPublicCredentials(strCredList, &mapCredFiles);
 
-                std::unique_ptr<OTPseudonym> pNym(new OTPseudonym);
+                std::unique_ptr<Nym> pNym(new Nym);
 
                 pNym->SetIdentifier(strSignerNymID);
                 pNym->SetNymIDSource(theSigner.GetNymIDSource());
@@ -2179,7 +2175,7 @@ void Contract::CreateInnerContents()
         // CREDENTIALS, based on NymID and Source, and credential IDs.
         for (auto& it : m_mapNyms) {
             std::string str_name = it.first;
-            OTPseudonym* pNym = it.second;
+            Nym* pNym = it.second;
             OT_ASSERT_MSG(nullptr != pNym,
                           "2: nullptr pseudonym pointer in "
                           "OTContract::CreateInnerContents.\n");
@@ -2494,7 +2490,7 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
                 {
                     String::Map& theMap = pMap->the_map;
 
-                    std::unique_ptr<OTPseudonym> pNym(new OTPseudonym);
+                    std::unique_ptr<Nym> pNym(new Nym);
                     pNym->SetIdentifier(strSignerNymID);
 
                     if (false ==
@@ -2549,7 +2545,7 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 bool Contract::InsertNym(const String& strKeyName, const String& strKeyValue)
 {
     bool bResult = false;
-    OTPseudonym* pNym = new OTPseudonym;
+    Nym* pNym = new Nym;
 
     OT_ASSERT_MSG(
         nullptr != pNym,

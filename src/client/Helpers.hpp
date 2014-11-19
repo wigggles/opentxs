@@ -139,16 +139,15 @@ namespace opentxs
 {
 
 class OTLedger;
-class OTPseudonym;
+class Nym;
 class OTPayment;
 
 // Caller is responsible to delete.
 // returns financial instrument by index. (Cheque, Purse, etc.)
-EXPORT OTPayment* GetInstrument(const OTPseudonym& theNym,
-                                const int32_t& nIndex, OTLedger& ledger);
+EXPORT OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
+                                OTLedger& ledger);
 
-EXPORT int32_t
-    GetOutpaymentsIndexByTransNum(const OTPseudonym& nym, int64_t lTransNum);
+EXPORT int32_t GetOutpaymentsIndexByTransNum(const Nym& nym, int64_t lTransNum);
 
 } // namespace opentxs
 

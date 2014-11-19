@@ -338,7 +338,7 @@ void OTServer::ProcessCron()
     // Such as sweeping server accounts after expiration dates, etc.
 }
 
-const OTPseudonym& OTServer::GetServerNym() const
+const Nym& OTServer::GetServerNym() const
 {
     return m_nymServer;
 }
@@ -706,7 +706,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
-        OTPseudonym nymRecipient(RECIPIENT_USER_ID);
+        Nym nymRecipient(RECIPIENT_USER_ID);
 
         bool bLoadedNym =
             nymRecipient.LoadPublicKey(); // Old style (deprecated.) But this

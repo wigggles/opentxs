@@ -137,7 +137,7 @@
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 
 #include <irrxml/irrXML.hpp>
 
@@ -458,8 +458,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 // and that the merchant's copy is attached within. The function tries to verify
 // they are the same,
 // and properly signed.
-bool OTPaymentPlan::VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
-                                    OTPseudonym& SENDER_NYM) const
+bool OTPaymentPlan::VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const
 {
     // Load up the merchant's copy.
     OTPaymentPlan theMerchantCopy;
@@ -668,7 +667,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     const OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     bool bSuccess = false; // The return value.
@@ -732,9 +731,9 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // the pointers accordingly, and then operate
     // using the pointers from there.
 
-    OTPseudonym theSenderNym, theRecipientNym; // We MIGHT use ONE, OR BOTH, of
-                                               // these, or none. (But probably
-                                               // both.)
+    Nym theSenderNym, theRecipientNym; // We MIGHT use ONE, OR BOTH, of
+                                       // these, or none. (But probably
+                                       // both.)
 
     // Find out if either Nym is actually also the server.
     bool bSenderNymIsServerNym =
@@ -748,8 +747,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     bool bUsersAreSameNym =
         ((SENDER_USER_ID == RECIPIENT_USER_ID) ? true : false);
 
-    OTPseudonym* pSenderNym = nullptr;
-    OTPseudonym* pRecipientNym = nullptr;
+    Nym* pSenderNym = nullptr;
+    Nym* pRecipientNym = nullptr;
 
     // Figure out if Sender Nym is also Server Nym.
     if (bSenderNymIsServerNym) {

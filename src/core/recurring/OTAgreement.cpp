@@ -138,7 +138,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 
 #include <irrxml/irrXML.hpp>
 
@@ -148,19 +148,19 @@ namespace opentxs
 {
 
 bool OTAgreement::SendNoticeToAllParties(
-    bool bSuccessMsg, OTPseudonym& theServerNym, const Identifier& theServerID,
+    bool bSuccessMsg, Nym& theServerNym, const Identifier& theServerID,
     const int64_t& lNewTransactionNumber,
     //                                       const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const String& strReference, String* pstrNote, String* pstrAttachment,
-    OTPseudonym* pActualNym) const
+    Nym* pActualNym) const
 {
     bool bSuccess =
         true; // Success is defined as ALL parties receiving a notice
 
-    OTPseudonym theRecipientNym; // Don't use this... use the pointer just
-                                 // below.
-    OTPseudonym* pRecipient = nullptr;
+    Nym theRecipientNym; // Don't use this... use the pointer just
+                         // below.
+    Nym* pRecipient = nullptr;
 
     if (theServerNym.CompareID(GetRecipientUserID())) {
         pRecipient = &theServerNym; // Just in case the recipient Nym is also
@@ -200,8 +200,8 @@ bool OTAgreement::SendNoticeToAllParties(
     // BY THIS POINT, the Recipient Nym is definitely loaded up and we have
     // a pointer to him (pRecipient.)
 
-    OTPseudonym theSenderNym; // Don't use this... use the pointer just below.
-    OTPseudonym* pSender = nullptr;
+    Nym theSenderNym; // Don't use this... use the pointer just below.
+    Nym* pSender = nullptr;
 
     if (theServerNym.CompareID(GetSenderUserID())) {
         pSender = &theServerNym; // Just in case the Sender Nym is also the
@@ -271,10 +271,10 @@ bool OTAgreement::SendNoticeToAllParties(
 bool OTAgreement::DropServerNoticeToNymbox(
     bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
                       // OTItem::rejection.
-    OTPseudonym& theServerNym, const Identifier& SERVER_ID,
-    const Identifier& USER_ID, const int64_t& lNewTransactionNumber,
-    const int64_t& lInReferenceTo, const String& strReference, String* pstrNote,
-    String* pstrAttachment, OTPseudonym* pActualNym)
+    Nym& theServerNym, const Identifier& SERVER_ID, const Identifier& USER_ID,
+    const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
+    const String& strReference, String* pstrNote, String* pstrAttachment,
+    Nym* pActualNym)
 {
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
 
@@ -387,8 +387,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
         // Update the NymboxHash (in the nymfile.)
         //
         const Identifier ACTUAL_NYM_ID = USER_ID;
-        OTPseudonym theActualNym; // unused unless it's really not already
-                                  // loaded. (use pActualNym.)
+        Nym theActualNym; // unused unless it's really not already
+                          // loaded. (use pActualNym.)
 
         // We couldn't find the Nym among those already loaded--so we have to
         // load
@@ -506,8 +506,8 @@ void OTAgreement::GetAllTransactionNumbers(OTNumList& numlistOutput) const
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTAgreement::VerifyNymAsAgent(OTPseudonym& theNym,
-                                   OTPseudonym&, // Not needed in this override.
+bool OTAgreement::VerifyNymAsAgent(Nym& theNym,
+                                   Nym&, // Not needed in this override.
                                    mapOfNyms*) const
 {
     return VerifySignature(theNym);
@@ -515,7 +515,7 @@ bool OTAgreement::VerifyNymAsAgent(OTPseudonym& theNym,
 
 // This is an override. See note above.
 //
-bool OTAgreement::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
+bool OTAgreement::VerifyNymAsAgentForAccount(Nym& theNym,
                                              Account& theAccount) const
 {
     return theAccount.VerifyOwner(theNym);
@@ -527,14 +527,13 @@ bool OTAgreement::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
 //
 void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
                                  const int64_t& lNewTransactionNumber,
-                                 OTPseudonym& theOriginator,
-                                 OTPseudonym* pRemover)
+                                 Nym& theOriginator, Nym* pRemover)
 {
 
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     const char* szFunc = "OTAgreement::onFinalReceipt";
@@ -547,8 +546,8 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     const String strOrigCronItem(theOrigCronItem);
 
-    OTPseudonym theRecipientNym; // Don't use this... use the pointer just
-                                 // below.
+    Nym theRecipientNym; // Don't use this... use the pointer just
+                         // below.
 
     // The Nym who is actively requesting to remove a cron item will be passed
     // in as pRemover.
@@ -558,7 +557,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     // the originator
     // pointer just pointers to *pRemover.
     //
-    OTPseudonym* pRecipient = nullptr;
+    Nym* pRecipient = nullptr;
 
     if (pServerNym->CompareID(GetRecipientUserID())) {
         pRecipient = pServerNym; // Just in case the recipient Nym is also the
@@ -627,14 +626,14 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     const String strServerID(GetServerID());
 
-    OTPseudonym theActualNym; // unused unless it's really not already loaded.
-                              // (use pActualNym.)
+    Nym theActualNym; // unused unless it's really not already loaded.
+                      // (use pActualNym.)
 
     //
     if ((lSenderOpeningNumber > 0) &&
         theOriginator.VerifyIssuedNum(strServerID, lSenderOpeningNumber)) {
 
-        OTPseudonym* pActualNym = nullptr; // use this. DON'T use theActualNym.
+        Nym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
         // The Nym (server side) stores a list of all opening and closing cron
         // #s.
@@ -870,7 +869,7 @@ void OTAgreement::onRemovalFromCron()
 // want to retrieve it.
 // So I added this function.
 //
-void OTAgreement::HarvestOpeningNumber(OTPseudonym& theNym)
+void OTAgreement::HarvestOpeningNumber(Nym& theNym)
 {
     // since we overrode the parent, we give it a chance to harvest also.
     // IF theNym is the original sender, the opening number will be harvested
@@ -919,7 +918,7 @@ void OTAgreement::HarvestOpeningNumber(OTPseudonym& theNym)
 // this agreement
 // or failing in trying to use it. Client side.
 //
-void OTAgreement::HarvestClosingNumbers(OTPseudonym& theNym)
+void OTAgreement::HarvestClosingNumbers(Nym& theNym)
 {
     // Since we overrode the parent, we give it a chance to harvest also.
     // If theNym is the sender, then his closing numbers will be harvested
@@ -1042,7 +1041,7 @@ bool OTAgreement::ProcessCron()
 
 /// See if theNym has rights to remove this item from Cron.
 ///
-bool OTAgreement::CanRemoveItemFromCron(OTPseudonym& theNym)
+bool OTAgreement::CanRemoveItemFromCron(Nym& theNym)
 {
     // You don't just go willy-nilly and remove a cron item from a market unless
     // you check first
@@ -1152,8 +1151,7 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 //
 // (lMerchantTransactionNumber, lMerchantClosingNumber are set internally in
 // this call, from MERCHANT_NYM.)
-bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
-                              const String& strConsideration,
+bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
                               time64_t VALID_FROM,
                               time64_t VALID_TO) // VALID_TO is a
                                                  // length here.
@@ -1279,7 +1277,7 @@ bool OTAgreement::SetProposal(OTPseudonym& MERCHANT_NYM,
 // THIS FUNCTION IS CALLED BY THE CUSTOMER
 //
 // (Transaction number and closing number are retrieved from Nym at this time.)
-bool OTAgreement::Confirm(OTPseudonym& PAYER_NYM, OTPseudonym* pMERCHANT_NYM,
+bool OTAgreement::Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM,
                           const Identifier* p_id_MERCHANT_NYM)
 {
 

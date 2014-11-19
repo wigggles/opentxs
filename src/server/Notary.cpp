@@ -148,7 +148,7 @@
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
@@ -171,7 +171,7 @@ Notary::Notary(OTServer* server)
 {
 }
 
-void Notary::NotarizeTransfer(OTPseudonym& theNym, Account& theFromAccount,
+void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                               OTTransaction& tranIn, OTTransaction& tranOut,
                               bool& bOutSuccess)
 {
@@ -658,7 +658,7 @@ void Notary::NotarizeTransfer(OTPseudonym& theNym, Account& theFromAccount,
 ///                            tokens. Funds are transferred to the bank, who
 /// blind-signs the tokens.
 ///
-void Notary::NotarizeWithdrawal(OTPseudonym& theNym, Account& theAccount,
+void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                                 OTTransaction& tranIn, OTTransaction& tranOut,
                                 bool& bOutSuccess)
 {
@@ -1460,7 +1460,7 @@ void Notary::NotarizeWithdrawal(OTPseudonym& theNym, Account& theAccount,
 /// Phase 2: voting groups, hierarchical entities with agents, oversight,
 /// corporate asset accounts, etc.
 ///
-void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
+void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                  OTTransaction& tranIn, OTTransaction& tranOut,
                                  bool& bOutSuccess)
 {
@@ -2261,7 +2261,7 @@ void Notary::NotarizePayDividend(OTPseudonym& theNym, Account& theSourceAccount,
 }
 
 /// for depositing a cheque or cash.
-void Notary::NotarizeDeposit(OTPseudonym& theNym, Account& theAccount,
+void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                              OTTransaction& tranIn, OTTransaction& tranOut,
                              bool& bOutSuccess)
 {
@@ -2752,10 +2752,10 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, Account& theAccount,
                                                 // delete the instance.
                 std::unique_ptr<Account> theSourceAcctGuardian;
                 // OTAccount::LoadExistingAccount().
-                OTPseudonym theRemitterNym(REMITTER_USER_ID);
-                OTPseudonym* pRemitterNym = &theRemitterNym;
-                OTPseudonym theSenderNym(SENDER_USER_ID);
-                OTPseudonym* pSenderNym = &theSenderNym;
+                Nym theRemitterNym(REMITTER_USER_ID);
+                Nym* pRemitterNym = &theRemitterNym;
+                Nym theSenderNym(SENDER_USER_ID);
+                Nym* pSenderNym = &theSenderNym;
 
                 // Don't want to overwrite files or db records in cases where
                 // the sender is also the depositor.
@@ -4067,8 +4067,7 @@ void Notary::NotarizeDeposit(OTPseudonym& theNym, Account& theAccount,
 /// with the same number as the plan.)
 ///
 ///
-void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
-                                 Account& theDepositorAccount,
+void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                  OTTransaction& tranIn, OTTransaction& tranOut,
                                  bool& bOutSuccess)
 {
@@ -4306,13 +4305,13 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
                         ((DEPOSITOR_USER_ID == RECIPIENT_USER_ID) ? true
                                                                   : false);
 
-                    OTPseudonym theRecipientNym; // We'll probably use this, but
-                                                 // maybe not. So I use a
-                                                 // pointer that will maybe
-                                                 // point here.
-                    OTPseudonym* pRecipientNym = nullptr; // Here's the pointer.
-                                                          // (Logic explained
-                                                          // directly below.)
+                    Nym theRecipientNym; // We'll probably use this, but
+                                         // maybe not. So I use a
+                                         // pointer that will maybe
+                                         // point here.
+                    Nym* pRecipientNym = nullptr; // Here's the pointer.
+                                                  // (Logic explained
+                                                  // directly below.)
                     // Set pRecipientNym to point to the right one so we can use
                     // it below. (Do NOT use theRecipientNym,
                     // since it won't always point to that one.)
@@ -4809,8 +4808,7 @@ void Notary::NotarizePaymentPlan(OTPseudonym& theNym,
     pResponseBalanceItem->SaveContract();
 }
 
-void Notary::NotarizeSmartContract(OTPseudonym& theNym,
-                                   Account& theActivatingAccount,
+void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                                    OTTransaction& tranIn,
                                    OTTransaction& tranOut, bool& bOutSuccess)
 {
@@ -5543,8 +5541,7 @@ void Notary::NotarizeSmartContract(OTPseudonym& theNym,
 // Then code the expiration part in OTCron Item or wherever, which should use
 // the SAME closing numbers.
 //
-void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
-                                    Account& theAssetAccount,
+void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
                                     OTTransaction& tranIn,
                                     OTTransaction& tranOut, bool& bOutSuccess)
 {
@@ -5733,7 +5730,7 @@ void Notary::NotarizeCancelCronItem(OTPseudonym& theNym,
 
 /// a user is exchanging in or out of a basket.  (Ex. He's trading 2 gold and 3
 /// silver for 10 baskets, or vice-versa.)
-void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, Account& theAccount,
+void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     OTTransaction& tranIn,
                                     OTTransaction& tranOut, bool& bOutSuccess)
 {
@@ -6627,7 +6624,7 @@ void Notary::NotarizeExchangeBasket(OTPseudonym& theNym, Account& theAccount,
 // DONE:  Make sure a CLOSING TRANSACTION number is provided, and recorded for
 // use later in cron!
 
-void Notary::NotarizeMarketOffer(OTPseudonym& theNym, Account& theAssetAccount,
+void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                                  OTTransaction& tranIn, OTTransaction& tranOut,
                                  bool& bOutSuccess)
 {
@@ -7030,7 +7027,7 @@ void Notary::NotarizeMarketOffer(OTPseudonym& theNym, Account& theAssetAccount,
 /// through that ledger,
 /// and for each transaction within, it calls THIS method.
 /// TODO think about error reporting here and sending a message back to user.
-void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
+void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                                  OTTransaction& tranOut, bool& bOutSuccess)
 {
     const int64_t lTransactionNumber = tranIn.GetTransactionNum();
@@ -7409,7 +7406,7 @@ void Notary::NotarizeTransaction(OTPseudonym& theNym, OTTransaction& tranIn,
 // reject inbox receipts. Why not? Haven't coded it yet. So your items on your
 // processNymbox
 // transaction can only accept things (notices, new transaction numbers,
-void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
+void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                                    OTTransaction& tranOut, bool& bOutSuccess)
 {
     // The outgoing transaction is an "atProcessNymbox", that is, "a reply to
@@ -7423,7 +7420,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const Identifier SERVER_ID(server_->m_strServerID), USER_ID(theNym);
-    OTPseudonym theTempNym;
+    Nym theTempNym;
 
     OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
     String strNymID(USER_ID);
@@ -8094,7 +8091,7 @@ void Notary::NotarizeProcessNymbox(OTPseudonym& theNym, OTTransaction& tranIn,
 /// those transactions
 /// accordingly.
 /// (And each of those transactions must be accepted or rejected in whole.)
-void Notary::NotarizeProcessInbox(OTPseudonym& theNym, Account& theAccount,
+void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                   OTTransaction& tranIn, OTTransaction& tranOut,
                                   bool& bOutSuccess)
 {
@@ -8120,7 +8117,7 @@ void Notary::NotarizeProcessInbox(OTPseudonym& theNym, Account& theAccount,
 
     const String strUserID(USER_ID);
 
-    OTPseudonym theTempNym, theTempClosingNumNym;
+    Nym theTempNym, theTempClosingNumNym;
     std::unique_ptr<OTLedger> pInbox(
         theAccount.LoadInbox(server_->m_nymServer));
     std::unique_ptr<OTLedger> pOutbox(

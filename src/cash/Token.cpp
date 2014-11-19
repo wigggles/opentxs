@@ -1076,7 +1076,7 @@ bool Token::GetPrivatePrototoken(OTASCIIArmor& ascPrototoken,
 
 // static
 Token* Token::InstantiateAndGenerateTokenRequest(const Purse& thePurse,
-                                                 const OTPseudonym& theNym,
+                                                 const Nym& theNym,
                                                  Mint& theMint,
                                                  int64_t lDenomination,
                                                  int32_t nTokenCount)
@@ -1151,7 +1151,7 @@ bool Token::GetSignature(OTASCIIArmor& theSignature) const
 // the server, he re-encrypts them first to the SERVER's public nym.
 // So by the time it comes to verify, we are opening this envelope
 // with the Server's Nym.
-bool Token::VerifyToken(OTPseudonym& theNotary, Mint& theMint)
+bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
 {
     // otErr << "%s <bank info> <coin>\n",argv[0]);
 

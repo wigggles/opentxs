@@ -269,7 +269,7 @@ void AccountList::Release()
 }
 
 std::shared_ptr<Account> AccountList::GetOrCreateAccount(
-    OTPseudonym& serverNym, const Identifier& accountOwnerId,
+    Nym& serverNym, const Identifier& accountOwnerId,
     const Identifier& assetTypeId, const Identifier& serverId,
     // this will be set to true if the acct is created here.
     // Otherwise set to false;

@@ -136,7 +136,7 @@
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <bitcoin-base58/hash.h>
 #include <cstring>
@@ -181,10 +181,10 @@ Identifier::Identifier(const Contract& theContract)
     (const_cast<Contract&>(theContract)).GetIdentifier(*this);
 }
 
-Identifier::Identifier(const OTPseudonym& theNym)
+Identifier::Identifier(const Nym& theNym)
     : OTData() // Get the Nym's ID into this identifier.
 {
-    (const_cast<OTPseudonym&>(theNym)).GetIdentifier(*this);
+    (const_cast<Nym&>(theNym)).GetIdentifier(*this);
 }
 
 Identifier::Identifier(const OTSymmetricKey& theKey)

@@ -134,7 +134,7 @@
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/util/StringUtils.hpp>
 
@@ -737,7 +737,7 @@ String::String(const OTSignature& strValue)
     if (strValue.Exists()) strValue.GetString(*this);
 }
 
-String::String(OTPseudonym& theValue)
+String::String(Nym& theValue)
     : length_(0)
     , position_(0)
     , data_(nullptr)

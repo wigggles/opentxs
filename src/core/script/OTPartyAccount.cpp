@@ -343,7 +343,7 @@ bool OTPartyAccount::VerifyAgency()
 }
 
 bool OTPartyAccount::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap, const String& strServerID, OTPseudonym& theServerNym,
+    mapOfNyms* pNymMap, const String& strServerID, Nym& theServerNym,
     OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment)
 {
@@ -390,7 +390,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 // just load up its account directly.) But this is here because it is
 // appropriate in certain cases.
 //
-Account* OTPartyAccount::LoadAccount(OTPseudonym& theSignerNym,
+Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
                                      const String& strServerID)
 {
     if (!m_strAcctID.Exists()) {

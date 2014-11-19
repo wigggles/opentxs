@@ -141,7 +141,7 @@
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
@@ -166,7 +166,7 @@ UserCommandProcessor::UserCommandProcessor(OTServer* server)
 bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                               Message& msgOut,
                                               ClientConnection* pConnection,
-                                              OTPseudonym* pNym)
+                                              Nym* pNym)
 {
     msgOut.m_strRequestNum.Set(theMessage.m_strRequestNum);
 
@@ -202,7 +202,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // NYM WAS PASSED IN
     //
     // If one wasn't passed in, we'll use the one constructed here.
-    OTPseudonym theNym(theMessage.m_strNymID);
+    Nym theNym(theMessage.m_strNymID);
     if (nullptr == pNym)
         pNym = &theNym;
     else if (!pNym->CompareID(theNym)) {
@@ -1437,7 +1437,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 }
 
 // Get the list of markets on this server.
-void UserCommandProcessor::UserCmdGetMarketList(OTPseudonym&, Message& MsgIn,
+void UserCommandProcessor::UserCmdGetMarketList(Nym&, Message& MsgIn,
                                                 Message& msgOut)
 {
     // (1) set up member variables
@@ -1480,7 +1480,7 @@ void UserCommandProcessor::UserCmdGetMarketList(OTPseudonym&, Message& MsgIn,
 }
 
 // Get the publicly-available list of offers on a specific market.
-void UserCommandProcessor::UserCmdGetMarketOffers(OTPseudonym&, Message& MsgIn,
+void UserCommandProcessor::UserCmdGetMarketOffers(Nym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
@@ -1532,8 +1532,7 @@ void UserCommandProcessor::UserCmdGetMarketOffers(OTPseudonym&, Message& MsgIn,
 }
 
 // Get a report of recent trades that have occurred on a specific market.
-void UserCommandProcessor::UserCmdGetMarketRecentTrades(OTPseudonym&,
-                                                        Message& MsgIn,
+void UserCommandProcessor::UserCmdGetMarketRecentTrades(Nym&, Message& MsgIn,
                                                         Message& msgOut)
 {
     // (1) set up member variables
@@ -1584,7 +1583,7 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(OTPseudonym&,
 
 // Get the offers that a specific Nym has placed on a specific market.
 //
-void UserCommandProcessor::UserCmdGetNym_MarketOffers(OTPseudonym& theNym,
+void UserCommandProcessor::UserCmdGetNym_MarketOffers(Nym& theNym,
                                                       Message& MsgIn,
                                                       Message& msgOut)
 {
@@ -1626,7 +1625,7 @@ void UserCommandProcessor::UserCmdGetNym_MarketOffers(OTPseudonym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdCheckServerID(OTPseudonym&, Message& MsgIn,
+void UserCommandProcessor::UserCmdCheckServerID(Nym&, Message& MsgIn,
                                                 Message& msgOut)
 {
     // (1) set up member variables
@@ -1651,8 +1650,7 @@ void UserCommandProcessor::UserCmdCheckServerID(OTPseudonym&, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
-                                                    Message& MsgIn,
+void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
                                                     Message& msgOut)
 {
     // (1) set up member variables
@@ -1872,8 +1870,8 @@ void UserCommandProcessor::UserCmdGetTransactionNum(OTPseudonym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdGetRequest(OTPseudonym& theNym,
-                                             Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdGetRequest(Nym& theNym, Message& MsgIn,
+                                             Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getRequestResponse"; // reply to getRequest
@@ -1931,8 +1929,7 @@ void UserCommandProcessor::UserCmdGetRequest(OTPseudonym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdSendUserMessage(OTPseudonym& theNym,
-                                                  Message& MsgIn,
+void UserCommandProcessor::UserCmdSendUserMessage(Nym& theNym, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
@@ -1970,7 +1967,7 @@ void UserCommandProcessor::UserCmdSendUserMessage(OTPseudonym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdSendUserInstrument(OTPseudonym& theNym,
+void UserCommandProcessor::UserCmdSendUserInstrument(Nym& theNym,
                                                      Message& MsgIn,
                                                      Message& msgOut)
 {
@@ -2010,7 +2007,7 @@ void UserCommandProcessor::UserCmdSendUserInstrument(OTPseudonym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdCheckUser(OTPseudonym&, Message& MsgIn,
+void UserCommandProcessor::UserCmdCheckUser(Nym&, Message& MsgIn,
                                             Message& msgOut)
 {
     // (1) set up member variables
@@ -2019,7 +2016,7 @@ void UserCommandProcessor::UserCmdCheckUser(OTPseudonym&, Message& MsgIn,
     msgOut.m_strNymID2 =
         MsgIn.m_strNymID2; // UserID of public key requested by user.
 
-    OTPseudonym nym2;
+    Nym nym2;
     nym2.SetIdentifier(MsgIn.m_strNymID2);
 
     bool bLoaded = nym2.LoadPublicKey(); // This calls LoadCredentials inside.
@@ -2106,8 +2103,8 @@ void UserCommandProcessor::UserCmdCheckUser(OTPseudonym&, Message& MsgIn,
   your admin Nym, and
   that Nym will STILL be able to use this message:
 */
-void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
-                                               Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdUsageCredits(Nym& theNym, Message& MsgIn,
+                                               Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "usageCreditsResponse"; // reply to usageCredits
@@ -2129,13 +2126,13 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
             : 0;
 
     msgOut.m_lDepth = 0; // Returns total Usage Credits on Nym at the end.
-    OTPseudonym nym2;
+    Nym nym2;
     Identifier nym2ID, SERVER_ID(server_->m_strServerID);
     nym2.SetIdentifier(MsgIn.m_strNymID2);
     nym2.GetIdentifier(nym2ID);
 
     const bool bIsSameNym = nym2.CompareID(theNym);
-    OTPseudonym* pNym = nullptr;
+    Nym* pNym = nullptr;
 
     bool bErrorCondition = false;
 
@@ -2310,8 +2307,7 @@ void UserCommandProcessor::UserCmdUsageCredits(OTPseudonym& theNym,
 }
 
 /// An existing user is issuing a new currency.
-void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
-                                                 Message& MsgIn,
+void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                                                  Message& msgOut)
 {
     const char* szFunc = "UserCommandProcessor::UserCmdIssueAssetType";
@@ -2374,8 +2370,8 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
             }
             else // success loading contract from string.
             {
-                OTPseudonym* pNym = const_cast<OTPseudonym*>(
-                    pAssetContract->GetContractPublicNym());
+                Nym* pNym =
+                    const_cast<Nym*>(pAssetContract->GetContractPublicNym());
 
                 if (nullptr == pNym) {
                     OTLog::vOutput(0, "%s: Failed trying to retrieve Issuer's "
@@ -2635,8 +2631,8 @@ void UserCommandProcessor::UserCmdIssueAssetType(OTPseudonym& theNym,
 
 /// An existing user is creating an issuer account (that he will not control)
 /// based on a basket of currencies.
-void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
-                                              Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
+                                              Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "issueBasketResponse"; // reply to issueBasket
@@ -2928,8 +2924,8 @@ void UserCommandProcessor::UserCmdIssueBasket(OTPseudonym& theNym,
 }
 
 /// An existing user is creating an asset account.
-void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
-                                                Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdCreateAccount(Nym& theNym, Message& MsgIn,
+                                                Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "createAccountResponse"; // reply to createAccount
@@ -3097,7 +3093,7 @@ void UserCommandProcessor::UserCmdCreateAccount(OTPseudonym& theNym,
     }
 }
 
-void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&, Message& MsgIn,
+void UserCommandProcessor::UserCmdGetAccountFiles(Nym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
@@ -3305,7 +3301,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&, Message& MsgIn,
         }
     }
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3317,7 +3313,7 @@ void UserCommandProcessor::UserCmdGetAccountFiles(OTPseudonym&, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&, Message& MsgIn,
+void UserCommandProcessor::UserCmdQueryAssetTypes(Nym&, Message& MsgIn,
                                                   Message& msgOut)
 {
     // (1) set up member variables
@@ -3395,7 +3391,7 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(OTPseudonym&, Message& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3442,7 +3438,7 @@ void UserCommandProcessor::UserCmdGetContract(Message& MsgIn, Message& msgOut)
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3454,8 +3450,8 @@ void UserCommandProcessor::UserCmdGetContract(Message& MsgIn, Message& msgOut)
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
-                                                Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdTriggerClause(Nym& theNym, Message& MsgIn,
+                                                Message& msgOut)
 {
     String strInReferenceTo(
         MsgIn); // Grab the incoming message in plaintext form
@@ -3594,7 +3590,7 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
                                   // server side
         theSrvrNymboxHash.GetString(msgOut.m_strNymboxHash);
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3606,8 +3602,7 @@ void UserCommandProcessor::UserCmdTriggerClause(OTPseudonym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, Message& MsgIn,
-                                          Message& msgOut)
+void UserCommandProcessor::UserCmdGetMint(Nym&, Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getMintResponse";  // reply to getMint
@@ -3655,7 +3650,7 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, Message& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -3673,8 +3668,8 @@ void UserCommandProcessor::UserCmdGetMint(OTPseudonym&, Message& MsgIn,
 // there are no asset accounts! (Delete them / Close them all FIRST! Or this
 // fails.)
 //
-void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
-                                             Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdDeleteUser(Nym& theNym, Message& MsgIn,
+                                             Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand =
@@ -3776,7 +3771,7 @@ void UserCommandProcessor::UserCmdDeleteUser(OTPseudonym& theNym,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -4006,7 +4001,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
     msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -4022,8 +4017,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
 // ...IF: the Inbox and Outbox are both EMPTY. AND the Balance must be empty as
 // well!
 //
-void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
-                                                  Message& MsgIn,
+void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
                                                   Message& msgOut)
 {
     const char* szFunc = "UserCommandProcessor::UserCmdDeleteAssetAcct";
@@ -4133,7 +4127,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -4167,7 +4161,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(OTPseudonym& theNym,
     }
 }
 
-void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym, Message& MsgIn,
+void UserCommandProcessor::UserCmdGetNymbox(Nym& theNym, Message& MsgIn,
                                             Message& msgOut)
 {
     // (1) set up member variables
@@ -4273,7 +4267,7 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym, Message& MsgIn,
     }
 
     // (2) Sign the Message
-    msgOut.SignContract(static_cast<const OTPseudonym&>(server_->m_nymServer));
+    msgOut.SignContract(static_cast<const Nym&>(server_->m_nymServer));
 
     // (3) Save the Message (with signatures and all, back to its internal
     // member m_strRawFile.)
@@ -4285,8 +4279,8 @@ void UserCommandProcessor::UserCmdGetNymbox(OTPseudonym& theNym, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdProcessNymbox(OTPseudonym& theNym,
-                                                Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdProcessNymbox(Nym& theNym, Message& MsgIn,
+                                                Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "processNymboxResponse"; // reply to processNymbox
@@ -4518,8 +4512,8 @@ send_message:
     }
 }
 
-void UserCommandProcessor::UserCmdProcessInbox(OTPseudonym& theNym,
-                                               Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdProcessInbox(Nym& theNym, Message& MsgIn,
+                                               Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "processInboxResponse"; // reply to processInbox
@@ -4848,7 +4842,7 @@ send_message:
 /// a test response back to make sure the communication works.
 ///
 /// An existing user is sending a list of transactions to be notarized.
-void UserCommandProcessor::UserCmdNotarizeTransactions(OTPseudonym& theNym,
+void UserCommandProcessor::UserCmdNotarizeTransactions(Nym& theNym,
                                                        Message& MsgIn,
                                                        Message& msgOut)
 {
@@ -5159,7 +5153,7 @@ bool UserCommandProcessor::SendMessageToNym(
 void UserCommandProcessor::DropReplyNoticeToNymbox(
     const Identifier& SERVER_ID, const Identifier& USER_ID,
     const String& strMessage, const int64_t& lRequestNum,
-    const bool bReplyTransSuccess, OTPseudonym* pActualNym)
+    const bool bReplyTransSuccess, Nym* pActualNym)
 {
     OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
 

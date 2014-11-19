@@ -144,7 +144,7 @@ namespace opentxs
 {
 
 class Identifier;
-class OTPseudonym;
+class Nym;
 
 /*
  OTTrade
@@ -204,7 +204,7 @@ private:
 protected:
     virtual void onFinalReceipt(OTCronItem& origCronItem,
                                 const int64_t& newTransactionNumber,
-                                OTPseudonym& originator, OTPseudonym* remover);
+                                Nym& originator, Nym* remover);
     virtual void onRemovalFromCron();
 
 public:
@@ -293,7 +293,7 @@ public:
     // Return False if expired or otherwise should be removed.
     virtual bool ProcessCron(); // OTCron calls this regularly, which is my
                                 // chance to expire, etc.
-    virtual bool CanRemoveItemFromCron(OTPseudonym& nym);
+    virtual bool CanRemoveItemFromCron(Nym& nym);
 
     // From OTScriptable, we override this function. OTScriptable now does fancy
     // stuff like checking to see
@@ -303,11 +303,10 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    virtual bool VerifyNymAsAgent(OTPseudonym& nym, OTPseudonym& signerNym,
+    virtual bool VerifyNymAsAgent(Nym& nym, Nym& signerNym,
                                   mapOfNyms* preloadedMap = nullptr) const;
 
-    virtual bool VerifyNymAsAgentForAccount(OTPseudonym& nym,
-                                            Account& account) const;
+    virtual bool VerifyNymAsAgentForAccount(Nym& nym, Account& account) const;
     EXPORT OTTrade();
     EXPORT OTTrade(const Identifier& serverId, const Identifier& assetId,
                    const Identifier& assetAcctId, const Identifier& userId,

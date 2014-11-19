@@ -144,10 +144,10 @@ class OTAgent;
 class Identifier;
 class OTParty;
 class OTPartyAccount;
-class OTPseudonym;
+class Nym;
 class OTSmartContract;
 
-typedef std::map<std::string, OTPseudonym*> mapOfNyms;
+typedef std::map<std::string, Nym*> mapOfNyms;
 
 // Agent is always either the Owner Nym acting in his own interests,
 // or is an employee Nym acting actively in a role on behalf of an Entity formed
@@ -173,8 +173,8 @@ private:
 
     // If agent is active (has a nym), here is the sometimes-available pointer
     // to said Agent Nym.
-    OTPseudonym* m_pNym; // this pointer is not owned by this object, and is
-                         // here for convenience only.
+    Nym* m_pNym; // this pointer is not owned by this object, and is
+                 // here for convenience only.
     // someday may add a "role" pointer here.
 
     OTParty* m_pForParty; // The agent probably has a pointer to the party it
@@ -209,7 +209,7 @@ private:
 
 public:
     OTAgent();
-    OTAgent(std::string str_agent_name, OTPseudonym& theNym,
+    OTAgent(std::string str_agent_name, Nym& theNym,
             bool bNymRepresentsSelf = true);
     /*IF false, then: ENTITY and ROLE parameters go here.*/
     //
@@ -241,19 +241,18 @@ public:
                                  const String& strServerID);
 
     bool RemoveIssuedNumber(const int64_t& lNumber, const String& strServerID,
-                            bool bSave = false,
-                            OTPseudonym* pSignerNym = nullptr);
+                            bool bSave = false, Nym* pSignerNym = nullptr);
     bool RemoveTransactionNumber(const int64_t& lNumber,
-                                 const String& strServerID,
-                                 OTPseudonym& SIGNER_NYM, bool bSave = true);
+                                 const String& strServerID, Nym& SIGNER_NYM,
+                                 bool bSave = true);
 
     bool HarvestTransactionNumber(
         const int64_t& lNumber, const String& strServerID,
-        bool bSave = false, // Each agent's nym is used if pSignerNym is
-                            // nullptr,
-                            // whereas the server
-        OTPseudonym* pSignerNym = nullptr); // uses this optional arg to
-                                            // substitute serverNym as signer.
+        bool bSave = false,         // Each agent's nym is used if pSignerNym is
+                                    // nullptr,
+                                    // whereas the server
+        Nym* pSignerNym = nullptr); // uses this optional arg to
+                                    // substitute serverNym as signer.
 
     bool ReserveOpeningTransNum(const String& strServerID);
     bool ReserveClosingTransNum(const String& strServerID,
@@ -273,12 +272,12 @@ public:
     void SetParty(OTParty& theOwnerParty); // This happens when the agent is
                                            // added to the party.
 
-    void SetNymPointer(OTPseudonym& theNym)
+    void SetNymPointer(Nym& theNym)
     {
         m_pNym = &theNym;
     }
 
-    EXPORT bool IsValidSigner(OTPseudonym& theNym);
+    EXPORT bool IsValidSigner(Nym& theNym);
     EXPORT bool IsValidSignerID(const Identifier& theNymID);
 
     bool IsAuthorizingAgentForParty(); // true/false whether THIS agent is the
@@ -435,28 +434,28 @@ public:
     //
     void RetrieveNymPointer(mapOfNyms& map_Nyms_Already_Loaded);
 
-    OTPseudonym* LoadNym(OTPseudonym& theServerNym);
+    Nym* LoadNym(Nym& theServerNym);
 
     bool DropFinalReceiptToNymbox(OTSmartContract& theSmartContract,
                                   const int64_t& lNewTransactionNumber,
                                   const String& strOrigCronItem,
                                   String* pstrNote = nullptr,
                                   String* pstrAttachment = nullptr,
-                                  OTPseudonym* pActualNym = nullptr);
+                                  Nym* pActualNym = nullptr);
 
     bool DropFinalReceiptToInbox(
-        mapOfNyms* pNymMap, const String& strServerID,
-        OTPseudonym& theServerNym, OTSmartContract& theSmartContract,
-        const Identifier& theAccountID, const int64_t& lNewTransactionNumber,
-        const int64_t& lClosingNumber, const String& strOrigCronItem,
-        String* pstrNote = nullptr, String* pstrAttachment = nullptr);
+        mapOfNyms* pNymMap, const String& strServerID, Nym& theServerNym,
+        OTSmartContract& theSmartContract, const Identifier& theAccountID,
+        const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
+        const String& strOrigCronItem, String* pstrNote = nullptr,
+        String* pstrAttachment = nullptr);
 
     bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // the notice can be "acknowledgment" or "rejection"
-        OTPseudonym& theServerNym, const Identifier& theServerID,
+        Nym& theServerNym, const Identifier& theServerID,
         const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
         const String& strReference, String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr, OTPseudonym* pActualNym = nullptr);
+        String* pstrAttachment = nullptr, Nym* pActualNym = nullptr);
 };
 
 } // namespace opentxs

@@ -142,7 +142,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 
 #include <map>
@@ -304,7 +304,7 @@ bool CmdBase::checkNym(const char* name, string& nym) const
     }
 
     OTWallet* wallet = getWallet();
-    OTPseudonym* theNym = wallet->GetNymByID(nym);
+    Nym* theNym = wallet->GetNymByID(nym);
     if (theNym == nullptr) {
         theNym = wallet->GetNymByIDPartialMatch(nym);
         if (theNym == nullptr) {

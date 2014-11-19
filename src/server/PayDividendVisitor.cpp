@@ -205,8 +205,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
     const Identifier& theVoucherAcctID = *(GetVoucherAcctID());
     OT_ASSERT(nullptr != GetServer());
     OTServer& theServer = *(GetServer());
-    OTPseudonym& theServerNym =
-        const_cast<OTPseudonym&>(theServer.GetServerNym());
+    Nym& theServerNym = const_cast<Nym&>(theServer.GetServerNym());
     const Identifier theServerNymID(theServerNym);
     const Identifier& RECIPIENT_ID = theSharesAccount.GetUserID();
     OT_ASSERT(nullptr != GetUserID());

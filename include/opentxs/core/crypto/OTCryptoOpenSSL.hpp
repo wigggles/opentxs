@@ -151,7 +151,7 @@ class Identifier;
 class OTPassword;
 class OTPasswordData;
 class OTData;
-class OTPseudonym;
+class Nym;
 class OTSettings;
 class OTSignature;
 
@@ -236,7 +236,7 @@ public:
     virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
                       OTData& dataOutput) const;
 
-    virtual bool Open(OTData& dataInput, const OTPseudonym& theRecipient,
+    virtual bool Open(OTData& dataInput, const Nym& theRecipient,
                       String& theOutput,
                       const OTPasswordData* pPWData = nullptr) const;
     // SIGN / VERIFY

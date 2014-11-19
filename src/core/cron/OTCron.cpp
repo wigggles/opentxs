@@ -730,7 +730,7 @@ void OTCron::ProcessCronItems()
 // OTCron IS responsible for cleaning up theItem, and takes ownership.
 // So make SURE it is allocated on the HEAP before you pass it in here, and
 // also make sure to delete it again if this call fails!
-bool OTCron::AddCronItem(OTCronItem& theItem, OTPseudonym* pActivator,
+bool OTCron::AddCronItem(OTCronItem& theItem, Nym* pActivator,
                          bool bSaveReceipt, time64_t tDateAdded)
 {
     OT_ASSERT(nullptr != GetServerNym());
@@ -839,8 +839,8 @@ bool OTCron::AddCronItem(OTCronItem& theItem, OTPseudonym* pActivator,
 }
 
 bool OTCron::RemoveCronItem(int64_t lTransactionNum,
-                            OTPseudonym& theRemover) // if returns false, item
-                                                     // wasn't found.
+                            Nym& theRemover) // if returns false, item
+                                             // wasn't found.
 {
     // See if there's a cron item with that transaction number.
     auto it_map = FindItemOnMap(lTransactionNum);

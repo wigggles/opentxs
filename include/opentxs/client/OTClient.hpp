@@ -227,12 +227,12 @@ public:
         return m_MessageOutbuffer;
     }
 
-    void ProcessMessageOut(OTServerContract* pServerContract, OTPseudonym* pNym,
+    void ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
                            const Message& theMessage);
     bool ProcessInBuffer(const Message& theServerReply) const;
 
     EXPORT int32_t ProcessUserCommand(OT_CLIENT_CMD_TYPE requestedCommand,
-                                      Message& theMessage, OTPseudonym& theNym,
+                                      Message& theMessage, Nym& theNym,
                                       const OTServerContract& theServer,
                                       const Account* pAccount = nullptr,
                                       int64_t lTransactionAmount = 0,
@@ -255,19 +255,18 @@ public:
                                     const Message& theReply) const;
     bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theServerID,
                             const OTServerContract& theServerContract,
-                            OTPseudonym& theNym, Message& theMessage);
+                            Nym& theNym, Message& theMessage);
 
 private:
     void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
                                       const String& str_trans,
                                       String str_box_type,
-                                      const int64_t& lTransNum,
-                                      OTPseudonym& the_nym,
+                                      const int64_t& lTransNum, Nym& the_nym,
                                       OTLedger& ledger) const;
 
     struct ProcessServerReplyArgs;
     void setRecentHash(const Message& theReply, const String& strServerID,
-                       OTPseudonym* pNym, bool setNymboxHash);
+                       Nym* pNym, bool setNymboxHash);
     bool processServerReplyTriggerClause(const Message& theReply,
                                          ProcessServerReplyArgs& args);
     bool processServerReplyGetRequest(const Message& theReply,

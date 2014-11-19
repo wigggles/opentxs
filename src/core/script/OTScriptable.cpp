@@ -139,7 +139,7 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -659,12 +659,12 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
 // contents.
 
 bool OTScriptable::SendNoticeToAllParties(
-    bool bSuccessMsg, OTPseudonym& theServerNym, const Identifier& theServerID,
+    bool bSuccessMsg, Nym& theServerNym, const Identifier& theServerID,
     const int64_t& lNewTransactionNumber,
     // const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const String& strReference, String* pstrNote, String* pstrAttachment,
-    OTPseudonym* pActualNym) const
+    Nym* pActualNym) const
 {
     bool bSuccess =
         true; // Success is defined as ALL parties receiving a notice
@@ -871,7 +871,7 @@ OTParty* OTScriptable::FindPartyBasedOnAccountID(
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
+OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(Nym& theNym,
                                                   OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
@@ -883,7 +883,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(OTPseudonym& theNym,
     return nullptr;
 }
 
-OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym,
+OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(Nym& theNym,
                                                       OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
@@ -963,8 +963,8 @@ void OTScriptable::RetrieveNymPointers(mapOfNyms& map_Nyms_Already_Loaded)
 bool OTScriptable::VerifyPartyAuthorization(
     OTParty& theParty, // The party that supposedly is authorized for this
                        // supposedly executed agreement.
-    OTPseudonym& theSignerNym, // For verifying signature on the authorizing
-                               // Nym, when loading it
+    Nym& theSignerNym, // For verifying signature on the authorizing
+                       // Nym, when loading it
     const String& strServerID, // For verifying issued num, need the serverID
                                // the # goes with.
     mapOfNyms* pmap_ALREADY_LOADED, // If some nyms are already
@@ -1012,9 +1012,9 @@ bool OTScriptable::VerifyPartyAuthorization(
     // agent. (Who may not be the Nym, yet might be.)
     //
     OTAgent* pAuthorizingAgent = nullptr;
-    OTPseudonym* pAuthAgentsNym = nullptr;
+    Nym* pAuthAgentsNym = nullptr;
     // In case I have to load it myself, I want it cleaned up properly.
-    std::unique_ptr<OTPseudonym> theAgentNymAngel;
+    std::unique_ptr<Nym> theAgentNymAngel;
 
     // Some nyms are *already* loaded. If any were passed in, let's see if any
     // of them are
@@ -1026,7 +1026,7 @@ bool OTScriptable::VerifyPartyAuthorization(
         mapOfNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
 
         for (auto& it : map_Nyms_Already_Loaded) {
-            OTPseudonym* pNym = it.second;
+            Nym* pNym = it.second;
             OT_ASSERT(nullptr != pNym);
 
             if (theParty.HasAuthorizingAgent(*pNym, &pAuthorizingAgent)) {
@@ -1088,7 +1088,7 @@ bool OTScriptable::VerifyPartyAuthorization(
                 mapOfNyms& map_Nyms_Newly_Loaded = (*pmap_NEWLY_LOADED);
                 map_Nyms_Newly_Loaded.insert(
                     map_Nyms_Newly_Loaded.begin(),
-                    std::pair<std::string, OTPseudonym*>(
+                    std::pair<std::string, Nym*>(
                         str_agent_name,
                         pAuthAgentsNym)); // (Caller must clean these up.)
             }
@@ -1272,8 +1272,7 @@ bool OTScriptable::VerifyPartyAuthorization(
 // and cleans the pointers
 // when it's done.
 //
-bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
-                                    OTPseudonym& theSignerNym,
+bool OTScriptable::VerifyNymAsAgent(Nym& theNym, Nym& theSignerNym,
                                     mapOfNyms* pmap_ALREADY_LOADED) const
 {
     // (COmmented out) existing trades / payment plans on OT basically just have
@@ -1339,8 +1338,8 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
     // agent. (Who may not be the Nym, yet might be.)
     //
     OTAgent* pAuthorizingAgent = nullptr;
-    OTPseudonym* pAuthAgentsNym = nullptr;
-    std::unique_ptr<OTPseudonym> theAgentNymAngel;
+    Nym* pAuthAgentsNym = nullptr;
+    std::unique_ptr<Nym> theAgentNymAngel;
 
     // See if theNym is the authorizing agent.
     //
@@ -1352,7 +1351,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
         //
         mapOfNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
         for (auto& it : map_Nyms_Already_Loaded) {
-            OTPseudonym* pNym = it.second;
+            Nym* pNym = it.second;
             OT_ASSERT(nullptr != pNym);
 
             if (pParty->HasAuthorizingAgent(*pNym, &pAuthorizingAgent)) {
@@ -1494,7 +1493,7 @@ bool OTScriptable::VerifyNymAsAgent(OTPseudonym& theNym,
 bool OTScriptable::VerifyPartyAcctAuthorization(
     OTPartyAccount& thePartyAcct, // The party is assumed to have been verified
                                   // already via VerifyPartyAuthorization()
-    OTPseudonym& theSignerNym,    // For verifying signature on the authorizing
+    Nym& theSignerNym,            // For verifying signature on the authorizing
                                   // Nym.
     const String& strServerID,    // For verifying issued num, need the serverID
                                   // the # goes with.
@@ -1640,7 +1639,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
 // AGAIN: CALL VerifyNymAsAgent() BEFORE you call this function! Otherwise you
 // aren't proving nearly as much. ALWAYS call it first.
 //
-bool OTScriptable::VerifyNymAsAgentForAccount(OTPseudonym& theNym,
+bool OTScriptable::VerifyNymAsAgentForAccount(Nym& theNym,
                                               Account& theAccount) const
 {
 

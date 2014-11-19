@@ -136,7 +136,7 @@
 
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 #include <fstream>
@@ -158,7 +158,7 @@ namespace opentxs
 OTMessageStrategyManager Message::messageStrategyManager;
 
 bool Message::HarvestTransactionNumbers(
-    OTPseudonym& theNym,
+    Nym& theNym,
     bool bHarvestingForRetry,          // false until positively asserted.
     bool bReplyWasSuccess,             // false until positively asserted.
     bool bReplyWasFailure,             // false until positively asserted.
@@ -261,7 +261,7 @@ bool Message::HarvestTransactionNumbers(
 // (It will
 // ASSERT if you don't...)
 //
-void Message::SetAcknowledgments(OTPseudonym& theNym)
+void Message::SetAcknowledgments(Nym& theNym)
 {
     m_AcknowledgedReplies.Release();
 
@@ -473,8 +473,7 @@ int32_t Message::processXmlNodeOTmessage(Message& m,
 // their contents just before signing.
 // See OTMessage::UpdateContents near the top of this file for an example.
 //
-bool Message::SignContract(const OTPseudonym& theNym,
-                           const OTPasswordData* pPWData)
+bool Message::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
 {
     // I release these, I assume, because a message only has one signer.
     ReleaseSignatures(); // Note: this might change with credentials. We might
@@ -498,7 +497,7 @@ bool Message::SignContract(const OTPseudonym& theNym,
 }
 
 // virtual (OTContract)
-bool Message::VerifySignature(const OTPseudonym& theNym,
+bool Message::VerifySignature(const Nym& theNym,
                               const OTPasswordData* pPWData) const
 {
     // Messages, unlike many contracts, use the authentication key instead of

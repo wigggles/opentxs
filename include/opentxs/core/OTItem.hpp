@@ -141,7 +141,7 @@ namespace opentxs
 class Account;
 class OTItem;
 class OTLedger;
-class OTPseudonym;
+class Nym;
 class OTTransaction;
 
 typedef std::list<OTItem*> listOfItems;
@@ -443,7 +443,7 @@ public:
     // whether the wallet side set it up correctly (and thus it's okay to sign
     // and return with acknowledgement.)
     EXPORT bool VerifyBalanceStatement(
-        int64_t lActualAdjustment, OTPseudonym& THE_NYM, OTLedger& THE_INBOX,
+        int64_t lActualAdjustment, Nym& THE_NYM, OTLedger& THE_INBOX,
         OTLedger& THE_OUTBOX, const Account& THE_ACCOUNT,
         OTTransaction& TARGET_TRANSACTION,
         int64_t lOutboxTrnsNum = 0); // Used in special case of transfers (the
@@ -452,7 +452,7 @@ public:
     // the original request.) Unused when 0.
     // server-side
     EXPORT bool VerifyTransactionStatement(
-        OTPseudonym& THE_NYM, OTTransaction& TARGET_TRANSACTION,
+        Nym& THE_NYM, OTTransaction& TARGET_TRANSACTION,
         bool bIsRealTransaction = true); // We use this when the
                                          // trans# is 0 (like when
                                          // processing Nymbox.)

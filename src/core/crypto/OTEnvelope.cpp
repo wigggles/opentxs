@@ -137,7 +137,7 @@
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 
@@ -515,7 +515,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
 
 // RSA / AES
 
-bool OTEnvelope::Seal(const OTPseudonym& theRecipient, const String& theInput)
+bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 {
     String strNymID;
     mapOfAsymmetricKeys theKeys;
@@ -534,7 +534,7 @@ bool OTEnvelope::Seal(setOfNyms& theRecipients, const String& theInput)
     // Loop through theRecipients, and add the public key of each one to a set
     // of keys.
     for (auto& it : theRecipients) {
-        OTPseudonym* pNym = it;
+        Nym* pNym = it;
         OT_ASSERT_MSG(nullptr != pNym,
                       "OTEnvelope::Seal: Assert: nullptr pseudonym pointer.");
 
@@ -574,7 +574,7 @@ bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput)
 
 // RSA / AES
 
-bool OTEnvelope::Open(const OTPseudonym& theRecipient, String& theOutput,
+bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
                       const OTPasswordData* pPWData)
 {
     return OTCrypto::It()->Open(m_dataContents, theRecipient, theOutput,

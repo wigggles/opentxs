@@ -144,7 +144,7 @@
 #endif
 
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -177,7 +177,7 @@ MintLucre::~MintLucre()
 
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
-bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
+bool MintLucre::AddDenomination(Nym& theNotary, int64_t lDenomination,
                                 int32_t nPrimeLength)
 {
     OT_ASSERT(nullptr != m_pKeyPublic);
@@ -287,8 +287,8 @@ bool MintLucre::AddDenomination(OTPseudonym& theNotary, int64_t lDenomination,
 
 // Lucre step 3: the mint signs the token
 //
-bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
-                          String& theOutput, int32_t nTokenIndex)
+bool MintLucre::SignToken(Nym& theNotary, Token& theToken, String& theOutput,
+                          int32_t nTokenIndex)
 {
     bool bReturnValue = false;
 
@@ -391,7 +391,7 @@ bool MintLucre::SignToken(OTPseudonym& theNotary, Token& theToken,
 // Lucre step 5: mint verifies token when it is redeemed by merchant.
 // This function is called by OTToken::VerifyToken.
 // That's the one you should be calling, most likely, not this one.
-bool MintLucre::VerifyToken(OTPseudonym& theNotary, String& theCleartextToken,
+bool MintLucre::VerifyToken(Nym& theNotary, String& theCleartextToken,
                             int64_t lDenomination)
 {
     bool bReturnValue = false;

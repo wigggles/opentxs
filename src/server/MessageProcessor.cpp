@@ -362,7 +362,7 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     // instead of tcp/ssl.
     ClientConnection client;
 
-    OTPseudonym nym(message.m_strNymID);
+    Nym nym(message.m_strNymID);
 
     bool processedUserCmd = server_->userCommandProcessor_.ProcessUserCommand(
         message, replyMessage, &client, &nym);

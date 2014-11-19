@@ -140,7 +140,7 @@
 namespace opentxs
 {
 
-class OTPseudonym;
+class Nym;
 
 // An Agreement occurs between TWO PEOPLE, and is for a CONSIDERATION.
 // Thus, we add the RECIPIENT (already have SENDER from OTTrackable.)
@@ -190,8 +190,7 @@ protected:
 
     virtual void onFinalReceipt(OTCronItem& theOrigCronItem,
                                 const int64_t& lNewTransactionNumber,
-                                OTPseudonym& theOriginator,
-                                OTPseudonym* pRemover);
+                                Nym& theOriginator, Nym* pRemover);
     virtual void onRemovalFromCron();
 
     std::deque<int64_t> m_dequeRecipientClosingNumbers; // Numbers used for
@@ -220,13 +219,11 @@ public:
     //                       const time64_t& VALID_FROM=0,    const time64_t&
     // VALID_TO=0);
 
-    EXPORT bool SetProposal(OTPseudonym& MERCHANT_NYM,
-                            const String& strConsideration,
+    EXPORT bool SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
                             time64_t VALID_FROM = OT_TIME_ZERO,
                             time64_t VALID_TO = OT_TIME_ZERO);
 
-    EXPORT bool Confirm(OTPseudonym& PAYER_NYM,
-                        OTPseudonym* pMERCHANT_NYM = nullptr,
+    EXPORT bool Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM = nullptr,
                         const Identifier* p_id_MERCHANT_NYM =
                             nullptr); // Merchant Nym is passed here so we can
                                       // verify the signature before confirming.
@@ -338,8 +335,7 @@ public:
     // make sure that none of
     // the vital terms, values, clauses, etc are different between the two.
     //
-    virtual bool VerifyAgreement(OTPseudonym& RECIPIENT_NYM,
-                                 OTPseudonym& SENDER_NYM) const = 0;
+    virtual bool VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const = 0;
 
     virtual bool CompareAgreement(const OTAgreement& rhs) const;
 
@@ -393,10 +389,10 @@ public:
 
      void    AddClosingTransactionNo(const int64_t& lClosingTransactionNo);
      */
-    virtual bool CanRemoveItemFromCron(OTPseudonym& theNym);
+    virtual bool CanRemoveItemFromCron(Nym& theNym);
 
-    virtual void HarvestOpeningNumber(OTPseudonym& theNym);
-    EXPORT virtual void HarvestClosingNumbers(OTPseudonym& theNym);
+    virtual void HarvestOpeningNumber(Nym& theNym);
+    EXPORT virtual void HarvestClosingNumbers(Nym& theNym);
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -457,10 +453,10 @@ public:
     // see if theNym has signed *this.
     //
     virtual bool VerifyNymAsAgent(
-        OTPseudonym& theNym, OTPseudonym& theSignerNym,
+        Nym& theNym, Nym& theSignerNym,
         mapOfNyms* pmap_ALREADY_LOADED = nullptr) const;
 
-    virtual bool VerifyNymAsAgentForAccount(OTPseudonym& theNym,
+    virtual bool VerifyNymAsAgentForAccount(Nym& theNym,
                                             Account& theAccount) const;
 
     /*
@@ -470,22 +466,21 @@ public:
 
      */
     EXPORT bool SendNoticeToAllParties(
-        bool bSuccessMsg, OTPseudonym& theServerNym,
-        const Identifier& theServerID, const int64_t& lNewTransactionNumber,
+        bool bSuccessMsg, Nym& theServerNym, const Identifier& theServerID,
+        const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference, String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
-        OTPseudonym* pActualNym = nullptr) const;
+        String* pstrAttachment = nullptr, Nym* pActualNym = nullptr) const;
 
     EXPORT static bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
                           // OTItem::rejection.
-        OTPseudonym& theServerNym, const Identifier& SERVER_ID,
+        Nym& theServerNym, const Identifier& SERVER_ID,
         const Identifier& USER_ID, const int64_t& lNewTransactionNumber,
         const int64_t& lInReferenceTo, const String& strReference,
         String* pstrNote = nullptr, String* pstrAttachment = nullptr,
-        OTPseudonym* pActualNym = nullptr);
+        Nym* pActualNym = nullptr);
     OTAgreement();
     OTAgreement(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
     OTAgreement(const Identifier& SERVER_ID, const Identifier& ASSET_ID,

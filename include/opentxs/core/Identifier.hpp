@@ -145,7 +145,7 @@ namespace opentxs
 
 class OTCachedKey;
 class Contract;
-class OTPseudonym;
+class Nym;
 class String;
 class OTSymmetricKey;
 
@@ -164,7 +164,7 @@ public:
     EXPORT Identifier(const char* szStr);
     EXPORT Identifier(const std::string& szStr);
     EXPORT Identifier(const String& theStr);
-    EXPORT Identifier(const OTPseudonym& theNym);
+    EXPORT Identifier(const Nym& theNym);
     EXPORT Identifier(const Contract& theContract);
     EXPORT Identifier(const OTSymmetricKey& theKey);
     EXPORT Identifier(const OTCachedKey& theKey);

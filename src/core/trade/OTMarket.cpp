@@ -138,7 +138,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -1038,7 +1038,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
               pCron); // Also need the Cron pointer which SHOULD ALWAYS
                       // be there.
 
-    OTPseudonym* pServerNym = pCron->GetServerNym();
+    Nym* pServerNym = pCron->GetServerNym();
 
     OT_ASSERT_MSG(nullptr != pServerNym,
                   "Somehow a Market is running even though "
@@ -1106,8 +1106,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
         SERVER_NYM_ID(
             *pServerNym); // The Server Nym (could be one or both of the above.)
 
-    OTPseudonym theNym,
-        theOtherNym; // We MIGHT use ONE, OR BOTH, of these, or none.
+    Nym theNym, theOtherNym; // We MIGHT use ONE, OR BOTH, of these, or none.
 
     // Find out if either Nym is actually also the server.
     bool bFirstNymIsServerNym =
@@ -1120,8 +1119,8 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     bool bTradersAreSameNym = ((FIRST_NYM_ID == OTHER_NYM_ID) ? true : false);
 
     // Initially both nym pointers are set to their own blank objects
-    OTPseudonym* pFirstNym = nullptr;
-    OTPseudonym* pOtherNym = nullptr;
+    Nym* pFirstNym = nullptr;
+    Nym* pOtherNym = nullptr;
 
     // Unless either of them is actually the server,
     // in which case the pointer is re-pointed to the server Nym.
