@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTLog.hpp>
 
 #include <opentxs/basket/Basket.hpp>

@@ -137,7 +137,7 @@
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 
 #include <irrxml/irrXML.hpp>
 

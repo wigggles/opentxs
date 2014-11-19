@@ -141,7 +141,7 @@
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Message.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>

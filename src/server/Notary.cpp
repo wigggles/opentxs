@@ -148,7 +148,7 @@
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/OTLedger.hpp>
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>

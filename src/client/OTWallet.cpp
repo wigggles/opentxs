@@ -144,7 +144,7 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>

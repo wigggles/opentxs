@@ -141,7 +141,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 
 #include "Helpers.hpp"
 

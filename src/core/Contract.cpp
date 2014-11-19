@@ -139,7 +139,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <cstring>

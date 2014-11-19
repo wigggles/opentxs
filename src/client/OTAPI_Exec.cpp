@@ -162,7 +162,7 @@
 #include <opentxs/core/script/OTPartyAccount.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 

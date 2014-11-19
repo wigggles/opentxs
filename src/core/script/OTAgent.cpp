@@ -137,7 +137,7 @@
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 
 #include <memory>

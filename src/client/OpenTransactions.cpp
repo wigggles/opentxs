@@ -172,9 +172,9 @@
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 

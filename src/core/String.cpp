@@ -134,7 +134,7 @@
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/util/StringUtils.hpp>
 

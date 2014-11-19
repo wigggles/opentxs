@@ -155,7 +155,7 @@
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>

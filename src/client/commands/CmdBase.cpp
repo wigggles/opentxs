@@ -142,7 +142,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTPseudonym.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 
 #include <map>
