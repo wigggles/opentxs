@@ -225,7 +225,6 @@ OTSocket::OTSocket(OTSettings* pSettings, bool connect)
 bool OTSocket::RemakeSocket()
 {
     if (!m_bConnected || !m_bListening) return false;
-    if (m_bConnected && m_bListening) return false;
 
     if (m_bConnected) return Connect(endpoint_);
     if (m_bListening) return Listen(endpoint_);
@@ -283,8 +282,6 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
         OT_FAIL;
     }
 
-    int64_t lLatencySendMilliSec = m_lLatencySendMs;
-
     zmq::message_t zmq_message(ascEnvelope.GetLength());
     memcpy(zmq_message.data(), ascEnvelope.Get(), ascEnvelope.GetLength());
 
@@ -304,7 +301,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
     else // not blocking
     {
         int32_t sendTries = m_nLatencySendNoTries;
-        int64_t doubling = lLatencySendMilliSec;
+        int64_t doubling = m_lLatencySendMs;
 
         while (sendTries > 0) {
             zmq::pollitem_t items[] = {{(*socket_zmq), 0, ZMQ_POLLOUT, 0}};
@@ -356,22 +353,12 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope,
 {
     if (endpoint_ != endpoint) Connect(endpoint);
 
-    if (!m_bConnected) OT_FAIL;
-
     return Send(ascEnvelope);
 }
 
 bool OTSocket::Receive(std::string& serverReply)
 {
     if (!m_bConnected && !m_bListening) return false;
-    if (m_bConnected && m_bListening) return false;
-    if (!socket_zmq) {
-        OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__,
-                      "socket_zmq");
-        OT_FAIL;
-    }
-
-    const int64_t lLatencyRecvMilliSec = m_lLatencyReceiveMs;
 
     //  Get the reply.
     zmq::message_t zmq_message;
@@ -393,8 +380,9 @@ bool OTSocket::Receive(std::string& serverReply)
     }
     else // not blocking
     {
-        int64_t doubling = lLatencyRecvMilliSec;
+        int64_t doubling = m_lLatencyReceiveMs;
         int32_t receiveTries = m_nLatencyReceiveNoTries;
+
         while (receiveTries > 0) {
             //  Poll socket for a reply, with timeout
             zmq::pollitem_t items[] = {{*socket_zmq, 0, ZMQ_POLLIN, 0}};
@@ -439,12 +427,12 @@ bool OTSocket::Receive(std::string& serverReply)
         }
     }
 
-    if (bSuccessReceiving && (zmq_message.size() > 0)) {
+    if (bSuccessReceiving && zmq_message.size() > 0) {
         serverReply = std::string(static_cast<const char*>(zmq_message.data()),
                                   zmq_message.size());
     }
 
-    return bSuccessReceiving && (zmq_message.size() > 0);
+    return bSuccessReceiving && zmq_message.size() > 0;
 }
 
 bool OTSocket::HandlePollingError()
