@@ -227,11 +227,6 @@ OTSocket::~OTSocket()
     delete context_zmq;
 }
 
-bool OTSocket::IsListening() const
-{
-    return m_bListening;
-}
-
 bool OTSocket::CloseSocket(bool bNewContext)
 {
     if (!bNewContext) return false;

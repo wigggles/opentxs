@@ -148,8 +148,6 @@ public:
     explicit OTSocket(OTSettings* pSettings);
     ~OTSocket();
 
-    EXPORT bool IsListening() const;
-
     EXPORT bool RemakeSocket(bool bNewContext = false);
 
     EXPORT bool Connect();
