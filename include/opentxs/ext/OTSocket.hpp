@@ -167,7 +167,6 @@ private:
     bool HandleReceivingError();
 
     bool NewContext();
-    bool CloseSocket();
     bool NewSocket(bool bIsRequest);
 
 private:

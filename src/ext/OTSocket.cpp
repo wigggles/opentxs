@@ -224,20 +224,10 @@ OTSocket::OTSocket(OTSettings* pSettings, bool connect)
 
 OTSocket::~OTSocket()
 {
-    CloseSocket();
+    zmq_close(socket_zmq);
 
     delete socket_zmq;
     delete context_zmq;
-}
-
-bool OTSocket::CloseSocket()
-{
-    zmq_close(socket_zmq);
-
-    m_bConnected = false;
-    m_bListening = false;
-
-    return true;
 }
 
 bool OTSocket::RemakeSocket()
