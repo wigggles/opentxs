@@ -2528,6 +2528,63 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
     return 0;
 }
 
+void Contract::saveCredentialsToXml(String& result,
+                                    const OTASCIIArmor& strCredList,
+                                    const String::Map& credentials)
+{
+    if (strCredList.Exists())
+        result.Concatenate("<credentialList>\n%s</credentialList>\n\n",
+                           strCredList.Get());
+
+    if (!credentials.empty()) {
+        result.Concatenate("<credentials>\n");
+        for (auto i : credentials) {
+            OTASCIIArmor armored(i.second);
+            result.Concatenate("<credential\nID=\"%s\">\n%s</credential>\n\n",
+                               i.first.c_str(), armored.Get());
+        }
+        result.Concatenate("</credentials>\n\n");
+    }
+}
+
+bool Contract::loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
+                                      OTASCIIArmor& credList,
+                                      String::Map& credentials)
+{
+    if (!Contract::LoadEncodedTextFieldByName(xml, credList,
+                                              "credentialList")) {
+        otErr << "Error in OTMessage::ProcessXMLNode: Expected credentialList "
+                 "element with text field.\n";
+        return false;
+    }
+
+    if (!Contract::SkipToElement(xml) ||
+        strcmp(xml->getNodeName(), "credentials") != 0) {
+        return false;
+    }
+
+    while (true) {
+        if (!Contract::SkipToElement(xml) ||
+            strcmp(xml->getNodeName(), "credential") != 0) {
+            break;
+        }
+
+        String masterId = xml->getAttributeValue("ID");
+        if (!masterId.Exists()) return false;
+
+        OTASCIIArmor armored;
+        if (!Contract::LoadEncodedTextFieldByName(xml, armored, "credential")) {
+            return false;
+        }
+        String dearmored(armored);
+
+        credentials.insert(std::pair<std::string, std::string>(
+            masterId.Get(), dearmored.Get()));
+    }
+
+    return true;
+}
+
 // If you have a Public Key or Cert that you would like to add as one of the
 // keys on this contract,
 // just call this function. Usually you'd never want to do that because you

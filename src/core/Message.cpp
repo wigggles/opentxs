@@ -140,6 +140,7 @@
 #include <opentxs/core/OTStorage.hpp>
 
 #include <fstream>
+#include <cstring>
 
 #include <irrxml/irrXML.hpp>
 
@@ -1090,12 +1091,8 @@ public:
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            m.m_strNymID.Get(), m.m_strNotaryID.Get());
-        if (m.m_ascPayload.Exists())
-            result.Concatenate("<credentialList>\n%s</credentialList>\n\n",
-                               m.m_ascPayload.Get());
-        if (m.m_ascPayload2.Exists())
-            result.Concatenate("<credentials>\n%s</credentials>\n\n",
-                               m.m_ascPayload2.Get());
+
+        Contract::saveCredentialsToXml(result, m.m_ascPayload, m.credentials);
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1108,26 +1105,11 @@ public:
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
-        const char* pElementExpected = "credentialList";
-
-        if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload,
-                                                  pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
+        if (!Contract::loadCredentialsFromXml(xml, m.m_ascPayload,
+                                              m.credentials)) {
+            otErr << "Error in loading credentials, for " << m.m_strCommand
                   << ".\n";
-            return (-1); // error condition
-        }
-
-        pElementExpected = "credentials";
-
-        if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload2,
-                                                  pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+            return -1;
         }
 
         otWarn << "\nCommand: " << m.m_strCommand
