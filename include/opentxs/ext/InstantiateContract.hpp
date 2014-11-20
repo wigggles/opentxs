@@ -246,7 +246,7 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
                 OT_ASSERT(nullptr != pContract);
             }
             else if (strContract.Contains(
-                           "<digitalAssetContract version=\"1.0\">")) {
+                           "<instrumentDefinition version=\"1.0\">")) {
                 pContract = new AssetContract();
                 OT_ASSERT(nullptr != pContract);
             }

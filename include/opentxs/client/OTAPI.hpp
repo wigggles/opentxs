@@ -580,7 +580,7 @@ public:
     top:
 
     <?xml version="1.0"?>
-    <digitalAssetContract version="1.0">
+    <instrumentDefinition version="1.0">
 
     <entity shortname="Just testing"
     longname="I need user feedback to help design the contract tags the server

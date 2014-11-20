@@ -778,7 +778,7 @@ void AssetContract::CreateContents()
     m_xmlUnsigned.Release();
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
 
-    m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n", "digitalAssetContract",
+    m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n", "instrumentDefinition",
                               m_strVersion.Get());
 
     // Entity
@@ -818,7 +818,7 @@ void AssetContract::CreateContents()
     // etc.
     CreateInnerContents();
 
-    m_xmlUnsigned.Concatenate("</%s>\n", "digitalAssetContract");
+    m_xmlUnsigned.Concatenate("</%s>\n", "instrumentDefinition");
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -839,7 +839,7 @@ int32_t AssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 
     const String strNodeName(xml->getNodeName());
 
-    if (strNodeName.Compare("digitalAssetContract")) {
+    if (strNodeName.Compare("instrumentDefinition")) {
         m_strVersion = xml->getAttributeValue("version");
 
         otWarn << "\n"
