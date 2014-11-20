@@ -1,5 +1,9 @@
 # Copyright (c) Monetas AG, 2014
 
+include_directories(SYSTEM
+  ${ZMQ_INCLUDE_DIR}
+)
+
 set(cxx-sources
   ServerSettings.cpp
   ConfigLoader.cpp
