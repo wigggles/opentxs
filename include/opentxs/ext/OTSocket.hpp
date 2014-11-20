@@ -171,7 +171,6 @@ protected:
 public:
     virtual ~OTSocket(){};
 
-    EXPORT bool Init();
     EXPORT bool Init(OTSettings* pSettings);
 
     EXPORT bool IsInitialized() const;

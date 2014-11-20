@@ -171,17 +171,6 @@ OTSocket::OTSocket()
 {
 }
 
-bool OTSocket::Init()
-{
-    if (m_bInitialized) return false;
-    if (m_HasContext) return false;
-    if (m_bConnected) return false;
-    if (m_bListening) return false;
-
-    m_bInitialized = true;
-    return true;
-}
-
 bool OTSocket::Init(OTSettings* pSettings)
 {
     if (m_bInitialized) return false;
