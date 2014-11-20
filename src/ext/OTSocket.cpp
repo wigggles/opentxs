@@ -155,7 +155,7 @@ enum {
 namespace opentxs
 {
 
-OTSocket::OTSocket(OTSettings* pSettings)
+OTSocket::OTSocket(OTSettings* pSettings, bool connect)
     : m_lLatencySendMs(DEFAULT_LATENCY_SEND_MS)
     , m_nLatencySendNoTries(DEFAULT_LATENCY_SEND_NO_TRIES)
     , m_lLatencyReceiveMs(DEFAULT_LATENCY_RECEIVE_MS)
@@ -216,11 +216,16 @@ OTSocket::OTSocket(OTSettings* pSettings)
             OT_FAIL;
         }
     }
+
+    socket_zmq = new zmq::socket_t(*context_zmq, connect ? ZMQ_REQ : ZMQ_REP);
+    int linger = 1000;
+    socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
 }
 
 OTSocket::~OTSocket()
 {
     CloseSocket();
+
     delete socket_zmq;
     delete context_zmq;
 }
@@ -235,52 +240,24 @@ bool OTSocket::CloseSocket()
     return true;
 }
 
-bool OTSocket::NewSocket(bool bIsRequest)
-{
-    if (!CloseSocket()) return false;
-
-    try {
-        socket_zmq =
-            new zmq::socket_t(*context_zmq, bIsRequest ? ZMQ_REQ : ZMQ_REP);
-        int linger = 1000;
-        socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
-    }
-    catch (const std::exception& e) {
-        OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
-        OT_FAIL;
-    }
-
-    return true;
-}
-
 bool OTSocket::RemakeSocket()
 {
     if (!m_bConnected || !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
 
-    bool bConnected = m_bConnected;
-    bool bListening = m_bListening;
-
-    if (bConnected) return Connect();
-    if (bListening) return Listen();
+    if (m_bConnected) return Connect();
+    if (m_bListening) return Listen();
 
     return false;
 }
 
 bool OTSocket::Connect()
 {
-    if (!context_zmq) {
-        OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__,
-                      "context_zmq");
-        OT_FAIL;
-    }
     if (m_bListening) {
         OTLog::vError("%s: Error: Must not be Listening, to Connect!\n",
                       __FUNCTION__);
         OT_FAIL;
     }
-
-    if (!NewSocket(true)) return false;
 
     try {
         socket_zmq->connect(connectPath_.c_str());
@@ -291,23 +268,17 @@ bool OTSocket::Connect()
     }
 
     m_bConnected = true;
+
     return true;
 }
 
 bool OTSocket::Listen()
 {
-    if (!context_zmq) {
-        OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__,
-                      "context_zmq");
-        OT_FAIL;
-    }
     if (m_bConnected) {
         OTLog::vError("%s: Error: Must not be Connected, to Listen!\n",
                       __FUNCTION__);
         OT_FAIL;
     }
-
-    if (!NewSocket(false)) return false;
 
     try {
         socket_zmq->bind(bindingPath_.c_str());
@@ -318,6 +289,7 @@ bool OTSocket::Listen()
     }
 
     m_bListening = true;
+
     return true;
 }
 
@@ -331,7 +303,7 @@ bool OTSocket::Connect(const std::string& connectPath)
 
     connectPath_ = connectPath;
 
-    return (Connect());
+    return Connect();
 }
 
 bool OTSocket::Listen(const std::string& bindingPath)
@@ -344,18 +316,12 @@ bool OTSocket::Listen(const std::string& bindingPath)
 
     bindingPath_ = bindingPath;
 
-    return (Listen());
+    return Listen();
 }
 
 bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
 {
     m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
-
-    if (!context_zmq) {
-        OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__,
-                      "context_zmq");
-        OT_FAIL;
-    }
 
     if (!m_bConnected && !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
@@ -445,12 +411,6 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope,
 
 bool OTSocket::Receive(std::string& serverReply)
 {
-    if (!context_zmq) {
-        OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__,
-                      "context_zmq");
-        OT_FAIL;
-    }
-
     if (!m_bConnected && !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
     if (!socket_zmq) {
@@ -532,7 +492,7 @@ bool OTSocket::Receive(std::string& serverReply)
                                   zmq_message.size());
     }
 
-    return (bSuccessReceiving && (zmq_message.size() > 0));
+    return bSuccessReceiving && (zmq_message.size() > 0);
 }
 
 bool OTSocket::HandlePollingError()

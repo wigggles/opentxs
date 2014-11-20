@@ -166,7 +166,7 @@ namespace opentxs
 // they are associated with, so they can access those accounts.
 OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
                                        OTSettings* pConfig)
-    : m_pSocket(new OTSocket(pConfig))
+    : m_pSocket(new OTSocket(pConfig, true))
 {
     m_pNym = nullptr;
     m_pServerContract = nullptr;

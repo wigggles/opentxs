@@ -145,7 +145,7 @@ class OTSettings;
 class OTSocket
 {
 public:
-    explicit OTSocket(OTSettings* pSettings);
+    OTSocket(OTSettings* pSettings, bool connect);
     ~OTSocket();
 
     EXPORT bool RemakeSocket();

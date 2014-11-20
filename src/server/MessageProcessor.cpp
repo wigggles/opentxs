@@ -167,7 +167,7 @@ void MessageProcessor::init(int port)
         OT_FAIL;
     }
 
-    socket_.reset(new OTSocket(&settings));
+    socket_.reset(new OTSocket(&settings, false));
 
     if (!settings.Save()) {
         OT_FAIL;
