@@ -239,11 +239,6 @@ bool OTSocket::Init(OTSettings* pSettings)
     return true;
 }
 
-bool OTSocket::IsInitialized() const
-{
-    return m_bInitialized;
-}
-
 bool OTSocket::IsConnected() const
 {
     return m_bConnected;

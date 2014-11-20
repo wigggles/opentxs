@@ -150,7 +150,6 @@ public:
 
     EXPORT bool Init(OTSettings* pSettings);
 
-    EXPORT bool IsInitialized() const;
     EXPORT bool IsConnected() const;
     EXPORT bool IsListening() const;
 
