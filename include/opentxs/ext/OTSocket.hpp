@@ -134,102 +134,52 @@
 #define OPENTXS_EXT_OTSOCKET_HPP
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-
-#include <mutex>
+#include <cppzmq/zmq.hpp>
 #include <string>
+#include <memory>
 
 namespace opentxs
 {
 
-class OTSettings;
-
-// Server and Client Side.
 class OTSocket
 {
 public:
-    class Defaults
-    {
-    public:
-        EXPORT Defaults(int64_t lLatencySendMs, int32_t nLatencySendNoTries,
-                        int64_t lLatencyReceiveMs,
-                        int32_t nLatencyReceiveNoTries,
-                        int64_t lLatencyDelayAfter, bool bIsBlocking);
+    explicit OTSocket(bool connect);
 
-        const int64_t m_lLatencySendMs;
-        const int32_t m_nLatencySendNoTries;
-        const int64_t m_lLatencyReceiveMs;
-        const int32_t m_nLatencyReceiveNoTries;
-        const int64_t m_lLatencyDelayAfter;
-        const bool m_bIsBlocking;
-    };
+    EXPORT bool RemakeSocket();
+
+    EXPORT bool Connect(const std::string& connectPath);
+    EXPORT bool Listen(const std::string& bindingPath);
+
+    EXPORT bool Send(const OTASCIIArmor& ascEnvelope);
+    EXPORT bool Send(const OTASCIIArmor& ascEnvelope,
+                     const std::string& connectPath);
+    EXPORT bool Receive(std::string& serverReply);
 
 private:
-    class Mutex
-    {
-    private:
-        Mutex(const Mutex&);
-        Mutex& operator=(const Mutex&);
-        std::mutex* m_pMutex;
+    bool HandlePollingError();
+    bool HandleSendingError();
+    bool HandleReceivingError();
 
-    public:
-        EXPORT Mutex();
-        EXPORT ~Mutex();
+    bool NewContext();
+    bool NewSocket(bool bIsRequest);
 
-        EXPORT std::mutex* Get();
-    };
-
-    Mutex m_Mutex;
-
-protected:
-    OTSocket();
-
+private:
     int64_t m_lLatencySendMs;
     int32_t m_nLatencySendNoTries;
     int64_t m_lLatencyReceiveMs;
     int32_t m_nLatencyReceiveNoTries;
     int64_t m_lLatencyDelayAfter;
-    bool m_bIsBlocking;
 
-    bool m_bInitialized;
-    bool m_HasContext;
     bool m_bConnected;
     bool m_bListening;
 
-    std::string connectPath_;
-    std::string bindingPath_;
+    std::string endpoint_;
 
     OTASCIIArmor m_ascLastMsgSent;
 
-    virtual bool HandlePollingError() = 0;
-    virtual bool HandleSendingError() = 0;
-    virtual bool HandleReceivingError() = 0;
-
-public:
-    virtual ~OTSocket(){};
-
-    EXPORT std::mutex* GetMutex();
-
-    EXPORT bool Init(const Defaults& defaults);
-    EXPORT bool Init(const Defaults& defaults, OTSettings* pSettings);
-
-    EXPORT bool IsInitialized() const;
-    EXPORT bool HasContext() const;
-    EXPORT bool IsConnected() const;
-    EXPORT bool IsListening() const;
-
-    EXPORT virtual bool NewContext() = 0;
-    EXPORT virtual bool RemakeSocket(const bool bNewContext = false) = 0;
-
-    EXPORT virtual bool Connect() = 0;
-    EXPORT virtual bool Listen() = 0;
-
-    EXPORT virtual bool Connect(const std::string& connectPath) = 0;
-    EXPORT virtual bool Listen(const std::string& bindingPath) = 0;
-
-    EXPORT virtual bool Send(const OTASCIIArmor& ascEnvelope) = 0;
-    EXPORT virtual bool Send(const OTASCIIArmor& ascEnvelope,
-                             const std::string& strConnectPath) = 0;
-    EXPORT virtual bool Receive(std::string& serverReply) = 0;
+    std::unique_ptr<zmq::context_t> context_zmq;
+    std::unique_ptr<zmq::socket_t> socket_zmq;
 };
 
 } // namespace opentxs

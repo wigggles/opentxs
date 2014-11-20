@@ -135,14 +135,13 @@
 #include <opentxs/client/OTServerConnection.hpp>
 #include <opentxs/client/OTClient.hpp>
 
-#include <opentxs/ext/Socket_ZMQ4.hpp>
+#include <opentxs/ext/OTSocket.hpp>
 
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
-#include <opentxs/core/OTSettings.hpp>
 
 extern "C" {
 #ifdef _WIN32
@@ -152,13 +151,6 @@ extern "C" {
 #include <netinet/in.h>
 #endif
 }
-
-#define CLIENT_DEFAULT_LATENCY_SEND_MS 200
-#define CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES 7
-#define CLIENT_DEFAULT_LATENCY_RECEIVE_MS 200
-#define CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES 7
-#define CLIENT_DEFAULT_LATENCY_DELAY_AFTER 50
-#define CLIENT_DEFAULT_IS_BLOCKING false
 
 namespace opentxs
 {
@@ -171,22 +163,13 @@ namespace opentxs
 // There might be MORE THAN ONE connection per wallet, or only one,
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
-OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
-                                       OTSettings* pConfig)
-    : m_pSocket(new OTSocket_ZMQ_4())
+OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient)
+    : m_pSocket(new OTSocket(true))
 {
     m_pNym = nullptr;
     m_pServerContract = nullptr;
     m_pWallet = theWallet;
     m_pClient = theClient;
-
-    OTSocket::Defaults socketDefaults(
-        CLIENT_DEFAULT_LATENCY_SEND_MS, CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES,
-        CLIENT_DEFAULT_LATENCY_RECEIVE_MS,
-        CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES,
-        CLIENT_DEFAULT_LATENCY_DELAY_AFTER, CLIENT_DEFAULT_IS_BLOCKING);
-
-    m_pSocket->Init(socketDefaults, pConfig);
 }
 
 // When the server sends a reply back with our new request number, we
@@ -265,11 +248,6 @@ bool OTServerConnection::send(const OTServerContract& theServerContract,
     OTASCIIArmor ascEnvelope(theEnvelope);
 
     if (ascEnvelope.Exists()) {
-        if (!m_pSocket->HasContext())
-            if (!m_pSocket->NewContext())
-                return false; // unable to make context. btw. should have been
-                              // already made.
-
         bool bSuccessSending =
             m_pSocket->Send(ascEnvelope, strConnectPath.Get());
 

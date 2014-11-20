@@ -135,6 +135,7 @@
 #include <opentxs/server/MessageProcessor.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
+#include <opentxs/ext/OTSocket.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>
@@ -142,21 +143,6 @@
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/Timer.hpp>
-#include <opentxs/ext/OTSocket.hpp>
-
-namespace
-{
-
-enum {
-    SERVER_DEFAULT_LATENCY_SEND_MS = 5000,
-    SERVER_DEFAULT_LATENCY_SEND_NO_TRIES = 2,
-    SERVER_DEFAULT_LATENCY_RECEIVE_MS = 5000,
-    SERVER_DEFAULT_LATENCY_RECEIVE_NO_TRIES = 2,
-    SERVER_DEFAULT_LATENCY_DELAY_AFTER = 50,
-    SERVER_DEFAULT_IS_BLOCKING = 0
-};
-
-} // namespace
 
 namespace opentxs
 {
@@ -181,24 +167,12 @@ void MessageProcessor::init(int port)
         OT_FAIL;
     }
 
-    OTSocket::Defaults socketDefaults(
-        SERVER_DEFAULT_LATENCY_SEND_MS, SERVER_DEFAULT_LATENCY_SEND_NO_TRIES,
-        SERVER_DEFAULT_LATENCY_RECEIVE_MS,
-        SERVER_DEFAULT_LATENCY_RECEIVE_NO_TRIES,
-        SERVER_DEFAULT_LATENCY_DELAY_AFTER, SERVER_DEFAULT_IS_BLOCKING);
-
-    if (!socket_.Init(socketDefaults, &settings)) {
-        OT_FAIL;
-    }
+    socket_.reset(new OTSocket(false));
 
     if (!settings.Save()) {
         OT_FAIL;
     }
     settings.Reset();
-
-    if (!socket_.NewContext()) {
-        OT_FAIL;
-    }
 
     if (port == 0) {
         OT_FAIL;
@@ -206,7 +180,7 @@ void MessageProcessor::init(int port)
     String bindPath;
     bindPath.Format("%s%d", "tcp://*:", port);
 
-    if (!socket_.Listen(bindPath.Get())) {
+    if (!socket_->Listen(bindPath.Get())) {
         OT_FAIL;
     }
 }
@@ -261,7 +235,7 @@ void MessageProcessor::run()
             // Therefore I will be using a real Timer for Cron, instead of the
             // damn intervals.
 
-            bool received = socket_.Receive(messageString);
+            bool received = socket_->Receive(messageString);
 
             if (received) {
                 if (messageString.size() == 0) {
@@ -276,7 +250,7 @@ void MessageProcessor::run()
                         reply = "";
                     }
 
-                    bool successSending = socket_.Send(reply.c_str());
+                    bool successSending = socket_->Send(reply.c_str());
 
                     if (!successSending) {
                         OTLog::vError("server main: Socket ERROR: failed "

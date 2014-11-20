@@ -168,8 +168,8 @@
 namespace opentxs
 {
 
-OTClient::OTClient(OTWallet* theWallet, OTSettings* pConfig)
-    : m_pConnection(new OTServerConnection(theWallet, this, pConfig))
+OTClient::OTClient(OTWallet* theWallet)
+    : m_pConnection(new OTServerConnection(theWallet, this))
     , m_pWallet(theWallet)
     , m_MessageBuffer()
     , m_MessageOutbuffer()
