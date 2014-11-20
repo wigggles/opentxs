@@ -177,8 +177,7 @@ private:
     bool m_bConnected;
     bool m_bListening;
 
-    std::string connectPath_;
-    std::string bindingPath_;
+    std::string endpoint_;
 
     OTASCIIArmor m_ascLastMsgSent;
 

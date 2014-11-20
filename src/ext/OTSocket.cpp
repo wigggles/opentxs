@@ -164,8 +164,7 @@ OTSocket::OTSocket(OTSettings* pSettings, bool connect)
     , m_bIsBlocking(DEFAULT_IS_BLOCKING)
     , m_bConnected(false)
     , m_bListening(false)
-    , connectPath_("")
-    , bindingPath_("")
+    , endpoint_("")
     , context_zmq(new zmq::context_t(1, 31))
     , socket_zmq(
           new zmq::socket_t(*context_zmq.get(), connect ? ZMQ_REQ : ZMQ_REP))
@@ -228,20 +227,20 @@ bool OTSocket::RemakeSocket()
     if (!m_bConnected || !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
 
-    if (m_bConnected) return Connect(connectPath_);
-    if (m_bListening) return Listen(bindingPath_);
+    if (m_bConnected) return Connect(endpoint_);
+    if (m_bListening) return Listen(endpoint_);
 
     return false;
 }
 
-bool OTSocket::Connect(const std::string& connectPath)
+bool OTSocket::Connect(const std::string& endpoint)
 {
     if (m_bListening) return false;
 
-    connectPath_ = connectPath;
+    endpoint_ = endpoint;
 
     try {
-        socket_zmq->connect(connectPath_.c_str());
+        socket_zmq->connect(endpoint_.c_str());
     }
     catch (const std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
@@ -253,14 +252,14 @@ bool OTSocket::Connect(const std::string& connectPath)
     return true;
 }
 
-bool OTSocket::Listen(const std::string& bindingPath)
+bool OTSocket::Listen(const std::string& endpoint)
 {
     if (m_bConnected) return false;
 
-    bindingPath_ = bindingPath;
+    endpoint_ = endpoint;
 
     try {
-        socket_zmq->bind(bindingPath_.c_str());
+        socket_zmq->bind(endpoint_.c_str());
     }
     catch (const std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
@@ -353,9 +352,9 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
 }
 
 bool OTSocket::Send(const OTASCIIArmor& ascEnvelope,
-                    const std::string& connectPath)
+                    const std::string& endpoint)
 {
-    if (connectPath_ != connectPath) Connect(connectPath);
+    if (endpoint_ != endpoint) Connect(endpoint);
 
     if (!m_bConnected) OT_FAIL;
 
