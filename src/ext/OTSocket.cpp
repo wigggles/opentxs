@@ -156,8 +156,7 @@ namespace opentxs
 {
 
 OTSocket::OTSocket()
-    : m_Mutex()
-    , m_lLatencySendMs(0)
+    : m_lLatencySendMs(0)
     , m_nLatencySendNoTries(0)
     , m_lLatencyReceiveMs(0)
     , m_nLatencyReceiveNoTries(0)
@@ -184,27 +183,6 @@ OTSocket::Defaults::Defaults(int64_t lLatencySendMs,
     , m_lLatencyDelayAfter(lLatencyDelayAfter)
     , m_bIsBlocking(bIsBlocking)
 {
-}
-
-OTSocket::Mutex::Mutex()
-    : m_pMutex(new std::mutex)
-{
-}
-
-OTSocket::Mutex::~Mutex()
-{
-    if (nullptr != m_pMutex) delete m_pMutex;
-    m_pMutex = nullptr;
-}
-
-std::mutex* OTSocket::Mutex::Get()
-{
-    return m_pMutex;
-}
-
-std::mutex* OTSocket::GetMutex()
-{
-    return m_Mutex.Get();
 }
 
 bool OTSocket::Init(const Defaults& defaults)

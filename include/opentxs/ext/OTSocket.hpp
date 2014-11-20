@@ -135,7 +135,6 @@
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 
-#include <mutex>
 #include <string>
 
 namespace opentxs
@@ -143,7 +142,6 @@ namespace opentxs
 
 class OTSettings;
 
-// Server and Client Side.
 class OTSocket
 {
 public:
@@ -162,23 +160,6 @@ public:
         const int64_t m_lLatencyDelayAfter;
         const bool m_bIsBlocking;
     };
-
-private:
-    class Mutex
-    {
-    private:
-        Mutex(const Mutex&);
-        Mutex& operator=(const Mutex&);
-        std::mutex* m_pMutex;
-
-    public:
-        EXPORT Mutex();
-        EXPORT ~Mutex();
-
-        EXPORT std::mutex* Get();
-    };
-
-    Mutex m_Mutex;
 
 protected:
     OTSocket();
@@ -206,8 +187,6 @@ protected:
 
 public:
     virtual ~OTSocket(){};
-
-    EXPORT std::mutex* GetMutex();
 
     EXPORT bool Init(const Defaults& defaults);
     EXPORT bool Init(OTSettings* pSettings);
