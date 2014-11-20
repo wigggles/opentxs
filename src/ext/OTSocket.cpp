@@ -163,7 +163,6 @@ OTSocket::OTSocket()
     , m_lLatencyDelayAfter(DEFAULT_LATENCY_DELAY_AFTER)
     , m_bIsBlocking(DEFAULT_IS_BLOCKING)
     , m_bInitialized(false)
-    , m_HasContext(false)
     , m_bConnected(false)
     , m_bListening(false)
     , connectPath_("")
@@ -174,7 +173,6 @@ OTSocket::OTSocket()
 bool OTSocket::Init(OTSettings* pSettings)
 {
     if (m_bInitialized) return false;
-    if (m_HasContext) return false;
     if (m_bConnected) return false;
     if (m_bListening) return false;
     if (!pSettings) return false;
@@ -235,11 +233,6 @@ bool OTSocket::Init(OTSettings* pSettings)
 bool OTSocket::IsInitialized() const
 {
     return m_bInitialized;
-}
-
-bool OTSocket::HasContext() const
-{
-    return m_HasContext;
 }
 
 bool OTSocket::IsConnected() const

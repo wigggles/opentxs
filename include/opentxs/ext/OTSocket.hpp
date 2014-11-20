@@ -155,7 +155,6 @@ protected:
     bool m_bIsBlocking;
 
     bool m_bInitialized;
-    bool m_HasContext;
     bool m_bConnected;
     bool m_bListening;
 
@@ -174,7 +173,6 @@ public:
     EXPORT bool Init(OTSettings* pSettings);
 
     EXPORT bool IsInitialized() const;
-    EXPORT bool HasContext() const;
     EXPORT bool IsConnected() const;
     EXPORT bool IsListening() const;
 

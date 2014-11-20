@@ -177,7 +177,7 @@ OTSocket_ZMQ_4::~OTSocket_ZMQ_4()
 bool OTSocket_ZMQ_4::CloseSocket(const bool bNewContext /*= false*/)
 {
     if (!m_bInitialized) return false;
-    if (!m_HasContext && !bNewContext) return false;
+    if (!bNewContext) return false;
 
     if (nullptr != m_pzmq->socket_zmq) zmq_close(m_pzmq->socket_zmq);
     if (nullptr != m_pzmq->socket_zmq) delete m_pzmq->socket_zmq;
@@ -192,7 +192,6 @@ bool OTSocket_ZMQ_4::CloseSocket(const bool bNewContext /*= false*/)
 bool OTSocket_ZMQ_4::NewSocket(const bool bIsRequest)
 {
     if (!m_bInitialized) return false;
-    if (!m_HasContext) return false;
 
     if (!CloseSocket()) return false;
 
@@ -232,8 +231,6 @@ bool OTSocket_ZMQ_4::NewContext()
 {
     if (!m_bInitialized) return false;
 
-    m_HasContext = false;
-
     if (!CloseSocket(true)) return false;
 
     if (nullptr != m_pzmq->context_zmq) zmq_term(m_pzmq->context_zmq);
@@ -249,7 +246,6 @@ bool OTSocket_ZMQ_4::NewContext()
         OT_FAIL;
     }
 
-    m_HasContext = true;
     return true;
 }
 
@@ -257,7 +253,6 @@ bool OTSocket_ZMQ_4::RemakeSocket(const bool bNewContext /*= false*/)
 {
 
     if (!m_bInitialized) return false;
-    if (!m_HasContext) return false;
 
     if (!m_bConnected || !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
@@ -276,9 +271,6 @@ bool OTSocket_ZMQ_4::RemakeSocket(const bool bNewContext /*= false*/)
 bool OTSocket_ZMQ_4::Connect()
 {
     if (!m_bInitialized) {
-        OT_FAIL;
-    }
-    if (!m_HasContext) {
         OT_FAIL;
     }
 
@@ -310,9 +302,6 @@ bool OTSocket_ZMQ_4::Connect()
 bool OTSocket_ZMQ_4::Listen()
 {
     if (!m_bInitialized) {
-        OT_FAIL;
-    }
-    if (!m_HasContext) {
         OT_FAIL;
     }
 
@@ -375,9 +364,6 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope)
 
     m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
 
-    if (!m_HasContext) {
-        OT_FAIL;
-    }
     if (nullptr == m_pzmq->context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__,
                       "m_pzmq->context_zmq");
@@ -476,9 +462,6 @@ bool OTSocket_ZMQ_4::Send(const OTASCIIArmor& ascEnvelope,
 bool OTSocket_ZMQ_4::Receive(std::string& serverReply)
 {
     if (!m_bInitialized) {
-        OT_FAIL;
-    }
-    if (!m_HasContext) {
         OT_FAIL;
     }
     if (nullptr == m_pzmq->context_zmq) {

@@ -252,10 +252,7 @@ bool OTServerConnection::send(const OTServerContract& theServerContract,
     OTASCIIArmor ascEnvelope(theEnvelope);
 
     if (ascEnvelope.Exists()) {
-        if (!m_pSocket->HasContext())
-            if (!m_pSocket->NewContext())
-                return false; // unable to make context. btw. should have been
-                              // already made.
+        if (!m_pSocket->NewContext()) return false;
 
         bool bSuccessSending =
             m_pSocket->Send(ascEnvelope, strConnectPath.Get());
