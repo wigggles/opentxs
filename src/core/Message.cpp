@@ -304,7 +304,7 @@ void Message::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
     m_xmlUnsigned.Concatenate(
-        "<OTmessage\n version=\"%s\"\n dateSigned=\"%" PRId64 "\">\n\n",
+        "<notaryMessage\n version=\"%s\"\n dateSigned=\"%" PRId64 "\">\n\n",
         m_strVersion.Get(), m_lTime);
 
     if (!updateContentsByType()) {
@@ -348,7 +348,7 @@ void Message::UpdateContents()
         }
     }
 
-    m_xmlUnsigned.Concatenate("</OTmessage>\n");
+    m_xmlUnsigned.Concatenate("</notaryMessage>\n");
 }
 
 bool Message::updateContentsByType()
@@ -385,8 +385,8 @@ int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     else if (strNodeName.Compare("acknowledgedReplies")) {
         return processXmlNodeAcknowledgedReplies(*this, xml);
     }
-    else if (strNodeName.Compare("OTmessage")) {
-        return processXmlNodeOTmessage(*this, xml);
+    else if (strNodeName.Compare("notaryMessage")) {
+        return processXmlNodeNotaryMessage(*this, xml);
     }
 
     OTMessageStrategy* strategy =
@@ -425,8 +425,8 @@ int32_t Message::processXmlNodeAcknowledgedReplies(Message& m,
     return 1;
 }
 
-int32_t Message::processXmlNodeOTmessage(Message& m,
-                                         irr::io::IrrXMLReader*& xml)
+int32_t Message::processXmlNodeNotaryMessage(Message& m,
+                                             irr::io::IrrXMLReader*& xml)
 {
     m_strVersion = xml->getAttributeValue("version");
 

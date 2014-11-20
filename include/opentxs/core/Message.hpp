@@ -191,7 +191,8 @@ private:
     int32_t processXmlNodeAckReplies(Message& m, irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(Message& m,
                                               irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeOTmessage(Message& m, irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeNotaryMessage(Message& m,
+                                        irr::io::IrrXMLReader*& xml);
 
 public:
     EXPORT Message();
