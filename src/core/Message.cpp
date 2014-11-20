@@ -1981,7 +1981,7 @@ public:
                            " nymID=\"%s\"\n"
                            " notaryID=\"%s\"\n"
                            " requestNum=\"%s\"\n"
-                           " assetType=\"%s\""
+                           " instrumentDefinitionID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
                            m.m_strNotaryID.Get(), m.m_strRequestNum.Get(),
@@ -2000,7 +2000,8 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strInstrumentDefinitionID = xml->getAttributeValue("assetType");
+        m.m_strInstrumentDefinitionID =
+            xml->getAttributeValue("instrumentDefinitionID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "assetContract";
@@ -2040,7 +2041,7 @@ public:
                            " success=\"%s\"\n"
                            " accountID=\"%s\"\n" // the new issuer account ID
                            " nymID=\"%s\"\n"
-                           " assetType=\"%s\"\n"
+                           " instrumentDefinitionID=\"%s\"\n"
                            " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
@@ -2069,7 +2070,8 @@ public:
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strInstrumentDefinitionID = xml->getAttributeValue("assetType");
+        m.m_strInstrumentDefinitionID =
+            xml->getAttributeValue("instrumentDefinitionID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         // If successful, we need to read 2 more things: inReferenceTo and
@@ -2362,7 +2364,7 @@ public:
             " success=\"%s\"\n"
             " accountID=\"%s\"\n" // the new basket issuer account ID
             " nymID=\"%s\"\n"
-            " assetType=\"%s\"\n" // the new Asset Type
+            " instrumentDefinitionID=\"%s\"\n" // the new Asset Type
             " notaryID=\"%s\""
             ">\n\n",
             m.m_strCommand.Get(), m.m_strRequestNum.Get(),
@@ -2385,7 +2387,8 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strInstrumentDefinitionID = xml->getAttributeValue("assetType");
+        m.m_strInstrumentDefinitionID =
+            xml->getAttributeValue("instrumentDefinitionID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
@@ -2438,7 +2441,7 @@ public:
                            " nymID=\"%s\"\n"
                            " notaryID=\"%s\"\n"
                            " requestNum=\"%s\"\n"
-                           " assetType=\"%s\""
+                           " instrumentDefinitionID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
                            m.m_strNotaryID.Get(), m.m_strRequestNum.Get(),
@@ -2457,7 +2460,8 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strInstrumentDefinitionID = xml->getAttributeValue("assetType");
+        m.m_strInstrumentDefinitionID =
+            xml->getAttributeValue("instrumentDefinitionID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
@@ -3421,7 +3425,7 @@ public:
             "<%s\n" // Command
             " nymID=\"%s\"\n"
             " notaryID=\"%s\"\n"
-            " assetType=\"%s\"\n"
+            " instrumentDefinitionID=\"%s\"\n"
             " requestNum=\"%s\""
             " >\n\n",
             m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNotaryID.Get(),
@@ -3436,7 +3440,8 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strInstrumentDefinitionID = xml->getAttributeValue("assetType");
+        m.m_strInstrumentDefinitionID =
+            xml->getAttributeValue("instrumentDefinitionID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
@@ -3464,7 +3469,7 @@ public:
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
                            " notaryID=\"%s\"\n"
-                           " assetType=\"%s\""
+                           " instrumentDefinitionID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
@@ -3493,7 +3498,8 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strInstrumentDefinitionID = xml->getAttributeValue("assetType");
+        m.m_strInstrumentDefinitionID =
+            xml->getAttributeValue("instrumentDefinitionID");
 
         const char* pElementExpected;
         if (m.m_bSuccess)
@@ -3542,7 +3548,7 @@ public:
             "<%s\n" // Command
             " nymID=\"%s\"\n"
             " notaryID=\"%s\"\n"
-            " assetType=\"%s\"\n"
+            " instrumentDefinitionID=\"%s\"\n"
             " requestNum=\"%s\""
             " >\n\n",
             m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNotaryID.Get(),
@@ -3557,7 +3563,8 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strInstrumentDefinitionID = xml->getAttributeValue("assetType");
+        m.m_strInstrumentDefinitionID =
+            xml->getAttributeValue("instrumentDefinitionID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
@@ -3584,7 +3591,7 @@ public:
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
                            " notaryID=\"%s\"\n"
-                           " assetType=\"%s\""
+                           " instrumentDefinitionID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
@@ -3612,7 +3619,8 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strInstrumentDefinitionID = xml->getAttributeValue("assetType");
+        m.m_strInstrumentDefinitionID =
+            xml->getAttributeValue("instrumentDefinitionID");
 
         const char* pElementExpected;
         if (m.m_bSuccess)
