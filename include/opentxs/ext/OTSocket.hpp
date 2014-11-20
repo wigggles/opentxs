@@ -141,12 +141,10 @@
 namespace opentxs
 {
 
-class OTSettings;
-
 class OTSocket
 {
 public:
-    OTSocket(OTSettings* pSettings, bool connect);
+    explicit OTSocket(bool connect);
 
     EXPORT bool RemakeSocket();
 

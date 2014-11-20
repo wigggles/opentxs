@@ -147,7 +147,6 @@ class OTLedger;
 class OTServerConnection;
 class OTServerContract;
 class OTWallet;
-class OTSettings;
 
 class OTClient
 {
@@ -216,7 +215,7 @@ public:
     };
 
 public:
-    OTClient(OTWallet* theWallet, OTSettings* pConfig);
+    explicit OTClient(OTWallet* theWallet);
     ~OTClient();
 
     inline OTMessageBuffer& GetMessageBuffer()

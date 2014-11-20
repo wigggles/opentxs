@@ -134,14 +134,6 @@
 
 #include <opentxs/ext/OTSocket.hpp>
 #include <opentxs/core/OTLog.hpp>
-#include <opentxs/core/OTSettings.hpp>
-
-#define KEY_LATENCY_SEND_MS "latency_send_ms"
-#define KEY_LATENCY_SEND_NO_TRIES "latency_send_no_tries"
-#define KEY_LATENCY_RECEIVE_MS "latency_receive_ms"
-#define KEY_LATENCY_RECEIVE_NO_TRIES "latency_receive_no_tries"
-#define KEY_LATENCY_DELAY_AFTER "latency_delay_after"
-#define KEY_IS_BLOCKING "is_blocking"
 
 enum {
     DEFAULT_LATENCY_SEND_MS = 5000,
@@ -155,7 +147,7 @@ enum {
 namespace opentxs
 {
 
-OTSocket::OTSocket(OTSettings* pSettings, bool connect)
+OTSocket::OTSocket(bool connect)
     : m_lLatencySendMs(DEFAULT_LATENCY_SEND_MS)
     , m_nLatencySendNoTries(DEFAULT_LATENCY_SEND_NO_TRIES)
     , m_lLatencyReceiveMs(DEFAULT_LATENCY_RECEIVE_MS)
@@ -169,54 +161,6 @@ OTSocket::OTSocket(OTSettings* pSettings, bool connect)
     , socket_zmq(
           new zmq::socket_t(*context_zmq.get(), connect ? ZMQ_REQ : ZMQ_REP))
 {
-    bool bIsNew = false;
-    {
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_MS,
-                                      DEFAULT_LATENCY_SEND_MS, m_lLatencySendMs,
-                                      bIsNew)) {
-            OT_FAIL;
-        }
-    }
-    {
-        int64_t lResult = 0;
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_NO_TRIES,
-                                      DEFAULT_LATENCY_SEND_NO_TRIES, lResult,
-                                      bIsNew)) {
-            OT_FAIL;
-        }
-        m_nLatencySendNoTries = static_cast<int32_t>(lResult);
-    }
-    {
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_RECEIVE_MS,
-                                      DEFAULT_LATENCY_RECEIVE_MS,
-                                      m_lLatencyReceiveMs, bIsNew)) {
-            OT_FAIL;
-        }
-    }
-    {
-        int64_t lResult = 0;
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_RECEIVE_NO_TRIES,
-                                      DEFAULT_LATENCY_RECEIVE_NO_TRIES, lResult,
-                                      bIsNew)) {
-            OT_FAIL;
-        }
-        m_nLatencyReceiveNoTries = static_cast<int32_t>(lResult);
-    }
-    {
-        if (!pSettings->CheckSet_long("latency", KEY_LATENCY_DELAY_AFTER,
-                                      DEFAULT_LATENCY_DELAY_AFTER,
-                                      m_lLatencyDelayAfter, bIsNew)) {
-            OT_FAIL;
-        }
-    }
-    {
-        if (!pSettings->CheckSet_bool("latency", KEY_IS_BLOCKING,
-                                      DEFAULT_IS_BLOCKING, m_bIsBlocking,
-                                      bIsNew)) {
-            OT_FAIL;
-        }
-    }
-
     // set linger
     int linger = 1000;
     socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));

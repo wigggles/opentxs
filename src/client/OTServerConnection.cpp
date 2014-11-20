@@ -142,7 +142,6 @@
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
-#include <opentxs/core/OTSettings.hpp>
 
 extern "C" {
 #ifdef _WIN32
@@ -164,9 +163,8 @@ namespace opentxs
 // There might be MORE THAN ONE connection per wallet, or only one,
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
-OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
-                                       OTSettings* pConfig)
-    : m_pSocket(new OTSocket(pConfig, true))
+OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient)
+    : m_pSocket(new OTSocket(true))
 {
     m_pNym = nullptr;
     m_pServerContract = nullptr;

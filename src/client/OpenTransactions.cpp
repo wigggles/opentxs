@@ -725,7 +725,7 @@ bool OT_API::Init()
 
         if (!m_bInitialized) {
             m_pWallet = new OTWallet();
-            m_pClient = new OTClient(m_pWallet, pConfig.get());
+            m_pClient = new OTClient(m_pWallet);
             m_bInitialized = true;
         }
         return true;

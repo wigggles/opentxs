@@ -147,13 +147,11 @@ class OTServerContract;
 class OTWallet;
 class OTEnvelope;
 class OTSocket;
-class OTSettings;
 
 class OTServerConnection
 {
 public:
-    OTServerConnection(OTWallet* theWallet, OTClient* theClient,
-                       OTSettings* pConfig);
+    OTServerConnection(OTWallet* theWallet, OTClient* theClient);
 
     bool GetNotaryID(Identifier& theID) const;
 
