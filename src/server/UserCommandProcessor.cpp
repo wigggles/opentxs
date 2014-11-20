@@ -1181,8 +1181,9 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("deleteNym")) {
-        OTLog::vOutput(0, "\n==> Received a deleteNym message. Nym: %s ...\n",
+    else if (theMessage.m_strCommand.Compare("unregisterNym")) {
+        OTLog::vOutput(0,
+                       "\n==> Received a unregisterNym message. Nym: %s ...\n",
                        strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_user_acct);
@@ -3640,8 +3641,8 @@ void UserCommandProcessor::UserCmdDeleteUser(Nym& theNym, Message& MsgIn,
                                              Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "deleteNymResponse"; // reply to deleteNym
-    msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
+    msgOut.m_strCommand = "unregisterNymResponse"; // reply to unregisterNym
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
     const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strNotaryID);
 

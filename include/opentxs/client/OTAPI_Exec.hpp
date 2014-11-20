@@ -583,7 +583,7 @@ public:
     top:
 
     <?xml version="1.0"?>
-    <digitalAssetContract version="1.0">
+    <instrumentDefinition version="1.0">
 
     <entity shortname="Just testing"
     longname="I need user feedback to help design the contract tags the server
@@ -2656,8 +2656,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT int32_t deleteNym(const std::string& SERVER_ID,
-                             const std::string& USER_ID) const;
+    EXPORT int32_t unregisterNym(const std::string& SERVER_ID,
+                                 const std::string& USER_ID) const;
 
     /** This allows you to delete an asset account from a server,
     // provided that the balance is 0 and the inbox and outbox are
