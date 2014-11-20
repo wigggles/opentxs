@@ -216,6 +216,8 @@ OTSocket::OTSocket(OTSettings* pSettings)
             OT_FAIL;
         }
     }
+
+    NewContext();
 }
 
 OTSocket::~OTSocket()

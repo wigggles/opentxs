@@ -174,10 +174,6 @@ void MessageProcessor::init(int port)
     }
     settings.Reset();
 
-    if (!socket_->NewContext()) {
-        OT_FAIL;
-    }
-
     if (port == 0) {
         OT_FAIL;
     }

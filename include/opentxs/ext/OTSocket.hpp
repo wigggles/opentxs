@@ -151,7 +151,6 @@ public:
     EXPORT bool IsConnected() const;
     EXPORT bool IsListening() const;
 
-    EXPORT bool NewContext();
     EXPORT bool RemakeSocket(bool bNewContext = false);
 
     EXPORT bool Connect();
@@ -170,6 +169,7 @@ private:
     bool HandleSendingError();
     bool HandleReceivingError();
 
+    bool NewContext();
     bool CloseSocket(bool bNewContext = false);
     bool NewSocket(bool bIsRequest);
 

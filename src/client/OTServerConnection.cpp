@@ -250,8 +250,6 @@ bool OTServerConnection::send(const OTServerContract& theServerContract,
     OTASCIIArmor ascEnvelope(theEnvelope);
 
     if (ascEnvelope.Exists()) {
-        if (!m_pSocket->NewContext()) return false;
-
         bool bSuccessSending =
             m_pSocket->Send(ascEnvelope, strConnectPath.Get());
 
