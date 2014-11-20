@@ -170,7 +170,6 @@ private:
     int64_t m_lLatencyReceiveMs;
     int32_t m_nLatencyReceiveNoTries;
     int64_t m_lLatencyDelayAfter;
-    bool m_bIsBlocking;
 
     bool m_bConnected;
     bool m_bListening;

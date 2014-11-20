@@ -144,23 +144,19 @@ OTSocket::OTSocket(bool connect)
     , m_lLatencyReceiveMs(5000)
     , m_nLatencyReceiveNoTries(2)
     , m_lLatencyDelayAfter(50)
-    , m_bIsBlocking(false)
     , m_bConnected(false)
     , m_bListening(false)
-    , endpoint_("")
+    , endpoint_()
     , context_zmq(new zmq::context_t(1, 31))
     , socket_zmq(
           new zmq::socket_t(*context_zmq.get(), connect ? ZMQ_REQ : ZMQ_REP))
 {
-    // set linger
     int linger = 1000;
     socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
 }
 
 bool OTSocket::RemakeSocket()
 {
-    if (!m_bConnected || !m_bListening) return false;
-
     if (m_bConnected) return Connect(endpoint_);
     if (m_bListening) return Listen(endpoint_);
 
@@ -207,44 +203,37 @@ bool OTSocket::Listen(const std::string& endpoint)
 
 bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
 {
-    m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
-
     if (!m_bConnected && !m_bListening) return false;
-    if (m_bConnected && m_bListening) return false;
-    if (!socket_zmq) {
-        OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__,
-                      "socket_zmq");
-        OT_FAIL;
-    }
+
+    m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
 
     zmq::message_t zmq_message(ascEnvelope.GetLength());
     memcpy(zmq_message.data(), ascEnvelope.Get(), ascEnvelope.GetLength());
 
     bool bSuccessSending = false;
 
-    if (m_bIsBlocking) {
+    int32_t sendTries = m_nLatencySendNoTries;
+    int64_t doubling = m_lLatencySendMs;
+
+    while (sendTries > 0) {
+        zmq::pollitem_t items[] = {{(*socket_zmq), 0, ZMQ_POLLOUT, 0}};
+
+        int nPoll = 0;
         try {
-            // Blocking.
-            bSuccessSending = socket_zmq->send(zmq_message);
+            // ZMQ_POLLOUT, 1 item, timeout (milliseconds)
+            nPoll = zmq::poll(&items[0], 1, doubling);
         }
         catch (const std::exception& e) {
             OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                           e.what());
             OT_FAIL;
         }
-    }
-    else // not blocking
-    {
-        int32_t sendTries = m_nLatencySendNoTries;
-        int64_t doubling = m_lLatencySendMs;
 
-        while (sendTries > 0) {
-            zmq::pollitem_t items[] = {{(*socket_zmq), 0, ZMQ_POLLOUT, 0}};
+        doubling *= 2;
 
-            int nPoll = 0;
+        if (items[0].revents & ZMQ_POLLOUT) {
             try {
-                // ZMQ_POLLOUT, 1 item, timeout (milliseconds)
-                nPoll = zmq::poll(&items[0], 1, doubling);
+                bSuccessSending = socket_zmq->send(zmq_message, ZMQ_NOBLOCK);
             }
             catch (const std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -252,32 +241,18 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
                 OT_FAIL;
             }
 
-            doubling *= 2;
-
-            if (items[0].revents & ZMQ_POLLOUT) {
-                try {
-                    bSuccessSending =
-                        socket_zmq->send(zmq_message, ZMQ_NOBLOCK);
-                }
-                catch (const std::exception& e) {
-                    OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
-                                  e.what());
-                    OT_FAIL;
-                }
-
-                if (bSuccessSending || !HandleSendingError()) {
-                    // Success, or the error is such that we do not want to
-                    // retry.
-                    break;
-                }
+            if (bSuccessSending || !HandleSendingError()) {
+                // Success, or the error is such that we do not want to
+                // retry.
+                break;
             }
-            else if (nPoll == -1) // error.
-            {
-                if (!HandlePollingError()) break;
-            }
-
-            --sendTries;
         }
+        else if (nPoll == -1) // error.
+        {
+            if (!HandlePollingError()) break;
+        }
+
+        --sendTries;
     }
 
     return bSuccessSending;
@@ -295,37 +270,34 @@ bool OTSocket::Receive(std::string& serverReply)
 {
     if (!m_bConnected && !m_bListening) return false;
 
-    //  Get the reply.
     zmq::message_t zmq_message;
 
     bool bSuccessReceiving = false;
 
-    // If failure receiving, re-tries 2 times, with 4000 ms max delay between
-    // each (Doubling every time.)
-    if (m_bIsBlocking) {
+    int64_t doubling = m_lLatencyReceiveMs;
+    int32_t receiveTries = m_nLatencyReceiveNoTries;
+
+    while (receiveTries > 0) {
+        //  Poll socket for a reply, with timeout
+        zmq::pollitem_t items[] = {{*socket_zmq, 0, ZMQ_POLLIN, 0}};
+
+        int nPoll = 0;
         try {
-            // Blocking.
-            bSuccessReceiving = socket_zmq->recv(&zmq_message);
+            // ZMQ_POLLIN, 1 item, timeout (milliseconds)
+            nPoll = zmq::poll(&items[0], 1, doubling);
         }
         catch (const std::exception& e) {
             OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                           e.what());
             OT_FAIL;
         }
-    }
-    else // not blocking
-    {
-        int64_t doubling = m_lLatencyReceiveMs;
-        int32_t receiveTries = m_nLatencyReceiveNoTries;
 
-        while (receiveTries > 0) {
-            //  Poll socket for a reply, with timeout
-            zmq::pollitem_t items[] = {{*socket_zmq, 0, ZMQ_POLLIN, 0}};
+        doubling *= 2;
 
-            int nPoll = 0;
+        //  If we got a reply, process it
+        if (items[0].revents & ZMQ_POLLIN) {
             try {
-                // ZMQ_POLLIN, 1 item, timeout (milliseconds)
-                nPoll = zmq::poll(&items[0], 1, doubling);
+                bSuccessReceiving = socket_zmq->recv(&zmq_message, ZMQ_NOBLOCK);
             }
             catch (const std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -333,33 +305,18 @@ bool OTSocket::Receive(std::string& serverReply)
                 OT_FAIL;
             }
 
-            doubling *= 2;
-
-            //  If we got a reply, process it
-            if (items[0].revents & ZMQ_POLLIN) {
-                try {
-                    bSuccessReceiving =
-                        socket_zmq->recv(&zmq_message, ZMQ_NOBLOCK);
-                }
-                catch (const std::exception& e) {
-                    OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
-                                  e.what());
-                    OT_FAIL;
-                }
-
-                if (bSuccessReceiving || !HandleReceivingError()) {
-                    // Success, or the error is such that we do not want to
-                    // retry.
-                    break;
-                }
+            if (bSuccessReceiving || !HandleReceivingError()) {
+                // Success, or the error is such that we do not want to
+                // retry.
+                break;
             }
-            else if (nPoll == -1) // error.
-            {
-                if (!HandlePollingError()) break;
-            }
-
-            --receiveTries;
         }
+        else if (nPoll == -1) // error.
+        {
+            if (!HandlePollingError()) break;
+        }
+
+        --receiveTries;
     }
 
     if (bSuccessReceiving && zmq_message.size() > 0) {
