@@ -177,10 +177,7 @@ bool OTSocket::Init(OTSettings* pSettings)
     if (m_HasContext) return false;
     if (m_bConnected) return false;
     if (m_bListening) return false;
-
-    if (nullptr == pSettings) {
-        OT_FAIL;
-    }
+    if (!pSettings) return false;
 
     bool bIsNew = false;
     {
