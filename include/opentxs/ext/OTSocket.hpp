@@ -150,9 +150,6 @@ public:
 
     EXPORT bool RemakeSocket();
 
-    EXPORT bool Connect();
-    EXPORT bool Listen();
-
     EXPORT bool Connect(const std::string& connectPath);
     EXPORT bool Listen(const std::string& bindingPath);
 

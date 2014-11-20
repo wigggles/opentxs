@@ -235,15 +235,17 @@ bool OTSocket::RemakeSocket()
     if (!m_bConnected || !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
 
-    if (m_bConnected) return Connect();
-    if (m_bListening) return Listen();
+    if (m_bConnected) return Connect(connectPath_);
+    if (m_bListening) return Listen(bindingPath_);
 
     return false;
 }
 
-bool OTSocket::Connect()
+bool OTSocket::Connect(const std::string& connectPath)
 {
     if (m_bListening) return false;
+
+    connectPath_ = connectPath;
 
     try {
         socket_zmq->connect(connectPath_.c_str());
@@ -258,9 +260,11 @@ bool OTSocket::Connect()
     return true;
 }
 
-bool OTSocket::Listen()
+bool OTSocket::Listen(const std::string& bindingPath)
 {
     if (m_bConnected) return false;
+
+    bindingPath_ = bindingPath;
 
     try {
         socket_zmq->bind(bindingPath_.c_str());
@@ -273,32 +277,6 @@ bool OTSocket::Listen()
     m_bListening = true;
 
     return true;
-}
-
-bool OTSocket::Connect(const std::string& connectPath)
-{
-    if (connectPath.size() < 5) {
-        OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__,
-                      "connectPath");
-        return false;
-    }
-
-    connectPath_ = connectPath;
-
-    return Connect();
-}
-
-bool OTSocket::Listen(const std::string& bindingPath)
-{
-    if (bindingPath.size() < 5) {
-        OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__,
-                      "bindingPath");
-        return false;
-    }
-
-    bindingPath_ = bindingPath;
-
-    return Listen();
 }
 
 bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
