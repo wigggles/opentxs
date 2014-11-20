@@ -135,25 +135,16 @@
 #include <opentxs/ext/OTSocket.hpp>
 #include <opentxs/core/OTLog.hpp>
 
-enum {
-    DEFAULT_LATENCY_SEND_MS = 5000,
-    DEFAULT_LATENCY_SEND_NO_TRIES = 2,
-    DEFAULT_LATENCY_RECEIVE_MS = 5000,
-    DEFAULT_LATENCY_RECEIVE_NO_TRIES = 2,
-    DEFAULT_LATENCY_DELAY_AFTER = 50,
-    DEFAULT_IS_BLOCKING = 0
-};
-
 namespace opentxs
 {
 
 OTSocket::OTSocket(bool connect)
-    : m_lLatencySendMs(DEFAULT_LATENCY_SEND_MS)
-    , m_nLatencySendNoTries(DEFAULT_LATENCY_SEND_NO_TRIES)
-    , m_lLatencyReceiveMs(DEFAULT_LATENCY_RECEIVE_MS)
-    , m_nLatencyReceiveNoTries(DEFAULT_LATENCY_RECEIVE_NO_TRIES)
-    , m_lLatencyDelayAfter(DEFAULT_LATENCY_DELAY_AFTER)
-    , m_bIsBlocking(DEFAULT_IS_BLOCKING)
+    : m_lLatencySendMs(5000)
+    , m_nLatencySendNoTries(2)
+    , m_lLatencyReceiveMs(5000)
+    , m_nLatencyReceiveNoTries(2)
+    , m_lLatencyDelayAfter(50)
+    , m_bIsBlocking(false)
     , m_bConnected(false)
     , m_bListening(false)
     , endpoint_("")
