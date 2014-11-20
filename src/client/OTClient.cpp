@@ -2723,13 +2723,15 @@ void OTClient::ProcessWithdrawalResponse(
                 // needed it (now).
                 Purse* pRequestPurse = pWallet->GetPendingWithdrawal();
 
-                String strAssetID(thePurse.GetAssetID());
+                String strInstrumentDefinitionID(
+                    thePurse.GetInstrumentDefinitionID());
                 std::unique_ptr<Mint> pMint(
-                    Mint::MintFactory(strNotaryID, strAssetID));
+                    Mint::MintFactory(strNotaryID, strInstrumentDefinitionID));
                 OT_ASSERT(nullptr != pMint);
                 // Unlike the purse which we read out of a message,
                 // now we try to open a purse as a file on the client side,
-                // keyed by Asset ID.  (The client should already have one
+                // keyed by Instrument Definition Id.  (The client should
+                // already have one
                 // purse file for each asset type, if he already has cash.)
                 //
                 // We don't want to just overwrite that file. So instead, we
@@ -2749,7 +2751,7 @@ void OTClient::ProcessWithdrawalResponse(
                 // somewhere.
 
                 theWalletPurse.LoadPurse(strNotaryID.Get(), strUserID.Get(),
-                                         strAssetID.Get());
+                                         strInstrumentDefinitionID.Get());
 
                 bool bSuccess = false;
 
@@ -2828,7 +2830,7 @@ void OTClient::ProcessWithdrawalResponse(
                     theWalletPurse.SignContract(*pNym);
                     theWalletPurse.SaveContract();
                     theWalletPurse.SavePurse(strNotaryID.Get(), strUserID.Get(),
-                                             strAssetID.Get());
+                                             strInstrumentDefinitionID.Get());
 
                     otOut << "SUCCESSFULLY UNBLINDED token, and added the cash "
                              "to the local purse, and saved.\n";
@@ -4238,22 +4240,27 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 ACCOUNT_ID, SERVER_ID));
 
                                         bool bIsAsset =
-                                            (theTrade.GetAssetID() ==
-                                             pAccount->GetAssetTypeID());
+                                            (theTrade
+                                                 .GetInstrumentDefinitionID() ==
+                                             pAccount
+                                                 ->GetInstrumentDefinitionID());
                                         bool bIsCurrency =
                                             (theTrade.GetCurrencyID() ==
-                                             pAccount->GetAssetTypeID());
+                                             pAccount
+                                                 ->GetInstrumentDefinitionID());
 
                                         if (bIsAsset) {
                                             //                                                  pServerItem->GetAmount()
                                             // contains:  (lAmountSold); //
                                             // asset
 
-                                            const String strAssetID(
-                                                theTrade.GetAssetID());
+                                            const String strInstrumentDefinitionID(
+                                                theTrade
+                                                    .GetInstrumentDefinitionID());
                                             int64_t lAssetsThisTrade =
                                                 pServerItem->GetAmount();
-                                            pData->asset_id = strAssetID.Get();
+                                            pData->instrument_definition_id =
+                                                strInstrumentDefinitionID.Get();
                                             pData->amount_sold =
                                                 to_string<int64_t>(
                                                     lAssetsThisTrade); // The
@@ -4361,9 +4368,11 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                             {
                                                 // It's a repeat of the same
                                                 // one. (Discard.)
-                                                if ((!pTradeData->asset_id
+                                                if ((!pTradeData
+                                                          ->instrument_definition_id
                                                           .empty() &&
-                                                     !pData->asset_id
+                                                     !pData
+                                                          ->instrument_definition_id
                                                           .empty()) ||
                                                     (!pTradeData->currency_id
                                                           .empty() &&
@@ -4377,10 +4386,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 // Therefore let's combine
                                                 // them into pTradeData!
                                                 //
-                                                if (pTradeData->asset_id
+                                                if (pTradeData
+                                                        ->instrument_definition_id
                                                         .empty()) {
-                                                    pTradeData->asset_id =
-                                                        pData->asset_id;
+                                                    pTradeData
+                                                        ->instrument_definition_id =
+                                                        pData
+                                                            ->instrument_definition_id;
                                                     pTradeData->amount_sold =
                                                         pData->amount_sold;
                                                 }
@@ -6920,11 +6932,11 @@ bool OTClient::processServerReplyGetContract(const Message& theReply,
     // handle setting up the filename and overwrite it anyway. But I still
     // prefer to set it
     // up correctly, rather than pass a blank. I'm just funny like that.
-    strFilename = theReply.m_strAssetID.Get();
+    strFilename = theReply.m_strInstrumentDefinitionID.Get();
 
     AssetContract* pContract =
-        new AssetContract(theReply.m_strAssetID, strFoldername, strFilename,
-                          theReply.m_strAssetID);
+        new AssetContract(theReply.m_strInstrumentDefinitionID, strFoldername,
+                          strFilename, theReply.m_strInstrumentDefinitionID);
 
     OT_ASSERT(nullptr != pContract);
 
@@ -6956,8 +6968,8 @@ bool OTClient::processServerReplyGetMint(const Message& theReply)
     // base64-Decode the server reply's payload into strMint
     String strMint(theReply.m_ascPayload);
     // Load the mint object from that string...
-    std::unique_ptr<Mint> pMint(
-        Mint::MintFactory(theReply.m_strNotaryID, theReply.m_strAssetID));
+    std::unique_ptr<Mint> pMint(Mint::MintFactory(
+        theReply.m_strNotaryID, theReply.m_strInstrumentDefinitionID));
     OT_ASSERT(nullptr != pMint);
     // TODO check the server signature on the mint here...
     if (pMint->LoadContractFromString(strMint)) {
@@ -8075,13 +8087,13 @@ int32_t OTClient::ProcessUserCommand(
 
             if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetAssetTypeID();
+                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
                             strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetAssetTypeID();
+                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else {
@@ -8092,7 +8104,7 @@ int32_t OTClient::ProcessUserCommand(
         }
         else {
             pAccount->GetIdentifier(strFromAcct);
-            CONTRACT_ID = pAccount->GetAssetTypeID();
+            CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
             CONTRACT_ID.GetString(strContractID);
         }
 
@@ -8112,7 +8124,7 @@ int32_t OTClient::ProcessUserCommand(
 
         Purse theSourcePurse(thePurse);
 
-        String strAssetTypeID;
+        String strInstrumentDefinitionID;
 
         // If no asset contract was passed in, then --mypurse was not specified.
         // Therefore,
@@ -8157,18 +8169,21 @@ int32_t OTClient::ProcessUserCommand(
 
             // todo verify signature?
 
-            theSourcePurse.GetAssetID().GetString(strAssetTypeID);
+            theSourcePurse.GetInstrumentDefinitionID().GetString(
+                strInstrumentDefinitionID);
         }
         else {
-            pMyAssetContract->GetIdentifier(strAssetTypeID);
+            pMyAssetContract->GetIdentifier(strInstrumentDefinitionID);
 
-            bool bLoadedSourcePurse = theSourcePurse.LoadPurse(
-                strNotaryID.Get(), strNymID.Get(), strAssetTypeID.Get());
+            bool bLoadedSourcePurse =
+                theSourcePurse.LoadPurse(strNotaryID.Get(), strNymID.Get(),
+                                         strInstrumentDefinitionID.Get());
 
             if (!bLoadedSourcePurse) {
                 otOut << "Deposit purse: Failure trying to load purse from "
                          "local storage:\nServer " << strNotaryID << "  Nym "
-                      << strNymID << "  Asset Type " << strAssetTypeID << "\n";
+                      << strNymID << "  Asset Type "
+                      << strInstrumentDefinitionID << "\n";
                 return (-1);
             }
             else
@@ -8182,20 +8197,24 @@ int32_t OTClient::ProcessUserCommand(
                          "it all out.\n (So just use the GUI and save yourself "
                          "the trouble.)\n\nDeposit purse: using purse from "
                          "local storage.\n Server " << strNotaryID << "  Nym "
-                      << strNymID << "  Asset Type " << strAssetTypeID << "\n";
+                      << strNymID << "  Asset Type "
+                      << strInstrumentDefinitionID << "\n";
 
-            theSourcePurse.GetAssetID().GetString(strAssetTypeID);
+            theSourcePurse.GetInstrumentDefinitionID().GetString(
+                strInstrumentDefinitionID);
         }
 
         // By this point, theSourcePurse is DEFINITELY good,
-        // and strAssetTypeID contains its ID.
-        const Identifier ASSET_TYPE_ID(strAssetTypeID);
+        // and strInstrumentDefinitionID contains its ID.
+        const Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID);
 
-        if (ASSET_TYPE_ID != CONTRACT_ID) {
-            otOut << "Asset ID on purse didn't match asset ID on account. "
+        if (INSTRUMENT_DEFINITION_ID != CONTRACT_ID) {
+            otOut << "Instrument Definition Id on purse didn't match "
+                     "instrument definition id on account. "
                      "\nTry: --myacct ACCT_ID  (to specify a different "
                      "account.)\nTo use the purse in local storage, try:  "
-                     "--mypurse ASSET_TYPE_ID\nFYI, if you PREFER to provide "
+                     "--mypurse INSTRUMENT_DEFINITION_ID\nFYI, if you PREFER "
+                     "to provide "
                      "the purse from user input, OT *will* ask you to\ninput a "
                      "purse when doing this, just as long as --mypurse is NOT "
                      "provided. (And\nthat includes the defaultmypurse value "
@@ -8444,13 +8463,13 @@ int32_t OTClient::ProcessUserCommand(
 
             if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetAssetTypeID();
+                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
                             strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetAssetTypeID();
+                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else {
@@ -8461,7 +8480,7 @@ int32_t OTClient::ProcessUserCommand(
         }
         else {
             pAccount->GetIdentifier(strFromAcct);
-            CONTRACT_ID = pAccount->GetAssetTypeID();
+            CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
             CONTRACT_ID.GetString(strContractID);
         }
 
@@ -8723,13 +8742,13 @@ int32_t OTClient::ProcessUserCommand(
 
             if ((pAccount = m_pWallet->GetAccount(ACCOUNT_ID)) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetAssetTypeID();
+                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else if ((pAccount = m_pWallet->GetAccountPartialMatch(
                             strFromAcct.Get())) != nullptr) {
                 pAccount->GetIdentifier(strFromAcct);
-                CONTRACT_ID = pAccount->GetAssetTypeID();
+                CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
                 CONTRACT_ID.GetString(strContractID);
             }
             else {
@@ -8740,7 +8759,7 @@ int32_t OTClient::ProcessUserCommand(
         }
         else {
             pAccount->GetIdentifier(strFromAcct);
-            CONTRACT_ID = pAccount->GetAssetTypeID();
+            CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
             CONTRACT_ID.GetString(strContractID);
         }
 
@@ -8809,7 +8828,7 @@ int32_t OTClient::ProcessUserCommand(
         }
 
         Cheque theCheque(pAccount->GetRealNotaryID(),
-                         pAccount->GetAssetTypeID());
+                         pAccount->GetInstrumentDefinitionID());
 
         // Memo
         otOut << "Enter a memo for your check: ";

@@ -221,7 +221,7 @@ public:
     void CleanupAccounts();
     bool Compare(const OTParty& rhs) const;
     void Serialize(String& strAppend, bool bCalculatingID = false,
-                   bool bSpecifyAssetID = false,
+                   bool bSpecifyInstrumentDefinitionID = false,
                    bool bSpecifyParties = false) const;
 
     // Clears temp pointers when I'm done with them, so I don't get stuck
@@ -389,7 +389,7 @@ public:
     bool AddAccount(OTPartyAccount& thePartyAcct);
     EXPORT bool AddAccount(const String& strAgentName, const String& strName,
                            const String& strAcctID,
-                           const String& strAssetTypeID,
+                           const String& strInstrumentDefinitionID,
                            int64_t lClosingTransNo);
     EXPORT bool AddAccount(const String& strAgentName, const char* szAcctName,
                            Account& theAccount, int64_t lClosingTransNo);

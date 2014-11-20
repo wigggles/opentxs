@@ -204,7 +204,8 @@ int32_t CmdInpayments::run(string server, string mynym)
             server, mynym, mynym, tx);
         int64_t amount = OTAPI_Wrap::Instrmnt_GetAmount(payment);
         string type = OTAPI_Wrap::Instrmnt_GetType(payment);
-        string assetType = OTAPI_Wrap::Instrmnt_GetAssetID(payment);
+        string assetType =
+            OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(payment);
         string senderUser = OTAPI_Wrap::Instrmnt_GetSenderUserID(payment);
         string senderAcct = OTAPI_Wrap::Instrmnt_GetSenderAcctID(payment);
         string recipientUser = OTAPI_Wrap::Instrmnt_GetRecipientUserID(payment);

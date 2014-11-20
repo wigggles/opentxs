@@ -361,7 +361,7 @@ int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (strTemp.Exists()) pItem->lClosingTransactionNo = strTemp.ToLong();
 
         String strSubAccountID(xml->getAttributeValue("accountID")),
-            strContractID(xml->getAttributeValue("assetID"));
+            strContractID(xml->getAttributeValue("instrumentDefinitionID"));
         pItem->SUB_ACCOUNT_ID.SetString(strSubAccountID);
         pItem->SUB_CONTRACT_ID.SetString(strContractID);
 
@@ -422,14 +422,14 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
                 "<basketItem minimumTransfer=\"%" PRId64 "\"\n"
                 " closingTransactionNo=\"%" PRId64 "\"\n"
                 " accountID=\"%s\"\n"
-                " assetID=\"%s\" />\n\n",
+                " instrumentDefinitionID=\"%s\" />\n\n",
                 pItem->lMinimumTransferAmount, pItem->lClosingTransactionNo,
                 bHideAccountID ? "" : strAcctID.Get(), strContractID.Get());
         else
             xmlUnsigned.Concatenate(
                 "<basketItem minimumTransfer=\"%" PRId64 "\"\n"
                 " accountID=\"%s\"\n"
-                " assetID=\"%s\" />\n\n",
+                " instrumentDefinitionID=\"%s\" />\n\n",
                 pItem->lMinimumTransferAmount,
                 bHideAccountID ? "" : strAcctID.Get(), strContractID.Get());
     }

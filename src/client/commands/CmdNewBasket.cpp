@@ -251,7 +251,8 @@ int32_t CmdNewBasket::run(string server, string mynym, string assets,
         otOut << "\n\n SUCCESS in issue_basket_currency! Server response:\n\n";
         cout << response << "\n";
 
-        string strNewID = OTAPI_Wrap::Message_GetNewAssetTypeID(response);
+        string strNewID =
+            OTAPI_Wrap::Message_GetNewInstrumentDefinitionID(response);
         bool bGotNewID = "" != strNewID;
         bool bRetrieved = false;
         string strEnding = ".";

@@ -190,12 +190,14 @@ int32_t CmdImportCash::run(string mynym)
         // the first place -- we had just assumed it was here, when we did the
         // import. Until I can look at that in more detail, it will remain
         // commented out.
-        // bool bImportedToken = importCashPurse(server, mynym, assetID,
+        // bool bImportedToken = importCashPurse(server, mynym,
+        // instrumentDefinitionID,
         //                                      userInput, isPurse);
-        // if (importCashPurse(server, mynym, assetID, userInput, isPurse))
+        // if (importCashPurse(server, mynym, instrumentDefinitionID, userInput,
+        // isPurse))
         //{
         //    otOut << "\n\n Success importing cash token!\nServer: "
-        //        << server << "\nAsset Type: " << assetID
+        //        << server << "\nAsset Type: " << instrumentDefinitionID
         //        << "\nNym: " << MyNym << "\n\n";
         //    return 1;
         //}
@@ -237,14 +239,15 @@ int32_t CmdImportCash::run(string mynym)
         }
     }
 
-    string assetID = OTAPI_Wrap::Instrmnt_GetAssetID(instrument);
-    if ("" == assetID) {
+    string instrumentDefinitionID =
+        OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(instrument);
+    if ("" == instrumentDefinitionID) {
         otOut << "Error: cannot determine asset type ID.\n";
         return -1;
     }
 
-    if (!OTAPI_Wrap::Wallet_ImportPurse(server, assetID, purseOwner,
-                                        instrument)) {
+    if (!OTAPI_Wrap::Wallet_ImportPurse(server, instrumentDefinitionID,
+                                        purseOwner, instrument)) {
         otOut << "Error: cannot import purse.\n";
         return -1;
     }

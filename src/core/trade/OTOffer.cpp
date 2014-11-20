@@ -171,7 +171,8 @@ bool OTOffer::isPowerOfTen(const int64_t& x)
  The server has to be able to match up your Offer to the Right Market,
  so that it can trade with similar offers.
 
- So in this method, I combine the Asset Type ID, the Currency Type ID,
+ So in this method, I combine the Instrument Definition ID, the Currency Type
+ ID,
  and the minimum increment, and use them to generate a UNIQUE ID, which
  will also be the same, given the same input.
 
@@ -206,12 +207,13 @@ bool OTOffer::isPowerOfTen(const int64_t& x)
  */
 void OTOffer::GetIdentifier(Identifier& theIdentifier) const
 {
-    String strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
+    String strTemp, strAsset(GetInstrumentDefinitionID()),
+        strCurrency(GetCurrencyID());
 
     int64_t lScale = GetScale();
 
     // In this way we generate a unique ID that will always be consistent
-    // for the same asset ID, currency ID, and market scale.
+    // for the same instrument definition id, currency ID, and market scale.
     strTemp.Format(
         "ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%" PRId64 "\n",
         strAsset.Get(), strCurrency.Get(), lScale);
@@ -258,14 +260,16 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strContractType.Set((m_bSelling ? "ASK" : "BID"));
 
         const String strNotaryID(xml->getAttributeValue("notaryID")),
-            strAssetTypeID(xml->getAttributeValue("assetTypeID")),
+            strInstrumentDefinitionID(
+                xml->getAttributeValue("instrumentDefinitionID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
-        const Identifier SERVER_ID(strNotaryID), ASSET_ID(strAssetTypeID),
+        const Identifier SERVER_ID(strNotaryID),
+            INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
             CURRENCY_TYPE_ID(strCurrencyTypeID);
 
         SetNotaryID(SERVER_ID);
-        SetAssetID(ASSET_ID);
+        SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetCurrencyID(CURRENCY_TYPE_ID);
 
         const String strScale = xml->getAttributeValue("marketScale");
@@ -370,7 +374,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otLog4 << "\n\nOffer. Transaction Number: " << m_lTransactionNum
                << "\n Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
                << "\n"
-                  " AssetTypeID: " << strAssetTypeID
+                  " InstrumentDefinitionID: " << strInstrumentDefinitionID
                << "\n  CurrencyTypeID: " << strCurrencyTypeID
                << "\n NotaryID: " << strNotaryID
                << "\n"
@@ -391,7 +395,8 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 void OTOffer::UpdateContents()
 {
-    const String SERVER_ID(GetNotaryID()), ASSET_TYPE_ID(GetAssetID()),
+    const String SERVER_ID(GetNotaryID()),
+        INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         CURRENCY_TYPE_ID(GetCurrencyID());
 
     const int64_t lFrom = OTTimeGetSecondsFromTime(GetValidFrom());
@@ -408,25 +413,26 @@ void OTOffer::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    m_xmlUnsigned.Concatenate(
-        "<marketOffer\n version=\"%s\"\n"
-        " isSelling=\"%s\"\n" // true or false.
-        " notaryID=\"%s\"\n"
-        " assetTypeID=\"%s\"\n"
-        " currencyTypeID=\"%s\"\n"
-        " priceLimit=\"%" PRId64 "\"\n"
-        " totalAssetsOnOffer=\"%" PRId64 "\"\n"
-        " finishedSoFar=\"%" PRId64 "\"\n"
-        " marketScale=\"%" PRId64 "\"\n"
-        " minimumIncrement=\"%" PRId64 "\"\n"
-        " transactionNum=\"%" PRId64 "\"\n"
-        " validFrom=\"%" PRId64 "\"\n"
-        " validTo=\"%" PRId64 "\""
-        " />\n\n", //  <=== the tag ends here.
-        m_strVersion.Get(),
-        (IsBid() ? "false" : "true"), SERVER_ID.Get(), ASSET_TYPE_ID.Get(),
-        CURRENCY_TYPE_ID.Get(), lPriceLimit, lTotalAssetsOnOffer,
-        lFinishedSoFar, lScale, lMinimumIncrement, lTransactionNum, lFrom, lTo);
+    m_xmlUnsigned.Concatenate("<marketOffer\n version=\"%s\"\n"
+                              " isSelling=\"%s\"\n" // true or false.
+                              " notaryID=\"%s\"\n"
+                              " instrumentDefinitionID=\"%s\"\n"
+                              " currencyTypeID=\"%s\"\n"
+                              " priceLimit=\"%" PRId64 "\"\n"
+                              " totalAssetsOnOffer=\"%" PRId64 "\"\n"
+                              " finishedSoFar=\"%" PRId64 "\"\n"
+                              " marketScale=\"%" PRId64 "\"\n"
+                              " minimumIncrement=\"%" PRId64 "\"\n"
+                              " transactionNum=\"%" PRId64 "\"\n"
+                              " validFrom=\"%" PRId64 "\"\n"
+                              " validTo=\"%" PRId64 "\""
+                              " />\n\n", //  <=== the tag ends here.
+                              m_strVersion.Get(),
+                              (IsBid() ? "false" : "true"), SERVER_ID.Get(),
+                              INSTRUMENT_DEFINITION_ID.Get(),
+                              CURRENCY_TYPE_ID.Get(), lPriceLimit,
+                              lTotalAssetsOnOffer, lFinishedSoFar, lScale,
+                              lMinimumIncrement, lTransactionNum, lFrom, lTo);
 
     //    m_xmlUnsigned.Concatenate("</marketOffer>\n");    // ^^^ Tag already
     // ended above.
@@ -526,9 +532,10 @@ OTOffer::OTOffer()
     InitOffer();
 }
 
-OTOffer::OTOffer(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+OTOffer::OTOffer(const Identifier& SERVER_ID,
+                 const Identifier& INSTRUMENT_DEFINITION_ID,
                  const Identifier& CURRENCY_ID, const int64_t& lScale)
-    : ot_super(SERVER_ID, ASSET_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)
     , // No need to free m_pTrade, not responsible. Only here for convenience.

@@ -1271,7 +1271,8 @@ std::string OTAPI_Exec::CreateAssetContract(
 // std::string OTAPI_Exec::GetServer_Contract(const std::string& SERVER_ID); //
 // Return's Server's contract (based on server ID)
 // std::string OTAPI_Exec::GetAssetType_Contract(const std::string&
-// ASSET_TYPE_ID); // Returns currency contract based on Asset Type ID
+// INSTRUMENT_DEFINITION_ID); // Returns currency contract based on Asset Type
+// ID
 
 std::string OTAPI_Exec::GetServer_Contract(const std::string& SERVER_ID)
     const // Return's Server's contract (based on server
@@ -1301,7 +1302,7 @@ std::string OTAPI_Exec::GetServer_Contract(const std::string& SERVER_ID)
 
 // Returns amount from formatted string, based on currency contract and locale.
 //
-int64_t OTAPI_Exec::StringToAmount(const std::string& ASSET_TYPE_ID,
+int64_t OTAPI_Exec::StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& str_input) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -1310,12 +1311,14 @@ int64_t OTAPI_Exec::StringToAmount(const std::string& ASSET_TYPE_ID,
               << ": Not initialized; call OT_API::Init first.\n";
         return OT_ERROR_AMOUNT;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Empty ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR_AMOUNT;
     }
-    const Identifier theAssetID(ASSET_TYPE_ID);
-    AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    AssetContract* pContract =
+        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return OT_ERROR_AMOUNT;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     int64_t theResult;
@@ -1326,8 +1329,9 @@ int64_t OTAPI_Exec::StringToAmount(const std::string& ASSET_TYPE_ID,
 // Returns formatted string for output, for a given amount, based on currency
 // contract and locale.
 //
-std::string OTAPI_Exec::FormatAmount(const std::string& ASSET_TYPE_ID,
-                                     const int64_t& THE_AMOUNT) const
+std::string OTAPI_Exec::FormatAmount(
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const int64_t& THE_AMOUNT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1335,8 +1339,9 @@ std::string OTAPI_Exec::FormatAmount(const std::string& ASSET_TYPE_ID,
               << ": Not initialized; call OT_API::Init first.\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Empty ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     // NOTE: probably just remove this. I think we now allow negative amounts to
@@ -1347,8 +1352,9 @@ std::string OTAPI_Exec::FormatAmount(const std::string& ASSET_TYPE_ID,
     // OTAPI_Exec::LongToString(THE_AMOUNT) << "\n";
     //      OT_FAIL;
     //  }
-    const Identifier theAssetID(ASSET_TYPE_ID);
-    AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    AssetContract* pContract =
+        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     const int64_t lAmount = THE_AMOUNT;
@@ -1363,9 +1369,10 @@ std::string OTAPI_Exec::FormatAmount(const std::string& ASSET_TYPE_ID,
     return pBuf;
 }
 
-std::string OTAPI_Exec::GetAssetType_Contract(const std::string& ASSET_TYPE_ID)
-    const // Returns currency contract based on
-          // Asset Type ID
+std::string OTAPI_Exec::GetAssetType_Contract(
+    const std::string& INSTRUMENT_DEFINITION_ID) const // Returns currency
+                                                       // contract based on
+// Instrument Definition ID
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1374,13 +1381,15 @@ std::string OTAPI_Exec::GetAssetType_Contract(const std::string& ASSET_TYPE_ID)
         return "";
     }
 
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
 
-    const Identifier theAssetID(ASSET_TYPE_ID);
-    AssetContract* pContract = OTAPI()->GetAssetType(theAssetID, __FUNCTION__);
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    AssetContract* pContract =
+        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
     if (nullptr == pContract) return "";
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     const String strOutput(*pContract);
@@ -1628,7 +1637,8 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& SERVER_ID) const
 // (Whether there are accounts...)
 // returns bool
 //
-bool OTAPI_Exec::Wallet_CanRemoveAssetType(const std::string& ASSET_ID) const
+bool OTAPI_Exec::Wallet_CanRemoveAssetType(
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1637,12 +1647,13 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(const std::string& ASSET_ID) const
         return false;
     }
 
-    if (ASSET_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
 
-    Identifier theID(ASSET_ID);
+    Identifier theID(INSTRUMENT_DEFINITION_ID);
     const int32_t& nCount = OTAPI_Exec::GetAccountCount();
 
     // Loop through all the accounts.
@@ -1650,14 +1661,14 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(const std::string& ASSET_ID) const
         std::string pAcctID = OTAPI_Exec::GetAccountWallet_ID(i);
         String strAcctID(pAcctID);
 
-        std::string pID =
-            OTAPI_Exec::GetAccountWallet_AssetTypeID(strAcctID.Get());
+        std::string pID = OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
+            strAcctID.Get());
         Identifier theCompareID(pID);
 
         if (theID == theCompareID) {
             otOut << __FUNCTION__ << ": Unable to remove asset contract "
-                  << ASSET_ID << " from "
-                                 "wallet: Account " << strAcctID
+                  << INSTRUMENT_DEFINITION_ID << " from "
+                                                 "wallet: Account " << strAcctID
                   << " uses it.\n";
             return false;
         }
@@ -1672,7 +1683,8 @@ bool OTAPI_Exec::Wallet_CanRemoveAssetType(const std::string& ASSET_ID) const
 // type ID.
 // returns bool
 //
-bool OTAPI_Exec::Wallet_RemoveAssetType(const std::string& ASSET_ID) const
+bool OTAPI_Exec::Wallet_RemoveAssetType(
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1681,13 +1693,15 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(const std::string& ASSET_ID) const
         return false;
     }
 
-    if (ASSET_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
 
     // Make sure there aren't any dependent accounts..
-    if (!OTAPI_Exec::Wallet_CanRemoveAssetType(ASSET_ID)) return false;
+    if (!OTAPI_Exec::Wallet_CanRemoveAssetType(INSTRUMENT_DEFINITION_ID))
+        return false;
 
     OTWallet* pWallet = OTAPI()->GetWallet(__FUNCTION__);
 
@@ -1696,13 +1710,12 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(const std::string& ASSET_ID) const
         return false;
     }
 
-    Identifier theID(ASSET_ID);
+    Identifier theID(INSTRUMENT_DEFINITION_ID);
 
     if (pWallet->RemoveAssetContract(theID)) {
         pWallet->SaveWallet();
-        otOut << __FUNCTION__
-              << ": Removed asset contract from the wallet: " << ASSET_ID
-              << "\n";
+        otOut << __FUNCTION__ << ": Removed asset contract from the wallet: "
+              << INSTRUMENT_DEFINITION_ID << "\n";
         return true;
     }
     return false;
@@ -2392,7 +2405,7 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
 // Attempts to find a full ID in the wallet, based on a partial of the same ID.
 // Returns "" on failure, otherwise returns the full ID.
 //
-std::string OTAPI_Exec::Wallet_GetAssetIDFromPartial(
+std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
     //    OTAssetContract *    GetAssetType(const OTIdentifier& THE_ID, const
@@ -2418,7 +2431,8 @@ std::string OTAPI_Exec::Wallet_GetAssetIDFromPartial(
     // (We STILL confirm whether he's found in the wallet...)
     //
     AssetContract* pObject = OTAPI()->GetAssetType(
-        thePartialID, "OTAPI_Exec::Wallet_GetAssetIDFromPartial");
+        thePartialID,
+        "OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
@@ -2431,7 +2445,7 @@ std::string OTAPI_Exec::Wallet_GetAssetIDFromPartial(
     // go ahead and search for it as a PARTIAL ID...
     //
     pObject = OTAPI()->GetAssetContractPartialMatch(
-        PARTIAL_ID, "OTAPI_Exec::Wallet_GetAssetIDFromPartial");
+        PARTIAL_ID, "OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial");
 
     if (nullptr != pObject) // Found it (as partial ID.)
     {
@@ -3639,7 +3653,7 @@ std::string OTAPI_Exec::Instrmnt_GetNotaryID(
     return "";
 }
 
-std::string OTAPI_Exec::Instrmnt_GetAssetID(
+std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
     const std::string& THE_INSTRUMENT) const
 {
     if (THE_INSTRUMENT.empty()) {
@@ -3667,7 +3681,8 @@ std::string OTAPI_Exec::Instrmnt_GetAssetID(
     // data...)
 
     Identifier theOutput;
-    const bool& bGotData = thePayment.GetAssetTypeID(theOutput); // <========
+    const bool& bGotData =
+        thePayment.GetInstrumentDefinitionID(theOutput); // <========
 
     if (bGotData) {
         const String strOutput(theOutput);
@@ -3978,11 +3993,12 @@ bool OTAPI_Exec::SetServer_Name(const std::string& SERVER_ID,
 }
 
 // Merely a client-side label
-bool OTAPI_Exec::SetAssetType_Name(const std::string& ASSET_ID,
+bool OTAPI_Exec::SetAssetType_Name(const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& STR_NEW_NAME) const
 {
-    if (ASSET_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
     if (STR_NEW_NAME.empty()) {
@@ -3990,7 +4006,7 @@ bool OTAPI_Exec::SetAssetType_Name(const std::string& ASSET_ID,
         return false;
     }
 
-    const Identifier theContractID(ASSET_ID);
+    const Identifier theContractID(INSTRUMENT_DEFINITION_ID);
     const String strNewName(STR_NEW_NAME);
 
     bool bSuccess = OTAPI()->SetAssetType_Name(theContractID, strNewName);
@@ -4071,7 +4087,7 @@ std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
     return pBuf;
 }
 
-// returns Asset Type ID (based on index from GetAssetTypeCount)
+// returns Instrument Definition ID (based on index from GetAssetTypeCount)
 std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
 {
     if (0 > nIndex) {
@@ -4094,7 +4110,7 @@ std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
     return "";
 }
 
-// Returns asset type Name based on Asset Type ID
+// Returns asset type Name based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
 {
     if (THE_ID.empty()) {
@@ -4112,7 +4128,7 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
     return pBuf;
 }
 
-// Returns asset type TLA based on Asset Type ID
+// Returns asset type TLA based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
 {
     if (THE_ID.empty()) {
@@ -4790,7 +4806,7 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
 
 // Returns an account's asset type ID.
 // (Which is a hash of the contract used to issue the asset type.)
-std::string OTAPI_Exec::GetAccountWallet_AssetTypeID(
+std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     const std::string& THE_ID) const
 {
     if (THE_ID.empty()) {
@@ -4801,14 +4817,14 @@ std::string OTAPI_Exec::GetAccountWallet_AssetTypeID(
     Identifier theID(THE_ID);
     Account* pAccount = OTAPI()->GetAccount(theID, __FUNCTION__);
     if (nullptr == pAccount) return "";
-    Identifier theAssetID(pAccount->GetAssetTypeID());
+    Identifier theInstrumentDefinitionID(pAccount->GetInstrumentDefinitionID());
 
-    String strAssetTypeID(theAssetID);
+    String strInstrumentDefinitionID(theInstrumentDefinitionID);
 
-    otWarn << __FUNCTION__ << ": Returning asset type " << strAssetTypeID
-           << " for account " << THE_ID << "\n";
+    otWarn << __FUNCTION__ << ": Returning asset type "
+           << strInstrumentDefinitionID << " for account " << THE_ID << "\n";
 
-    std::string pBuf = strAssetTypeID.Get();
+    std::string pBuf = strInstrumentDefinitionID.Get();
 
     return pBuf;
 }
@@ -4862,7 +4878,7 @@ WRITE A CHEQUE  --- (Returns the cheque in string form.)
 ==> OTAPI_Exec::WriteCheque() internally constructs an Cheque and issues it,
 like so:
 
-Cheque theCheque( SERVER_ID, ASSET_TYPE_ID );
+Cheque theCheque( SERVER_ID, INSTRUMENT_DEFINITION_ID );
 
 theCheque.IssueCheque( AMOUNT // The amount of the cheque, in string form, which
 OTAPI
@@ -5732,7 +5748,9 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
                                       // smart contract. (And the scripts...)
     const std::string& ACCT_NAME,     // The Account's name as referenced in the
                                       // smart contract
-    const std::string& ASSET_TYPE_ID) const // Asset Type ID for the Account.
+    const std::string& INSTRUMENT_DEFINITION_ID) const // Instrument Definition
+                                                       // ID for the
+                                                       // Account.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -5750,12 +5768,14 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
         otErr << __FUNCTION__ << ": Null: ACCT_NAME passed in!\n";
         return "";
     }
-    //    if (ASSET_TYPE_ID.empty())        { otErr << __FUNCTION__ << ": Null:
-    // ASSET_TYPE_ID passed
+    //    if (INSTRUMENT_DEFINITION_ID.empty())        { otErr << __FUNCTION__
+    //    << ": Null:
+    // INSTRUMENT_DEFINITION_ID passed
     // in!\n"; OT_FAIL; }
 
     const String strContract(THE_CONTRACT), strPartyName(PARTY_NAME),
-        strAcctName(ACCT_NAME), strAssetTypeID(ASSET_TYPE_ID);
+        strAcctName(ACCT_NAME),
+        strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const Identifier theSignerNymID(SIGNER_NYM_ID);
     String strOutput;
 
@@ -5766,7 +5786,7 @@ std::string OTAPI_Exec::SmartContract_AddAccount(
         strPartyName,   // The Party's NAME as referenced in the smart contract.
                         // (And the scripts...)
         strAcctName, // The Account's name as referenced in the smart contract
-        strAssetTypeID, // Asset Type ID for the Account.
+        strInstrumentDefinitionID, // Instrument Definition ID for the Account.
         strOutput);
     if (!bAdded || !strOutput.Exists()) return "";
     // Success!
@@ -7000,11 +7020,11 @@ std::string OTAPI_Exec::Party_GetAcctID(const std::string& THE_CONTRACT,
     return pAcct->GetAcctID().Get();
 }
 
-std::string OTAPI_Exec::Party_GetAcctAssetID(const std::string& THE_CONTRACT,
-                                             const std::string& PARTY_NAME,
-                                             const std::string& ACCT_NAME)
-    const // returns the asset type ID based on the
-          // account name.
+std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
+    const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
+    const std::string& ACCT_NAME) const // returns the asset type ID based on
+                                        // the
+                                        // account name.
 {
     if (THE_CONTRACT.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_CONTRACT passed in!\n";
@@ -7046,7 +7066,7 @@ std::string OTAPI_Exec::Party_GetAcctAssetID(const std::string& THE_CONTRACT,
             else // We found the account...
             {
                 const std::string str_return(
-                    pAcct->GetAssetTypeID().Get()); // Success.
+                    pAcct->GetInstrumentDefinitionID().Get()); // Success.
                 return str_return;
             }
         }
@@ -7710,27 +7730,31 @@ bool OTAPI_Exec::VerifyUserPrivateKey(
 // Is Mint32_t Still Good ?   true  (1) == Yes, this mint32_t is still good.
 //                        false (0) == No: expired or other error.
 //
-bool OTAPI_Exec::Mint_IsStillGood(const std::string& SERVER_ID,
-                                  const std::string& ASSET_TYPE_ID) const
+bool OTAPI_Exec::Mint_IsStillGood(
+    const std::string& SERVER_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return false;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
 
-    const Identifier theNotaryID(SERVER_ID), theAssetID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<Mint> pMint(OTAPI()->LoadMint(theNotaryID, theAssetID));
+    std::unique_ptr<Mint> pMint(
+        OTAPI()->LoadMint(theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr == pMint)
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadMint.\nServer: " << SERVER_ID
-              << "\n Asset Type: " << ASSET_TYPE_ID << "\n";
+              << "\n Asset Type: " << INSTRUMENT_DEFINITION_ID << "\n";
     else // success
     {
         bool bExpired = pMint->Expired();
@@ -7742,30 +7766,32 @@ bool OTAPI_Exec::Mint_IsStillGood(const std::string& SERVER_ID,
 
 std::string OTAPI_Exec::LoadMint(
     const std::string& SERVER_ID,
-    const std::string& ASSET_TYPE_ID) const // returns
-                                            // "", or a
-                                            // mint
+    const std::string& INSTRUMENT_DEFINITION_ID) const // returns
+                                                       // "", or a
+                                                       // mint
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
 
     const Identifier theNotaryID(SERVER_ID);
-    const Identifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<Mint> pMint(OTAPI()->LoadMint(theNotaryID, theAssetID));
+    std::unique_ptr<Mint> pMint(
+        OTAPI()->LoadMint(theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr == pMint)
         otOut << __FUNCTION__ << "OTAPI_Exec::LoadMint: Failure calling "
                                  "OT_API::LoadMint.\nServer: " << SERVER_ID
-              << "\n Asset Type: " << ASSET_TYPE_ID << "\n";
+              << "\n Asset Type: " << INSTRUMENT_DEFINITION_ID << "\n";
     else // success
     {
         String strOutput(*pMint); // For the output
@@ -7776,24 +7802,25 @@ std::string OTAPI_Exec::LoadMint(
 }
 
 std::string OTAPI_Exec::LoadAssetContract(
-    const std::string& ASSET_TYPE_ID) const // returns "", or an asset contract
+    const std::string& INSTRUMENT_DEFINITION_ID) const // returns "", or an
+                                                       // asset contract
 {
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
 
-    const Identifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
     std::unique_ptr<AssetContract> pContract(
-        OTAPI()->LoadAssetContract(theAssetID));
+        OTAPI()->LoadAssetContract(theInstrumentDefinitionID));
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__
               << ": Failure calling OT_API::LoadAssetContract.\n Asset Type: "
-              << ASSET_TYPE_ID << "\n";
+              << INSTRUMENT_DEFINITION_ID << "\n";
     }
     else // success
     {
@@ -11744,21 +11771,23 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
 
 /*
 std::string OTAPI_Exec::LoadPurse(const std::string& SERVER_ID,
-                                  std::string ASSET_TYPE_ID,
+                                  std::string INSTRUMENT_DEFINITION_ID,
                                   std::string USER_ID) // returns "", or a
 purse.
 {
     OT_ASSERT_MSG("" != SERVER_ID, "Null SERVER_ID passed in.");
-    OT_ASSERT_MSG("" != ASSET_TYPE_ID, "Null ASSET_TYPE_ID passed in.");
+    OT_ASSERT_MSG("" != INSTRUMENT_DEFINITION_ID, "Null INSTRUMENT_DEFINITION_ID
+passed in.");
     OT_ASSERT_MSG("" != USER_ID, "Null USER_ID passed in.");
 
     const OTIdentifier theNotaryID(SERVER_ID);
-    const OTIdentifier theAssetID(ASSET_TYPE_ID);
+    const OTIdentifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const OTIdentifier theUserID(USER_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    OTPurse * pPurse = OTAPI()->LoadPurse(theNotaryID, theAssetID, theUserID);
+    OTPurse * pPurse = OTAPI()->LoadPurse(theNotaryID,
+theInstrumentDefinitionID, theUserID);
 
     // Make sure it gets cleaned up when this goes out of scope.
     OTCleanup<OTPurse>    thePurseAngel(pPurse); // I pass the pointer, in case
@@ -11768,7 +11797,7 @@ it's "".
     {
         otOut << "Failure calling OT_API::LoadPurse in
 OTAPI_Exec::LoadPurse.\n Server: " << SERVER_ID << "\n Asset Type: " <<
-ASSET_TYPE_ID << "\n";
+INSTRUMENT_DEFINITION_ID << "\n";
     }
     else // success
     {
@@ -11792,7 +11821,7 @@ ASSET_TYPE_ID << "\n";
 // then IMPORT whatever other purse you want into it, then
 // SAVE it again.
 bool OTAPI_Exec::SavePurse(const std::string& SERVER_ID,
-                           const std::string& ASSET_TYPE_ID,
+                           const std::string& INSTRUMENT_DEFINITION_ID,
                            const std::string& USER_ID,
                            const std::string& THE_PURSE) const // returns bool
 {
@@ -11800,8 +11829,9 @@ bool OTAPI_Exec::SavePurse(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return false;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
     if (USER_ID.empty()) {
@@ -11814,26 +11844,29 @@ bool OTAPI_Exec::SavePurse(const std::string& SERVER_ID,
     }
 
     std::string strFunc = __FUNCTION__;
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
-        theUserID(USER_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID), theUserID(USER_ID);
     const String strPurse(THE_PURSE);
     bool bSuccess = false;
-    Purse thePurse(theNotaryID, theAssetTypeID, theUserID);
+    Purse thePurse(theNotaryID, theInstrumentDefinitionID, theUserID);
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse)) {
-        // NOTE: no need to verify the server / asset ID here, since the call
+        // NOTE: no need to verify the server / instrument definition id here,
+        // since the call
         // to SavePurse already does that.
         //
         //      if ((theNotaryID    != thePurse.GetNotaryID()) ||
-        //          (theAssetTypeID != thePurse.GetAssetID()))
+        //          (theInstrumentDefinitionID !=
+        //          thePurse.GetInstrumentDefinitionID()))
         //      {
         //          otOut << strFunc << ": Failure loading purse from string;
         // server "
-        //                         "or asset ID didn't match what was
+        //                         "or instrument definition id didn't match
+        //                         what was
         // expected:\n" << strPurse << "\n";
         //      }
-        if (OTAPI()->SavePurse(theNotaryID, theAssetTypeID, theUserID,
-                               thePurse)) {
+        if (OTAPI()->SavePurse(theNotaryID, theInstrumentDefinitionID,
+                               theUserID, thePurse)) {
             bSuccess = true;
         }
         else {
@@ -11850,11 +11883,12 @@ bool OTAPI_Exec::SavePurse(const std::string& SERVER_ID,
 
 // LOAD PURSE -- (from local storage)
 //
-// Based on Asset Type ID: load a purse, a public mint, or an asset contract
+// Based on Instrument Definition ID: load a purse, a public mint, or an asset
+// contract
 // and return it as a string -- or return "" if it wasn't found.
 //
 std::string OTAPI_Exec::LoadPurse(const std::string& SERVER_ID,
-                                  const std::string& ASSET_TYPE_ID,
+                                  const std::string& INSTRUMENT_DEFINITION_ID,
                                   const std::string& USER_ID) const // returns
                                                                     // "", or
                                                                     // a purse.
@@ -11863,8 +11897,9 @@ std::string OTAPI_Exec::LoadPurse(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (USER_ID.empty()) {
@@ -11872,18 +11907,18 @@ std::string OTAPI_Exec::LoadPurse(const std::string& SERVER_ID,
         return "";
     }
     const Identifier theNotaryID(SERVER_ID);
-    const Identifier theAssetID(ASSET_TYPE_ID);
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const Identifier theUserID(USER_ID);
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
 
     std::unique_ptr<Purse> pPurse(
-        OTAPI()->LoadPurse(theNotaryID, theAssetID, theUserID));
+        OTAPI()->LoadPurse(theNotaryID, theInstrumentDefinitionID, theUserID));
 
     if (nullptr == pPurse) {
         otInfo << "OTAPI_Exec::LoadPurse() received null when called "
                   "OT_API::LoadPurse(). Server: " << SERVER_ID
-               << " Asset Type: " << ASSET_TYPE_ID << "\n";
+               << " Asset Type: " << INSTRUMENT_DEFINITION_ID << "\n";
     }
     else // success
     {
@@ -11899,31 +11934,33 @@ std::string OTAPI_Exec::LoadPurse(const std::string& SERVER_ID,
 //
 // Returns the purported sum of all the tokens within.
 //
-int64_t OTAPI_Exec::Purse_GetTotalValue(const std::string& SERVER_ID,
-                                        const std::string& ASSET_TYPE_ID,
-                                        const std::string& THE_PURSE) const
+int64_t OTAPI_Exec::Purse_GetTotalValue(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_PURSE) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return OT_ERROR_AMOUNT;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR_AMOUNT;
     }
     if (THE_PURSE.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_PURSE passed in!\n";
         return OT_ERROR_AMOUNT;
     }
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     String strPurse(THE_PURSE);
-    Purse thePurse(theNotaryID, theAssetTypeID);
+    Purse thePurse(theNotaryID, theInstrumentDefinitionID);
 
     if (!thePurse.LoadContractFromString(strPurse)) {
-        String strAssetTypeID(theAssetTypeID);
+        String strInstrumentDefinitionID(theInstrumentDefinitionID);
         otErr << __FUNCTION__
-              << ": Error loading purse from string. Asset Type ID: "
-              << strAssetTypeID << "\n";
+              << ": Error loading purse from string. Instrument Definition ID: "
+              << strInstrumentDefinitionID << "\n";
         return OT_ERROR_AMOUNT;
     }
 
@@ -11935,15 +11972,16 @@ int64_t OTAPI_Exec::Purse_GetTotalValue(const std::string& SERVER_ID,
 // or -1 in case of error.
 //
 int32_t OTAPI_Exec::Purse_Count(const std::string& SERVER_ID,
-                                const std::string& ASSET_TYPE_ID,
+                                const std::string& INSTRUMENT_DEFINITION_ID,
                                 const std::string& THE_PURSE) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return OT_ERROR;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
     if (THE_PURSE.empty()) {
@@ -11951,13 +11989,14 @@ int32_t OTAPI_Exec::Purse_Count(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE);
-    Purse thePurse(theNotaryID, theAssetTypeID);
+    Purse thePurse(theNotaryID, theInstrumentDefinitionID);
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse) &&
         (thePurse.GetNotaryID() == theNotaryID) &&
-        (thePurse.GetAssetID() == theAssetTypeID)) {
+        (thePurse.GetInstrumentDefinitionID() == theInstrumentDefinitionID)) {
         return thePurse.Count();
     }
 
@@ -11995,7 +12034,7 @@ bool OTAPI_Exec::Purse_HasPassword(const std::string& SERVER_ID,
 // returns "", or a purse.
 //
 std::string OTAPI_Exec::CreatePurse(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& OWNER_ID,
                                     const std::string& SIGNER_ID) const
 {
@@ -12003,8 +12042,9 @@ std::string OTAPI_Exec::CreatePurse(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (OWNER_ID.empty()) {
@@ -12018,7 +12058,8 @@ std::string OTAPI_Exec::CreatePurse(const std::string& SERVER_ID,
 
     std::string strFunc = __FUNCTION__;
 
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
         theOwnerID(OWNER_ID), theSignerID(SIGNER_ID);
     OTPasswordData thePWData(
         "Creating a cash purse. Enter wallet master password.");
@@ -12031,8 +12072,8 @@ std::string OTAPI_Exec::CreatePurse(const std::string& SERVER_ID,
     if (nullptr == pSignerNym) return "";
     // By this point, pSignerNym is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    std::unique_ptr<Purse> pPurse(
-        OTAPI()->CreatePurse(theNotaryID, theAssetTypeID, theOwnerID));
+    std::unique_ptr<Purse> pPurse(OTAPI()->CreatePurse(
+        theNotaryID, theInstrumentDefinitionID, theOwnerID));
 
     if (nullptr != pPurse) {
         pPurse->SignContract(*pSignerNym, &thePWData);
@@ -12055,22 +12096,24 @@ std::string OTAPI_Exec::CreatePurse(const std::string& SERVER_ID,
 // returns "", or a purse.
 //
 std::string OTAPI_Exec::CreatePurse_Passphrase(
-    const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& SIGNER_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (SIGNER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SIGNER_ID passed in!\n";
         return "";
     }
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
         theSignerID(SIGNER_ID);
     OTPasswordData thePWData("Creating a password-protected cash purse.");
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
@@ -12079,8 +12122,8 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<Purse> pPurse(
-        OTAPI()->CreatePurse_Passphrase(theNotaryID, theAssetTypeID));
+    std::unique_ptr<Purse> pPurse(OTAPI()->CreatePurse_Passphrase(
+        theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr != pPurse) {
         pPurse->SignContract(*pNym, &thePWData);
@@ -12103,7 +12146,7 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
 // returns "" if failure.
 //
 std::string OTAPI_Exec::Purse_Peek(
-    const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& OWNER_ID, // This should be "", **IF** purse is
                                  // password-protected. Otherwise MUST contain
                                  // the NymID for the Purse owner (necessary to
@@ -12116,8 +12159,9 @@ std::string OTAPI_Exec::Purse_Peek(
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     // if (OWNER_ID.empty())            { otErr << __FUNCTION__ << ": Null:
@@ -12149,10 +12193,11 @@ std::string OTAPI_Exec::Purse_Peek(
     }
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE);
     std::unique_ptr<Token> pToken(OTAPI()->Purse_Peek(
-        theNotaryID, theAssetTypeID, strPurse,
+        theNotaryID, theInstrumentDefinitionID, strPurse,
         bDoesOwnerIDExist ? &theOwnerID : nullptr, nullptr));
     if (nullptr != pToken) {
         pToken->SaveContractRaw(strOutput);
@@ -12175,7 +12220,7 @@ std::string OTAPI_Exec::Purse_Peek(
 // returns "" if failure.
 //
 std::string OTAPI_Exec::Purse_Pop(
-    const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& OWNER_OR_SIGNER_ID, // The purse, in order to be changed,
                                            // must be
     // re-signed, which requires a private Nym. If the
@@ -12198,8 +12243,9 @@ std::string OTAPI_Exec::Purse_Pop(
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (OWNER_OR_SIGNER_ID.empty()) {
@@ -12214,7 +12260,8 @@ std::string OTAPI_Exec::Purse_Pop(
     std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Purse_Pop";
     const String strReason("Popping a token off of a cash purse.");
     OTPasswordData thePWData(strReason);
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
         theNymID(OWNER_OR_SIGNER_ID);
     const String strPurse(THE_PURSE);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
@@ -12224,7 +12271,7 @@ std::string OTAPI_Exec::Purse_Pop(
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Purse> pPurse(OTAPI()->Purse_Pop(
-        theNotaryID, theAssetTypeID, strPurse,
+        theNotaryID, theInstrumentDefinitionID, strPurse,
         &theNymID, // Note: if the purse is password-protected, then this
                    // parameter is ignored.
         &strReason));
@@ -12293,7 +12340,7 @@ std::string OTAPI_Exec::Purse_Pop(
 // Returns: the empty purse, or "" if failure.
 //
 std::string OTAPI_Exec::Purse_Empty(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& SIGNER_ID,
                                     const std::string& THE_PURSE) const
 {
@@ -12303,8 +12350,9 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (SIGNER_ID.empty()) {
@@ -12319,7 +12367,8 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& SERVER_ID,
     std::string strFunc = __FUNCTION__; //"OTAPI_Exec::Purse_Empty";
     const String strReason("Creating an empty copy of a cash purse.");
     OTPasswordData thePWData(strReason);
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
         theNymID(SIGNER_ID);
     const String strPurse(THE_PURSE);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
@@ -12329,7 +12378,7 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& SERVER_ID,
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<Purse> pPurse(OTAPI()->Purse_Empty(
-        theNotaryID, theAssetTypeID, strPurse, &strReason));
+        theNotaryID, theInstrumentDefinitionID, strPurse, &strReason));
     if (nullptr != pPurse) {
         pPurse->ReleaseSignatures();
         pPurse->SignContract(*pNym, &thePWData);
@@ -12352,7 +12401,7 @@ std::string OTAPI_Exec::Purse_Empty(const std::string& SERVER_ID,
 // Returns "" if failure.
 //
 std::string OTAPI_Exec::Purse_Push(
-    const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& SIGNER_ID, // The purse, in order to be changed, must be
                                   // re-signed, which requires a private Nym.
                                   // Even if the purse is password-protected,
@@ -12380,8 +12429,9 @@ std::string OTAPI_Exec::Purse_Push(
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (SIGNER_ID.empty()) {
@@ -12422,10 +12472,11 @@ std::string OTAPI_Exec::Purse_Push(
     }
     // By this point, pOwnerNym is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE), strToken(THE_TOKEN);
     std::unique_ptr<Purse> pPurse(OTAPI()->Purse_Push(
-        theNotaryID, theAssetTypeID, strPurse, strToken,
+        theNotaryID, theInstrumentDefinitionID, strPurse, strToken,
         bDoesOwnerIDExist ? &theOwnerID : nullptr, // Note: if the purse is
         // password-protected, then this
         // parameter should be "".
@@ -12458,7 +12509,7 @@ std::string OTAPI_Exec::Purse_Push(
 // Should handle duplicates. Should load, merge, and save.
 //
 bool OTAPI_Exec::Wallet_ImportPurse(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& USER_ID,
                                     const std::string& THE_PURSE) const
 {
@@ -12466,8 +12517,9 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return false;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
     if (USER_ID.empty()) {
@@ -12481,8 +12533,8 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& SERVER_ID,
 
     String strReason("Importing a cash purse into the wallet.");
     //  OTPasswordData thePWData(strReason);
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
-        theUserID(USER_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID), theUserID(USER_ID);
     const String strNewPurse(THE_PURSE);
     // THE_PURSE (the new purse) either is for a Nym, or a Symmetric Key.
     // If it's for a Nym, it either has a NymID, or the ID is left blank.
@@ -12491,8 +12543,9 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& SERVER_ID,
     //
     String strDisplay("");
 
-    const bool& bImported = OTAPI()->Wallet_ImportPurse(
-        theNotaryID, theAssetTypeID, theUserID, strNewPurse, &strDisplay);
+    const bool& bImported =
+        OTAPI()->Wallet_ImportPurse(theNotaryID, theInstrumentDefinitionID,
+                                    theUserID, strNewPurse, &strDisplay);
     return bImported ? true : false;
 }
 
@@ -12524,7 +12577,7 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& SERVER_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::exchangePurse(const std::string& SERVER_ID,
-                                  const std::string& ASSET_TYPE_ID,
+                                  const std::string& INSTRUMENT_DEFINITION_ID,
                                   const std::string& USER_ID,
                                   const std::string& THE_PURSE) const
 {
@@ -12532,8 +12585,9 @@ int32_t OTAPI_Exec::exchangePurse(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return OT_ERROR;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
     if (USER_ID.empty()) {
@@ -12548,7 +12602,8 @@ int32_t OTAPI_Exec::exchangePurse(const std::string& SERVER_ID,
     // todo:  exchange message.
     otErr << __FUNCTION__
           << ": TODO (NOT CODED YET) OTAPI_Exec::exchangePurse: SERVER_ID: "
-          << SERVER_ID << "\n ASSET_TYPE_ID: " << ASSET_TYPE_ID
+          << SERVER_ID
+          << "\n INSTRUMENT_DEFINITION_ID: " << INSTRUMENT_DEFINITION_ID
           << "\n USER_ID: " << USER_ID << "\n ";
 
     return OT_ERROR;
@@ -12583,7 +12638,7 @@ int32_t OTAPI_Exec::exchangePurse(const std::string& SERVER_ID,
 // now be a symmetric key.
 
 std::string OTAPI_Exec::Token_ChangeOwner(
-    const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& THE_TOKEN, const std::string& SIGNER_NYM_ID,
     const std::string& OLD_OWNER,       // Pass a NymID here, or a purse.
     const std::string& NEW_OWNER) const // Pass a NymID here, or a purse.
@@ -12592,8 +12647,9 @@ std::string OTAPI_Exec::Token_ChangeOwner(
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (THE_TOKEN.empty()) {
@@ -12613,7 +12669,8 @@ std::string OTAPI_Exec::Token_ChangeOwner(
         return "";
     }
 
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID),
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
         theSignerNymID(SIGNER_NYM_ID);
     const String strOldOwner(OLD_OWNER), // Either of these MIGHT contain a
                                          // Nym ID, OR might contain a
@@ -12624,7 +12681,7 @@ std::string OTAPI_Exec::Token_ChangeOwner(
                                 // public key.)
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(OTAPI()->Token_ChangeOwner(
-        theNotaryID, theAssetTypeID, strToken, theSignerNymID,
+        theNotaryID, theInstrumentDefinitionID, strToken, theSignerNymID,
         strOldOwner,   // Pass a NymID here as a string, or a purse. (IF
                        // symmetrically encrypted, the relevant key is in the
                        // purse.)
@@ -12650,15 +12707,16 @@ std::string OTAPI_Exec::Token_ChangeOwner(
 // it, when you create a dummy recipient and attach it to the purse.)
 //
 std::string OTAPI_Exec::Token_GetID(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& THE_TOKEN) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (THE_TOKEN.empty()) {
@@ -12666,13 +12724,14 @@ std::string OTAPI_Exec::Token_GetID(const std::string& SERVER_ID,
         return "";
     }
 
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     String strOutput("0");
 
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theAssetTypeID));
+        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -12690,16 +12749,17 @@ std::string OTAPI_Exec::Token_GetID(const std::string& SERVER_ID,
 
 // The actual cash value of the token. Returns -1 on error.
 //
-int64_t OTAPI_Exec::Token_GetDenomination(const std::string& SERVER_ID,
-                                          const std::string& ASSET_TYPE_ID,
-                                          const std::string& THE_TOKEN) const
+int64_t OTAPI_Exec::Token_GetDenomination(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return -1;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return -1;
     }
     if (THE_TOKEN.empty()) {
@@ -12707,13 +12767,14 @@ int64_t OTAPI_Exec::Token_GetDenomination(const std::string& SERVER_ID,
         return -1;
     }
 
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     String strOutput("0");
 
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theAssetTypeID));
+        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -12728,15 +12789,16 @@ int64_t OTAPI_Exec::Token_GetDenomination(const std::string& SERVER_ID,
 // Otherwise returns the series number of this token. (Int.)
 //
 int32_t OTAPI_Exec::Token_GetSeries(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& THE_TOKEN) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return OT_ERROR;
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
     if (THE_TOKEN.empty()) {
@@ -12744,13 +12806,14 @@ int32_t OTAPI_Exec::Token_GetSeries(const std::string& SERVER_ID,
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     String strOutput;
 
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theAssetTypeID));
+        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
         return pToken->GetSeries();
@@ -12761,16 +12824,17 @@ int32_t OTAPI_Exec::Token_GetSeries(const std::string& SERVER_ID,
 // the date is seconds since Jan 1970, but returned as a string.
 // Return -1 on error;
 //
-time64_t OTAPI_Exec::Token_GetValidFrom(const std::string& SERVER_ID,
-                                        const std::string& ASSET_TYPE_ID,
-                                        const std::string& THE_TOKEN) const
+time64_t OTAPI_Exec::Token_GetValidFrom(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return OTTimeGetTimeFromSeconds(-1);
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OTTimeGetTimeFromSeconds(-1);
     }
     if (THE_TOKEN.empty()) {
@@ -12778,13 +12842,14 @@ time64_t OTAPI_Exec::Token_GetValidFrom(const std::string& SERVER_ID,
         return OTTimeGetTimeFromSeconds(-1);
     }
 
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     String strOutput;
 
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theAssetTypeID));
+        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -12796,16 +12861,17 @@ time64_t OTAPI_Exec::Token_GetValidFrom(const std::string& SERVER_ID,
 // the date is seconds since Jan 1970.
 // Return -1 on error;
 //
-time64_t OTAPI_Exec::Token_GetValidTo(const std::string& SERVER_ID,
-                                      const std::string& ASSET_TYPE_ID,
-                                      const std::string& THE_TOKEN) const
+time64_t OTAPI_Exec::Token_GetValidTo(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
         return OTTimeGetTimeFromSeconds(-1);
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OTTimeGetTimeFromSeconds(-1);
     }
     if (THE_TOKEN.empty()) {
@@ -12813,13 +12879,14 @@ time64_t OTAPI_Exec::Token_GetValidTo(const std::string& SERVER_ID,
         return OTTimeGetTimeFromSeconds(-1);
     }
 
-    const Identifier theNotaryID(SERVER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theNotaryID(SERVER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     String strOutput;
 
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theAssetTypeID));
+        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -12828,7 +12895,8 @@ time64_t OTAPI_Exec::Token_GetValidTo(const std::string& SERVER_ID,
     return OTTimeGetTimeFromSeconds(-1);
 }
 
-std::string OTAPI_Exec::Token_GetAssetID(const std::string& THE_TOKEN) const
+std::string OTAPI_Exec::Token_GetInstrumentDefinitionID(
+    const std::string& THE_TOKEN) const
 {
     if (THE_TOKEN.empty()) {
         otErr << __FUNCTION__ << ": Null: THE_TOKEN passed in!\n";
@@ -12842,7 +12910,7 @@ std::string OTAPI_Exec::Token_GetAssetID(const std::string& THE_TOKEN) const
 
     if (nullptr != pToken) // TokenFactory instantiates AND loads from string.
     {
-        const Identifier& theID = pToken->GetAssetID();
+        const Identifier& theID = pToken->GetInstrumentDefinitionID();
         theID.GetString(strOutput);
     }
 
@@ -12880,16 +12948,18 @@ std::string OTAPI_Exec::Token_GetNotaryID(const std::string& THE_TOKEN) const
 //
 // returns bool (true or false aka 1 or 0.)
 //
-bool OTAPI_Exec::IsBasketCurrency(const std::string& ASSET_TYPE_ID) const
+bool OTAPI_Exec::IsBasketCurrency(
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
 
-    const Identifier theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    if (OTAPI()->IsBasketCurrency(theAssetTypeID))
+    if (OTAPI()->IsBasketCurrency(theInstrumentDefinitionID))
         return true;
     else
         return false;
@@ -12901,27 +12971,30 @@ bool OTAPI_Exec::IsBasketCurrency(const std::string& ASSET_TYPE_ID) const
 // (Or zero.)
 //
 int32_t OTAPI_Exec::Basket_GetMemberCount(
-    const std::string& ASSET_TYPE_ID) const
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return 0;
     }
 
-    const Identifier theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    return OTAPI()->GetBasketMemberCount(theAssetTypeID);
+    return OTAPI()->GetBasketMemberCount(theInstrumentDefinitionID);
 }
 
 // Get Asset Type of a basket's member currency, by index.
 //
-// (Returns a string containing Asset Type ID, or "").
+// (Returns a string containing Instrument Definition ID, or "").
 //
 std::string OTAPI_Exec::Basket_GetMemberType(
-    const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex) const
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
+    const int32_t& nIndex) const
 {
-    if (BASKET_ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: BASKET_ASSET_TYPE_ID passed in!\n";
+    if (BASKET_INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: BASKET_INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
 
@@ -12931,12 +13004,12 @@ std::string OTAPI_Exec::Basket_GetMemberType(
         return "";
     }
 
-    const Identifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
+    const Identifier theInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID);
 
     Identifier theOutputMemberType;
 
-    bool bGotType = OTAPI()->GetBasketMemberType(theAssetTypeID, nIndex,
-                                                 theOutputMemberType);
+    bool bGotType = OTAPI()->GetBasketMemberType(theInstrumentDefinitionID,
+                                                 nIndex, theOutputMemberType);
     if (!bGotType) return "";
 
     String strOutput(theOutputMemberType);
@@ -12959,17 +13032,18 @@ std::string OTAPI_Exec::Basket_GetMemberType(
 // would return a string containing "10", in that example.
 //
 int64_t OTAPI_Exec::Basket_GetMinimumTransferAmount(
-    const std::string& BASKET_ASSET_TYPE_ID) const
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
-    if (BASKET_ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: BASKET_ASSET_TYPE_ID passed in!\n";
+    if (BASKET_INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: BASKET_INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR_AMOUNT;
     }
 
-    const Identifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
+    const Identifier theInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID);
 
     int64_t lMinTransAmount =
-        OTAPI()->GetBasketMinimumTransferAmount(theAssetTypeID);
+        OTAPI()->GetBasketMinimumTransferAmount(theInstrumentDefinitionID);
 
     if (0 >= lMinTransAmount) {
         otErr
@@ -12996,10 +13070,12 @@ int64_t OTAPI_Exec::Basket_GetMinimumTransferAmount(
 // currency at index 2 is 8.
 //
 int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
-    const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex) const
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
+    const int32_t& nIndex) const
 {
-    if (BASKET_ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: BASKET_ASSET_TYPE_ID passed in!\n";
+    if (BASKET_INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: BASKET_INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR_AMOUNT;
     }
 
@@ -13009,10 +13085,10 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
         return OT_ERROR_AMOUNT;
     }
 
-    const Identifier theAssetTypeID(BASKET_ASSET_TYPE_ID);
+    const Identifier theInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID);
 
-    int64_t lMinTransAmount =
-        OTAPI()->GetBasketMemberMinimumTransferAmount(theAssetTypeID, nIndex);
+    int64_t lMinTransAmount = OTAPI()->GetBasketMemberMinimumTransferAmount(
+        theInstrumentDefinitionID, nIndex);
 
     if (0 >= lMinTransAmount) {
         otErr
@@ -13451,9 +13527,9 @@ int32_t OTAPI_Exec::issueAssetType(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getContract(const std::string& SERVER_ID,
-                                const std::string& USER_ID,
-                                const std::string& ASSET_ID) const
+int32_t OTAPI_Exec::getContract(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13463,14 +13539,17 @@ int32_t OTAPI_Exec::getContract(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
         return OT_ERROR;
     }
-    if (ASSET_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(SERVER_ID), theUserID(USER_ID), theAssetID(ASSET_ID);
+    Identifier theNotaryID(SERVER_ID), theUserID(USER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    return OTAPI()->getContract(theNotaryID, theUserID, theAssetID);
+    return OTAPI()->getContract(theNotaryID, theUserID,
+                                theInstrumentDefinitionID);
 }
 
 // Returns int32_t:
@@ -13483,7 +13562,7 @@ int32_t OTAPI_Exec::getContract(const std::string& SERVER_ID,
 //
 int32_t OTAPI_Exec::getMint(const std::string& SERVER_ID,
                             const std::string& USER_ID,
-                            const std::string& ASSET_ID) const
+                            const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13493,14 +13572,16 @@ int32_t OTAPI_Exec::getMint(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
         return OT_ERROR;
     }
-    if (ASSET_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(SERVER_ID), theUserID(USER_ID), theAssetID(ASSET_ID);
+    Identifier theNotaryID(SERVER_ID), theUserID(USER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    return OTAPI()->getMint(theNotaryID, theUserID, theAssetID);
+    return OTAPI()->getMint(theNotaryID, theUserID, theInstrumentDefinitionID);
 }
 
 // Returns int32_t:
@@ -13511,9 +13592,9 @@ int32_t OTAPI_Exec::getMint(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::createAssetAccount(const std::string& SERVER_ID,
-                                       const std::string& USER_ID,
-                                       const std::string& ASSET_ID) const
+int32_t OTAPI_Exec::createAssetAccount(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13523,14 +13604,17 @@ int32_t OTAPI_Exec::createAssetAccount(const std::string& SERVER_ID,
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
         return OT_ERROR;
     }
-    if (ASSET_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(SERVER_ID), theUserID(USER_ID), theAssetID(ASSET_ID);
+    Identifier theNotaryID(SERVER_ID), theUserID(USER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    return OTAPI()->createAssetAccount(theNotaryID, theUserID, theAssetID);
+    return OTAPI()->createAssetAccount(theNotaryID, theUserID,
+                                       theInstrumentDefinitionID);
 }
 
 // Sends a message to the server to retrieve latest copy of an asset acct.
@@ -13615,9 +13699,10 @@ std::string OTAPI_Exec::GenerateBasketCreation(
 // to send the request to the server.
 //
 std::string OTAPI_Exec::AddBasketCreationItem(
-    const std::string& USER_ID,       // for signature.
-    const std::string& THE_BASKET,    // created in above call.
-    const std::string& ASSET_TYPE_ID, // Adding an asset type to the new basket.
+    const std::string& USER_ID,                  // for signature.
+    const std::string& THE_BASKET,               // created in above call.
+    const std::string& INSTRUMENT_DEFINITION_ID, // Adding an asset type to the
+                                                 // new basket.
     const int64_t& MINIMUM_TRANSFER) const
 {
 
@@ -13629,8 +13714,9 @@ std::string OTAPI_Exec::AddBasketCreationItem(
         otErr << __FUNCTION__ << ": Null: THE_BASKET passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (0 > MINIMUM_TRANSFER) {
@@ -13639,7 +13725,8 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     }
 
     String strBasket(THE_BASKET);
-    const Identifier theUserID(USER_ID), theAssetTypeID(ASSET_TYPE_ID);
+    const Identifier theUserID(USER_ID),
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
     Basket theBasket;
 
@@ -13650,9 +13737,10 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     // Can't never be too sure.
     if (theBasket.LoadContractFromString(strBasket)) {
         bAdded = OTAPI()->AddBasketCreationItem(
-            theUserID,         // for signature.
-            theBasket,         // created in above call.
-            theAssetTypeID,    // Adding an asset type to the new basket.
+            theUserID,                 // for signature.
+            theBasket,                 // created in above call.
+            theInstrumentDefinitionID, // Adding an asset type to the new
+                                       // basket.
             lMinimumTransfer); // The amount of the asset type that is in the
                                // basket (per).
     }
@@ -13720,7 +13808,7 @@ int32_t OTAPI_Exec::issueBasket(const std::string& SERVER_ID,
 //
 std::string OTAPI_Exec::GenerateBasketExchange(
     const std::string& SERVER_ID, const std::string& USER_ID,
-    const std::string& BASKET_ASSET_TYPE_ID,
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& BASKET_ASSET_ACCT_ID,
     const int32_t& TRANSFER_MULTIPLE) const // 1            2             3
 // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
@@ -13733,8 +13821,9 @@ std::string OTAPI_Exec::GenerateBasketExchange(
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
         return "";
     }
-    if (BASKET_ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: BASKET_ASSET_TYPE_ID passed in!\n";
+    if (BASKET_INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: BASKET_INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (BASKET_ASSET_ACCT_ID.empty()) {
@@ -13743,13 +13832,14 @@ std::string OTAPI_Exec::GenerateBasketExchange(
     }
 
     const Identifier theUserID(USER_ID), theNotaryID(SERVER_ID),
-        theBasketAssetTypeID(BASKET_ASSET_TYPE_ID),
+        theBasketInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID),
         theBasketAssetAcctID(BASKET_ASSET_ACCT_ID);
     int32_t nTransferMultiple = 1; // Just a default value.
 
     if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
     std::unique_ptr<Basket> pBasket(OTAPI()->GenerateBasketExchange(
-        theNotaryID, theUserID, theBasketAssetTypeID, theBasketAssetAcctID,
+        theNotaryID, theUserID, theBasketInstrumentDefinitionID,
+        theBasketAssetAcctID,
         nTransferMultiple)); // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 
@@ -13775,7 +13865,7 @@ std::string OTAPI_Exec::GenerateBasketExchange(
 //
 std::string OTAPI_Exec::AddBasketExchangeItem(
     const std::string& SERVER_ID, const std::string& USER_ID,
-    const std::string& THE_BASKET, const std::string& ASSET_TYPE_ID,
+    const std::string& THE_BASKET, const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& ASSET_ACCT_ID) const
 {
     if (SERVER_ID.empty()) {
@@ -13790,8 +13880,9 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
         otErr << __FUNCTION__ << ": Null: THE_BASKET passed in!\n";
         return "";
     }
-    if (ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_TYPE_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
     if (ASSET_ACCT_ID.empty()) {
@@ -13801,7 +13892,8 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 
     String strBasket(THE_BASKET);
     const Identifier theNotaryID(SERVER_ID), theUserID(USER_ID),
-        theAssetTypeID(ASSET_TYPE_ID), theAssetAcctID(ASSET_ACCT_ID);
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
+        theAssetAcctID(ASSET_ACCT_ID);
     Basket theBasket;
 
     bool bAdded = false;
@@ -13811,7 +13903,8 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     // Can't never be too sure.
     if (theBasket.LoadContractFromString(strBasket)) {
         bAdded = OTAPI()->AddBasketExchangeItem(
-            theNotaryID, theUserID, theBasket, theAssetTypeID, theAssetAcctID);
+            theNotaryID, theUserID, theBasket, theInstrumentDefinitionID,
+            theAssetAcctID);
     }
 
     if (!bAdded) return "";
@@ -13851,7 +13944,8 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 
 int32_t OTAPI_Exec::exchangeBasket(
     const std::string& SERVER_ID, const std::string& USER_ID,
-    const std::string& BASKET_ASSET_ID, const std::string& THE_BASKET,
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_BASKET,
     const bool& BOOL_EXCHANGE_IN_OR_OUT) const // exchanging in == true (1), out
                                                // ==
                                                // false (0).
@@ -13864,8 +13958,9 @@ int32_t OTAPI_Exec::exchangeBasket(
         otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
         return OT_ERROR;
     }
-    if (BASKET_ASSET_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: BASKET_ASSET_ID passed in!\n";
+    if (BASKET_INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: BASKET_INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
     if (THE_BASKET.empty()) {
@@ -13874,7 +13969,7 @@ int32_t OTAPI_Exec::exchangeBasket(
     }
 
     Identifier theNotaryID(SERVER_ID), theUserID(USER_ID),
-        theBasketAssetID(BASKET_ASSET_ID);
+        theBasketInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID);
 
     String strBasketInfo(THE_BASKET);
 
@@ -13882,7 +13977,8 @@ int32_t OTAPI_Exec::exchangeBasket(
     const bool& bExchangeInOrOut =
         ((true == BOOL_EXCHANGE_IN_OR_OUT) ? true : false);
 
-    return OTAPI()->exchangeBasket(theNotaryID, theUserID, theBasketAssetID,
+    return OTAPI()->exchangeBasket(theNotaryID, theUserID,
+                                   theBasketInstrumentDefinitionID,
                                    strBasketInfo, bExchangeInOrOut);
 }
 
@@ -14182,13 +14278,15 @@ int32_t OTAPI_Exec::withdrawVoucher(const std::string& SERVER_ID,
 //
 int32_t OTAPI_Exec::payDividend(
     const std::string& SERVER_ID,
-    const std::string& ISSUER_USER_ID, // must be issuer of SHARES_ASSET_TYPE_ID
+    const std::string& ISSUER_USER_ID,        // must be issuer of
+                                              // SHARES_INSTRUMENT_DEFINITION_ID
     const std::string& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
                                               // shares, then this is the
                                               // issuer's dollars account.
-    const std::string& SHARES_ASSET_TYPE_ID,  // if dollars paid for pepsi
-                                              // shares, then this is the pepsi
-                                              // shares asset type id.
+    const std::string& SHARES_INSTRUMENT_DEFINITION_ID, // if dollars paid for
+                                                        // pepsi
+    // shares, then this is the pepsi
+    // shares asset type id.
     const std::string& DIVIDEND_MEMO, // user-configurable note that's added to
                                       // the payout request message.
     const int64_t& AMOUNT_PER_SHARE) const // number of dollars to be paid out
@@ -14208,8 +14306,9 @@ int32_t OTAPI_Exec::payDividend(
         otErr << __FUNCTION__ << ": Null: DIVIDEND_FROM_ACCT_ID passed in!\n";
         return OT_ERROR;
     }
-    if (SHARES_ASSET_TYPE_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SHARES_ASSET_TYPE_ID passed in!\n";
+    if (SHARES_INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Null: SHARES_INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
     //    if (DIVIDEND_MEMO.empty())           { otErr << __FUNCTION__ << ":
@@ -14222,14 +14321,14 @@ int32_t OTAPI_Exec::payDividend(
 
     Identifier theNotaryID(SERVER_ID), theIssuerUserID(ISSUER_USER_ID),
         theDividendFromAcctID(DIVIDEND_FROM_ACCT_ID),
-        theSharesAssetTypeID(SHARES_ASSET_TYPE_ID);
+        theSharesInstrumentDefinitionID(SHARES_INSTRUMENT_DEFINITION_ID);
 
     String strMemo(DIVIDEND_MEMO);
     int64_t lAmount = AMOUNT_PER_SHARE;
 
-    return OTAPI()->payDividend(theNotaryID, theIssuerUserID,
-                                theDividendFromAcctID, theSharesAssetTypeID,
-                                strMemo, lAmount);
+    return OTAPI()->payDividend(
+        theNotaryID, theIssuerUserID, theDividendFromAcctID,
+        theSharesInstrumentDefinitionID, strMemo, lAmount);
 }
 
 // Returns int32_t:
@@ -15115,7 +15214,7 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
 // server reply and get the new asset type ID out of it.
 // Otherwise how will you ever open accounts in that new type?
 //
-std::string OTAPI_Exec::Message_GetNewAssetTypeID(
+std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     const std::string& THE_MESSAGE) const
 {
     if (THE_MESSAGE.empty()) {
@@ -15144,7 +15243,7 @@ std::string OTAPI_Exec::Message_GetNewAssetTypeID(
         return "";
     }
 
-    String strOutput(theMessage.m_strAssetID);
+    String strOutput(theMessage.m_strInstrumentDefinitionID);
 
     if (!strOutput.Exists()) {
         otOut << __FUNCTION__ << ": No new asset type ID found on message.\n";

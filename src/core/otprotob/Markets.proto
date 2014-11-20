@@ -151,7 +151,7 @@ message TradeDataNym_InternalPB {
 	optional string updated_id = 7;      // NEW FIELD (transaction number for this trade receipt.)
 	optional string offer_price = 8;     // NEW FIELD (price limit on the original offer.)
 	optional string finished_so_far = 9; // NEW FIELD (total amount sold this offer across all trades.)
-    optional string asset_id = 10;       // NEW FIELD asset id of trade
+    optional string instrument_definition_id = 10;       // NEW FIELD instrument definition id of trade
     optional string currency_id = 11;    // NEW FIELD currency id of trade
     optional string currency_paid = 12;  // NEW FIELD currency paid for this trade.
 }

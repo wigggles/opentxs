@@ -455,7 +455,7 @@ bool AssetContract::DisplayStatistics(String& strContents) const
     const String strID(m_ID);
 
     strContents.Concatenate(" Asset Type:  %s\n"
-                            " AssetTypeID: %s\n"
+                            " InstrumentDefinitionID: %s\n"
                             "\n",
                             m_strName.Get(), strID.Get());
     return true;
@@ -474,7 +474,7 @@ bool AssetContract::SaveContractWallet(String& strContents) const
     }
 
     strContents.Concatenate("<assetType name=\"%s\"\n"
-                            " assetTypeID=\"%s\" />\n\n",
+                            " instrumentDefinitionID=\"%s\" />\n\n",
                             m_strName.Exists() ? ascName.Get() : "",
                             strID.Get());
 
@@ -486,9 +486,9 @@ bool AssetContract::SaveContractWallet(String& strContents) const
 // reserve accounts, or cash reserve accounts, are not included on this list.
 bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
 {
-    String strAssetTypeID, strAcctRecordFile;
-    GetIdentifier(strAssetTypeID);
-    strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
+    String strInstrumentDefinitionID, strAcctRecordFile;
+    GetIdentifier(strInstrumentDefinitionID);
+    strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
     std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
         OTDB::STORED_OBJ_STRING_MAP, OTFolders::Contract().Get(),
@@ -517,14 +517,16 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
         for (auto& it : theMap) {
             const std::string& str_acct_id =
                 it.first; // Containing the account ID.
-            const std::string& str_asset_id =
+            const std::string& str_instrument_definition_id =
                 it.second; // Containing the asset type ID. (Just in case
                            // someone copied the wrong file here...)
 
-            if (!strAssetTypeID.Compare(str_asset_id.c_str())) {
+            if (!strInstrumentDefinitionID.Compare(
+                    str_instrument_definition_id.c_str())) {
                 otErr << "OTAssetContract::VisitAccountRecords: Error: wrong "
-                         "asset type ID (" << str_asset_id
-                      << ") when expecting: " << strAssetTypeID << "\n";
+                         "asset type ID (" << str_instrument_definition_id
+                      << ") when expecting: " << strInstrumentDefinitionID
+                      << "\n";
             }
             else {
                 Account* pAccount = nullptr;
@@ -601,7 +603,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
 
     const char* szFunc = "OTAssetContract::AddAccountRecord";
 
-    if (theAccount.GetAssetTypeID() != m_ID) {
+    if (theAccount.GetInstrumentDefinitionID() != m_ID) {
         otErr << szFunc << ": Error: theAccount doesn't have the same asset "
                            "type ID as *this does.\n";
         return false;
@@ -610,9 +612,9 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     const Identifier theAcctID(theAccount);
     const String strAcctID(theAcctID);
 
-    String strAssetTypeID, strAcctRecordFile;
-    GetIdentifier(strAssetTypeID);
-    strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
+    String strInstrumentDefinitionID, strAcctRecordFile;
+    GetIdentifier(strInstrumentDefinitionID);
+    strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
     OTDB::Storable* pStorable = nullptr;
     std::unique_ptr<OTDB::Storable> theAngel;
@@ -637,7 +639,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     if (nullptr == pMap) {
         otErr << szFunc
               << ": Error: failed trying to load or create the account records "
-                 "file for asset type: " << strAssetTypeID << "\n";
+                 "file for asset type: " << strInstrumentDefinitionID << "\n";
         return false;
     }
 
@@ -656,14 +658,15 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
             map_it->second; // Containing the asset type ID. (Just in case
                             // someone copied the wrong file here,
         // --------------------------------          // every account should map
-        // to the SAME asset ID.)
+        // to the SAME instrument definition id.)
 
-        if (false ==
-            strAssetTypeID.Compare(str2.c_str())) // should never happen.
+        if (false == strInstrumentDefinitionID.Compare(str2.c_str())) // should
+                                                                      // never
+                                                                      // happen.
         {
             otErr << szFunc
                   << ": Error: wrong asset type found in account records "
-                     "file...\n For asset type: " << strAssetTypeID
+                     "file...\n For asset type: " << strInstrumentDefinitionID
                   << "\n "
                      "For account: " << strAcctID
                   << "\n Found wrong asset type: " << str2 << "\n";
@@ -678,7 +681,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
 
     // ...so add it.
     //
-    theMap[strAcctID.Get()] = strAssetTypeID.Get();
+    theMap[strAcctID.Get()] = strInstrumentDefinitionID.Get();
 
     // Then save it back to local storage:
     //
@@ -686,7 +689,8 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
                            strAcctRecordFile.Get())) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
-                 "account records file for asset type: " << strAssetTypeID
+                 "account records file for asset type: "
+              << strInstrumentDefinitionID
               << "\n to contain account ID: " << strAcctID << "\n";
         return false;
     }
@@ -709,9 +713,9 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
 
     const String strAcctID(theAcctID);
 
-    String strAssetTypeID, strAcctRecordFile;
-    GetIdentifier(strAssetTypeID);
-    strAcctRecordFile.Format("%s.a", strAssetTypeID.Get());
+    String strInstrumentDefinitionID, strAcctRecordFile;
+    GetIdentifier(strInstrumentDefinitionID);
+    strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
 
     OTDB::Storable* pStorable = nullptr;
     std::unique_ptr<OTDB::Storable> theAngel;
@@ -736,7 +740,7 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
     if (nullptr == pMap) {
         otErr << szFunc
               << ": Error: failed trying to load or create the account records "
-                 "file for asset type: " << strAssetTypeID << "\n";
+                 "file for asset type: " << strInstrumentDefinitionID << "\n";
         return false;
     }
 
@@ -762,7 +766,8 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
                            strAcctRecordFile.Get())) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
-                 "account records file for asset type: " << strAssetTypeID
+                 "account records file for asset type: "
+              << strInstrumentDefinitionID
               << "\n to erase account ID: " << strAcctID << "\n";
         return false;
     }

@@ -144,12 +144,14 @@ namespace opentxs
 
 PayDividendVisitor::PayDividendVisitor(
     const Identifier& theNotaryID, const Identifier& theUserID,
-    const Identifier& thePayoutAssetID, const Identifier& theVoucherAcctID,
-    const String& strMemo, OTServer& theServer, int64_t lPayoutPerShare,
+    const Identifier& thePayoutInstrumentDefinitionID,
+    const Identifier& theVoucherAcctID, const String& strMemo,
+    OTServer& theServer, int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
     : AccountVisitor(theNotaryID, pLoadedAccounts)
     , m_pUserID(new Identifier(theUserID))
-    , m_pPayoutAssetID(new Identifier(thePayoutAssetID))
+    , m_pPayoutInstrumentDefinitionID(
+          new Identifier(thePayoutInstrumentDefinitionID))
     , m_pVoucherAcctID(new Identifier(theVoucherAcctID))
     , m_pstrMemo(new String(strMemo))
     , m_pServer(&theServer)
@@ -163,8 +165,9 @@ PayDividendVisitor::~PayDividendVisitor()
 {
     if (nullptr != m_pUserID) delete m_pUserID;
     m_pUserID = nullptr;
-    if (nullptr != m_pPayoutAssetID) delete m_pPayoutAssetID;
-    m_pPayoutAssetID = nullptr;
+    if (nullptr != m_pPayoutInstrumentDefinitionID)
+        delete m_pPayoutInstrumentDefinitionID;
+    m_pPayoutInstrumentDefinitionID = nullptr;
     if (nullptr != m_pVoucherAcctID) delete m_pVoucherAcctID;
     m_pVoucherAcctID = nullptr;
     if (nullptr != m_pstrMemo) delete m_pstrMemo;
@@ -199,8 +202,9 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
     }
     OT_ASSERT(nullptr != GetNotaryID());
     const Identifier& theNotaryID = *(GetNotaryID());
-    OT_ASSERT(nullptr != GetPayoutAssetID());
-    const Identifier& thePayoutAssetID = *(GetPayoutAssetID());
+    OT_ASSERT(nullptr != GetPayoutInstrumentDefinitionID());
+    const Identifier& thePayoutInstrumentDefinitionID =
+        *(GetPayoutInstrumentDefinitionID());
     OT_ASSERT(nullptr != GetVoucherAcctID());
     const Identifier& theVoucherAcctID = *(GetVoucherAcctID());
     OT_ASSERT(nullptr != GetServer());
@@ -220,7 +224,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
     // just having it get lost in the ether.)
     bool bReturnValue = false;
 
-    Cheque theVoucher(theNotaryID, thePayoutAssetID);
+    Cheque theVoucher(theNotaryID, thePayoutInstrumentDefinitionID);
 
     // 10 minutes ==    600 Seconds
     // 1 hour    ==     3600 Seconds
@@ -302,21 +306,23 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                                    // to the sender.
         }
         else {
-            const String strPayoutAssetID(thePayoutAssetID),
+            const String strPayoutInstrumentDefinitionID(
+                thePayoutInstrumentDefinitionID),
                 strRecipientUserID(RECIPIENT_ID);
             OTLog::vError("PayDividendVisitor::Trigger: ERROR failed "
                           "issuing voucher (to send to dividend payout "
                           "recipient.) "
                           "WAS TRYING TO PAY %" PRId64
                           " of asset type %s to Nym %s.\n",
-                          lPayoutAmount, strPayoutAssetID.Get(),
+                          lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
                           strRecipientUserID.Get());
         }
         // If we didn't send it, then we need to return the funds to where they
         // came from.
         //
         if (!bSent) {
-            Cheque theReturnVoucher(theNotaryID, thePayoutAssetID);
+            Cheque theReturnVoucher(theNotaryID,
+                                    thePayoutInstrumentDefinitionID);
 
             const bool bIssueReturnVoucher = theReturnVoucher.IssueCheque(
                 lPayoutAmount,         // The amount of the cheque.
@@ -362,30 +368,33 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                                        // we return the rest to the sender.
             }
             else {
-                const String strPayoutAssetID(thePayoutAssetID),
+                const String strPayoutInstrumentDefinitionID(
+                    thePayoutInstrumentDefinitionID),
                     strSenderUserID(theSenderUserID);
-                OTLog::vError("PayDividendVisitor::Trigger: ERROR "
-                              "failed issuing voucher (to return back to "
-                              "the dividend payout initiator, after a failed "
-                              "payment attempt to the originally intended "
-                              "recipient.) WAS TRYING TO PAY %" PRId64
-                              " of asset type "
-                              "%s to Nym %s.\n",
-                              lPayoutAmount, strPayoutAssetID.Get(),
-                              strSenderUserID.Get());
+                OTLog::vError(
+                    "PayDividendVisitor::Trigger: ERROR "
+                    "failed issuing voucher (to return back to "
+                    "the dividend payout initiator, after a failed "
+                    "payment attempt to the originally intended "
+                    "recipient.) WAS TRYING TO PAY %" PRId64 " of asset type "
+                    "%s to Nym %s.\n",
+                    lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
+                    strSenderUserID.Get());
             }
         }  // if !bSent
     }
     else // !bGotNextTransNum
     {
-        const String strPayoutAssetID(thePayoutAssetID),
+        const String strPayoutInstrumentDefinitionID(
+            thePayoutInstrumentDefinitionID),
             strRecipientUserID(RECIPIENT_ID);
         OTLog::vError(
             "PayDividendVisitor::Trigger: ERROR!! Failed issuing next "
             "transaction "
             "number while trying to send a voucher (while paying dividends.) "
             "WAS TRYING TO PAY %" PRId64 " of asset type %s to Nym %s.\n",
-            lPayoutAmount, strPayoutAssetID.Get(), strRecipientUserID.Get());
+            lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
+            strRecipientUserID.Get());
     }
 
     return bReturnValue;

@@ -185,7 +185,7 @@ int32_t CmdShowMyOffers::run(string server, string mynym)
     }
 
     // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
-    // scale-assetID-currencyID
+    // scale-instrumentDefinitionID-currencyID
     // the value for each key is a sub-map, with the key: transaction ID and
     // value: the offer data itself.
     MapOfMaps* map_of_maps = convert_offerlist_to_maps(*offerList);

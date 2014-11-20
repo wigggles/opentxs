@@ -267,7 +267,6 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
         // drawn on, that will be interpreted by the server as a request to
         // CANCEL the cheque.
 
-        // string assetID = OTAPI_Wrap::Instrmnt_GetAssetID(payment);
         string type = OTAPI_Wrap::Instrmnt_GetType(payment);
 
         if ("SMARTCONTRACT" == type) {

@@ -233,16 +233,17 @@ public:
     /*
         FIRST: (Construction)
      OTAgreement(const OTIdentifier& SERVER_ID,            const OTIdentifier&
-    ASSET_ID);
+    INSTRUMENT_DEFINITION_ID);
        OR:
      OTAgreement(const OTIdentifier& SERVER_ID,            const OTIdentifier&
-    ASSET_ID, const OTIdentifier& SENDER_ACCT_ID,    const OTIdentifier&
+    INSTRUMENT_DEFINITION_ID, const OTIdentifier& SENDER_ACCT_ID,    const
+    OTIdentifier&
     SENDER_USER_ID, const OTIdentifier& RECIPIENT_ACCT_ID,    const
     OTIdentifier&
     RECIPIENT_USER_ID);
        OR:
      OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
-                                    pAccount->GetAssetTypeID(),
+                                    pAccount->GetInstrumentDefinitionID(),
                                     pAccount->GetRealAccountID(),
                                     pAccount->GetUserID(),
                                     RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
@@ -276,7 +277,7 @@ public:
 
      1) OTPaymentPlan * pPlan =
         new OTPaymentPlan(pAccount->GetRealNotaryID(),
-            pAccount->GetAssetTypeID(),
+            pAccount->GetInstrumentDefinitionID(),
             pAccount->GetRealAccountID(),
             pAccount->GetUserID(),
             RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
@@ -421,14 +422,18 @@ public:
     // From OTInstrument (parent class of OTTrackable, parent class of
     // OTCronItem, parent class of this)
     /*
-     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
+     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier&
+     INSTRUMENT_DEFINITION_ID)
      : OTContract()
 
-     inline const OTIdentifier& GetAssetID() const { return m_AssetTypeID; }
+     inline const OTIdentifier& GetInstrumentDefinitionID() const { return
+     m_InstrumentDefinitionID; }
      inline const OTIdentifier& GetNotaryID() const { return m_NotaryID; }
 
-     inline void SetAssetID(const OTIdentifier& ASSET_ID)  { m_AssetTypeID    =
-     ASSET_ID; }
+     inline void SetInstrumentDefinitionID(const OTIdentifier&
+     INSTRUMENT_DEFINITION_ID)  {
+     m_InstrumentDefinitionID    =
+     INSTRUMENT_DEFINITION_ID; }
      inline void SetNotaryID(const OTIdentifier& SERVER_ID) { m_NotaryID    =
      SERVER_ID; }
 
@@ -482,8 +487,10 @@ public:
         String* pstrNote = nullptr, String* pstrAttachment = nullptr,
         Nym* pActualNym = nullptr);
     OTAgreement();
-    OTAgreement(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
-    OTAgreement(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+    OTAgreement(const Identifier& SERVER_ID,
+                const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTAgreement(const Identifier& SERVER_ID,
+                const Identifier& INSTRUMENT_DEFINITION_ID,
                 const Identifier& SENDER_ACCT_ID,
                 const Identifier& SENDER_USER_ID,
                 const Identifier& RECIPIENT_ACCT_ID,

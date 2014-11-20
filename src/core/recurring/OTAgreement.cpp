@@ -1137,8 +1137,9 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
         // Same here -- we should let the merchant leave these blank,
         //      (   GetSenderUserID()    == rhs.GetSenderUserID()     ) && //
         // and then allow the customer to add them in his version,
-        (GetAssetID() == rhs.GetAssetID()) && // (and this Compare function
-                                              // still still verify it.)
+        (GetInstrumentDefinitionID() ==
+         rhs.GetInstrumentDefinitionID()) && // (and this Compare function
+                                             // still still verify it.)
         (GetNotaryID() == rhs.GetNotaryID()) &&
         (GetValidFrom() == rhs.GetValidFrom()) &&
         (GetValidTo() == rhs.GetValidTo()))
@@ -1459,19 +1460,20 @@ OTAgreement::OTAgreement()
 }
 
 OTAgreement::OTAgreement(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
+                         const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
 {
     InitAgreement();
 }
 
 OTAgreement::OTAgreement(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_ID,
+                         const Identifier& INSTRUMENT_DEFINITION_ID,
                          const Identifier& SENDER_ACCT_ID,
                          const Identifier& SENDER_USER_ID,
                          const Identifier& RECIPIENT_ACCT_ID,
                          const Identifier& RECIPIENT_USER_ID)
-    : ot_super(SERVER_ID, ASSET_ID, SENDER_ACCT_ID, SENDER_USER_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
+               SENDER_USER_ID)
 {
     InitAgreement();
 
@@ -1555,7 +1557,8 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
 
         const String strNotaryID(xml->getAttributeValue("notaryID")),
-            strAssetTypeID(xml->getAttributeValue("assetTypeID")),
+            strInstrumentDefinitionID(
+                xml->getAttributeValue("instrumentDefinitionID")),
             strSenderAcctID(xml->getAttributeValue("senderAcctID")),
             strSenderUserID(xml->getAttributeValue("senderUserID")),
             strRecipientAcctID(xml->getAttributeValue("recipientAcctID")),
@@ -1575,13 +1578,14 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_pCancelerNymID->Release();
         }
 
-        const Identifier SERVER_ID(strNotaryID), ASSET_ID(strAssetTypeID),
+        const Identifier SERVER_ID(strNotaryID),
+            INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
             SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID),
             RECIPIENT_ACCT_ID(strRecipientAcctID),
             RECIPIENT_USER_ID(strRecipientUserID);
 
         SetNotaryID(SERVER_ID);
-        SetAssetID(ASSET_ID);
+        SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
         SetSenderUserID(SENDER_USER_ID);
         SetRecipientAcctID(RECIPIENT_ACCT_ID);
@@ -1593,7 +1597,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otInfo << " Creation Date: " << tCreation
                << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
                << "\n"
-                  " AssetTypeID: " << strAssetTypeID
+                  " InstrumentDefinitionID: " << strInstrumentDefinitionID
                << "\n NotaryID: " << strNotaryID
                << "\n"
                   " senderAcctID: " << strSenderAcctID

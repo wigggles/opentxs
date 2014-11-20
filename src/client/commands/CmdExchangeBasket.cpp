@@ -296,7 +296,8 @@ int32_t CmdExchangeBasket::run(string myacct, string direction, string multiple)
             return harvestTxNumbers(basket, mynym);
         }
 
-        string subAssetType = OTAPI_Wrap::GetAccountWallet_AssetTypeID(account);
+        string subAssetType =
+            OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(account);
         if ("" == subAssetType) {
             otOut << "Error: cannot load account asset type.\n";
             return harvestTxNumbers(basket, mynym);

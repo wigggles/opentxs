@@ -503,14 +503,18 @@ public:
     // From OTInstrument (parent of OTTrackable, parent of OTCronItem, parent of
     // OTAgreement, parent of this)
     /*
-     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
+     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier&
+     INSTRUMENT_DEFINITION_ID)
      : OTContract()
 
-     inline const OTIdentifier& GetAssetID() const { return m_AssetTypeID; }
+     inline const OTIdentifier& GetInstrumentDefinitionID() const { return
+     m_InstrumentDefinitionID; }
      inline const OTIdentifier& GetNotaryID() const { return m_NotaryID; }
 
-     inline void SetAssetID(const OTIdentifier& ASSET_ID)  { m_AssetTypeID    =
-     ASSET_ID; }
+     inline void SetInstrumentDefinitionID(const OTIdentifier&
+     INSTRUMENT_DEFINITION_ID)  {
+     m_InstrumentDefinitionID    =
+     INSTRUMENT_DEFINITION_ID; }
      inline void SetNotaryID(const OTIdentifier& SERVER_ID) { m_NotaryID    =
      SERVER_ID; }
 
@@ -539,9 +543,9 @@ protected:
 public:
     EXPORT OTPaymentPlan();
     EXPORT OTPaymentPlan(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_ID);
+                         const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT OTPaymentPlan(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_ID,
+                         const Identifier& INSTRUMENT_DEFINITION_ID,
                          const Identifier& SENDER_ACCT_ID,
                          const Identifier& SENDER_USER_ID,
                          const Identifier& RECIPIENT_ACCT_ID,

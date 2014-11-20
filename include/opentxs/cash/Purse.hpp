@@ -184,9 +184,9 @@ protected:
     // or is for a temp Nym
     // which must be ATTACHED to the purse, if that boolean is set to true.
 
-    Identifier m_UserID;       // Optional
-    Identifier m_NotaryID;     // Mandatory
-    Identifier m_AssetID;      // Mandatory
+    Identifier m_UserID;                 // Optional
+    Identifier m_NotaryID;               // Mandatory
+    Identifier m_InstrumentDefinitionID; // Mandatory
     int64_t m_lTotalValue;     // Push increments this by denomination, and Pop
                                // decrements it by denomination.
     bool m_bPasswordProtected; // this purse might be encrypted to a passphrase,
@@ -230,15 +230,15 @@ public:
     EXPORT static Purse* PurseFactory(String strInput);
     EXPORT static Purse* PurseFactory(String strInput,
                                       const Identifier& SERVER_ID);
-    EXPORT static Purse* PurseFactory(String strInput,
-                                      const Identifier& SERVER_ID,
-                                      const Identifier& ASSET_ID);
+    EXPORT static Purse* PurseFactory(
+        String strInput, const Identifier& SERVER_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine);
     EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine,
                                              const Identifier& SERVER_ID);
-    EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine,
-                                             const Identifier& SERVER_ID,
-                                             const Identifier& ASSET_ID);
+    EXPORT static Purse* LowLevelInstantiate(
+        const String& strFirstLine, const Identifier& SERVER_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     // What if you DON'T want to encrypt the purse to your Nym??
     // What if you just want to use a passphrase instead?
@@ -307,23 +307,24 @@ public:
     EXPORT bool Merge(const Nym& theSigner, OTNym_or_SymmetricKey theOldNym,
                       OTNym_or_SymmetricKey theNewNym, Purse& theNewPurse);
     EXPORT Purse(const Purse& thePurse); // just for copy another purse's
-                                         // Server and Asset ID
+                                         // Server and Instrument Definition Id
     EXPORT Purse(const Identifier& SERVER_ID,
-                 const Identifier& ASSET_ID);  // similar thing
+                 const Identifier& INSTRUMENT_DEFINITION_ID); // similar thing
     EXPORT Purse(const Identifier& SERVER_ID); // Don't use this unless you
                                                // really don't know the
                                                // asset type
     // (Like if you're about to read it out of a string.)
     // Normally you really really want to set the asset type.
-    EXPORT Purse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+    EXPORT Purse(const Identifier& SERVER_ID,
+                 const Identifier& INSTRUMENT_DEFINITION_ID,
                  const Identifier& USER_ID); // UserID optional
     EXPORT virtual ~Purse();
     EXPORT bool LoadPurse(const char* szNotaryID = nullptr,
                           const char* szUserID = nullptr,
-                          const char* szAssetTypeID = nullptr);
+                          const char* szInstrumentDefinitionID = nullptr);
     EXPORT bool SavePurse(const char* szNotaryID = nullptr,
                           const char* szUserID = nullptr,
-                          const char* szAssetTypeID = nullptr);
+                          const char* szInstrumentDefinitionID = nullptr);
 
     virtual bool LoadContract();
 
@@ -331,9 +332,9 @@ public:
     {
         return m_NotaryID;
     }
-    inline const Identifier& GetAssetID() const
+    inline const Identifier& GetInstrumentDefinitionID() const
     {
-        return m_AssetID;
+        return m_InstrumentDefinitionID;
     }
     EXPORT void InitPurse();
     virtual void Release();

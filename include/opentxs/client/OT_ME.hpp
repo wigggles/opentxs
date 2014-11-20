@@ -223,8 +223,9 @@ public:
 
     EXPORT std::string exchange_basket_currency(
         const std::string& SERVER_ID, const std::string& NYM_ID,
-        const std::string& ASSET_TYPE_ID, const std::string& THE_BASKET,
-        const std::string& ACCOUNT_ID, bool IN_OR_OUT) const;
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_BASKET, const std::string& ACCOUNT_ID,
+        bool IN_OR_OUT) const;
 
     EXPORT std::string retrieve_contract(const std::string& SERVER_ID,
                                          const std::string& NYM_ID,
@@ -236,7 +237,7 @@ public:
 
     EXPORT std::string create_asset_acct(
         const std::string& SERVER_ID, const std::string& NYM_ID,
-        const std::string& ASSET_TYPE_ID) const;
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT std::string stat_asset_account(const std::string& ACCOUNT_ID) const;
 
@@ -337,13 +338,13 @@ public:
                                        int32_t nBoxType,
                                        int64_t TRANS_NUM) const;
 
-    EXPORT std::string retrieve_mint(const std::string& SERVER_ID,
-                                     const std::string& NYM_ID,
-                                     const std::string& ASSET_ID) const;
+    EXPORT std::string retrieve_mint(
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT std::string load_or_retrieve_mint(const std::string& SERVER_ID,
-                                             const std::string& NYM_ID,
-                                             const std::string& ASSET_ID) const;
+    EXPORT std::string load_or_retrieve_mint(
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT std::string query_asset_types(const std::string& SERVER_ID,
                                          const std::string& NYM_ID,
@@ -390,7 +391,7 @@ public:
 
     EXPORT std::string export_cash(const std::string& SERVER_ID,
                                    const std::string& FROM_NYM_ID,
-                                   const std::string& ASSET_TYPE_ID,
+                                   const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& TO_NYM_ID,
                                    const std::string& STR_INDICES,
                                    bool bPasswordProtected,
@@ -403,12 +404,11 @@ public:
                                         const std::string& STR_MEMO,
                                         int64_t AMOUNT) const;
 
-    EXPORT std::string pay_dividend(const std::string& SERVER_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& SOURCE_ACCT_ID,
-                                    const std::string& SHARES_ASSET_ID,
-                                    const std::string& STR_MEMO,
-                                    int64_t AMOUNT_PER_SHARE) const;
+    EXPORT std::string pay_dividend(
+        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& SOURCE_ACCT_ID,
+        const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
+        const std::string& STR_MEMO, int64_t AMOUNT_PER_SHARE) const;
 
     EXPORT std::string deposit_cheque(const std::string& SERVER_ID,
                                       const std::string& NYM_ID,

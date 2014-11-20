@@ -391,7 +391,8 @@ bool Transactor::removeIssuedNumber(Nym& theNym,
 /// this purpose. Right now I'm using the "contract" key which is already used
 /// to verify
 /// any asset or server contract.
-AssetContract* Transactor::getAssetContract(const Identifier& ASSET_TYPE_ID)
+AssetContract* Transactor::getAssetContract(
+    const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     for (auto& it : contractsMap_) {
         AssetContract* pContract = it.second;
@@ -400,7 +401,7 @@ AssetContract* Transactor::getAssetContract(const Identifier& ASSET_TYPE_ID)
         Identifier theContractID;
         pContract->GetIdentifier(theContractID);
 
-        if (theContractID == ASSET_TYPE_ID) return pContract;
+        if (theContractID == INSTRUMENT_DEFINITION_ID) return pContract;
     }
 
     return nullptr;
@@ -534,23 +535,24 @@ bool Transactor::lookupBasketAccountID(const Identifier& BASKET_ID,
 /// exist, and since it's being requested, also will GENERATE it if it cannot
 /// be found, add it to the list, and return the pointer. Should always succeed.
 std::shared_ptr<Account> Transactor::getVoucherAccount(
-    const Identifier& ASSET_TYPE_ID)
+    const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     std::shared_ptr<Account> pAccount;
     const Identifier SERVER_USER_ID(server_->m_nymServer),
         SERVER_ID(server_->m_strNotaryID);
     bool bWasAcctCreated = false;
     pAccount = voucherAccounts_.GetOrCreateAccount(
-        server_->m_nymServer, SERVER_USER_ID, ASSET_TYPE_ID, SERVER_ID,
-        bWasAcctCreated);
+        server_->m_nymServer, SERVER_USER_ID, INSTRUMENT_DEFINITION_ID,
+        SERVER_ID, bWasAcctCreated);
     if (bWasAcctCreated) {
         String strAcctID;
         pAccount->GetIdentifier(strAcctID);
-        const String strAssetTypeID(ASSET_TYPE_ID);
+        const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-        OTLog::vOutput(0, "OTServer::GetVoucherAccount: Successfully created "
-                          "voucher account ID: %s Asset Type ID: %s\n",
-                       strAcctID.Get(), strAssetTypeID.Get());
+        OTLog::vOutput(0,
+                       "OTServer::GetVoucherAccount: Successfully created "
+                       "voucher account ID: %s Instrument Definition ID: %s\n",
+                       strAcctID.Get(), strInstrumentDefinitionID.Get());
 
         if (!server_->mainFile_.SaveMainFile()) {
             OTLog::Error("OTServer::GetVoucherAccount: Error saving main "
@@ -562,7 +564,7 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
 }
 
 /// Lookup the current mint for any given asset type ID and series.
-Mint* Transactor::getMint(const Identifier& ASSET_TYPE_ID,
+Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
                           int32_t nSeries) // Each asset contract has its own
                                            // Mint.
 {
@@ -576,23 +578,24 @@ Mint* Transactor::getMint(const Identifier& ASSET_TYPE_ID,
         Identifier theID;
         pMint->GetIdentifier(theID);
 
-        if ((ASSET_TYPE_ID ==
+        if ((INSTRUMENT_DEFINITION_ID ==
              theID) && // if the ID on the Mint matches the ID passed in
             (nSeries == pMint->GetSeries())) // and the series also matches...
             return pMint; // return the pointer right here, we're done.
     }
     // The mint isn't in memory for the series requested.
-    const String ASSET_ID_STR(ASSET_TYPE_ID);
+    const String INSTRUMENT_DEFINITION_ID_STR(INSTRUMENT_DEFINITION_ID);
 
     String strMintFilename;
     strMintFilename.Format("%s%s%s%s%d", server_->m_strNotaryID.Get(),
-                           OTLog::PathSeparator(), ASSET_ID_STR.Get(), ".",
-                           nSeries);
+                           OTLog::PathSeparator(),
+                           INSTRUMENT_DEFINITION_ID_STR.Get(), ".", nSeries);
 
     const char* szFoldername = OTFolders::Mint().Get();
     const char* szFilename = strMintFilename.Get();
-    pMint = Mint::MintFactory(server_->m_strNotaryID,
-                              server_->m_strServerUserID, ASSET_ID_STR);
+    pMint =
+        Mint::MintFactory(server_->m_strNotaryID, server_->m_strServerUserID,
+                          INSTRUMENT_DEFINITION_ID_STR);
 
     // You cannot hash the Mint to get its ID. (The ID is a hash of the asset
     // contract.)
@@ -615,10 +618,10 @@ Mint* Transactor::getMint(const Identifier& ASSET_TYPE_ID,
             // but expiry dates are only enforced on the Mint itself during a
             // withdrawal.)
             // It's a multimap now...
-            // mintsMap_[ASSET_ID_STR.Get()] = pMint;
+            // mintsMap_[INSTRUMENT_DEFINITION_ID_STR.Get()] = pMint;
 
-            mintsMap_.insert(
-                std::pair<std::string, Mint*>(ASSET_ID_STR.Get(), pMint));
+            mintsMap_.insert(std::pair<std::string, Mint*>(
+                INSTRUMENT_DEFINITION_ID_STR.Get(), pMint));
 
             return pMint;
         }

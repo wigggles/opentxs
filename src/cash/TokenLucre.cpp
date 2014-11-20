@@ -166,8 +166,8 @@ Token_Lucre::Token_Lucre()
 }
 
 Token_Lucre::Token_Lucre(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
+                         const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
 {
 }
 

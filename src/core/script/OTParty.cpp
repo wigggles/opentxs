@@ -340,11 +340,13 @@ bool OTParty::AddAgent(OTAgent& theAgent)
 }
 
 bool OTParty::AddAccount(const String& strAgentName, const String& strName,
-                         const String& strAcctID, const String& strAssetTypeID,
+                         const String& strAcctID,
+                         const String& strInstrumentDefinitionID,
                          int64_t lClosingTransNo)
 {
-    OTPartyAccount* pPartyAccount = new OTPartyAccount(
-        strName, strAgentName, strAcctID, strAssetTypeID, lClosingTransNo);
+    OTPartyAccount* pPartyAccount =
+        new OTPartyAccount(strName, strAgentName, strAcctID,
+                           strInstrumentDefinitionID, lClosingTransNo);
     OT_ASSERT(nullptr != pPartyAccount);
 
     if (!AddAccount(*pPartyAccount)) {
@@ -1723,7 +1725,8 @@ bool OTParty::ReserveTransNumsForConfirm(const String& strNotaryID)
 }
 
 void OTParty::Serialize(String& strAppend, bool bCalculatingID,
-                        bool bSpecifyAssetID, bool bSpecifyParties) const
+                        bool bSpecifyInstrumentDefinitionID,
+                        bool bSpecifyParties) const
 {
     strAppend.Concatenate(
         "<party\n name=\"%s\"\n"
@@ -1755,7 +1758,8 @@ void OTParty::Serialize(String& strAppend, bool bCalculatingID,
     for (auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
         OT_ASSERT(nullptr != pAcct);
-        pAcct->Serialize(strAppend, bCalculatingID, bSpecifyAssetID);
+        pAcct->Serialize(strAppend, bCalculatingID,
+                         bSpecifyInstrumentDefinitionID);
     }
 
     if (!bCalculatingID && m_strMySignedCopy.Exists()) {
@@ -1880,7 +1884,8 @@ bool OTParty::CopyAcctsToConfirmingParty(OTParty& theParty) const
 
         if (false ==
             theParty.AddAccount(pAcct->GetAgentName(), pAcct->GetName(),
-                                pAcct->GetAcctID(), pAcct->GetAssetTypeID(),
+                                pAcct->GetAcctID(),
+                                pAcct->GetInstrumentDefinitionID(),
                                 pAcct->GetClosingTransNo())) {
             otOut
                 << "OTParty::CopyAcctsToConfirmingParty: Unable to add Account "

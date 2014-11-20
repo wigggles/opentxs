@@ -299,7 +299,7 @@ public:
                                 const Identifier& SIGNER_NYM_ID,
                                 const String& ACCT_NEW_NAME) const;
 
-    EXPORT bool SetAssetType_Name(const Identifier& ASSET_ID,
+    EXPORT bool SetAssetType_Name(const Identifier& INSTRUMENT_DEFINITION_ID,
                                   const String& STR_NEW_NAME) const;
 
     EXPORT bool SetServer_Name(const Identifier& SERVER_ID,
@@ -333,12 +333,14 @@ public:
     EXPORT bool Wallet_ChangePassphrase() const;
 
     EXPORT bool Wallet_CanRemoveServer(const Identifier& SERVER_ID) const;
-    EXPORT bool Wallet_CanRemoveAssetType(const Identifier& ASSET_ID) const;
+    EXPORT bool Wallet_CanRemoveAssetType(
+        const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT bool Wallet_CanRemoveNym(const Identifier& NYM_ID) const;
     EXPORT bool Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const;
 
     EXPORT bool Wallet_RemoveServer(const Identifier& SERVER_ID) const;
-    EXPORT bool Wallet_RemoveAssetType(const Identifier& ASSET_ID) const;
+    EXPORT bool Wallet_RemoveAssetType(
+        const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT bool Wallet_RemoveNym(const Identifier& NYM_ID) const;
     // OT has the capability to export a Nym (normally stored in several files)
     // as an encoded
@@ -383,7 +385,7 @@ public:
     // (Which may have a different owner Nym, or be protected
     // by a symmetric key instead of a Nym.)
     bool Wallet_ImportPurse(
-        const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+        const Identifier& SERVER_ID, const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& SIGNER_ID, // We must know the SIGNER_ID in order to
                                      // know which "old purse" to load and
                                      // merge into. The New Purse may have a
@@ -532,23 +534,25 @@ public:
                                    const Identifier& RECIPIENT_USER_ID,
                                    OTPaymentPlan& thePlan) const;
     EXPORT Purse* LoadPurse(const Identifier& SERVER_ID,
-                            const Identifier& ASSET_ID,
+                            const Identifier& INSTRUMENT_DEFINITION_ID,
                             const Identifier& USER_ID,
                             const String* pstrDisplay = nullptr) const;
     EXPORT bool SavePurse(const Identifier& SERVER_ID,
-                          const Identifier& ASSET_ID, const Identifier& USER_ID,
-                          Purse& THE_PURSE) const;
+                          const Identifier& INSTRUMENT_DEFINITION_ID,
+                          const Identifier& USER_ID, Purse& THE_PURSE) const;
     EXPORT Purse* CreatePurse(const Identifier& SERVER_ID,
-                              const Identifier& ASSET_ID,
+                              const Identifier& INSTRUMENT_DEFINITION_ID,
                               const Identifier& OWNER_ID) const;
-    EXPORT Purse* CreatePurse_Passphrase(const Identifier& SERVER_ID,
-                                         const Identifier& ASSET_ID) const;
+    EXPORT Purse* CreatePurse_Passphrase(
+        const Identifier& SERVER_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID) const;
     // This is a low-level utility function. Probably should
     // make this private so people don't confuse it with the API.
     // All the purse functions use this.
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerFromString(
-        const Identifier& theNotaryID, const Identifier& theAssetTypeID,
-        const String& strPurse, Purse& thePurse, // output
+        const Identifier& theNotaryID,
+        const Identifier& theInstrumentDefinitionID, const String& strPurse,
+        Purse& thePurse,         // output
         OTPassword& thePassword, // Only used in the case of password-protected
                                  // purses. Passed in so it won't go out of
                                  // scope when return value has a member set to
@@ -578,7 +582,7 @@ public:
         // try next, before failing.
         const String* pstrDisplay = nullptr) const;
     EXPORT Token* Purse_Peek(
-        const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+        const Identifier& SERVER_ID, const Identifier& INSTRUMENT_DEFINITION_ID,
         const String& THE_PURSE,
         const Identifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
                                                // purse is password-protected.
@@ -588,7 +592,7 @@ public:
         const String* pstrDisplay = nullptr) const;
 
     EXPORT Purse* Purse_Pop(const Identifier& SERVER_ID,
-                            const Identifier& ASSET_TYPE_ID,
+                            const Identifier& INSTRUMENT_DEFINITION_ID,
                             const String& THE_PURSE,
                             const Identifier* pOWNER_ID =
                                 nullptr, // This can be nullptr, **IF** purse
@@ -600,12 +604,12 @@ public:
                             const String* pstrDisplay = nullptr) const;
 
     EXPORT Purse* Purse_Empty(const Identifier& SERVER_ID,
-                              const Identifier& ASSET_TYPE_ID,
+                              const Identifier& INSTRUMENT_DEFINITION_ID,
                               const String& THE_PURSE,
                               const String* pstrDisplay = nullptr) const;
 
     EXPORT Purse* Purse_Push(
-        const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+        const Identifier& SERVER_ID, const Identifier& INSTRUMENT_DEFINITION_ID,
         const String& THE_PURSE, const String& THE_TOKEN,
         const Identifier* pOWNER_ID = nullptr, // This can be nullptr, **IF**
                                                // purse is password-protected.
@@ -616,30 +620,33 @@ public:
         const String* pstrDisplay = nullptr) const;
 
     EXPORT Token* Token_ChangeOwner(
-        const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+        const Identifier& SERVER_ID, const Identifier& INSTRUMENT_DEFINITION_ID,
         const String& THE_TOKEN, const Identifier& SIGNER_NYM_ID,
         const String& OLD_OWNER, // Pass a NymID here, or a purse.
         const String& NEW_OWNER, // Pass a NymID here, or a purse.
         const String* pstrDisplay = nullptr) const;
     EXPORT Mint* LoadMint(const Identifier& SERVER_ID,
-                          const Identifier& ASSET_ID) const;
-    EXPORT AssetContract* LoadAssetContract(const Identifier& ASSET_ID) const;
+                          const Identifier& INSTRUMENT_DEFINITION_ID) const;
+    EXPORT AssetContract* LoadAssetContract(
+        const Identifier& INSTRUMENT_DEFINITION_ID) const;
     EXPORT OTServerContract* LoadServerContract(
         const Identifier& SERVER_ID) const;
-    EXPORT bool IsBasketCurrency(const Identifier& BASKET_ASSET_TYPE_ID) const;
+    EXPORT bool IsBasketCurrency(
+        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int64_t GetBasketMinimumTransferAmount(
-        const Identifier& BASKET_ASSET_TYPE_ID) const;
+        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT int32_t
-        GetBasketMemberCount(const Identifier& BASKET_ASSET_TYPE_ID) const;
+    EXPORT int32_t GetBasketMemberCount(
+        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT bool GetBasketMemberType(const Identifier& BASKET_ASSET_TYPE_ID,
-                                    int32_t nIndex,
-                                    Identifier& theOutputMemberType) const;
+    EXPORT bool GetBasketMemberType(
+        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID, int32_t nIndex,
+        Identifier& theOutputMemberType) const;
 
     EXPORT int64_t GetBasketMemberMinimumTransferAmount(
-        const Identifier& BASKET_ASSET_TYPE_ID, int32_t nIndex) const;
+        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
+        int32_t nIndex) const;
     EXPORT Account* LoadAssetAccount(const Identifier& SERVER_ID,
                                      const Identifier& USER_ID,
                                      const Identifier& ACCOUNT_ID) const;
@@ -778,13 +785,13 @@ public:
                                   const Identifier& USER_ID,
                                   const String& THE_CONTRACT) const;
 
-    EXPORT int32_t getContract(const Identifier& SERVER_ID,
-                               const Identifier& USER_ID,
-                               const Identifier& ASSET_ID) const;
+    EXPORT int32_t
+        getContract(const Identifier& SERVER_ID, const Identifier& USER_ID,
+                    const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int32_t getMint(const Identifier& SERVER_ID,
                            const Identifier& USER_ID,
-                           const Identifier& ASSET_ID) const;
+                           const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int32_t
         getBoxReceipt(const Identifier& SERVER_ID, const Identifier& USER_ID,
@@ -798,9 +805,10 @@ public:
                                    const Identifier& USER_ID,
                                    const OTASCIIArmor& ENCODED_MAP) const;
 
-    EXPORT int32_t createAssetAccount(const Identifier& SERVER_ID,
-                                      const Identifier& USER_ID,
-                                      const Identifier& ASSET_ID) const;
+    EXPORT int32_t
+        createAssetAccount(const Identifier& SERVER_ID,
+                           const Identifier& USER_ID,
+                           const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int32_t deleteAssetAccount(const Identifier& SERVER_ID,
                                       const Identifier& USER_ID,
@@ -816,10 +824,11 @@ public:
                                          // defaults to 10.
 
     EXPORT bool AddBasketCreationItem(
-        const Identifier& USER_ID,       // for signature.
-        Basket& theBasket,               // created in above call.
-        const Identifier& ASSET_TYPE_ID, // Adding an asset type to the new
-                                         // basket.
+        const Identifier& USER_ID,                  // for signature.
+        Basket& theBasket,                          // created in above call.
+        const Identifier& INSTRUMENT_DEFINITION_ID, // Adding an asset type to
+                                                    // the new
+                                                    // basket.
         int64_t MINIMUM_TRANSFER) const; // The amount of the asset type
                                          // that is
                                          // in the basket.
@@ -830,20 +839,19 @@ public:
 
     EXPORT Basket* GenerateBasketExchange(
         const Identifier& SERVER_ID, const Identifier& USER_ID,
-        const Identifier& BASKET_ASSET_TYPE_ID,
+        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         const Identifier& BASKET_ASSET_ACCT_ID,
         int32_t TRANSFER_MULTIPLE) const; // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 
-    EXPORT bool AddBasketExchangeItem(const Identifier& SERVER_ID,
-                                      const Identifier& USER_ID,
-                                      Basket& theBasket,
-                                      const Identifier& ASSET_TYPE_ID,
-                                      const Identifier& ASSET_ACCT_ID) const;
+    EXPORT bool AddBasketExchangeItem(
+        const Identifier& SERVER_ID, const Identifier& USER_ID,
+        Basket& theBasket, const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& ASSET_ACCT_ID) const;
 
     EXPORT int32_t
         exchangeBasket(const Identifier& SERVER_ID, const Identifier& USER_ID,
-                       const Identifier& BASKET_ASSET_ID,
+                       const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
                        const String& BASKET_INFO, bool bExchangeInOrOut) const;
 
     EXPORT int32_t getTransactionNumber(const Identifier& SERVER_ID,
@@ -887,13 +895,14 @@ public:
 
     EXPORT int32_t payDividend(
         const Identifier& SERVER_ID,
-        const Identifier& ISSUER_USER_ID,        // must be issuer of
-                                                 // SHARES_ASSET_TYPE_ID
+        const Identifier& ISSUER_USER_ID, // must be issuer of
+                                          // SHARES_INSTRUMENT_DEFINITION_ID
         const Identifier& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
                                                  // shares, then this is the
                                                  // issuer's dollars account.
-        const Identifier& SHARES_ASSET_TYPE_ID,  // if dollars paid for pepsi
-                                                 // shares,
+        const Identifier& SHARES_INSTRUMENT_DEFINITION_ID, // if dollars paid
+                                                           // for pepsi
+                                                           // shares,
         // then this is the pepsi shares
         // asset type id.
         const String& DIVIDEND_MEMO, // user-configurable note that's added to
@@ -1015,11 +1024,13 @@ public:
         const Identifier& SIGNER_NYM_ID, // Use any Nym you wish here. (The
                                          // signing at this point is only to
                                          // cause a save.)
-        const String& PARTY_NAME,    // The Party's NAME as referenced in the
-                                     // smart contract. (And the scripts...)
-        const String& ACCT_NAME,     // The Account's name as referenced in the
-                                     // smart contract
-        const String& ASSET_TYPE_ID, // Asset Type ID for the Account.
+        const String& PARTY_NAME, // The Party's NAME as referenced in the
+                                  // smart contract. (And the scripts...)
+        const String& ACCT_NAME,  // The Account's name as referenced in the
+                                  // smart contract
+        const String& INSTRUMENT_DEFINITION_ID, // Instrument Definition ID for
+                                                // the
+                                                // Account.
         String& strOutput) const;
 
     EXPORT int32_t SmartContract_CountNumsNeeded(

@@ -242,13 +242,14 @@ public:
     String m_strNymID2;     // If the user requests public key of another user.
                             // ALSO used for MARKET ID sometimes.
     String m_strNymPublicKey; // The user's public key... or x509 cert.
-    String m_strAssetID;      // The hash of the contract for whatever digital
-                              // asset is referenced.
-    String m_strAcctID;       // The unique ID of an asset account.
-    String m_strType;         // .
-    String m_strRequestNum;   // Every user has a request number. This prevents
-                              // messages from
-                              // being intercepted and repeated by attackers.
+    String m_strInstrumentDefinitionID; // The hash of the contract for whatever
+                                        // digital
+                                        // asset is referenced.
+    String m_strAcctID;                 // The unique ID of an asset account.
+    String m_strType;                   // .
+    String m_strRequestNum; // Every user has a request number. This prevents
+                            // messages from
+                            // being intercepted and repeated by attackers.
 
     OTASCIIArmor m_ascInReferenceTo; // If the server responds to a user
                                      // command, he sends

@@ -225,7 +225,8 @@ bool CmdOutpayment::showOutpayment(const string& mynym, int32_t index,
     string recipient =
         OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex(mynym, index);
     int64_t amount = OTAPI_Wrap::Instrmnt_GetAmount(payment);
-    string assetID = OTAPI_Wrap::Instrmnt_GetAssetID(payment);
+    string instrumentDefinitionID =
+        OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(payment);
     string type = OTAPI_Wrap::Instrmnt_GetType(payment);
 
     cout << "         Amount: ";
@@ -238,13 +239,14 @@ bool CmdOutpayment::showOutpayment(const string& mynym, int32_t index,
             type = "UNKNOWN_PAYMENT_TYPE";
         }
         cout << "  (" << type << ": "
-             << OTAPI_Wrap::FormatAmount(assetID, amount) << ")";
+             << OTAPI_Wrap::FormatAmount(instrumentDefinitionID, amount) << ")";
         cout << "\n";
     }
 
-    cout << "  Of asset type: " << assetID;
-    if ("" != assetID) {
-        cout << " \"" << OTAPI_Wrap::GetAssetType_Name(assetID) << "\"";
+    cout << "  Of asset type: " << instrumentDefinitionID;
+    if ("" != instrumentDefinitionID) {
+        cout << " \"" << OTAPI_Wrap::GetAssetType_Name(instrumentDefinitionID)
+             << "\"";
     }
     cout << "\n";
 

@@ -417,7 +417,7 @@ public:
     std::string GetStashBalance(std::string stash_name,
                                 std::string asset_type_id);
 
-    std::string GetAssetTypeIDofAcct(std::string from_acct_name);
+    std::string GetInstrumentDefinitionIDofAcct(std::string from_acct_name);
 
     // Todo: someday add "rejection notice" here too.
     // (Might be a demand for smart contracts to send failure notices.)

@@ -265,7 +265,8 @@ void OTPaymentPlan::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(GetNotaryID()), ASSET_TYPE_ID(GetAssetID()),
+    const String SERVER_ID(GetNotaryID()),
+        INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
         RECIPIENT_ACCT_ID(GetRecipientAcctID()),
         RECIPIENT_USER_ID(GetRecipientUserID());
@@ -280,7 +281,7 @@ void OTPaymentPlan::UpdateContents()
     m_xmlUnsigned.Concatenate(
         "<agreement\n version=\"%s\"\n"
         " notaryID=\"%s\"\n"
-        " assetTypeID=\"%s\"\n"
+        " instrumentDefinitionID=\"%s\"\n"
         " senderAcctID=\"%s\"\n"
         " senderUserID=\"%s\"\n"
         " recipientAcctID=\"%s\"\n"
@@ -292,7 +293,7 @@ void OTPaymentPlan::UpdateContents()
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), SERVER_ID.Get(), ASSET_TYPE_ID.Get(),
+        m_strVersion.Get(), SERVER_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(),
         SENDER_ACCT_ID.Get(), SENDER_USER_ID.Get(), RECIPIENT_ACCT_ID.Get(),
         RECIPIENT_USER_ID.Get(), m_bCanceled ? "true" : "false",
         m_bCanceled ? strCanceler.Get() : "", m_lTransactionNum,
@@ -621,8 +622,8 @@ OTPaymentPlan::OTPaymentPlan()
 }
 
 OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
-                             const Identifier& ASSET_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
+                             const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -630,13 +631,13 @@ OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
 }
 
 OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
-                             const Identifier& ASSET_ID,
+                             const Identifier& INSTRUMENT_DEFINITION_ID,
                              const Identifier& SENDER_ACCT_ID,
                              const Identifier& SENDER_USER_ID,
                              const Identifier& RECIPIENT_ACCT_ID,
                              const Identifier& RECIPIENT_USER_ID)
-    : ot_super(SERVER_ID, ASSET_ID, SENDER_ACCT_ID, SENDER_USER_ID,
-               RECIPIENT_ACCT_ID, RECIPIENT_USER_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
+               SENDER_USER_ID, RECIPIENT_ACCT_ID, RECIPIENT_USER_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -884,10 +885,11 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // A few verification if/elses...
 
     // Are both accounts of the same Asset Type?
-    if (pSourceAcct->GetAssetTypeID() !=
-        pRecipientAcct->GetAssetTypeID()) { // We already know the SUPPOSED
-                                            // Asset IDs of these accounts...
-                                            // But only once
+    if (pSourceAcct->GetInstrumentDefinitionID() !=
+        pRecipientAcct->GetInstrumentDefinitionID()) { // We already know the
+                                                       // SUPPOSED
+        // Instrument Definition Ids of these accounts...
+        // But only once
         // the accounts THEMSELVES have been loaded can we VERIFY this to be
         // true.
         otOut << "ERROR - attempted payment between accounts of different "

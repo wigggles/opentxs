@@ -644,7 +644,7 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
     return nullptr;
 }
 
-Account* OTWallet::GetIssuerAccount(const Identifier& theAssetTypeID)
+Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
 {
     // loop through the accounts and find one with a specific asset type ID.
     // (And with the issuer type set.)
@@ -653,7 +653,8 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theAssetTypeID)
         Account* pIssuerAccount = it.second;
         OT_ASSERT(nullptr != pIssuerAccount);
 
-        if ((pIssuerAccount->GetAssetTypeID() == theAssetTypeID) &&
+        if ((pIssuerAccount->GetInstrumentDefinitionID() ==
+             theInstrumentDefinitionID) &&
             (pIssuerAccount->IsIssuer()))
             return pIssuerAccount;
     }
@@ -1683,7 +1684,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
             String NymID;
 
             String AssetName;
-            String AssetID;
+            String InstrumentDefinitionID;
 
             String ServerName;
             String NotaryID;
@@ -1881,16 +1882,18 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                     //                    AssetName        =
                     // xml->getAttributeValue("name");
-                    AssetID = xml->getAttributeValue(
-                        "assetTypeID"); // hash of contract itself
+                    InstrumentDefinitionID = xml->getAttributeValue(
+                        "instrumentDefinitionID"); // hash of contract itself
 
                     otInfo << "\n\n****Asset Contract**** (wallet listing)\n  "
                               "Asset Name: " << AssetName
-                           << "\n Contract ID: " << AssetID << "\n";
+                           << "\n Contract ID: " << InstrumentDefinitionID
+                           << "\n";
 
                     String strContractPath(OTFolders::Contract());
                     AssetContract* pContract = new AssetContract(
-                        AssetName, strContractPath, AssetID, AssetID);
+                        AssetName, strContractPath, InstrumentDefinitionID,
+                        InstrumentDefinitionID);
 
                     OT_ASSERT_MSG(nullptr != pContract,
                                   "Error allocating memory "
@@ -1906,7 +1909,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                             pContract->SetName(AssetName);
 
-                            m_mapContracts[AssetID.Get()] = pContract;
+                            m_mapContracts[InstrumentDefinitionID.Get()] =
+                                pContract;
                         }
                         else {
                             delete pContract;

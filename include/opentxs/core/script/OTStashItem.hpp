@@ -140,7 +140,7 @@ namespace opentxs
 
 class OTStashItem
 {
-    String m_strAssetTypeID;
+    String m_strInstrumentDefinitionID;
     int64_t m_lAmount;
 
 public:
@@ -154,13 +154,14 @@ public:
     }
     bool CreditStash(const int64_t& lAmount);
     bool DebitStash(const int64_t& lAmount);
-    const String& GetAssetTypeID()
+    const String& GetInstrumentDefinitionID()
     {
-        return m_strAssetTypeID;
+        return m_strInstrumentDefinitionID;
     }
     OTStashItem();
-    OTStashItem(const String& strAssetTypeID, int64_t lAmount = 0);
-    OTStashItem(const Identifier& theAssetTypeID, int64_t lAmount = 0);
+    OTStashItem(const String& strInstrumentDefinitionID, int64_t lAmount = 0);
+    OTStashItem(const Identifier& theInstrumentDefinitionID,
+                int64_t lAmount = 0);
     virtual ~OTStashItem();
 };
 

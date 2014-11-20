@@ -165,7 +165,8 @@ class OTTrackable;
  (each with scripted
   clauses, internal state, hooks, callbacks, etc.)
 
- OTInstrument — Has a date range, a server ID, and an asset ID. Derived from
+ OTInstrument — Has a date range, a server ID, and an instrument definition id.
+ Derived from
  OTScriptable.
 
  OTTrackable  — Has a transaction number, user ID, and an asset account ID.
@@ -246,8 +247,9 @@ protected:
 
     String m_strMemo; // Memo, Consideration, Subject, etc.
 
-    Identifier m_AssetTypeID;  // These are for convenience only, for caching
-                               // once they happen to be loaded.
+    Identifier m_InstrumentDefinitionID; // These are for convenience only, for
+                                         // caching
+                                         // once they happen to be loaded.
     Identifier m_NotaryID;     // These values are NOT serialized other than via
                                // the payment instrument itself
     Identifier m_SenderUserID; // (where they are captured from, whenever it
@@ -312,13 +314,13 @@ public:
     EXPORT Purse* InstantiatePurse() const;
     //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID) const;
     //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID, const
-    // OTIdentifier& ASSET_ID) const;
+    // OTIdentifier& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT Purse* InstantiatePurse(const String& strPayment);
     //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID,
     //                                   const OTString& strPayment);
     //        OTPurse * InstantiatePurse(const OTIdentifier& SERVER_ID, const
-    // OTIdentifier& ASSET_ID,
+    // OTIdentifier& INSTRUMENT_DEFINITION_ID,
     //                                   const OTString& strPayment);
     EXPORT bool GetPaymentContents(String& strOutput) const
     {
@@ -356,7 +358,7 @@ public:
     EXPORT bool GetAllTransactionNumbers(OTNumList& numlistOutput) const;
     EXPORT bool HasTransactionNum(const int64_t& lInput) const;
     EXPORT bool GetMemo(String& strOutput) const;
-    EXPORT bool GetAssetTypeID(Identifier& theOutput) const;
+    EXPORT bool GetInstrumentDefinitionID(Identifier& theOutput) const;
     EXPORT bool GetNotaryID(Identifier& theOutput) const;
     EXPORT bool GetSenderUserID(Identifier& theOutput) const;
     EXPORT bool GetSenderAcctID(Identifier& theOutput) const;

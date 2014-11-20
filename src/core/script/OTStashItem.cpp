@@ -143,7 +143,8 @@ namespace opentxs
  int64_t GetAmount() const { return m_lAmount; }
  void SetAmount( int64_t lAmount) { m_lAmount = lAmount; }
 
- const OTString& GetAssetTypeID() { return m_strAssetTypeID; }
+ const OTString& GetInstrumentDefinitionID() { return
+ m_strInstrumentDefinitionID; }
  */
 
 OTStashItem::OTStashItem()
@@ -151,14 +152,16 @@ OTStashItem::OTStashItem()
 {
 }
 
-OTStashItem::OTStashItem(const String& strAssetTypeID, int64_t lAmount)
-    : m_strAssetTypeID(strAssetTypeID)
+OTStashItem::OTStashItem(const String& strInstrumentDefinitionID,
+                         int64_t lAmount)
+    : m_strInstrumentDefinitionID(strInstrumentDefinitionID)
     , m_lAmount(lAmount)
 {
 }
 
-OTStashItem::OTStashItem(const Identifier& theAssetTypeID, int64_t lAmount)
-    : m_strAssetTypeID(theAssetTypeID)
+OTStashItem::OTStashItem(const Identifier& theInstrumentDefinitionID,
+                         int64_t lAmount)
+    : m_strInstrumentDefinitionID(theInstrumentDefinitionID)
     , m_lAmount(lAmount)
 {
 }
@@ -193,7 +196,7 @@ bool OTStashItem::CreditStash(const int64_t& lAmount)
     if (lAmount < 0) {
         otOut << "OTStashItem::CreditStash: Failed attempt to credit a "
                  "negative amount (" << lAmount
-              << "). Asset Type: " << m_strAssetTypeID << " \n";
+              << "). Asset Type: " << m_strInstrumentDefinitionID << " \n";
         return false;
     }
 
@@ -206,8 +209,8 @@ bool OTStashItem::DebitStash(const int64_t& lAmount)
 {
     if (lAmount < 0) {
         otOut << "OTStashItem::DebitStash: Failed attempt to debit a negative "
-                 "amount (" << lAmount << "). Asset Type: " << m_strAssetTypeID
-              << " \n";
+                 "amount (" << lAmount
+              << "). Asset Type: " << m_strInstrumentDefinitionID << " \n";
         return false;
     }
 
@@ -217,7 +220,7 @@ bool OTStashItem::DebitStash(const int64_t& lAmount)
         otOut << "OTStashItem::DebitStash: Failed attempt to debit (amount of) "
               << lAmount << ": New stash balance would have been a negative "
                             "amount (" << lTentativeNewBalance
-              << "). Asset Type: " << m_strAssetTypeID << " \n";
+              << "). Asset Type: " << m_strInstrumentDefinitionID << " \n";
         return false;
     }
 

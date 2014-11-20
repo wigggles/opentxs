@@ -195,16 +195,17 @@ class OTPartyAccount
     // account name (inside the script language, "gold_acct_A" could be used to
     // reference this acct.)
     //
-    String m_strName;        // Name of the account (for use in scripts.)
-    String m_strAcctID;      // The Account ID itself.
-    String m_strAssetTypeID; // The asset type ID for the account. Stored
-                             // because parties agree on this even before the
-                             // account ID is selected. Compare() uses this
-                             // even when the account ID is blank, and when
-                             // acct ID *is* added, its asset type must match
-                             // this.
-    String m_strAgentName;   // The name of the agent who has rights to this
-                             // account.
+    String m_strName;   // Name of the account (for use in scripts.)
+    String m_strAcctID; // The Account ID itself.
+    String m_strInstrumentDefinitionID; // The asset type ID for the account.
+                                        // Stored
+    // because parties agree on this even before the
+    // account ID is selected. Compare() uses this
+    // even when the account ID is blank, and when
+    // acct ID *is* added, its asset type must match
+    // this.
+    String m_strAgentName; // The name of the agent who has rights to this
+                           // account.
     // Entity, role, and Nym information are not stored here.
     // Entity is already known on the party who owns this account (and I should
     // have a ptr to him.)
@@ -240,9 +241,9 @@ public:
     {
         return m_strAcctID;
     } // account's ID as used internal to OT.
-    const String& GetAssetTypeID() const
+    const String& GetInstrumentDefinitionID() const
     {
-        return m_strAssetTypeID;
+        return m_strInstrumentDefinitionID;
     } // asset type ID for the account.
 
     void SetAgentName(const String& strAgentName)
@@ -283,13 +284,14 @@ public:
     OTPartyAccount(std::string str_account_name, const String& strAgentName,
                    Account& theAccount, int64_t lClosingTransNo);
     OTPartyAccount(const String& strName, const String& strAgentName,
-                   const String& strAcctID, const String& strAssetTypeID,
+                   const String& strAcctID,
+                   const String& strInstrumentDefinitionID,
                    int64_t lClosingTransNo);
 
     virtual ~OTPartyAccount();
 
     void Serialize(String& strAppend, bool bCalculatingID = false,
-                   bool bSpecifyAssetID = false) const;
+                   bool bSpecifyInstrumentDefinitionID = false) const;
 
     // For pointers I don't own, but store for convenience.
     // This clears them once we're done processing, so I don't

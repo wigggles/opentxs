@@ -1025,12 +1025,13 @@ int32_t main(int32_t argc, char* argv[])
         // it)
         // based on the ID that the user has entered here.
 
-        Identifier thePurseAssetTypeID;
+        Identifier thePurseInstrumentDefinitionID;
         AssetContract* pMyAssetContract = nullptr;
 
         if (str_MyPurse.size() > 0) {
-            const Identifier MY_ASSET_TYPE_ID(str_MyPurse.c_str());
-            pMyAssetContract = pWallet->GetAssetContract(MY_ASSET_TYPE_ID);
+            const Identifier MY_INSTRUMENT_DEFINITION_ID(str_MyPurse.c_str());
+            pMyAssetContract =
+                pWallet->GetAssetContract(MY_INSTRUMENT_DEFINITION_ID);
 
             // If failure, then we try PARTIAL match.
             if (nullptr == pMyAssetContract)
@@ -1044,7 +1045,7 @@ int32_t main(int32_t argc, char* argv[])
                 str_MyPurse = strTemp.Get();
                 otOut << "Using as mypurse: " << str_MyPurse << "\n";
 
-                pMyAssetContract->GetIdentifier(thePurseAssetTypeID);
+                pMyAssetContract->GetIdentifier(thePurseInstrumentDefinitionID);
             }
             // Execution continues here, so the script has the option to
             // download
@@ -1054,9 +1055,10 @@ int32_t main(int32_t argc, char* argv[])
         // then
         // use the asset type for the account instead.
         else if (nullptr != pMyAccount)
-            thePurseAssetTypeID = pMyAccount->GetAssetTypeID();
-        if (!thePurseAssetTypeID.IsEmpty()) {
-            String strTempAssetType(thePurseAssetTypeID);
+            thePurseInstrumentDefinitionID =
+                pMyAccount->GetInstrumentDefinitionID();
+        if (!thePurseInstrumentDefinitionID.IsEmpty()) {
+            String strTempAssetType(thePurseInstrumentDefinitionID);
             str_MyPurse = strTempAssetType.Get();
         }
         // BELOW THIS POINT, pMyAssetContract MIGHT be nullptr, or MIGHT be an
@@ -1065,12 +1067,12 @@ int32_t main(int32_t argc, char* argv[])
         // There's no guarantee that it's available, but if it IS, then it WILL
         // be
         // available below this point.
-        Identifier hisPurseAssetTypeID;
+        Identifier hisPurseInstrumentDefinitionID;
 
         if (str_HisPurse.size() > 0) {
-            const Identifier HIS_ASSET_TYPE_ID(str_HisPurse.c_str());
+            const Identifier HIS_INSTRUMENT_DEFINITION_ID(str_HisPurse.c_str());
             AssetContract* pHisAssetContract =
-                pWallet->GetAssetContract(HIS_ASSET_TYPE_ID);
+                pWallet->GetAssetContract(HIS_INSTRUMENT_DEFINITION_ID);
 
             // If failure, then we try PARTIAL match.
             if (nullptr == pHisAssetContract)
@@ -1084,15 +1086,17 @@ int32_t main(int32_t argc, char* argv[])
                 str_HisPurse = strTemp.Get();
                 otOut << "Using as hispurse: " << str_HisPurse << "\n";
 
-                pHisAssetContract->GetIdentifier(hisPurseAssetTypeID);
+                pHisAssetContract->GetIdentifier(
+                    hisPurseInstrumentDefinitionID);
             }
         }
         // If no "HisPurse" was provided, but HisAcct WAS, then we use the
         // asset type of HisAcct as HisPurse.
         else if (nullptr != pHisAccount)
-            hisPurseAssetTypeID = pHisAccount->GetAssetTypeID();
-        if (!hisPurseAssetTypeID.IsEmpty()) {
-            String strTempAssetType(hisPurseAssetTypeID);
+            hisPurseInstrumentDefinitionID =
+                pHisAccount->GetInstrumentDefinitionID();
+        if (!hisPurseInstrumentDefinitionID.IsEmpty()) {
+            String strTempAssetType(hisPurseInstrumentDefinitionID);
             str_HisPurse = strTempAssetType.Get();
         }
 
@@ -1483,7 +1487,7 @@ int32_t main(int32_t argc, char* argv[])
                   << pMyAccount->GetBalance() << "\n\n";
 
             Purse* pPurse = OTAPI_Wrap::OTAPI()->LoadPurse(
-                theNotaryID, thePurseAssetTypeID, MY_NYM_ID);
+                theNotaryID, thePurseInstrumentDefinitionID, MY_NYM_ID);
             std::unique_ptr<Purse> thePurseAngel(pPurse);
             if (nullptr != pPurse)
                 otOut << " CASH PURSE (client-side): "

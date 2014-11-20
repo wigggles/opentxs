@@ -179,8 +179,9 @@ private:
 
     // Every market involves a certain asset type being traded in a certain
     // currency.
-    Identifier m_ASSET_TYPE_ID;    // This is the GOLD market. (Say.)    | (GOLD
-                                   // for
+    Identifier m_INSTRUMENT_DEFINITION_ID; // This is the GOLD market. (Say.)
+                                           // | (GOLD
+                                           // for
     Identifier m_CURRENCY_TYPE_ID; // Gold is trading for DOLLARS.        |
                                    // DOLLARS, for example.)
 
@@ -255,9 +256,9 @@ public:
     {
         return m_mapAsks.size();
     }
-    void SetAssetID(const Identifier& ASSET_ID)
+    void SetInstrumentDefinitionID(const Identifier& INSTRUMENT_DEFINITION_ID)
     {
-        m_ASSET_TYPE_ID = ASSET_ID;
+        m_INSTRUMENT_DEFINITION_ID = INSTRUMENT_DEFINITION_ID;
     }
     void SetCurrencyID(const Identifier& CURRENCY_ID)
     {
@@ -268,9 +269,9 @@ public:
         m_SERVER_ID = SERVER_ID;
     }
 
-    inline const Identifier& GetAssetID() const
+    inline const Identifier& GetInstrumentDefinitionID() const
     {
-        return m_ASSET_TYPE_ID;
+        return m_INSTRUMENT_DEFINITION_ID;
     }
     inline const Identifier& GetCurrencyID() const
     {
@@ -309,7 +310,8 @@ public:
     int64_t GetTotalAvailableAssets();
     OTMarket();
     OTMarket(const char* szFilename);
-    OTMarket(const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+    OTMarket(const Identifier& SERVER_ID,
+             const Identifier& INSTRUMENT_DEFINITION_ID,
              const Identifier& CURRENCY_TYPE_ID, const int64_t& lScale);
 
     virtual ~OTMarket();

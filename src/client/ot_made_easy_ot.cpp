@@ -379,13 +379,14 @@ OT_MADE_EASY_OT string
 
 //  CREATE ASSET ACCOUNT
 //
-OT_MADE_EASY_OT string MadeEasy::create_asset_acct(const string& SERVER_ID,
-                                                   const string& NYM_ID,
-                                                   const string& ASSET_TYPE_ID)
+OT_MADE_EASY_OT string
+    MadeEasy::create_asset_acct(const string& SERVER_ID, const string& NYM_ID,
+                                const string& INSTRUMENT_DEFINITION_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(CREATE_ASSET_ACCT, SERVER_ID, NYM_ID, ASSET_TYPE_ID);
+    OTAPI_Func theRequest(CREATE_ASSET_ACCT, SERVER_ID, NYM_ID,
+                          INSTRUMENT_DEFINITION_ID);
     string strResponse =
         theRequest.SendRequest(theRequest, "CREATE_ASSET_ACCT");
 
@@ -401,8 +402,9 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
         return "";
     }
 
-    string strAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(ACCOUNT_ID);
-    if (!VerifyStringVal(strAssetID)) {
+    string strInstrumentDefinitionID =
+        OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(ACCOUNT_ID);
+    if (!VerifyStringVal(strInstrumentDefinitionID)) {
         otOut
             << "\nstat_asset_account: Cannot cannot determine asset type for: "
             << ACCOUNT_ID << "\n";
@@ -412,15 +414,18 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
     string strName = OTAPI_Wrap::GetAccountWallet_Name(ACCOUNT_ID);
     string strNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(ACCOUNT_ID);
     int64_t lBalance = OTAPI_Wrap::GetAccountWallet_Balance(ACCOUNT_ID);
-    string strAssetTypeName = OTAPI_Wrap::GetAssetType_Name(strAssetID);
+    string strAssetTypeName =
+        OTAPI_Wrap::GetAssetType_Name(strInstrumentDefinitionID);
     string strNymName = OTAPI_Wrap::GetNym_Name(strNymID);
     string strServerName = OTAPI_Wrap::GetServer_Name(strNotaryID);
 
-    return "   Balance: " + OTAPI_Wrap::FormatAmount(strAssetID, lBalance) +
+    return "   Balance: " +
+           OTAPI_Wrap::FormatAmount(strInstrumentDefinitionID, lBalance) +
            "   (" + strName + ")\nAccount ID: " + ACCOUNT_ID + " ( " + strName +
-           " )\nAsset Type: " + strAssetID + " ( " + strAssetTypeName +
-           " )\nOwner Nym : " + strNymID + " ( " + strNymName +
-           " )\nServer    : " + strNotaryID + " ( " + strServerName + " )";
+           " )\nAsset Type: " + strInstrumentDefinitionID + " ( " +
+           strAssetTypeName + " )\nOwner Nym : " + strNymID + " ( " +
+           strNymName + " )\nServer    : " + strNotaryID + " ( " +
+           strServerName + " )";
 }
 
 // DOWNLOAD ACCOUNT FILES  (account balance, inbox, outbox, etc)
@@ -772,13 +777,14 @@ OT_MADE_EASY_OT string
 
 // DOWNLOAD PUBLIC MINT
 //
-OT_MADE_EASY_OT string MadeEasy::retrieve_mint(const string& SERVER_ID,
-                                               const string& NYM_ID,
-                                               const string& ASSET_ID)
+OT_MADE_EASY_OT string
+    MadeEasy::retrieve_mint(const string& SERVER_ID, const string& NYM_ID,
+                            const string& INSTRUMENT_DEFINITION_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_MINT, SERVER_ID, NYM_ID, ASSET_ID);
+    OTAPI_Func theRequest(GET_MINT, SERVER_ID, NYM_ID,
+                          INSTRUMENT_DEFINITION_ID);
     string strResponse = theRequest.SendRequest(theRequest, "GET_MINT");
 
     return strResponse;
@@ -788,7 +794,7 @@ OT_MADE_EASY_OT string MadeEasy::retrieve_mint(const string& SERVER_ID,
 //
 // To load a mint withOUT retrieving it from server, call:
 //
-// var strMint = OTAPI_Wrap::LoadMint(SERVER_ID, ASSET_ID);
+// var strMint = OTAPI_Wrap::LoadMint(SERVER_ID, INSTRUMENT_DEFINITION_ID);
 // It returns the mint, or null.
 
 // LOAD MINT (from local storage).
@@ -796,16 +802,18 @@ OT_MADE_EASY_OT string MadeEasy::retrieve_mint(const string& SERVER_ID,
 //
 // Returns the mint, or null.
 
-OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
-                                                       const string& NYM_ID,
-                                                       const string& ASSET_ID)
+OT_MADE_EASY_OT string
+    MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
+                                    const string& NYM_ID,
+                                    const string& INSTRUMENT_DEFINITION_ID)
 {
     string response = check_nym(SERVER_ID, NYM_ID, NYM_ID);
     if (1 != VerifyMessageSuccess(response)) {
         otOut << "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n";
         otOut << "  Server ID: " << SERVER_ID << "\n";
         otOut << "     Nym ID: " << NYM_ID << "\n";
-        otOut << "   Asset ID: " << ASSET_ID << "\n";
+        otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
+              << "\n";
         return "";
     }
 
@@ -815,28 +823,31 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
     // Also load it up into memory as a string (just to make sure it works.)
 
     // expired or missing.
-    if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID, ASSET_ID)) {
+    if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID, INSTRUMENT_DEFINITION_ID)) {
         otWarn << "OT_ME_load_or_retrieve_mint: Mint file is "
                   "missing or expired. Downloading from "
                   "server...\n";
 
-        response = retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
+        response = retrieve_mint(SERVER_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 
         if (1 != VerifyMessageSuccess(response)) {
             otOut << "OT_ME_load_or_retrieve_mint: Unable to "
                      "retrieve mint for IDs: \n";
             otOut << "  Server ID: " << SERVER_ID << "\n";
             otOut << "     Nym ID: " << NYM_ID << "\n";
-            otOut << "   Asset ID: " << ASSET_ID << "\n";
+            otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
+                  << "\n";
             return "";
         }
 
-        if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID, ASSET_ID)) {
+        if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID,
+                                          INSTRUMENT_DEFINITION_ID)) {
             otOut << "OT_ME_load_or_retrieve_mint: Retrieved "
                      "mint, but still 'not good' for IDs: \n";
             otOut << "  Server ID: " << SERVER_ID << "\n";
             otOut << "     Nym ID: " << NYM_ID << "\n";
-            otOut << "   Asset ID: " << ASSET_ID << "\n";
+            otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
+                  << "\n";
             return "";
         }
     }
@@ -847,12 +858,13 @@ OT_MADE_EASY_OT string MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
     // or not.
     // It's here, and it's NOT expired. (Or we would have returned already.)
 
-    string strMint = OTAPI_Wrap::LoadMint(SERVER_ID, ASSET_ID);
+    string strMint = OTAPI_Wrap::LoadMint(SERVER_ID, INSTRUMENT_DEFINITION_ID);
     if (!VerifyStringVal(strMint)) {
         otOut << "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n";
         otOut << "  Server ID: " << SERVER_ID << "\n";
         otOut << "     Nym ID: " << NYM_ID << "\n";
-        otOut << "   Asset ID: " << ASSET_ID << "\n";
+        otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
+              << "\n";
     }
 
     return strMint;
@@ -1105,13 +1117,14 @@ OT_MADE_EASY_OT string
 OT_MADE_EASY_OT string
     MadeEasy::pay_dividend(const string& SERVER_ID, const string& NYM_ID,
                            const string& SOURCE_ACCT_ID,
-                           const string& SHARES_ASSET_ID,
+                           const string& SHARES_INSTRUMENT_DEFINITION_ID,
                            const string& STR_MEMO, int64_t AMOUNT_PER_SHARE)
 {
     OTAPI_Func ot_Msg;
 
     OTAPI_Func theRequest(PAY_DIVIDEND, SERVER_ID, NYM_ID, SOURCE_ACCT_ID,
-                          SHARES_ASSET_ID, STR_MEMO, AMOUNT_PER_SHARE);
+                          SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
+                          AMOUNT_PER_SHARE);
     string strResponse = theRequest.SendTransaction(theRequest, "PAY_DIVIDEND");
 
     return strResponse;
@@ -1208,13 +1221,13 @@ OT_MADE_EASY_OT string
 // Imports a purse into the wallet.
 
 // NOTE:   UNUSED currently.
-OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& notaryID,
-                                               const string& nymID,
-                                               const string& assetID,
-                                               string& userInput, bool isPurse)
+OT_MADE_EASY_OT bool MadeEasy::importCashPurse(
+    const string& notaryID, const string& nymID,
+    const string& instrumentDefinitionID, string& userInput, bool isPurse)
 {
     //  otOut << "OT_ME_importCashPurse, notaryID:" << notaryID << "
-    // nymID:" << nymID << " assetID:" << assetID);
+    // nymID:" << nymID << " instrumentDefinitionID:" <<
+    // instrumentDefinitionID);
     //  otOut << "OT_ME_importCashPurse, userInput purse:" <<
     // userInput <<);
 
@@ -1225,8 +1238,9 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& notaryID,
         //      otOut << "OT_ME_importCashPurse, isPurse:" +
         // isPurse)
 
-        string purse = OTAPI_Wrap::CreatePurse(
-            notaryID, assetID, nymID, nymID); // nymID, nymID == owner, signer;
+        string purse =
+            OTAPI_Wrap::CreatePurse(notaryID, instrumentDefinitionID, nymID,
+                                    nymID); // nymID, nymID == owner, signer;
 
         if (!VerifyStringVal(purse)) {
             otOut << "OT_ME_importCashPurse: Error: "
@@ -1236,8 +1250,8 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& notaryID,
         //      otOut << "OT_ME_importCashPurse, OT_API_CreatePurse
         // return :" + purse);
 
-        string newPurse = OTAPI_Wrap::Purse_Push(notaryID, assetID, nymID,
-                                                 nymID, purse, userInput);
+        string newPurse = OTAPI_Wrap::Purse_Push(
+            notaryID, instrumentDefinitionID, nymID, nymID, purse, userInput);
         if (!VerifyStringVal(newPurse)) {
             otOut << "OT_ME_importCashPurse: Error: "
                      "OT_API_Purse_Push returned null\n";
@@ -1250,7 +1264,8 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& notaryID,
     //  otOut << "OT_ME_importCashPurse, Before calling
     // OT_API_Wallet_ImportPurse, final purse:" + userInput);
     //  otOut << "OT_ME_importCashPurse just before api ,
-    // notaryID:" + notaryID + " nymID:" + nymID + " assetID:" + assetID);
+    // notaryID:" + notaryID + " nymID:" + nymID + " instrumentDefinitionID:" +
+    // instrumentDefinitionID);
 
     // Here we have either a purse that was passed in, or a purse that we
     // created so
@@ -1258,8 +1273,8 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& notaryID,
     // now, so
     // let's import it into the wallet.
     //
-    return 1 ==
-           OTAPI_Wrap::Wallet_ImportPurse(notaryID, assetID, nymID, userInput);
+    return 1 == OTAPI_Wrap::Wallet_ImportPurse(notaryID, instrumentDefinitionID,
+                                               nymID, userInput);
 }
 
 // processCashPurse pops the selected tokens off of oldPurse, changes their
@@ -1306,7 +1321,7 @@ OT_MADE_EASY_OT bool MadeEasy::importCashPurse(const string& notaryID,
 //
 OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
     string& newPurse, string& newPurseForSender, const string& notaryID,
-    const string& assetID, const string& nymID, string& oldPurse,
+    const string& instrumentDefinitionID, const string& nymID, string& oldPurse,
     const vector<string>& selectedTokens, const string& recipientNymID,
     bool bPWProtectOldPurse, bool bPWProtectNewPurse)
 {
@@ -1322,12 +1337,13 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
     if (selectedTokens.size() < 1) {
         // newPurse is created, OWNED BY RECIPIENT.
         //
-        newPurse =
-            (bPWProtectNewPurse
-                 ? OTAPI_Wrap::CreatePurse_Passphrase(notaryID, assetID, nymID)
-                 : OTAPI_Wrap::CreatePurse(notaryID, assetID, recipientNymID,
-                                           nymID)); // recipientNymID is owner,
-                                                    // nymID is signer;
+        newPurse = (bPWProtectNewPurse
+                        ? OTAPI_Wrap::CreatePurse_Passphrase(
+                              notaryID, instrumentDefinitionID, nymID)
+                        : OTAPI_Wrap::CreatePurse(
+                              notaryID, instrumentDefinitionID, recipientNymID,
+                              nymID)); // recipientNymID is owner,
+                                       // nymID is signer;
 
         if (!VerifyStringVal(newPurse)) {
             otOut << strLocation << ": "
@@ -1344,7 +1360,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
         // the cash from his outbox.
         //
         newPurseForSender =
-            OTAPI_Wrap::CreatePurse(notaryID, assetID, nymID,
+            OTAPI_Wrap::CreatePurse(notaryID, instrumentDefinitionID, nymID,
                                     nymID); // nymID is owner, nymID is signer;
 
         if (!VerifyStringVal(newPurseForSender)) {
@@ -1355,22 +1371,23 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
         // Iterate through the OLD PURSE. (as tempOldPurse.)
         //
-        int32_t count = OTAPI_Wrap::Purse_Count(notaryID, assetID, oldPurse);
+        int32_t count =
+            OTAPI_Wrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
         string tempOldPurse = oldPurse;
 
         for (int32_t i = 0; i < count; ++i) {
             // Peek into TOKEN, from the top token on the stack. (And it's STILL
             // on top after this call.)
             //
-            string token =
-                OTAPI_Wrap::Purse_Peek(notaryID, assetID, nymID, tempOldPurse);
+            string token = OTAPI_Wrap::Purse_Peek(
+                notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             // Now pop the token off of tempOldPurse (our iterator for the old
             // purse).
             // Store updated copy of purse (sans token) into "str1".
             //
-            string str1 =
-                OTAPI_Wrap::Purse_Pop(notaryID, assetID, nymID, tempOldPurse);
+            string str1 = OTAPI_Wrap::Purse_Pop(
+                notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(token) || !VerifyStringVal(str1)) {
                 otOut << strLocation
@@ -1400,9 +1417,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // (In this block, we change ALL the tokens in the purse.)
             //
             string exportedToken = OTAPI_Wrap::Token_ChangeOwner(
-                notaryID, assetID, token, nymID, // signer ID
-                strSender,                       // old owner
-                strRecipient);                   // new owner
+                notaryID, instrumentDefinitionID, token, nymID, // signer ID
+                strSender,                                      // old owner
+                strRecipient);                                  // new owner
             // If change failed, then continue.
             //
             if (!VerifyStringVal(exportedToken)) {
@@ -1415,9 +1432,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // SAVE A COPY FOR THE SENDER...
             //
             string retainedToken = OTAPI_Wrap::Token_ChangeOwner(
-                notaryID, assetID, token, nymID, // signer ID
-                strSender,                       // old owner
-                strSenderAsRecipient);           // new owner
+                notaryID, instrumentDefinitionID, token, nymID, // signer ID
+                strSender,                                      // old owner
+                strSenderAsRecipient);                          // new owner
             // If change failed, then continue.
             //
             if (!VerifyStringVal(retainedToken)) {
@@ -1437,7 +1454,8 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // Results are, FYI, newPurse+exportedToken.
             //
             string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
-                notaryID, assetID, nymID, // server, asset, signer
+                notaryID, instrumentDefinitionID,
+                nymID,        // server, asset, signer
                 strRecipient, // owner is either nullptr (for password-protected
                               // purse) or recipientNymID
                 newPurse, exportedToken); // purse, token
@@ -1455,8 +1473,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
             // Results are, FYI, newPurseForSender+retainedToken.
             //
             string strPushedForRetention = OTAPI_Wrap::Purse_Push(
-                notaryID, assetID, nymID, // server, asset, signer
-                strSenderAsRecipient,     // This version of the purse is the
+                notaryID, instrumentDefinitionID,
+                nymID,                // server, asset, signer
+                strSenderAsRecipient, // This version of the purse is the
                 // outgoing copy (for the SENDER's notes).
                 // Thus strSenderAsRecipient.
                 newPurseForSender, retainedToken); // purse, token
@@ -1492,7 +1511,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
         if (!bPWProtectOldPurse) // If old purse is NOT password-protected (that
                                  // is, it's encrypted to a Nym.)
         {
-            if (!OTAPI_Wrap::SavePurse(notaryID, assetID, nymID,
+            if (!OTAPI_Wrap::SavePurse(notaryID, instrumentDefinitionID, nymID,
                                        tempOldPurse)) // if FAILURE.
             {
                 // No error message if saving fails??
@@ -1529,16 +1548,18 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
         // (Unselected tokens aren't being exported...)
         //
         string newPurseUnSelectedTokens = OTAPI_Wrap::Purse_Empty(
-            notaryID, assetID, nymID,
+            notaryID, instrumentDefinitionID, nymID,
             oldPurse); // Creates an empty copy of oldPurse.;
         string newPurseSelectedTokens =
             (bPWProtectNewPurse
-                 ? OTAPI_Wrap::CreatePurse_Passphrase(notaryID, assetID, nymID)
-                 : OTAPI_Wrap::CreatePurse(notaryID, assetID, recipientNymID,
+                 ? OTAPI_Wrap::CreatePurse_Passphrase(
+                       notaryID, instrumentDefinitionID, nymID)
+                 : OTAPI_Wrap::CreatePurse(notaryID, instrumentDefinitionID,
+                                           recipientNymID,
                                            nymID)); // recipientNymID = owner,
                                                     // nymID = signer;
         string newPurseSelectedForSender = OTAPI_Wrap::CreatePurse(
-            notaryID, assetID, nymID,
+            notaryID, instrumentDefinitionID, nymID,
             nymID); // nymID = owner, nymID = signer. This is a copy of
                     // newPurseSelectedTokens that's encrypted to the SENDER
                     // (for putting in his outpayments box, so he can still
@@ -1561,21 +1582,22 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
         // Iterate through oldPurse, using tempOldPurse as iterator.
         //
-        int32_t count = OTAPI_Wrap::Purse_Count(notaryID, assetID, oldPurse);
+        int32_t count =
+            OTAPI_Wrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
         string tempOldPurse = oldPurse;
 
         for (int32_t i = 0; i < count; ++i) {
             // Peek at the token on top of the stack.
             // (Without removing it.)
             //
-            string token =
-                OTAPI_Wrap::Purse_Peek(notaryID, assetID, nymID, tempOldPurse);
+            string token = OTAPI_Wrap::Purse_Peek(
+                notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             // Remove the top token from the stack, and return the updated stack
             // in "str1".
             //
-            string str1 =
-                OTAPI_Wrap::Purse_Pop(notaryID, assetID, nymID, tempOldPurse);
+            string str1 = OTAPI_Wrap::Purse_Pop(
+                notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(str1) || !VerifyStringVal(token)) {
                 otOut << strLocation
@@ -1592,7 +1614,8 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
 
             // Grab the TokenID for that token. (Token still has OLD OWNER.)
             //
-            string tokenID = OTAPI_Wrap::Token_GetID(notaryID, assetID, token);
+            string tokenID = OTAPI_Wrap::Token_GetID(
+                notaryID, instrumentDefinitionID, token);
 
             if (!VerifyStringVal(tokenID)) {
                 otOut << strLocation
@@ -1625,10 +1648,11 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                            // encrypted to someone else's key.);
 
                 string exportedToken = OTAPI_Wrap::Token_ChangeOwner(
-                    notaryID, assetID, token, // server, asset, token,;
-                    nymID,                    // signer nym
-                    strSender,                // old owner
-                    strRecipient);            // new owner
+                    notaryID, instrumentDefinitionID,
+                    token,         // server, asset, token,;
+                    nymID,         // signer nym
+                    strSender,     // old owner
+                    strRecipient); // new owner
                 if (!VerifyStringVal(exportedToken)) {
                     otOut << strLocation << ": 1  OT_API_Token_ChangeOwner "
                                             "returned null... SHOULD NEVER "
@@ -1637,10 +1661,11 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 }
 
                 string retainedToken = OTAPI_Wrap::Token_ChangeOwner(
-                    notaryID, assetID, token, // server, asset, token,;
-                    nymID,                    // signer nym
-                    strSender,                // old owner
-                    strSenderAsRecipient);    // new owner
+                    notaryID, instrumentDefinitionID,
+                    token,                 // server, asset, token,;
+                    nymID,                 // signer nym
+                    strSender,             // old owner
+                    strSenderAsRecipient); // new owner
                 if (!VerifyStringVal(retainedToken)) {
                     otOut << strLocation << ": 2  OT_API_Token_ChangeOwner "
                                             "returned null... SHOULD NEVER "
@@ -1656,8 +1681,9 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 strRecipient = bPWProtectNewPurse ? "" : recipientNymID;
 
                 string strPushedForRecipient = OTAPI_Wrap::Purse_Push(
-                    notaryID, assetID, nymID, // server, asset, signer;
-                    strRecipient,             // owner is either nullptr (for
+                    notaryID, instrumentDefinitionID,
+                    nymID,        // server, asset, signer;
+                    strRecipient, // owner is either nullptr (for
                     // password-protected purse) or recipientNymID
                     newPurseSelectedTokens, exportedToken); // purse, token
                 if (!VerifyStringVal(strPushedForRecipient)) {
@@ -1678,7 +1704,8 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 // valuable to you as a receipt.
                 //
                 string strPushedForRetention = OTAPI_Wrap::Purse_Push(
-                    notaryID, assetID, nymID, // server, asset, signer;
+                    notaryID, instrumentDefinitionID,
+                    nymID, // server, asset, signer;
                     strSenderAsRecipient, newPurseSelectedForSender,
                     retainedToken); // purse, token
                 if (!VerifyStringVal(strPushedForRetention)) {
@@ -1699,10 +1726,11 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
                 string strSender = bPWProtectOldPurse ? "" : nymID;
 
                 string str = OTAPI_Wrap::Purse_Push(
-                    notaryID, assetID, nymID, // server, asset, signer;
-                    strSender,                // owner is either nullptr (for
-                                              // password-protected
-                                              // purse) or nymID
+                    notaryID, instrumentDefinitionID,
+                    nymID,     // server, asset, signer;
+                    strSender, // owner is either nullptr (for
+                               // password-protected
+                               // purse) or nymID
                     newPurseUnSelectedTokens, token); // purse, token
                 if (!VerifyStringVal(str)) {
                     otOut << strLocation
@@ -1719,7 +1747,7 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
         if (!bPWProtectOldPurse) // If old purse is NOT password-protected (that
                                  // is, it's encrypted to a Nym.)
         {
-            if (!OTAPI_Wrap::SavePurse(notaryID, assetID, nymID,
+            if (!OTAPI_Wrap::SavePurse(notaryID, instrumentDefinitionID, nymID,
                                        newPurseUnSelectedTokens)) // if FAILURE.
             {
                 // No error message if saving fails??
@@ -1759,12 +1787,14 @@ OT_MADE_EASY_OT bool MadeEasy::processCashPurse(
     return true;
 }
 
-// Input: server ID, assetID, Nym of current owner, existing purse, list of
+// Input: server ID, instrumentDefinitionID, Nym of current owner, existing
+// purse, list of
 // selected tokens, Nym of Recipient, and bool bPasswordProtected.
 // Returns: "new Purse"
 //
 OT_MADE_EASY_OT string
-    MadeEasy::exportCashPurse(const string& notaryID, const string& assetID,
+    MadeEasy::exportCashPurse(const string& notaryID,
+                              const string& instrumentDefinitionID,
                               const string& nymID, const string& oldPurse,
                               const vector<string>& selectedTokens,
                               string& recipientNymID, bool bPasswordProtected,
@@ -1815,8 +1845,9 @@ OT_MADE_EASY_OT string
     string newPurseForSender = "";
     string copyOfOldPurse = oldPurse;
     bool bSuccessProcess = processCashPurse(
-        newPurse, newPurseForSender, notaryID, assetID, nymID, copyOfOldPurse,
-        selectedTokens, recipientNymID, false, bPasswordProtected);
+        newPurse, newPurseForSender, notaryID, instrumentDefinitionID, nymID,
+        copyOfOldPurse, selectedTokens, recipientNymID, false,
+        bPasswordProtected);
 
     if (bSuccessProcess) {
         strRetainedCopy = newPurseForSender;
@@ -1829,9 +1860,9 @@ OT_MADE_EASY_OT string
 }
 
 OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
-    const string& notaryID, const string& assetID, const string& nymID,
-    const string& oldPurse, const vector<string>& selectedTokens,
-    const string& accountID,
+    const string& notaryID, const string& instrumentDefinitionID,
+    const string& nymID, const string& oldPurse,
+    const vector<string>& selectedTokens, const string& accountID,
     bool bReimportIfFailure) // So we don't re-import a purse that wasn't
                              // internal to begin with.
 {
@@ -1848,8 +1879,9 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
     string newPurseForSender = ""; // Probably unused in this case.;
     string copyOfOldPurse = oldPurse;
     bool bSuccessProcess = processCashPurse(
-        newPurse, newPurseForSender, notaryID, assetID, nymID, copyOfOldPurse,
-        selectedTokens, recipientNymID, bPasswordProtected, false);
+        newPurse, newPurseForSender, notaryID, instrumentDefinitionID, nymID,
+        copyOfOldPurse, selectedTokens, recipientNymID, bPasswordProtected,
+        false);
 
     if (!bSuccessProcess || !VerifyStringVal(newPurse)) {
         otOut << "OT_ME_depositCashPurse: new Purse is empty, after processing "
@@ -1889,7 +1921,7 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
 
         if (!bPasswordProtected && bReimportIfFailure) {
             bool importStatus = OTAPI_Wrap::Wallet_ImportPurse(
-                notaryID, assetID, recipientNymID, newPurse);
+                notaryID, instrumentDefinitionID, recipientNymID, newPurse);
             otOut << "Since failure in OT_ME_depositCashPurse, "
                      "OT_API_Wallet_ImportPurse called. Status of "
                      "import: " << importStatus << "\n";
@@ -1932,8 +1964,8 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
 }
 
 OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
-    const string& notaryID, const string& assetID, const string& nymID,
-    string& oldPurse, const vector<string>& selectedTokens)
+    const string& notaryID, const string& instrumentDefinitionID,
+    const string& nymID, string& oldPurse, const vector<string>& selectedTokens)
 {
     //  Utility.setObj(null);
     //  otOut << " Cash Purse exchange starts, selectedTokens:" +
@@ -1943,8 +1975,9 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
     string newPurseForSender = ""; // Probably unused in this case.;
 
     bool bProcessSuccess = processCashPurse(
-        newPurse, newPurseForSender, notaryID, assetID, nymID, oldPurse,
-        selectedTokens, nymID, false, false); // bIsPasswordProtected=false;
+        newPurse, newPurseForSender, notaryID, instrumentDefinitionID, nymID,
+        oldPurse, selectedTokens, nymID, false,
+        false); // bIsPasswordProtected=false;
 
     if (bProcessSuccess && !VerifyStringVal(newPurse)) {
         otOut << "OT_ME_exchangeCashPurse: Before server OT_API_exchangePurse "
@@ -1953,7 +1986,8 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
     }
 
     OTAPI_Func ot_Msg;
-    OTAPI_Func theRequest(EXCHANGE_CASH, notaryID, nymID, assetID, newPurse);
+    OTAPI_Func theRequest(EXCHANGE_CASH, notaryID, nymID,
+                          instrumentDefinitionID, newPurse);
     string strResponse = theRequest.SendTransaction(
         theRequest, "EXCHANGE_CASH"); // <========================;
 
@@ -1961,8 +1995,8 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
         otOut << "IN OT_ME_exchangeCashPurse: theRequest.SendTransaction(() "
                  "failed. (I give up.) \n";
 
-        bool importStatus =
-            OTAPI_Wrap::Wallet_ImportPurse(notaryID, assetID, nymID, newPurse);
+        bool importStatus = OTAPI_Wrap::Wallet_ImportPurse(
+            notaryID, instrumentDefinitionID, nymID, newPurse);
         otOut << "Since failure in OT_ME_exchangeCashPurse, "
                  "OT_API_Wallet_ImportPurse called, status of import: "
               << string(importStatus ? "true" : "false") << "\n";
@@ -2073,19 +2107,20 @@ else if (funcType == DELETE_NYM)
 else if (funcType == GET_NYM_MARKET_OFFERS)
 { OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID); }
 else if (funcType == CREATE_ASSET_ACCT)
-{ OTAPI_Wrap::createAssetAccount(notaryID, nymID, assetID); }
+{ OTAPI_Wrap::createAssetAccount(notaryID, nymID, instrumentDefinitionID); }
 else if (funcType == DELETE_ASSET_ACCT)
 { OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID); }
 else if (funcType == EXCHANGE_BASKET)
-{ OTAPI_Wrap::exchangeBasket(notaryID, nymID, assetID, basket, bBool); }
+{ OTAPI_Wrap::exchangeBasket(notaryID, nymID, instrumentDefinitionID, basket,
+bBool); }
 else if (funcType == GET_CONTRACT)
-{ OTAPI_Wrap::getContract(notaryID, nymID, assetID); }
+{ OTAPI_Wrap::getContract(notaryID, nymID, instrumentDefinitionID); }
 else if (funcType == ISSUE_ASSET_TYPE)
 { OTAPI_Wrap::issueAssetType(notaryID, nymID, strData); }
 else if (funcType == ISSUE_BASKET)
 { OTAPI_Wrap::issueBasket(notaryID, nymID, basket); }
 else if (funcType == EXCHANGE_CASH)
-{ OTAPI_Wrap::exchangePurse(notaryID, assetID, nymID, strData); }
+{ OTAPI_Wrap::exchangePurse(notaryID, instrumentDefinitionID, nymID, strData); }
 else if (funcType == KILL_MARKET_OFFER)
 { OTAPI_Wrap::cancelMarketOffer(notaryID, nymID, accountID, strData); }
 else if (funcType == PROCESS_INBOX)
@@ -2109,7 +2144,8 @@ else if (funcType == GET_MARKET_OFFERS)
 else if (funcType == GET_MARKET_RECENT_TRADES)
 { OTAPI_Wrap::getMarketRecentTrades(notaryID, nymID, strData); }
 else if (funcType == CREATE_MARKET_OFFER)
-{ OTAPI_Wrap::issueMarketOffer(notaryID, nymID, assetID, accountID, assetID2,
+{ OTAPI_Wrap::issueMarketOffer(notaryID, nymID, instrumentDefinitionID,
+accountID, instrumentDefinitionID2,
 accountID2,
 strData, strData2, strData3, strData4, bBool);
 }

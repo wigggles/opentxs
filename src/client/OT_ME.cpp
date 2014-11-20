@@ -445,15 +445,14 @@ std::string OT_ME::issue_basket_currency(const std::string& SERVER_ID,
 
 // EXCHANGE BASKET CURRENCY
 //
-std::string OT_ME::exchange_basket_currency(const std::string& SERVER_ID,
-                                            const std::string& NYM_ID,
-                                            const std::string& ASSET_TYPE_ID,
-                                            const std::string& THE_BASKET,
-                                            const std::string& ACCOUNT_ID,
-                                            bool IN_OR_OUT) const
+std::string OT_ME::exchange_basket_currency(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID, const std::string& THE_BASKET,
+    const std::string& ACCOUNT_ID, bool IN_OR_OUT) const
 {
     return MadeEasy::exchange_basket_currency(
-        SERVER_ID, NYM_ID, ASSET_TYPE_ID, THE_BASKET, ACCOUNT_ID, IN_OR_OUT);
+        SERVER_ID, NYM_ID, INSTRUMENT_DEFINITION_ID, THE_BASKET, ACCOUNT_ID,
+        IN_OR_OUT);
 }
 
 // RETRIEVE CONTRACT
@@ -476,11 +475,12 @@ std::string OT_ME::load_or_retrieve_contract(
 
 // CREATE ASSET ACCOUNT
 //
-std::string OT_ME::create_asset_acct(const std::string& SERVER_ID,
-                                     const std::string& NYM_ID,
-                                     const std::string& ASSET_TYPE_ID) const
+std::string OT_ME::create_asset_acct(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    return MadeEasy::create_asset_acct(SERVER_ID, NYM_ID, ASSET_TYPE_ID);
+    return MadeEasy::create_asset_acct(SERVER_ID, NYM_ID,
+                                       INSTRUMENT_DEFINITION_ID);
 }
 
 std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID) const
@@ -735,29 +735,30 @@ std::string OT_ME::get_box_receipt(const std::string& SERVER_ID,
 
 // DOWNLOAD PUBLIC MINT
 //
-std::string OT_ME::retrieve_mint(const std::string& SERVER_ID,
-                                 const std::string& NYM_ID,
-                                 const std::string& ASSET_ID) const
+std::string OT_ME::retrieve_mint(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    return MadeEasy::retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
+    return MadeEasy::retrieve_mint(SERVER_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 }
 
 // LOAD MINT (from local storage)
 //
 // To load a mint withOUT retrieving it from server, call:
 //
-// var strMint = OT_API_LoadMint(SERVER_ID, ASSET_ID);
+// var strMint = OT_API_LoadMint(SERVER_ID, INSTRUMENT_DEFINITION_ID);
 // It returns the mint, or null.
 // LOAD MINT (from local storage).
 // Also, if necessary, RETRIEVE it from the server first.
 //
 // Returns the mint, or null.
 //
-std::string OT_ME::load_or_retrieve_mint(const std::string& SERVER_ID,
-                                         const std::string& NYM_ID,
-                                         const std::string& ASSET_ID) const
+std::string OT_ME::load_or_retrieve_mint(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    return MadeEasy::load_or_retrieve_mint(SERVER_ID, NYM_ID, ASSET_ID);
+    return MadeEasy::load_or_retrieve_mint(SERVER_ID, NYM_ID,
+                                           INSTRUMENT_DEFINITION_ID);
 }
 
 // QUERY ASSET TYPES
@@ -863,7 +864,7 @@ bool OT_ME::easy_withdraw_cash(const std::string& ACCT_ID, int64_t AMOUNT) const
 //
 std::string OT_ME::export_cash(const std::string& SERVER_ID,
                                const std::string& FROM_NYM_ID,
-                               const std::string& ASSET_TYPE_ID,
+                               const std::string& INSTRUMENT_DEFINITION_ID,
                                const std::string& TO_NYM_ID,
                                const std::string& STR_INDICES,
                                bool bPasswordProtected,
@@ -871,8 +872,9 @@ std::string OT_ME::export_cash(const std::string& SERVER_ID,
 {
     std::string to_nym_id = TO_NYM_ID;
     CmdExportCash cmd;
-    return cmd.exportCash(SERVER_ID, FROM_NYM_ID, ASSET_TYPE_ID, to_nym_id,
-                          STR_INDICES, bPasswordProtected, STR_RETAINED_COPY);
+    return cmd.exportCash(SERVER_ID, FROM_NYM_ID, INSTRUMENT_DEFINITION_ID,
+                          to_nym_id, STR_INDICES, bPasswordProtected,
+                          STR_RETAINED_COPY);
 }
 
 // WITHDRAW VOUCHER -- TRANSACTION
@@ -890,15 +892,15 @@ std::string OT_ME::withdraw_voucher(const std::string& SERVER_ID,
 
 // PAY DIVIDEND -- TRANSACTION
 //
-std::string OT_ME::pay_dividend(const std::string& SERVER_ID,
-                                const std::string& NYM_ID,
-                                const std::string& SOURCE_ACCT_ID,
-                                const std::string& SHARES_ASSET_ID,
-                                const std::string& STR_MEMO,
-                                int64_t AMOUNT_PER_SHARE) const
+std::string OT_ME::pay_dividend(
+    const std::string& SERVER_ID, const std::string& NYM_ID,
+    const std::string& SOURCE_ACCT_ID,
+    const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
+    const std::string& STR_MEMO, int64_t AMOUNT_PER_SHARE) const
 {
     return MadeEasy::pay_dividend(SERVER_ID, NYM_ID, SOURCE_ACCT_ID,
-                                  SHARES_ASSET_ID, STR_MEMO, AMOUNT_PER_SHARE);
+                                  SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
+                                  AMOUNT_PER_SHARE);
 }
 
 std::string OT_ME::deposit_cheque(const std::string& SERVER_ID,
@@ -1767,7 +1769,8 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
                             "offer_price");
         theScript.chai->add(fun(&OTDB::TradeDataNym::finished_so_far),
                             "finished_so_far");
-        theScript.chai->add(fun(&OTDB::TradeDataNym::asset_id), "asset_id");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::instrument_definition_id),
+                            "instrument_definition_id");
         theScript.chai->add(fun(&OTDB::TradeDataNym::currency_id),
                             "currency_id");
         theScript.chai->add(fun(&OTDB::TradeDataNym::currency_paid),
@@ -1936,8 +1939,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_GetAccountWallet_Balance");
         theScript.chai->add(fun(&OTAPI_Wrap::GetAccountWallet_Type),
                             "OT_API_GetAccountWallet_Type");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetAccountWallet_AssetTypeID),
-                            "OT_API_GetAccountWallet_AssetTypeID");
+        theScript.chai->add(
+            fun(&OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID),
+            "OT_API_GetAccountWallet_InstrumentDefinitionID");
         theScript.chai->add(fun(&OTAPI_Wrap::GetAccountWallet_NotaryID),
                             "OT_API_GetAccountWallet_NotaryID");
         theScript.chai->add(fun(&OTAPI_Wrap::GetAccountWallet_NymID),
@@ -2039,8 +2043,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_Wallet_GetNymIDFromPartial");
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetNotaryIDFromPartial),
                             "OT_API_Wallet_GetNotaryIDFromPartial");
-        theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetAssetIDFromPartial),
-                            "OT_API_Wallet_GetAssetIDFromPartial");
+        theScript.chai->add(
+            fun(&OTAPI_Wrap::Wallet_GetInstrumentDefinitionIDFromPartial),
+            "OT_API_Wallet_GetInstrumentDefinitionIDFromPartial");
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetAccountIDFromPartial),
                             "OT_API_Wallet_GetAccountIDFromPartial");
 
@@ -2193,8 +2198,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_Instrmnt_GetType");
         theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetNotaryID),
                             "OT_API_Instrmnt_GetNotaryID");
-        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetAssetID),
-                            "OT_API_Instrmnt_GetAssetID");
+        theScript.chai->add(
+            fun(&OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID),
+            "OT_API_Instrmnt_GetInstrumentDefinitionID");
 
         theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetSenderUserID),
                             "OT_API_Instrmnt_GetSenderUserID");
@@ -2242,8 +2248,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_Token_GetValidFrom");
         theScript.chai->add(fun(&OTAPI_Wrap::Token_GetValidTo),
                             "OT_API_Token_GetValidTo");
-        theScript.chai->add(fun(&OTAPI_Wrap::Token_GetAssetID),
-                            "OT_API_Token_GetAssetID");
+        theScript.chai->add(fun(&OTAPI_Wrap::Token_GetInstrumentDefinitionID),
+                            "OT_API_Token_GetInstrumentDefinitionID");
         theScript.chai->add(fun(&OTAPI_Wrap::Token_GetNotaryID),
                             "OT_API_Token_GetNotaryID");
 
@@ -2380,8 +2386,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
             "OT_API_Msg_GetBlnceAgrmntSuccess");
         theScript.chai->add(fun(&OTAPI_Wrap::Message_GetLedger),
                             "OT_API_Message_GetLedger");
-        theScript.chai->add(fun(&OTAPI_Wrap::Message_GetNewAssetTypeID),
-                            "OT_API_Message_GetNewAssetTypeID");
+        theScript.chai->add(
+            fun(&OTAPI_Wrap::Message_GetNewInstrumentDefinitionID),
+            "OT_API_Message_GetNewInstrumentDefinitionID");
         theScript.chai->add(fun(&OTAPI_Wrap::Message_GetNewIssuerAcctID),
                             "OT_API_Message_GetNewIssuerAcctID");
         theScript.chai->add(fun(&OTAPI_Wrap::Message_GetNewAcctID),
@@ -2476,8 +2483,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_Party_GetAcctNameByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::Party_GetAcctID),
                             "OT_API_Party_GetAcctID");
-        theScript.chai->add(fun(&OTAPI_Wrap::Party_GetAcctAssetID),
-                            "OT_API_Party_GetAcctAssetID");
+        theScript.chai->add(
+            fun(&OTAPI_Wrap::Party_GetAcctInstrumentDefinitionID),
+            "OT_API_Party_GetAcctInstrumentDefinitionID");
         theScript.chai->add(fun(&OTAPI_Wrap::Party_GetAcctAgentName),
                             "OT_API_Party_GetAcctAgentName");
         theScript.chai->add(fun(&OTAPI_Wrap::Party_GetAgentCount),

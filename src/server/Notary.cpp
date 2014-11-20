@@ -194,7 +194,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
     // here.
     const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym),
         ACCOUNT_ID(theFromAccount),
-        ASSET_TYPE_ID(theFromAccount.GetAssetTypeID());
+        INSTRUMENT_DEFINITION_ID(theFromAccount.GetInstrumentDefinitionID());
 
     String strUserID(USER_ID), strAccountID(ACCOUNT_ID);
     pResponseBalanceItem =
@@ -322,15 +322,18 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                              "not a valid recipient for this transaction.\n");
         }
         // Are both of the accounts of the same Asset Type?
-        else if (!(theFromAccount.GetAssetTypeID() ==
-                   pDestinationAcct->GetAssetTypeID())) {
-            String strFromAssetID(theFromAccount.GetAssetTypeID()),
-                strDestinationAssetID(pDestinationAcct->GetAssetTypeID());
+        else if (!(theFromAccount.GetInstrumentDefinitionID() ==
+                   pDestinationAcct->GetInstrumentDefinitionID())) {
+            String strFromInstrumentDefinitionID(
+                theFromAccount.GetInstrumentDefinitionID()),
+                strDestinationInstrumentDefinitionID(
+                    pDestinationAcct->GetInstrumentDefinitionID());
             OTLog::vOutput(
                 0, "ERROR - user attempted to transfer between accounts of 2 "
                    "different "
                    "asset types in Notary::NotarizeTransfer:\n%s\n%s\n",
-                strFromAssetID.Get(), strDestinationAssetID.Get());
+                strFromInstrumentDefinitionID.Get(),
+                strDestinationInstrumentDefinitionID.Get());
         }
         // Does it verify?
         // I call VerifySignature here since VerifyContractID was already called
@@ -683,10 +686,10 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
     // here.
     const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym),
         ACCOUNT_ID(theAccount), SERVER_USER_ID(server_->m_nymServer),
-        ASSET_TYPE_ID(theAccount.GetAssetTypeID());
+        INSTRUMENT_DEFINITION_ID(theAccount.GetInstrumentDefinitionID());
 
     const String strUserID(USER_ID), strAccountID(ACCOUNT_ID),
-        strAssetTypeID(ASSET_TYPE_ID);
+        strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // Here we find out if we're withdrawing cash, or a voucher
     // (A voucher is a cashier's cheque aka banker's cheque).
@@ -832,8 +835,9 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
         // is a catastrophic failure!  Should never fail.
         //
         else if ((pVoucherReserveAcct = server_->transactor_.getVoucherAccount(
-                      ASSET_TYPE_ID)) && // If assignment results in good
-                                         // pointer...
+                      INSTRUMENT_DEFINITION_ID)) && // If assignment results in
+                                                    // good
+                                                    // pointer...
                  pVoucherReserveAcct->VerifyAccount(
                      server_->m_nymServer)) // and if it
                                             // points to
@@ -848,8 +852,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             Account& theVoucherReserveAcct = (*pVoucherReserveAcct);
             Identifier VOUCHER_ACCOUNT_ID(theVoucherReserveAcct);
 
-            Cheque theVoucher(SERVER_ID, ASSET_TYPE_ID),
-                theVoucherRequest(SERVER_ID, ASSET_TYPE_ID);
+            Cheque theVoucher(SERVER_ID, INSTRUMENT_DEFINITION_ID),
+                theVoucherRequest(SERVER_ID, INSTRUMENT_DEFINITION_ID);
 
             bool bLoadContractFromString =
                 theVoucherRequest.LoadContractFromString(strVoucherRequest);
@@ -868,14 +872,17 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                     __FUNCTION__, theVoucherRequest.GetTransactionNum(),
                     tranIn.GetTransactionNum(), strUserID.Get());
             }
-            else if (ASSET_TYPE_ID != theVoucherRequest.GetAssetID()) {
-                const String strFoundAssetID(theVoucherRequest.GetAssetID());
+            else if (INSTRUMENT_DEFINITION_ID !=
+                       theVoucherRequest.GetInstrumentDefinitionID()) {
+                const String strFoundInstrumentDefinitionID(
+                    theVoucherRequest.GetInstrumentDefinitionID());
                 OTLog::vError(
                     "Notary::%s: Failed verifying asset type ID (%s) on the "
                     "withdraw voucher request (found: %s) "
                     "for transaction %" PRId64 ", voucher %" PRId64
                     ". User: %s\n",
-                    __FUNCTION__, strAssetTypeID.Get(), strFoundAssetID.Get(),
+                    __FUNCTION__, strInstrumentDefinitionID.Get(),
+                    strFoundInstrumentDefinitionID.Get(),
                     tranIn.GetTransactionNum(),
                     theVoucherRequest.GetTransactionNum(), strUserID.Get());
             }
@@ -1020,7 +1027,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             OTLog::vError(
                 "transactor_.getVoucherAccount() failed in NotarizeWithdrawal. "
                 "Asset Type:\n%s\n",
-                strAssetTypeID.Get());
+                strInstrumentDefinitionID.Get());
         }
     }
 
@@ -1126,8 +1133,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             // the Debits are done one-at-a-time
             // for each token and it's amount/denomination
 
-            Purse thePurse(SERVER_ID, ASSET_TYPE_ID);
-            Purse theOutputPurse(SERVER_ID, ASSET_TYPE_ID);
+            Purse thePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+            Purse theOutputPurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
             Token* pToken = nullptr;
             dequeOfTokenPtrs theDeque;
 
@@ -1163,14 +1170,14 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                     // So I grab a copy here for later...
                     theDeque.push_front(pToken);
 
-                    pMint = server_->transactor_.getMint(ASSET_TYPE_ID,
-                                                         pToken->GetSeries());
+                    pMint = server_->transactor_.getMint(
+                        INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
                     if (nullptr == pMint) {
                         OTLog::vError("Notary::NotarizeWithdrawal: Unable to "
                                       "find Mint (series %d): %s\n",
                                       pToken->GetSeries(),
-                                      strAssetTypeID.Get());
+                                      strInstrumentDefinitionID.Get());
                         bSuccess = false;
                         break; // Once there's a failure, we ditch the loop.
                     }
@@ -1180,7 +1187,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                         OTLog::vError(
                             "Notary::NotarizeWithdrawal: Unable to find cash "
                             "reserve account for Mint (series %d): %s\n",
-                            pToken->GetSeries(), strAssetTypeID.Get());
+                            pToken->GetSeries(),
+                            strInstrumentDefinitionID.Get());
                         bSuccess = false;
                         break; // Once there's a failure, we ditch the loop.
                     }
@@ -1197,19 +1205,23 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                         OTLog::vError(
                             "Notary::NotarizeWithdrawal: User attempting "
                             "withdrawal with an expired mint (series %d): %s\n",
-                            pToken->GetSeries(), strAssetTypeID.Get());
+                            pToken->GetSeries(),
+                            strInstrumentDefinitionID.Get());
                         bSuccess = false;
                         break; // Once there's a failure, we ditch the loop.
                     }
                     else {
                         String theStringReturnVal;
 
-                        if (pToken->GetAssetID() != ASSET_TYPE_ID) {
-                            const String str1(pToken->GetAssetID()),
-                                str2(ASSET_TYPE_ID);
+                        if (pToken->GetInstrumentDefinitionID() !=
+                            INSTRUMENT_DEFINITION_ID) {
+                            const String str1(
+                                pToken->GetInstrumentDefinitionID()),
+                                str2(INSTRUMENT_DEFINITION_ID);
                             bSuccess = false;
                             OTLog::vError("%s: ERROR while signing token: "
-                                          "Expected asset ID %s but found %s "
+                                          "Expected instrument definition id "
+                                          "%s but found %s "
                                           "instead. (Failure.)\n",
                                           __FUNCTION__, str2.Get(), str1.Get());
                             break;
@@ -1494,13 +1506,14 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
     //
     const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym),
         SOURCE_ACCT_ID(theSourceAccount), SERVER_USER_ID(server_->m_nymServer),
-        PAYOUT_ASSET_ID(theSourceAccount.GetAssetTypeID()); // Ex: Pepsi shares,
-                                                            // Dollar dividend.
-                                                            // (PAYOUT_ASSET_ID
-                                                            // is Dollars.)
+        PAYOUT_INSTRUMENT_DEFINITION_ID(
+            theSourceAccount.GetInstrumentDefinitionID()); // Ex: Pepsi shares,
+                                                           // Dollar dividend.
+    // (PAYOUT_INSTRUMENT_DEFINITION_ID
+    // is Dollars.)
 
     const String strUserID(USER_ID), strAccountID(SOURCE_ACCT_ID),
-        strAssetTypeID(PAYOUT_ASSET_ID);
+        strInstrumentDefinitionID(PAYOUT_INSTRUMENT_DEFINITION_ID);
     // Make sure the appropriate item is attached.
     //
     OTItem::itemType theReplyItemType = OTItem::error_state;
@@ -1644,9 +1657,11 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             //       (Make sure it's NOT the same asset type as
             // theSourceAccount.)
             //
-            const Identifier SHARES_ASSET_ID = theVoucherRequest.GetAssetID();
+            const Identifier SHARES_INSTRUMENT_DEFINITION_ID =
+                theVoucherRequest.GetInstrumentDefinitionID();
             AssetContract* pSharesContract =
-                server_->transactor_.getAssetContract(SHARES_ASSET_ID);
+                server_->transactor_.getAssetContract(
+                    SHARES_INSTRUMENT_DEFINITION_ID);
             Account* pSharesIssuerAccount = nullptr;
             std::unique_ptr<Account> theAcctAngel;
 
@@ -1657,22 +1672,22 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             }
 
             if (nullptr == pSharesContract) {
-                const String strSharesType(SHARES_ASSET_ID);
+                const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
                 OTLog::vError("%s: ERROR unable to find shares contract based "
                               "on asset type ID: %s\n",
                               szFunc, strSharesType.Get());
             }
             else if (!pSharesContract->IsShares()) {
-                const String strSharesType(SHARES_ASSET_ID);
+                const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
                 OTLog::vError("%s: FAILURE: Asset contract is not "
                               "shares-based. Asset type ID: %s\n",
                               szFunc, strSharesType.Get());
             }
             else if (!pSharesContract->VerifySignature(theNym)) {
-                const String strSharesType(SHARES_ASSET_ID);
+                const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
                 OTLog::vError("%s: ERROR unable to verify signature for Nym "
                               "(%s) on shares contract "
-                              "with asset ID: %s\n",
+                              "with instrument definition id: %s\n",
                               szFunc, strUserID.Get(), strSharesType.Get());
             }
             else if (nullptr == pSharesIssuerAccount) {
@@ -1680,10 +1695,11 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                     "%s: ERROR unable to find issuer account for shares: %s\n",
                     szFunc, strSharesIssuerAcct.Get());
             }
-            else if (PAYOUT_ASSET_ID ==
-                       SHARES_ASSET_ID) // these can't be the same
+            else if (PAYOUT_INSTRUMENT_DEFINITION_ID ==
+                       SHARES_INSTRUMENT_DEFINITION_ID) // these can't be the
+                                                        // same
             {
-                const String strSharesType(PAYOUT_ASSET_ID);
+                const String strSharesType(PAYOUT_INSTRUMENT_DEFINITION_ID);
                 OTLog::vError("%s: ERROR dividend payout attempted, using "
                               "shares asset type as payout type also. "
                               "(It's logically impossible for it to payout to "
@@ -1793,7 +1809,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                 //
                 else if ((pVoucherReserveAcct =
                               server_->transactor_.getVoucherAccount(
-                                  PAYOUT_ASSET_ID)) && // If
+                                  PAYOUT_INSTRUMENT_DEFINITION_ID)) && // If
                          // transactor_.getVoucherAccount
                          // returns a good pointer...
                          pVoucherReserveAcct->VerifyAccount(
@@ -1960,7 +1976,8 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                         &theVoucherReserveAcct));
 
                                 PayDividendVisitor actionPayDividend(
-                                    SERVER_ID, USER_ID, PAYOUT_ASSET_ID,
+                                    SERVER_ID, USER_ID,
+                                    PAYOUT_INSTRUMENT_DEFINITION_ID,
                                     VOUCHER_ACCOUNT_ID,
                                     strInReferenceTo, // Memo for each voucher
                                                       // (containing original
@@ -1968,7 +1985,8 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                     *server_, lAmountPerShare, &theAccounts);
 
                                 // Loops through all the accounts for a given
-                                // asset type (PAYOUT_ASSET_ID), and triggers
+                                // asset type (PAYOUT_INSTRUMENT_DEFINITION_ID),
+                                // and triggers
                                 // actionPayDividend for each one. This sends
                                 // the owner nym for each, a voucher drawn on
                                 // VOUCHER_ACCOUNT_ID. (In the amount of
@@ -2053,8 +2071,9 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                         "(Returning them to sender...)\n",
                                         szFunc, lTotalCostOfDividend,
                                         lLeftovers);
-                                    Cheque theVoucher(SERVER_ID,
-                                                      PAYOUT_ASSET_ID);
+                                    Cheque theVoucher(
+                                        SERVER_ID,
+                                        PAYOUT_INSTRUMENT_DEFINITION_ID);
 
                                     // 10 minutes ==    600 Seconds
                                     // 1 hour    ==     3600 Seconds
@@ -2186,8 +2205,9 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                         // from.
                                         //
                                         if (!bSent) {
-                                            const String strPayoutAssetID(
-                                                PAYOUT_ASSET_ID),
+                                            const String
+                                                strPayoutInstrumentDefinitionID(
+                                                    PAYOUT_INSTRUMENT_DEFINITION_ID),
                                                 strSenderUserID(USER_ID);
                                             OTLog::vError(
                                                 "%s: ERROR failed issuing "
@@ -2199,14 +2219,16 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                                 " of asset type %s to Nym "
                                                 "%s.\n",
                                                 szFunc, lLeftovers,
-                                                strPayoutAssetID.Get(),
+                                                strPayoutInstrumentDefinitionID
+                                                    .Get(),
                                                 strSenderUserID.Get());
                                         }  // if !bSent
                                     }
                                     else // !bGotNextTransNum
                                     {
-                                        const String strPayoutAssetID(
-                                            PAYOUT_ASSET_ID),
+                                        const String
+                                            strPayoutInstrumentDefinitionID(
+                                                PAYOUT_INSTRUMENT_DEFINITION_ID),
                                             strRecipientUserID(USER_ID);
                                         OTLog::vError(
                                             "%s: ERROR!! Failed issuing next "
@@ -2218,7 +2240,8 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                             " of asset "
                                             "type %s to Nym %s.\n",
                                             szFunc, lLeftovers,
-                                            strPayoutAssetID.Get(),
+                                            strPayoutInstrumentDefinitionID
+                                                .Get(),
                                             strRecipientUserID.Get());
                                     }
                                 }
@@ -2233,7 +2256,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                     OTLog::vError(
                         "%s: server_->transactor_.getVoucherAccount() failed. "
                         "Asset Type:\n%s\n",
-                        szFunc, strAssetTypeID.Get());
+                        szFunc, strInstrumentDefinitionID.Get());
                 }
             }
         }
@@ -2286,7 +2309,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
     // here.
     const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym),
         ACCOUNT_ID(theAccount), SERVER_USER_ID(server_->m_nymServer),
-        ASSET_TYPE_ID(theAccount.GetAssetTypeID());
+        INSTRUMENT_DEFINITION_ID(theAccount.GetInstrumentDefinitionID());
 
     const String strUserID(USER_ID), strAccountID(ACCOUNT_ID);
 
@@ -2443,8 +2466,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             // Get the cheque from the Item and load it up into a Cheque object.
             String strCheque;
             pItem->GetAttachment(strCheque);
-            Cheque theCheque(SERVER_ID,
-                             ASSET_TYPE_ID); // allocated on the stack :-)
+            Cheque theCheque(
+                SERVER_ID,
+                INSTRUMENT_DEFINITION_ID); // allocated on the stack :-)
             bool bLoadContractFromString =
                 theCheque.LoadContractFromString(strCheque);
 
@@ -3272,30 +3296,34 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     }
                     // Are all of the accounts, AND the cheque, all of the same
                     // Asset Type?
-                    else if (!(theCheque.GetAssetID() ==
-                               pSourceAcct->GetAssetTypeID()) ||
-                             !(theCheque.GetAssetID() ==
-                               theAccount.GetAssetTypeID()) ||
+                    else if (!(theCheque.GetInstrumentDefinitionID() ==
+                               pSourceAcct->GetInstrumentDefinitionID()) ||
+                             !(theCheque.GetInstrumentDefinitionID() ==
+                               theAccount.GetInstrumentDefinitionID()) ||
                              (bHasRemitter &&
-                              !(theCheque.GetAssetID() ==
-                                pRemitterAcct->GetAssetTypeID()))) {
-                        String strSourceAssetID(pSourceAcct->GetAssetTypeID()),
-                            strRecipientAssetID(theAccount.GetAssetTypeID());
+                              !(theCheque.GetInstrumentDefinitionID() ==
+                                pRemitterAcct->GetInstrumentDefinitionID()))) {
+                        String strSourceInstrumentDefinitionID(
+                            pSourceAcct->GetInstrumentDefinitionID()),
+                            strRecipientInstrumentDefinitionID(
+                                theAccount.GetInstrumentDefinitionID());
                         OTLog::vOutput(
                             0, "Notary::%s: ERROR - user attempted to "
                                "deposit cheque between accounts of different "
                                "asset types. Source Acct: %s\nType: "
                                "%s\nRecipient Acct: %s\nType: %s\n",
                             __FUNCTION__, strSourceAcctID.Get(),
-                            strSourceAssetID.Get(), strAccountID.Get(),
-                            strRecipientAssetID.Get());
+                            strSourceInstrumentDefinitionID.Get(),
+                            strAccountID.Get(),
+                            strRecipientInstrumentDefinitionID.Get());
 
                         if (bHasRemitter) {
-                            String strRemitterAssetID(
-                                pRemitterAcct->GetAssetTypeID());
-                            OTLog::vOutput(0, "Remitter Acct: %s\nType: %s\n",
-                                           strRemitterAcctID.Get(),
-                                           strRemitterAssetID.Get());
+                            String strRemitterInstrumentDefinitionID(
+                                pRemitterAcct->GetInstrumentDefinitionID());
+                            OTLog::vOutput(
+                                0, "Remitter Acct: %s\nType: %s\n",
+                                strRemitterAcctID.Get(),
+                                strRemitterInstrumentDefinitionID.Get());
                         }
                     }
 
@@ -3764,7 +3792,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             String strPurse;
             pItem->GetAttachment(strPurse);
 
-            Purse thePurse(SERVER_ID, ASSET_TYPE_ID);
+            Purse thePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
 
             bool bLoadContractFromString =
                 thePurse.LoadContractFromString(strPurse);
@@ -3802,8 +3830,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         break;
                     }
 
-                    pMint = server_->transactor_.getMint(ASSET_TYPE_ID,
-                                                         pToken->GetSeries());
+                    pMint = server_->transactor_.getMint(
+                        INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
                     if (nullptr == pMint) {
                         OTLog::Error("Notary::NotarizeDeposit: Unable to get "
@@ -3826,9 +3854,10 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                               "retrieving token data. \n");
                             break;
                         }
-                        else if (!(pToken->GetAssetID() ==
-                                     ASSET_TYPE_ID)) // or if failure verifying
-                                                     // asset type
+                        else if (!(pToken->GetInstrumentDefinitionID() ==
+                                     INSTRUMENT_DEFINITION_ID)) // or if failure
+                                                                // verifying
+                                                                // asset type
                         {
                             bSuccess = false;
                             OTLog::vOutput(0, "Notary::NotarizeDeposit: "
@@ -4182,14 +4211,17 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                 OTLog::vOutput(0, "%s: ERROR bad server ID on payment plan.\n",
                                __FUNCTION__);
             }
-            else if (pPlan->GetAssetID() !=
-                       theDepositorAccount.GetAssetTypeID()) {
-                const String strAssetID1(pPlan->GetAssetID()),
-                    strAssetID2(theDepositorAccount.GetAssetTypeID());
-                OTLog::vOutput(0, "%s: ERROR wrong Asset Type ID (%s) on "
-                                  "payment plan. Expected: %s\n",
-                               __FUNCTION__, strAssetID1.Get(),
-                               strAssetID2.Get());
+            else if (pPlan->GetInstrumentDefinitionID() !=
+                       theDepositorAccount.GetInstrumentDefinitionID()) {
+                const String strInstrumentDefinitionID1(
+                    pPlan->GetInstrumentDefinitionID()),
+                    strInstrumentDefinitionID2(
+                        theDepositorAccount.GetInstrumentDefinitionID());
+                OTLog::vOutput(
+                    0, "%s: ERROR wrong Instrument Definition ID (%s) on "
+                       "payment plan. Expected: %s\n",
+                    __FUNCTION__, strInstrumentDefinitionID1.Get(),
+                    strInstrumentDefinitionID2.Get());
             }
             else {
                 // CANCELLING? OR ACTIVATING?
@@ -4518,20 +4550,24 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                             }
                             // Are both of the accounts of the same Asset Type?
                             // VERY IMPORTANT!!
-                            else if (pRecipientAcct->GetAssetTypeID() !=
-                                     theDepositorAccount.GetAssetTypeID()) {
-                                String strSourceAssetID(
-                                    theDepositorAccount.GetAssetTypeID()),
-                                    strRecipAssetID(
-                                        pRecipientAcct->GetAssetTypeID());
+                            else if (pRecipientAcct
+                                         ->GetInstrumentDefinitionID() !=
+                                     theDepositorAccount
+                                         .GetInstrumentDefinitionID()) {
+                                String strSourceInstrumentDefinitionID(
+                                    theDepositorAccount
+                                        .GetInstrumentDefinitionID()),
+                                    strRecipInstrumentDefinitionID(
+                                        pRecipientAcct
+                                            ->GetInstrumentDefinitionID());
                                 OTLog::vOutput(
                                     0, "%s: ERROR - user attempted to %s a "
                                        "payment plan between dissimilar "
                                        "asset types:\n%s\n%s\n",
                                     __FUNCTION__,
                                     bCancelling ? "cancel" : "activate",
-                                    strSourceAssetID.Get(),
-                                    strRecipAssetID.Get());
+                                    strSourceInstrumentDefinitionID.Get(),
+                                    strRecipInstrumentDefinitionID.Get());
                             }
                             // Does it verify?
                             // I call VerifySignature here since
@@ -4548,16 +4584,21 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                             // (pPlan and pRecip are both already
                             // matches to a 3rd value: source acct asset type
                             // ID.)
-                            else if (pRecipientAcct->GetAssetTypeID() !=
-                                     pPlan->GetAssetID()) {
-                                const String strAssetID1(pPlan->GetAssetID()),
-                                    strAssetID2(
-                                        pRecipientAcct->GetAssetTypeID());
-                                OTLog::vOutput(0, "%s: ERROR wrong Asset Type "
-                                                  "ID (%s) on Recipient Acct. "
-                                                  "Expected per Plan: %s\n",
-                                               __FUNCTION__, strAssetID2.Get(),
-                                               strAssetID1.Get());
+                            else if (pRecipientAcct
+                                         ->GetInstrumentDefinitionID() !=
+                                     pPlan->GetInstrumentDefinitionID()) {
+                                const String strInstrumentDefinitionID1(
+                                    pPlan->GetInstrumentDefinitionID()),
+                                    strInstrumentDefinitionID2(
+                                        pRecipientAcct
+                                            ->GetInstrumentDefinitionID());
+                                OTLog::vOutput(
+                                    0, "%s: ERROR wrong Asset Type "
+                                       "ID (%s) on Recipient Acct. "
+                                       "Expected per Plan: %s\n",
+                                    __FUNCTION__,
+                                    strInstrumentDefinitionID2.Get(),
+                                    strInstrumentDefinitionID1.Get());
                             }
                             // At this point I feel pretty confident that the
                             // Payment Plan is a valid request from both
@@ -5750,7 +5791,8 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
     String strBalanceItem;
 
     const Identifier USER_ID(theNym), SERVER_ID(server_->m_strNotaryID),
-        BASKET_CONTRACT_ID(theAccount.GetAssetTypeID()), ACCOUNT_ID(theAccount);
+        BASKET_CONTRACT_ID(theAccount.GetInstrumentDefinitionID()),
+        ACCOUNT_ID(theAccount);
 
     const String strUserID(USER_ID);
 
@@ -6058,7 +6100,8 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     // I call VerifySignature here since
                                     // VerifyContractID was already called in
                                     // LoadExistingAccount().
-                                    if (pUserAcct->GetAssetTypeID() !=
+                                    if (pUserAcct
+                                            ->GetInstrumentDefinitionID() !=
                                         pBasketItem->SUB_CONTRACT_ID) {
                                         OTLog::Error(
                                             "ERROR verifying asset type on a "
@@ -6784,14 +6827,16 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                                  "account in Notary::NotarizeMarketOffer\n");
             }
             // Are both of the accounts of the same Asset Type?
-            else if (theAssetAccount.GetAssetTypeID() ==
-                     pCurrencyAcct->GetAssetTypeID()) {
-                String strAssetTypeID(theAssetAccount.GetAssetTypeID()),
-                    strCurrencyTypeID(pCurrencyAcct->GetAssetTypeID());
+            else if (theAssetAccount.GetInstrumentDefinitionID() ==
+                     pCurrencyAcct->GetInstrumentDefinitionID()) {
+                String strInstrumentDefinitionID(
+                    theAssetAccount.GetInstrumentDefinitionID()),
+                    strCurrencyTypeID(
+                        pCurrencyAcct->GetInstrumentDefinitionID());
                 OTLog::vOutput(
                     0, "ERROR - user attempted to trade between identical "
                        "asset types in Notary::NotarizeMarketOffer:\n%s\n%s\n",
-                    strAssetTypeID.Get(), strCurrencyTypeID.Get());
+                    strInstrumentDefinitionID.Get(), strCurrencyTypeID.Get());
             }
             // Does it verify?
             // I call VerifySignature here since VerifyContractID was already
@@ -6834,13 +6879,17 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                                   "Nym ID (%s) on trade. Expected: %s\n",
                                strID1.Get(), strID2.Get());
             }
-            else if (pTrade->GetAssetID() !=
-                       theAssetAccount.GetAssetTypeID()) {
-                const String strAssetID1(pTrade->GetAssetID()),
-                    strAssetID2(theAssetAccount.GetAssetTypeID());
-                OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
-                                  "Asset Type ID (%s) on trade. Expected: %s\n",
-                               strAssetID1.Get(), strAssetID2.Get());
+            else if (pTrade->GetInstrumentDefinitionID() !=
+                       theAssetAccount.GetInstrumentDefinitionID()) {
+                const String strInstrumentDefinitionID1(
+                    pTrade->GetInstrumentDefinitionID()),
+                    strInstrumentDefinitionID2(
+                        theAssetAccount.GetInstrumentDefinitionID());
+                OTLog::vOutput(
+                    0, "Notary::NotarizeMarketOffer: ERROR wrong "
+                       "Instrument Definition ID (%s) on trade. Expected: %s\n",
+                    strInstrumentDefinitionID1.Get(),
+                    strInstrumentDefinitionID2.Get());
             }
             else if (pTrade->GetSenderAcctID() != ASSET_ACCT_ID) {
                 const String strAcctID1(pTrade->GetSenderAcctID()),
@@ -6850,9 +6899,9 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                                strAcctID1.Get(), strAcctID2.Get());
             }
             else if (pTrade->GetCurrencyID() !=
-                       pCurrencyAcct->GetAssetTypeID()) {
+                       pCurrencyAcct->GetInstrumentDefinitionID()) {
                 const String strID1(pTrade->GetCurrencyID()),
-                    strID2(pCurrencyAcct->GetAssetTypeID());
+                    strID2(pCurrencyAcct->GetInstrumentDefinitionID());
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "Currency Type ID (%s) on trade. Expected: "
                                   "%s\n",

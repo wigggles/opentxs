@@ -236,8 +236,9 @@ Token::Token()
 // bool                m_bSavePrivateKeys; // Determines whether it serializes
 // private keys 1 time (yes if true)
 
-Token::Token(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
+Token::Token(const Identifier& SERVER_ID,
+             const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -248,7 +249,8 @@ Token::Token(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
 {
     InitToken();
 
-    // m_NotaryID and m_AssetTypeID are now in the parent class (OTInstrument)
+    // m_NotaryID and m_InstrumentDefinitionID are now in the parent class
+    // (OTInstrument)
     // So they are initialized there now.
 }
 
@@ -268,7 +270,7 @@ Token::Token(const Purse& thePurse)
     // I set them here because the "Purse" argument only exists
     // in this subclass constructor, not the base.
     m_NotaryID = thePurse.GetNotaryID();
-    m_AssetTypeID = thePurse.GetAssetID();
+    m_InstrumentDefinitionID = thePurse.GetInstrumentDefinitionID();
 }
 
 void Token::Release_Token()
@@ -338,7 +340,7 @@ void Token::ReleasePrototokens()
 //
 Token* Token::LowLevelInstantiate(const String& strFirstLine,
                                   const Identifier& SERVER_ID,
-                                  const Identifier& ASSET_ID)
+                                  const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     Token* pToken = nullptr;
 
@@ -346,21 +348,21 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine,
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) // this string is
                                                               // 27 chars long.
     {
-        pToken = new Token_Lucre(SERVER_ID, ASSET_ID);
+        pToken = new Token_Lucre(SERVER_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     }
     else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----")) // this string is 33
                                                          // chars long.
     {
-        pToken = new Token_Lucre(SERVER_ID, ASSET_ID);
+        pToken = new Token_Lucre(SERVER_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     }
     else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) // this string is
                                                                // 39 chars long.
     {
-        pToken = new Token_Lucre(SERVER_ID, ASSET_ID);
+        pToken = new Token_Lucre(SERVER_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     }
 #else
@@ -456,7 +458,7 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine)
 // static -- class factory.
 //
 Token* Token::TokenFactory(String strInput, const Identifier& SERVER_ID,
-                           const Identifier& ASSET_ID)
+                           const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     //  const char * szFunc = "Token::TokenFactory";
 
@@ -465,8 +467,8 @@ Token* Token::TokenFactory(String strInput, const Identifier& SERVER_ID,
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Token* pToken =
-            Token::LowLevelInstantiate(strFirstLine, SERVER_ID, ASSET_ID);
+        Token* pToken = Token::LowLevelInstantiate(strFirstLine, SERVER_ID,
+                                                   INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pToken) return nullptr;
@@ -546,7 +548,7 @@ Token* Token::TokenFactory(String strInput)
 //
 bool Token::IsTokenAlreadySpent(String& theCleartextToken)
 {
-    String strAssetID(GetAssetID());
+    String strInstrumentDefinitionID(GetInstrumentDefinitionID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
     Identifier theTokenHash;
@@ -556,7 +558,8 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
     String strTokenHash(theTokenHash);
 
     String strAssetFolder;
-    strAssetFolder.Format("%s.%d", strAssetID.Get(), GetSeries());
+    strAssetFolder.Format("%s.%d", strInstrumentDefinitionID.Get(),
+                          GetSeries());
 
     bool bTokenIsPresent = OTDB::Exists(
         OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get());
@@ -579,7 +582,7 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
 
 bool Token::RecordTokenAsSpent(String& theCleartextToken)
 {
-    String strAssetID(GetAssetID());
+    String strInstrumentDefinitionID(GetInstrumentDefinitionID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
     Identifier theTokenHash;
@@ -589,7 +592,8 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     String strTokenHash(theTokenHash);
 
     String strAssetFolder;
-    strAssetFolder.Format("%s.%d", strAssetID.Get(), GetSeries());
+    strAssetFolder.Format("%s.%d", strInstrumentDefinitionID.Get(),
+                          GetSeries());
 
     // See if the spent token file ALREADY EXISTS...
     bool bTokenIsPresent = OTDB::Exists(
@@ -762,7 +766,8 @@ void Token::UpdateContents()
 {
     if (m_State == Token::spendableToken) m_strContractType.Set("CASH TOKEN");
 
-    String ASSET_TYPE_ID(m_AssetTypeID), SERVER_ID(m_NotaryID);
+    String INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
+        SERVER_ID(m_NotaryID);
 
     String strState;
     switch (m_State) {
@@ -797,14 +802,14 @@ void Token::UpdateContents()
     m_xmlUnsigned.Concatenate(
         "<token\n version=\"%s\"\n state=\"%s\"\n denomination=\"%" PRId64
         "\"\n"
-        " assetTypeID=\"%s\"\n"
+        " instrumentDefinitionID=\"%s\"\n"
         " notaryID=\"%s\"\n"
         " series=\"%d\"\n"
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " >\n\n",
         m_strVersion.Get(), strState.Get(), GetDenomination(),
-        ASSET_TYPE_ID.Get(), SERVER_ID.Get(), m_nSeries, lFrom, lTo);
+        INSTRUMENT_DEFINITION_ID.Get(), SERVER_ID.Get(), m_nSeries, lFrom, lTo);
 
     // signed tokens, as well as spendable tokens, both carry a TokenID
     // (The spendable token contains the unblinded version.)
@@ -915,10 +920,11 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (m_State == Token::spendableToken)
             m_strContractType.Set("CASH TOKEN");
 
-        String strAssetTypeID(xml->getAttributeValue("assetTypeID")),
+        String strInstrumentDefinitionID(
+            xml->getAttributeValue("instrumentDefinitionID")),
             strNotaryID(xml->getAttributeValue("notaryID"));
 
-        m_AssetTypeID.SetString(strAssetTypeID);
+        m_InstrumentDefinitionID.SetString(strInstrumentDefinitionID);
         m_NotaryID.SetString(strNotaryID);
 
         otLog4 <<
@@ -926,7 +932,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             "\n\nToken State: " << strState
                << "\n Denomination: " << GetDenomination()
                << "\n"
-                  " AssetTypeID: " << strAssetTypeID
+                  " InstrumentDefinitionID: " << strInstrumentDefinitionID
                << "\nNotaryID: " << strNotaryID << "\n";
 
         nReturnVal = 1;

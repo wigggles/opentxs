@@ -328,16 +328,16 @@ std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
     return "";
 }
 
-std::string OTLookupCaller::GetAcctName(const std::string& str_id, // AcctID
-                                        const std::string* p_nym_id,
-                                        const std::string* p_notary_id,
-                                        const std::string* p_asset_id) const
+std::string OTLookupCaller::GetAcctName(
+    const std::string& str_id, // AcctID
+    const std::string* p_nym_id, const std::string* p_notary_id,
+    const std::string* p_instrument_definition_id) const
 {
     if (isCallbackSet()) {
         otWarn << "OTLookupCaller::GetAcctName: FYI, Executing address "
                   "book callback...\n";
         return _callback->GetAcctName(str_id, p_nym_id, p_notary_id,
-                                      p_asset_id);
+                                      p_instrument_definition_id);
     }
     else {
         otOut << "OTLookupCaller::GetAcctName: "
@@ -440,25 +440,26 @@ void OTRecordList::ClearServers()
     m_servers.clear();
 }
 
-void OTRecordList::SetAssetID(std::string str_id)
+void OTRecordList::SetInstrumentDefinitionID(std::string str_id)
 {
     ClearAssets();
-    AddAssetID(str_id);
+    AddInstrumentDefinitionID(str_id);
 }
 
-void OTRecordList::AddAssetID(std::string str_id)
+void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
 {
     OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
         __FUNCTION__); // This logs and ASSERTs already.
     OT_ASSERT_MSG(nullptr != pWallet,
                   "Wallet was nullptr. Should never happen.");
-    const String strAssetTypeID(str_id);
-    const Identifier theAssetTypeID(strAssetTypeID);
+    const String strInstrumentDefinitionID(str_id);
+    const Identifier theInstrumentDefinitionID(strInstrumentDefinitionID);
     std::string str_asset_name;
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
-    AssetContract* pAssetContract = pWallet->GetAssetContract(theAssetTypeID);
+    AssetContract* pAssetContract =
+        pWallet->GetAssetContract(theInstrumentDefinitionID);
     if (nullptr != pAssetContract) {
         str_asset_name =
             pAssetContract->GetCurrencyTLA().Get(); // This might be "USD" --
@@ -642,10 +643,11 @@ bool OTRecordList::PerformAutoAccept()
                         //
                         else if (pPayment->IsValid() &&
                                  pPayment->SetTempValues()) {
-                            Identifier theAssetTypeID;
+                            Identifier theInstrumentDefinitionID;
 
-                            if (pPayment->GetAssetTypeID(theAssetTypeID)) {
-                                String strTemp(theAssetTypeID);
+                            if (pPayment->GetInstrumentDefinitionID(
+                                    theInstrumentDefinitionID)) {
+                                String strTemp(theInstrumentDefinitionID);
                                 const std::string str_inpmt_asset(
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
@@ -760,14 +762,15 @@ bool OTRecordList::PerformAutoAccept()
                             continue;
                         }
                         Identifier paymentAssetType;
-                        bool bGotAsset =
-                            pPayment->GetAssetTypeID(paymentAssetType);
+                        bool bGotAsset = pPayment->GetInstrumentDefinitionID(
+                            paymentAssetType);
 
                         std::string str_asset_type_id;
 
                         if (bGotAsset) {
-                            const String strAssetTypeID(paymentAssetType);
-                            str_asset_type_id = strAssetTypeID.Get();
+                            const String strInstrumentDefinitionID(
+                                paymentAssetType);
+                            str_asset_type_id = strInstrumentDefinitionID.Get();
                         }
                         if (str_asset_type_id.empty()) {
                             otErr << __FUNCTION__
@@ -787,14 +790,15 @@ bool OTRecordList::PerformAutoAccept()
                                 pAccount->GetUserID();
                             const Identifier& theAcctNotaryID =
                                 pAccount->GetPurportedNotaryID();
-                            const Identifier& theAcctAssetID =
-                                pAccount->GetAssetTypeID();
+                            const Identifier& theAcctInstrumentDefinitionID =
+                                pAccount->GetInstrumentDefinitionID();
                             const std::string str_acct_type =
                                 pAccount->GetTypeString();
                             //                      const OTString
                             // strAcctNymID   (theAcctNymID);
                             const String strAcctNotaryID(theAcctNotaryID);
-                            const String strAcctAssetID(theAcctAssetID);
+                            const String strAcctInstrumentDefinitionID(
+                                theAcctInstrumentDefinitionID);
                             // If the current account is owned by the Nym, AND
                             // it has the same asset type ID
                             // as the cheque being deposited, then let's deposit
@@ -807,7 +811,7 @@ bool OTRecordList::PerformAutoAccept()
                             if ((theNymID == theAcctNymID) &&
                                 (strAcctNotaryID.Compare(
                                     str_notary_id.c_str())) &&
-                                (strAcctAssetID.Compare(
+                                (strAcctInstrumentDefinitionID.Compare(
                                     str_asset_type_id.c_str())) &&
                                 (0 ==
                                  str_acct_type.compare("simple"))) // No issuer
@@ -866,16 +870,18 @@ bool OTRecordList::PerformAutoAccept()
             OT_ASSERT(nullptr != pAccount);
             const Identifier& theNymID = pAccount->GetUserID();
             const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
-            const Identifier& theAssetID = pAccount->GetAssetTypeID();
+            const Identifier& theInstrumentDefinitionID =
+                pAccount->GetInstrumentDefinitionID();
             const String strNymID(theNymID);
             const String strNotaryID(theNotaryID);
-            const String strAssetID(theAssetID);
+            const String strInstrumentDefinitionID(theInstrumentDefinitionID);
             otOut << "------------\n" << __FUNCTION__
                   << ": Account: " << nAccountIndex
                   << ", ID: " << str_account_id.c_str() << "\n";
             const std::string str_nym_id(strNymID.Get());
             const std::string str_notary_id(strNotaryID.Get());
-            const std::string str_asset_id(strAssetID.Get());
+            const std::string str_instrument_definition_id(
+                strInstrumentDefinitionID.Get());
             // NOTE: Since this account is already on my "care about" list for
             // accounts,
             // I wouldn't bother double-checking my "care about" lists for
@@ -892,7 +898,7 @@ bool OTRecordList::PerformAutoAccept()
             auto it_nym = std::find(m_nyms.begin(), m_nyms.end(), str_nym_id);
             auto it_server =
                 std::find(m_servers.begin(), m_servers.end(), str_notary_id);
-            auto it_asset = m_assets.find(str_asset_id);
+            auto it_asset = m_assets.find(str_instrument_definition_id);
             if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
                 (m_assets.end() == it_asset)) {
                 otOut << __FUNCTION__ << ": Skipping an account ("
@@ -1140,7 +1146,7 @@ bool OTRecordList::Populate()
                 strTemp.Format("%" PRId64 "", lAmount);
                 str_amount = strTemp.Get();
             }
-            Identifier theAssetTypeID;
+            Identifier theInstrumentDefinitionID;
             const std::string* p_str_asset_type =
                 &OTRecordList::s_blank; // <========== ASSET TYPE
             const std::string* p_str_asset_name =
@@ -1148,8 +1154,9 @@ bool OTRecordList::Populate()
             std::string str_outpmt_asset; // The asset type we found on the
                                           // payment (if we found anything.)
 
-            if (theOutPayment.GetAssetTypeID(theAssetTypeID)) {
-                String strTemp(theAssetTypeID);
+            if (theOutPayment.GetInstrumentDefinitionID(
+                    theInstrumentDefinitionID)) {
+                String strTemp(theInstrumentDefinitionID);
                 str_outpmt_asset = strTemp.Get();
                 auto it_asset = m_assets.find(str_outpmt_asset);
                 if (it_asset != m_assets.end()) // Found it on the map of asset
@@ -1675,10 +1682,12 @@ bool OTRecordList::Populate()
                                 str_memo = strMemo.Get();
                             }
                             pPayment->GetPaymentContents(strContents);
-                            Identifier theAssetTypeID, theSenderAcctID;
+                            Identifier theInstrumentDefinitionID,
+                                theSenderAcctID;
 
-                            if (pPayment->GetAssetTypeID(theAssetTypeID)) {
-                                String strTemp(theAssetTypeID);
+                            if (pPayment->GetInstrumentDefinitionID(
+                                    theInstrumentDefinitionID)) {
+                                String strTemp(theInstrumentDefinitionID);
                                 const std::string str_inpmt_asset(
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
@@ -2108,10 +2117,11 @@ bool OTRecordList::Populate()
                                                       // one of the
                                                       // accounts we
                                                       // care about.
-                            Identifier theAssetTypeID;
+                            Identifier theInstrumentDefinitionID;
 
-                            if (pPayment->GetAssetTypeID(theAssetTypeID)) {
-                                String strTemp(theAssetTypeID);
+                            if (pPayment->GetInstrumentDefinitionID(
+                                    theInstrumentDefinitionID)) {
+                                String strTemp(theInstrumentDefinitionID);
                                 const std::string str_inpmt_asset(
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
@@ -2540,10 +2550,11 @@ bool OTRecordList::Populate()
                                                       // one of the
                                                       // accounts we
                                                       // care about.
-                            Identifier theAssetTypeID;
+                            Identifier theInstrumentDefinitionID;
 
-                            if (pPayment->GetAssetTypeID(theAssetTypeID)) {
-                                String strTemp(theAssetTypeID);
+                            if (pPayment->GetInstrumentDefinitionID(
+                                    theInstrumentDefinitionID)) {
+                                String strTemp(theInstrumentDefinitionID);
                                 const std::string str_inpmt_asset(
                                     strTemp.Get()); // The asset type we found
                                                     // on the payment (if we
@@ -2679,19 +2690,22 @@ bool OTRecordList::Populate()
         OT_ASSERT(nullptr != pAccount);
         const Identifier& theNymID = pAccount->GetUserID();
         const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
-        const Identifier& theAssetID = pAccount->GetAssetTypeID();
+        const Identifier& theInstrumentDefinitionID =
+            pAccount->GetInstrumentDefinitionID();
         const String strNymID(theNymID);
         const String strNotaryID(theNotaryID);
-        const String strAssetID(theAssetID);
+        const String strInstrumentDefinitionID(theInstrumentDefinitionID);
         otOut << "------------\n" << __FUNCTION__
               << ": Account: " << nAccountIndex
               << ", ID: " << str_account_id.c_str() << "\n";
         const std::string str_nym_id(strNymID.Get());
         const std::string str_notary_id(strNotaryID.Get());
-        const std::string str_asset_id(strAssetID.Get());
+        const std::string str_instrument_definition_id(
+            strInstrumentDefinitionID.Get());
         const std::string* pstr_nym_id = &OTRecordList::s_blank;
         const std::string* pstr_notary_id = &OTRecordList::s_blank;
-        const std::string* pstr_asset_id = &OTRecordList::s_blank;
+        const std::string* pstr_instrument_definition_id =
+            &OTRecordList::s_blank;
         const std::string* pstr_asset_name = &OTRecordList::s_blank;
         // NOTE: Since this account is already on my "care about" list for
         // accounts,
@@ -2708,7 +2722,7 @@ bool OTRecordList::Populate()
         auto it_nym = std::find(m_nyms.begin(), m_nyms.end(), str_nym_id);
         auto it_server =
             std::find(m_servers.begin(), m_servers.end(), str_notary_id);
-        auto it_asset = m_assets.find(str_asset_id);
+        auto it_asset = m_assets.find(str_instrument_definition_id);
         if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
             (m_assets.end() == it_asset)) {
             otOut << __FUNCTION__ << ": Skipping an account ("
@@ -2721,7 +2735,7 @@ bool OTRecordList::Populate()
         //
         pstr_nym_id = &(*it_nym);
         pstr_notary_id = &(*it_server);
-        pstr_asset_id = &(it_asset->first);
+        pstr_instrument_definition_id = &(it_asset->first);
         pstr_asset_name = &(it_asset->second);
         // Loop through asset account INBOX.
         //
@@ -2796,7 +2810,10 @@ bool OTRecordList::Populate()
                                     ? nullptr
                                     : &str_other_nym_id, // nym ID if known
                                 pstr_notary_id,          // server ID if known.
-                                pstr_asset_id)),         // asset ID if known.
+                                pstr_instrument_definition_id)), // instrument
+                                                                 // definition
+                                                                 // id if
+                                                                 // known.
                                 strNameTemp;
 
                             if (strName.Exists()) {
@@ -2894,9 +2911,12 @@ bool OTRecordList::Populate()
 
                             String strName(m_pLookup->GetAcctName(
                                 str_recipient_acct_id,
-                                nullptr,         // nym ID if known
-                                pstr_notary_id,  // server ID if known.
-                                pstr_asset_id)), // asset ID if known.
+                                nullptr,        // nym ID if known
+                                pstr_notary_id, // server ID if known.
+                                pstr_instrument_definition_id)), // instrument
+                                                                 // definition
+                                                                 // id if
+                                                                 // known.
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -2944,7 +2964,8 @@ bool OTRecordList::Populate()
                       << ")\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
-                    *pstr_notary_id, *pstr_asset_id, *pstr_asset_name,
+                    *pstr_notary_id, *pstr_instrument_definition_id,
+                    *pstr_asset_name,
                     *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                     str_account_id, // This is the Nym's account for this box.
                     // Everything above this line, it stores a reference to an
@@ -3056,8 +3077,10 @@ bool OTRecordList::Populate()
 
                         String strName(m_pLookup->GetAcctName(
                             str_recipient_acct_id, nullptr, // nym ID if known
-                            pstr_notary_id,  // server ID if known.
-                            pstr_asset_id)), // asset ID if known.
+                            pstr_notary_id, // server ID if known.
+                            pstr_instrument_definition_id)), // instrument
+                                                             // definition id if
+                                                             // known.
                             strNameTemp;
 
                         if (strName.Exists())
@@ -3122,7 +3145,8 @@ bool OTRecordList::Populate()
                       << ").\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
-                    *pstr_notary_id, *pstr_asset_id, *pstr_asset_name,
+                    *pstr_notary_id, *pstr_instrument_definition_id,
+                    *pstr_asset_name,
                     *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                     str_account_id, // This is the Nym's account for this box.
                     // Everything above this line, it stores a reference to an
@@ -3266,9 +3290,12 @@ bool OTRecordList::Populate()
                                         // sender acct.)
                                         bGotRecipientUserIDForDisplay
                                             ? &str_recip_user_id
-                                            : nullptr,   // nym ID if known
-                                        pstr_notary_id,  // server ID if known.
-                                        pstr_asset_id)), // asset ID if known.
+                                            : nullptr,  // nym ID if known
+                                        pstr_notary_id, // server ID if known.
+                                        pstr_instrument_definition_id)), // asset
+                                                                         // ID
+                                                                         // if
+                                        // known.
                                         strNameTemp;
 
                                     if (strName.Exists())
@@ -3331,7 +3358,10 @@ bool OTRecordList::Populate()
                                     ? nullptr
                                     : &str_other_nym_id, // nym ID if known
                                 pstr_notary_id,          // server ID if known.
-                                pstr_asset_id)),         // asset ID if known.
+                                pstr_instrument_definition_id)), // instrument
+                                                                 // definition
+                                                                 // id if
+                                                                 // known.
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -3380,7 +3410,10 @@ bool OTRecordList::Populate()
                                     ? nullptr
                                     : &str_other_nym_id, // nym ID if known
                                 pstr_notary_id,          // server ID if known.
-                                pstr_asset_id)),         // asset ID if known.
+                                pstr_instrument_definition_id)), // instrument
+                                                                 // definition
+                                                                 // id if
+                                                                 // known.
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -3587,7 +3620,8 @@ bool OTRecordList::Populate()
                 // we just say "transferReceipt."
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
-                    *pstr_notary_id, *pstr_asset_id, *pstr_asset_name,
+                    *pstr_notary_id, *pstr_instrument_definition_id,
+                    *pstr_asset_name,
                     *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                     str_account_id, // This is the Nym's account for this box.
                     // Everything above this line, it stores a reference to an

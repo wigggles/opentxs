@@ -210,10 +210,12 @@ public:
     // server operator is free to
     // remove that total from the Voucher Account once the cheque has expired:
     // it is his money now.
-    std::shared_ptr<Account> getVoucherAccount(const Identifier& assetTypeId);
+    std::shared_ptr<Account> getVoucherAccount(
+        const Identifier& instrumentDefinitionID);
 
     // Each asset contract has its own series of Mints
-    Mint* getMint(const Identifier& assetTypeId, int32_t seriesCount);
+    Mint* getMint(const Identifier& instrumentDefinitionID,
+                  int32_t seriesCount);
 
 private:
     // Why does the map of mints use multimap instead of map?

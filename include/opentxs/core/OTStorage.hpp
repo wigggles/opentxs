@@ -1296,9 +1296,10 @@ public:
     std::string offer_price; // NEW FIELD (price limit on the original offer.)
     std::string finished_so_far; // NEW FIELD (total amount sold across all
                                  // trades.)
-    std::string asset_id;        // NEW FIELD asset ID for trade
-    std::string currency_id;     // NEW FIELD currency ID for trade
-    std::string currency_paid;   // NEW FIELD currency paid for trade
+    std::string instrument_definition_id; // NEW FIELD instrument definition id
+                                          // for trade
+    std::string currency_id;              // NEW FIELD currency ID for trade
+    std::string currency_paid;            // NEW FIELD currency paid for trade
 
     DEFINE_OT_DYNAMIC_CAST(TradeDataNym)
 };

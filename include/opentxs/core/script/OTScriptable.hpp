@@ -204,7 +204,7 @@ protected:
     //
     // Therefore, there needs to be a variable on the scriptable itself which
     // determines
-    // the template type of the scriptable: m_bSpecifyAssetID and
+    // the template type of the scriptable: m_bSpecifyInstrumentDefinitionID and
     // m_bSpecifyParties, which
     // must each be saved individually on OTScriptable.
     //
@@ -219,7 +219,8 @@ protected:
     // but the
     // actual account IDs will be left blank and the asset type IDs will be left
     // blank
-    // if m_bSpecifyAssetID is false. (Just as Parties' Owner IDs will be left
+    // if m_bSpecifyInstrumentDefinitionID is false. (Just as Parties' Owner IDs
+    // will be left
     // blank
     // if m_bSpecifyParties is false.)
     //
@@ -235,8 +236,8 @@ protected:
     //
     bool m_bCalculatingID; // NOT serialized. Used during ID calculation.
 
-    bool m_bSpecifyAssetID; // Serialized. See above note.
-    bool m_bSpecifyParties; // Serialized. See above note.
+    bool m_bSpecifyInstrumentDefinitionID; // Serialized. See above note.
+    bool m_bSpecifyParties;                // Serialized. See above note.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);

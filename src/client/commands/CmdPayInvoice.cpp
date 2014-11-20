@@ -346,7 +346,8 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
     // use to pay the invoice from. So let's pay it!
     // P.S. recipient might be empty, but mynym is guaranteed to be good.
 
-    string assetType = OTAPI_Wrap::Instrmnt_GetAssetID(instrument);
+    string assetType =
+        OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(instrument);
     string accountAssetType = getAccountAssetType(myacct);
 
     if ("" != assetType && accountAssetType != assetType) {

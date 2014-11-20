@@ -274,7 +274,8 @@ protected:
     bool ChooseIndex(int32_t nIndex);
     EXPORT Token();
     EXPORT Token& operator=(const Token& rhs);
-    EXPORT Token(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
+    EXPORT Token(const Identifier& SERVER_ID,
+                 const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT Token(const Purse& thePurse);
 
 public:
@@ -286,16 +287,16 @@ public:
     //
     EXPORT static Token* TokenFactory(String strInput);
     EXPORT static Token* TokenFactory(String strInput, const Purse& thePurse);
-    EXPORT static Token* TokenFactory(String strInput,
-                                      const Identifier& SERVER_ID,
-                                      const Identifier& ASSET_ID);
+    EXPORT static Token* TokenFactory(
+        String strInput, const Identifier& SERVER_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT static Token* LowLevelInstantiate(const Purse& thePurse);
     EXPORT static Token* LowLevelInstantiate(const String& strFirstLine);
     EXPORT static Token* LowLevelInstantiate(const String& strFirstLine,
                                              const Purse& thePurse);
-    EXPORT static Token* LowLevelInstantiate(const String& strFirstLine,
-                                             const Identifier& SERVER_ID,
-                                             const Identifier& ASSET_ID);
+    EXPORT static Token* LowLevelInstantiate(
+        const String& strFirstLine, const Identifier& SERVER_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~Token();
 
     EXPORT void Release_Token();

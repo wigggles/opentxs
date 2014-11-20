@@ -143,7 +143,7 @@ class OTInstrument : public OTScriptable
 public:
     EXPORT OTInstrument();
     EXPORT OTInstrument(const Identifier& SERVER_ID,
-                        const Identifier& ASSET_ID);
+                        const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~OTInstrument();
 
     EXPORT virtual void Release();
@@ -162,9 +162,9 @@ public:
         return m_VALID_TO;
     }
 
-    inline const Identifier& GetAssetID() const
+    inline const Identifier& GetInstrumentDefinitionID() const
     {
-        return m_AssetTypeID;
+        return m_InstrumentDefinitionID;
     }
     inline const Identifier& GetNotaryID() const
     {
@@ -183,9 +183,10 @@ protected:
     {
         m_VALID_TO = TIME_TO;
     }
-    inline void SetAssetID(const Identifier& ASSET_ID)
+    inline void SetInstrumentDefinitionID(
+        const Identifier& INSTRUMENT_DEFINITION_ID)
     {
-        m_AssetTypeID = ASSET_ID;
+        m_InstrumentDefinitionID = INSTRUMENT_DEFINITION_ID;
     }
     inline void SetNotaryID(const Identifier& SERVER_ID)
     {
@@ -193,8 +194,9 @@ protected:
     }
 
 protected:
-    Identifier m_AssetTypeID; // Every cheque or cash note has an Asset Type
-    Identifier m_NotaryID;    // ...As well as a Server ID...
+    Identifier m_InstrumentDefinitionID; // Every cheque or cash note has an
+                                         // Asset Type
+    Identifier m_NotaryID;               // ...As well as a Server ID...
     // Expiration Date (valid from/to date)
     time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
                            // FROM.
