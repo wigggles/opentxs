@@ -155,7 +155,7 @@ public:
     EXPORT bool IsListening() const;
 
     EXPORT bool NewContext();
-    EXPORT bool RemakeSocket(const bool bNewContext = false);
+    EXPORT bool RemakeSocket(bool bNewContext = false);
 
     EXPORT bool Connect();
     EXPORT bool Listen();
@@ -173,8 +173,8 @@ private:
     bool HandleSendingError();
     bool HandleReceivingError();
 
-    bool CloseSocket(const bool bNewContext = false);
-    bool NewSocket(const bool bIsRequest);
+    bool CloseSocket(bool bNewContext = false);
+    bool NewSocket(bool bIsRequest);
 
 private:
     int64_t m_lLatencySendMs;

@@ -254,14 +254,12 @@ bool OTSocket::IsListening() const
     return m_bListening;
 }
 
-bool OTSocket::CloseSocket(const bool bNewContext /*= false*/)
+bool OTSocket::CloseSocket(bool bNewContext)
 {
     if (!m_bInitialized) return false;
     if (!bNewContext) return false;
 
-    if (nullptr != socket_zmq) zmq_close(socket_zmq);
-    if (nullptr != socket_zmq) delete socket_zmq;
-    socket_zmq = nullptr;
+    zmq_close(socket_zmq);
 
     m_bConnected = false;
     m_bListening = false;
@@ -269,16 +267,14 @@ bool OTSocket::CloseSocket(const bool bNewContext /*= false*/)
     return true;
 }
 
-bool OTSocket::NewSocket(const bool bIsRequest)
+bool OTSocket::NewSocket(bool bIsRequest)
 {
     if (!m_bInitialized) return false;
-
     if (!CloseSocket()) return false;
 
     try {
-        socket_zmq = new zmq::socket_t(
-            *context_zmq,
-            bIsRequest ? ZMQ_REQ : ZMQ_REP); // make a new socket
+        socket_zmq =
+            new zmq::socket_t(*context_zmq, bIsRequest ? ZMQ_REQ : ZMQ_REP);
     }
     catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
@@ -291,9 +287,8 @@ bool OTSocket::NewSocket(const bool bIsRequest)
         OT_FAIL;
     }
 
-    const int linger = 0; // close immediately
-
     try {
+        int linger = 1000;
         socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
     }
     catch (std::exception& e) {
@@ -318,8 +313,7 @@ bool OTSocket::NewContext()
     context_zmq = nullptr;
 
     try {
-        context_zmq = new zmq::context_t(
-            1, 31); // Threads, Max Sockets. (31 is a sane default).
+        context_zmq = new zmq::context_t(1, 31);
     }
     catch (std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
@@ -329,7 +323,7 @@ bool OTSocket::NewContext()
     return true;
 }
 
-bool OTSocket::RemakeSocket(const bool bNewContext /*= false*/)
+bool OTSocket::RemakeSocket(bool bNewContext)
 {
 
     if (!m_bInitialized) return false;
@@ -365,7 +359,7 @@ bool OTSocket::Connect()
         OT_FAIL;
     }
 
-    if (!NewSocket(true)) return false; // NewSocket(true), Request Socket.
+    if (!NewSocket(true)) return false;
 
     try {
         socket_zmq->connect(connectPath_.c_str());
@@ -396,7 +390,7 @@ bool OTSocket::Listen()
         OT_FAIL;
     }
 
-    if (!NewSocket(false)) return false; // NewSocket(false), Responce Socket.
+    if (!NewSocket(false)) return false;
 
     try {
         socket_zmq->bind(bindingPath_.c_str());
@@ -458,8 +452,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
         OT_FAIL;
     }
 
-    // -----------------------------------
-    const int64_t lLatencySendMilliSec = m_lLatencySendMs;
+    int64_t lLatencySendMilliSec = m_lLatencySendMs;
 
     zmq::message_t zmq_message(ascEnvelope.GetLength());
     memcpy(zmq_message.data(), ascEnvelope.Get(), ascEnvelope.GetLength());
@@ -500,9 +493,8 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
 
             if (items[0].revents & ZMQ_POLLOUT) {
                 try {
-                    bSuccessSending = socket_zmq->send(
-                        zmq_message,
-                        ZMQ_NOBLOCK); // <=========== SEND ===============
+                    bSuccessSending =
+                        socket_zmq->send(zmq_message, ZMQ_NOBLOCK);
                 }
                 catch (std::exception& e) {
                     OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -557,7 +549,6 @@ bool OTSocket::Receive(std::string& serverReply)
         OT_FAIL;
     }
 
-    // -----------------------------------
     const int64_t lLatencyRecvMilliSec = m_lLatencyReceiveMs;
 
     //  Get the reply.
@@ -602,9 +593,8 @@ bool OTSocket::Receive(std::string& serverReply)
             //  If we got a reply, process it
             if (items[0].revents & ZMQ_POLLIN) {
                 try {
-                    bSuccessReceiving = socket_zmq->recv(
-                        &zmq_message,
-                        ZMQ_NOBLOCK); // <=========== RECEIVE ===============
+                    bSuccessReceiving =
+                        socket_zmq->recv(&zmq_message, ZMQ_NOBLOCK);
                 }
                 catch (std::exception& e) {
                     OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -630,8 +620,6 @@ bool OTSocket::Receive(std::string& serverReply)
     if (bSuccessReceiving && (zmq_message.size() > 0)) {
         serverReply = std::string(static_cast<const char*>(zmq_message.data()),
                                   zmq_message.size());
-        // serverReply.MemSet(static_cast<const char*>(zmq_message.data()),
-        //                       static_cast<uint32_t>(zmq_message.size()));
     }
 
     return (bSuccessReceiving && (zmq_message.size() > 0));
@@ -745,7 +733,6 @@ bool OTSocket::HandleSendingError()
 
 bool OTSocket::HandleReceivingError()
 {
-
     bool keepTrying = false;
 
     switch (errno) {
