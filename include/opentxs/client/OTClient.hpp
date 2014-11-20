@@ -153,8 +153,8 @@ class OTClient
 {
 public:
     enum OT_CLIENT_CMD_TYPE {
-        checkServerID, // Your public key is sent along with this message so the
-                       // server can reply to
+        pingNotary, // Your public key is sent along with this message so the
+                    // server can reply to
         // you even without your being a registered user. Other than these top
         // two commands,
         // all other commands can only be executed by registered users.

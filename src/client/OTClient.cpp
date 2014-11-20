@@ -7747,7 +7747,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
 
 /// This function sets up "theMessage" so that it is ready to be sent out to the
 /// server.
-/// If you want to set up a checkServerID command and send it to the server,
+/// If you want to set up a pingNotary command and send it to the server,
 /// then
 /// you just call this to get the OTMessage object all set up and ready to be
 /// sent.
@@ -7795,14 +7795,14 @@ int32_t OTClient::ProcessUserCommand(
 
     switch (requestedCommand) {
 
-    case (OTClient::checkServerID): {
+    case (OTClient::pingNotary): {
         String strAuthentKey, strEncryptionKey;
 
         theNym.GetPublicAuthKey().GetPublicKey(strAuthentKey);
         theNym.GetPublicEncrKey().GetPublicKey(strEncryptionKey);
 
         // (1) set up member variables
-        theMessage.m_strCommand = "checkServerID";
+        theMessage.m_strCommand = "pingNotary";
         theMessage.m_strNymID = strNymID; // Not expected to verify in any way
                                           // (for this message.) Just mirrored
                                           // back in the reply.

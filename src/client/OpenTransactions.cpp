@@ -13542,8 +13542,8 @@ int32_t OT_API::deleteNym(const Identifier& SERVER_ID,
     return -1;
 }
 
-int32_t OT_API::checkServerID(const Identifier& SERVER_ID,
-                              const Identifier& USER_ID) const
+int32_t OT_API::pingNotary(const Identifier& SERVER_ID,
+                           const Identifier& USER_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -13557,15 +13557,15 @@ int32_t OT_API::checkServerID(const Identifier& SERVER_ID,
     Message theMessage;
 
     int32_t nReturnValue = m_pClient->ProcessUserCommand(
-        OTClient::checkServerID, theMessage, *pNym, *pServer,
+        OTClient::pingNotary, theMessage, *pNym, *pServer,
         nullptr); // nullptr pAccount on this command.
     if (0 < nReturnValue) {
         SendMessage(pServer, pNym, theMessage);
         return nReturnValue;
     }
     else
-        otErr << "Error processing checkServerID command in "
-                 "OT_API::checkServerID\n";
+        otErr << "Error processing pingNotary command in "
+                 "OT_API::pingNotary\n";
 
     return -1;
 }

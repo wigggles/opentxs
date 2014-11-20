@@ -2592,8 +2592,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t checkServerID(const std::string& SERVER_ID,
-                                 const std::string& USER_ID) const;
+    EXPORT int32_t pingNotary(const std::string& SERVER_ID,
+                              const std::string& USER_ID) const;
 
     /**
     CREATE USER's ACCOUNT (On a specific server.)

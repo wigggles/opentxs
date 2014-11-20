@@ -963,7 +963,7 @@ public:
 RegisterStrategy StrategyGetNymMarketOffersResponse::reg(
     "getNym_MarketOffersResponse", new StrategyGetNymMarketOffersResponse());
 
-class StrategyCheckServerID : public OTMessageStrategy
+class StrategyPingNotary : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1032,10 +1032,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCheckServerID::reg("checkServerID",
-                                            new StrategyCheckServerID());
+RegisterStrategy StrategyPingNotary::reg("pingNotary",
+                                         new StrategyPingNotary());
 
-class StrategyCheckServerIDResponse : public OTMessageStrategy
+class StrategyPingNotaryResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1074,8 +1074,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCheckServerIDResponse::reg(
-    "checkServerIDResponse", new StrategyCheckServerIDResponse());
+RegisterStrategy StrategyPingNotaryResponse::reg(
+    "pingNotaryResponse", new StrategyPingNotaryResponse());
 
 class StrategyCreateUserAccount : public OTMessageStrategy
 {

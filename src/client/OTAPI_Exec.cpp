@@ -13034,8 +13034,8 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::checkServerID(const std::string& SERVER_ID,
-                                  const std::string& USER_ID) const
+int32_t OTAPI_Exec::pingNotary(const std::string& SERVER_ID,
+                               const std::string& USER_ID) const
 {
     if (SERVER_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: SERVER_ID passed in!\n";
@@ -13048,7 +13048,7 @@ int32_t OTAPI_Exec::checkServerID(const std::string& SERVER_ID,
 
     Identifier theServerID(SERVER_ID), theUserID(USER_ID);
 
-    return OTAPI()->checkServerID(theServerID, theUserID);
+    return OTAPI()->pingNotary(theServerID, theUserID);
 }
 
 // Returns int32_t:

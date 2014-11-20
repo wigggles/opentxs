@@ -1925,20 +1925,20 @@ int32_t main(int32_t argc, char* argv[])
 
         // 'check server ID' command
         if (buf[0] == 'c') {
-            otOut << "(User has instructed to send a checkServerID command "
+            otOut << "(User has instructed to send a pingNotary command "
                      "to the server...)\n";
 
             // if successful setting up the command payload...
 
             if (0 < OTAPI_Wrap::OTAPI()->GetClient()->ProcessUserCommand(
-                        OTClient::checkServerID, theMessage, *pMyNym,
+                        OTClient::pingNotary, theMessage, *pMyNym,
                         *pServerContract,
                         nullptr)) // nullptr pAccount on this command (so far).
             {
                 bSendCommand = true;
             }
             else
-                otErr << "Error processing checkServerID command in "
+                otErr << "Error processing pingNotary command in "
                          "ProcessMessage: " << buf[0] << "\n";
 
         }

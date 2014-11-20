@@ -2247,8 +2247,7 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::Token_GetServerID),
                             "OT_API_Token_GetServerID");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::checkServerID),
-                            "OT_API_checkServerID");
+        theScript.chai->add(fun(&OTAPI_Wrap::pingNotary), "OT_API_pingNotary");
         theScript.chai->add(fun(&OTAPI_Wrap::registerNym),
                             "OT_API_registerNym");
         theScript.chai->add(fun(&OTAPI_Wrap::deleteNym), "OT_API_deleteNym");

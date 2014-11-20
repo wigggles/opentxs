@@ -166,7 +166,7 @@ private:
                                  const bool replyTransSuccess,
                                  Nym* actualNym = nullptr);
 
-    void UserCmdCheckServerID(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdPingNotary(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdCheckNym(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendNymMessage(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendNymInstrument(Nym& nym, Message& msgIn, Message& msgOut);

@@ -234,9 +234,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     String strMsgNymID;
     pNym->GetIdentifier(strMsgNymID);
 
-    if (theMessage.m_strCommand.Compare("checkServerID")) {
-        OTLog::vOutput(0,
-                       "\n==> Received a checkServerID message. Nym: %s ...\n",
+    if (theMessage.m_strCommand.Compare("pingNotary")) {
+        OTLog::vOutput(0, "\n==> Received a pingNotary message. Nym: %s ...\n",
                        strMsgNymID.Get());
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_server_id);
         std::unique_ptr<OTAsymmetricKey> pNymAuthentKey(
@@ -259,7 +258,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         // Not all contracts are signed with the authentication key, but
         // messages are.
         if (!theMessage.VerifyWithKey(nymAuthentKey)) {
-            OTLog::Output(0, "checkServerID: Signature verification failed!\n");
+            OTLog::Output(0, "pingNotary: Signature verification failed!\n");
             return false;
         }
         OTLog::Output(3,
@@ -278,7 +277,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                          // encryption key for sending
                                          // an encrypted reply.
 
-        UserCmdCheckServerID(*pNym, theMessage, msgOut);
+        UserCmdPingNotary(*pNym, theMessage, msgOut);
         return true;
     }
     else if (theMessage.m_strCommand.Compare("registerNym")) {
@@ -1625,11 +1624,11 @@ void UserCommandProcessor::UserCmdGetNym_MarketOffers(Nym& theNym,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdCheckServerID(Nym&, Message& MsgIn,
-                                                Message& msgOut)
+void UserCommandProcessor::UserCmdPingNotary(Nym&, Message& MsgIn,
+                                             Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "checkServerIDResponse";
+    msgOut.m_strCommand = "pingNotaryResponse";
     msgOut.m_strNymID = MsgIn.m_strNymID;
 
     if (MsgIn.m_strServerID == server_->m_strServerID)

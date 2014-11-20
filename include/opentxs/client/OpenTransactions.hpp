@@ -741,8 +741,8 @@ public:
 
     // These commands below send messages to the server:
 
-    EXPORT int32_t checkServerID(const Identifier& SERVER_ID,
-                                 const Identifier& USER_ID) const;
+    EXPORT int32_t pingNotary(const Identifier& SERVER_ID,
+                              const Identifier& USER_ID) const;
 
     EXPORT int32_t registerNym(const Identifier& SERVER_ID,
                                const Identifier& USER_ID) const;

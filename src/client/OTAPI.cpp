@@ -2006,10 +2006,10 @@ int64_t OTAPI_Wrap::Basket_GetMemberMinimumTransferAmount(
                                                          nIndex);
 }
 
-int32_t OTAPI_Wrap::checkServerID(const std::string& SERVER_ID,
-                                  const std::string& USER_ID)
+int32_t OTAPI_Wrap::pingNotary(const std::string& SERVER_ID,
+                               const std::string& USER_ID)
 {
-    return Exec()->checkServerID(SERVER_ID, USER_ID);
+    return Exec()->pingNotary(SERVER_ID, USER_ID);
 }
 
 int32_t OTAPI_Wrap::registerNym(const std::string& SERVER_ID,
