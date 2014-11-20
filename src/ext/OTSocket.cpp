@@ -246,29 +246,13 @@ bool OTSocket::NewSocket(bool bIsRequest)
     try {
         socket_zmq =
             new zmq::socket_t(*context_zmq, bIsRequest ? ZMQ_REQ : ZMQ_REP);
-    }
-    catch (std::exception& e) {
-        OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
-        OT_FAIL;
-    }
-
-    if (nullptr == socket_zmq) {
-        OTLog::vError("%s: Error: %s failed to be created!\n", __FUNCTION__,
-                      "socket_zmq");
-        OT_FAIL;
-    }
-
-    try {
         int linger = 1000;
         socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
     }
-    catch (std::exception& e) {
+    catch (const std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
-
-    m_bConnected = false;
-    m_bListening = false;
 
     return true;
 }
@@ -277,14 +261,12 @@ bool OTSocket::NewContext()
 {
     if (!CloseSocket(true)) return false;
 
-    if (nullptr != context_zmq) zmq_term(context_zmq);
-    if (nullptr != context_zmq) delete context_zmq;
-    context_zmq = nullptr;
+    if (context_zmq) zmq_term(context_zmq);
 
     try {
         context_zmq = new zmq::context_t(1, 31);
     }
-    catch (std::exception& e) {
+    catch (const std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
@@ -310,12 +292,12 @@ bool OTSocket::RemakeSocket(bool bNewContext)
 
 bool OTSocket::Connect()
 {
-    if (nullptr == context_zmq) {
+    if (!context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__,
                       "context_zmq");
         OT_FAIL;
     }
-    if (true == m_bListening) {
+    if (m_bListening) {
         OTLog::vError("%s: Error: Must not be Listening, to Connect!\n",
                       __FUNCTION__);
         OT_FAIL;
@@ -326,7 +308,7 @@ bool OTSocket::Connect()
     try {
         socket_zmq->connect(connectPath_.c_str());
     }
-    catch (std::exception& e) {
+    catch (const std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
@@ -337,12 +319,12 @@ bool OTSocket::Connect()
 
 bool OTSocket::Listen()
 {
-    if (nullptr == context_zmq) {
+    if (!context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__,
                       "context_zmq");
         OT_FAIL;
     }
-    if (true == m_bConnected) {
+    if (m_bConnected) {
         OTLog::vError("%s: Error: Must not be Connected, to Listen!\n",
                       __FUNCTION__);
         OT_FAIL;
@@ -353,7 +335,7 @@ bool OTSocket::Listen()
     try {
         socket_zmq->bind(bindingPath_.c_str());
     }
-    catch (std::exception& e) {
+    catch (const std::exception& e) {
         OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
         OT_FAIL;
     }
@@ -364,7 +346,7 @@ bool OTSocket::Listen()
 
 bool OTSocket::Connect(const std::string& connectPath)
 {
-    if (5 > connectPath.size()) {
+    if (connectPath.size() < 5) {
         OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__,
                       "connectPath");
         OT_FAIL;
@@ -377,7 +359,7 @@ bool OTSocket::Connect(const std::string& connectPath)
 
 bool OTSocket::Listen(const std::string& bindingPath)
 {
-    if (5 > bindingPath.size()) {
+    if (bindingPath.size() < 5) {
         OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__,
                       "bindingPath");
         OT_FAIL;
@@ -392,7 +374,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
 {
     m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
 
-    if (nullptr == context_zmq) {
+    if (!context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__,
                       "context_zmq");
         OT_FAIL;
@@ -400,7 +382,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
 
     if (!m_bConnected && !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
-    if (nullptr == socket_zmq) {
+    if (!socket_zmq) {
         OTLog::vError("%s: Error: %s must exist to Send!\n", __FUNCTION__,
                       "socket_zmq");
         OT_FAIL;
@@ -418,7 +400,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
             // Blocking.
             bSuccessSending = socket_zmq->send(zmq_message);
         }
-        catch (std::exception& e) {
+        catch (const std::exception& e) {
             OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                           e.what());
             OT_FAIL;
@@ -437,7 +419,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
                 // ZMQ_POLLOUT, 1 item, timeout (milliseconds)
                 nPoll = zmq::poll(&items[0], 1, doubling);
             }
-            catch (std::exception& e) {
+            catch (const std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                               e.what());
                 OT_FAIL;
@@ -450,7 +432,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
                     bSuccessSending =
                         socket_zmq->send(zmq_message, ZMQ_NOBLOCK);
                 }
-                catch (std::exception& e) {
+                catch (const std::exception& e) {
                     OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                                   e.what());
                     OT_FAIL;
@@ -486,7 +468,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope,
 
 bool OTSocket::Receive(std::string& serverReply)
 {
-    if (nullptr == context_zmq) {
+    if (!context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__,
                       "context_zmq");
         OT_FAIL;
@@ -494,7 +476,7 @@ bool OTSocket::Receive(std::string& serverReply)
 
     if (!m_bConnected && !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
-    if (nullptr == socket_zmq) {
+    if (!socket_zmq) {
         OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__,
                       "socket_zmq");
         OT_FAIL;
@@ -514,7 +496,7 @@ bool OTSocket::Receive(std::string& serverReply)
             // Blocking.
             bSuccessReceiving = socket_zmq->recv(&zmq_message);
         }
-        catch (std::exception& e) {
+        catch (const std::exception& e) {
             OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                           e.what());
             OT_FAIL;
@@ -533,7 +515,7 @@ bool OTSocket::Receive(std::string& serverReply)
                 // ZMQ_POLLIN, 1 item, timeout (milliseconds)
                 nPoll = zmq::poll(&items[0], 1, doubling);
             }
-            catch (std::exception& e) {
+            catch (const std::exception& e) {
                 OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                               e.what());
                 OT_FAIL;
@@ -547,7 +529,7 @@ bool OTSocket::Receive(std::string& serverReply)
                     bSuccessReceiving =
                         socket_zmq->recv(&zmq_message, ZMQ_NOBLOCK);
                 }
-                catch (std::exception& e) {
+                catch (const std::exception& e) {
                     OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__,
                                   e.what());
                     OT_FAIL;
