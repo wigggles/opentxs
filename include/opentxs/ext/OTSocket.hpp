@@ -155,7 +155,7 @@ public:
 
 private:
     bool HandlePollingError();
-    bool HandleSendingError();
+    void HandleSendingError();
     bool HandleReceivingError();
 
     bool NewContext();
@@ -163,10 +163,8 @@ private:
 
 private:
     int64_t m_lLatencySendMs;
-    int32_t m_nLatencySendNoTries;
     int64_t m_lLatencyReceiveMs;
     int32_t m_nLatencyReceiveNoTries;
-    int64_t m_lLatencyDelayAfter;
 
     bool m_bConnected;
     bool m_bListening;
