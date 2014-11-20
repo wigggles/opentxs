@@ -166,14 +166,12 @@ namespace opentxs
 // they are associated with, so they can access those accounts.
 OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
                                        OTSettings* pConfig)
-    : m_pSocket(new OTSocket())
+    : m_pSocket(new OTSocket(pConfig))
 {
     m_pNym = nullptr;
     m_pServerContract = nullptr;
     m_pWallet = theWallet;
     m_pClient = theClient;
-
-    m_pSocket->Init(pConfig);
 }
 
 // When the server sends a reply back with our new request number, we

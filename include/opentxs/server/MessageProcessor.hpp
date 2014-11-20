@@ -133,14 +133,15 @@
 #ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 #define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
-#include <opentxs/ext/OTSocket.hpp>
 #include <string>
+#include <memory>
 
 namespace opentxs
 {
 
 class ServerLoader;
 class OTServer;
+class OTSocket;
 
 class MessageProcessor
 {
@@ -154,7 +155,7 @@ private:
 
 private:
     OTServer* server_;
-    OTSocket socket_;
+    std::unique_ptr<OTSocket> socket_;
 };
 
 } // namespace opentxs

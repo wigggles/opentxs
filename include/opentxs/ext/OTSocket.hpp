@@ -145,10 +145,8 @@ class OTSettings;
 class OTSocket
 {
 public:
-    OTSocket();
+    explicit OTSocket(OTSettings* pSettings);
     ~OTSocket();
-
-    EXPORT bool Init(OTSettings* pSettings);
 
     EXPORT bool IsConnected() const;
     EXPORT bool IsListening() const;
@@ -183,7 +181,6 @@ private:
     int64_t m_lLatencyDelayAfter;
     bool m_bIsBlocking;
 
-    bool m_bInitialized;
     bool m_bConnected;
     bool m_bListening;
 

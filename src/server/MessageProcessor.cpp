@@ -135,6 +135,7 @@
 #include <opentxs/server/MessageProcessor.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
+#include <opentxs/ext/OTSocket.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>
@@ -166,16 +167,14 @@ void MessageProcessor::init(int port)
         OT_FAIL;
     }
 
-    if (!socket_.Init(&settings)) {
-        OT_FAIL;
-    }
+    socket_.reset(new OTSocket(&settings));
 
     if (!settings.Save()) {
         OT_FAIL;
     }
     settings.Reset();
 
-    if (!socket_.NewContext()) {
+    if (!socket_->NewContext()) {
         OT_FAIL;
     }
 
@@ -185,7 +184,7 @@ void MessageProcessor::init(int port)
     String bindPath;
     bindPath.Format("%s%d", "tcp://*:", port);
 
-    if (!socket_.Listen(bindPath.Get())) {
+    if (!socket_->Listen(bindPath.Get())) {
         OT_FAIL;
     }
 }
@@ -240,7 +239,7 @@ void MessageProcessor::run()
             // Therefore I will be using a real Timer for Cron, instead of the
             // damn intervals.
 
-            bool received = socket_.Receive(messageString);
+            bool received = socket_->Receive(messageString);
 
             if (received) {
                 if (messageString.size() == 0) {
@@ -255,7 +254,7 @@ void MessageProcessor::run()
                         reply = "";
                     }
 
-                    bool successSending = socket_.Send(reply.c_str());
+                    bool successSending = socket_->Send(reply.c_str());
 
                     if (!successSending) {
                         OTLog::vError("server main: Socket ERROR: failed "

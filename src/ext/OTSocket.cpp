@@ -155,14 +155,13 @@ enum {
 namespace opentxs
 {
 
-OTSocket::OTSocket()
+OTSocket::OTSocket(OTSettings* pSettings)
     : m_lLatencySendMs(DEFAULT_LATENCY_SEND_MS)
     , m_nLatencySendNoTries(DEFAULT_LATENCY_SEND_NO_TRIES)
     , m_lLatencyReceiveMs(DEFAULT_LATENCY_RECEIVE_MS)
     , m_nLatencyReceiveNoTries(DEFAULT_LATENCY_RECEIVE_NO_TRIES)
     , m_lLatencyDelayAfter(DEFAULT_LATENCY_DELAY_AFTER)
     , m_bIsBlocking(DEFAULT_IS_BLOCKING)
-    , m_bInitialized(false)
     , m_bConnected(false)
     , m_bListening(false)
     , connectPath_("")
@@ -170,22 +169,6 @@ OTSocket::OTSocket()
     , context_zmq(nullptr)
     , socket_zmq(nullptr)
 {
-}
-
-OTSocket::~OTSocket()
-{
-    CloseSocket();
-    delete socket_zmq;
-    delete context_zmq;
-}
-
-bool OTSocket::Init(OTSettings* pSettings)
-{
-    if (m_bInitialized) return false;
-    if (m_bConnected) return false;
-    if (m_bListening) return false;
-    if (!pSettings) return false;
-
     bool bIsNew = false;
     {
         if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_MS,
@@ -233,10 +216,13 @@ bool OTSocket::Init(OTSettings* pSettings)
             OT_FAIL;
         }
     }
+}
 
-    m_bInitialized = true;
-
-    return true;
+OTSocket::~OTSocket()
+{
+    CloseSocket();
+    delete socket_zmq;
+    delete context_zmq;
 }
 
 bool OTSocket::IsConnected() const
@@ -251,7 +237,6 @@ bool OTSocket::IsListening() const
 
 bool OTSocket::CloseSocket(bool bNewContext)
 {
-    if (!m_bInitialized) return false;
     if (!bNewContext) return false;
 
     zmq_close(socket_zmq);
@@ -264,7 +249,6 @@ bool OTSocket::CloseSocket(bool bNewContext)
 
 bool OTSocket::NewSocket(bool bIsRequest)
 {
-    if (!m_bInitialized) return false;
     if (!CloseSocket()) return false;
 
     try {
@@ -299,8 +283,6 @@ bool OTSocket::NewSocket(bool bIsRequest)
 
 bool OTSocket::NewContext()
 {
-    if (!m_bInitialized) return false;
-
     if (!CloseSocket(true)) return false;
 
     if (nullptr != context_zmq) zmq_term(context_zmq);
@@ -320,9 +302,6 @@ bool OTSocket::NewContext()
 
 bool OTSocket::RemakeSocket(bool bNewContext)
 {
-
-    if (!m_bInitialized) return false;
-
     if (!m_bConnected || !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
 
@@ -339,10 +318,6 @@ bool OTSocket::RemakeSocket(bool bNewContext)
 
 bool OTSocket::Connect()
 {
-    if (!m_bInitialized) {
-        OT_FAIL;
-    }
-
     if (nullptr == context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__,
                       "context_zmq");
@@ -370,10 +345,6 @@ bool OTSocket::Connect()
 
 bool OTSocket::Listen()
 {
-    if (!m_bInitialized) {
-        OT_FAIL;
-    }
-
     if (nullptr == context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Listen!\n", __FUNCTION__,
                       "context_zmq");
@@ -427,10 +398,6 @@ bool OTSocket::Listen(const std::string& bindingPath)
 
 bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
 {
-    if (!m_bInitialized) {
-        OT_FAIL;
-    }
-
     m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
 
     if (nullptr == context_zmq) {
@@ -527,9 +494,6 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope,
 
 bool OTSocket::Receive(std::string& serverReply)
 {
-    if (!m_bInitialized) {
-        OT_FAIL;
-    }
     if (nullptr == context_zmq) {
         OTLog::vError("%s: Error: %s must exist to Receive!\n", __FUNCTION__,
                       "context_zmq");
