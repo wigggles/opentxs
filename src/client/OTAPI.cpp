@@ -2018,10 +2018,10 @@ int32_t OTAPI_Wrap::registerNym(const std::string& SERVER_ID,
     return Exec()->registerNym(SERVER_ID, USER_ID);
 }
 
-int32_t OTAPI_Wrap::deleteNym(const std::string& SERVER_ID,
-                              const std::string& USER_ID)
+int32_t OTAPI_Wrap::unregisterNym(const std::string& SERVER_ID,
+                                  const std::string& USER_ID)
 {
-    return Exec()->deleteNym(SERVER_ID, USER_ID);
+    return Exec()->unregisterNym(SERVER_ID, USER_ID);
 }
 
 int64_t OTAPI_Wrap::Message_GetUsageCredits(const std::string& THE_MESSAGE)

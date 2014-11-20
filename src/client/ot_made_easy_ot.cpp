@@ -2069,7 +2069,7 @@ Here are parameters for the first group above.
 (They are called in OTAPI_Func, this code is from there):
 
 else if (funcType == DELETE_NYM)
-{ OTAPI_Wrap::deleteNym(notaryID, nymID); }
+{ OTAPI_Wrap::unregisterNym(notaryID, nymID); }
 else if (funcType == GET_NYM_MARKET_OFFERS)
 { OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID); }
 else if (funcType == CREATE_ASSET_ACCT)

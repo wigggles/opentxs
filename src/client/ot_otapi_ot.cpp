@@ -688,7 +688,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case REGISTER_NYM:
         return OTAPI_Wrap::registerNym(notaryID, nymID);
     case DELETE_NYM:
-        return OTAPI_Wrap::deleteNym(notaryID, nymID);
+        return OTAPI_Wrap::unregisterNym(notaryID, nymID);
     case SEND_USER_MESSAGE:
         return OTAPI_Wrap::sendNymMessage(notaryID, nymID, nymID2, strData,
                                           strData2);

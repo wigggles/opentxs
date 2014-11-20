@@ -187,7 +187,7 @@ public:
         registerNym,      // Create user account on a specific server, with
                           // public key. User ID will be hash of said public
                           // key.
-        deleteNym,        // Delete user account from a specific server.
+        unregisterNym,    // Delete user account from a specific server.
         getRequestNumber, // Get the next request number from the server (for
                           // this
                           // user). Most requests must be
@@ -297,8 +297,8 @@ private:
     bool processServerReplyGetMarketOffers(const Message& theReply);
     bool processServerReplyGetMarketRecentTrades(const Message& theReply);
     bool processServerReplyGetNymMarketOffers(const Message& theReply);
-    bool processServerReplyDeleteNym(const Message& theReply,
-                                     ProcessServerReplyArgs& args);
+    bool processServerReplyUnregisterNym(const Message& theReply,
+                                         ProcessServerReplyArgs& args);
     bool processServerReplyDeleteAssetAccount(const Message& theReply,
                                               ProcessServerReplyArgs& args);
     bool processServerReplyIssueAssetType(const Message& theReply,
