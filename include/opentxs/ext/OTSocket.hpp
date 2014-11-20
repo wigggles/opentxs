@@ -144,23 +144,6 @@ class OTSettings;
 
 class OTSocket
 {
-protected:
-    int64_t m_lLatencySendMs;
-    int32_t m_nLatencySendNoTries;
-    int64_t m_lLatencyReceiveMs;
-    int32_t m_nLatencyReceiveNoTries;
-    int64_t m_lLatencyDelayAfter;
-    bool m_bIsBlocking;
-
-    bool m_bInitialized;
-    bool m_bConnected;
-    bool m_bListening;
-
-    std::string connectPath_;
-    std::string bindingPath_;
-
-    OTASCIIArmor m_ascLastMsgSent;
-
 public:
     OTSocket();
     ~OTSocket();
@@ -194,6 +177,22 @@ private:
     bool NewSocket(const bool bIsRequest);
 
 private:
+    int64_t m_lLatencySendMs;
+    int32_t m_nLatencySendNoTries;
+    int64_t m_lLatencyReceiveMs;
+    int32_t m_nLatencyReceiveNoTries;
+    int64_t m_lLatencyDelayAfter;
+    bool m_bIsBlocking;
+
+    bool m_bInitialized;
+    bool m_bConnected;
+    bool m_bListening;
+
+    std::string connectPath_;
+    std::string bindingPath_;
+
+    OTASCIIArmor m_ascLastMsgSent;
+
     zmq::context_t* context_zmq;
     zmq::socket_t* socket_zmq;
 };
