@@ -136,6 +136,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <cppzmq/zmq.hpp>
 #include <string>
+#include <memory>
 
 namespace opentxs
 {
@@ -146,7 +147,6 @@ class OTSocket
 {
 public:
     OTSocket(OTSettings* pSettings, bool connect);
-    ~OTSocket();
 
     EXPORT bool RemakeSocket();
 
@@ -182,8 +182,8 @@ private:
 
     OTASCIIArmor m_ascLastMsgSent;
 
-    zmq::context_t* context_zmq;
-    zmq::socket_t* socket_zmq;
+    std::unique_ptr<zmq::context_t> context_zmq;
+    std::unique_ptr<zmq::socket_t> socket_zmq;
 };
 
 } // namespace opentxs

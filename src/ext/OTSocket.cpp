@@ -167,7 +167,8 @@ OTSocket::OTSocket(OTSettings* pSettings, bool connect)
     , connectPath_("")
     , bindingPath_("")
     , context_zmq(new zmq::context_t(1, 31))
-    , socket_zmq(new zmq::socket_t(*context_zmq, connect ? ZMQ_REQ : ZMQ_REP))
+    , socket_zmq(
+          new zmq::socket_t(*context_zmq.get(), connect ? ZMQ_REQ : ZMQ_REP))
 {
     bool bIsNew = false;
     {
@@ -220,14 +221,6 @@ OTSocket::OTSocket(OTSettings* pSettings, bool connect)
     // set linger
     int linger = 1000;
     socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
-}
-
-OTSocket::~OTSocket()
-{
-    zmq_close(socket_zmq);
-
-    delete socket_zmq;
-    delete context_zmq;
 }
 
 bool OTSocket::RemakeSocket()
