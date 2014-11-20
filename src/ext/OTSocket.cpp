@@ -253,11 +253,7 @@ bool OTSocket::RemakeSocket()
 
 bool OTSocket::Connect()
 {
-    if (m_bListening) {
-        OTLog::vError("%s: Error: Must not be Listening, to Connect!\n",
-                      __FUNCTION__);
-        OT_FAIL;
-    }
+    if (m_bListening) return false;
 
     try {
         socket_zmq->connect(connectPath_.c_str());
@@ -274,11 +270,7 @@ bool OTSocket::Connect()
 
 bool OTSocket::Listen()
 {
-    if (m_bConnected) {
-        OTLog::vError("%s: Error: Must not be Connected, to Listen!\n",
-                      __FUNCTION__);
-        OT_FAIL;
-    }
+    if (m_bConnected) return false;
 
     try {
         socket_zmq->bind(bindingPath_.c_str());
@@ -298,7 +290,7 @@ bool OTSocket::Connect(const std::string& connectPath)
     if (connectPath.size() < 5) {
         OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__,
                       "connectPath");
-        OT_FAIL;
+        return false;
     }
 
     connectPath_ = connectPath;
@@ -311,7 +303,7 @@ bool OTSocket::Listen(const std::string& bindingPath)
     if (bindingPath.size() < 5) {
         OTLog::vError("%s: Error: %s is too short!\n", __FUNCTION__,
                       "bindingPath");
-        OT_FAIL;
+        return false;
     }
 
     bindingPath_ = bindingPath;
