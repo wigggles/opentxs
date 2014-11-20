@@ -133,7 +133,6 @@
 #ifndef OPENTXS_EXT_OTSOCKET_HPP
 #define OPENTXS_EXT_OTSOCKET_HPP
 
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <cppzmq/zmq.hpp>
 #include <string>
 #include <memory>
@@ -149,8 +148,8 @@ public:
     EXPORT bool Connect(const std::string& connectPath);
     EXPORT bool Listen(const std::string& bindingPath);
 
-    EXPORT bool Send(const OTASCIIArmor& ascEnvelope);
-    EXPORT bool Send(const OTASCIIArmor& ascEnvelope,
+    EXPORT bool Send(const char* data, std::size_t length);
+    EXPORT bool Send(const char* data, std::size_t length,
                      const std::string& connectPath);
     EXPORT bool Receive(std::string& serverReply);
 
@@ -173,8 +172,6 @@ private:
     bool m_bListening;
 
     std::string endpoint_;
-
-    OTASCIIArmor m_ascLastMsgSent;
 
     std::unique_ptr<zmq::context_t> context_zmq;
     std::unique_ptr<zmq::socket_t> socket_zmq;

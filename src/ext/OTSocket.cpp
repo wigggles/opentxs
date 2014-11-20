@@ -193,14 +193,9 @@ bool OTSocket::Listen(const std::string& endpoint)
     return true;
 }
 
-bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
+bool OTSocket::Send(const char* data, std::size_t length)
 {
     if (!m_bConnected && !m_bListening) return false;
-
-    m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
-
-    zmq::message_t zmq_message(ascEnvelope.GetLength());
-    memcpy(zmq_message.data(), ascEnvelope.Get(), ascEnvelope.GetLength());
 
     bool bSuccessSending = false;
 
@@ -224,7 +219,7 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
 
         if (items[0].revents & ZMQ_POLLOUT) {
             try {
-                bSuccessSending = socket_zmq->send(zmq_message, ZMQ_NOBLOCK);
+                bSuccessSending = socket_zmq->send(data, length, ZMQ_NOBLOCK);
             }
             catch (const std::exception& e) {
                 Log::vError("%s: Exception Caught: %s \n", __FUNCTION__,
@@ -249,12 +244,12 @@ bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
     return bSuccessSending;
 }
 
-bool OTSocket::Send(const OTASCIIArmor& ascEnvelope,
+bool OTSocket::Send(const char* data, std::size_t length,
                     const std::string& endpoint)
 {
     if (endpoint_ != endpoint) Connect(endpoint);
 
-    return Send(ascEnvelope);
+    return Send(data, length);
 }
 
 bool OTSocket::Receive(std::string& serverReply)
@@ -448,29 +443,17 @@ bool OTSocket::HandleReceivingError()
                         "moment due to the socket not being in the "
                         "appropriate state. (Deleting socket and "
                         "re-trying...)\n");
-        {
-            OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            keepTrying = Send(ascTemp);
-        }
         break;
     // The ØMQ context associated with the specified socket was terminated.
     case ETERM:
         Log::Error("OTSocket::HandleReceivingError: The ØMQ context "
                    "associated with the specified socket was terminated. "
                    "(Re-creating the context, and trying again...)\n");
-        {
-            OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            keepTrying = Send(ascTemp);
-        }
         break;
     // The provided socket was invalid.
     case ENOTSOCK:
         Log::Error("OTSocket::HandleReceivingError: The provided socket was "
                    "invalid. (Deleting socket and re-trying.)\n");
-        {
-            OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            keepTrying = Send(ascTemp);
-        }
         break;
     // The operation was interrupted by delivery of a signal before a message
     // was available.
