@@ -146,8 +146,6 @@ class OTSocket
 public:
     explicit OTSocket(bool connect);
 
-    EXPORT bool RemakeSocket();
-
     EXPORT bool Connect(const std::string& connectPath);
     EXPORT bool Listen(const std::string& bindingPath);
 

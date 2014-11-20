@@ -155,14 +155,6 @@ OTSocket::OTSocket(bool connect)
     socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
 }
 
-bool OTSocket::RemakeSocket()
-{
-    if (m_bConnected) return Connect(endpoint_);
-    if (m_bListening) return Listen(endpoint_);
-
-    return false;
-}
-
 bool OTSocket::Connect(const std::string& endpoint)
 {
     if (m_bListening) return false;
@@ -389,7 +381,6 @@ bool OTSocket::HandleSendingError()
                         "moment due to the socket not being in the "
                         "appropriate state. Deleting socket and "
                         "re-trying...\n");
-        RemakeSocket();
         keepTrying = true;
         break;
     // The ØMQ context associated with the specified socket was terminated.
@@ -398,14 +389,12 @@ bool OTSocket::HandleSendingError()
                    "with the specified socket was terminated. (Deleting and "
                    "re-creating the context and the socket, and trying "
                    "again.)\n");
-        RemakeSocket();
         keepTrying = true;
         break;
     // The provided socket was invalid.
     case ENOTSOCK:
         Log::Error("OTSocket::HandleSendingError: The provided socket was "
                    "invalid. (Deleting socket and re-trying...)\n");
-        RemakeSocket();
         keepTrying = true;
         break;
     // The operation was interrupted by delivery of a signal before the message
@@ -459,7 +448,6 @@ bool OTSocket::HandleReceivingError()
                         "moment due to the socket not being in the "
                         "appropriate state. (Deleting socket and "
                         "re-trying...)\n");
-        RemakeSocket();
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
             keepTrying = Send(ascTemp);
@@ -470,7 +458,6 @@ bool OTSocket::HandleReceivingError()
         Log::Error("OTSocket::HandleReceivingError: The ØMQ context "
                    "associated with the specified socket was terminated. "
                    "(Re-creating the context, and trying again...)\n");
-        RemakeSocket();
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
             keepTrying = Send(ascTemp);
@@ -480,7 +467,6 @@ bool OTSocket::HandleReceivingError()
     case ENOTSOCK:
         Log::Error("OTSocket::HandleReceivingError: The provided socket was "
                    "invalid. (Deleting socket and re-trying.)\n");
-        RemakeSocket();
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
             keepTrying = Send(ascTemp);
