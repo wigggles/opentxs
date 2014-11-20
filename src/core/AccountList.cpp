@@ -180,13 +180,14 @@ void AccountList::Serialize(String& append) const
                        acctType.Get(), mapAcctIDs_.size());
 
     for (auto& it : mapAcctIDs_) {
-        std::string assetTypeId = it.first;
+        std::string instrumentDefinitionID = it.first;
         std::string accountId = it.second;
-        OT_ASSERT((assetTypeId.size() > 0) && (accountId.size() > 0));
+        OT_ASSERT((instrumentDefinitionID.size() > 0) &&
+                  (accountId.size() > 0));
 
-        append.Concatenate(
-            "<accountEntry assetTypeID=\"%s\" accountID=\"%s\" />\n\n",
-            assetTypeId.c_str(), accountId.c_str());
+        append.Concatenate("<accountEntry instrumentDefinitionID=\"%s\" "
+                           "accountID=\"%s\" />\n\n",
+                           instrumentDefinitionID.c_str(), accountId.c_str());
     }
 
     append.Concatenate("</accountList>\n\n");
@@ -223,21 +224,22 @@ int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
 
             if ((xml->getNodeType() == EXN_ELEMENT) &&
                 (!strcmp("accountEntry", xml->getNodeName()))) {
-                String assetTypeID = xml->getAttributeValue(
-                    "assetTypeID"); // Asset Type ID of this account.
+                String instrumentDefinitionID = xml->getAttributeValue(
+                    "instrumentDefinitionID"); // Instrument Definition ID of
+                                               // this account.
                 String accountID = xml->getAttributeValue(
                     "accountID"); // Account ID for this account.
 
-                if (!assetTypeID.Exists() || !accountID.Exists()) {
+                if (!instrumentDefinitionID.Exists() || !accountID.Exists()) {
                     otErr << "Error loading accountEntry: Either the "
-                             "assetTypeID (" << assetTypeID
-                          << "), or the accountID (" << accountID
-                          << ") was EMPTY.\n";
+                             "instrumentDefinitionID ("
+                          << instrumentDefinitionID << "), or the accountID ("
+                          << accountID << ") was EMPTY.\n";
                     return -1;
                 }
 
-                mapAcctIDs_.insert(
-                    std::make_pair(assetTypeID.Get(), accountID.Get()));
+                mapAcctIDs_.insert(std::make_pair(instrumentDefinitionID.Get(),
+                                                  accountID.Get()));
             }
             else {
                 otErr << "Expected accountEntry element in accountList.\n";
@@ -270,7 +272,7 @@ void AccountList::Release()
 
 std::shared_ptr<Account> AccountList::GetOrCreateAccount(
     Nym& serverNym, const Identifier& accountOwnerId,
-    const Identifier& assetTypeId, const Identifier& notaryID,
+    const Identifier& instrumentDefinitionID, const Identifier& notaryID,
     // this will be set to true if the acct is created here.
     // Otherwise set to false;
     bool& wasAcctCreated, int64_t stashTransNum)
@@ -289,12 +291,13 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
 
     // First, we'll see if there's already an account ID available for the
     // requested asset type ID.
-    std::string assetTypeIdString = String(assetTypeId).Get();
+    std::string instrumentDefinitionIDString =
+        String(instrumentDefinitionID).Get();
 
     String acctTypeString;
     TranslateAccountTypeToString(acctType_, acctTypeString);
 
-    auto acctIDsIt = mapAcctIDs_.find(assetTypeIdString);
+    auto acctIDsIt = mapAcctIDs_.find(instrumentDefinitionIDString);
     // Account ID *IS* already there for this asset type
     if (mapAcctIDs_.end() != acctIDsIt) {
         // grab account ID
@@ -365,7 +368,8 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
         else {
             otLog3 << "Successfully loaded " << acctTypeString
                    << " account ID: " << acctIDString
-                   << " Asset Type ID: " << assetTypeIdString << "\n";
+                   << " Instrument Definition ID: "
+                   << instrumentDefinitionIDString << "\n";
 
             account = std::shared_ptr<Account>(loadedAccount);
             // save a weak pointer to the acct, so we'll never load it twice,
@@ -379,7 +383,7 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
     // we can create it.
     Message message;
     accountOwnerId.GetString(message.m_strNymID);
-    assetTypeId.GetString(message.m_strAssetID);
+    instrumentDefinitionID.GetString(message.m_strInstrumentDefinitionID);
     notaryID.GetString(message.m_strNotaryID);
 
     Account* createdAccount = Account::GenerateNewAccount(
@@ -388,7 +392,8 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
     if (!createdAccount) {
         otErr << " AccountList::GetOrCreateAccount: Failed trying to generate"
               << acctTypeString
-              << " account with asset type ID: " << assetTypeIdString << "\n";
+              << " account with asset type ID: " << instrumentDefinitionIDString
+              << "\n";
     }
     else {
         String acctIDString;
@@ -396,7 +401,8 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
 
         otOut << "Successfully created " << acctTypeString
               << " account ID: " << acctIDString
-              << " Asset Type ID: " << assetTypeIdString << "\n";
+              << " Instrument Definition ID: " << instrumentDefinitionIDString
+              << "\n";
 
         account = std::shared_ptr<Account>(createdAccount);
 
@@ -404,7 +410,8 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
         // but we'll also know if it's been deleted.
         mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<Account>(account);
         // Save the new acct ID in a map, keyed by asset type ID.
-        mapAcctIDs_[message.m_strAssetID.Get()] = acctIDString.Get();
+        mapAcctIDs_[message.m_strInstrumentDefinitionID.Get()] =
+            acctIDString.Get();
 
         wasAcctCreated = true;
     }

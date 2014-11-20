@@ -1687,8 +1687,9 @@ OTCronItem::OTCronItem()
     InitCronItem();
 }
 
-OTCronItem::OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
+OTCronItem::OTCronItem(const Identifier& SERVER_ID,
+                       const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
     , notaryID_(nullptr)
@@ -1703,9 +1704,10 @@ OTCronItem::OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
     InitCronItem();
 }
 
-OTCronItem::OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+OTCronItem::OTCronItem(const Identifier& SERVER_ID,
+                       const Identifier& INSTRUMENT_DEFINITION_ID,
                        const Identifier& ACCT_ID, const Identifier& USER_ID)
-    : ot_super(SERVER_ID, ASSET_ID, ACCT_ID, USER_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, USER_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
     , notaryID_(nullptr)

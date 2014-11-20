@@ -467,7 +467,8 @@ const char* CmdBase::getHelp() const
 
 string CmdBase::getAccountAssetType(const string& myacct) const
 {
-    string assetType = OTAPI_Wrap::GetAccountWallet_AssetTypeID(myacct);
+    string assetType =
+        OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(myacct);
     if ("" == assetType) {
         otOut << "Error: cannot load asset type from myacct.\n";
     }

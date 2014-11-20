@@ -540,8 +540,10 @@ Storable* CreateObject(StoredObjectType eType)
 }
 
 // bool bSuccess = Store(strInbox, "inbox", "lkjsdf908w345ljkvd");
-// bool bSuccess = Store(strMint,  "mints", SERVER_ID, ASSET_ID);
-// bool bSuccess = Store(strPurse, "purse", SERVER_ID, USER_ID, ASSET_ID);
+// bool bSuccess = Store(strMint,  "mints", SERVER_ID,
+// INSTRUMENT_DEFINITION_ID);
+// bool bSuccess = Store(strPurse, "purse", SERVER_ID, USER_ID,
+// INSTRUMENT_DEFINITION_ID);
 
 // BELOW FUNCTIONS use the DEFAULT Storage context.
 
@@ -2054,7 +2056,7 @@ void TradeDataNymPB::hookBeforePack()
     __pb_obj.set_updated_id(updated_id);
     __pb_obj.set_offer_price(offer_price);
     __pb_obj.set_finished_so_far(finished_so_far);
-    __pb_obj.set_asset_id(asset_id);
+    __pb_obj.set_instrument_definition_id(instrument_definition_id);
     __pb_obj.set_currency_id(currency_id);
     __pb_obj.set_currency_paid(currency_paid);
 }
@@ -2071,7 +2073,7 @@ void TradeDataNymPB::hookAfterUnpack()
     updated_id = __pb_obj.updated_id();
     offer_price = __pb_obj.offer_price();
     finished_so_far = __pb_obj.finished_so_far();
-    asset_id = __pb_obj.asset_id();
+    instrument_definition_id = __pb_obj.instrument_definition_id();
     currency_id = __pb_obj.currency_id();
     currency_paid = __pb_obj.currency_paid();
 }

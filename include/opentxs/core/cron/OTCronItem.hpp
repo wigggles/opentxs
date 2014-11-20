@@ -170,8 +170,10 @@ protected:
                                                // transaction. (finalReceipt.)
 
 protected:
-    OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
-    OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+    OTCronItem(const Identifier& SERVER_ID,
+               const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTCronItem(const Identifier& SERVER_ID,
+               const Identifier& INSTRUMENT_DEFINITION_ID,
                const Identifier& ACCT_ID, const Identifier& USER_ID);
 
     Identifier* m_pCancelerNymID;

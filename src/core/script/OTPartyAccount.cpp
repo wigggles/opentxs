@@ -170,7 +170,7 @@ OTPartyAccount::OTPartyAccount(std::string str_account_name,
     , m_lClosingTransNo(lClosingTransNo)
     , m_strName(str_account_name.c_str())
     , m_strAcctID(theAccount.GetRealAccountID())
-    , m_strAssetTypeID(theAccount.GetAssetTypeID())
+    , m_strInstrumentDefinitionID(theAccount.GetInstrumentDefinitionID())
     , m_strAgentName(strAgentName)
 {
 }
@@ -178,7 +178,7 @@ OTPartyAccount::OTPartyAccount(std::string str_account_name,
 OTPartyAccount::OTPartyAccount(const String& strName,
                                const String& strAgentName,
                                const String& strAcctID,
-                               const String& strAssetTypeID,
+                               const String& strInstrumentDefinitionID,
                                int64_t lClosingTransNo)
     : m_pForParty(nullptr)
     , // This gets set when this partyaccount is added to its party.
@@ -186,7 +186,7 @@ OTPartyAccount::OTPartyAccount(const String& strName,
     , m_lClosingTransNo(lClosingTransNo)
     , m_strName(strName)
     , m_strAcctID(strAcctID)
-    , m_strAssetTypeID(strAssetTypeID)
+    , m_strInstrumentDefinitionID(strInstrumentDefinitionID)
     , m_strAgentName(strAgentName)
 {
 }
@@ -233,7 +233,7 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
         return false;
     }
 
-    if (!m_strAssetTypeID.Exists()) {
+    if (!m_strInstrumentDefinitionID.Exists()) {
         return false;
     }
 
@@ -259,8 +259,9 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
         return false;
     }
 
-    if (!m_strAssetTypeID.Exists()) {
-        otErr << "OTPartyAccount::IsAccount: Error: Empty m_strAssetTypeID.\n";
+    if (!m_strInstrumentDefinitionID.Exists()) {
+        otErr << "OTPartyAccount::IsAccount: Error: Empty "
+                 "m_strInstrumentDefinitionID.\n";
         return false;
     }
 
@@ -274,11 +275,12 @@ bool OTPartyAccount::IsAccount(Account& theAccount)
         return false;
     }
 
-    const Identifier theAssetTypeID(m_strAssetTypeID);
-    if (!(theAccount.GetAssetTypeID() == theAssetTypeID)) {
-        String strRHS(theAccount.GetAssetTypeID());
-        otOut << "OTPartyAccount::IsAccount: Asset Type IDs don't match ( "
-              << m_strAssetTypeID << " / " << strRHS
+    const Identifier theInstrumentDefinitionID(m_strInstrumentDefinitionID);
+    if (!(theAccount.GetInstrumentDefinitionID() ==
+          theInstrumentDefinitionID)) {
+        String strRHS(theAccount.GetInstrumentDefinitionID());
+        otOut << "OTPartyAccount::IsAccount: Instrument Definition IDs don't "
+                 "match ( " << m_strInstrumentDefinitionID << " / " << strRHS
               << " ) for Acct ID: " << m_strAcctID << " \n";
         return false;
     }
@@ -438,18 +440,20 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
 }
 
 void OTPartyAccount::Serialize(String& strAppend, bool bCalculatingID,
-                               bool bSpecifyAssetID) const
+                               bool bSpecifyInstrumentDefinitionID) const
 {
-    strAppend.Concatenate(
-        "<assetAccount\n name=\"%s\"\n"
-        " acctID=\"%s\"\n"
-        " assetTypeID=\"%s\"\n"
-        " agentName=\"%s\"\n"
-        " closingTransNo=\"%" PRId64 "\" />\n\n",
-        m_strName.Get(), bCalculatingID ? "" : m_strAcctID.Get(),
-        (bCalculatingID && !bSpecifyAssetID) ? "" : m_strAssetTypeID.Get(),
-        bCalculatingID ? "" : m_strAgentName.Get(),
-        bCalculatingID ? 0 : m_lClosingTransNo);
+    strAppend.Concatenate("<assetAccount\n name=\"%s\"\n"
+                          " acctID=\"%s\"\n"
+                          " instrumentDefinitionID=\"%s\"\n"
+                          " agentName=\"%s\"\n"
+                          " closingTransNo=\"%" PRId64 "\" />\n\n",
+                          m_strName.Get(),
+                          bCalculatingID ? "" : m_strAcctID.Get(),
+                          (bCalculatingID && !bSpecifyInstrumentDefinitionID)
+                              ? ""
+                              : m_strInstrumentDefinitionID.Get(),
+                          bCalculatingID ? "" : m_strAgentName.Get(),
+                          bCalculatingID ? 0 : m_lClosingTransNo);
 }
 
 void OTPartyAccount::RegisterForExecution(OTScript& theScript)
@@ -490,12 +494,15 @@ bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
         return false;
     }
 
-    if (!(GetAssetTypeID().Exists()) || !(rhs.GetAssetTypeID().Exists()) ||
-        !(GetAssetTypeID().Compare(rhs.GetAssetTypeID()))) {
-        otOut << "OTPartyAccount::Compare: Asset Type IDs don't exist, or "
-                 "don't match ( " << GetAssetTypeID() << " / "
-              << rhs.GetAssetTypeID() << " ) for party's account: " << GetName()
-              << " \n";
+    if (!(GetInstrumentDefinitionID().Exists()) ||
+        !(rhs.GetInstrumentDefinitionID().Exists()) ||
+        !(GetInstrumentDefinitionID().Compare(
+            rhs.GetInstrumentDefinitionID()))) {
+        otOut << "OTPartyAccount::Compare: Instrument Definition IDs don't "
+                 "exist, or "
+                 "don't match ( " << GetInstrumentDefinitionID() << " / "
+              << rhs.GetInstrumentDefinitionID()
+              << " ) for party's account: " << GetName() << " \n";
         return false;
     }
 

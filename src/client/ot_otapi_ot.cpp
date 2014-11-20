@@ -255,7 +255,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     }
     else if ((theType == GET_MINT) || (theType == GET_CONTRACT) ||
                (theType == CREATE_ASSET_ACCT)) {
-        assetID = p_strParam;
+        instrumentDefinitionID = p_strParam;
     }
     else if (theType == CHECK_NYM) {
         nymID2 = p_strParam;
@@ -315,7 +315,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         strData = p_strData; // adjustment (up or down.)
     }
     else if (theType == EXCHANGE_CASH) {
-        assetID = p_strParam;
+        instrumentDefinitionID = p_strParam;
         strData = p_strData;
     }
     else {
@@ -519,9 +519,10 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         if (!VerifyStringVal(p_strData)) {
             otOut << strError << "p_strData";
         }
-        assetID = p_strParam; // str  Shares Asset ID;
-        strData = p_strData;  // str  Memo;
-        lData = p_lData2;     // int64_t Amount Per Share;
+        instrumentDefinitionID =
+            p_strParam;      // str  Shares Instrument Definition Id;
+        strData = p_strData; // str  Memo;
+        lData = p_lData2;    // int64_t Amount Per Share;
     }
     else {
         otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
@@ -583,7 +584,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
 }
 
 OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
-                       const string& p_nymID, const string& p_assetID,
+                       const string& p_nymID,
+                       const string& p_instrumentDefinitionID,
                        const string& p_basket, const string& p_accountID,
                        bool p_bBool, int32_t p_nTransNumsNeeded)
 {
@@ -599,8 +601,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
     }
-    if (!VerifyStringVal(p_assetID)) {
-        otOut << strError << "p_assetID";
+    if (!VerifyStringVal(p_instrumentDefinitionID)) {
+        otOut << strError << "p_instrumentDefinitionID";
     }
     if (!VerifyStringVal(p_accountID)) {
         otOut << strError << "p_accountID";
@@ -614,7 +616,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
     nymID = p_nymID;
     nTransNumsNeeded = p_nTransNumsNeeded;
     bBool = p_bBool;
-    assetID = p_assetID;
+    instrumentDefinitionID = p_instrumentDefinitionID;
     basket = p_basket;
     accountID = p_accountID;
 }
@@ -700,7 +702,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case GET_NYM_MARKET_OFFERS:
         return OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID);
     case CREATE_ASSET_ACCT:
-        return OTAPI_Wrap::createAssetAccount(notaryID, nymID, assetID);
+        return OTAPI_Wrap::createAssetAccount(notaryID, nymID,
+                                              instrumentDefinitionID);
     case DELETE_ASSET_ACCT:
         return OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID);
     case ACTIVATE_SMART_CONTRACT:
@@ -709,12 +712,12 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
         return OTAPI_Wrap::triggerClause(notaryID, nymID, stoll(strData),
                                          strData2, strData3);
     case EXCHANGE_BASKET:
-        return OTAPI_Wrap::exchangeBasket(notaryID, nymID, assetID, basket,
-                                          bBool);
+        return OTAPI_Wrap::exchangeBasket(
+            notaryID, nymID, instrumentDefinitionID, basket, bBool);
     case GET_CONTRACT:
-        return OTAPI_Wrap::getContract(notaryID, nymID, assetID);
+        return OTAPI_Wrap::getContract(notaryID, nymID, instrumentDefinitionID);
     case GET_MINT:
-        return OTAPI_Wrap::getMint(notaryID, nymID, assetID);
+        return OTAPI_Wrap::getMint(notaryID, nymID, instrumentDefinitionID);
     case QUERY_ASSET_TYPES:
         return OTAPI_Wrap::queryAssetTypes(notaryID, nymID, strData);
     case ISSUE_ASSET_TYPE:
@@ -722,7 +725,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case ISSUE_BASKET:
         return OTAPI_Wrap::issueBasket(notaryID, nymID, basket);
     case EXCHANGE_CASH:
-        return OTAPI_Wrap::exchangePurse(notaryID, assetID, nymID, strData);
+        return OTAPI_Wrap::exchangePurse(notaryID, instrumentDefinitionID,
+                                         nymID, strData);
     case KILL_MARKET_OFFER:
         return OTAPI_Wrap::killMarketOffer(notaryID, nymID, accountID,
                                            stoll(strData));
@@ -747,8 +751,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
         return OTAPI_Wrap::withdrawVoucher(notaryID, nymID, accountID, nymID2,
                                            strData, lData);
     case PAY_DIVIDEND:
-        return OTAPI_Wrap::payDividend(notaryID, nymID, accountID, assetID,
-                                       strData, lData);
+        return OTAPI_Wrap::payDividend(notaryID, nymID, accountID,
+                                       instrumentDefinitionID, strData, lData);
     case SEND_TRANSFER:
         return OTAPI_Wrap::notarizeTransfer(notaryID, nymID, accountID,
                                             accountID2, lData, strData);
@@ -1381,7 +1385,7 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
     MapOfMaps* map_of_maps = nullptr;
 
     // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
-    // scale-assetID-currencyID
+    // scale-instrumentDefinitionID-currencyID
     // the value for each key is a sub-map, with the key: transaction ID and
     // value: the offer data itself.
     //
@@ -1402,13 +1406,13 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 
             OTDB::OfferDataNym& offerData = *offerDataPtr;
             string strScale = offerData.scale;
-            string strAssetTypeID = offerData.asset_type_id;
+            string strInstrumentDefinitionID = offerData.asset_type_id;
             string strCurrencyTypeID = offerData.currency_type_id;
             string strSellStatus = offerData.selling ? "SELL" : "BUY";
             string strTransactionID = offerData.transaction_id;
 
-            string strMapKey =
-                strScale + "-" + strAssetTypeID + "-" + strCurrencyTypeID;
+            string strMapKey = strScale + "-" + strInstrumentDefinitionID +
+                               "-" + strCurrencyTypeID;
 
             SubMap* sub_map = nullptr;
             if (nullptr != map_of_maps && !map_of_maps->empty() &&
@@ -1475,7 +1479,7 @@ OT_OTAPI_OT int32_t
     // (It's used as a lambda.)
 
     string strScale = offer_data.scale;
-    string strAssetTypeID = offer_data.asset_type_id;
+    string strInstrumentDefinitionID = offer_data.asset_type_id;
     string strCurrencyTypeID = offer_data.currency_type_id;
     string strSellStatus = offer_data.selling ? "SELL" : "BUY";
     string strTransactionID = offer_data.transaction_id;
@@ -1485,7 +1489,7 @@ OT_OTAPI_OT int32_t
     if (0 == nIndex) // first iteration! (Output a header.)
     {
         otOut << "Scale:\t\t" << strScale << "\n";
-        otOut << "Asset:\t\t" << strAssetTypeID << "\n";
+        otOut << "Asset:\t\t" << strInstrumentDefinitionID << "\n";
         otOut << "Currency:\t" << strCurrencyTypeID << "\n";
         otOut << "\nIndex\tTrans#\tType\tPrice\tAvailable\n";
     }

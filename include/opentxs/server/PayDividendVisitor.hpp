@@ -157,7 +157,7 @@ class String;
 class PayDividendVisitor : public AccountVisitor
 {
     Identifier* m_pUserID;
-    Identifier* m_pPayoutAssetID;
+    Identifier* m_pPayoutInstrumentDefinitionID;
     Identifier* m_pVoucherAcctID;
     String* m_pstrMemo;  // contains the original payDividend item from the
                          // payDividend transaction request. (Stored in the
@@ -172,7 +172,7 @@ class PayDividendVisitor : public AccountVisitor
 public:
     PayDividendVisitor(const Identifier& theNotaryID,
                        const Identifier& theUserID,
-                       const Identifier& thePayoutAssetID,
+                       const Identifier& thePayoutInstrumentDefinitionID,
                        const Identifier& theVoucherAcctID,
                        const String& strMemo, OTServer& theServer,
                        int64_t lPayoutPerShare,
@@ -183,9 +183,9 @@ public:
     {
         return m_pUserID;
     }
-    Identifier* GetPayoutAssetID()
+    Identifier* GetPayoutInstrumentDefinitionID()
     {
-        return m_pPayoutAssetID;
+        return m_pPayoutInstrumentDefinitionID;
     }
     Identifier* GetVoucherAcctID()
     {

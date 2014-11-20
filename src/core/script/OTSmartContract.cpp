@@ -462,7 +462,7 @@ by them or their agents. Of course it's better
     to have it strict in the bylaws, and have OT just execute it that way, and
 for now that's how it will be with the DEFAULT,
     HARDCODED current path of a SINGLE class of stock for each entity, with the
-Entity's ID serving as the Asset Type ID. I think
+Entity's ID serving as the Instrument Definition ID. I think
     it would be a LONG TIME before we ever need more functionality than that
 anyway, so that's what I'll focus on.
 
@@ -495,7 +495,8 @@ and their ability to be party to agreements, and
 
     So an EntityID is similar to a TitleID, in the sense that an entity is a
 piece of property that can be owned. But an EntityID
-    is also similar to an AssetTypeID, since there can be a currency issued for
+    is also similar to an InstrumentDefinitionID, since there can be a currency
+issued for
 that entity. And an entity is also similar to a smart
     contract, in the sense that it can have bylaws, and it can have "parties to
 the agreement".
@@ -852,8 +853,9 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
                            "unstash_funds");
         pScript->chai->add(fun(&OTSmartContract::GetAcctBalance, this),
                            "get_acct_balance");
-        pScript->chai->add(fun(&OTSmartContract::GetAssetTypeIDofAcct, this),
-                           "get_acct_asset_type_id");
+        pScript->chai->add(
+            fun(&OTSmartContract::GetInstrumentDefinitionIDofAcct, this),
+            "get_acct_asset_type_id");
         pScript->chai->add(fun(&OTSmartContract::GetStashBalance, this),
                            "get_stash_balance");
         pScript->chai->add(fun(&OTSmartContract::SendNoticeToParty, this),
@@ -1355,7 +1357,8 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     return strBalance.Get();
 }
 
-std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
+std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
+    std::string from_acct_name)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1371,7 +1374,8 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     std::string str_return_value;
 
     if (from_acct_name.size() <= 0) {
-        otErr << "OTSmartContract::GetAssetTypeIDofAcct: error: from_acct_name "
+        otErr << "OTSmartContract::GetInstrumentDefinitionIDofAcct: error: "
+                 "from_acct_name "
                  "is non-existent.\n";
         return str_return_value;
     }
@@ -1384,8 +1388,9 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     OTPartyAccount* pFromAcct = GetPartyAccount(from_acct_name);
 
     if (nullptr == pFromAcct) {
-        otOut << "OTSmartContract::GetAssetTypeIDofAcct: error: from_acct ("
-              << from_acct_name << ") not found on any party.\n";
+        otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: error: "
+                 "from_acct (" << from_acct_name
+              << ") not found on any party.\n";
         return str_return_value;
     }
 
@@ -1400,7 +1405,8 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     // (That way it's impossible to get an agent for any other party.)
 
     if (nullptr == pFromAgent) {
-        otOut << "OTSmartContract::GetAssetTypeIDofAcct: error: authorized "
+        otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: error: "
+                 "authorized "
                  "agent (" << pFromAcct->GetAgentName()
               << ") not found for from_acct (" << from_acct_name
               << ") on acct's party.\n";
@@ -1408,7 +1414,8 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     }
 
     if (!pFromAgent->IsAnIndividual()) {
-        otOut << "OTSmartContract::GetAssetTypeIDofAcct: error: authorized "
+        otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: error: "
+                 "authorized "
                  "agent (" << pFromAcct->GetAgentName() << ") for from_acct ("
               << from_acct_name << ") is not an active agent.\n";
         return str_return_value;
@@ -1422,7 +1429,8 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     OTParty* pFromParty = pFromAgent->GetParty();
 
     if (nullptr == pFromParty) {
-        otErr << "OTSmartContract::GetAssetTypeIDofAcct: error: Party pointer "
+        otErr << "OTSmartContract::GetInstrumentDefinitionIDofAcct: error: "
+                 "Party pointer "
                  "nullptr on authorized agent (" << pFromAcct->GetAgentName()
               << ") for from_acct (" << from_acct_name << ").\n";
         return str_return_value;
@@ -1463,7 +1471,8 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     //    if (!VerifyPartyAuthorization(*pFromParty, *pServerNym,
     // strNotaryID, &map_Nyms_Already_Loaded))
     //    {
-    //        otErr << "OTSmartContract::GetAssetTypeIDofAcct: error: 'From'
+    //        otErr << "OTSmartContract::GetInstrumentDefinitionIDofAcct: error:
+    //        'From'
     // Party (%s) not authorized for this contract.\n",
     //                      pFromParty->GetPartyName().c_str());
     //        return str_return_value;
@@ -1516,13 +1525,15 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
-        otErr << "OTSmartContract::GetAssetTypeIDofAcct: Failed to find "
+        otErr << "OTSmartContract::GetInstrumentDefinitionIDofAcct: Failed to "
+                 "find "
                  "FromAgent's Signer ID: " << pFromAgent->GetName() << " \n";
         return str_return_value;
     }
 
     if (!pFromAcct->GetAcctID().Exists()) {
-        otErr << "OTSmartContract::GetAssetTypeIDofAcct: Error: FromAcct has "
+        otErr << "OTSmartContract::GetInstrumentDefinitionIDofAcct: Error: "
+                 "FromAcct has "
                  "empty AcctID: " << from_acct_name << " \n";
         return str_return_value;
     }
@@ -1546,19 +1557,22 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
         Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
 
     if (nullptr == pPartyAssetAcct) {
-        otOut << "OTSmartContract::GetAssetTypeIDofAcct: ERROR verifying "
+        otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: ERROR "
+                 "verifying "
                  "existence of source account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return str_return_value;
     }
     else if (!pPartyAssetAcct->VerifySignature(*pServerNym)) {
-        otOut << "OTSmartContract::GetAssetTypeIDofAcct: ERROR failed to "
+        otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: ERROR "
+                 "failed to "
                  "verify the server's signature on the party's account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return str_return_value;
     }
     else if (!pPartyAssetAcct->VerifyOwnerByID(PARTY_USER_ID)) {
-        otOut << "OTSmartContract::GetAssetTypeIDofAcct: ERROR failed to "
+        otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: ERROR "
+                 "failed to "
                  "verify party user ownership of party account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return str_return_value;
@@ -1566,8 +1580,9 @@ std::string OTSmartContract::GetAssetTypeIDofAcct(std::string from_acct_name)
     // Past this point we know pPartyAssetAcct is good and will clean itself up.
     std::unique_ptr<Account> theSourceAcctSmrtPtr(pPartyAssetAcct);
 
-    const String strAssetTypeID(pPartyAssetAcct->GetAssetTypeID());
-    str_return_value = strAssetTypeID.Get();
+    const String strInstrumentDefinitionID(
+        pPartyAssetAcct->GetInstrumentDefinitionID());
+    str_return_value = strInstrumentDefinitionID.Get();
 
     return str_return_value;
 }
@@ -2308,8 +2323,9 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     // And inside each one is a stash for each asset type. So let's get the one
     // for the asset type matching the party's account.
     //
-    const String strAssetTypeID(pPartyAssetAcct->GetAssetTypeID());
-    const std::string str_asset_type_id = strAssetTypeID.Get();
+    const String strInstrumentDefinitionID(
+        pPartyAssetAcct->GetInstrumentDefinitionID());
+    const std::string str_asset_type_id = strInstrumentDefinitionID.Get();
 
     OTStashItem* pStashItem = theStash.GetStash(str_asset_type_id);
     OT_ASSERT(nullptr !=
@@ -2365,8 +2381,9 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                                   // and verifySignature on the account
                                   // internally.
     std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrCreateAccount(
-        *pServerNym, SERVER_USER_ID, pPartyAssetAcct->GetAssetTypeID(),
-        SERVER_ID, bWasAcctCreated, GetTransactionNum());
+        *pServerNym, SERVER_USER_ID,
+        pPartyAssetAcct->GetInstrumentDefinitionID(), SERVER_ID,
+        bWasAcctCreated, GetTransactionNum());
 
     if (!pStashAccount) {
         OT_FAIL_MSG("ASSERT in OTSmartContract::StashFunds: returned nullptr "
@@ -2379,8 +2396,8 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 
         otOut << "OTSmartContract::StashFunds: Successfully created stash "
                  "account ID: " << strAcctID
-              << "\n (Stash acct has Asset Type ID: " << strAssetTypeID
-              << ") \n";
+              << "\n (Stash acct has Instrument Definition ID: "
+              << strInstrumentDefinitionID << ") \n";
 
         // Todo: Some kind of save here?
         // It's kind of unnecessary, since I've already verified that there's
@@ -2435,7 +2452,8 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     }
 
     // SHOULD NEVER HAPPEN
-    if (pPartyAssetAcct->GetAssetTypeID() != pStashAccount->GetAssetTypeID()) {
+    if (pPartyAssetAcct->GetInstrumentDefinitionID() !=
+        pStashAccount->GetInstrumentDefinitionID()) {
         otErr << "OTSmartContract::StashFunds: Aborted stash: Asset type ID "
                  "doesn't match. THIS SHOULD NEVER HAPPEN.\n";
         FlagForRemoval(); // Remove from Cron
@@ -6164,10 +6182,11 @@ bool OTSmartContract::MoveFunds(
     // A few verification if/elses...
 
     // Are both accounts of the same Asset Type?
-    if (pSourceAcct->GetAssetTypeID() !=
-        pRecipientAcct->GetAssetTypeID()) { // We already know the SUPPOSED
-                                            // Asset IDs of these accounts...
-                                            // But only once
+    if (pSourceAcct->GetInstrumentDefinitionID() !=
+        pRecipientAcct->GetInstrumentDefinitionID()) { // We already know the
+                                                       // SUPPOSED
+        // Instrument Definition Ids of these accounts...
+        // But only once
         // the accounts THEMSELVES have been loaded can we VERIFY this to be
         // true.
         otOut << "OTCronItem::MoveFunds: ERROR - attempted payment between "

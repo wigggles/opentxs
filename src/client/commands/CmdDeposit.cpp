@@ -254,7 +254,8 @@ int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
         return -1;
     }
 
-    if (assetType != OTAPI_Wrap::Instrmnt_GetAssetID(instrument)) {
+    if (assetType !=
+        OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(instrument)) {
         otOut << "Error: asset types of instrument and myacct do not match.\n";
         return -1;
     }

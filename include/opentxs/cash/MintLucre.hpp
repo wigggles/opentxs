@@ -155,9 +155,10 @@ private: // Private prevents erroneous use by other classes.
     friend class Mint; // for the factory.
 protected:
     MintLucre();
-    EXPORT MintLucre(const String& strNotaryID, const String& strAssetTypeID);
+    EXPORT MintLucre(const String& strNotaryID,
+                     const String& strInstrumentDefinitionID);
     EXPORT MintLucre(const String& strNotaryID, const String& strServerNymID,
-                     const String& strAssetTypeID);
+                     const String& strInstrumentDefinitionID);
 
 public:
     virtual bool AddDenomination(Nym& theNotary, int64_t lDenomination,

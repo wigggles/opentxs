@@ -1310,7 +1310,7 @@ Nym* OT_API::CreateNym(int32_t nKeySize, const std::string str_id_source,
 //
 // Returns success, true or false.
 //
-bool OT_API::SetAssetType_Name(const Identifier& ASSET_ID,
+bool OT_API::SetAssetType_Name(const Identifier& INSTRUMENT_DEFINITION_ID,
                                const String& STR_NEW_NAME) const
 {
     OTWallet* pWallet =
@@ -1318,7 +1318,8 @@ bool OT_API::SetAssetType_Name(const Identifier& ASSET_ID,
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     AssetContract* pContract =
-        GetAssetType(ASSET_ID, __FUNCTION__); // This ASSERTs and logs already.
+        GetAssetType(INSTRUMENT_DEFINITION_ID,
+                     __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pContract) return false;
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     // Might want to put some more data validation on the name?
@@ -1939,7 +1940,8 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& SERVER_ID) const
 // This function tells you whether you can remove the asset contract or
 // not.(Whether there are accounts...)
 //
-bool OT_API::Wallet_CanRemoveAssetType(const Identifier& ASSET_ID) const
+bool OT_API::Wallet_CanRemoveAssetType(
+    const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
     if (!bInitialized) {
@@ -1948,8 +1950,9 @@ bool OT_API::Wallet_CanRemoveAssetType(const Identifier& ASSET_ID) const
         OT_FAIL;
     }
 
-    if (ASSET_ID.IsEmpty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.IsEmpty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         OT_FAIL;
     }
     String strName;
@@ -1962,14 +1965,15 @@ bool OT_API::Wallet_CanRemoveAssetType(const Identifier& ASSET_ID) const
         OTAPI_Wrap::OTAPI()->GetAccount(i, accountID, strName);
         Account* pAccount =
             OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
-        Identifier theTYPE_ID(pAccount->GetAssetTypeID());
+        Identifier theTYPE_ID(pAccount->GetInstrumentDefinitionID());
 
-        if (ASSET_ID == theTYPE_ID) {
-            String strASSET_ID(ASSET_ID), strTYPE_ID(theTYPE_ID);
+        if (INSTRUMENT_DEFINITION_ID == theTYPE_ID) {
+            String strINSTRUMENT_DEFINITION_ID(INSTRUMENT_DEFINITION_ID),
+                strTYPE_ID(theTYPE_ID);
 
             otOut << __FUNCTION__ << ": Unable to remove asset contract "
-                  << strASSET_ID << " from wallet: Account " << strTYPE_ID
-                  << " uses it.\n";
+                  << strINSTRUMENT_DEFINITION_ID << " from wallet: Account "
+                  << strTYPE_ID << " uses it.\n";
             return false;
         }
     }
@@ -2148,7 +2152,8 @@ bool OT_API::Wallet_RemoveServer(const Identifier& SERVER_ID) const
     }
 
     if (SERVER_ID.IsEmpty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         OT_FAIL;
     }
 
@@ -2189,7 +2194,8 @@ bool OT_API::Wallet_RemoveServer(const Identifier& SERVER_ID) const
 // This will not work if there are any accounts in the wallet for the same asset
 // type ID.
 //
-bool OT_API::Wallet_RemoveAssetType(const Identifier& ASSET_ID) const
+bool OT_API::Wallet_RemoveAssetType(
+    const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     bool bInitialized = IsInitialized();
     if (!bInitialized) {
@@ -2198,23 +2204,24 @@ bool OT_API::Wallet_RemoveAssetType(const Identifier& ASSET_ID) const
         OT_FAIL;
     }
 
-    if (ASSET_ID.IsEmpty()) {
-        otErr << __FUNCTION__ << ": Null: ASSET_ID passed in!\n";
+    if (INSTRUMENT_DEFINITION_ID.IsEmpty()) {
+        otErr << __FUNCTION__
+              << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         OT_FAIL;
     }
 
     // Make sure there aren't any dependent accounts..
-    if (!Wallet_CanRemoveAssetType(ASSET_ID)) return false;
+    if (!Wallet_CanRemoveAssetType(INSTRUMENT_DEFINITION_ID)) return false;
 
     if (nullptr == m_pWallet) {
         otErr << __FUNCTION__ << ": No wallet found...!\n";
         OT_FAIL;
     }
 
-    if (m_pWallet->RemoveAssetContract(ASSET_ID)) {
+    if (m_pWallet->RemoveAssetContract(INSTRUMENT_DEFINITION_ID)) {
         m_pWallet->SaveWallet();
         otOut << __FUNCTION__ << ": Removed asset contract from the wallet: "
-              << String(ASSET_ID) << "\n";
+              << String(INSTRUMENT_DEFINITION_ID) << "\n";
         return true;
     }
     return false;
@@ -3484,7 +3491,8 @@ bool OT_API::SmartContract_AddAccount(
                               // contract. (And the scripts...)
     const String& ACCT_NAME,  // The Account's name as referenced in the smart
                               // contract
-    const String& ASSET_TYPE_ID, // Asset Type ID for the Account.
+    const String& INSTRUMENT_DEFINITION_ID, // Instrument Definition ID for the
+                                            // Account.
     String& strOutput) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
@@ -3509,7 +3517,7 @@ bool OT_API::SmartContract_AddAccount(
         return false;
     }
     const std::string str_name(ACCT_NAME.Get()),
-        str_asset_id(ASSET_TYPE_ID.Get());
+        str_instrument_definition_id(INSTRUMENT_DEFINITION_ID.Get());
 
     if (nullptr != pParty->GetAccount(str_name)) {
         otOut << "OT_API::SmartContract_AddAccount: Failed adding: "
@@ -3519,11 +3527,11 @@ bool OT_API::SmartContract_AddAccount(
         return false;
     }
     const String strAgentName, strAcctName(str_name.c_str()), strAcctID,
-        strAssetTypeID(str_asset_id.c_str());
+        strInstrumentDefinitionID(str_instrument_definition_id.c_str());
 
     if (false ==
-        pParty->AddAccount(strAgentName, strAcctName, strAcctID, strAssetTypeID,
-                           0)) {
+        pParty->AddAccount(strAgentName, strAcctName, strAcctID,
+                           strInstrumentDefinitionID, 0)) {
         otOut << "OT_API::SmartContract_AddAccount: Failed trying to "
                  "add account (" << str_name << ") to party: " << str_party_name
               << " \n";
@@ -3632,19 +3640,22 @@ bool OT_API::SmartContract_ConfirmAccount(
     }
     // the actual asset type ID
 
-    const Identifier theExpectedAssetTypeID(
-        pPartyAcct->GetAssetTypeID()); // The expected asset type ID, converting
-                                       // from a string.
-    const Identifier& theActualAssetTypeID =
-        pAccount->GetAssetTypeID(); // the actual asset type ID, already an
-                                    // identifier, from the actual account.
+    const Identifier theExpectedInstrumentDefinitionID(
+        pPartyAcct->GetInstrumentDefinitionID()); // The expected asset type ID,
+                                                  // converting
+                                                  // from a string.
+    const Identifier& theActualInstrumentDefinitionID =
+        pAccount->GetInstrumentDefinitionID(); // the actual asset type ID,
+                                               // already an
+    // identifier, from the actual account.
 
-    if (theExpectedAssetTypeID != theActualAssetTypeID) {
-        const String strAssetTypeID(theActualAssetTypeID);
+    if (theExpectedInstrumentDefinitionID != theActualInstrumentDefinitionID) {
+        const String strInstrumentDefinitionID(theActualInstrumentDefinitionID);
         otOut << __FUNCTION__
               << ": Failed, since the asset type ID of the account ("
-              << strAssetTypeID << ") does not match what was expected ("
-              << pPartyAcct->GetAssetTypeID()
+              << strInstrumentDefinitionID
+              << ") does not match what was expected ("
+              << pPartyAcct->GetInstrumentDefinitionID()
               << ") according to this contract.\n";
         return false;
     }
@@ -4636,8 +4647,8 @@ Cheque* OT_API::WriteCheque(
         return nullptr;
     }
     // At this point, I know that lTransactionNumber contains one I can use.
-    Cheque* pCheque =
-        new Cheque(pAccount->GetRealNotaryID(), pAccount->GetAssetTypeID());
+    Cheque* pCheque = new Cheque(pAccount->GetRealNotaryID(),
+                                 pAccount->GetInstrumentDefinitionID());
     OT_ASSERT_MSG(
         nullptr != pCheque,
         "OT_API::WriteCheque: Error allocating memory in the OT API.");
@@ -4754,9 +4765,9 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     if (nullptr == pAccount) return nullptr;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    OTPaymentPlan* pPlan =
-        new OTPaymentPlan(SERVER_ID, pAccount->GetAssetTypeID(), SENDER_ACCT_ID,
-                          SENDER_USER_ID, RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
+    OTPaymentPlan* pPlan = new OTPaymentPlan(
+        SERVER_ID, pAccount->GetInstrumentDefinitionID(), SENDER_ACCT_ID,
+        SENDER_USER_ID, RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
     OT_ASSERT_MSG(nullptr != pPlan,
                   "OT_API::ProposePaymentPlan: Error allocating "
                   "memory in the OT API for new "
@@ -4982,7 +4993,8 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& SERVER_ID,
 // (Caller responsible to delete.)
 //
 Purse* OT_API::LoadPurse(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_ID, const Identifier& USER_ID,
+                         const Identifier& INSTRUMENT_DEFINITION_ID,
+                         const Identifier& USER_ID,
                          const String* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
@@ -4992,12 +5004,12 @@ Purse* OT_API::LoadPurse(const Identifier& SERVER_ID,
     OTPasswordData thePWData(strReason);
     const String strNotaryID(SERVER_ID);
     const String strUserID(USER_ID);
-    const String strAssetTypeID(ASSET_ID);
+    const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     Nym* pNym =
         GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__,
                             &thePWData); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
-    Purse* pPurse = new Purse(SERVER_ID, ASSET_ID, USER_ID);
+    Purse* pPurse = new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID, USER_ID);
     OT_ASSERT_MSG(nullptr != pPurse,
                   "Error allocating memory in the OT API."); // responsible to
                                                              // delete or return
@@ -5005,10 +5017,10 @@ Purse* OT_API::LoadPurse(const Identifier& SERVER_ID,
                                                              // this point.
 
     if (pPurse->LoadPurse(strNotaryID.Get(), strUserID.Get(),
-                          strAssetTypeID.Get())) {
+                          strInstrumentDefinitionID.Get())) {
         if (pPurse->VerifySignature(*pNym) &&
             (SERVER_ID == pPurse->GetNotaryID()) &&
-            (ASSET_ID == pPurse->GetAssetID())) {
+            (INSTRUMENT_DEFINITION_ID == pPurse->GetInstrumentDefinitionID())) {
             return pPurse;
         }
         else
@@ -5022,7 +5034,8 @@ Purse* OT_API::LoadPurse(const Identifier& SERVER_ID,
     return nullptr;
 }
 
-bool OT_API::SavePurse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+bool OT_API::SavePurse(const Identifier& SERVER_ID,
+                       const Identifier& INSTRUMENT_DEFINITION_ID,
                        const Identifier& USER_ID, Purse& THE_PURSE) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
@@ -5033,16 +5046,18 @@ bool OT_API::SavePurse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
                  "re-importing it.\n";
     }
     else if ((THE_PURSE.GetNotaryID() != SERVER_ID) ||
-               (THE_PURSE.GetAssetID() != ASSET_ID)) {
-        otOut << __FUNCTION__ << ": Error: Wrong server or asset ID passed in, "
-                                 "considering the purse that was passed.\n";
+               (THE_PURSE.GetInstrumentDefinitionID() !=
+                INSTRUMENT_DEFINITION_ID)) {
+        otOut << __FUNCTION__
+              << ": Error: Wrong server or instrument definition id passed in, "
+                 "considering the purse that was passed.\n";
     }
     else {
         const String strNotaryID(SERVER_ID);
-        const String strAssetTypeID(ASSET_ID);
+        const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         const String strUserID(USER_ID);
         if (THE_PURSE.SavePurse(strNotaryID.Get(), strUserID.Get(),
-                                strAssetTypeID.Get()))
+                                strInstrumentDefinitionID.Get()))
             return true;
     }
     const String strPurse(THE_PURSE);
@@ -5055,11 +5070,11 @@ bool OT_API::SavePurse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
 // Caller is responsible to delete!
 //
 Purse* OT_API::CreatePurse(const Identifier& SERVER_ID,
-                           const Identifier& ASSET_ID,
+                           const Identifier& INSTRUMENT_DEFINITION_ID,
                            const Identifier& OWNER_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    Purse* pPurse = new Purse(SERVER_ID, ASSET_ID, OWNER_ID);
+    Purse* pPurse = new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID);
     OT_ASSERT_MSG(nullptr != pPurse,
                   "Error allocating memory in the OT API."); // responsible to
                                                              // delete or return
@@ -5075,11 +5090,12 @@ Purse* OT_API::CreatePurse(const Identifier& SERVER_ID,
 //
 // Caller is responsible to delete!
 //
-Purse* OT_API::CreatePurse_Passphrase(const Identifier& SERVER_ID,
-                                      const Identifier& ASSET_ID) const
+Purse* OT_API::CreatePurse_Passphrase(
+    const Identifier& SERVER_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    Purse* pPurse = new Purse(SERVER_ID, ASSET_ID);
+    Purse* pPurse = new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
     OT_ASSERT_MSG(nullptr != pPurse,
                   "Error allocating memory in the OT API."); // responsible to
                                                              // delete or return
@@ -5101,7 +5117,7 @@ Purse* OT_API::CreatePurse_Passphrase(const Identifier& SERVER_ID,
 // duplicated across many of the Purse functions.
 //
 OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
-    const Identifier& theNotaryID, const Identifier& theAssetTypeID,
+    const Identifier& theNotaryID, const Identifier& theInstrumentDefinitionID,
     const String& strPurse, Purse& thePurse, // output
     OTPassword& thePassword, // Only used in the case of password-protected
                              // purses. Passed in so it won't go out of scope
@@ -5154,8 +5170,10 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
 
         if (thePurse.GetNotaryID() != theNotaryID)
             otErr << __FUNCTION__ << ": Failed: NotaryID doesn't match.\n";
-        else if (thePurse.GetAssetID() != theAssetTypeID)
-            otErr << __FUNCTION__ << ": Failed: AssetTypeID doesn't match.\n";
+        else if (thePurse.GetInstrumentDefinitionID() !=
+                 theInstrumentDefinitionID)
+            otErr << __FUNCTION__
+                  << ": Failed: InstrumentDefinitionID doesn't match.\n";
         else if (bNymIDIncludedInPurse && !thePurse.GetNymID(idPurseNym))
             otErr << __FUNCTION__
                   << ": Failed trying to get the NymID from the "
@@ -5184,7 +5202,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                      "for a password-protected purse. (And this purse is NOT "
                      "password-protected.) Please provide a USER_ID.\n";
         // By this point, we know the purse loaded up properly, and the server
-        // and asset IDs match
+        // and instrument definition ids match
         // what we expected. We also know that if the purse included a NymID, it
         // matches the USER_ID
         // that was passed in. We also know that if a User ID was NOT passed in,
@@ -5391,7 +5409,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
 /// returns nullptr if failure.
 ///
 Token* OT_API::Purse_Peek(const Identifier& SERVER_ID,
-                          const Identifier& ASSET_TYPE_ID,
+                          const Identifier& INSTRUMENT_DEFINITION_ID,
                           const String& THE_PURSE,
                           const Identifier* pOWNER_ID, // This can be
                                                        // nullptr,
@@ -5413,7 +5431,7 @@ Token* OT_API::Purse_Peek(const Identifier& SERVER_ID,
             ? "Enter the passphrase for this purse. (Purse_Peek)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    Purse thePurse(SERVER_ID, ASSET_TYPE_ID);
+    Purse thePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
     // What's going on here?
@@ -5436,7 +5454,7 @@ Token* OT_API::Purse_Peek(const Identifier& SERVER_ID,
     // since they can use pOwner either way.)
     //
     std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
-        SERVER_ID, ASSET_TYPE_ID, THE_PURSE, thePurse, thePassword,
+        SERVER_ID, INSTRUMENT_DEFINITION_ID, THE_PURSE, thePurse, thePassword,
         false, // bForEncrypting=true by default. (Peek needs to decrypt.)
         pOWNER_ID, &strReason1, &strReason2));
     if (nullptr == pOwner)
@@ -5473,7 +5491,7 @@ Token* OT_API::Purse_Peek(const Identifier& SERVER_ID,
 /// returns nullptr if failure.
 ///
 Purse* OT_API::Purse_Pop(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_TYPE_ID,
+                         const Identifier& INSTRUMENT_DEFINITION_ID,
                          const String& THE_PURSE,
                          const Identifier* pOWNER_ID, // This can be
                                                       // nullptr,
@@ -5495,7 +5513,8 @@ Purse* OT_API::Purse_Pop(const Identifier& SERVER_ID,
             ? "Enter the passphrase for this purse. (Purse_Pop)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    std::unique_ptr<Purse> pPurse(new Purse(SERVER_ID, ASSET_TYPE_ID));
+    std::unique_ptr<Purse> pPurse(
+        new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID));
 
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
@@ -5519,7 +5538,7 @@ Purse* OT_API::Purse_Pop(const Identifier& SERVER_ID,
     // since they can use pOwner either way.)
     //
     std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
-        SERVER_ID, ASSET_TYPE_ID, THE_PURSE, *pPurse, thePassword,
+        SERVER_ID, INSTRUMENT_DEFINITION_ID, THE_PURSE, *pPurse, thePassword,
         false, // bForEncrypting=true by default, but Pop needs to decrypt.
         pOWNER_ID, &strReason1, &strReason2));
     if (nullptr == pOwner)
@@ -5547,7 +5566,7 @@ Purse* OT_API::Purse_Pop(const Identifier& SERVER_ID,
 
 // Caller must delete.
 Purse* OT_API::Purse_Empty(const Identifier& SERVER_ID,
-                           const Identifier& ASSET_TYPE_ID,
+                           const Identifier& INSTRUMENT_DEFINITION_ID,
                            const String& THE_PURSE,
                            const String* pstrDisplay) const
 {
@@ -5556,7 +5575,8 @@ Purse* OT_API::Purse_Empty(const Identifier& SERVER_ID,
                                ? "Making an empty copy of a cash purse."
                                : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    Purse* pPurse = Purse::PurseFactory(THE_PURSE, SERVER_ID, ASSET_TYPE_ID);
+    Purse* pPurse =
+        Purse::PurseFactory(THE_PURSE, SERVER_ID, INSTRUMENT_DEFINITION_ID);
 
     if (nullptr == pPurse) {
         otOut << __FUNCTION__
@@ -5582,7 +5602,7 @@ Purse* OT_API::Purse_Empty(const Identifier& SERVER_ID,
 /// returns nullptr if failure.
 ///
 Purse* OT_API::Purse_Push(const Identifier& SERVER_ID,
-                          const Identifier& ASSET_TYPE_ID,
+                          const Identifier& INSTRUMENT_DEFINITION_ID,
                           const String& THE_PURSE, const String& THE_TOKEN,
                           const Identifier* pOWNER_ID, // This can be nullptr,
                                                        // **IF** purse
@@ -5613,7 +5633,7 @@ Purse* OT_API::Purse_Push(const Identifier& SERVER_ID,
     }
     String strToken(THE_TOKEN);
     std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, SERVER_ID, ASSET_TYPE_ID));
+        Token::TokenFactory(strToken, SERVER_ID, INSTRUMENT_DEFINITION_ID));
 
     if (nullptr == pToken) // TokenFactory instantiates AND loads from string.
     {
@@ -5622,7 +5642,8 @@ Purse* OT_API::Purse_Push(const Identifier& SERVER_ID,
               << THE_TOKEN << "\n\n";
         return nullptr;
     }
-    std::unique_ptr<Purse> pPurse(new Purse(SERVER_ID, ASSET_TYPE_ID));
+    std::unique_ptr<Purse> pPurse(
+        new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID));
     OTPassword thePassword; // Only used in the case of password-protected
                             // purses.
     // What's going on here?
@@ -5645,7 +5666,7 @@ Purse* OT_API::Purse_Push(const Identifier& SERVER_ID,
     // since they can use pOwner either way.)
     //
     std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
-        SERVER_ID, ASSET_TYPE_ID, THE_PURSE, *pPurse, thePassword,
+        SERVER_ID, INSTRUMENT_DEFINITION_ID, THE_PURSE, *pPurse, thePassword,
         true, // bForEncrypting=true by default.
         pOWNER_ID, &strReason1, &strReason2));
     if (nullptr == pOwner)
@@ -5666,7 +5687,7 @@ Purse* OT_API::Purse_Push(const Identifier& SERVER_ID,
 }
 
 bool OT_API::Wallet_ImportPurse(
-    const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+    const Identifier& SERVER_ID, const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& SIGNER_ID, // We must know the SIGNER_ID in order to
                                  // know which "old purse" to load and merge
                                  // into. The New Purse may have a different
@@ -5694,7 +5715,8 @@ bool OT_API::Wallet_ImportPurse(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<Purse> pNewPurse(new Purse(SERVER_ID, ASSET_TYPE_ID));
+    std::unique_ptr<Purse> pNewPurse(
+        new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID));
     // What's going on here?
     // A purse can be encrypted by a private key (controlled by a Nym) or by a
     // symmetric
@@ -5728,12 +5750,13 @@ bool OT_API::Wallet_ImportPurse(
     if (nullptr == pNewOwner)
         return false; // This already logs, no need for more logs.
     std::unique_ptr<Purse> pOldPurse(
-        LoadPurse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID));
+        LoadPurse(SERVER_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID));
 
     if (nullptr == pOldPurse) // apparently there's not already a purse of this
                               // type, let's create it.
     {
-        pOldPurse.reset(new Purse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID));
+        pOldPurse.reset(
+            new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID));
     }
     else if (!pOldPurse->VerifySignature(*pNym)) {
         otErr
@@ -5742,7 +5765,8 @@ bool OT_API::Wallet_ImportPurse(
         return false;
     }
     // By this point, the old purse has either been loaded, or created.
-    // Let's make sure the server and asset ID match between the purses,
+    // Let's make sure the server and instrument definition id match between the
+    // purses,
     // since they are now actually loaded up.
     //
     if (pOldPurse->GetNotaryID() != pNewPurse->GetNotaryID()) {
@@ -5750,9 +5774,10 @@ bool OT_API::Wallet_ImportPurse(
               << ": Failure: NotaryIDs don't match between these two purses.\n";
         return false;
     }
-    else if (pOldPurse->GetAssetID() != pNewPurse->GetAssetID()) {
-        otOut << __FUNCTION__
-              << ": Failure: AssetIDs don't match between these two purses.\n";
+    else if (pOldPurse->GetInstrumentDefinitionID() !=
+               pNewPurse->GetInstrumentDefinitionID()) {
+        otOut << __FUNCTION__ << ": Failure: InstrumentDefinitionIDs don't "
+                                 "match between these two purses.\n";
         return false;
     }
     //
@@ -5774,7 +5799,8 @@ bool OT_API::Wallet_ImportPurse(
         pOldPurse->ReleaseSignatures();
         pOldPurse->SignContract(*pNym);
         pOldPurse->SaveContract();
-        return SavePurse(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID, *pOldPurse);
+        return SavePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID,
+                         *pOldPurse);
     }
     else // Failed merge.
     {
@@ -5808,7 +5834,7 @@ bool OT_API::Wallet_ImportPurse(
 // Caller must delete!
 //
 Token* OT_API::Token_ChangeOwner(
-    const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+    const Identifier& SERVER_ID, const Identifier& INSTRUMENT_DEFINITION_ID,
     const String& THE_TOKEN, const Identifier& SIGNER_NYM_ID,
     const String& OLD_OWNER, // Pass a NymID here, or a purse.
     const String& NEW_OWNER, // Pass a NymID here, or a purse.
@@ -5867,7 +5893,7 @@ Token* OT_API::Token_ChangeOwner(
     {
         // if the old owner is a Purse (symmetric+master key), the entire
         // purse is loaded.
-        Purse* pOldPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
+        Purse* pOldPurse = new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pOldPurse);
         theOldPurseAngel.reset(pOldPurse);
         pOldOwner = LoadPurseAndOwnerForMerge(
@@ -5907,7 +5933,7 @@ Token* OT_API::Token_ChangeOwner(
     {
         // if the new owner is a Purse (symmetric+master key), the entire purse
         // is loaded.
-        Purse* pNewPurse = new Purse(SERVER_ID, ASSET_TYPE_ID);
+        Purse* pNewPurse = new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pNewPurse);
         theNewPurseAngel.reset(pNewPurse);
         pNewOwner = LoadPurseAndOwnerForMerge(
@@ -5939,7 +5965,7 @@ Token* OT_API::Token_ChangeOwner(
     // (By this point, pOldOwner and pNewOwner should both be good to go.)
     //
     std::unique_ptr<Token> pToken(
-        Token::TokenFactory(THE_TOKEN, SERVER_ID, ASSET_TYPE_ID));
+        Token::TokenFactory(THE_TOKEN, SERVER_ID, INSTRUMENT_DEFINITION_ID));
     OT_ASSERT(nullptr != pToken);
     if (false ==
         pToken->ReassignOwnership(*pOldOwner,  // must be private, if a Nym.
@@ -5967,10 +5993,10 @@ Token* OT_API::Token_ChangeOwner(
 // (Caller responsible to delete.)
 //
 Mint* OT_API::LoadMint(const Identifier& SERVER_ID,
-                       const Identifier& ASSET_ID) const
+                       const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     const String strNotaryID(SERVER_ID);
-    const String strAssetTypeID(ASSET_ID);
+    const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     OTServerContract* pServerContract = GetServer(SERVER_ID, __FUNCTION__);
     if (nullptr == pServerContract) return nullptr;
     const Nym* pServerNym = pServerContract->GetContractPublicNym();
@@ -5980,7 +6006,7 @@ Mint* OT_API::LoadMint(const Identifier& SERVER_ID,
               << strNotaryID << " \n";
         return nullptr;
     }
-    Mint* pMint = Mint::MintFactory(strNotaryID, strAssetTypeID);
+    Mint* pMint = Mint::MintFactory(strNotaryID, strInstrumentDefinitionID);
     OT_ASSERT_MSG(nullptr != pMint,
                   "OT_API::LoadMint: Error allocating memory in the OT API");
     // responsible to delete or return pMint below this point.
@@ -5988,7 +6014,7 @@ Mint* OT_API::LoadMint(const Identifier& SERVER_ID,
         otOut << __FUNCTION__
               << ": Unable to load or verify Mintfile : " << OTFolders::Mint()
               << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
-              << strAssetTypeID << "\n";
+              << strInstrumentDefinitionID << "\n";
         delete pMint;
         pMint = nullptr;
         return nullptr;
@@ -6036,21 +6062,23 @@ OTServerContract* OT_API::LoadServerContract(const Identifier& SERVER_ID) const
 //
 // Caller is responsible to delete.
 //
-AssetContract* OT_API::LoadAssetContract(const Identifier& ASSET_ID) const
+AssetContract* OT_API::LoadAssetContract(
+    const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    String strAssetTypeID(ASSET_ID);
+    String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     String strFoldername = OTFolders::Contract().Get();
-    String strFilename = strAssetTypeID.Get();
+    String strFilename = strInstrumentDefinitionID.Get();
     if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
         otErr << "OT_API::LoadAssetContract: File does not exist: "
               << strFoldername.Get() << OTLog::PathSeparator() << strFilename
               << "\n";
         return nullptr;
     }
-    AssetContract* pContract = new AssetContract(strAssetTypeID, strFoldername,
-                                                 strFilename, strAssetTypeID);
+    AssetContract* pContract =
+        new AssetContract(strInstrumentDefinitionID, strFoldername, strFilename,
+                          strInstrumentDefinitionID);
     OT_ASSERT_MSG(nullptr != pContract,
                   "Error allocating memory for Asset "
                   "Contract in OT_API::LoadAssetContract\n");
@@ -6060,8 +6088,8 @@ AssetContract* OT_API::LoadAssetContract(const Identifier& ASSET_ID) const
     else
         otOut << "OT_API::LoadAssetContract: Unable to load or verify "
                  "asset contract (Maybe it's just not there, and "
-                 "needs to be downloaded.) Asset ID: " << strAssetTypeID
-              << "\n";
+                 "needs to be downloaded.) Instrument Definition Id: "
+              << strInstrumentDefinitionID << "\n";
     delete pContract;
     pContract = nullptr;
 
@@ -8263,12 +8291,13 @@ bool OT_API::HaveAlreadySeenReply(const Identifier& SERVER_ID,
 //
 // Tells you whether or not a given asset type is actually a basket currency.
 //
-bool OT_API::IsBasketCurrency(
-    const Identifier& BASKET_ASSET_TYPE_ID) const // returns true or false.
+bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
+    const // returns true or false.
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
-    AssetContract* pContract = GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return false;
     // No need to cleanup pContract.
     // Next load the Basket object out of that contract.
@@ -8292,11 +8321,12 @@ bool OT_API::IsBasketCurrency(
 // (Or zero.)
 //
 int32_t OT_API::GetBasketMemberCount(
-    const Identifier& BASKET_ASSET_TYPE_ID) const
+    const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
-    AssetContract* pContract = GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return 0;
     // No need to cleanup pContract.
     // Next load the Basket object out of that contract.
@@ -8319,13 +8349,14 @@ int32_t OT_API::GetBasketMemberCount(
 // by index, and true.
 // (Or false.)
 //
-bool OT_API::GetBasketMemberType(const Identifier& BASKET_ASSET_TYPE_ID,
-                                 int32_t nIndex,
-                                 Identifier& theOutputMemberType) const
+bool OT_API::GetBasketMemberType(
+    const Identifier& BASKET_INSTRUMENT_DEFINITION_ID, int32_t nIndex,
+    Identifier& theOutputMemberType) const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
-    AssetContract* pContract = GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return false;
     // No need to cleanup pContract.
     // Next load the Basket object out of that contract.
@@ -8360,11 +8391,12 @@ bool OT_API::GetBasketMemberType(const Identifier& BASKET_ASSET_TYPE_ID,
 // (Or 0.)
 //
 int64_t OT_API::GetBasketMemberMinimumTransferAmount(
-    const Identifier& BASKET_ASSET_TYPE_ID, int32_t nIndex) const
+    const Identifier& BASKET_INSTRUMENT_DEFINITION_ID, int32_t nIndex) const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
-    AssetContract* pContract = GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return 0;
     // No need to cleanup pContract.
     // Next load the Basket object out of that contract.
@@ -8403,11 +8435,12 @@ int64_t OT_API::GetBasketMemberMinimumTransferAmount(
 // (Or 0.)
 //
 int64_t OT_API::GetBasketMinimumTransferAmount(
-    const Identifier& BASKET_ASSET_TYPE_ID) const
+    const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const
 {
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
-    AssetContract* pContract = GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return 0;
     // No need to cleanup pContract.
     // Next load the Basket object out of that contract.
@@ -8459,7 +8492,7 @@ Basket* OT_API::GenerateBasketCreation(
 bool OT_API::AddBasketCreationItem(const Identifier& USER_ID, // for
                                                               // signature.
                                    Basket& theBasket,
-                                   const Identifier& ASSET_TYPE_ID,
+                                   const Identifier& INSTRUMENT_DEFINITION_ID,
                                    int64_t MINIMUM_TRANSFER) const
 {
     Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
@@ -8468,11 +8501,12 @@ bool OT_API::AddBasketCreationItem(const Identifier& USER_ID, // for
     // cleanup.)
     // There is an OT_ASSERT_MSG in here for memory failure,
     // but it still might return nullptr if various verification fails.
-    AssetContract* pContract = GetAssetType(ASSET_TYPE_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return false;
     // No need to cleanup pContract.
 
-    theBasket.AddSubContract(ASSET_TYPE_ID, MINIMUM_TRANSFER);
+    theBasket.AddSubContract(INSTRUMENT_DEFINITION_ID, MINIMUM_TRANSFER);
 
     theBasket.IncrementSubCount();
 
@@ -8561,18 +8595,18 @@ int32_t OT_API::issueBasket(const Identifier& SERVER_ID,
 //
 // (Caller is responsible to delete.)
 //
-Basket* OT_API::GenerateBasketExchange(const Identifier& SERVER_ID,
-                                       const Identifier& USER_ID,
-                                       const Identifier& BASKET_ASSET_TYPE_ID,
-                                       const Identifier& BASKET_ASSET_ACCT_ID,
-                                       int32_t TRANSFER_MULTIPLE) const
+Basket* OT_API::GenerateBasketExchange(
+    const Identifier& SERVER_ID, const Identifier& USER_ID,
+    const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
+    const Identifier& BASKET_ASSET_ACCT_ID, int32_t TRANSFER_MULTIPLE) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    AssetContract* pContract = GetAssetType(BASKET_ASSET_TYPE_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return nullptr;
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
@@ -8581,9 +8615,10 @@ Basket* OT_API::GenerateBasketExchange(const Identifier& SERVER_ID,
     if (nullptr == pAccount) return nullptr;
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    if (BASKET_ASSET_TYPE_ID != pAccount->GetAssetTypeID()) {
+    if (BASKET_INSTRUMENT_DEFINITION_ID !=
+        pAccount->GetInstrumentDefinitionID()) {
         const String strAcctID(BASKET_ASSET_ACCT_ID),
-            strAcctTypeID(BASKET_ASSET_TYPE_ID);
+            strAcctTypeID(BASKET_INSTRUMENT_DEFINITION_ID);
         otOut << "OT_API::GenerateBasketExchange: Wrong asset type ID "
                  "on account " << strAcctID << " (expected type to be "
               << strAcctTypeID << ")\n";
@@ -8653,7 +8688,7 @@ Basket* OT_API::GenerateBasketExchange(const Identifier& SERVER_ID,
 //
 bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
                                    const Identifier& USER_ID, Basket& theBasket,
-                                   const Identifier& ASSET_TYPE_ID,
+                                   const Identifier& INSTRUMENT_DEFINITION_ID,
                                    const Identifier& ASSET_ACCT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
@@ -8661,7 +8696,8 @@ bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    AssetContract* pContract = GetAssetType(ASSET_TYPE_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return false;
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
@@ -8675,11 +8711,12 @@ bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
                  "transaction number to add this exchange item.\n";
         return false;
     }
-    if (ASSET_TYPE_ID != pAccount->GetAssetTypeID()) {
-        const String strAssetTypeID(ASSET_TYPE_ID), strAcctID(ASSET_ACCT_ID);
+    if (INSTRUMENT_DEFINITION_ID != pAccount->GetInstrumentDefinitionID()) {
+        const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
+            strAcctID(ASSET_ACCT_ID);
         otOut << "OT_API::AddBasketExchangeItem: Wrong asset type ID "
                  "on account " << strAcctID << " (expected to find asset type "
-              << strAssetTypeID << ")\n";
+              << strInstrumentDefinitionID << ")\n";
         return false;
     }
     // By this point, I know that everything checks out. Signature and Account
@@ -8694,7 +8731,7 @@ bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
     if (pNym->GetNextTransactionNum(*pNym, strNotaryID,
                                     lSubClosingTransactionNo)) // this saves
     {
-        theBasket.AddRequestSubContract(ASSET_TYPE_ID, ASSET_ACCT_ID,
+        theBasket.AddRequestSubContract(INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID,
                                         lSubClosingTransactionNo);
 
         theBasket.ReleaseSignatures();
@@ -8846,7 +8883,8 @@ bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
 //
 int32_t OT_API::exchangeBasket(
     const Identifier& SERVER_ID, const Identifier& USER_ID,
-    const Identifier& BASKET_ASSET_ID, const String& BASKET_INFO,
+    const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
+    const String& BASKET_INFO,
     bool bExchangeInOrOut // exchanging in == true, out == false.
     ) const
 {
@@ -8862,7 +8900,8 @@ int32_t OT_API::exchangeBasket(
         GetServer(SERVER_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    AssetContract* pContract = GetAssetType(BASKET_ASSET_ID, __FUNCTION__);
+    AssetContract* pContract =
+        GetAssetType(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
     if (nullptr == pContract) return (-1);
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
@@ -9148,7 +9187,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
     // to cleanup.)
     Identifier CONTRACT_ID;
     String strContractID, strNotaryID(SERVER_ID);
-    CONTRACT_ID = pAccount->GetAssetTypeID();
+    CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
     CONTRACT_ID.GetString(strContractID);
     if (!OTDB::Exists(OTFolders::Mint().Get(), strNotaryID.Get(),
                       strContractID.Get())) {
@@ -9219,7 +9258,8 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
         while ((lTokenAmount = pMint->GetLargestDenomination(lAmount)) > 0) {
             lAmount -= lTokenAmount;
 
-            // Create the relevant token request with same server/asset ID as
+            // Create the relevant token request with same server/instrument
+            // definition id as
             // the purse.
             // the purse does NOT own the token at this point. The token's
             // constructor
@@ -9400,7 +9440,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
     Identifier CONTRACT_ID;
     String strContractID;
 
-    CONTRACT_ID = pAccount->GetAssetTypeID();
+    CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
     CONTRACT_ID.GetString(strContractID);
     Message theMessage;
 
@@ -9639,19 +9679,21 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
 }
 
 // Let's pretend you are paying a dollar dividend for Pepsi shares...
-// Therefore ACCT_ID needs to be a dollar account, and SHARES_ASSET_ID needs
+// Therefore ACCT_ID needs to be a dollar account, and
+// SHARES_INSTRUMENT_DEFINITION_ID needs
 // to be the Pepsi asset type ID. (NOT the dollar asset type ID...)
 //
 int32_t OT_API::payDividend(
     const Identifier& SERVER_ID,
     const Identifier& ISSUER_USER_ID,        // must be issuer of
-                                             // SHARES_ASSET_TYPE_ID
+                                             // SHARES_INSTRUMENT_DEFINITION_ID
     const Identifier& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
                                              // shares,
     // then this is the issuer's dollars
     // account.
-    const Identifier& SHARES_ASSET_TYPE_ID, // if dollars paid for pepsi
-                                            // shares,
+    const Identifier& SHARES_INSTRUMENT_DEFINITION_ID, // if dollars paid for
+                                                       // pepsi
+                                                       // shares,
     // then this is the pepsi shares asset
     // type id.
     const String& DIVIDEND_MEMO, // a message attached to the payout request.
@@ -9675,15 +9717,16 @@ int32_t OT_API::payDividend(
     if (nullptr == pDividendSourceAccount) return (-1);
     // By this point, pDividendSourceAccount is a good pointer, and is on the
     // wallet. (No need to cleanup.)
-    AssetContract* pSharesContract = GetAssetType(
-        SHARES_ASSET_TYPE_ID, __FUNCTION__); // This ASSERTs and logs already.
+    AssetContract* pSharesContract =
+        GetAssetType(SHARES_INSTRUMENT_DEFINITION_ID,
+                     __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pSharesContract) return (-1);
     // By this point, pSharesContract is a good pointer.  (No need to cleanup.)
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return (-1);
     Account* pSharesIssuerAcct =
-        pWallet->GetIssuerAccount(SHARES_ASSET_TYPE_ID);
+        pWallet->GetIssuerAccount(SHARES_INSTRUMENT_DEFINITION_ID);
 
     if (nullptr == pSharesIssuerAcct) {
         otErr << __FUNCTION__
@@ -9768,8 +9811,9 @@ int32_t OT_API::payDividend(
         // vouchers in that case.
         //
         Cheque theRequestVoucher(
-            SERVER_ID, SHARES_ASSET_TYPE_ID); // <====== Server needs this
-                                              // (SHARES_ASSET_TYPE_ID)
+            SERVER_ID,
+            SHARES_INSTRUMENT_DEFINITION_ID); // <====== Server needs this
+        // (SHARES_INSTRUMENT_DEFINITION_ID)
 
         bool bIssueCheque = theRequestVoucher.IssueCheque(
             lAmountPerShare, // <====== Server needs this (lAmountPerShare.)
@@ -9998,7 +10042,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
     Identifier CONTRACT_ID;
     String strContractID;
 
-    CONTRACT_ID = pAccount->GetAssetTypeID();
+    CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
     CONTRACT_ID.GetString(strContractID);
     Message theMessage;
 
@@ -10255,7 +10299,7 @@ bool OT_API::DiscardCheque(const Identifier& SERVER_ID,
     Identifier CONTRACT_ID;
     String strContractID;
 
-    CONTRACT_ID = pAccount->GetAssetTypeID();
+    CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
     CONTRACT_ID.GetString(strContractID);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)  pServer and pAccount are also good.
@@ -10270,7 +10314,7 @@ bool OT_API::DiscardCheque(const Identifier& SERVER_ID,
         return false;
     }
     else if ((theCheque.GetNotaryID() == SERVER_ID) &&
-               (theCheque.GetAssetID() == CONTRACT_ID) &&
+               (theCheque.GetInstrumentDefinitionID() == CONTRACT_ID) &&
                (theCheque.GetSenderUserID() == USER_ID) &&
                (theCheque.GetSenderAcctID() == ACCT_ID)) {
         if (pNym->VerifyIssuedNum(
@@ -10330,7 +10374,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
     // to cleanup.)
     Identifier CONTRACT_ID;
     String strContractID;
-    CONTRACT_ID = pAccount->GetAssetTypeID();
+    CONTRACT_ID = pAccount->GetInstrumentDefinitionID();
     CONTRACT_ID.GetString(strContractID);
     Message theMessage;
     int64_t lRequestNumber = 0;
@@ -11465,9 +11509,11 @@ int32_t OT_API::issueMarketOffer(
         GetOrLoadAccount(*pNym, CURRENCY_ACCT_ID, SERVER_ID, __FUNCTION__);
     if (nullptr == pCurrencyAccount) return (-1);
     // By this point, pCurrencyAccount is a good pointer.  (No need to cleanup.)
-    const Identifier& ASSET_TYPE_ID = pAssetAccount->GetAssetTypeID();
-    const Identifier& CURRENCY_TYPE_ID = pCurrencyAccount->GetAssetTypeID();
-    if (ASSET_TYPE_ID == CURRENCY_TYPE_ID) {
+    const Identifier& INSTRUMENT_DEFINITION_ID =
+        pAssetAccount->GetInstrumentDefinitionID();
+    const Identifier& CURRENCY_TYPE_ID =
+        pCurrencyAccount->GetInstrumentDefinitionID();
+    if (INSTRUMENT_DEFINITION_ID == CURRENCY_TYPE_ID) {
         otOut << __FUNCTION__
               << ": The asset account and currency account cannot "
                  "have the same asset type ID. (You can't, for "
@@ -11577,10 +11623,10 @@ int32_t OT_API::issueMarketOffer(
                  "Valid From: " << OTTimeGetSecondsFromTime(VALID_FROM)
               << "  To: " << OTTimeGetSecondsFromTime(VALID_TO) << "\n";
 
-        OTOffer theOffer(SERVER_ID, ASSET_TYPE_ID, CURRENCY_TYPE_ID,
+        OTOffer theOffer(SERVER_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_TYPE_ID,
                          lMarketScale);
-        OTTrade theTrade(SERVER_ID, ASSET_TYPE_ID, ASSET_ACCT_ID, USER_ID,
-                         CURRENCY_TYPE_ID, CURRENCY_ACCT_ID);
+        OTTrade theTrade(SERVER_ID, INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID,
+                         USER_ID, CURRENCY_TYPE_ID, CURRENCY_ACCT_ID);
         // MAKE OFFER...
         //
         bool bCreateOffer = theOffer.MakeOffer(
@@ -12434,8 +12480,9 @@ int32_t OT_API::issueAssetType(const Identifier& SERVER_ID,
 {
 
     // Upload a currency contract to the server and create
-    // an asset ID from a hash of that.
-    // contract. Also creates an issuer account for that asset ID. This ONLY
+    // an instrument definition id from a hash of that.
+    // contract. Also creates an issuer account for that instrument definition
+    // id. This ONLY
     // works if public
     // key of the user matches the contract key found in the currency
     // contract, AND if the
@@ -12489,7 +12536,7 @@ int32_t OT_API::issueAssetType(const Identifier& SERVER_ID,
                                               // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
 
-        newID.GetString(theMessage.m_strAssetID);
+        newID.GetString(theMessage.m_strInstrumentDefinitionID);
         String strAssetContract(theAssetContract);
         theMessage.m_ascPayload.SetString(strAssetContract);
 
@@ -12506,13 +12553,13 @@ int32_t OT_API::issueAssetType(const Identifier& SERVER_ID,
         // handle setting up the filename and overwrite it anyway. But I still
         // prefer to set it
         // up correctly, rather than pass a blank. I'm just funny like that.
-        strFilename = theMessage.m_strAssetID.Get();
+        strFilename = theMessage.m_strInstrumentDefinitionID.Get();
 
         String strFoldername(OTFolders::Contract().Get());
 
-        AssetContract* pContract =
-            new AssetContract(theMessage.m_strAssetID, strFoldername,
-                              strFilename, theMessage.m_strAssetID);
+        AssetContract* pContract = new AssetContract(
+            theMessage.m_strInstrumentDefinitionID, strFoldername, strFilename,
+            theMessage.m_strInstrumentDefinitionID);
         OT_ASSERT(nullptr != pContract);
 
         // Check the server signature on the contract here. (Perhaps the message
@@ -12552,7 +12599,7 @@ int32_t OT_API::issueAssetType(const Identifier& SERVER_ID,
 
 int32_t OT_API::getContract(const Identifier& SERVER_ID,
                             const Identifier& USER_ID,
-                            const Identifier& ASSET_ID) const
+                            const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     // Grab the server's copy of any asset contract. Input is
     // the asset type ID.
@@ -12568,7 +12615,8 @@ int32_t OT_API::getContract(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID),
+        strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -12586,7 +12634,7 @@ int32_t OT_API::getContract(const Identifier& SERVER_ID,
                                           // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
-    theMessage.m_strAssetID = strAssetTypeID;
+    theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -12600,9 +12648,10 @@ int32_t OT_API::getContract(const Identifier& SERVER_ID,
 }
 
 int32_t OT_API::getMint(const Identifier& SERVER_ID, const Identifier& USER_ID,
-                        const Identifier& ASSET_ID) const
+                        const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    // Grab the server's copy of any mint based on Asset ID. (For
+    // Grab the server's copy of any mint based on Instrument Definition Id.
+    // (For
     // blinded tokens.)
 
     Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
@@ -12614,13 +12663,15 @@ int32_t OT_API::getMint(const Identifier& SERVER_ID, const Identifier& USER_ID,
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     AssetContract* pAssetContract =
-        GetAssetType(ASSET_ID, __FUNCTION__); // This ASSERTs and logs already.
+        GetAssetType(INSTRUMENT_DEFINITION_ID,
+                     __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pAssetContract) return (-1);
     // By this point, pAssetContract is a good pointer.  (No need to cleanup.)
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID),
+        strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -12638,7 +12689,7 @@ int32_t OT_API::getMint(const Identifier& SERVER_ID, const Identifier& USER_ID,
                                           // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
-    theMessage.m_strAssetID = strAssetTypeID;
+    theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);
@@ -12651,7 +12702,8 @@ int32_t OT_API::getMint(const Identifier& SERVER_ID, const Identifier& USER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-// Sends a list of asset IDs to the server, which replies with a list of the
+// Sends a list of instrument definition ids to the server, which replies with a
+// list of the
 // actual receipts
 // with the issuer's signature on them, from when the currency was issued.
 //
@@ -12680,12 +12732,14 @@ int32_t OT_API::queryAssetTypes(const Identifier& SERVER_ID,
             stringMap = StringMap.ot_dynamic_cast(storable);
             if (stringMap != null)
             {
-                // ADD ALL THE ASSET IDs HERE (To the string map, so you
+                // ADD ALL THE INSTRUMENT DEFINITION IDs HERE (To the string
+     map, so you
                 // can ask the server about them...)
                 //
-                for_each(the asset IDs you want to query the server about)
+                for_each(the instrument definition ids you want to query the
+     server about)
                 {
-                    stringMap.SetValue(ASSET_TYPE_ID, "exists");
+                    stringMap.SetValue(INSTRUMENT_DEFINITION_ID, "exists");
                 }
 
                 strEncodedObj = otapi.EncodeObject(stringMap);
@@ -12724,13 +12778,14 @@ int32_t OT_API::queryAssetTypes(const Identifier& SERVER_ID,
                 stringMap = StringMap.ot_dynamic_cast(storable);
                 if (stringMap != null)
                 {
-                    // Loop through string map. For each asset ID key, the value
+                    // Loop through string map. For each instrument definition
+     id key, the value
      will
                     // say either "true" or "false".
                     //
                     for_each(stringMap)
                     {
-                        strValue = stringMap.GetValue(ASSET_TYPE_ID);
+                        strValue = stringMap.GetValue(INSTRUMENT_DEFINITION_ID);
 
                         if (strValue.compare("true") == 0)
                         {
@@ -12784,12 +12839,12 @@ int32_t OT_API::queryAssetTypes(const Identifier& SERVER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::createAssetAccount(const Identifier& SERVER_ID,
-                                   const Identifier& USER_ID,
-                                   const Identifier& ASSET_ID) const
+int32_t OT_API::createAssetAccount(
+    const Identifier& SERVER_ID, const Identifier& USER_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     // Create an asset account for a certain notaryID,
-    // UserID, and Asset Type ID.
+    // UserID, and Instrument Definition ID.
     // These accounts are where users actually store their digital assets of
     // various
     // types. Account files are stored on user's computer, signed by notary
@@ -12807,13 +12862,15 @@ int32_t OT_API::createAssetAccount(const Identifier& SERVER_ID,
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     AssetContract* pAssetContract =
-        GetAssetType(ASSET_ID, __FUNCTION__); // This ASSERTs and logs already.
+        GetAssetType(INSTRUMENT_DEFINITION_ID,
+                     __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pAssetContract) return (-1);
     // By this point, pAssetContract is a good pointer.  (No need to cleanup.)
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID),
+        strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -12831,7 +12888,7 @@ int32_t OT_API::createAssetAccount(const Identifier& SERVER_ID,
                                           // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
-    theMessage.m_strAssetID = strAssetTypeID;
+    theMessage.m_strInstrumentDefinitionID = strInstrumentDefinitionID;
 
     // (2) Sign the Message
     theMessage.SignContract(*pNym);

@@ -262,8 +262,8 @@ public:
     std::string notaryID;
     std::string nymID;
     std::string nymID2;
-    std::string assetID;
-    std::string assetID2;
+    std::string instrumentDefinitionID;
+    std::string instrumentDefinitionID2;
     std::string accountID;
     std::string accountID2;
     std::string basket;
@@ -308,7 +308,8 @@ public:
                const std::string& p_strParam, const std::string& p_strData,
                const std::string& p_strData2); // 7 args
     OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,
-               const std::string& p_nymID, const std::string& p_assetID,
+               const std::string& p_nymID,
+               const std::string& p_instrumentDefinitionID,
                const std::string& p_basket, const std::string& p_accountID,
                bool p_bBool, int32_t p_nTransNumsNeeded); // 8 args
     OTAPI_Func(OTAPI_Func_Type theType, const std::string& p_notaryID,

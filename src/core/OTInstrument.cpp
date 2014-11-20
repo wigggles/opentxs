@@ -185,9 +185,9 @@ OTInstrument::OTInstrument()
 }
 
 OTInstrument::OTInstrument(const Identifier& SERVER_ID,
-                           const Identifier& ASSET_ID)
+                           const Identifier& INSTRUMENT_DEFINITION_ID)
     : OTScriptable()
-    , m_AssetTypeID(ASSET_ID)
+    , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
     , m_NotaryID(SERVER_ID)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)

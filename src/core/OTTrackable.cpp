@@ -145,17 +145,17 @@ OTTrackable::OTTrackable()
 }
 
 OTTrackable::OTTrackable(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_ID)
-    : OTInstrument(SERVER_ID, ASSET_ID)
+                         const Identifier& INSTRUMENT_DEFINITION_ID)
+    : OTInstrument(SERVER_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
 {
     InitTrackable();
 }
 
 OTTrackable::OTTrackable(const Identifier& SERVER_ID,
-                         const Identifier& ASSET_ID, const Identifier& ACCT_ID,
-                         const Identifier& USER_ID)
-    : OTInstrument(SERVER_ID, ASSET_ID)
+                         const Identifier& INSTRUMENT_DEFINITION_ID,
+                         const Identifier& ACCT_ID, const Identifier& USER_ID)
+    : OTInstrument(SERVER_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
 {
     InitTrackable();

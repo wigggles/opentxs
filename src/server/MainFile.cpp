@@ -426,7 +426,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
             // strings for storing the data that we want to read out of the file
 
             String AssetName;
-            String AssetID;
+            String InstrumentDefinitionID;
 
             const String strNodeName(xml->getNodeName());
 
@@ -580,18 +580,20 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         ascAssetName.GetString(AssetName,
                                                false); // linebreaks == false
 
-                    AssetID = xml->getAttributeValue(
-                        "assetTypeID"); // hash of contract itself
+                    InstrumentDefinitionID = xml->getAttributeValue(
+                        "instrumentDefinitionID"); // hash of contract itself
 
                     OTLog::vOutput(0, "\n\n****Asset Contract**** (server "
                                       "listing)\n Name: %s\n Contract ID: %s\n",
-                                   AssetName.Get(), AssetID.Get());
+                                   AssetName.Get(),
+                                   InstrumentDefinitionID.Get());
 
                     String strContractPath;
                     strContractPath = OTFolders::Contract().Get();
 
                     AssetContract* pContract = new AssetContract(
-                        AssetName, strContractPath, AssetID, AssetID);
+                        AssetName, strContractPath, InstrumentDefinitionID,
+                        InstrumentDefinitionID);
 
                     OT_ASSERT_MSG(nullptr != pContract,
                                   "ASSERT: allocating memory for Asset "
@@ -603,7 +605,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
 
                             pContract->SetName(AssetName);
 
-                            server_->transactor_.contractsMap_[AssetID.Get()] =
+                            server_->transactor_
+                                .contractsMap_[InstrumentDefinitionID.Get()] =
                                 pContract;
                         }
                         else {

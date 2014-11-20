@@ -233,10 +233,12 @@ public:
 
     // From OTInstrument (parent class of OTTrackable, parent class of this)
     /*
-     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier& ASSET_ID)
+     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier&
+     INSTRUMENT_DEFINITION_ID)
      : OTContract()
 
-     inline const OTIdentifier& GetAssetID()  const { return m_AssetTypeID; }
+     inline const OTIdentifier& GetInstrumentDefinitionID()  const { return
+     m_InstrumentDefinitionID; }
      inline const OTIdentifier& GetNotaryID() const { return m_NotaryID;    }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
@@ -246,7 +248,8 @@ public:
      / TO dates.
      */
     EXPORT Cheque();
-    EXPORT Cheque(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
+    EXPORT Cheque(const Identifier& SERVER_ID,
+                  const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~Cheque();
 
     void InitCheque();

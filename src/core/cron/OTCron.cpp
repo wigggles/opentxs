@@ -300,12 +300,13 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
         const Identifier MARKET_ID(*pMarket);
         const String str_MARKET_ID(MARKET_ID);
         const String str_NotaryID(pMarket->GetNotaryID());
-        const String str_ASSET_ID(pMarket->GetAssetID());
+        const String str_INSTRUMENT_DEFINITION_ID(
+            pMarket->GetInstrumentDefinitionID());
         const String str_CURRENCY_ID(pMarket->GetCurrencyID());
 
         pMarketData->notary_id = str_NotaryID.Get();
         pMarketData->market_id = str_MARKET_ID.Get();
-        pMarketData->asset_type_id = str_ASSET_ID.Get();
+        pMarketData->asset_type_id = str_INSTRUMENT_DEFINITION_ID.Get();
         pMarketData->currency_type_id = str_CURRENCY_ID.Get();
         // --------------------------------------------
         const int64_t& lScale = pMarket->GetScale();
@@ -541,19 +542,21 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
     else if (!strcmp("market", xml->getNodeName())) {
         const String strMarketID(xml->getAttributeValue("marketID"));
-        const String strAssetID(xml->getAttributeValue("assetID"));
+        const String strInstrumentDefinitionID(
+            xml->getAttributeValue("instrumentDefinitionID"));
         const String strCurrencyID(xml->getAttributeValue("currencyID"));
 
         const int64_t lScale =
             String::StringToLong(xml->getAttributeValue("marketScale"));
 
-        const Identifier ASSET_ID(strAssetID), CURRENCY_ID(strCurrencyID);
+        const Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
+            CURRENCY_ID(strCurrencyID);
 
         otWarn << "Loaded cron entry for Market:\n" << strMarketID << ".\n";
 
         // LoadMarket() needs this info to do its thing.
-        OTMarket* pMarket =
-            new OTMarket(m_SERVER_ID, ASSET_ID, CURRENCY_ID, lScale);
+        OTMarket* pMarket = new OTMarket(m_SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                         CURRENCY_ID, lScale);
 
         OT_ASSERT(nullptr != pMarket);
 
@@ -606,15 +609,17 @@ void OTCron::UpdateContents()
         Identifier MARKET_ID(*pMarket);
         String str_MARKET_ID(MARKET_ID);
 
-        String str_ASSET_ID(pMarket->GetAssetID());
+        String str_INSTRUMENT_DEFINITION_ID(
+            pMarket->GetInstrumentDefinitionID());
         String str_CURRENCY_ID(pMarket->GetCurrencyID());
 
         m_xmlUnsigned.Concatenate("<market\n marketID=\"%s\"\n"
-                                  " assetID=\"%s\"\n"
+                                  " instrumentDefinitionID=\"%s\"\n"
                                   " currencyID=\"%s\"\n"
                                   " marketScale=\"%" PRId64 "\""
                                   " />\n\n",
-                                  str_MARKET_ID.Get(), str_ASSET_ID.Get(),
+                                  str_MARKET_ID.Get(),
+                                  str_INSTRUMENT_DEFINITION_ID.Get(),
                                   str_CURRENCY_ID.Get(), pMarket->GetScale());
     }
 
@@ -1069,12 +1074,12 @@ bool OTCron::AddMarket(OTMarket& theMarket, bool bSaveMarketFile)
 }
 
 // Create it if it's not there.
-OTMarket* OTCron::GetOrCreateMarket(const Identifier& ASSET_ID,
+OTMarket* OTCron::GetOrCreateMarket(const Identifier& INSTRUMENT_DEFINITION_ID,
                                     const Identifier& CURRENCY_ID,
                                     const int64_t& lScale)
 {
-    OTMarket* pMarket =
-        new OTMarket(GetNotaryID(), ASSET_ID, CURRENCY_ID, lScale);
+    OTMarket* pMarket = new OTMarket(GetNotaryID(), INSTRUMENT_DEFINITION_ID,
+                                     CURRENCY_ID, lScale);
 
     OT_ASSERT(nullptr != pMarket);
 

@@ -458,9 +458,9 @@ bool Account::Credit(const int64_t& amount)
     }
 }
 
-const Identifier& Account::GetAssetTypeID() const
+const Identifier& Account::GetInstrumentDefinitionID() const
 {
-    return acctAssetTypeId_;
+    return acctInstrumentDefinitionID_;
 }
 
 void Account::InitAccount()
@@ -566,7 +566,7 @@ Account* Account::GenerateNewAccount(const Identifier& userId,
 /*
  Just make sure message has these members populated:
 message.m_strNymID;
-message.m_strAssetID;
+message.m_strInstrumentDefinitionID;
 message.m_strNotaryID;
  */
 bool Account::GenerateNewAccount(const Nym& server, const Message& message,
@@ -627,10 +627,10 @@ bool Account::GenerateNewAccount(const Nym& server, const Message& message,
         m_AcctUserID.SetString(message.m_strNymID);
     }
 
-    acctAssetTypeId_.SetString(message.m_strAssetID);
+    acctInstrumentDefinitionID_.SetString(message.m_strInstrumentDefinitionID);
 
     otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
-           << message.m_strAssetID << "\n";
+           << message.m_strInstrumentDefinitionID << "\n";
 
     Identifier notaryID(message.m_strNotaryID);
     // TODO: this assumes the notaryID on the message
@@ -685,7 +685,7 @@ bool Account::DisplayStatistics(String& contents) const
     String strAccountID(GetPurportedAccountID());
     String strNotaryID(GetPurportedNotaryID());
     String strUserID(GetUserID());
-    String strAssetTypeID(acctAssetTypeId_);
+    String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
 
     String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
@@ -695,12 +695,12 @@ bool Account::DisplayStatistics(String& contents) const
                          " accountID: %s\n"
                          " userID: %s\n"
                          " notaryID: %s\n"
-                         " assetTypeID: %s\n"
+                         " instrumentDefinitionID: %s\n"
                          "\n",
                          acctType.Get(), m_strName.Get(), balanceAmount_.Get(),
                          balanceDate_.Get(), strAccountID.Get(),
                          strUserID.Get(), strNotaryID.Get(),
-                         strAssetTypeID.Get());
+                         strInstrumentDefinitionID.Get());
 
     return true;
 }
@@ -710,7 +710,7 @@ bool Account::SaveContractWallet(String& contents) const
     String strAccountID(GetPurportedAccountID());
     String strNotaryID(GetPurportedNotaryID());
     String strUserID(GetUserID());
-    String strAssetTypeID(acctAssetTypeId_);
+    String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
 
     String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
@@ -727,10 +727,10 @@ bool Account::SaveContractWallet(String& contents) const
         " accountID=\"%s\"\n"
         " userID=\"%s\"\n"
         " notaryID=\"%s\" />\n"
-        "<!-- assetTypeID: %s -->\n\n",
+        "<!-- instrumentDefinitionID: %s -->\n\n",
         balanceAmount_.Get(), balanceDate_.Get(), acctType.Get(),
         m_strName.Exists() ? ascName.Get() : "", strAccountID.Get(),
-        strUserID.Get(), strNotaryID.Get(), strAssetTypeID.Get());
+        strUserID.Get(), strNotaryID.Get(), strInstrumentDefinitionID.Get());
     return true;
 }
 
@@ -747,7 +747,7 @@ bool Account::SaveContractWallet(String& contents) const
 // signatures valid.
 void Account::UpdateContents()
 {
-    String strAssetTYPEID(acctAssetTypeId_);
+    String strAssetTYPEID(acctInstrumentDefinitionID_);
 
     String ACCOUNT_ID(GetPurportedAccountID());
     String SERVER_ID(GetPurportedNotaryID());
@@ -761,12 +761,12 @@ void Account::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    m_xmlUnsigned.Concatenate("<assetAccount\n version=\"%s\"\n type=\"%s\"\n "
-                              "accountID=\"%s\"\n userID=\"%s\"\n"
-                              " notaryID=\"%s\"\n assetTypeID=\"%s\" >\n\n",
-                              m_strVersion.Get(), acctType.Get(),
-                              ACCOUNT_ID.Get(), USER_ID.Get(), SERVER_ID.Get(),
-                              strAssetTYPEID.Get());
+    m_xmlUnsigned.Concatenate(
+        "<assetAccount\n version=\"%s\"\n type=\"%s\"\n "
+        "accountID=\"%s\"\n userID=\"%s\"\n"
+        " notaryID=\"%s\"\n instrumentDefinitionID=\"%s\" >\n\n",
+        m_strVersion.Get(), acctType.Get(), ACCOUNT_ID.Get(), USER_ID.Get(),
+        SERVER_ID.Get(), strAssetTYPEID.Get());
     if (IsStashAcct()) {
         m_xmlUnsigned.Concatenate(
             "<stashinfo cronItemNum=\"%" PRId64 "\"/>\n\n", stashTransNum_);
@@ -832,10 +832,11 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
             return -1;
         }
 
-        String strAcctAssetType = xml->getAttributeValue("assetTypeID");
+        String strAcctAssetType =
+            xml->getAttributeValue("instrumentDefinitionID");
 
         if (strAcctAssetType.Exists()) {
-            acctAssetTypeId_.SetString(strAcctAssetType);
+            acctInstrumentDefinitionID_.SetString(strAcctAssetType);
         }
         String strAccountID(xml->getAttributeValue("accountID"));
         String strNotaryID(xml->getAttributeValue("notaryID"));
@@ -849,12 +850,12 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         SetPurportedNotaryID(SERVER_ID);
         SetUserID(USER_ID);
 
-        String strAssetTypeID(acctAssetTypeId_);
+        String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
         otLog3 << "\n\nAccount Type: " << acctType
                << "\nAccountID: " << strAccountID
                << "\nUserID: " << strAcctUserID
                << "\n"
-                  "AssetTypeID: " << strAssetTypeID
+                  "InstrumentDefinitionID: " << strInstrumentDefinitionID
                << "\nNotaryID: " << strNotaryID << "\n";
 
         retval = 1;

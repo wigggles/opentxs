@@ -2315,14 +2315,16 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand = "issueAssetTypeResponse"; // reply to issueAssetType
     msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
-    msgOut.m_strAssetID =
-        MsgIn.m_strAssetID; // Asset Type ID, a hash of the asset contract.
+    msgOut.m_strInstrumentDefinitionID =
+        MsgIn.m_strInstrumentDefinitionID; // Instrument Definition ID, a hash
+                                           // of the asset
+                                           // contract.
 
     const Identifier USER_ID(theNym), SERVER_ID(server_->m_strNotaryID),
-        ASSET_TYPE_ID(MsgIn.m_strAssetID);
+        INSTRUMENT_DEFINITION_ID(MsgIn.m_strInstrumentDefinitionID);
 
     AssetContract* pAssetContract =
-        server_->transactor_.getAssetContract(ASSET_TYPE_ID);
+        server_->transactor_.getAssetContract(INSTRUMENT_DEFINITION_ID);
 
     // Make sure the contract isn't already available on this server.
     //
@@ -2335,19 +2337,20 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
     else {
         // Pull the contract out of the message and verify it.
         String strFoldername(OTFolders::Contract().Get()),
-            strFilename(MsgIn.m_strAssetID.Get());
+            strFilename(MsgIn.m_strInstrumentDefinitionID.Get());
 
         String strContract(MsgIn.m_ascPayload);
-        pAssetContract = new AssetContract(MsgIn.m_strAssetID, strFoldername,
-                                           strFilename, MsgIn.m_strAssetID);
+        pAssetContract =
+            new AssetContract(MsgIn.m_strInstrumentDefinitionID, strFoldername,
+                              strFilename, MsgIn.m_strInstrumentDefinitionID);
 
         Identifier ASSET_USER_ID;
         bool bSuccessCalculateDigest = false;
 
         if (nullptr == pAssetContract) {
             OTLog::vOutput(0, "%s: Failed trying to instantiate asset "
-                              "contract. Asset ID: %s\n",
-                           szFunc, MsgIn.m_strAssetID.Get());
+                              "contract. Instrument Definition Id: %s\n",
+                           szFunc, MsgIn.m_strInstrumentDefinitionID.Get());
         }
         else // success instantiating contract.
         {
@@ -2356,8 +2359,8 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
 
             if (!bSuccessLoadingContract) {
                 OTLog::vOutput(0, "%s: Failed trying to load asset contract "
-                                  "from string. Asset ID: %s\n",
-                               szFunc, MsgIn.m_strAssetID.Get());
+                                  "from string. Instrument Definition Id: %s\n",
+                               szFunc, MsgIn.m_strInstrumentDefinitionID.Get());
                 OTLog::vOutput(1, "%s: Failed trying to load asset contract "
                                   "from string. Contract:\n\n%s\n\n",
                                szFunc, strContract.Get());
@@ -2374,10 +2377,11 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                     const_cast<Nym*>(pAssetContract->GetContractPublicNym());
 
                 if (nullptr == pNym) {
-                    OTLog::vOutput(0, "%s: Failed trying to retrieve Issuer's "
-                                      "public key from asset "
-                                      "contract. Asset ID: %s\n",
-                                   szFunc, MsgIn.m_strAssetID.Get());
+                    OTLog::vOutput(
+                        0, "%s: Failed trying to retrieve Issuer's "
+                           "public key from asset "
+                           "contract. Instrument Definition Id: %s\n",
+                        szFunc, MsgIn.m_strInstrumentDefinitionID.Get());
                 }
                 else // success retrieving issuer Nym's public key from asset
                        // contract.
@@ -2740,10 +2744,12 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
 
                     Account* pNewAccount = nullptr;
 
-                    // GenerateNewAccount expects the Asset ID to be in MsgIn.
+                    // GenerateNewAccount expects the Instrument Definition Id
+                    // to be in MsgIn.
                     // So we'll just put it there to make things easy...
                     //
-                    pItem->SUB_CONTRACT_ID.GetString(MsgIn.m_strAssetID);
+                    pItem->SUB_CONTRACT_ID.GetString(
+                        MsgIn.m_strInstrumentDefinitionID);
 
                     pNewAccount = Account::GenerateNewAccount(
                         SERVER_USER_ID, SERVER_ID, server_->m_nymServer, MsgIn,
@@ -2777,7 +2783,8 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     // Generate a new OTAssetContract -- the ID will be a hash
                     // of THAT contract, which includes theBasket as well as
                     // the server's public key as part of its contents.
-                    // Therefore, the actual Asset Type ID of the basket
+                    // Therefore, the actual Instrument Definition ID of the
+                    // basket
                     // currency
                     // will be different from server to server.
                     //
@@ -2799,7 +2806,8 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     // for its own basket issuer account for the same basket
                     // asset type. This allows the target server to translate
                     // the
-                    // Asset Type ID to its own corresponding ID for the same
+                    // Instrument Definition ID to its own corresponding ID for
+                    // the same
                     // basket.
                     theBasket.ReleaseSignatures();
                     theBasket.SignContract(server_->m_nymServer);
@@ -2822,13 +2830,15 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     AssetContract* pBasketContract =
                         new BasketContract(theBasket, server_->m_nymServer);
 
-                    // Grab the new asset ID for the new basket currency
+                    // Grab the new instrument definition id for the new basket
+                    // currency
                     pBasketContract->GetIdentifier(BASKET_CONTRACT_ID);
                     String STR_BASKET_CONTRACT_ID(BASKET_CONTRACT_ID);
 
-                    // set the new Asset Type ID, aka ContractID, onto the
+                    // set the new Instrument Definition ID, aka ContractID,
+                    // onto the
                     // outgoing message.
-                    msgOut.m_strAssetID = STR_BASKET_CONTRACT_ID;
+                    msgOut.m_strInstrumentDefinitionID = STR_BASKET_CONTRACT_ID;
 
                     // Save the new Asset Contract to disk
                     const String strFoldername(OTFolders::Contract().Get()),
@@ -2865,9 +2875,10 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
 
                     Account* pBasketAccount = nullptr;
 
-                    // GenerateNewAccount expects the Asset ID to be in MsgIn.
+                    // GenerateNewAccount expects the Instrument Definition Id
+                    // to be in MsgIn.
                     // So we'll just put it there to make things easy...
-                    MsgIn.m_strAssetID = STR_BASKET_CONTRACT_ID;
+                    MsgIn.m_strInstrumentDefinitionID = STR_BASKET_CONTRACT_ID;
 
                     pBasketAccount = Account::GenerateNewAccount(
                         SERVER_USER_ID, SERVER_ID, server_->m_nymServer, MsgIn,
@@ -2878,8 +2889,8 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
 
                         pBasketAccount->GetIdentifier(
                             msgOut.m_strAcctID); // string
-                        pBasketAccount->GetAssetTypeID().GetString(
-                            msgOut.m_strAssetID);
+                        pBasketAccount->GetInstrumentDefinitionID().GetString(
+                            msgOut.m_strInstrumentDefinitionID);
 
                         pBasketAccount->GetIdentifier(BASKET_ACCOUNT_ID); // id
 
@@ -2945,13 +2956,14 @@ void UserCommandProcessor::UserCmdCreateAccount(Nym& theNym, Message& MsgIn,
     if (nullptr != pNewAccount) {
         const char* szFunc = "UserCommandProcessor::UserCmdCreateAccount";
         AssetContract* pContract = server_->transactor_.getAssetContract(
-            pNewAccount->GetAssetTypeID());
+            pNewAccount->GetInstrumentDefinitionID());
 
         if (nullptr == pContract) {
-            const String strAssetID(pNewAccount->GetAssetTypeID());
+            const String strInstrumentDefinitionID(
+                pNewAccount->GetInstrumentDefinitionID());
             OTLog::vError(
                 "%s: Error: Unable to get AssetContract for asset type: %s\n",
-                szFunc, strAssetID.Get());
+                szFunc, strInstrumentDefinitionID.Get());
         }
         else if (pContract->IsShares()) {
             // The asset type keeps a list of all accounts for that type.
@@ -2959,10 +2971,11 @@ void UserCommandProcessor::UserCmdCreateAccount(Nym& theNym, Message& MsgIn,
             //
             const bool bAdded = pContract->AddAccountRecord(*pNewAccount);
             if (!bAdded) {
-                const String strAssetID(pNewAccount->GetAssetTypeID());
+                const String strInstrumentDefinitionID(
+                    pNewAccount->GetInstrumentDefinitionID());
                 OTLog::vError(
                     "%s: ERROR Adding Account Record: %s ... Aborting.\n",
-                    __FUNCTION__, strAssetID.Get());
+                    __FUNCTION__, strInstrumentDefinitionID.Get());
                 return; // error
             }
         }
@@ -3320,7 +3333,8 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(Nym&, Message& MsgIn,
                 // todo security: limit on length of this map? (sent through
                 // user message...)
 
-                // "exists" means, "Here's an asset ID. Please tell me
+                // "exists" means, "Here's an instrument definition id. Please
+                // tell me
                 // whether or not it's actually issued on this server."
                 // Future options might include "issue", "audit", "contract",
                 // etc.
@@ -3328,9 +3342,10 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(Nym&, Message& MsgIn,
                 if ((str1.size() > 0) &&
                     (str2.compare("exists") == 0)) // todo hardcoding
                 {
-                    const Identifier theAssetID(str1.c_str());
+                    const Identifier theInstrumentDefinitionID(str1.c_str());
                     AssetContract* pAssetContract =
-                        server_->transactor_.getAssetContract(theAssetID);
+                        server_->transactor_.getAssetContract(
+                            theInstrumentDefinitionID);
                     if (nullptr != pAssetContract) // Yes, it exists.
                         theNewMap[str1] = "true";
                     else
@@ -3377,12 +3392,15 @@ void UserCommandProcessor::UserCmdGetContract(Message& MsgIn, Message& msgOut)
     // (1) set up member variables
     msgOut.m_strCommand = "getContractResponse"; // reply to getContract
     msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
-    msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
+    msgOut.m_strInstrumentDefinitionID =
+        MsgIn.m_strInstrumentDefinitionID; // The Instrument Definition ID in
+                                           // question
 
-    const Identifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
+    const Identifier INSTRUMENT_DEFINITION_ID(
+        MsgIn.m_strInstrumentDefinitionID);
 
     AssetContract* pContract =
-        server_->transactor_.getAssetContract(ASSET_TYPE_ID);
+        server_->transactor_.getAssetContract(INSTRUMENT_DEFINITION_ID);
 
     bool bSuccessLoadingContract = ((pContract != nullptr) ? true : false);
 
@@ -3574,16 +3592,19 @@ void UserCommandProcessor::UserCmdTriggerClause(Nym& theNym, Message& MsgIn,
 void UserCommandProcessor::UserCmdGetMint(Nym&, Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "getMintResponse";  // reply to getMint
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
-    msgOut.m_strAssetID = MsgIn.m_strAssetID; // The Asset Type ID in question
+    msgOut.m_strCommand = "getMintResponse"; // reply to getMint
+    msgOut.m_strNymID = MsgIn.m_strNymID;    // UserID
+    msgOut.m_strInstrumentDefinitionID =
+        MsgIn.m_strInstrumentDefinitionID; // The Instrument Definition ID in
+                                           // question
 
-    const Identifier ASSET_TYPE_ID(MsgIn.m_strAssetID);
-    const String ASSET_ID_STR(ASSET_TYPE_ID);
+    const Identifier INSTRUMENT_DEFINITION_ID(
+        MsgIn.m_strInstrumentDefinitionID);
+    const String INSTRUMENT_DEFINITION_ID_STR(INSTRUMENT_DEFINITION_ID);
     bool bSuccessLoadingMint = false;
 
-    std::unique_ptr<Mint> pMint(
-        Mint::MintFactory(server_->m_strNotaryID, ASSET_ID_STR));
+    std::unique_ptr<Mint> pMint(Mint::MintFactory(
+        server_->m_strNotaryID, INSTRUMENT_DEFINITION_ID_STR));
     OT_ASSERT(nullptr != pMint);
     if (true == (bSuccessLoadingMint = pMint->LoadMint(".PUBLIC"))) {
         // You cannot hash the Mint to get its ID.
@@ -4048,25 +4069,27 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
 
             theNym.SaveSignedNymfile(server_->m_nymServer);
             AssetContract* pContract = server_->transactor_.getAssetContract(
-                pAccount->GetAssetTypeID());
+                pAccount->GetInstrumentDefinitionID());
 
             if (nullptr == pContract) {
-                const String strAssetID(pAccount->GetAssetTypeID());
+                const String strInstrumentDefinitionID(
+                    pAccount->GetInstrumentDefinitionID());
                 OTLog::vError("%s: Error: Unable to get AssetContract for "
                               "asset type: %s\n",
-                              szFunc, strAssetID.Get());
+                              szFunc, strInstrumentDefinitionID.Get());
             }
             else if (pContract->IsShares()) {
                 // The asset type keeps a list of all accounts for that type.
                 // (For shares, not for currencies.)
                 //
-                const bool bErased =
-                    pContract->EraseAccountRecord(pAccount->GetAssetTypeID());
+                const bool bErased = pContract->EraseAccountRecord(
+                    pAccount->GetInstrumentDefinitionID());
                 if (!bErased) {
-                    const String strAssetID(pAccount->GetAssetTypeID());
+                    const String strInstrumentDefinitionID(
+                        pAccount->GetInstrumentDefinitionID());
                     OTLog::vError(
                         "%s: ERROR Erasing Account Record: %s ... Aborting.\n",
-                        __FUNCTION__, strAssetID.Get());
+                        __FUNCTION__, strInstrumentDefinitionID.Get());
                     return; // error
                 }
             }

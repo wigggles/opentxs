@@ -571,7 +571,8 @@ public:
     // EXPORT std::string GetServer_Contract(const std::string& SERVER_ID); //
     // Return's Server's contract (based on server ID)
     // EXPORT std::string GetAssetType_Contract(const std::string&
-    // ASSET_TYPE_ID); // Returns currency contract based on Asset Type ID
+    // INSTRUMENT_DEFINITION_ID); // Returns currency contract based on Asset
+    // Type ID
 
     /*
     ---------------------------------
@@ -705,8 +706,8 @@ public:
      // Returns formatted string for output, for a given amount, based on
      currency contract and locale.
      */
-    EXPORT static std::string FormatAmount(const std::string& ASSET_TYPE_ID,
-                                           const int64_t& THE_AMOUNT);
+    EXPORT static std::string FormatAmount(
+        const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT);
 
     /** StringToAmount:
      // Input: currency contract, formatted string. (And locale, internally.)
@@ -715,21 +716,26 @@ public:
      // Returns amount from formatted string, based on currency contract and
      locale.
      */
-    EXPORT static int64_t StringToAmount(const std::string& ASSET_TYPE_ID,
-                                         const std::string& str_input);
+    EXPORT static int64_t StringToAmount(
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& str_input);
 
     EXPORT static std::string GetAssetType_ID(
-        const int32_t& nIndex); // returns Asset Type ID (based on index from
+        const int32_t& nIndex); // returns Instrument Definition ID (based on
+                                // index from
                                 // GetAssetTypeCount)
     EXPORT static std::string GetAssetType_Name(
-        const std::string& ASSET_TYPE_ID); // Returns asset type name based on
-                                           // Asset Type ID
+        const std::string& INSTRUMENT_DEFINITION_ID); // Returns asset type name
+                                                      // based on
+    // Instrument Definition ID
     EXPORT static std::string GetAssetType_TLA(
-        const std::string& ASSET_TYPE_ID); // Returns asset type TLA based on
-                                           // Asset Type ID
+        const std::string& INSTRUMENT_DEFINITION_ID); // Returns asset type TLA
+                                                      // based on
+    // Instrument Definition ID
     EXPORT static std::string GetAssetType_Contract(
-        const std::string& ASSET_TYPE_ID); // Returns currency contract based on
-                                           // Asset Type ID
+        const std::string& INSTRUMENT_DEFINITION_ID); // Returns currency
+                                                      // contract based on
+    // Instrument Definition ID
 
     /** You already have accounts in your wallet (without any server
     communications)
@@ -753,7 +759,7 @@ public:
     EXPORT static std::string GetAccountWallet_Type(
         const std::string& ACCOUNT_ID); // returns the account type (simple,
                                         // issuer, etc)
-    EXPORT static std::string GetAccountWallet_AssetTypeID(
+    EXPORT static std::string GetAccountWallet_InstrumentDefinitionID(
         const std::string& ACCOUNT_ID); // returns asset type ID of the account
     EXPORT static std::string GetAccountWallet_NotaryID(
         const std::string& ACCOUNT_ID); // returns Server ID of the account
@@ -950,7 +956,8 @@ public:
     (Whether there are accounts...)
     // returns OT_BOOL
     */
-    EXPORT static bool Wallet_CanRemoveAssetType(const std::string& ASSET_ID);
+    EXPORT static bool Wallet_CanRemoveAssetType(
+        const std::string& INSTRUMENT_DEFINITION_ID);
 
     /** Remove this asset contract from my wallet!
     //
@@ -959,7 +966,8 @@ public:
     asset type ID.
     // returns OT_BOOL
     */
-    EXPORT static bool Wallet_RemoveAssetType(const std::string& ASSET_ID);
+    EXPORT static bool Wallet_RemoveAssetType(
+        const std::string& INSTRUMENT_DEFINITION_ID);
 
     /** Can I remove this Nym from my wallet?
     //
@@ -1048,7 +1056,7 @@ public:
         const std::string& PARTIAL_ID);
     EXPORT static std::string Wallet_GetNotaryIDFromPartial(
         const std::string& PARTIAL_ID);
-    EXPORT static std::string Wallet_GetAssetIDFromPartial(
+    EXPORT static std::string Wallet_GetInstrumentDefinitionIDFromPartial(
         const std::string& PARTIAL_ID);
     EXPORT static std::string Wallet_GetAccountIDFromPartial(
         const std::string& PARTIAL_ID);
@@ -1083,8 +1091,9 @@ public:
                                              const std::string& SIGNER_NYM_ID,
                                              const std::string& ACCT_NEW_NAME);
 
-    EXPORT static bool SetAssetType_Name(const std::string& ASSET_ID,
-                                         const std::string& STR_NEW_NAME);
+    EXPORT static bool SetAssetType_Name(
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& STR_NEW_NAME);
 
     EXPORT static bool SetServer_Name(const std::string& SERVER_ID,
                                       const std::string& STR_NEW_NAME);
@@ -1123,7 +1132,7 @@ public:
     ==> WriteCheque() internally constructs an OTCheque
     and issues it, like so:
 
-    OTCheque theCheque( SERVER_ID, ASSET_TYPE_ID );
+    OTCheque theCheque( SERVER_ID, INSTRUMENT_DEFINITION_ID );
 
     theCheque.IssueCheque( AMOUNT // The amount of the cheque, in string form,
     which OTAPI
@@ -1214,7 +1223,7 @@ public:
     call:
 
     OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
-                                    pAccount->GetAssetTypeID(),
+                                    pAccount->GetInstrumentDefinitionID(),
                                     pAccount->GetRealAccountID(),
     pAccount->GetUserID(),
                                     RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
@@ -1454,7 +1463,9 @@ public:
                                        // smart contract. (And the scripts...)
         const std::string& ACCT_NAME, // The Account's name as referenced in the
                                       // smart contract
-        const std::string& ASSET_TYPE_ID // Asset Type ID for the Account.
+        const std::string& INSTRUMENT_DEFINITION_ID // Instrument Definition ID
+                                                    // for the
+                                                    // Account.
         );
 
     /** This function returns the count of how many trans#s a Nym needs in order
@@ -1581,7 +1592,7 @@ public:
         const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
         const std::string& ACCT_NAME); // returns account ID for a given acct
                                        // name.
-    EXPORT static std::string Party_GetAcctAssetID(
+    EXPORT static std::string Party_GetAcctInstrumentDefinitionID(
         const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
         const std::string& ACCT_NAME); // returns asset type ID for a given acct
                                        // name.
@@ -1749,23 +1760,27 @@ public:
     // LOAD PURSE or Mint or ASSET CONTRACT or SERVER CONTRACT -- (from local
     storage)
     //
-    // Based on Asset Type ID: load a purse, a public mint, or an asset/server
+    // Based on Instrument Definition ID: load a purse, a public mint, or an
+    asset/server
     contract
     // and return it as a string -- or return nullptr if it wasn't found.
     */
-    EXPORT static std::string LoadPurse(const std::string& SERVER_ID,
-                                        const std::string& ASSET_TYPE_ID,
-                                        const std::string& USER_ID); // returns
+    EXPORT static std::string LoadPurse(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& USER_ID); // returns
     // nullptr, or
     // a purse.
 
     EXPORT static std::string LoadMint(
         const std::string& SERVER_ID,
-        const std::string& ASSET_TYPE_ID); // returns nullptr, or a mint
+        const std::string& INSTRUMENT_DEFINITION_ID); // returns nullptr, or a
+                                                      // mint
 
     EXPORT static std::string LoadAssetContract(
-        const std::string& ASSET_TYPE_ID); // returns nullptr, or an asset
-                                           // contract.
+        const std::string& INSTRUMENT_DEFINITION_ID); // returns nullptr, or an
+                                                      // asset
+                                                      // contract.
 
     EXPORT static std::string LoadServerContract(
         const std::string& SERVER_ID); // returns nullptr, or a server contract.
@@ -1773,8 +1788,9 @@ public:
     //! Returns OT_TRUE if the mint is still usable.
     //! Returns OT_FALSE if expired or other error.
     //
-    EXPORT static bool Mint_IsStillGood(const std::string& SERVER_ID,
-                                        const std::string& ASSET_TYPE_ID);
+    EXPORT static bool Mint_IsStillGood(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID);
 
     /** --------------------------------------------------------------
     // IS BASKET CURRENCY ?
@@ -1783,8 +1799,9 @@ public:
     currency.
     */
     EXPORT static bool IsBasketCurrency(
-        const std::string& ASSET_TYPE_ID); // returns OT_BOOL (OT_TRUE or
-                                           // OT_FALSE aka 1 or 0.)
+        const std::string& INSTRUMENT_DEFINITION_ID); // returns OT_BOOL
+                                                      // (OT_TRUE or
+                                                      // OT_FALSE aka 1 or 0.)
 
     /** --------------------------------------------------------------------
     // Get Basket Count (of backing asset types.)
@@ -1793,15 +1810,16 @@ public:
     // (Or zero.)
     */
     EXPORT static int32_t Basket_GetMemberCount(
-        const std::string& BASKET_ASSET_TYPE_ID);
+        const std::string& BASKET_INSTRUMENT_DEFINITION_ID);
 
     /** --------------------------------------------------------------------
     // Get Asset Type of a basket's member currency, by index.
     //
-    // (Returns a string containing Asset Type ID, or nullptr).
+    // (Returns a string containing Instrument Definition ID, or nullptr).
     */
     EXPORT static std::string Basket_GetMemberType(
-        const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex);
+        const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
+        const int32_t& nIndex);
 
     /** ----------------------------------------------------
     // GET BASKET MINIMUM TRANSFER AMOUNT
@@ -1815,7 +1833,7 @@ public:
     // would return a string containing "10", in that example.
     */
     EXPORT static int64_t Basket_GetMinimumTransferAmount(
-        const std::string& BASKET_ASSET_TYPE_ID);
+        const std::string& BASKET_INSTRUMENT_DEFINITION_ID);
 
     /** ----------------------------------------------------
     // GET BASKET MEMBER's MINIMUM TRANSFER AMOUNT
@@ -1831,7 +1849,8 @@ public:
     // currency at index 2 is 8.
     */
     EXPORT static int64_t Basket_GetMemberMinimumTransferAmount(
-        const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex);
+        const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
+        const int32_t& nIndex);
 
     /** --------------------------------------------------------------
     // LOAD ACCOUNT / INBOX / OUTBOX -- (from local storage)
@@ -2221,7 +2240,7 @@ public:
 
     (above a bit.)
     EXPORT static std::string LoadPurse(const std::string& SERVER_ID,
-    const std::string& ASSET_TYPE_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& USER_ID); // returns nullptr, or a purse.
     */
 
@@ -2242,35 +2261,39 @@ public:
     // and then a copy was recorded in your payment outbox, or whatever.)
     */
     EXPORT static bool SavePurse(const std::string& SERVER_ID,
-                                 const std::string& ASSET_TYPE_ID,
+                                 const std::string& INSTRUMENT_DEFINITION_ID,
                                  const std::string& USER_ID,
                                  const std::string& THE_PURSE);
 
     //
     EXPORT static std::string CreatePurse(
-        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& OWNER_ID,
         const std::string& SIGNER_ID); // returns nullptr, or a purse.
 
     // Creates a password-protected purse, instead of nym-protected.
     //
     EXPORT static std::string CreatePurse_Passphrase(
-        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& SIGNER_ID);
 
     //! Get Purse Total Value (internally uses GetTotalValue().)
     //
     //! Returns the purported sum of all the tokens within.
     //
-    EXPORT static int64_t Purse_GetTotalValue(const std::string& SERVER_ID,
-                                              const std::string& ASSET_TYPE_ID,
-                                              const std::string& THE_PURSE);
+    EXPORT static int64_t Purse_GetTotalValue(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_PURSE);
 
     //! returns a count of the number of cash tokens inside this purse.
     //
-    EXPORT static int32_t Purse_Count(const std::string& SERVER_ID,
-                                      const std::string& ASSET_TYPE_ID,
-                                      const std::string& THE_PURSE);
+    EXPORT static int32_t Purse_Count(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_PURSE);
 
     //! Some purses are encrypted to a specific Nym.
     //! Whereas other purses are encrypted to a passphrase.
@@ -2284,26 +2307,27 @@ public:
     //
     // returns empty string if failure.
     //
-    EXPORT static std::string Purse_Peek(const std::string& SERVER_ID,
-                                         const std::string& ASSET_TYPE_ID,
-                                         const std::string& OWNER_ID,
-                                         const std::string& THE_PURSE);
+    EXPORT static std::string Purse_Peek(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& OWNER_ID, const std::string& THE_PURSE);
 
     //! Removes the token from the top of the stock and DESTROYS IT,
     //! and RETURNS THE UPDATED PURSE (with the token now missing from it.)
     //! WARNING: Do not call this function unless you have PEEK()d FIRST!!
     //! Otherwise you will lose the token and get left "holding the bag".
     // returns nullptr if failure.
-    EXPORT static std::string Purse_Pop(const std::string& SERVER_ID,
-                                        const std::string& ASSET_TYPE_ID,
-                                        const std::string& OWNER_OR_SIGNER_ID,
-                                        const std::string& THE_PURSE);
+    EXPORT static std::string Purse_Pop(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& OWNER_OR_SIGNER_ID, const std::string& THE_PURSE);
 
     //! Pushes a token onto the stack (of the purse.)
     //! Returns the updated purse (now including the token.)
     // Returns nullptr if failure.
     EXPORT static std::string Purse_Push(
-        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& SIGNER_ID, // The purse, in order to be changed, must
                                       // be re-signed, which requires a private
                                       // Nym. Even if the purse is
@@ -2374,15 +2398,16 @@ public:
     purse is empty.
     // Returns: the empty purse, or nullptr if failure.
     */
-    EXPORT static std::string Purse_Empty(const std::string& SERVER_ID,
-                                          const std::string& ASSET_TYPE_ID,
-                                          const std::string& SIGNER_ID,
-                                          const std::string& THE_PURSE);
+    EXPORT static std::string Purse_Empty(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& SIGNER_ID, const std::string& THE_PURSE);
 
     // Returns OT_BOOL
     //! Should handle duplicates. Should load, merge, and save.
     EXPORT static bool Wallet_ImportPurse(
-        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& USER_ID,  // you pass in the purse you're trying to
                                      // import
         const std::string& THE_PURSE // It should either have your User ID on
@@ -2406,17 +2431,18 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t exchangePurse(const std::string& SERVER_ID,
-                                        const std::string& ASSET_TYPE_ID,
-                                        const std::string& USER_ID,
-                                        const std::string& THE_PURSE);
+    EXPORT static int32_t exchangePurse(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID, const std::string& USER_ID,
+        const std::string& THE_PURSE);
 
     /** Tokens are stored in an encrypted state for security reasons.
     // This function is used for exporting those tokens to another Nym,
     // such as a Dummy nym, or another user's Nym.
     */
     EXPORT static std::string Token_ChangeOwner(
-        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN, const std::string& SIGNER_NYM_ID,
         const std::string& OLD_OWNER, // Pass a NymID here as a string, or a
                                       // purse. (IF symmetrically encrypted, the
@@ -2432,33 +2458,39 @@ public:
     // when you re-encrypt it to the recipient's public key, or exporting
     // it, when you create a dummy recipient and attach it to the purse.)
     */
-    EXPORT static std::string Token_GetID(const std::string& SERVER_ID,
-                                          const std::string& ASSET_TYPE_ID,
-                                          const std::string& THE_TOKEN);
+    EXPORT static std::string Token_GetID(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_TOKEN);
 
     //! The actual cash value of the token. Returns a int64_t.
     //
     EXPORT static int64_t Token_GetDenomination(
-        const std::string& SERVER_ID, const std::string& ASSET_TYPE_ID,
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN);
 
-    EXPORT static int32_t Token_GetSeries(const std::string& SERVER_ID,
-                                          const std::string& ASSET_TYPE_ID,
-                                          const std::string& THE_TOKEN);
+    EXPORT static int32_t Token_GetSeries(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_TOKEN);
 
     //! the date is seconds since Jan 1970.
     //
-    EXPORT static time64_t Token_GetValidFrom(const std::string& SERVER_ID,
-                                              const std::string& ASSET_TYPE_ID,
-                                              const std::string& THE_TOKEN);
+    EXPORT static time64_t Token_GetValidFrom(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_TOKEN);
 
     // the date is seconds since Jan 1970.
     //
-    EXPORT static time64_t Token_GetValidTo(const std::string& SERVER_ID,
-                                            const std::string& ASSET_TYPE_ID,
-                                            const std::string& THE_TOKEN);
+    EXPORT static time64_t Token_GetValidTo(
+        const std::string& SERVER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_TOKEN);
 
-    EXPORT static std::string Token_GetAssetID(const std::string& THE_TOKEN);
+    EXPORT static std::string Token_GetInstrumentDefinitionID(
+        const std::string& THE_TOKEN);
     EXPORT static std::string Token_GetNotaryID(const std::string& THE_TOKEN);
 
     /**
@@ -2489,7 +2521,7 @@ public:
         const std::string& THE_INSTRUMENT);
     EXPORT static std::string Instrmnt_GetNotaryID(
         const std::string& THE_INSTRUMENT);
-    EXPORT static std::string Instrmnt_GetAssetID(
+    EXPORT static std::string Instrmnt_GetInstrumentDefinitionID(
         const std::string& THE_INSTRUMENT);
     EXPORT static std::string Instrmnt_GetSenderUserID(
         const std::string& THE_INSTRUMENT);
@@ -2886,9 +2918,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t getContract(const std::string& SERVER_ID,
-                                      const std::string& USER_ID,
-                                      const std::string& ASSET_ID);
+    EXPORT static int32_t getContract(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID);
 
     /**
     --------------------------------------------------------------------------
@@ -2906,7 +2938,7 @@ public:
     */
     EXPORT static int32_t getMint(const std::string& SERVER_ID,
                                   const std::string& USER_ID,
-                                  const std::string& ASSET_ID);
+                                  const std::string& INSTRUMENT_DEFINITION_ID);
 
     /**
     ---------------------------------------------------------------------------
@@ -2921,9 +2953,9 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t createAssetAccount(const std::string& SERVER_ID,
-                                             const std::string& USER_ID,
-                                             const std::string& ASSET_ID);
+    EXPORT static int32_t createAssetAccount(
+        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& INSTRUMENT_DEFINITION_ID);
 
     EXPORT static int32_t getAccountData(const std::string& SERVER_ID,
                                          const std::string& USER_ID,
@@ -2954,10 +2986,11 @@ public:
     // to send the request to the server.
     */
     EXPORT static std::string AddBasketCreationItem(
-        const std::string& USER_ID,       // for signature.
-        const std::string& THE_BASKET,    // created in above call.
-        const std::string& ASSET_TYPE_ID, // Adding an asset type to the new
-                                          // basket.
+        const std::string& USER_ID,                  // for signature.
+        const std::string& THE_BASKET,               // created in above call.
+        const std::string& INSTRUMENT_DEFINITION_ID, // Adding an asset type to
+                                                     // the new
+                                                     // basket.
         const int64_t& MINIMUM_TRANSFER // If basket is 5=X,X,X then this is an
                                         // X.
         );
@@ -3004,7 +3037,7 @@ public:
     */
     EXPORT static std::string GenerateBasketExchange(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& BASKET_ASSET_TYPE_ID,
+        const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
         const std::string& BASKET_ASSET_ACCT_ID,
         const int32_t& TRANSFER_MULTIPLE);
 
@@ -3023,7 +3056,8 @@ public:
     */
     EXPORT static std::string AddBasketExchangeItem(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& THE_BASKET, const std::string& ASSET_TYPE_ID,
+        const std::string& THE_BASKET,
+        const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& ASSET_ACCT_ID);
 
     /**
@@ -3062,7 +3096,8 @@ public:
     */
     EXPORT static int32_t exchangeBasket(
         const std::string& SERVER_ID, const std::string& USER_ID,
-        const std::string& BASKET_ASSET_ID, const std::string& THE_BASKET,
+        const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
+        const std::string& THE_BASKET,
         const bool& BOOL_EXCHANGE_IN_OR_OUT // exchanging in == OT_TRUE, out ==
                                             // OT_FALSE.
         );
@@ -3350,14 +3385,15 @@ public:
     //
     EXPORT static int32_t payDividend(
         const std::string& SERVER_ID,
-        const std::string& ISSUER_USER_ID,        // must be issuer of
-                                                  // SHARES_ASSET_TYPE_ID
+        const std::string& ISSUER_USER_ID, // must be issuer of
+                                           // SHARES_INSTRUMENT_DEFINITION_ID
         const std::string& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
                                                   // shares, then this is the
                                                   // issuer's dollars account.
-        const std::string& SHARES_ASSET_TYPE_ID,  // if dollars paid for pepsi
-                                                  // shares, then this is the
-                                                  // pepsi shares asset type id.
+        const std::string& SHARES_INSTRUMENT_DEFINITION_ID, // if dollars paid
+                                                            // for pepsi
+        // shares, then this is the
+        // pepsi shares asset type id.
         const std::string& DIVIDEND_MEMO, // user-configurable note that's added
                                           // to the payout request message.
         const int64_t& AMOUNT_PER_SHARE // number of dollars to be paid out PER
@@ -3796,7 +3832,7 @@ public:
     // server reply and get the new asset type ID out of it.
     // Otherwise how will you ever open accounts in that new type?
     */
-    EXPORT static std::string Message_GetNewAssetTypeID(
+    EXPORT static std::string Message_GetNewInstrumentDefinitionID(
         const std::string& THE_MESSAGE);
 
     /** -----------------------------------------------------------

@@ -163,7 +163,7 @@ public:
         const std::string& str_id, // AcctID
         const std::string* p_nym_id = nullptr,
         const std::string* p_notary_id = nullptr,
-        const std::string* p_asset_id = nullptr) const;
+        const std::string* p_instrument_definition_id = nullptr) const;
 
     EXPORT virtual std::string GetAddressName(const std::string& str_address)
         const; // Used for Bitmessage and other special addresses.
@@ -217,7 +217,7 @@ public:
         const std::string& str_id, // AcctID
         const std::string* p_nym_id = nullptr,
         const std::string* p_notary_id = nullptr,
-        const std::string* p_asset_id = nullptr) const;
+        const std::string* p_instrument_definition_id = nullptr) const;
 
     EXPORT std::string GetAddressName(const std::string& str_address) const;
 };
@@ -294,8 +294,8 @@ public:
                                                  // this.
     EXPORT void ClearServers();                  // Also clears m_contents
 
-    EXPORT void SetAssetID(std::string str_id); // Etc.
-    EXPORT void AddAssetID(std::string str_id);
+    EXPORT void SetInstrumentDefinitionID(std::string str_id); // Etc.
+    EXPORT void AddInstrumentDefinitionID(std::string str_id);
     EXPORT void ClearAssets(); // Also clears m_contents
 
     EXPORT void SetNymID(std::string str_id);

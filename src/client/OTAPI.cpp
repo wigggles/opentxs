@@ -481,21 +481,22 @@ std::string OTAPI_Wrap::GetServer_Contract(const std::string& SERVER_ID)
     return Exec()->GetServer_Contract(SERVER_ID);
 }
 
-int64_t OTAPI_Wrap::StringToAmount(const std::string& ASSET_TYPE_ID,
+int64_t OTAPI_Wrap::StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& str_input)
 {
-    return Exec()->StringToAmount(ASSET_TYPE_ID, str_input);
+    return Exec()->StringToAmount(INSTRUMENT_DEFINITION_ID, str_input);
 }
 
-std::string OTAPI_Wrap::FormatAmount(const std::string& ASSET_TYPE_ID,
-                                     const int64_t& THE_AMOUNT)
+std::string OTAPI_Wrap::FormatAmount(
+    const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT)
 {
-    return Exec()->FormatAmount(ASSET_TYPE_ID, THE_AMOUNT);
+    return Exec()->FormatAmount(INSTRUMENT_DEFINITION_ID, THE_AMOUNT);
 }
 
-std::string OTAPI_Wrap::GetAssetType_Contract(const std::string& ASSET_TYPE_ID)
+std::string OTAPI_Wrap::GetAssetType_Contract(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->GetAssetType_Contract(ASSET_TYPE_ID);
+    return Exec()->GetAssetType_Contract(INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::AddServerContract(const std::string& strContract)
@@ -538,14 +539,16 @@ bool OTAPI_Wrap::Wallet_RemoveServer(const std::string& SERVER_ID)
     return Exec()->Wallet_RemoveServer(SERVER_ID);
 }
 
-bool OTAPI_Wrap::Wallet_CanRemoveAssetType(const std::string& ASSET_ID)
+bool OTAPI_Wrap::Wallet_CanRemoveAssetType(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->Wallet_CanRemoveAssetType(ASSET_ID);
+    return Exec()->Wallet_CanRemoveAssetType(INSTRUMENT_DEFINITION_ID);
 }
 
-bool OTAPI_Wrap::Wallet_RemoveAssetType(const std::string& ASSET_ID)
+bool OTAPI_Wrap::Wallet_RemoveAssetType(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->Wallet_RemoveAssetType(ASSET_ID);
+    return Exec()->Wallet_RemoveAssetType(INSTRUMENT_DEFINITION_ID);
 }
 
 bool OTAPI_Wrap::Wallet_CanRemoveNym(const std::string& NYM_ID)
@@ -628,10 +631,10 @@ std::string OTAPI_Wrap::Wallet_GetNotaryIDFromPartial(
     return Exec()->Wallet_GetNotaryIDFromPartial(PARTIAL_ID);
 }
 
-std::string OTAPI_Wrap::Wallet_GetAssetIDFromPartial(
+std::string OTAPI_Wrap::Wallet_GetInstrumentDefinitionIDFromPartial(
     const std::string& PARTIAL_ID)
 {
-    return Exec()->Wallet_GetAssetIDFromPartial(PARTIAL_ID);
+    return Exec()->Wallet_GetInstrumentDefinitionIDFromPartial(PARTIAL_ID);
 }
 
 std::string OTAPI_Wrap::Wallet_GetAccountIDFromPartial(
@@ -825,9 +828,10 @@ std::string OTAPI_Wrap::Instrmnt_GetNotaryID(const std::string& THE_INSTRUMENT)
     return Exec()->Instrmnt_GetNotaryID(THE_INSTRUMENT);
 }
 
-std::string OTAPI_Wrap::Instrmnt_GetAssetID(const std::string& THE_INSTRUMENT)
+std::string OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(
+    const std::string& THE_INSTRUMENT)
 {
-    return Exec()->Instrmnt_GetAssetID(THE_INSTRUMENT);
+    return Exec()->Instrmnt_GetInstrumentDefinitionID(THE_INSTRUMENT);
 }
 
 std::string OTAPI_Wrap::Instrmnt_GetRemitterUserID(
@@ -879,10 +883,10 @@ bool OTAPI_Wrap::SetServer_Name(const std::string& SERVER_ID,
     return Exec()->SetServer_Name(SERVER_ID, STR_NEW_NAME);
 }
 
-bool OTAPI_Wrap::SetAssetType_Name(const std::string& ASSET_ID,
+bool OTAPI_Wrap::SetAssetType_Name(const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& STR_NEW_NAME)
 {
-    return Exec()->SetAssetType_Name(ASSET_ID, STR_NEW_NAME);
+    return Exec()->SetAssetType_Name(INSTRUMENT_DEFINITION_ID, STR_NEW_NAME);
 }
 
 int32_t OTAPI_Wrap::GetNym_TransactionNumCount(const std::string& SERVER_ID,
@@ -1039,9 +1043,10 @@ std::string OTAPI_Wrap::GetAccountWallet_Type(const std::string& THE_ID)
     return Exec()->GetAccountWallet_Type(THE_ID);
 }
 
-std::string OTAPI_Wrap::GetAccountWallet_AssetTypeID(const std::string& THE_ID)
+std::string OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(
+    const std::string& THE_ID)
 {
-    return Exec()->GetAccountWallet_AssetTypeID(THE_ID);
+    return Exec()->GetAccountWallet_InstrumentDefinitionID(THE_ID);
 }
 
 std::string OTAPI_Wrap::GetAccountWallet_NotaryID(const std::string& THE_ID)
@@ -1181,10 +1186,11 @@ std::string OTAPI_Wrap::SmartContract_AddParty(const std::string& THE_CONTRACT,
 std::string OTAPI_Wrap::SmartContract_AddAccount(
     const std::string& THE_CONTRACT, const std::string& SIGNER_NYM_ID,
     const std::string& PARTY_NAME, const std::string& ACCT_NAME,
-    const std::string& ASSET_TYPE_ID)
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->SmartContract_AddAccount(
-        THE_CONTRACT, SIGNER_NYM_ID, PARTY_NAME, ACCT_NAME, ASSET_TYPE_ID);
+    return Exec()->SmartContract_AddAccount(THE_CONTRACT, SIGNER_NYM_ID,
+                                            PARTY_NAME, ACCT_NAME,
+                                            INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::SmartContract_CountNumsNeeded(
@@ -1385,11 +1391,12 @@ std::string OTAPI_Wrap::Party_GetAcctID(const std::string& THE_CONTRACT,
     return Exec()->Party_GetAcctID(THE_CONTRACT, PARTY_NAME, ACCT_NAME);
 }
 
-std::string OTAPI_Wrap::Party_GetAcctAssetID(const std::string& THE_CONTRACT,
-                                             const std::string& PARTY_NAME,
-                                             const std::string& ACCT_NAME)
+std::string OTAPI_Wrap::Party_GetAcctInstrumentDefinitionID(
+    const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
+    const std::string& ACCT_NAME)
 {
-    return Exec()->Party_GetAcctAssetID(THE_CONTRACT, PARTY_NAME, ACCT_NAME);
+    return Exec()->Party_GetAcctInstrumentDefinitionID(THE_CONTRACT, PARTY_NAME,
+                                                       ACCT_NAME);
 }
 
 std::string OTAPI_Wrap::Party_GetAcctAgentName(const std::string& THE_CONTRACT,
@@ -1468,20 +1475,21 @@ bool OTAPI_Wrap::VerifyUserPrivateKey(const std::string& USER_ID)
 }
 
 bool OTAPI_Wrap::Mint_IsStillGood(const std::string& SERVER_ID,
-                                  const std::string& ASSET_TYPE_ID)
+                                  const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->Mint_IsStillGood(SERVER_ID, ASSET_TYPE_ID);
+    return Exec()->Mint_IsStillGood(SERVER_ID, INSTRUMENT_DEFINITION_ID);
 }
 
 std::string OTAPI_Wrap::LoadMint(const std::string& SERVER_ID,
-                                 const std::string& ASSET_TYPE_ID)
+                                 const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->LoadMint(SERVER_ID, ASSET_TYPE_ID);
+    return Exec()->LoadMint(SERVER_ID, INSTRUMENT_DEFINITION_ID);
 }
 
-std::string OTAPI_Wrap::LoadAssetContract(const std::string& ASSET_TYPE_ID)
+std::string OTAPI_Wrap::LoadAssetContract(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->LoadAssetContract(ASSET_TYPE_ID);
+    return Exec()->LoadAssetContract(INSTRUMENT_DEFINITION_ID);
 }
 
 std::string OTAPI_Wrap::LoadServerContract(const std::string& SERVER_ID)
@@ -1819,32 +1827,34 @@ OT_BOOL OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
 }
 
 bool OTAPI_Wrap::SavePurse(const std::string& SERVER_ID,
-                           const std::string& ASSET_TYPE_ID,
+                           const std::string& INSTRUMENT_DEFINITION_ID,
                            const std::string& USER_ID,
                            const std::string& THE_PURSE)
 {
-    return Exec()->SavePurse(SERVER_ID, ASSET_TYPE_ID, USER_ID, THE_PURSE);
+    return Exec()->SavePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID, USER_ID,
+                             THE_PURSE);
 }
 
 std::string OTAPI_Wrap::LoadPurse(const std::string& SERVER_ID,
-                                  const std::string& ASSET_TYPE_ID,
+                                  const std::string& INSTRUMENT_DEFINITION_ID,
                                   const std::string& USER_ID)
 {
-    return Exec()->LoadPurse(SERVER_ID, ASSET_TYPE_ID, USER_ID);
+    return Exec()->LoadPurse(SERVER_ID, INSTRUMENT_DEFINITION_ID, USER_ID);
 }
 
-int64_t OTAPI_Wrap::Purse_GetTotalValue(const std::string& SERVER_ID,
-                                        const std::string& ASSET_TYPE_ID,
-                                        const std::string& THE_PURSE)
+int64_t OTAPI_Wrap::Purse_GetTotalValue(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_PURSE)
 {
-    return Exec()->Purse_GetTotalValue(SERVER_ID, ASSET_TYPE_ID, THE_PURSE);
+    return Exec()->Purse_GetTotalValue(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                       THE_PURSE);
 }
 
 int32_t OTAPI_Wrap::Purse_Count(const std::string& SERVER_ID,
-                                const std::string& ASSET_TYPE_ID,
+                                const std::string& INSTRUMENT_DEFINITION_ID,
                                 const std::string& THE_PURSE)
 {
-    return Exec()->Purse_Count(SERVER_ID, ASSET_TYPE_ID, THE_PURSE);
+    return Exec()->Purse_Count(SERVER_ID, INSTRUMENT_DEFINITION_ID, THE_PURSE);
 }
 
 bool OTAPI_Wrap::Purse_HasPassword(const std::string& SERVER_ID,
@@ -1854,122 +1864,131 @@ bool OTAPI_Wrap::Purse_HasPassword(const std::string& SERVER_ID,
 }
 
 std::string OTAPI_Wrap::CreatePurse(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& OWNER_ID,
                                     const std::string& SIGNER_ID)
 {
-    return Exec()->CreatePurse(SERVER_ID, ASSET_TYPE_ID, OWNER_ID, SIGNER_ID);
+    return Exec()->CreatePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID,
+                               SIGNER_ID);
 }
 
-std::string OTAPI_Wrap::CreatePurse_Passphrase(const std::string& SERVER_ID,
-                                               const std::string& ASSET_TYPE_ID,
-                                               const std::string& SIGNER_ID)
+std::string OTAPI_Wrap::CreatePurse_Passphrase(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& SIGNER_ID)
 {
-    return Exec()->CreatePurse_Passphrase(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID);
+    return Exec()->CreatePurse_Passphrase(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                          SIGNER_ID);
 }
 
 std::string OTAPI_Wrap::Purse_Peek(const std::string& SERVER_ID,
-                                   const std::string& ASSET_TYPE_ID,
+                                   const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& OWNER_ID,
                                    const std::string& THE_PURSE)
 {
-    return Exec()->Purse_Peek(SERVER_ID, ASSET_TYPE_ID, OWNER_ID, THE_PURSE);
+    return Exec()->Purse_Peek(SERVER_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID,
+                              THE_PURSE);
 }
 
 std::string OTAPI_Wrap::Purse_Pop(const std::string& SERVER_ID,
-                                  const std::string& ASSET_TYPE_ID,
+                                  const std::string& INSTRUMENT_DEFINITION_ID,
                                   const std::string& OWNER_OR_SIGNER_ID,
                                   const std::string& THE_PURSE)
 {
-    return Exec()->Purse_Pop(SERVER_ID, ASSET_TYPE_ID, OWNER_OR_SIGNER_ID,
-                             THE_PURSE);
+    return Exec()->Purse_Pop(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                             OWNER_OR_SIGNER_ID, THE_PURSE);
 }
 
 std::string OTAPI_Wrap::Purse_Empty(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& SIGNER_ID,
                                     const std::string& THE_PURSE)
 {
-    return Exec()->Purse_Empty(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID, THE_PURSE);
+    return Exec()->Purse_Empty(SERVER_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID,
+                               THE_PURSE);
 }
 
 std::string OTAPI_Wrap::Purse_Push(const std::string& SERVER_ID,
-                                   const std::string& ASSET_TYPE_ID,
+                                   const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& SIGNER_ID,
                                    const std::string& OWNER_ID,
                                    const std::string& THE_PURSE,
                                    const std::string& THE_TOKEN)
 {
-    return Exec()->Purse_Push(SERVER_ID, ASSET_TYPE_ID, SIGNER_ID, OWNER_ID,
-                              THE_PURSE, THE_TOKEN);
+    return Exec()->Purse_Push(SERVER_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID,
+                              OWNER_ID, THE_PURSE, THE_TOKEN);
 }
 
 bool OTAPI_Wrap::Wallet_ImportPurse(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& USER_ID,
                                     const std::string& THE_PURSE)
 {
-    return Exec()->Wallet_ImportPurse(SERVER_ID, ASSET_TYPE_ID, USER_ID,
-                                      THE_PURSE);
+    return Exec()->Wallet_ImportPurse(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                      USER_ID, THE_PURSE);
 }
 
 int32_t OTAPI_Wrap::exchangePurse(const std::string& SERVER_ID,
-                                  const std::string& ASSET_TYPE_ID,
+                                  const std::string& INSTRUMENT_DEFINITION_ID,
                                   const std::string& USER_ID,
                                   const std::string& THE_PURSE)
 {
-    return Exec()->exchangePurse(SERVER_ID, ASSET_TYPE_ID, USER_ID, THE_PURSE);
+    return Exec()->exchangePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID, USER_ID,
+                                 THE_PURSE);
 }
 
-std::string OTAPI_Wrap::Token_ChangeOwner(const std::string& SERVER_ID,
-                                          const std::string& ASSET_TYPE_ID,
-                                          const std::string& THE_TOKEN,
-                                          const std::string& SIGNER_NYM_ID,
-                                          const std::string& OLD_OWNER,
-                                          const std::string& NEW_OWNER)
+std::string OTAPI_Wrap::Token_ChangeOwner(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN, const std::string& SIGNER_NYM_ID,
+    const std::string& OLD_OWNER, const std::string& NEW_OWNER)
 {
-    return Exec()->Token_ChangeOwner(SERVER_ID, ASSET_TYPE_ID, THE_TOKEN,
-                                     SIGNER_NYM_ID, OLD_OWNER, NEW_OWNER);
+    return Exec()->Token_ChangeOwner(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                     THE_TOKEN, SIGNER_NYM_ID, OLD_OWNER,
+                                     NEW_OWNER);
 }
 
 std::string OTAPI_Wrap::Token_GetID(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& THE_TOKEN)
 {
-    return Exec()->Token_GetID(SERVER_ID, ASSET_TYPE_ID, THE_TOKEN);
+    return Exec()->Token_GetID(SERVER_ID, INSTRUMENT_DEFINITION_ID, THE_TOKEN);
 }
 
-int64_t OTAPI_Wrap::Token_GetDenomination(const std::string& SERVER_ID,
-                                          const std::string& ASSET_TYPE_ID,
-                                          const std::string& THE_TOKEN)
+int64_t OTAPI_Wrap::Token_GetDenomination(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN)
 {
-    return Exec()->Token_GetDenomination(SERVER_ID, ASSET_TYPE_ID, THE_TOKEN);
+    return Exec()->Token_GetDenomination(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                         THE_TOKEN);
 }
 
 int32_t OTAPI_Wrap::Token_GetSeries(const std::string& SERVER_ID,
-                                    const std::string& ASSET_TYPE_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID,
                                     const std::string& THE_TOKEN)
 {
-    return Exec()->Token_GetSeries(SERVER_ID, ASSET_TYPE_ID, THE_TOKEN);
+    return Exec()->Token_GetSeries(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                   THE_TOKEN);
 }
 
-time64_t OTAPI_Wrap::Token_GetValidFrom(const std::string& SERVER_ID,
-                                        const std::string& ASSET_TYPE_ID,
-                                        const std::string& THE_TOKEN)
+time64_t OTAPI_Wrap::Token_GetValidFrom(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN)
 {
-    return Exec()->Token_GetValidFrom(SERVER_ID, ASSET_TYPE_ID, THE_TOKEN);
+    return Exec()->Token_GetValidFrom(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                      THE_TOKEN);
 }
 
-time64_t OTAPI_Wrap::Token_GetValidTo(const std::string& SERVER_ID,
-                                      const std::string& ASSET_TYPE_ID,
-                                      const std::string& THE_TOKEN)
+time64_t OTAPI_Wrap::Token_GetValidTo(
+    const std::string& SERVER_ID, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_TOKEN)
 {
-    return Exec()->Token_GetValidTo(SERVER_ID, ASSET_TYPE_ID, THE_TOKEN);
+    return Exec()->Token_GetValidTo(SERVER_ID, INSTRUMENT_DEFINITION_ID,
+                                    THE_TOKEN);
 }
 
-std::string OTAPI_Wrap::Token_GetAssetID(const std::string& THE_TOKEN)
+std::string OTAPI_Wrap::Token_GetInstrumentDefinitionID(
+    const std::string& THE_TOKEN)
 {
-    return Exec()->Token_GetAssetID(THE_TOKEN);
+    return Exec()->Token_GetInstrumentDefinitionID(THE_TOKEN);
 }
 
 std::string OTAPI_Wrap::Token_GetNotaryID(const std::string& THE_TOKEN)
@@ -1977,33 +1996,36 @@ std::string OTAPI_Wrap::Token_GetNotaryID(const std::string& THE_TOKEN)
     return Exec()->Token_GetNotaryID(THE_TOKEN);
 }
 
-bool OTAPI_Wrap::IsBasketCurrency(const std::string& ASSET_TYPE_ID)
+bool OTAPI_Wrap::IsBasketCurrency(const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->IsBasketCurrency(ASSET_TYPE_ID);
+    return Exec()->IsBasketCurrency(INSTRUMENT_DEFINITION_ID);
 }
 
-int32_t OTAPI_Wrap::Basket_GetMemberCount(const std::string& ASSET_TYPE_ID)
+int32_t OTAPI_Wrap::Basket_GetMemberCount(
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->Basket_GetMemberCount(ASSET_TYPE_ID);
+    return Exec()->Basket_GetMemberCount(INSTRUMENT_DEFINITION_ID);
 }
 
 std::string OTAPI_Wrap::Basket_GetMemberType(
-    const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex)
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID, const int32_t& nIndex)
 {
-    return Exec()->Basket_GetMemberType(BASKET_ASSET_TYPE_ID, nIndex);
+    return Exec()->Basket_GetMemberType(BASKET_INSTRUMENT_DEFINITION_ID,
+                                        nIndex);
 }
 
 int64_t OTAPI_Wrap::Basket_GetMinimumTransferAmount(
-    const std::string& BASKET_ASSET_TYPE_ID)
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->Basket_GetMinimumTransferAmount(BASKET_ASSET_TYPE_ID);
+    return Exec()->Basket_GetMinimumTransferAmount(
+        BASKET_INSTRUMENT_DEFINITION_ID);
 }
 
 int64_t OTAPI_Wrap::Basket_GetMemberMinimumTransferAmount(
-    const std::string& BASKET_ASSET_TYPE_ID, const int32_t& nIndex)
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID, const int32_t& nIndex)
 {
-    return Exec()->Basket_GetMemberMinimumTransferAmount(BASKET_ASSET_TYPE_ID,
-                                                         nIndex);
+    return Exec()->Basket_GetMemberMinimumTransferAmount(
+        BASKET_INSTRUMENT_DEFINITION_ID, nIndex);
 }
 
 int32_t OTAPI_Wrap::pingNotary(const std::string& SERVER_ID,
@@ -2081,23 +2103,24 @@ int32_t OTAPI_Wrap::issueAssetType(const std::string& SERVER_ID,
 
 int32_t OTAPI_Wrap::getContract(const std::string& SERVER_ID,
                                 const std::string& USER_ID,
-                                const std::string& ASSET_ID)
+                                const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->getContract(SERVER_ID, USER_ID, ASSET_ID);
+    return Exec()->getContract(SERVER_ID, USER_ID, INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::getMint(const std::string& SERVER_ID,
                             const std::string& USER_ID,
-                            const std::string& ASSET_ID)
+                            const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->getMint(SERVER_ID, USER_ID, ASSET_ID);
+    return Exec()->getMint(SERVER_ID, USER_ID, INSTRUMENT_DEFINITION_ID);
 }
 
-int32_t OTAPI_Wrap::createAssetAccount(const std::string& SERVER_ID,
-                                       const std::string& USER_ID,
-                                       const std::string& ASSET_ID)
+int32_t OTAPI_Wrap::createAssetAccount(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->createAssetAccount(SERVER_ID, USER_ID, ASSET_ID);
+    return Exec()->createAssetAccount(SERVER_ID, USER_ID,
+                                      INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::getAccountData(const std::string& SERVER_ID,
@@ -2113,13 +2136,13 @@ std::string OTAPI_Wrap::GenerateBasketCreation(const std::string& USER_ID,
     return Exec()->GenerateBasketCreation(USER_ID, MINIMUM_TRANSFER);
 }
 
-std::string OTAPI_Wrap::AddBasketCreationItem(const std::string& USER_ID,
-                                              const std::string& THE_BASKET,
-                                              const std::string& ASSET_TYPE_ID,
-                                              const int64_t& MINIMUM_TRANSFER)
+std::string OTAPI_Wrap::AddBasketCreationItem(
+    const std::string& USER_ID, const std::string& THE_BASKET,
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const int64_t& MINIMUM_TRANSFER)
 {
-    return Exec()->AddBasketCreationItem(USER_ID, THE_BASKET, ASSET_TYPE_ID,
-                                         MINIMUM_TRANSFER);
+    return Exec()->AddBasketCreationItem(
+        USER_ID, THE_BASKET, INSTRUMENT_DEFINITION_ID, MINIMUM_TRANSFER);
 }
 
 int32_t OTAPI_Wrap::issueBasket(const std::string& SERVER_ID,
@@ -2131,32 +2154,32 @@ int32_t OTAPI_Wrap::issueBasket(const std::string& SERVER_ID,
 
 std::string OTAPI_Wrap::GenerateBasketExchange(
     const std::string& SERVER_ID, const std::string& USER_ID,
-    const std::string& BASKET_ASSET_TYPE_ID,
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& BASKET_ASSET_ACCT_ID, const int32_t& TRANSFER_MULTIPLE)
 {
     return Exec()->GenerateBasketExchange(
-        SERVER_ID, USER_ID, BASKET_ASSET_TYPE_ID, BASKET_ASSET_ACCT_ID,
-        TRANSFER_MULTIPLE);
+        SERVER_ID, USER_ID, BASKET_INSTRUMENT_DEFINITION_ID,
+        BASKET_ASSET_ACCT_ID, TRANSFER_MULTIPLE);
 }
 
-std::string OTAPI_Wrap::AddBasketExchangeItem(const std::string& SERVER_ID,
-                                              const std::string& USER_ID,
-                                              const std::string& THE_BASKET,
-                                              const std::string& ASSET_TYPE_ID,
-                                              const std::string& ASSET_ACCT_ID)
+std::string OTAPI_Wrap::AddBasketExchangeItem(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& THE_BASKET, const std::string& INSTRUMENT_DEFINITION_ID,
+    const std::string& ASSET_ACCT_ID)
 {
     return Exec()->AddBasketExchangeItem(SERVER_ID, USER_ID, THE_BASKET,
-                                         ASSET_TYPE_ID, ASSET_ACCT_ID);
+                                         INSTRUMENT_DEFINITION_ID,
+                                         ASSET_ACCT_ID);
 }
 
-int32_t OTAPI_Wrap::exchangeBasket(const std::string& SERVER_ID,
-                                   const std::string& USER_ID,
-                                   const std::string& BASKET_ASSET_ID,
-                                   const std::string& THE_BASKET,
-                                   const bool& BOOL_EXCHANGE_IN_OR_OUT)
+int32_t OTAPI_Wrap::exchangeBasket(
+    const std::string& SERVER_ID, const std::string& USER_ID,
+    const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
+    const std::string& THE_BASKET, const bool& BOOL_EXCHANGE_IN_OR_OUT)
 {
-    return Exec()->exchangeBasket(SERVER_ID, USER_ID, BASKET_ASSET_ID,
-                                  THE_BASKET, BOOL_EXCHANGE_IN_OR_OUT);
+    return Exec()->exchangeBasket(SERVER_ID, USER_ID,
+                                  BASKET_INSTRUMENT_DEFINITION_ID, THE_BASKET,
+                                  BOOL_EXCHANGE_IN_OR_OUT);
 }
 
 int32_t OTAPI_Wrap::getTransactionNumber(const std::string& SERVER_ID,
@@ -2223,15 +2246,14 @@ int32_t OTAPI_Wrap::withdrawVoucher(const std::string& SERVER_ID,
                                    RECIPIENT_USER_ID, CHEQUE_MEMO, AMOUNT);
 }
 
-int32_t OTAPI_Wrap::payDividend(const std::string& SERVER_ID,
-                                const std::string& ISSUER_USER_ID,
-                                const std::string& DIVIDEND_FROM_ACCT_ID,
-                                const std::string& SHARES_ASSET_TYPE_ID,
-                                const std::string& DIVIDEND_MEMO,
-                                const int64_t& AMOUNT_PER_SHARE)
+int32_t OTAPI_Wrap::payDividend(
+    const std::string& SERVER_ID, const std::string& ISSUER_USER_ID,
+    const std::string& DIVIDEND_FROM_ACCT_ID,
+    const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
+    const std::string& DIVIDEND_MEMO, const int64_t& AMOUNT_PER_SHARE)
 {
     return Exec()->payDividend(SERVER_ID, ISSUER_USER_ID, DIVIDEND_FROM_ACCT_ID,
-                               SHARES_ASSET_TYPE_ID, DIVIDEND_MEMO,
+                               SHARES_INSTRUMENT_DEFINITION_ID, DIVIDEND_MEMO,
                                AMOUNT_PER_SHARE);
 }
 
@@ -2377,10 +2399,10 @@ std::string OTAPI_Wrap::Message_GetLedger(const std::string& THE_MESSAGE)
     return Exec()->Message_GetLedger(THE_MESSAGE);
 }
 
-std::string OTAPI_Wrap::Message_GetNewAssetTypeID(
+std::string OTAPI_Wrap::Message_GetNewInstrumentDefinitionID(
     const std::string& THE_MESSAGE)
 {
-    return Exec()->Message_GetNewAssetTypeID(THE_MESSAGE);
+    return Exec()->Message_GetNewInstrumentDefinitionID(THE_MESSAGE);
 }
 
 std::string OTAPI_Wrap::Message_GetNewIssuerAcctID(

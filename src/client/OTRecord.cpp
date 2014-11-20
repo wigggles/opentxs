@@ -153,15 +153,18 @@ namespace opentxs
 bool OTRecord::FormatAmount(std::string& str_output) const
 {
     if (m_str_amount.empty() ||
-        m_str_asset_id.empty()) // Need these to do the formatting.
+        m_str_instrument_definition_id.empty()) // Need these to do the
+                                                // formatting.
     {
         //      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
         // m_str_type << " Amount:
-        // " << m_str_amount << "  Asset: " << m_str_asset_id << "";
+        // " << m_str_amount << "  Asset: " << m_str_instrument_definition_id <<
+        // "";
         return false;
     }
     str_output = OTAPI_Wrap::It()->FormatAmount(
-        m_str_asset_id, OTAPI_Wrap::It()->StringToLong(m_str_amount));
+        m_str_instrument_definition_id,
+        OTAPI_Wrap::It()->StringToLong(m_str_amount));
     return (!str_output.empty());
 }
 bool OTRecord::FormatMailSubject(std::string& str_output) const
@@ -1206,9 +1209,9 @@ const std::string& OTRecord::GetNotaryID() const
 {
     return m_str_notary_id;
 }
-const std::string& OTRecord::GetAssetID() const
+const std::string& OTRecord::GetInstrumentDefinitionID() const
 {
-    return m_str_asset_id;
+    return m_str_instrument_definition_id;
 }
 const std::string& OTRecord::GetCurrencyTLA() const
 {
@@ -1387,7 +1390,7 @@ bool OTRecord::operator<(const OTRecord& rhs)
     return m_ValidFrom < rhs.m_ValidFrom;
 }
 OTRecord::OTRecord(const std::string& str_notary_id,
-                   const std::string& str_asset_id,
+                   const std::string& str_instrument_definition_id,
                    const std::string& str_currency_tla,
                    const std::string& str_nym_id,
                    const std::string& str_account_id,
@@ -1399,7 +1402,7 @@ OTRecord::OTRecord(const std::string& str_notary_id,
     , m_ValidFrom(OT_TIME_ZERO)
     , m_ValidTo(OT_TIME_ZERO)
     , m_str_notary_id(str_notary_id)
-    , m_str_asset_id(str_asset_id)
+    , m_str_instrument_definition_id(str_instrument_definition_id)
     , m_str_currency_tla(str_currency_tla)
     , m_str_nym_id(str_nym_id)
     , m_str_account_id(str_account_id)

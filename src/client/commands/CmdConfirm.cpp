@@ -718,9 +718,11 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
         // decrement accounts, so that we are finished once all the accounts
         // from the smart contract template have had actual acct IDs selected
         // for each.
-        string templateAssetID =
-            OTAPI_Wrap::Party_GetAcctAssetID(contract, name, acctName);
-        bool foundTemplateAssetID = "" != templateAssetID;
+        string templateInstrumentDefinitionID =
+            OTAPI_Wrap::Party_GetAcctInstrumentDefinitionID(contract, name,
+                                                            acctName);
+        bool foundTemplateInstrumentDefinitionID =
+            "" != templateInstrumentDefinitionID;
 
         bool foundAccounts = false;
         int32_t accountCount = OTAPI_Wrap::GetAccountCount();
@@ -737,7 +739,8 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
 
             string acctNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(acct);
             string acctNymID = OTAPI_Wrap::GetAccountWallet_NymID(acct);
-            string acctAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(acct);
+            string acctInstrumentDefinitionID =
+                OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(acct);
 
             bool bAlreadyOnTheMap = false;
             for (auto x = mapIDs.begin(); x != mapIDs.end(); x++) {
@@ -751,7 +754,9 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
                 // If the smart contract doesn't specify the asset type ID of
                 // the account, or if it DOES specify, AND they match, then
                 // it's a viable choice. Display it.
-                if (!foundTemplateAssetID || templateAssetID == acctAssetID) {
+                if (!foundTemplateInstrumentDefinitionID ||
+                    templateInstrumentDefinitionID ==
+                        acctInstrumentDefinitionID) {
                     // DO NOT display any accounts that have already been
                     // selected! (Search the temp map where we've been stashing
                     // them.)
@@ -795,13 +800,15 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
 
         string acctNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(acct);
         string acctNymID = OTAPI_Wrap::GetAccountWallet_NymID(acct);
-        string acctAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(acct);
+        string acctInstrumentDefinitionID =
+            OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(acct);
 
         if (server == acctNotaryID && mynym == acctNymID) {
             // If the smart contract doesn't specify the asset type ID of the
             // account, or if it DOES specify, AND they match, then it's a
             // viable choice. Allow it.
-            if (!foundTemplateAssetID || templateAssetID == acctAssetID) {
+            if (!foundTemplateInstrumentDefinitionID ||
+                templateInstrumentDefinitionID == acctInstrumentDefinitionID) {
 
                 bool bAlreadyOnIt = false;
                 for (auto x = mapIDs.begin(); x != mapIDs.end(); x++) {
@@ -949,13 +956,15 @@ bool CmdConfirm::showPartyAccounts(const string& contract, const string& name,
             return false;
         }
 
-        string acctAssetID =
-            OTAPI_Wrap::Party_GetAcctAssetID(contract, name, acctName);
-        if ("" != acctAssetID) {
+        string acctInstrumentDefinitionID =
+            OTAPI_Wrap::Party_GetAcctInstrumentDefinitionID(contract, name,
+                                                            acctName);
+        if ("" != acctInstrumentDefinitionID) {
             cout << "-------------------\nAccount '" << acctName << "' (index "
                  << i << " on Party '" << name
-                 << "') has asset type: " << acctAssetID << " ("
-                 << OTAPI_Wrap::GetAssetType_Name(acctAssetID) << ")\n";
+                 << "') has asset type: " << acctInstrumentDefinitionID << " ("
+                 << OTAPI_Wrap::GetAssetType_Name(acctInstrumentDefinitionID)
+                 << ")\n";
         }
 
         string acctID = OTAPI_Wrap::Party_GetAcctID(contract, name, acctName);

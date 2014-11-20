@@ -221,18 +221,20 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const String notaryID(xml->getAttributeValue("notaryID")),
             userID(xml->getAttributeValue("userID")),
-            assetTypeID(xml->getAttributeValue("assetTypeID")),
+            instrumentDefinitionID(
+                xml->getAttributeValue("instrumentDefinitionID")),
             assetAcctID(xml->getAttributeValue("assetAcctID")),
             currencyTypeID(xml->getAttributeValue("currencyTypeID")),
             currencyAcctID(xml->getAttributeValue("currencyAcctID"));
 
         const Identifier SERVER_ID(notaryID), USER_ID(userID),
-            ASSET_TYPE_ID(assetTypeID), ASSET_ACCT_ID(assetAcctID),
-            CURRENCY_TYPE_ID(currencyTypeID), CURRENCY_ACCT_ID(currencyAcctID);
+            INSTRUMENT_DEFINITION_ID(instrumentDefinitionID),
+            ASSET_ACCT_ID(assetAcctID), CURRENCY_TYPE_ID(currencyTypeID),
+            CURRENCY_ACCT_ID(currencyAcctID);
 
         SetNotaryID(SERVER_ID);
         SetSenderUserID(USER_ID);
-        SetAssetID(ASSET_TYPE_ID);
+        SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetSenderAcctID(ASSET_ACCT_ID);
         SetCurrencyID(CURRENCY_TYPE_ID);
         SetCurrencyAcctID(CURRENCY_ACCT_ID);
@@ -243,7 +245,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << " Creation Date: " << creation
                << "   Valid From: " << validFrom << "\n Valid To: " << validTo
                << "\n"
-                  " assetTypeID: " << assetTypeID
+                  " instrumentDefinitionID: " << instrumentDefinitionID
                << "\n assetAcctID: " << assetAcctID << "\n"
                                                        " NotaryID: " << notaryID
                << "\n UserID: " << userID
@@ -316,15 +318,15 @@ void OTTrade::UpdateContents()
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
     const String SERVER_ID(GetNotaryID()), USER_ID(GetSenderUserID()),
-        ASSET_TYPE_ID(GetAssetID()), ASSET_ACCT_ID(GetSenderAcctID()),
-        CURRENCY_TYPE_ID(GetCurrencyID()),
+        INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
+        ASSET_ACCT_ID(GetSenderAcctID()), CURRENCY_TYPE_ID(GetCurrencyID()),
         CURRENCY_ACCT_ID(GetCurrencyAcctID());
 
     m_xmlUnsigned.Concatenate(
         "<trade\n version=\"%s\"\n"
         " hasActivated=\"%s\"\n"
         " notaryID=\"%s\"\n"
-        " assetTypeID=\"%s\"\n"
+        " instrumentDefinitionID=\"%s\"\n"
         " assetAcctID=\"%s\"\n"
         " currencyTypeID=\"%s\"\n"
         " currencyAcctID=\"%s\"\n"
@@ -336,7 +338,7 @@ void OTTrade::UpdateContents()
         " validTo=\"%" PRId64 "\""
         " >\n\n",
         m_strVersion.Get(), (hasTradeActivated_ ? "true" : "false"),
-        SERVER_ID.Get(), ASSET_TYPE_ID.Get(), ASSET_ACCT_ID.Get(),
+        SERVER_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(), ASSET_ACCT_ID.Get(),
         CURRENCY_TYPE_ID.Get(), CURRENCY_ACCT_ID.Get(), USER_ID.Get(),
         tradesAlreadyDone_, m_lTransactionNum,
         OTTimeGetSecondsFromTime(GetCreationDate()),
@@ -400,7 +402,8 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
         otErr << "While verifying offer, failed matching Server ID.\n";
         return false;
     }
-    else if (GetAssetID() != offer.GetAssetID()) {
+    else if (GetInstrumentDefinitionID() !=
+               offer.GetInstrumentDefinitionID()) {
         otErr << "While verifying offer, failed matching asset type ID.\n";
         return false;
     }
@@ -509,7 +512,7 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
     //
     //    OTMarket * pMarket = m_cron->GetMarket(OFFER_MARKET_ID);
     OTMarket* pMarket = GetCron()->GetOrCreateMarket(
-        GetAssetID(), GetCurrencyID(), offer->GetScale());
+        GetInstrumentDefinitionID(), GetCurrencyID(), offer->GetScale());
 
     // Couldn't find (or create) the market.
     if (pMarket != nullptr) {
@@ -758,8 +761,8 @@ void OTTrade::onRemovalFromCron()
         transactionNum = offer_->GetTransactionNum();
     }
 
-    OTMarket* market =
-        cron->GetOrCreateMarket(GetAssetID(), GetCurrencyID(), scale);
+    OTMarket* market = cron->GetOrCreateMarket(GetInstrumentDefinitionID(),
+                                               GetCurrencyID(), scale);
 
     // Couldn't find (or create) the market.
     //
@@ -1287,10 +1290,11 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, int64_t stopPrice)
     SetCreationDate(
         OTTimeGetCurrentTime()); // This time is set to TODAY NOW  (OTCronItem)
 
-    // Validate the Server ID, Asset Type ID, Currency Type ID, and Date Range.
+    // Validate the Server ID, Instrument Definition ID, Currency Type ID, and
+    // Date Range.
     if ((GetNotaryID() != offer.GetNotaryID()) ||
         (GetCurrencyID() != offer.GetCurrencyID()) ||
-        (GetAssetID() != offer.GetAssetID()) ||
+        (GetInstrumentDefinitionID() != offer.GetInstrumentDefinitionID()) ||
         (offer.GetValidFrom() < OT_TIME_ZERO) ||
         (offer.GetValidTo() < offer.GetValidFrom())) {
         return false;
@@ -1333,10 +1337,11 @@ OTTrade::OTTrade()
     InitTrade();
 }
 
-OTTrade::OTTrade(const Identifier& notaryID, const Identifier& assetId,
+OTTrade::OTTrade(const Identifier& notaryID,
+                 const Identifier& instrumentDefinitionID,
                  const Identifier& assetAcctId, const Identifier& userId,
                  const Identifier& currencyId, const Identifier& currencyAcctId)
-    : ot_super(notaryID, assetId, assetAcctId, userId)
+    : ot_super(notaryID, instrumentDefinitionID, assetAcctId, userId)
     , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)

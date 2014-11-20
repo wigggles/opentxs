@@ -293,7 +293,7 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
         else
             m_strMemo.Release();
 
-        m_AssetTypeID = theInput.GetAssetID();
+        m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
         m_NotaryID = theInput.GetNotaryID();
 
         m_SenderUserID = theInput.GetSenderUserID();
@@ -361,7 +361,7 @@ bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
         else
             m_strMemo.Release();
 
-        m_AssetTypeID = theInput.GetAssetID();
+        m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
         m_NotaryID = theInput.GetNotaryID();
 
         m_SenderUserID = theInput.GetSenderUserID();
@@ -402,7 +402,7 @@ bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
         m_strMemo.Release(); // not used here.
 
         m_NotaryID = theInput.GetNotaryID();
-        m_AssetTypeID.Release(); // not used here.
+        m_InstrumentDefinitionID.Release(); // not used here.
 
         m_SenderUserID = theInput.GetSenderUserID();
         m_SenderAcctID.Release();
@@ -437,7 +437,7 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
         m_strMemo.Release(); // So far there's no purse memo (could add it,
                              // though.)
 
-        m_AssetTypeID = theInput.GetAssetID();
+        m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
         m_NotaryID = theInput.GetNotaryID();
 
         m_SenderUserID.Release();
@@ -960,7 +960,7 @@ bool OTPayment::VerifyCurrentDate(bool& bVerified)
     return true;
 }
 
-bool OTPayment::GetAssetTypeID(Identifier& theOutput) const
+bool OTPayment::GetInstrumentDefinitionID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -974,7 +974,7 @@ bool OTPayment::GetAssetTypeID(Identifier& theOutput) const
     case OTPayment::INVOICE:
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::PURSE:
-        theOutput = m_AssetTypeID;
+        theOutput = m_InstrumentDefinitionID;
         bSuccess = true;
         break;
 
@@ -983,7 +983,7 @@ bool OTPayment::GetAssetTypeID(Identifier& theOutput) const
         break;
 
     default:
-        otErr << "OTPayment::GetAssetTypeID: Bad payment type!\n";
+        otErr << "OTPayment::GetInstrumentDefinitionID: Bad payment type!\n";
         break;
     }
 
@@ -1385,11 +1385,12 @@ NOT contain a purse. "
 }
 
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
-OTIdentifier& ASSET_ID) const
+OTIdentifier& INSTRUMENT_DEFINITION_ID) const
 {
     if (OTPayment::PURSE == GetType())
     {
-        return OTPurse::PurseFactory(m_strPayment, SERVER_ID, ASSET_ID);
+        return OTPurse::PurseFactory(m_strPayment, SERVER_ID,
+INSTRUMENT_DEFINITION_ID);
        }
     else
         otErr << "OTPayment::InstantiatePurse: Failure: This payment object does
@@ -1436,7 +1437,7 @@ the "
 
 
 OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
-OTIdentifier& ASSET_ID, const OTString& strPayment)
+OTIdentifier& INSTRUMENT_DEFINITION_ID, const OTString& strPayment)
 {
     if (!SetPayment(strPayment))
         otErr << "OTPayment::InstantiatePurse: WARNING: Failed setting the
@@ -1447,7 +1448,7 @@ payment string based on "
 the "
                       "payment string:\n\n%s\n\n", strPayment.Get());
     else
-        return InstantiatePurse(SERVER_ID, ASSET_ID);
+        return InstantiatePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
 
     return nullptr;
 }
@@ -1535,7 +1536,7 @@ void OTPayment::Release_Payment()
 
     m_strMemo.Release();
 
-    m_AssetTypeID.Release();
+    m_InstrumentDefinitionID.Release();
     m_NotaryID.Release();
 
     m_SenderUserID.Release();

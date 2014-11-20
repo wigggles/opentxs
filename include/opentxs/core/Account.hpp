@@ -242,7 +242,7 @@ public:
     EXPORT bool SaveInbox(OTLedger& box, Identifier* hash = nullptr);
     // If you pass the identifier in, the outbox hash is recorded there
     EXPORT bool SaveOutbox(OTLedger& box, Identifier* nash = nullptr);
-    EXPORT const Identifier& GetAssetTypeID() const;
+    EXPORT const Identifier& GetInstrumentDefinitionID() const;
     EXPORT int64_t GetBalance() const;
     // Debit a certain amount from the account (presumably the same amount is
     // being added somewhere)
@@ -282,7 +282,7 @@ protected:
 protected:
     AccountType acctType_;
     // These are all the variables from the account file itself.
-    Identifier acctAssetTypeId_;
+    Identifier acctInstrumentDefinitionID_;
     String balanceDate_;
     String balanceAmount_;
     // the Transaction Number of a smart contract running on cron, if this is a

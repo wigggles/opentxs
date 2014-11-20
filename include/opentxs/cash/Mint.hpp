@@ -171,7 +171,7 @@ protected:
 
     OTAsymmetricKey* m_pKeyPublic; // The server's public key.
 
-    Identifier m_AssetID; // Each Asset type has its own mint.
+    Identifier m_InstrumentDefinitionID; // Each Asset type has its own mint.
 
     int32_t m_nDenominationCount; // How many denominations of the currency are
                                   // issued by this Mint?
@@ -241,16 +241,17 @@ public:
     //
     EXPORT static Mint* MintFactory();
     EXPORT static Mint* MintFactory(const String& strNotaryID,
-                                    const String& strAssetTypeID);
+                                    const String& strInstrumentDefinitionID);
     EXPORT static Mint* MintFactory(const String& strNotaryID,
                                     const String& strServerNymID,
-                                    const String& strAssetTypeID);
+                                    const String& strInstrumentDefinitionID);
 
 protected:
     Mint();
-    EXPORT Mint(const String& strNotaryID, const String& strAssetTypeID);
+    EXPORT Mint(const String& strNotaryID,
+                const String& strInstrumentDefinitionID);
     EXPORT Mint(const String& strNotaryID, const String& strServerNymID,
-                const String& strAssetTypeID);
+                const String& strInstrumentDefinitionID);
 
 public:
     EXPORT virtual ~Mint();
@@ -291,15 +292,15 @@ public:
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the token saves its contents
 
-    inline void SetAssetID(const Identifier& newID)
+    inline void SetInstrumentDefinitionID(const Identifier& newID)
     {
-        m_AssetID = newID;
+        m_InstrumentDefinitionID = newID;
     }
 
     // Lucre step 1: generate new mint
     EXPORT void GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
                                 time64_t VALID_TO, time64_t MINT_EXPIRATION,
-                                const Identifier& theAssetID,
+                                const Identifier& theInstrumentDefinitionID,
                                 const Identifier& theNotaryID, Nym& theNotary,
                                 int64_t nDenom1 = 0, int64_t nDenom2 = 0,
                                 int64_t nDenom3 = 0, int64_t nDenom4 = 0,

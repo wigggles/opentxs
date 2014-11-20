@@ -173,16 +173,17 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strLastSaleDate = xml->getAttributeValue("lastSaleDate");
 
         const String strNotaryID(xml->getAttributeValue("notaryID")),
-            strAssetTypeID(xml->getAttributeValue("assetTypeID")),
+            strInstrumentDefinitionID(
+                xml->getAttributeValue("instrumentDefinitionID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
         m_SERVER_ID.SetString(strNotaryID);
-        m_ASSET_TYPE_ID.SetString(strAssetTypeID);
+        m_INSTRUMENT_DEFINITION_ID.SetString(strInstrumentDefinitionID);
         m_CURRENCY_TYPE_ID.SetString(strCurrencyTypeID);
 
         otOut << "\n\nMarket. Scale: " << m_lScale << "\n";
 
-        otWarn << " assetTypeID: " << strAssetTypeID
+        otWarn << " instrumentDefinitionID: " << strInstrumentDefinitionID
                << "\n"
                   " currencyTypeID: " << strCurrencyTypeID
                << "\n"
@@ -205,8 +206,9 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1); // error condition
         }
         else {
-            OTOffer* pOffer = new OTOffer(m_SERVER_ID, m_ASSET_TYPE_ID,
-                                          m_CURRENCY_TYPE_ID, m_lScale);
+            OTOffer* pOffer =
+                new OTOffer(m_SERVER_ID, m_INSTRUMENT_DEFINITION_ID,
+                            m_CURRENCY_TYPE_ID, m_lScale);
 
             OT_ASSERT(nullptr != pOffer);
 
@@ -239,21 +241,22 @@ void OTMarket::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(m_SERVER_ID), ASSET_TYPE_ID(m_ASSET_TYPE_ID),
+    const String SERVER_ID(m_SERVER_ID),
+        INSTRUMENT_DEFINITION_ID(m_INSTRUMENT_DEFINITION_ID),
         CURRENCY_TYPE_ID(m_CURRENCY_TYPE_ID);
 
     m_xmlUnsigned.Concatenate("<market\n version=\"%s\"\n"
                               " notaryID=\"%s\"\n"
-                              " assetTypeID=\"%s\"\n"
+                              " instrumentDefinitionID=\"%s\"\n"
                               " currencyTypeID=\"%s\"\n"
                               " marketScale=\"%" PRId64 "\"\n"
                               " lastSaleDate=\"%s\"\n"
                               " lastSalePrice=\"%" PRId64 "\""
                               " >\n\n",
                               m_strVersion.Get(), SERVER_ID.Get(),
-                              ASSET_TYPE_ID.Get(), CURRENCY_TYPE_ID.Get(),
-                              m_lScale, m_strLastSaleDate.c_str(),
-                              m_lLastSalePrice);
+                              INSTRUMENT_DEFINITION_ID.Get(),
+                              CURRENCY_TYPE_ID.Get(), m_lScale,
+                              m_strLastSaleDate.c_str(), m_lLastSalePrice);
 
     // Save the offers for sale.
     for (auto& it : m_mapAsks) {
@@ -351,8 +354,9 @@ bool OTMarket::GetNym_OfferList(const Identifier& NYM_ID,
 
         const Identifier& theNotaryID = pOffer->GetNotaryID();
         const String strNotaryID(theNotaryID);
-        const Identifier& theAssetID = pOffer->GetAssetID();
-        const String strAssetID(theAssetID);
+        const Identifier& theInstrumentDefinitionID =
+            pOffer->GetInstrumentDefinitionID();
+        const String strInstrumentDefinitionID(theInstrumentDefinitionID);
         const Identifier& theAssetAcctID = pTrade->GetSenderAcctID();
         const String strAssetAcctID(theAssetAcctID);
         const Identifier& theCurrencyID = pOffer->GetCurrencyID();
@@ -388,7 +392,7 @@ bool OTMarket::GetNym_OfferList(const Identifier& NYM_ID,
         pOfferData->date = to_string<time64_t>(tDateAddedToMarket);
 
         pOfferData->notary_id = strNotaryID.Get();
-        pOfferData->asset_type_id = strAssetID.Get();
+        pOfferData->asset_type_id = strInstrumentDefinitionID.Get();
         pOfferData->asset_acct_id = strAssetAcctID.Get();
         pOfferData->currency_type_id = strCurrencyID.Get();
         pOfferData->currency_acct_id = strCurrencyAcctID.Get();
@@ -903,12 +907,13 @@ bool OTMarket::SaveMarket()
 //
 void OTMarket::GetIdentifier(Identifier& theIdentifier) const
 {
-    String strTemp, strAsset(GetAssetID()), strCurrency(GetCurrencyID());
+    String strTemp, strAsset(GetInstrumentDefinitionID()),
+        strCurrency(GetCurrencyID());
 
     int64_t lScale = GetScale();
 
     // In this way we generate a unique ID that will always be consistent
-    // for the same asset ID, currency ID, and market scale.
+    // for the same instrument definition id, currency ID, and market scale.
     strTemp.Format(
         "ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%" PRId64 "\n",
         strAsset.Get(), strCurrency.Get(), lScale);
@@ -1258,10 +1263,11 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     // offers were concerned.
     // But only once the accounts themselves have been loaded can we VERIFY this
     // to be true.
-    else if ((pFirstAssetAcct->GetAssetTypeID() !=
-              GetAssetID()) || // the trader's asset accts have same asset type
-                               // as the market.
-             (pFirstCurrencyAcct->GetAssetTypeID() !=
+    else if ((pFirstAssetAcct->GetInstrumentDefinitionID() !=
+              GetInstrumentDefinitionID()) || // the trader's asset accts have
+                                              // same asset type
+                                              // as the market.
+             (pFirstCurrencyAcct->GetInstrumentDefinitionID() !=
               GetCurrencyID()) // the trader's currency accts have same asset
                                // type as the market.
              ) {
@@ -1272,10 +1278,11 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
         theTrade.FlagForRemoval(); // Removes from Cron.
         return;
     }
-    else if ((pOtherAssetAcct->GetAssetTypeID() !=
-                GetAssetID()) || // the trader's asset accts have same asset
-                                 // type as the market.
-               (pOtherCurrencyAcct->GetAssetTypeID() !=
+    else if ((pOtherAssetAcct->GetInstrumentDefinitionID() !=
+                GetInstrumentDefinitionID()) || // the trader's asset accts have
+                                                // same asset
+                                                // type as the market.
+               (pOtherCurrencyAcct->GetInstrumentDefinitionID() !=
                 GetCurrencyID())) // the trader's currency accts have same asset
                                   // type as market.
     {
@@ -2669,10 +2676,13 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
         strReason.Format("Wrong Server ID on offer. Expected %s, but found %s",
                          strID.Get(), strOtherID.Get());
     }
-    else if (GetAssetID() != theOffer.GetAssetID()) {
+    else if (GetInstrumentDefinitionID() !=
+               theOffer.GetInstrumentDefinitionID()) {
         bValidOffer = false;
-        const String strID(GetAssetID()), strOtherID(theOffer.GetAssetID());
-        strReason.Format("Wrong Asset ID on offer. Expected %s, but found %s",
+        const String strID(GetInstrumentDefinitionID()),
+            strOtherID(theOffer.GetInstrumentDefinitionID());
+        strReason.Format("Wrong Instrument Definition Id on offer. Expected "
+                         "%s, but found %s",
                          strID.Get(), strOtherID.Get());
     }
     else if (GetCurrencyID() != theOffer.GetCurrencyID()) {
@@ -2758,7 +2768,8 @@ OTMarket::OTMarket()
     InitMarket();
 }
 
-OTMarket::OTMarket(const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
+OTMarket::OTMarket(const Identifier& SERVER_ID,
+                   const Identifier& INSTRUMENT_DEFINITION_ID,
                    const Identifier& CURRENCY_TYPE_ID, const int64_t& lScale)
     : Contract()
     , m_pCron(nullptr)
@@ -2769,7 +2780,7 @@ OTMarket::OTMarket(const Identifier& SERVER_ID, const Identifier& ASSET_TYPE_ID,
     m_pCron = nullptr; // just for convenience, not responsible to delete.
     InitMarket();
 
-    m_ASSET_TYPE_ID = ASSET_TYPE_ID;
+    m_INSTRUMENT_DEFINITION_ID = INSTRUMENT_DEFINITION_ID;
     m_CURRENCY_TYPE_ID = CURRENCY_TYPE_ID;
 
     m_SERVER_ID = SERVER_ID;
@@ -2791,7 +2802,7 @@ void OTMarket::InitMarket()
 
 void OTMarket::Release_Market()
 {
-    m_ASSET_TYPE_ID.Release();
+    m_INSTRUMENT_DEFINITION_ID.Release();
     m_CURRENCY_TYPE_ID.Release();
 
     m_SERVER_ID.Release();

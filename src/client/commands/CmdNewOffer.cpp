@@ -293,7 +293,8 @@ int32_t CmdNewOffer::cleanMarketOfferList(
     }
 
     // LOOP THROUGH THE OFFERS and sort them into a map_of_maps, key is:
-    // scale-assetID-currencyID. the value for each key is a sub-map, with
+    // scale-instrumentDefinitionID-currencyID. the value for each key is a
+    // sub-map, with
     // the key: transaction ID and value: the offer data itself.
     int32_t items = offerList->GetOfferDataNymCount();
     if (0 > items) {

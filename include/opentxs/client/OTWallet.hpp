@@ -237,7 +237,8 @@ public:
                                                                     // account
                                                                     // also
                                                                     // accepted.
-    EXPORT Account* GetIssuerAccount(const Identifier& theAssetTypeID);
+    EXPORT Account* GetIssuerAccount(
+        const Identifier& theInstrumentDefinitionID);
     // While waiting on server response to a withdrawal, we keep the private
     // coin
     // data here so we can unblind the response.

@@ -157,8 +157,10 @@ void OTStash::Serialize(String& strAppend) const
         OT_ASSERT((str_asset_type_id.size() > 0) && (nullptr != pStashItem));
 
         strAppend.Concatenate(
-            "<stashItem assetTypeID=\"%s\" balance=\"%" PRId64 "\" />\n\n",
-            pStashItem->GetAssetTypeID().Get(), pStashItem->GetAmount());
+            "<stashItem instrumentDefinitionID=\"%s\" balance=\"%" PRId64
+            "\" />\n\n",
+            pStashItem->GetInstrumentDefinitionID().Get(),
+            pStashItem->GetAmount());
     }
 
     strAppend.Concatenate("</stash>\n\n");
@@ -191,26 +193,29 @@ int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
 
             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                 (!strcmp("stashItem", xml->getNodeName()))) {
-                String strAssetTypeID = xml->getAttributeValue(
-                    "assetTypeID"); // Asset Type ID of this account.
+                String strInstrumentDefinitionID = xml->getAttributeValue(
+                    "instrumentDefinitionID"); // Instrument Definition ID of
+                                               // this account.
                 String strAmount = xml->getAttributeValue(
                     "balance"); // Account ID for this account.
 
-                if (!strAssetTypeID.Exists() || !strAmount.Exists()) {
+                if (!strInstrumentDefinitionID.Exists() ||
+                    !strAmount.Exists()) {
                     otErr << "OTStash::ReadFromXMLNode: Error loading "
-                             "stashItem: Either the assetTypeID ("
-                          << strAssetTypeID << "), or the balance ("
+                             "stashItem: Either the instrumentDefinitionID ("
+                          << strInstrumentDefinitionID << "), or the balance ("
                           << strAmount << ") was EMPTY.\n";
                     return (-1);
                 }
 
-                if (!CreditStash(strAssetTypeID.Get(),
+                if (!CreditStash(strInstrumentDefinitionID.Get(),
                                  strAmount.ToLong())) // <===============
                 {
                     otErr << "OTStash::ReadFromXMLNode: Failed crediting "
                              "stashItem for stash " << strStashName
-                          << ". assetTypeID (" << strAssetTypeID
-                          << "), balance (" << strAmount << ").\n";
+                          << ". instrumentDefinitionID ("
+                          << strInstrumentDefinitionID << "), balance ("
+                          << strAmount << ").\n";
                     return (-1);
                 }
 
@@ -240,24 +245,24 @@ OTStash::OTStash()
     // m_mapStashItems
 }
 
-OTStash::OTStash(const String& strAssetTypeID, int64_t lAmount)
+OTStash::OTStash(const String& strInstrumentDefinitionID, int64_t lAmount)
 {
-    OTStashItem* pItem = new OTStashItem(strAssetTypeID, lAmount);
+    OTStashItem* pItem = new OTStashItem(strInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
 
-    m_mapStashItems.insert(
-        std::pair<std::string, OTStashItem*>(strAssetTypeID.Get(), pItem));
+    m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
+        strInstrumentDefinitionID.Get(), pItem));
 }
 
-OTStash::OTStash(const Identifier& theAssetTypeID, int64_t lAmount)
+OTStash::OTStash(const Identifier& theInstrumentDefinitionID, int64_t lAmount)
 {
-    OTStashItem* pItem = new OTStashItem(theAssetTypeID, lAmount);
+    OTStashItem* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
 
-    String strAssetTypeID(theAssetTypeID);
+    String strInstrumentDefinitionID(theInstrumentDefinitionID);
 
-    m_mapStashItems.insert(
-        std::pair<std::string, OTStashItem*>(strAssetTypeID.Get(), pItem));
+    m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
+        strInstrumentDefinitionID.Get(), pItem));
 }
 
 OTStash::~OTStash()
@@ -281,12 +286,12 @@ OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
     if (m_mapStashItems.end() ==
         it) // It's not already there for this asset type.
     {
-        const String strAssetTypeID(str_asset_type_id.c_str());
-        OTStashItem* pStashItem = new OTStashItem(strAssetTypeID);
+        const String strInstrumentDefinitionID(str_asset_type_id.c_str());
+        OTStashItem* pStashItem = new OTStashItem(strInstrumentDefinitionID);
         OT_ASSERT(nullptr != pStashItem);
 
         m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
-            strAssetTypeID.Get(), pStashItem));
+            strInstrumentDefinitionID.Get(), pStashItem));
         return pStashItem;
     }
 

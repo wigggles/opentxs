@@ -184,8 +184,8 @@ public:
         : m_str_stash_name(str_stash_name)
     {
     }
-    OTStash(const String& strAssetTypeID, int64_t lAmount = 0);
-    OTStash(const Identifier& theAssetTypeID, int64_t lAmount = 0);
+    OTStash(const String& strInstrumentDefinitionID, int64_t lAmount = 0);
+    OTStash(const Identifier& theInstrumentDefinitionID, int64_t lAmount = 0);
     virtual ~OTStash();
 };
 

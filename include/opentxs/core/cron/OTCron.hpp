@@ -250,7 +250,7 @@ public:
                                                     // market wasn't found.
 
     EXPORT OTMarket* GetMarket(const Identifier& MARKET_ID);
-    OTMarket* GetOrCreateMarket(const Identifier& ASSET_ID,
+    OTMarket* GetOrCreateMarket(const Identifier& INSTRUMENT_DEFINITION_ID,
                                 const Identifier& CURRENCY_ID,
                                 const int64_t& lScale);
     // This is informational only. It returns OTStorage-type data objects,

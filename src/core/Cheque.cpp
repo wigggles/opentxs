@@ -148,8 +148,9 @@ namespace opentxs
 
 void Cheque::UpdateContents()
 {
-    String ASSET_TYPE_ID(GetAssetID()), SERVER_ID(GetNotaryID()),
-        SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
+    String INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
+        SERVER_ID(GetNotaryID()), SENDER_ACCT_ID(GetSenderAcctID()),
+        SENDER_USER_ID(GetSenderUserID()),
         RECIPIENT_USER_ID(GetRecipientUserID()),
         REMITTER_USER_ID(GetRemitterUserID()),
         REMITTER_ACCT_ID(GetRemitterAcctID());
@@ -165,7 +166,7 @@ void Cheque::UpdateContents()
     m_xmlUnsigned.Concatenate(
         "<cheque\n version=\"%s\"\n"
         " amount=\"%" PRId64 "\"\n"
-        " assetTypeID=\"%s\"\n"
+        " instrumentDefinitionID=\"%s\"\n"
         " transactionNum=\"%" PRId64 "\"\n"
         " notaryID=\"%s\"\n"
         " senderAcctID=\"%s\"\n"
@@ -178,9 +179,9 @@ void Cheque::UpdateContents()
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), m_lAmount, ASSET_TYPE_ID.Get(), GetTransactionNum(),
-        SERVER_ID.Get(), SENDER_ACCT_ID.Get(), SENDER_USER_ID.Get(),
-        (m_bHasRecipient ? "true" : "false"),
+        m_strVersion.Get(), m_lAmount, INSTRUMENT_DEFINITION_ID.Get(),
+        GetTransactionNum(), SERVER_ID.Get(), SENDER_ACCT_ID.Get(),
+        SENDER_USER_ID.Get(), (m_bHasRecipient ? "true" : "false"),
         (m_bHasRecipient ? RECIPIENT_USER_ID.Get() : ""),
         (m_bHasRemitter ? "true" : "false"),
         (m_bHasRemitter ? REMITTER_USER_ID.Get() : ""),
@@ -229,7 +230,8 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
         SetValidFrom(OTTimeGetTimeFromSeconds(str_valid_from.ToLong()));
         SetValidTo(OTTimeGetTimeFromSeconds(str_valid_to.ToLong()));
 
-        String strAssetTypeID(xml->getAttributeValue("assetTypeID")),
+        String strInstrumentDefinitionID(
+            xml->getAttributeValue("instrumentDefinitionID")),
             strNotaryID(xml->getAttributeValue("notaryID")),
             strSenderAcctID(xml->getAttributeValue("senderAcctID")),
             strSenderUserID(xml->getAttributeValue("senderUserID")),
@@ -237,10 +239,11 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
             strRemitterUserID(xml->getAttributeValue("remitterUserID")),
             strRemitterAcctID(xml->getAttributeValue("remitterAcctID"));
 
-        Identifier ASSET_ID(strAssetTypeID), SERVER_ID(strNotaryID),
-            SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID);
+        Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
+            SERVER_ID(strNotaryID), SENDER_ACCT_ID(strSenderAcctID),
+            SENDER_USER_ID(strSenderUserID);
 
-        SetAssetID(ASSET_ID);
+        SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetNotaryID(SERVER_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
         SetSenderUserID(SENDER_USER_ID);
@@ -265,7 +268,7 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
                << ".  Transaction Number: " << m_lTransactionNum
                << "\n Valid From: " << str_valid_from.ToLong()
                << "\n Valid To: " << str_valid_to.ToLong()
-               << "\n AssetTypeID: " << strAssetTypeID
+               << "\n InstrumentDefinitionID: " << strInstrumentDefinitionID
                << "\n NotaryID: " << strNotaryID
                << "\n"
                   " senderAcctID: " << strSenderAcctID
@@ -381,15 +384,16 @@ Cheque::Cheque()
     InitCheque();
 }
 
-Cheque::Cheque(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
-    : ot_super(SERVER_ID, ASSET_ID)
+Cheque::Cheque(const Identifier& SERVER_ID,
+               const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
     , m_lAmount(0)
     , m_bHasRecipient(false)
     , m_bHasRemitter(false)
 {
     InitCheque();
 
-    // m_NotaryID and m_AssetTypeID are now in a grandparent class
+    // m_NotaryID and m_InstrumentDefinitionID are now in a grandparent class
     // (OTInstrument)
     // So they are initialized there now.
 }

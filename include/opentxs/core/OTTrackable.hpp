@@ -148,8 +148,10 @@ class OTTrackable : public OTInstrument
 {
 public:
     OTTrackable();
-    OTTrackable(const Identifier& SERVER_ID, const Identifier& ASSET_ID);
-    OTTrackable(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
+    OTTrackable(const Identifier& SERVER_ID,
+                const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTTrackable(const Identifier& SERVER_ID,
+                const Identifier& INSTRUMENT_DEFINITION_ID,
                 const Identifier& ACCT_ID, const Identifier& USER_ID);
 
     virtual ~OTTrackable();

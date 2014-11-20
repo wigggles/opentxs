@@ -2289,13 +2289,13 @@ void OTScriptable::UpdateContentsToString(String& strAppend,
                                           bool bCalculatingID) const
 {
     if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
-        strAppend.Concatenate("<scriptableContract\n specifyAssetID=\"%s\"\n "
-                              "specifyParties=\"%s\"\n"
-                              " numParties=\"%" PRI_SIZE
-                              "\"\n numBylaws=\"%" PRI_SIZE "\" >\n\n",
-                              m_bSpecifyAssetID ? "true" : "false",
-                              m_bSpecifyParties ? "true" : "false",
-                              m_mapParties.size(), m_mapBylaws.size());
+        strAppend.Concatenate(
+            "<scriptableContract\n specifyInstrumentDefinitionID=\"%s\"\n "
+            "specifyParties=\"%s\"\n"
+            " numParties=\"%" PRI_SIZE "\"\n numBylaws=\"%" PRI_SIZE "\" >\n\n",
+            m_bSpecifyInstrumentDefinitionID ? "true" : "false",
+            m_bSpecifyParties ? "true" : "false", m_mapParties.size(),
+            m_mapBylaws.size());
 
         for (auto& it : m_mapParties) {
             OTParty* pParty = it.second;
@@ -2307,7 +2307,8 @@ void OTScriptable::UpdateContentsToString(String& strAppend,
             // in order
             // to generate its ID.
             //
-            pParty->Serialize(strAppend, bCalculatingID, m_bSpecifyAssetID,
+            pParty->Serialize(strAppend, bCalculatingID,
+                              m_bSpecifyInstrumentDefinitionID,
                               m_bSpecifyParties);
         }
 
@@ -2361,19 +2362,23 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     if (strNodeName.Compare("scriptableContract")) {
         const char* szFunc = "OTScriptable::ProcessXMLNode";
-        const String strSpecify1 = xml->getAttributeValue("specifyAssetID");
+        const String strSpecify1 =
+            xml->getAttributeValue("specifyInstrumentDefinitionID");
         const String strSpecify2 = xml->getAttributeValue("specifyParties");
 
         String strNumParties = xml->getAttributeValue("numParties");
         String strNumBylaws = xml->getAttributeValue("numBylaws");
 
-        // These determine whether asset IDs and/or party owner IDs
+        // These determine whether instrument definition ids and/or party owner
+        // IDs
         // are used on the template for any given smart contract.
         // (Some templates are specific to certain asset types, while
-        // other smart contract types allow you to leave asset ID blank
+        // other smart contract types allow you to leave instrument definition
+        // id blank
         // until the confirmation phase.)
         //
-        if (strSpecify1.Compare("true")) m_bSpecifyAssetID = true;
+        if (strSpecify1.Compare("true"))
+            m_bSpecifyInstrumentDefinitionID = true;
         if (strSpecify2.Compare("true")) m_bSpecifyParties = true;
 
         // Load up the Parties.
@@ -2608,8 +2613,11 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              // code)
                                 String strAcctID = xml->getAttributeValue(
                                     "acctID"); // Asset Acct ID
-                                String strAssetTypeID = xml->getAttributeValue(
-                                    "assetTypeID"); // Asset Type ID
+                                String strInstrumentDefinitionID =
+                                    xml->getAttributeValue(
+                                        "instrumentDefinitionID"); // Instrument
+                                                                   // Definition
+                                                                   // ID
                                 String strAgentName = xml->getAttributeValue(
                                     "agentName"); // Name of agent who controls
                                                   // this account.
@@ -2638,12 +2646,13 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // decided yet.
                                 //
                                 if (!strAcctName.Exists() ||
-                                    (m_bSpecifyAssetID &&
-                                     !strAssetTypeID.Exists())) {
-                                    otErr << szFunc << ": Expected missing "
-                                                       "AcctID or AssetTypeID "
-                                                       "or Name or AgentName "
-                                                       "in partyaccount.\n";
+                                    (m_bSpecifyInstrumentDefinitionID &&
+                                     !strInstrumentDefinitionID.Exists())) {
+                                    otErr << szFunc
+                                          << ": Expected missing "
+                                             "AcctID or InstrumentDefinitionID "
+                                             "or Name or AgentName "
+                                             "in partyaccount.\n";
                                     delete pParty;
                                     pParty = nullptr;
                                     return (-1);
@@ -2680,7 +2689,8 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 if (false ==
                                     pParty->AddAccount(
                                         strAgentName, strAcctName, strAcctID,
-                                        strAssetTypeID, lClosingTransNo)) {
+                                        strInstrumentDefinitionID,
+                                        lClosingTransNo)) {
                                     otErr << szFunc << ": Failed adding "
                                                        "account to party.\n";
                                     delete pParty;
@@ -3389,7 +3399,7 @@ OTScriptable::OTScriptable()
     : Contract()
     , m_bCalculatingID(false)
     , // This is not serialized.
-    m_bSpecifyAssetID(false)
+    m_bSpecifyInstrumentDefinitionID(false)
     , m_bSpecifyParties(false) // These are.
 {
 }

@@ -146,7 +146,8 @@ CmdShowMint::CmdShowMint()
     args[1] = "--mynym <nym>";
     args[2] = "--mypurse <purse>";
     category = catAdmin;
-    help = "Show mint file for specific asset ID. Download if necessary.";
+    help = "Show mint file for specific instrument definition id. Download if "
+           "necessary.";
 }
 
 CmdShowMint::~CmdShowMint()
