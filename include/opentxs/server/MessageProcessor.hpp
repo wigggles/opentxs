@@ -133,7 +133,7 @@
 #ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 #define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
-#include <opentxs/ext/Socket_ZMQ4.hpp>
+#include <opentxs/ext/OTSocket.hpp>
 #include <string>
 
 namespace opentxs
@@ -154,7 +154,7 @@ private:
 
 private:
     OTServer* server_;
-    OTSocket_ZMQ_4 socket_;
+    OTSocket socket_;
 };
 
 } // namespace opentxs

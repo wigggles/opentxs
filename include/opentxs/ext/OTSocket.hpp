@@ -134,7 +134,7 @@
 #define OPENTXS_EXT_OTSOCKET_HPP
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-
+#include <cppzmq/zmq.hpp>
 #include <string>
 
 namespace opentxs
@@ -145,8 +145,6 @@ class OTSettings;
 class OTSocket
 {
 protected:
-    OTSocket();
-
     int64_t m_lLatencySendMs;
     int32_t m_nLatencySendNoTries;
     int64_t m_lLatencyReceiveMs;
@@ -163,12 +161,9 @@ protected:
 
     OTASCIIArmor m_ascLastMsgSent;
 
-    virtual bool HandlePollingError() = 0;
-    virtual bool HandleSendingError() = 0;
-    virtual bool HandleReceivingError() = 0;
-
 public:
-    virtual ~OTSocket(){};
+    OTSocket();
+    ~OTSocket();
 
     EXPORT bool Init(OTSettings* pSettings);
 
@@ -176,19 +171,31 @@ public:
     EXPORT bool IsConnected() const;
     EXPORT bool IsListening() const;
 
-    EXPORT virtual bool NewContext() = 0;
-    EXPORT virtual bool RemakeSocket(const bool bNewContext = false) = 0;
+    EXPORT bool NewContext();
+    EXPORT bool RemakeSocket(const bool bNewContext = false);
 
-    EXPORT virtual bool Connect() = 0;
-    EXPORT virtual bool Listen() = 0;
+    EXPORT bool Connect();
+    EXPORT bool Listen();
 
-    EXPORT virtual bool Connect(const std::string& connectPath) = 0;
-    EXPORT virtual bool Listen(const std::string& bindingPath) = 0;
+    EXPORT bool Connect(const std::string& connectPath);
+    EXPORT bool Listen(const std::string& bindingPath);
 
-    EXPORT virtual bool Send(const OTASCIIArmor& ascEnvelope) = 0;
-    EXPORT virtual bool Send(const OTASCIIArmor& ascEnvelope,
-                             const std::string& strConnectPath) = 0;
-    EXPORT virtual bool Receive(std::string& serverReply) = 0;
+    EXPORT bool Send(const OTASCIIArmor& ascEnvelope);
+    EXPORT bool Send(const OTASCIIArmor& ascEnvelope,
+                     const std::string& connectPath);
+    EXPORT bool Receive(std::string& serverReply);
+
+private:
+    bool HandlePollingError();
+    bool HandleSendingError();
+    bool HandleReceivingError();
+
+    bool CloseSocket(const bool bNewContext = false);
+    bool NewSocket(const bool bIsRequest);
+
+private:
+    zmq::context_t* context_zmq;
+    zmq::socket_t* socket_zmq;
 };
 
 } // namespace opentxs

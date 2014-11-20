@@ -135,7 +135,7 @@
 #include <opentxs/client/OTServerConnection.hpp>
 #include <opentxs/client/OTClient.hpp>
 
-#include <opentxs/ext/Socket_ZMQ4.hpp>
+#include <opentxs/ext/OTSocket.hpp>
 
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -166,7 +166,7 @@ namespace opentxs
 // they are associated with, so they can access those accounts.
 OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
                                        OTSettings* pConfig)
-    : m_pSocket(new OTSocket_ZMQ_4())
+    : m_pSocket(new OTSocket())
 {
     m_pNym = nullptr;
     m_pServerContract = nullptr;
