@@ -4001,7 +4001,7 @@ void Nym::GetPublicCredentials(String& strCredList,
     strCredList.Concatenate("<?xml version=\"%s\"?>\n",
                             "2.0"); // todo hardcoding.
 
-    strCredList.Concatenate("<OTuser version=\"%s\"\n"
+    strCredList.Concatenate("<nymData version=\"%s\"\n"
                             " nymID=\"%s\""
                             ">\n\n",
                             m_strVersion.Get(), strNymID.Get());
@@ -4021,7 +4021,7 @@ void Nym::GetPublicCredentials(String& strCredList,
                                                   // m_mapRevoked.)
     }
 
-    strCredList.Concatenate("</OTuser>\n");
+    strCredList.Concatenate("</nymData>\n");
 }
 
 void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
@@ -4032,7 +4032,7 @@ void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
     strCredList.Concatenate("<?xml version=\"%s\"?>\n",
                             "2.0"); // todo hardcoding.
 
-    strCredList.Concatenate("<OTuser version=\"%s\"\n"
+    strCredList.Concatenate("<nymData version=\"%s\"\n"
                             " nymID=\"%s\""
                             ">\n\n",
                             m_strVersion.Get(), strNymID.Get());
@@ -4041,7 +4041,7 @@ void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
 
     SaveCredentialsToString(strCredList, nullptr, pmapCredFiles);
 
-    strCredList.Concatenate("</OTuser>\n");
+    strCredList.Concatenate("</nymData>\n");
 }
 
 void Nym::SerializeNymIDSource(String& strOutput) const
@@ -4074,7 +4074,7 @@ void Nym::SaveCredentialListToString(String& strOutput)
     strOutput.Concatenate("<?xml version=\"%s\"?>\n",
                           "2.0"); // todo hardcoding.
 
-    strOutput.Concatenate("<OTuser version=\"%s\"\n"
+    strOutput.Concatenate("<nymData version=\"%s\"\n"
                           " nymID=\"%s\""
                           ">\n\n",
                           m_strVersion.Get(), strNymID.Get());
@@ -4083,7 +4083,7 @@ void Nym::SaveCredentialListToString(String& strOutput)
 
     SaveCredentialsToString(strOutput);
 
-    strOutput.Concatenate("</OTuser>\n");
+    strOutput.Concatenate("</nymData>\n");
 }
 
 bool Nym::SaveCredentialList()
@@ -4248,12 +4248,12 @@ bool Nym::SavePseudonym(String& strNym)
     strNym.Concatenate("<?xml version=\"%s\"?>\n", "2.0");
 
     if (m_lUsageCredits == 0)
-        strNym.Concatenate("<OTuser version=\"%s\"\n"
+        strNym.Concatenate("<nymData version=\"%s\"\n"
                            " nymID=\"%s\""
                            ">\n\n",
                            m_strVersion.Get(), nymID.Get());
     else
-        strNym.Concatenate("<OTuser version=\"%s\"\n"
+        strNym.Concatenate("<nymData version=\"%s\"\n"
                            " nymID=\"%s\"\n"
                            " usageCredits=\"%" PRId64 "\""
                            ">\n\n",
@@ -4631,7 +4631,7 @@ bool Nym::SavePseudonym(String& strNym)
         }
     } // for
 
-    strNym.Concatenate("</OTuser>\n");
+    strNym.Concatenate("</nymData>\n");
 
     return true;
 }
@@ -4852,7 +4852,7 @@ bool Nym::LoadFromString(const String& strNym,
             //              otErr << "PROCESSING EXN_ELEMENT: NODE NAME: %s\n",
             // strNodeName.Get());
 
-            if (strNodeName.Compare("OTuser")) {
+            if (strNodeName.Compare("nymData")) {
                 m_strVersion = xml->getAttributeValue("version");
                 const String UserNymID = xml->getAttributeValue("nymID");
 
