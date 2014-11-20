@@ -6681,253 +6681,229 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
 
     otOut << "Received server response to getAccountData message.\n";
 
-    const OTASCIIArmor& ascArmor = theReply.m_ascPayload; // containing account
-                                                          // file + inbox and
-                                                          // outbox.
-    const bool bHasFiles = ascArmor.Exists();
-    if (bHasFiles) {
-        std::unique_ptr<OTDB::Storable> pStorable(
-            OTDB::DecodeObject(OTDB::STORED_OBJ_STRING_MAP, ascArmor.Get()));
-        OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
-        if (nullptr == pMap)
-            otOut << __FUNCTION__ << ": Failed decoding StringMap object "
-                                     "in getAccountDataResponse.\n";
+    String strAccount, strInbox, strOutbox;
+    if (!theReply.m_ascPayload.GetString(strAccount) ||
+        !theReply.m_ascPayload2.GetString(strInbox) ||
+        !theReply.m_ascPayload3.GetString(strOutbox)) {
+        otErr << __FUNCTION__ << ": Failed to decode armored reponse\n";
+    }
+
+    if (strAccount.Exists()) {
+        // Load the account object from that string.
+        std::unique_ptr<Account> pAccount(
+            new Account(USER_ID, ACCOUNT_ID, SERVER_ID));
+
+        if (pAccount && pAccount->LoadContractFromString(strAccount) &&
+            pAccount->VerifyAccount(*pServerNym)) {
+            otInfo << "Saving updated account file to disk...\n";
+            pAccount->ReleaseSignatures(); // So I don't get the
+                                           // annoying failure to
+                                           // verify message from
+                                           // the server's
+                                           // signature.
+            // Will eventually end up keeping the signature,
+            // however, just for reasons of proof.
+            // UPDATE (above) I now release signatures again since
+            // we have receipts functional. As long as receipt has
+            // server's signature, it can prove the others.
+            pAccount->SignContract(*pNym);
+            pAccount->SaveContract();
+            pAccount->SaveAccount();
+
+            // Next let's make sure the wallet's copy of this
+            // account is replaced with the new one...
+            OTWallet* pWallet = m_pConnection->GetWallet();
+
+            if (nullptr != pWallet) {
+                pWallet->AddAccount(*(pAccount.release()));
+                pWallet->SaveWallet();
+            }
+        }
+    }
+
+    const String strAcctID(ACCOUNT_ID);
+    const std::string str_acct_id(strAcctID.Get());
+
+    if (strInbox.Exists()) {
+        const String strServerID(SERVER_ID);
+
+        // Load the ledger object from strInbox
+        OTLedger theInbox(USER_ID, ACCOUNT_ID, SERVER_ID);
+
+        // I receive the inbox, verify the server's signature, then
+        // RE-SIGN IT WITH MY OWN
+        // SIGNATURE, then SAVE it to local storage.  So any FUTURE
+        // checks of this inbox
+        // would require MY signature, not the server's, to verify.
+        // But in this one spot,
+        // just before saving, I need to verify the server's first.
+        // UPDATE: Keeping the server's signature, and just adding
+        // my own.
+        if (theInbox.LoadInboxFromString(strInbox) &&
+            theInbox.VerifySignature(*pServerNym)) // No VerifyAccount.
+                                                   // Can't, because
+        // client hasn't had a chance yet to
+        // download the box receipts that go
+        // with this inbox -- and
+        // VerifyAccount() tries to load
+        // those, which would fail here...
+        {
+            Identifier THE_HASH;
+
+            if (theReply.m_strInboxHash.Exists()) {
+                THE_HASH.SetString(theReply.m_strInboxHash);
+
+                const bool bHash = pNym->SetInboxHash(str_acct_id, THE_HASH);
+
+                if (!bHash)
+                    otErr << __FUNCTION__
+                          << ": Failed setting InboxHash on Nym "
+                             "for account: " << str_acct_id << "\n";
+                else {
+                    Nym* pSignerNym = pNym;
+                    pNym->SaveSignedNymfile(*pSignerNym);
+                }
+            }
+
+            // If I have Transaction #35 signed out, and I use it to
+            // start a market offer (or any other cron item)
+            // then it's always possible that a finalReceipt will
+            // pop into my Inbox while I'm asleep, closing
+            // that transaction #. The server officially believes 35
+            // is closed. Unfortunately, I still have it signed
+            // out, on my side anyway, because I didn't know the
+            // finalReceipt came in.
+            //
+            // THEREFORE, WHEN A FINAL RECEIPT COMES IN, I NEED TO
+            // REMOVE ITS "in reference to" NUMBER FROM MY
+            // ISSUED LIST. Here is clearly the best place for that:
+            //
+            for (auto& it : theInbox.GetTransactionMap()) {
+                OTTransaction* pTempTrans = it.second;
+                OT_ASSERT(nullptr != pTempTrans);
+
+                // TODO security: Keep a client-side list of issued
+                // #s for finalReceipts. That way,
+                // I'll be smart enough here not to actually remove
+                // just any number, unless it's actually
+                // on my list of final receipts.  (The server does a
+                // similar thing already.)
+                //
+                if (OTTransaction::finalReceipt == pTempTrans->GetType()) {
+                    otInfo << "*** Removing opening issued number ("
+                           << pTempTrans->GetReferenceToNum()
+                           << "), since finalReceipt found when "
+                              "retrieving asset account inbox. "
+                              "***\n";
+
+                    if (pNym->RemoveIssuedNum(*pNym, strServerID,
+                                              pTempTrans->GetReferenceToNum(),
+                                              true)) // bool bSave=true
+                        otWarn << "**** Due to finding a "
+                                  "finalReceipt, REMOVING OPENING "
+                                  "NUMBER FROM NYM:  "
+                               << pTempTrans->GetReferenceToNum() << " \n";
+                    else
+                        otWarn << "**** Noticed a finalReceipt, "
+                                  "but Opening Number "
+                               << pTempTrans->GetReferenceToNum()
+                               << " had ALREADY been removed from "
+                                  "nym. \n";
+
+                    //                              pNym->RemoveIssuedNum(*pNym,
+                    // strServerID, pTempTrans->GetReferenceToNum(),
+                    // true); // bSave = true;
+                    // The client side keeps a list of active
+                    // (recurring) transactions.
+                    // That is, smart contracts and payment plans. I
+                    // don't think it keeps
+                    // market offers in that list, since we already
+                    // have a list of active
+                    // market offers separately. And market offers
+                    // produce final receipts,
+                    // so basically this piece of code will be
+                    // executed for all final receipts.
+                    // It's not really necessary that it be called
+                    // for market offers, but whatever.
+                    // It is for the others.
+                    //
+                    OTCronItem::EraseActiveCronReceipt(
+                        pTempTrans->GetReferenceToNum(), pNym->GetConstID(),
+                        pTempTrans->GetPurportedServerID());
+
+                } // We also do this in AcceptEntireNymbox
+            }
+
+            // Now I'm keeping the server signature, and just adding
+            // my own.
+            theInbox.ReleaseSignatures(); // This is back. Why?
+                                          // Because we have
+                                          // receipts functional
+                                          // now.
+            theInbox.SignContract(*pNym);
+            theInbox.SaveContract();
+            theInbox.SaveInbox();
+        }
         else {
-            String::Map& theMap = pMap->the_map;
-            String strAccount, strInbox, strOutbox;
-            auto it_account = theMap.find("account");
-            auto it_inbox = theMap.find("inbox");
-            auto it_outbox = theMap.find("outbox");
-            if ((theMap.end() != it_account) && (it_account->second.size() > 0))
-                strAccount = it_account->second.c_str();
-            if ((theMap.end() != it_inbox) && (it_inbox->second.size() > 0))
-                strInbox = it_inbox->second.c_str();
-            if ((theMap.end() != it_outbox) && (it_outbox->second.size() > 0))
-                strOutbox = it_outbox->second.c_str();
-            if (strAccount.Exists()) {
-                // Load the account object from that string.
-                std::unique_ptr<Account> pAccount(
-                    new Account(USER_ID, ACCOUNT_ID, SERVER_ID));
+            otErr << __FUNCTION__
+                  << ": Error loading (from string) or verifying "
+                     "inbox:\n\n" << strInbox << "\n";
+        }
+    }
+    if (strOutbox.Exists()) {
+        // Load the ledger object from strOutbox.
+        OTLedger theOutbox(USER_ID, ACCOUNT_ID, SERVER_ID);
 
-                if (pAccount && pAccount->LoadContractFromString(strAccount) &&
-                    pAccount->VerifyAccount(*pServerNym)) {
-                    otInfo << "Saving updated account file to disk...\n";
-                    pAccount->ReleaseSignatures(); // So I don't get the
-                                                   // annoying failure to
-                                                   // verify message from
-                                                   // the server's
-                                                   // signature.
-                    // Will eventually end up keeping the signature,
-                    // however, just for reasons of proof.
-                    // UPDATE (above) I now release signatures again since
-                    // we have receipts functional. As long as receipt has
-                    // server's signature, it can prove the others.
-                    pAccount->SignContract(*pNym);
-                    pAccount->SaveContract();
-                    pAccount->SaveAccount();
+        // I receive the outbox, verify the server's signature, then
+        // RE-SIGN IT WITH MY OWN
+        // SIGNATURE, then SAVE it to local storage.  So any FUTURE
+        // checks of this outbox
+        // would require MY signature, not the server's, to verify.
+        // But in this one spot,
+        // just before saving, I need to verify the server's first.
+        // UPDATE: keeping the server's signature, and just adding
+        // my own.
+        if (theOutbox.LoadOutboxFromString(strOutbox) &&
+            theOutbox.VerifySignature(*pServerNym)) // No point calling
+                                                    // VerifyAccount
+        // since the client hasn't even had a
+        // chance to download the box receipts
+        // yet...
+        {
+            Identifier THE_HASH;
 
-                    // Next let's make sure the wallet's copy of this
-                    // account is replaced with the new one...
-                    OTWallet* pWallet = m_pConnection->GetWallet();
+            if (theReply.m_strOutboxHash.Exists()) {
+                THE_HASH.SetString(theReply.m_strOutboxHash);
 
-                    if (nullptr != pWallet) {
-                        pWallet->AddAccount(*(pAccount.release()));
-                        pWallet->SaveWallet();
-                    }
-                }
-            }
+                const bool bHash = pNym->SetOutboxHash(str_acct_id, THE_HASH);
 
-            const String strAcctID(ACCOUNT_ID);
-            const std::string str_acct_id(strAcctID.Get());
-
-            if (strInbox.Exists()) {
-                const String strServerID(SERVER_ID);
-
-                // Load the ledger object from strInbox
-                OTLedger theInbox(USER_ID, ACCOUNT_ID, SERVER_ID);
-
-                // I receive the inbox, verify the server's signature, then
-                // RE-SIGN IT WITH MY OWN
-                // SIGNATURE, then SAVE it to local storage.  So any FUTURE
-                // checks of this inbox
-                // would require MY signature, not the server's, to verify.
-                // But in this one spot,
-                // just before saving, I need to verify the server's first.
-                // UPDATE: Keeping the server's signature, and just adding
-                // my own.
-                if (theInbox.LoadInboxFromString(strInbox) &&
-                    theInbox.VerifySignature(*pServerNym)) // No VerifyAccount.
-                                                           // Can't, because
-                // client hasn't had a chance yet to
-                // download the box receipts that go
-                // with this inbox -- and
-                // VerifyAccount() tries to load
-                // those, which would fail here...
-                {
-                    Identifier THE_HASH;
-
-                    if (theReply.m_strInboxHash.Exists()) {
-                        THE_HASH.SetString(theReply.m_strInboxHash);
-
-                        const bool bHash =
-                            pNym->SetInboxHash(str_acct_id, THE_HASH);
-
-                        if (!bHash)
-                            otErr << __FUNCTION__
-                                  << ": Failed setting InboxHash on Nym "
-                                     "for account: " << str_acct_id << "\n";
-                        else {
-                            Nym* pSignerNym = pNym;
-                            pNym->SaveSignedNymfile(*pSignerNym);
-                        }
-                    }
-
-                    // If I have Transaction #35 signed out, and I use it to
-                    // start a market offer (or any other cron item)
-                    // then it's always possible that a finalReceipt will
-                    // pop into my Inbox while I'm asleep, closing
-                    // that transaction #. The server officially believes 35
-                    // is closed. Unfortunately, I still have it signed
-                    // out, on my side anyway, because I didn't know the
-                    // finalReceipt came in.
-                    //
-                    // THEREFORE, WHEN A FINAL RECEIPT COMES IN, I NEED TO
-                    // REMOVE ITS "in reference to" NUMBER FROM MY
-                    // ISSUED LIST. Here is clearly the best place for that:
-                    //
-                    for (auto& it : theInbox.GetTransactionMap()) {
-                        OTTransaction* pTempTrans = it.second;
-                        OT_ASSERT(nullptr != pTempTrans);
-
-                        // TODO security: Keep a client-side list of issued
-                        // #s for finalReceipts. That way,
-                        // I'll be smart enough here not to actually remove
-                        // just any number, unless it's actually
-                        // on my list of final receipts.  (The server does a
-                        // similar thing already.)
-                        //
-                        if (OTTransaction::finalReceipt ==
-                            pTempTrans->GetType()) {
-                            otInfo << "*** Removing opening issued number ("
-                                   << pTempTrans->GetReferenceToNum()
-                                   << "), since finalReceipt found when "
-                                      "retrieving asset account inbox. "
-                                      "***\n";
-
-                            if (pNym->RemoveIssuedNum(
-                                    *pNym, strServerID,
-                                    pTempTrans->GetReferenceToNum(),
-                                    true)) // bool bSave=true
-                                otWarn << "**** Due to finding a "
-                                          "finalReceipt, REMOVING OPENING "
-                                          "NUMBER FROM NYM:  "
-                                       << pTempTrans->GetReferenceToNum()
-                                       << " \n";
-                            else
-                                otWarn << "**** Noticed a finalReceipt, "
-                                          "but Opening Number "
-                                       << pTempTrans->GetReferenceToNum()
-                                       << " had ALREADY been removed from "
-                                          "nym. \n";
-
-                            //                              pNym->RemoveIssuedNum(*pNym,
-                            // strServerID, pTempTrans->GetReferenceToNum(),
-                            // true); // bSave = true;
-                            // The client side keeps a list of active
-                            // (recurring) transactions.
-                            // That is, smart contracts and payment plans. I
-                            // don't think it keeps
-                            // market offers in that list, since we already
-                            // have a list of active
-                            // market offers separately. And market offers
-                            // produce final receipts,
-                            // so basically this piece of code will be
-                            // executed for all final receipts.
-                            // It's not really necessary that it be called
-                            // for market offers, but whatever.
-                            // It is for the others.
-                            //
-                            OTCronItem::EraseActiveCronReceipt(
-                                pTempTrans->GetReferenceToNum(),
-                                pNym->GetConstID(),
-                                pTempTrans->GetPurportedServerID());
-
-                        } // We also do this in AcceptEntireNymbox
-                    }
-
-                    // Now I'm keeping the server signature, and just adding
-                    // my own.
-                    theInbox.ReleaseSignatures(); // This is back. Why?
-                                                  // Because we have
-                                                  // receipts functional
-                                                  // now.
-                    theInbox.SignContract(*pNym);
-                    theInbox.SaveContract();
-                    theInbox.SaveInbox();
-                }
-                else {
+                if (!bHash)
                     otErr << __FUNCTION__
-                          << ": Error loading (from string) or verifying "
-                             "inbox:\n\n" << strInbox << "\n";
-                }
-            }
-            if (strOutbox.Exists()) {
-                // Load the ledger object from strOutbox.
-                OTLedger theOutbox(USER_ID, ACCOUNT_ID, SERVER_ID);
-
-                // I receive the outbox, verify the server's signature, then
-                // RE-SIGN IT WITH MY OWN
-                // SIGNATURE, then SAVE it to local storage.  So any FUTURE
-                // checks of this outbox
-                // would require MY signature, not the server's, to verify.
-                // But in this one spot,
-                // just before saving, I need to verify the server's first.
-                // UPDATE: keeping the server's signature, and just adding
-                // my own.
-                if (theOutbox.LoadOutboxFromString(strOutbox) &&
-                    theOutbox.VerifySignature(*pServerNym)) // No point calling
-                                                            // VerifyAccount
-                // since the client hasn't even had a
-                // chance to download the box receipts
-                // yet...
-                {
-                    Identifier THE_HASH;
-
-                    if (theReply.m_strOutboxHash.Exists()) {
-                        THE_HASH.SetString(theReply.m_strOutboxHash);
-
-                        const bool bHash =
-                            pNym->SetOutboxHash(str_acct_id, THE_HASH);
-
-                        if (!bHash)
-                            otErr << __FUNCTION__
-                                  << ": Failed setting OutboxHash on Nym "
-                                     "for account: " << str_acct_id << "\n";
-                        else {
-                            Nym* pSignerNym = pNym;
-                            pNym->SaveSignedNymfile(*pSignerNym);
-                        }
-                    }
-                    theOutbox.ReleaseSignatures(); // UPDATE: keeping the
-                                                   // server's signature,
-                                                   // and just adding my
-                                                   // own.
-                    theOutbox.SignContract(*pNym); // ANOTHER UPDATE:
-                                                   // Removing signature
-                                                   // again, since we have
-                                                   // receipts functional
-                                                   // now.
-                    theOutbox.SaveContract();
-                    theOutbox.SaveOutbox();
-                }
+                          << ": Failed setting OutboxHash on Nym "
+                             "for account: " << str_acct_id << "\n";
                 else {
-                    otErr << __FUNCTION__
-                          << ": Error loading (from string) or verifying "
-                             "outbox:\n\n" << strOutbox << "\n";
+                    Nym* pSignerNym = pNym;
+                    pNym->SaveSignedNymfile(*pSignerNym);
                 }
             }
-        } // pMap loaded successfully.
-    }     // Has the files.
+            theOutbox.ReleaseSignatures(); // UPDATE: keeping the
+                                           // server's signature,
+                                           // and just adding my
+                                           // own.
+            theOutbox.SignContract(*pNym); // ANOTHER UPDATE:
+                                           // Removing signature
+                                           // again, since we have
+                                           // receipts functional
+                                           // now.
+            theOutbox.SaveContract();
+            theOutbox.SaveOutbox();
+        }
+        else {
+            otErr << __FUNCTION__
+                  << ": Error loading (from string) or verifying "
+                     "outbox:\n\n" << strOutbox << "\n";
+        }
+    }
 
     return true;
 }

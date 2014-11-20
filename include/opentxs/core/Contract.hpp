@@ -252,9 +252,9 @@ public:
 
     static bool LoadEncodedTextFieldByName(
         irr::io::IrrXMLReader*& xml, OTASCIIArmor& ascOutput,
-        const char*& szName, String::Map* pmapExtraVars = nullptr);
+        const char* szName, String::Map* pmapExtraVars = nullptr);
     static bool LoadEncodedTextFieldByName(
-        irr::io::IrrXMLReader*& xml, String& strOutput, const char*& szName,
+        irr::io::IrrXMLReader*& xml, String& strOutput, const char* szName,
         String::Map* pmapExtraVars = nullptr);
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);

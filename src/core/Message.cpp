@@ -3328,12 +3328,17 @@ public:
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
                                m.m_ascInReferenceTo.Get());
 
-        // I would check if this was empty, but it should never be empty...
-        // Famous last words.
-        //
-        if (m.m_bSuccess && m.m_ascPayload.GetLength())
-            result.Concatenate("<acctFiles>\n%s</acctFiles>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_bSuccess) {
+            if (m.m_ascPayload.GetLength())
+                result.Concatenate("<account>\n%s</account>\n\n",
+                                   m.m_ascPayload.Get());
+            if (m.m_ascPayload2.GetLength())
+                result.Concatenate("<inbox>\n%s</inbox>\n\n",
+                                   m.m_ascPayload2.Get());
+            if (m.m_ascPayload3.GetLength())
+                result.Concatenate("<outbox>\n%s</outbox>\n\n",
+                                   m.m_ascPayload3.Get());
+        }
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -3351,27 +3356,41 @@ public:
         m.m_strInboxHash = xml->getAttributeValue("inboxHash");
         m.m_strOutboxHash = xml->getAttributeValue("outboxHash");
 
-        const char* pElementExpected;
-        if (m.m_bSuccess)
-            pElementExpected = "acctFiles";
-        else
-            pElementExpected = "inReferenceTo";
+        if (m.m_bSuccess) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload,
+                                                      "account")) {
+                otErr << "Error in OTMessage::ProcessXMLNode: Expected account "
+                         "element with text field, for " << m.m_strCommand
+                      << ".\n";
+                return (-1); // error condition
+            }
 
-        OTASCIIArmor ascTextExpected;
+            if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload2,
+                                                      "inbox")) {
+                otErr << "Error in OTMessage::ProcessXMLNode: Expected inbox"
+                      << " element with text field, for " << m.m_strCommand
+                      << ".\n";
+                return (-1); // error condition
+            }
 
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
+            if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascPayload3,
+                                                      "outbox")) {
+                otErr << "Error in OTMessage::ProcessXMLNode: Expected outbox"
+                      << " element with text field, for " << m.m_strCommand
+                      << ".\n";
+                return (-1); // error condition
+            }
         }
 
-        if (m.m_bSuccess)
-            m.m_ascPayload = ascTextExpected;
-        else
-            m.m_ascInReferenceTo = ascTextExpected;
+        if (!m.m_bSuccess) {
+            if (!Contract::LoadEncodedTextFieldByName(xml, m.m_ascInReferenceTo,
+                                                      "inReferenceTo")) {
+                otErr << "Error in OTMessage::ProcessXMLNode: Expected "
+                         "inReferenceTo element with text field, for "
+                      << m.m_strCommand << ".\n";
+                return (-1); // error condition
+            }
+        }
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")

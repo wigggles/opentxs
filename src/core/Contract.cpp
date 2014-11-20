@@ -1917,7 +1917,7 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, OTASCIIArmor& ascOutput)
 // Loads it up and also decodes it to a string.
 // static
 bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml, String& strOutput,
-                                          const char*& szName,
+                                          const char* szName,
                                           String::Map* pmapExtraVars)
 {
     OT_ASSERT(nullptr != szName);
@@ -1937,19 +1937,17 @@ bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml, String& strOutput,
 // static
 bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
                                           OTASCIIArmor& ascOutput,
-                                          const char*& szName,
+                                          const char* szName,
                                           String::Map* pmapExtraVars)
 {
     OT_ASSERT(nullptr != szName);
-
-    const char* pElementExpected = szName;
 
     // If we're not ALREADY on an element, maybe there is some whitespace, so
     // let's skip ahead...
     // If we're not already on a node, OR
     if ((EXN_ELEMENT != xml->getNodeType()) ||
         // if the node's name doesn't match the one expected.
-        strcmp(pElementExpected, xml->getNodeName()) != 0) {
+        strcmp(szName, xml->getNodeName()) != 0) {
         // move to the next node which SHOULD be the expected name.
         if (!SkipToElement(xml)) {
             otOut << __FUNCTION__
@@ -1961,14 +1959,13 @@ bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
 
     if (EXN_ELEMENT != xml->getNodeType()) // SHOULD always be ELEMENT...
     {
-        otErr << __FUNCTION__ << ": Error: Expected " << pElementExpected
+        otErr << __FUNCTION__ << ": Error: Expected " << szName
               << " element with text field.\n";
         return false; // error condition
     }
 
-    if (strcmp(pElementExpected, xml->getNodeName()) != 0) {
-        otErr << __FUNCTION__ << ": Error: missing " << pElementExpected
-              << " element.\n";
+    if (strcmp(szName, xml->getNodeName()) != 0) {
+        otErr << __FUNCTION__ << ": Error: missing " << szName << " element.\n";
         return false; // error condition
     }
 
@@ -1990,8 +1987,7 @@ bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
     // values set on mapExtraVars (for caller.)
 
     if (false == Contract::LoadEncodedTextField(xml, ascOutput)) {
-        otErr << __FUNCTION__ << ": Error loading " << pElementExpected
-              << " field.\n";
+        otErr << __FUNCTION__ << ": Error loading " << szName << " field.\n";
         return false;
     }
 
