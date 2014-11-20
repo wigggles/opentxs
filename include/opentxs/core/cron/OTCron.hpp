@@ -286,11 +286,11 @@ public:
     //
     EXPORT void ProcessCronItems();
 
-    inline void SetServerID(const Identifier& SERVER_ID)
+    inline void SetNotaryID(const Identifier& SERVER_ID)
     {
         m_SERVER_ID = SERVER_ID;
     }
-    inline const Identifier& GetServerID() const
+    inline const Identifier& GetNotaryID() const
     {
         return m_SERVER_ID;
     }

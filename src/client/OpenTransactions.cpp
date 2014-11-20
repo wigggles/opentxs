@@ -270,7 +270,7 @@ bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
                           const Identifier& ACCT_ID)
 {
     Identifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
-    String strServerID(SERVER_ID), strReceiptID(ACCT_ID);
+    String strNotaryID(SERVER_ID), strReceiptID(ACCT_ID);
 
     // Load the last successful BALANCE STATEMENT...
 
@@ -280,7 +280,7 @@ bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
     strFilename.Format("%s.success", strReceiptID.Get());
 
     const char* szFolder1name = OTFolders::Receipt().Get(); // receipts
-    const char* szFolder2name = strServerID.Get(); // receipts/SERVER_ID
+    const char* szFolder2name = strNotaryID.Get(); // receipts/SERVER_ID
     const char* szFilename =
         strFilename.Get(); // receipts/SERVER_ID/ACCT_ID.success
 
@@ -1370,8 +1370,8 @@ bool OT_API::IsNym_RegisteredAtServer(const Identifier& NYM_ID,
     if (nullptr == pNym) return false;
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
-    const String strServerID(SERVER_ID);
-    return pNym->IsRegisteredAtServer(strServerID);
+    const String strNotaryID(SERVER_ID);
+    return pNym->IsRegisteredAtServer(strNotaryID);
 }
 
 /*
@@ -1897,14 +1897,14 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& SERVER_ID) const
         Account* pAccount =
             OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
 
-        Identifier purportedServerID(pAccount->GetPurportedServerID());
+        Identifier purportedNotaryID(pAccount->GetPurportedNotaryID());
 
-        if (SERVER_ID == purportedServerID) {
-            String strPurportedServerID(purportedServerID),
+        if (SERVER_ID == purportedNotaryID) {
+            String strPurportedNotaryID(purportedNotaryID),
                 strSERVER_ID(SERVER_ID);
             otOut << __FUNCTION__ << ": Unable to remove server contract "
                   << strSERVER_ID << " from wallet, because Account "
-                  << strPurportedServerID << " uses it.\n";
+                  << strPurportedNotaryID << " uses it.\n";
             return false;
         }
     }
@@ -2044,9 +2044,9 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 
         if (bGetServer)
             if (!theID.IsEmpty()) {
-                const String strServerID(theID);
+                const String strNotaryID(theID);
 
-                if (pNym->IsRegisteredAtServer(strServerID)) {
+                if (pNym->IsRegisteredAtServer(strNotaryID)) {
                     otOut << __FUNCTION__
                           << ": Nym cannot be removed because there "
                              "are still servers in the wallet that "
@@ -2099,15 +2099,15 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     }
     bool BOOL_RETURN_VALUE = false;
 
-    const Identifier& theServerID = pAccount->GetPurportedServerID();
+    const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
     const Identifier& theUserID = pAccount->GetUserID();
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return nullptr if various verification fails.
     std::unique_ptr<OTLedger> pInbox(
-        OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theUserID, ACCOUNT_ID));
+        OTAPI_Wrap::OTAPI()->LoadInbox(theNotaryID, theUserID, ACCOUNT_ID));
     std::unique_ptr<OTLedger> pOutbox(
-        OTAPI_Wrap::OTAPI()->LoadOutbox(theServerID, theUserID, ACCOUNT_ID));
+        OTAPI_Wrap::OTAPI()->LoadOutbox(theNotaryID, theUserID, ACCOUNT_ID));
 
     if (nullptr == pInbox) {
         otOut << __FUNCTION__
@@ -3685,7 +3685,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     // anyway. So might as well save ourselves the hassle, if this doesn't match
     // up now.
     //
-    if (pContract->SetServerIDIfEmpty(pAccount->GetPurportedServerID())) {
+    if (pContract->SetNotaryIDIfEmpty(pAccount->GetPurportedNotaryID())) {
         // todo security: possibly want to verify here that this really is the
         // FIRST
         // account being confirmed in this smart contract, or at least the first
@@ -3699,9 +3699,9 @@ bool OT_API::SmartContract_ConfirmAccount(
         // verification.) In the int64_t term we'll do a more thorough check
         // here, though.
     }
-    else if (pContract->GetServerID() != pAccount->GetPurportedServerID()) {
-        const String strServer1(pContract->GetServerID()),
-            strServer2(pAccount->GetPurportedServerID());
+    else if (pContract->GetNotaryID() != pAccount->GetPurportedNotaryID()) {
+        const String strServer1(pContract->GetNotaryID()),
+            strServer2(pAccount->GetPurportedNotaryID());
         otOut << __FUNCTION__
               << ": Failure: The smart contract has a different "
                  "server ID on it already (" << strServer1
@@ -3810,7 +3810,7 @@ bool OT_API::SmartContract_ConfirmParty(
 
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
-    //  pMessage->m_strServerID        = strServerID;
+    //  pMessage->m_strNotaryID        = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
     pMessage->SignContract(*pNym);
@@ -4624,12 +4624,12 @@ Cheque* OT_API::WriteCheque(
     // number I can use to write it with. (Otherwise I'd have to ask the server
     // to send me one first.)
     //
-    String strServerID(SERVER_ID);
+    String strNotaryID(SERVER_ID);
     int64_t lTransactionNumber =
         0; // Notice I use the server ID on the ACCOUNT.
 
     if (false ==
-        pNym->GetNextTransactionNum(*pNym, strServerID, lTransactionNumber)) {
+        pNym->GetNextTransactionNum(*pNym, strNotaryID, lTransactionNumber)) {
         otOut << __FUNCTION__
               << ": User attempted to write a cheque, but had no "
                  "transaction numbers.\n";
@@ -4637,7 +4637,7 @@ Cheque* OT_API::WriteCheque(
     }
     // At this point, I know that lTransactionNumber contains one I can use.
     Cheque* pCheque =
-        new Cheque(pAccount->GetRealServerID(), pAccount->GetAssetTypeID());
+        new Cheque(pAccount->GetRealNotaryID(), pAccount->GetAssetTypeID());
     OT_ASSERT_MSG(
         nullptr != pCheque,
         "OT_API::WriteCheque: Error allocating memory in the OT API.");
@@ -4651,7 +4651,7 @@ Cheque* OT_API::WriteCheque(
         delete pCheque;
         pCheque = nullptr;
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(*pNym, strServerID, lTransactionNumber,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lTransactionNumber,
                                 true); // bSave=true
         return nullptr;
     }
@@ -4677,7 +4677,7 @@ Cheque* OT_API::WriteCheque(
         const String strNymID2(*pRECIPIENT_USER_ID);
         pMessage->m_strNymID2 = strNymID2;
     }
-    pMessage->m_strServerID = strServerID;
+    pMessage->m_strNotaryID = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
     pMessage->SignContract(*pNym);
@@ -4770,7 +4770,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // BELOW THIS POINT, if you have an error, then you must retrieve those
     // numbers from
     // the plan, and set them BACK on pNym before you return!!!
-    const String strServerID(SERVER_ID);
+    const String strNotaryID(SERVER_ID);
 
     if (!bSuccessSetProposal) {
         otOut << __FUNCTION__ << ": Failed trying to set the proposal.\n";
@@ -4865,7 +4865,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
     pMessage->m_strNymID2 = strNymID2;
-    pMessage->m_strServerID = strServerID;
+    pMessage->m_strNotaryID = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
     pMessage->SignContract(*pNym);
@@ -4937,7 +4937,7 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& SERVER_ID,
     // ANY FAILURES BELOW THIS POINT need to be smart enough to retrieve those
     // numbers before returning.
     //
-    const String strServerID(SERVER_ID);
+    const String strNotaryID(SERVER_ID);
 
     if (!bConfirmed) {
         otOut << __FUNCTION__ << ": Failed trying to confirm the agreement.\n";
@@ -4962,7 +4962,7 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& SERVER_ID,
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
     pMessage->m_strNymID2 = strNymID2;
-    pMessage->m_strServerID = strServerID;
+    pMessage->m_strNotaryID = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
     pMessage->SignContract(*pNym);
@@ -4990,7 +4990,7 @@ Purse* OT_API::LoadPurse(const Identifier& SERVER_ID,
                                ? "Loading purse from local storage."
                                : pstrDisplay->Get());
     OTPasswordData thePWData(strReason);
-    const String strServerID(SERVER_ID);
+    const String strNotaryID(SERVER_ID);
     const String strUserID(USER_ID);
     const String strAssetTypeID(ASSET_ID);
     Nym* pNym =
@@ -5004,10 +5004,10 @@ Purse* OT_API::LoadPurse(const Identifier& SERVER_ID,
                                                              // pPurse below
                                                              // this point.
 
-    if (pPurse->LoadPurse(strServerID.Get(), strUserID.Get(),
+    if (pPurse->LoadPurse(strNotaryID.Get(), strUserID.Get(),
                           strAssetTypeID.Get())) {
         if (pPurse->VerifySignature(*pNym) &&
-            (SERVER_ID == pPurse->GetServerID()) &&
+            (SERVER_ID == pPurse->GetNotaryID()) &&
             (ASSET_ID == pPurse->GetAssetID())) {
             return pPurse;
         }
@@ -5032,16 +5032,16 @@ bool OT_API::SavePurse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
                  "and cannot be saved inside the wallet without first "
                  "re-importing it.\n";
     }
-    else if ((THE_PURSE.GetServerID() != SERVER_ID) ||
+    else if ((THE_PURSE.GetNotaryID() != SERVER_ID) ||
                (THE_PURSE.GetAssetID() != ASSET_ID)) {
         otOut << __FUNCTION__ << ": Error: Wrong server or asset ID passed in, "
                                  "considering the purse that was passed.\n";
     }
     else {
-        const String strServerID(SERVER_ID);
+        const String strNotaryID(SERVER_ID);
         const String strAssetTypeID(ASSET_ID);
         const String strUserID(USER_ID);
-        if (THE_PURSE.SavePurse(strServerID.Get(), strUserID.Get(),
+        if (THE_PURSE.SavePurse(strNotaryID.Get(), strUserID.Get(),
                                 strAssetTypeID.Get()))
             return true;
     }
@@ -5101,7 +5101,7 @@ Purse* OT_API::CreatePurse_Passphrase(const Identifier& SERVER_ID,
 // duplicated across many of the Purse functions.
 //
 OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
-    const Identifier& theServerID, const Identifier& theAssetTypeID,
+    const Identifier& theNotaryID, const Identifier& theAssetTypeID,
     const String& strPurse, Purse& thePurse, // output
     OTPassword& thePassword, // Only used in the case of password-protected
                              // purses. Passed in so it won't go out of scope
@@ -5152,8 +5152,8 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
         const bool bNymIDIncludedInPurse = thePurse.IsNymIDIncluded();
         Identifier idPurseNym;
 
-        if (thePurse.GetServerID() != theServerID)
-            otErr << __FUNCTION__ << ": Failed: ServerID doesn't match.\n";
+        if (thePurse.GetNotaryID() != theNotaryID)
+            otErr << __FUNCTION__ << ": Failed: NotaryID doesn't match.\n";
         else if (thePurse.GetAssetID() != theAssetTypeID)
             otErr << __FUNCTION__ << ": Failed: AssetTypeID doesn't match.\n";
         else if (bNymIDIncludedInPurse && !thePurse.GetNymID(idPurseNym))
@@ -5745,9 +5745,9 @@ bool OT_API::Wallet_ImportPurse(
     // Let's make sure the server and asset ID match between the purses,
     // since they are now actually loaded up.
     //
-    if (pOldPurse->GetServerID() != pNewPurse->GetServerID()) {
+    if (pOldPurse->GetNotaryID() != pNewPurse->GetNotaryID()) {
         otOut << __FUNCTION__
-              << ": Failure: ServerIDs don't match between these two purses.\n";
+              << ": Failure: NotaryIDs don't match between these two purses.\n";
         return false;
     }
     else if (pOldPurse->GetAssetID() != pNewPurse->GetAssetID()) {
@@ -5969,25 +5969,25 @@ Token* OT_API::Token_ChangeOwner(
 Mint* OT_API::LoadMint(const Identifier& SERVER_ID,
                        const Identifier& ASSET_ID) const
 {
-    const String strServerID(SERVER_ID);
+    const String strNotaryID(SERVER_ID);
     const String strAssetTypeID(ASSET_ID);
     OTServerContract* pServerContract = GetServer(SERVER_ID, __FUNCTION__);
     if (nullptr == pServerContract) return nullptr;
     const Nym* pServerNym = pServerContract->GetContractPublicNym();
     if (nullptr == pServerNym) {
         otErr << __FUNCTION__
-              << ": Failed trying to get contract public Nym for ServerID: "
-              << strServerID << " \n";
+              << ": Failed trying to get contract public Nym for NotaryID: "
+              << strNotaryID << " \n";
         return nullptr;
     }
-    Mint* pMint = Mint::MintFactory(strServerID, strAssetTypeID);
+    Mint* pMint = Mint::MintFactory(strNotaryID, strAssetTypeID);
     OT_ASSERT_MSG(nullptr != pMint,
                   "OT_API::LoadMint: Error allocating memory in the OT API");
     // responsible to delete or return pMint below this point.
     if (!pMint->LoadMint() || !pMint->VerifyMint(*pServerNym)) {
         otOut << __FUNCTION__
               << ": Unable to load or verify Mintfile : " << OTFolders::Mint()
-              << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
+              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
               << strAssetTypeID << "\n";
         delete pMint;
         pMint = nullptr;
@@ -6003,10 +6003,10 @@ Mint* OT_API::LoadMint(const Identifier& SERVER_ID,
 OTServerContract* OT_API::LoadServerContract(const Identifier& SERVER_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    String strServerID(SERVER_ID);
+    String strNotaryID(SERVER_ID);
 
     String strFoldername = OTFolders::Contract().Get();
-    String strFilename = strServerID.Get();
+    String strFilename = strNotaryID.Get();
     if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
         otErr << "OT_API::LoadServerContract: File does not exist: "
               << strFoldername.Get() << OTLog::PathSeparator() << strFilename
@@ -6014,7 +6014,7 @@ OTServerContract* OT_API::LoadServerContract(const Identifier& SERVER_ID) const
         return nullptr;
     }
     OTServerContract* pContract = new OTServerContract(
-        strServerID, strFoldername, strFilename, strServerID);
+        strNotaryID, strFoldername, strFilename, strNotaryID);
     OT_ASSERT_MSG(nullptr != pContract,
                   "Error allocating memory for Server "
                   "Contract in OT_API::LoadServerContract\n");
@@ -6024,7 +6024,7 @@ OTServerContract* OT_API::LoadServerContract(const Identifier& SERVER_ID) const
     else
         otOut << "OT_API::LoadServerContract: Unable to load or "
                  "verify server contract. (Maybe it's just not there, "
-                 "and needs to be downloaded.) Server ID: " << strServerID
+                 "and needs to be downloaded.) Server ID: " << strNotaryID
               << "\n";
     delete pContract;
     pContract = nullptr;
@@ -6556,8 +6556,8 @@ bool OT_API::ClearExpired(const Identifier& SERVER_ID,
 //
 // const char *    OT_API_GetNym_OutpaymentsRecipientIDByIndex(const char *
 // NYM_ID, int32_t nIndex); /// returns the NymID of the recipient.
-// const char *    OT_API_GetNym_OutpaymentsServerIDByIndex(const char * NYM_ID,
-// int32_t nIndex); /// returns the ServerID where the message came from.
+// const char *    OT_API_GetNym_OutpaymentsNotaryIDByIndex(const char * NYM_ID,
+// int32_t nIndex); /// returns the NotaryID where the message came from.
 //
 // int32_t                OT_API_Nym_RemoveOutpaymentsByIndex(const char *
 // NYM_ID, int32_t nIndex); /// actually returns OT_BOOL, (1 or 0.)
@@ -7015,7 +7015,7 @@ bool OT_API::RecordPayment(
                     // parties of the smart contract.
                     //       (Since we found an opening number for pNym on it.)
 
-                    const String strServerID(SERVER_ID);
+                    const String strNotaryID(SERVER_ID);
 
                     // If the transaction # isn't signed out to me, then there's
                     // no need to check the inbox
@@ -7027,7 +7027,7 @@ bool OT_API::RecordPayment(
                     // load the inbox.
                     //
                     if (pNym->VerifyTentativeNum(
-                            strServerID, lPaymentTransNum)) // If I'm in the
+                            strNotaryID, lPaymentTransNum)) // If I'm in the
                                                             // middle of trying
                                                             // to sign it out...
                     {
@@ -7043,7 +7043,7 @@ bool OT_API::RecordPayment(
                         return false;
                     }
                     bool bIsIssued =
-                        pNym->VerifyIssuedNum(strServerID, lPaymentTransNum);
+                        pNym->VerifyIssuedNum(strNotaryID, lPaymentTransNum);
 
                     // If pNym is the sender AND the payment instrument IS
                     // expired.
@@ -8042,9 +8042,9 @@ std::shared_ptr<Message> OT_API::PopMessageBuffer(
     OT_ASSERT_MSG(lRequestNumber > 0,
                   "OT_API::PopMessageBuffer: lRequestNumber is less than 1.");
 
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
-    return m_pClient->GetMessageBuffer().Pop(lRequestNumber, strServerID,
+    return m_pClient->GetMessageBuffer().Pop(lRequestNumber, strNotaryID,
                                              strNymID); // deletes
 }
 
@@ -8079,10 +8079,10 @@ Message* OT_API::GetSentMessage(const int64_t& lRequestNumber,
     OT_ASSERT_MSG(lRequestNumber > 0,
                   "OT_API::GetSentMessage: lRequestNumber is less than 1.");
 
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     return m_pClient->GetMessageOutbuffer().GetSentMessage(
-        lRequestNumber, strServerID, strNymID); // doesn't delete.
+        lRequestNumber, strNotaryID, strNymID); // doesn't delete.
 }
 
 bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
@@ -8094,10 +8094,10 @@ bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
     OT_ASSERT_MSG(lRequestNumber > 0,
                   "OT_API::RemoveSentMessage: lRequestNumber is less than 1.");
 
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     return m_pClient->GetMessageOutbuffer().RemoveSentMessage(
-        lRequestNumber, strServerID, strNymID); // deletes.
+        lRequestNumber, strNotaryID, strNymID); // deletes.
 }
 
 //  Basically, the sent messages queue must store
@@ -8174,13 +8174,13 @@ void OT_API::FlushSentMessages(bool bHarvestingForRetry,
     if (nullptr == pNym) return;
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
     if ((THE_NYMBOX.GetUserID() != USER_ID) ||
-        (THE_NYMBOX.GetPurportedServerID() != SERVER_ID)) {
+        (THE_NYMBOX.GetPurportedNotaryID() != SERVER_ID)) {
         const String strLedger(THE_NYMBOX);
         otErr << __FUNCTION__ << ": Failure, Bad input data: UserID ("
-              << strNymID << ") or ServerID "
-                             "(" << strServerID
+              << strNymID << ") or NotaryID "
+                             "(" << strNotaryID
               << ") failed to match Nymbox:\n\n" << strLedger << "\n\n";
         return;
     }
@@ -8237,7 +8237,7 @@ void OT_API::FlushSentMessages(bool bHarvestingForRetry,
     // with that, do the flush.
     //
     m_pClient->GetMessageOutbuffer().Clear(
-        &strServerID, &strNymID, pNym,
+        &strNotaryID, &strNymID, pNym,
         &bHarvestingForRetry); // FYI: This HARVESTS any sent messages that need
                                // harvesting, before flushing them all.
 }
@@ -8252,11 +8252,11 @@ bool OT_API::HaveAlreadySeenReply(const Identifier& SERVER_ID,
     // cleanup.)
 
     // "Client verifies it has already seen a server reply."
-    //  bool OTPseudonym:::VerifyAcknowledgedNum(const OTString & strServerID,
+    //  bool OTPseudonym:::VerifyAcknowledgedNum(const OTString & strNotaryID,
     // const int64_t & lRequestNum);
     //
-    const String strServerID(SERVER_ID);
-    return pNym->VerifyAcknowledgedNum(strServerID, lRequestNumber);
+    const String strNotaryID(SERVER_ID);
+    return pNym->VerifyAcknowledgedNum(strNotaryID, lRequestNumber);
 }
 
 // IS BASKET CURRENCY ?
@@ -8503,7 +8503,7 @@ int32_t OT_API::issueBasket(const Identifier& SERVER_ID,
     if (nullptr == pServer) return (-1);
     // AT SOME POINT, BASKET_INFO has been populated with the relevant data.
     // (see test client for example.)
-    String strServerID(SERVER_ID), strNymID(USER_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     Message theMessage;
     int64_t lRequestNumber = 0;
@@ -8525,19 +8525,19 @@ int32_t OT_API::issueBasket(const Identifier& SERVER_ID,
     // right to exchange out to the various users and close the basket.
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) Set up member variables
     theMessage.m_strCommand = "issueBasket";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_ascPayload.SetString(BASKET_INFO);
@@ -8592,7 +8592,7 @@ Basket* OT_API::GenerateBasketExchange(const Identifier& SERVER_ID,
     // By this point, I know that everything checks out. Signature and Account
     // ID.
     // pAccount is good, and no need to clean it up.
-    String strServerID(SERVER_ID);
+    String strNotaryID(SERVER_ID);
 
     int32_t nTransferMultiple = 1;
 
@@ -8685,13 +8685,13 @@ bool OT_API::AddBasketExchangeItem(const Identifier& SERVER_ID,
     // By this point, I know that everything checks out. Signature and Account
     // ID.
     // pAccount is good, and no need to clean it up.
-    const String strServerID(SERVER_ID);
+    const String strNotaryID(SERVER_ID);
 
     int64_t lSubClosingTransactionNo = 0; // For the basketReceipt (closing
                                           // transaction num) for the sub
                                           // account.
 
-    if (pNym->GetNextTransactionNum(*pNym, strServerID,
+    if (pNym->GetNextTransactionNum(*pNym, strNotaryID,
                                     lSubClosingTransactionNo)) // this saves
     {
         theBasket.AddRequestSubContract(ASSET_TYPE_ID, ASSET_ACCT_ID,
@@ -8866,7 +8866,7 @@ int32_t OT_API::exchangeBasket(
     if (nullptr == pContract) return (-1);
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    const String strServerID(SERVER_ID), strUserID(USER_ID);
+    const String strNotaryID(SERVER_ID), strUserID(USER_ID);
 
     // Next load the Basket object out of that contract, and load the
     // RequestBasket object that was passed in.
@@ -8899,7 +8899,7 @@ int32_t OT_API::exchangeBasket(
         else {
             int64_t lStoredTransactionNumber = 0;
             bool bGotTransNum = pNym->GetNextTransactionNum(
-                *pNym, strServerID, lStoredTransactionNumber); // this saves
+                *pNym, strNotaryID, lStoredTransactionNumber); // this saves
 
             if (bGotTransNum) {
                 // LOAD the INBOX for the MAIN ACCOUNT
@@ -8912,7 +8912,7 @@ int32_t OT_API::exchangeBasket(
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
-                    pNym->AddTransactionNum(*pNym, strServerID,
+                    pNym->AddTransactionNum(*pNym, strNotaryID,
                                             lStoredTransactionNumber,
                                             true); // bSave=true
                 }
@@ -8921,7 +8921,7 @@ int32_t OT_API::exchangeBasket(
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
-                    pNym->AddTransactionNum(*pNym, strServerID,
+                    pNym->AddTransactionNum(*pNym, strNotaryID,
                                             lStoredTransactionNumber,
                                             true); // bSave=true
                 }
@@ -8953,7 +8953,7 @@ int32_t OT_API::exchangeBasket(
                     int64_t lClosingTransactionNo =
                         0; // for Main Basket Acct on the Request Basket.
                     OT_ASSERT(pNym->GetNextTransactionNum(
-                        *pNym, strServerID,
+                        *pNym, strNotaryID,
                         lClosingTransactionNo)); // this saves
 
                     // This goes in the final API call.
@@ -9031,27 +9031,27 @@ int32_t OT_API::exchangeBasket(
 
                     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
                     int64_t lRequestNumber = 0;
-                    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+                    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
                     theMessage.m_strRequestNum.Format(
                         "%" PRId64,
                         lRequestNumber); // Always have to send this.
                     pNym->IncrementRequestNum(
-                        *pNym, strServerID); // since I used it for a server
+                        *pNym, strNotaryID); // since I used it for a server
                                              // request, I have to increment it
 
                     // (1) Set up member variables
                     theMessage.m_strCommand = "notarizeTransaction";
                     theMessage.m_strNymID = strUserID;
-                    theMessage.m_strServerID = strServerID;
+                    theMessage.m_strNotaryID = strNotaryID;
                     theMessage.SetAcknowledgments(
-                        *pNym); // Must be called AFTER theMessage.m_strServerID
+                        *pNym); // Must be called AFTER theMessage.m_strNotaryID
                                 // is already set. (It uses it.)
 
                     BASKET_ASSET_ACCT_ID.GetString(theMessage.m_strAcctID);
                     theMessage.m_ascPayload = ascLedger;
 
                     Identifier NYMBOX_HASH;
-                    const std::string str_server(strServerID.Get());
+                    const std::string str_server(strNotaryID.Get());
                     const bool bNymboxHash =
                         pNym->GetNymboxHash(str_server, NYMBOX_HASH);
                     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
@@ -9147,17 +9147,17 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     Identifier CONTRACT_ID;
-    String strContractID, strServerID(SERVER_ID);
+    String strContractID, strNotaryID(SERVER_ID);
     CONTRACT_ID = pAccount->GetAssetTypeID();
     CONTRACT_ID.GetString(strContractID);
-    if (!OTDB::Exists(OTFolders::Mint().Get(), strServerID.Get(),
+    if (!OTDB::Exists(OTFolders::Mint().Get(), strNotaryID.Get(),
                       strContractID.Get())) {
         otErr << "OT_API::notarizeWithdrawal: File does not exist: "
-              << OTFolders::Mint() << OTLog::PathSeparator() << strServerID
+              << OTFolders::Mint() << OTLog::PathSeparator() << strNotaryID
               << OTLog::PathSeparator() << strContractID << "\n";
         return -1;
     }
-    std::unique_ptr<Mint> pMint(Mint::MintFactory(strServerID, strContractID));
+    std::unique_ptr<Mint> pMint(Mint::MintFactory(strNotaryID, strContractID));
     OT_ASSERT(nullptr != pMint);
     Message theMessage;
 
@@ -9180,7 +9180,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
         return (-1);
     }
 
-    bGotTransNum = pNym->GetNextTransactionNum(*pNym, strServerID,
+    bGotTransNum = pNym->GetNextTransactionNum(*pNym, strNotaryID,
                                                lStoredTransactionNumber);
     if (!bGotTransNum) {
         otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
@@ -9325,26 +9325,26 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
         // Encoding...
         ascLedger.SetString(strLedger);
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                        // server request, I have
                                                        // to increment it
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strServerID is
+                                              // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
 
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
         Identifier NYMBOX_HASH;
-        const std::string str_server(strServerID.Get());
+        const std::string str_server(strNotaryID.Get());
         const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
@@ -9364,7 +9364,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& SERVER_ID,
     }
     else {
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(*pNym, strServerID, lStoredTransactionNumber,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lStoredTransactionNumber,
                                 true); // bSave=true
     }
 
@@ -9404,7 +9404,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
     CONTRACT_ID.GetString(strContractID);
     Message theMessage;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
 
     const Nym* pServerNym = pServer->GetContractPublicNym();
     const Identifier SERVER_USER_ID(*pServerNym);
@@ -9424,7 +9424,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
         return (-1);
     }
 
-    bGotTransNum = pNym->GetNextTransactionNum(*pNym, strServerID,
+    bGotTransNum = pNym->GetNextTransactionNum(*pNym, strNotaryID,
                                                lStoredTransactionNumber);
     if (!bGotTransNum) {
         otOut << __FUNCTION__ << ": Next Transaction Number Available: Suggest "
@@ -9587,26 +9587,26 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
         OTASCIIArmor ascLedger(strLedger);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                        // server request, I have
                                                        // to increment it
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strServerID is
+                                              // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
 
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
         Identifier NYMBOX_HASH;
-        const std::string str_server(strServerID.Get());
+        const std::string str_server(strNotaryID.Get());
         const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
@@ -9631,7 +9631,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& SERVER_ID,
         pTransaction = nullptr;
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(*pNym, strServerID, lStoredTransactionNumber,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lStoredTransactionNumber,
                                 true); // bSave=true
     }
 
@@ -9746,11 +9746,11 @@ int32_t OT_API::payDividend(
     }
     Message theMessage;
 
-    String strServerID(SERVER_ID), strNymID(ISSUER_USER_ID),
+    String strNotaryID(SERVER_ID), strNymID(ISSUER_USER_ID),
         strFromAcct(DIVIDEND_FROM_ACCT_ID);
 
     int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = pNym->GetNextTransactionNum(*pNym, strServerID,
+    bool bGotTransNum = pNym->GetNextTransactionNum(*pNym, strNotaryID,
                                                     lStoredTransactionNumber);
 
     if (bGotTransNum) {
@@ -9807,7 +9807,7 @@ int32_t OT_API::payDividend(
 
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     true); // bSave=true
         }
@@ -9817,14 +9817,14 @@ int32_t OT_API::payDividend(
 
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     true); // bSave=true
         }
         else if (!bIssueCheque) {
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     true); // bSave=true
         }
@@ -9922,10 +9922,10 @@ int32_t OT_API::payDividend(
             int64_t lRequestNumber = 0;
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+            pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
                 "%" PRId64, lRequestNumber); // Always have to send this.
-            pNym->IncrementRequestNum(*pNym, strServerID); // since I used it
+            pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it
                                                            // for a server
                                                            // request, I have to
                                                            // increment it
@@ -9933,16 +9933,16 @@ int32_t OT_API::payDividend(
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
-            theMessage.m_strServerID = strServerID;
+            theMessage.m_strNotaryID = strNotaryID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                                  // theMessage.m_strServerID is
+                                                  // theMessage.m_strNotaryID is
                                                   // already set. (It uses it.)
 
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
 
             Identifier NYMBOX_HASH;
-            const std::string str_server(strServerID.Get());
+            const std::string str_server(strNotaryID.Get());
             const bool bNymboxHash =
                 pNym->GetNymboxHash(str_server, NYMBOX_HASH);
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
@@ -10004,14 +10004,14 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
 
     const int64_t lAmount = AMOUNT;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
 
     int64_t lWithdrawTransNum = 0, lVoucherTransNum = 0;
 
     bool bGotTransNum1 =
-        pNym->GetNextTransactionNum(*pNym, strServerID, lWithdrawTransNum);
+        pNym->GetNextTransactionNum(*pNym, strNotaryID, lWithdrawTransNum);
     bool bGotTransNum2 =
-        pNym->GetNextTransactionNum(*pNym, strServerID, lVoucherTransNum);
+        pNym->GetNextTransactionNum(*pNym, strNotaryID, lVoucherTransNum);
 
     if (!bGotTransNum1 || !bGotTransNum2) {
         otOut << __FUNCTION__
@@ -10019,10 +10019,10 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
                  "(Suggest requesting the server for more.)\n";
 
         if (bGotTransNum1)
-            pNym->AddTransactionNum(*pNym, strServerID, lWithdrawTransNum,
+            pNym->AddTransactionNum(*pNym, strNotaryID, lWithdrawTransNum,
                                     true); // bSave=true
         if (bGotTransNum2)
-            pNym->AddTransactionNum(*pNym, strServerID, lVoucherTransNum,
+            pNym->AddTransactionNum(*pNym, strNotaryID, lVoucherTransNum,
                                     true); // bSave=true
 
         return (-1);
@@ -10051,9 +10051,9 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
               << ": Failed loading inbox for acct " << strFromAcct << "\n";
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(*pNym, strServerID, lWithdrawTransNum,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lWithdrawTransNum,
                                 true); // bSave=true
-        pNym->AddTransactionNum(*pNym, strServerID, lVoucherTransNum,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lVoucherTransNum,
                                 true); // bSave=true
     }
     else if (nullptr == pOutbox) {
@@ -10061,16 +10061,16 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
               << ": Failed loading outbox for acct " << strFromAcct << "\n";
 
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(*pNym, strServerID, lWithdrawTransNum,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lWithdrawTransNum,
                                 true); // bSave=true
-        pNym->AddTransactionNum(*pNym, strServerID, lVoucherTransNum,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lVoucherTransNum,
                                 true); // bSave=true
     }
     else if (!bIssueCheque) {
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(*pNym, strServerID, lWithdrawTransNum,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lWithdrawTransNum,
                                 true); // bSave=true
-        pNym->AddTransactionNum(*pNym, strServerID, lVoucherTransNum,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lVoucherTransNum,
                                 true); // bSave=true
     }
     else {
@@ -10134,26 +10134,26 @@ int32_t OT_API::withdrawVoucher(const Identifier& SERVER_ID,
         int64_t lRequestNumber = 0;
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                        // server request, I have
                                                        // to increment it
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strServerID is
+                                              // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
 
         theMessage.m_strAcctID = strFromAcct;
         theMessage.m_ascPayload = ascLedger;
 
         Identifier NYMBOX_HASH;
-        const std::string str_server(strServerID.Get());
+        const std::string str_server(strNotaryID.Get());
         const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
@@ -10260,7 +10260,7 @@ bool OT_API::DiscardCheque(const Identifier& SERVER_ID,
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)  pServer and pAccount are also good.
     //
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     Cheque theCheque(SERVER_ID, CONTRACT_ID);
 
@@ -10269,17 +10269,17 @@ bool OT_API::DiscardCheque(const Identifier& SERVER_ID,
                                  "Cheque contents:\n\n" << THE_CHEQUE << "\n\n";
         return false;
     }
-    else if ((theCheque.GetServerID() == SERVER_ID) &&
+    else if ((theCheque.GetNotaryID() == SERVER_ID) &&
                (theCheque.GetAssetID() == CONTRACT_ID) &&
                (theCheque.GetSenderUserID() == USER_ID) &&
                (theCheque.GetSenderAcctID() == ACCT_ID)) {
         if (pNym->VerifyIssuedNum(
-                strServerID, theCheque.GetTransactionNum())) // we only "add it
+                strNotaryID, theCheque.GetTransactionNum())) // we only "add it
                                                              // back" if it was
                                                              // really there in
                                                              // the first place.
         {
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     theCheque.GetTransactionNum(),
                                     true); // bSave=true
             return true;
@@ -10335,12 +10335,12 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strDepositAcct(ACCT_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strDepositAcct(ACCT_ID);
 
     Cheque theCheque(SERVER_ID, CONTRACT_ID);
 
     int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = pNym->GetNextTransactionNum(*pNym, strServerID,
+    bool bGotTransNum = pNym->GetNextTransactionNum(*pNym, strNotaryID,
                                                     lStoredTransactionNumber);
 
     if (!bGotTransNum)
@@ -10351,17 +10351,17 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
               << ": Unable to load cheque from string. Sorry. Contents:\n\n"
               << THE_CHEQUE << "\n\n";
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(*pNym, strServerID, lStoredTransactionNumber,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lStoredTransactionNumber,
                                 true); // bSave=true
     }
-    else if (theCheque.GetServerID() != SERVER_ID) {
-        const String strChequeServerID(theCheque.GetServerID());
-        otOut << __FUNCTION__ << ": ServerID on cheque (" << strChequeServerID
+    else if (theCheque.GetNotaryID() != SERVER_ID) {
+        const String strChequeNotaryID(theCheque.GetNotaryID());
+        otOut << __FUNCTION__ << ": NotaryID on cheque (" << strChequeNotaryID
               << ") doesn't "
-                 "match serverID where it's being deposited to (" << strServerID
+                 "match notaryID where it's being deposited to (" << strNotaryID
               << ").";
         // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-        pNym->AddTransactionNum(*pNym, strServerID, lStoredTransactionNumber,
+        pNym->AddTransactionNum(*pNym, strNotaryID, lStoredTransactionNumber,
                                 true); // bSave=true
     }
     else {
@@ -10372,7 +10372,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
                   << strDepositAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     true); // bSave=true
             return -1;
@@ -10396,7 +10396,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
                                // the cheque.
         {
             bCancellingCheque = pNym->VerifyIssuedNum(
-                strServerID, theCheque.GetTransactionNum());
+                strNotaryID, theCheque.GetTransactionNum());
 
             // If we TRIED to cancel the cheque (being in this block...) yet the
             // signature fails
@@ -10415,7 +10415,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
 
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
                 // NUMBERS.
-                pNym->AddTransactionNum(*pNym, strServerID,
+                pNym->AddTransactionNum(*pNym, strNotaryID,
                                         lStoredTransactionNumber,
                                         true); // bSave=true
                 return (-1);
@@ -10442,7 +10442,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
                       << "\n\n";
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
                 // NUMBERS.
-                pNym->AddTransactionNum(*pNym, strServerID,
+                pNym->AddTransactionNum(*pNym, strNotaryID,
                                         lStoredTransactionNumber,
                                         true); // bSave=true
                 return (-1);
@@ -10500,7 +10500,7 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
                   << strDepositAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     true); // bSave=true
         }
@@ -10546,10 +10546,10 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
             OTASCIIArmor ascLedger(strLedger);
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+            pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
                 "%" PRId64, lRequestNumber); // Always have to send this.
-            pNym->IncrementRequestNum(*pNym, strServerID); // since I used it
+            pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it
                                                            // for a server
                                                            // request, I have to
                                                            // increment it
@@ -10557,16 +10557,16 @@ int32_t OT_API::depositCheque(const Identifier& SERVER_ID,
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
-            theMessage.m_strServerID = strServerID;
+            theMessage.m_strNotaryID = strNotaryID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                                  // theMessage.m_strServerID is
+                                                  // theMessage.m_strNotaryID is
                                                   // already set. (It uses it.)
 
             theMessage.m_strAcctID = strDepositAcct;
             theMessage.m_ascPayload = ascLedger;
 
             Identifier NYMBOX_HASH;
-            const std::string str_server(strServerID.Get());
+            const std::string str_server(strNotaryID.Get());
             const bool bNymboxHash =
                 pNym->GetNymboxHash(str_server, NYMBOX_HASH);
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
@@ -10615,7 +10615,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& SERVER_ID,
     OTPaymentPlan thePlan;
     Message theMessage;
 
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     if (thePlan.LoadContractFromString(THE_PAYMENT_PLAN) &&
         thePlan.VerifySignature(*pNym)) {
@@ -10734,26 +10734,26 @@ int32_t OT_API::depositPaymentPlan(const Identifier& SERVER_ID,
         OTASCIIArmor ascLedger(strLedger);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                        // server request, I have
                                                        // to increment it
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strServerID is
+                                              // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
 
         theMessage.m_strAcctID = strDepositAcct;
         theMessage.m_ascPayload = ascLedger;
 
         Identifier NYMBOX_HASH;
-        const std::string str_server(strServerID.Get());
+        const std::string str_server(strNotaryID.Get());
         const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
@@ -10803,22 +10803,22 @@ int32_t OT_API::triggerClause(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "triggerClause";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_lTransactionNum = lTransactionNum;
@@ -10831,7 +10831,7 @@ int32_t OT_API::triggerClause(const Identifier& SERVER_ID,
         theMessage.m_ascPayload.SetString(*pStrParam); // <===
 
     Identifier NYMBOX_HASH;
-    const std::string str_server(strServerID.Get());
+    const std::string str_server(strNotaryID.Get());
     const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
@@ -10865,7 +10865,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     OTSmartContract theContract(SERVER_ID);
     Message theMessage;
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     if (theContract.LoadContractFromString(THE_SMART_CONTRACT)) {
         int64_t lRequestNumber = 0;
@@ -10949,7 +10949,7 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
                 return (-1);
             }
         }
-        if (SERVER_ID != theContract.GetServerID()) {
+        if (SERVER_ID != theContract.GetNotaryID()) {
             otOut << __FUNCTION__
                   << ": Failed. The server ID passed in doesn't "
                      "match the one on the contract itself.\n";
@@ -11069,19 +11069,19 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
                      "activate this contract?\n";
             return -1;
         }
-        if (!pNym->VerifyIssuedNum(strServerID, lOpeningTransNo)) {
+        if (!pNym->VerifyIssuedNum(strNotaryID, lOpeningTransNo)) {
             otOut << __FUNCTION__ << ": Failed. Opening Transaction # ("
                   << lOpeningTransNo << ") wasn't "
                                         "valid/issued to this Nym, "
                                         "for asset acct (" << pAcct->GetName()
                   << ") for party (" << pParty->GetPartyName() << ") on server "
                                                                   "("
-                  << strServerID
+                  << strNotaryID
                   << "). Did you confirm this account and party, "
                      "before trying to activate this contract?\n";
             return -1;
         }
-        if (!pNym->VerifyIssuedNum(strServerID, lClosingTransNo)) {
+        if (!pNym->VerifyIssuedNum(strNotaryID, lClosingTransNo)) {
             otOut << __FUNCTION__ << ": Failed. Closing Transaction # ("
                   << lClosingTransNo << ") wasn't "
                                         "issued to this Nym, "
@@ -11184,23 +11184,23 @@ int32_t OT_API::activateSmartContract(const Identifier& SERVER_ID,
         String strLedger(theLedger);
         OTASCIIArmor ascLedger(strLedger);
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                        // server request, I have
                                                        // to increment it
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strServerID is
+                                              // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
         theAcctID.GetString(theMessage.m_strAcctID);
         theMessage.m_ascPayload = ascLedger;
         Identifier NYMBOX_HASH;
-        const std::string str_server(strServerID.Get());
+        const std::string str_server(strNotaryID.Get());
         const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
         if (!bNymboxHash)
@@ -11296,9 +11296,9 @@ int32_t OT_API::cancelCronItem(const Identifier& SERVER_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Message theMessage;
 
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
-    if (pNym->GetTransactionNumCount(strServerID) < 1) {
+    if (pNym->GetTransactionNumCount(strNotaryID) < 1) {
         otOut << "OT_API::cancelCronItem: At least 1 Transaction Number is "
                  "necessary to cancel any cron item. "
                  "Try requesting the server for more numbers (you are low.)\n";
@@ -11306,7 +11306,7 @@ int32_t OT_API::cancelCronItem(const Identifier& SERVER_ID,
     }
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strServerID, lStoredTransactionNumber, true); // bSave=false
+        *pNym, strNotaryID, lStoredTransactionNumber, true); // bSave=false
 
     if (!bGotTransNum)
         otErr << "OT_API::cancelCronItem: Supposedly there was a "
@@ -11379,26 +11379,26 @@ int32_t OT_API::cancelCronItem(const Identifier& SERVER_ID,
         OTASCIIArmor ascLedger(strLedger);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                        // server request, I have
                                                        // to increment it
 
         // (1) Set up member variables
         theMessage.m_strCommand = "notarizeTransaction";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strServerID is
+                                              // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
 
         theMessage.m_strAcctID = str_ASSET_ACCT_ID;
         theMessage.m_ascPayload = ascLedger;
 
         Identifier NYMBOX_HASH;
-        const std::string str_server(strServerID.Get());
+        const std::string str_server(strNotaryID.Get());
         const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
         NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
@@ -11476,8 +11476,8 @@ int32_t OT_API::issueMarketOffer(
         return (-1);
     }
     Message theMessage;
-    const String strServerID(SERVER_ID), strNymID(USER_ID);
-    if (pNym->GetTransactionNumCount(strServerID) < 3) {
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID);
+    if (pNym->GetTransactionNumCount(strNotaryID) < 3) {
         otOut << __FUNCTION__
               << ": At least 3 Transaction Numbers are necessary to "
                  "issue a market offer. "
@@ -11487,12 +11487,12 @@ int32_t OT_API::issueMarketOffer(
     int64_t lStoredTransactionNumber = 0, lAssetAcctClosingNo = 0,
             lCurrencyAcctClosingNo = 0;
     bool bGotTransNum = pNym->GetNextTransactionNum(
-        *pNym, strServerID, lStoredTransactionNumber, false); // bSave=false
+        *pNym, strNotaryID, lStoredTransactionNumber, false); // bSave=false
     bool bGotAssetClosingNum = pNym->GetNextTransactionNum(
-        *pNym, strServerID, lAssetAcctClosingNo,
+        *pNym, strNotaryID, lAssetAcctClosingNo,
         false); // bSave=false -- (true by default, FYI.)
     bool bGotCurrencyClosingNum = pNym->GetNextTransactionNum(
-        *pNym, strServerID, lCurrencyAcctClosingNo, true); // bSave=true
+        *pNym, strNotaryID, lCurrencyAcctClosingNo, true); // bSave=true
     if (!bGotTransNum || !bGotAssetClosingNum || !bGotCurrencyClosingNum) {
         otErr << __FUNCTION__
               << ": Supposedly there were 3 transaction numbers "
@@ -11500,14 +11500,14 @@ int32_t OT_API::issueMarketOffer(
                  "still failed. (Re-adding back to Nym, and failing out "
                  "of this function.)\n";
         if (bGotTransNum)
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     false); // bSave=true
         if (bGotAssetClosingNum)
-            pNym->AddTransactionNum(*pNym, strServerID, lAssetAcctClosingNo,
+            pNym->AddTransactionNum(*pNym, strNotaryID, lAssetAcctClosingNo,
                                     false); // bSave=true
         if (bGotCurrencyClosingNum)
-            pNym->AddTransactionNum(*pNym, strServerID, lCurrencyAcctClosingNo,
+            pNym->AddTransactionNum(*pNym, strNotaryID, lCurrencyAcctClosingNo,
                                     false); // bSave=true
         if (bGotTransNum || bGotAssetClosingNum || bGotCurrencyClosingNum)
             pNym->SaveSignedNymfile(*pNym);
@@ -11704,10 +11704,10 @@ int32_t OT_API::issueMarketOffer(
             OTASCIIArmor ascLedger(strLedger);
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+            pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
                 "%" PRId64, lRequestNumber); // Always have to send this.
-            pNym->IncrementRequestNum(*pNym, strServerID); // since I used it
+            pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it
                                                            // for a server
                                                            // request, I have to
                                                            // increment it
@@ -11715,16 +11715,16 @@ int32_t OT_API::issueMarketOffer(
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
-            theMessage.m_strServerID = strServerID;
+            theMessage.m_strNotaryID = strNotaryID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                                  // theMessage.m_strServerID is
+                                                  // theMessage.m_strNotaryID is
                                                   // already set. (It uses it.)
 
             theMessage.m_strAcctID = str_ASSET_ACCT_ID;
             theMessage.m_ascPayload = ascLedger;
 
             Identifier NYMBOX_HASH;
-            const std::string str_server(strServerID.Get());
+            const std::string str_server(strNotaryID.Get());
             const bool bNymboxHash =
                 pNym->GetNymboxHash(str_server, NYMBOX_HASH);
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
@@ -11750,13 +11750,13 @@ int32_t OT_API::issueMarketOffer(
             // IF FAILED, add the transaction number (and closing number)
             // BACK to the list of available numbers.
             //
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     false); // bSave defaults to true
-            pNym->AddTransactionNum(*pNym, strServerID, lAssetAcctClosingNo,
+            pNym->AddTransactionNum(*pNym, strNotaryID, lAssetAcctClosingNo,
                                     false);
             pNym->AddTransactionNum(
-                *pNym, strServerID, lCurrencyAcctClosingNo,
+                *pNym, strNotaryID, lCurrencyAcctClosingNo,
                 true); // bSave=true (No sense saving thrice in a row.)
         }
     } // got transaction number.
@@ -11791,13 +11791,13 @@ int32_t OT_API::getMarketList(const Identifier& SERVER_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Message theMessage;
 
-    String strServerID(SERVER_ID);
+    String strNotaryID(SERVER_ID);
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
@@ -11806,9 +11806,9 @@ int32_t OT_API::getMarketList(const Identifier& SERVER_ID,
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketList";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     // (2) Sign the Message
@@ -11845,14 +11845,14 @@ int32_t OT_API::getMarketOffers(const Identifier& SERVER_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Message theMessage;
 
-    String strServerID(SERVER_ID), strMarketID(MARKET_ID);
+    String strNotaryID(SERVER_ID), strMarketID(MARKET_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
@@ -11860,9 +11860,9 @@ int32_t OT_API::getMarketOffers(const Identifier& SERVER_ID,
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketOffers";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strNymID2 = strMarketID;
@@ -11907,13 +11907,13 @@ int32_t OT_API::getMarketRecentTrades(const Identifier& SERVER_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Message theMessage;
 
-    String strServerID(SERVER_ID), strMarketID(MARKET_ID);
+    String strNotaryID(SERVER_ID), strMarketID(MARKET_ID);
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
@@ -11921,9 +11921,9 @@ int32_t OT_API::getMarketRecentTrades(const Identifier& SERVER_ID,
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketRecentTrades";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strNymID2 = strMarketID;
@@ -11961,14 +11961,14 @@ int32_t OT_API::getNym_MarketOffers(const Identifier& SERVER_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Message theMessage;
 
-    String strServerID(SERVER_ID);
+    String strNotaryID(SERVER_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     int64_t lRequestNumber = 0;
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
@@ -11977,9 +11977,9 @@ int32_t OT_API::getNym_MarketOffers(const Identifier& SERVER_ID,
     // (1) Set up member variables
     theMessage.m_strCommand = "getNym_MarketOffers";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     // (2) Sign the Message
@@ -12021,11 +12021,11 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
 
     const int64_t lAmount = AMOUNT;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_FROM),
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strFromAcct(ACCT_FROM),
         strToAcct(ACCT_TO);
 
     int64_t lStoredTransactionNumber = 0;
-    bool bGotTransNum = pNym->GetNextTransactionNum(*pNym, strServerID,
+    bool bGotTransNum = pNym->GetNextTransactionNum(*pNym, strNotaryID,
                                                     lStoredTransactionNumber);
 
     if (bGotTransNum) {
@@ -12059,7 +12059,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
                   << strFromAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     true); // bSave=true
         }
@@ -12068,7 +12068,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
                      "for acct: " << strFromAcct << "\n";
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            pNym->AddTransactionNum(*pNym, strServerID,
+            pNym->AddTransactionNum(*pNym, strNotaryID,
                                     lStoredTransactionNumber,
                                     true); // bSave=true
         }
@@ -12146,10 +12146,10 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
             // Encoding...
             ascLedger.SetString(strLedger);
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+            pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
                 "%" PRId64, lRequestNumber); // Always have to send this.
-            pNym->IncrementRequestNum(*pNym, strServerID); // since I used it
+            pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it
                                                            // for a server
                                                            // request, I have to
                                                            // increment it
@@ -12157,16 +12157,16 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
-            theMessage.m_strServerID = strServerID;
+            theMessage.m_strNotaryID = strNotaryID;
             theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                                  // theMessage.m_strServerID is
+                                                  // theMessage.m_strNotaryID is
                                                   // already set. (It uses it.)
 
             theMessage.m_strAcctID = strFromAcct;
             theMessage.m_ascPayload = ascLedger;
 
             Identifier NYMBOX_HASH;
-            const std::string str_server(strServerID.Get());
+            const std::string str_server(strNotaryID.Get());
             const bool bNymboxHash =
                 pNym->GetNymboxHash(str_server, NYMBOX_HASH);
             NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
@@ -12191,7 +12191,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& SERVER_ID,
                  "requesting the server for one.\n";
 
     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE NUMBERS.
-    //        pNym->AddTransactionNum(*pNym, strServerID,
+    //        pNym->AddTransactionNum(*pNym, strNotaryID,
     // lStoredTransactionNumber, true); // bSave=true
     // Duh! No need to re-add a transaction num when the error is that there
     // weren't any transaction numbers...
@@ -12216,22 +12216,22 @@ int32_t OT_API::getNymbox(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "getNymbox";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     // (2) Sign the Message
@@ -12312,8 +12312,8 @@ int32_t OT_API::processNymbox(const Identifier& SERVER_ID,
             else // Success!
             {
                 Identifier NYMBOX_HASH;
-                const String strServerID(SERVER_ID);
-                const std::string str_server(strServerID.Get());
+                const String strNotaryID(SERVER_ID);
+                const std::string str_server(strNotaryID.Get());
                 const bool bNymboxHash =
                     theNym.GetNymboxHash(str_server, NYMBOX_HASH);
                 NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
@@ -12371,7 +12371,7 @@ int32_t OT_API::processInbox(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
 
     // Normally processInbox command is sent with a transaction ledger
     // in the payload, accepting or rejecting various transactions in
@@ -12386,19 +12386,19 @@ int32_t OT_API::processInbox(const Identifier& SERVER_ID,
     // all the others.
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "processInbox";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strAcctID = strAcctID;
@@ -12409,7 +12409,7 @@ int32_t OT_API::processInbox(const Identifier& SERVER_ID,
     theMessage.m_ascPayload.SetString(ACCT_LEDGER);
 
     Identifier NYMBOX_HASH;
-    const std::string str_server(strServerID.Get());
+    const std::string str_server(strNotaryID.Get());
     const bool bNymboxHash = pNym->GetNymboxHash(str_server, NYMBOX_HASH);
     NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
 
@@ -12471,22 +12471,22 @@ int32_t OT_API::issueAssetType(const Identifier& SERVER_ID,
         Message theMessage;
         int64_t lRequestNumber = 0;
 
-        String strServerID(SERVER_ID), strNymID(USER_ID);
+        String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                        // server request, I have
                                                        // to increment it
 
         // (1) set up member variables
         theMessage.m_strCommand = "issueAssetType";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strServerID is
+                                              // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
 
         newID.GetString(theMessage.m_strAssetID);
@@ -12568,22 +12568,22 @@ int32_t OT_API::getContract(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "getContract";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strAssetID = strAssetTypeID;
@@ -12620,22 +12620,22 @@ int32_t OT_API::getMint(const Identifier& SERVER_ID, const Identifier& USER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "getMint";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strAssetID = strAssetTypeID;
@@ -12753,22 +12753,22 @@ int32_t OT_API::queryAssetTypes(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "queryAssetTypes";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_ascPayload = ENCODED_MAP;
@@ -12788,7 +12788,7 @@ int32_t OT_API::createAssetAccount(const Identifier& SERVER_ID,
                                    const Identifier& USER_ID,
                                    const Identifier& ASSET_ID) const
 {
-    // Create an asset account for a certain serverID,
+    // Create an asset account for a certain notaryID,
     // UserID, and Asset Type ID.
     // These accounts are where users actually store their digital assets of
     // various
@@ -12813,22 +12813,22 @@ int32_t OT_API::createAssetAccount(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAssetTypeID(ASSET_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "createAccount";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strAssetID = strAssetTypeID;
@@ -12864,22 +12864,22 @@ int32_t OT_API::deleteAssetAccount(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCOUNT_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCOUNT_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "deleteAssetAccount";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strAcctID = strAcctID;
@@ -12945,23 +12945,23 @@ int32_t OT_API::getBoxReceipt(
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    const String strServerID(SERVER_ID), strNymID(USER_ID),
+    const String strNotaryID(SERVER_ID), strNymID(USER_ID),
         strAcctID(ACCOUNT_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "getBoxReceipt";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strAcctID = strAcctID;
@@ -13000,22 +13000,22 @@ int32_t OT_API::getAccountData(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
     // (1) set up member variables
     theMessage.m_strCommand = "getAccountData";
     theMessage.m_strNymID = strNymID;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_strAcctID = strAcctID;
@@ -13076,13 +13076,13 @@ int32_t OT_API::usageCredits(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strNymID2(USER_ID_CHECK);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strNymID2(USER_ID_CHECK);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
@@ -13090,9 +13090,9 @@ int32_t OT_API::usageCredits(const Identifier& SERVER_ID,
     theMessage.m_strCommand = "usageCredits";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     theMessage.m_lDepth = lAdjustment; // Default is "no adjustment"
@@ -13131,13 +13131,13 @@ int32_t OT_API::checkNym(const Identifier& SERVER_ID, const Identifier& USER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID), strNymID2(USER_ID_CHECK);
+    String strNotaryID(SERVER_ID), strNymID(USER_ID), strNymID2(USER_ID_CHECK);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
@@ -13145,9 +13145,9 @@ int32_t OT_API::checkNym(const Identifier& SERVER_ID, const Identifier& USER_ID,
     theMessage.m_strCommand = "checkNym";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     // (2) Sign the Message
@@ -13184,14 +13184,14 @@ int32_t OT_API::sendNymMessage(const Identifier& SERVER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID),
+    String strNotaryID(SERVER_ID), strNymID(USER_ID),
         strNymID2(USER_ID_RECIPIENT);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-    pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+    pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
     theMessage.m_strRequestNum.Format(
         "%" PRId64, lRequestNumber);               // Always have to send this.
-    pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+    pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                    // server request, I have to
                                                    // increment it
 
@@ -13199,9 +13199,9 @@ int32_t OT_API::sendNymMessage(const Identifier& SERVER_ID,
     theMessage.m_strCommand = "sendNymMessage";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNymID2 = strNymID2;
-    theMessage.m_strServerID = strServerID;
+    theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                          // theMessage.m_strServerID is already
+                                          // theMessage.m_strNotaryID is already
                                           // set. (It uses it.)
 
     OTEnvelope theEnvelope;
@@ -13233,7 +13233,7 @@ int32_t OT_API::sendNymMessage(const Identifier& SERVER_ID,
         pMessage->m_strCommand = "outmailMessage";
         pMessage->m_strNymID = strNymID;
         pMessage->m_strNymID2 = strNymID2;
-        pMessage->m_strServerID = strServerID;
+        pMessage->m_strNotaryID = strNotaryID;
         pMessage->m_strRequestNum.Format("%" PRId64, lRequestNumber);
 
         pMessage->m_ascPayload.SetString(THE_MESSAGE);
@@ -13295,7 +13295,7 @@ int32_t OT_API::sendNymInstrument(
     int32_t nReturnValue = -1;
     int64_t lRequestNumber = 0;
 
-    String strServerID(SERVER_ID), strNymID(USER_ID),
+    String strNotaryID(SERVER_ID), strNymID(USER_ID),
         strNymID2(USER_ID_RECIPIENT);
     String strInstrument, strInstrumentForSender;
     const bool bGotPaymentContents =
@@ -13358,7 +13358,7 @@ int32_t OT_API::sendNymInstrument(
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
     pMessage->m_strNymID2 = strNymID2;
-    pMessage->m_strServerID = strServerID;
+    pMessage->m_strNotaryID = strNotaryID;
     pMessage->m_ascPayload.SetString(bGotSenderPmntCnts ? strInstrumentForSender
                                                         : strInstrument);
     // If they're the same, we only save a copy in the outbox.
@@ -13366,10 +13366,10 @@ int32_t OT_API::sendNymInstrument(
     //
     if (USER_ID != USER_ID_RECIPIENT) {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        pNym->GetCurrentRequestNum(strServerID, lRequestNumber);
+        pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64, lRequestNumber); // Always have to send this.
-        pNym->IncrementRequestNum(*pNym, strServerID); // since I used it for a
+        pNym->IncrementRequestNum(*pNym, strNotaryID); // since I used it for a
                                                        // server request, I have
                                                        // to increment it
 
@@ -13377,9 +13377,9 @@ int32_t OT_API::sendNymInstrument(
         theMessage.m_strCommand = "sendNymInstrument";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNymID2 = strNymID2;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
-                                              // theMessage.m_strServerID is
+                                              // theMessage.m_strNotaryID is
                                               // already set. (It uses it.)
 
         OTEnvelope theEnvelope;

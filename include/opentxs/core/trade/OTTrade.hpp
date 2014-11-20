@@ -308,7 +308,7 @@ public:
 
     virtual bool VerifyNymAsAgentForAccount(Nym& nym, Account& account) const;
     EXPORT OTTrade();
-    EXPORT OTTrade(const Identifier& serverId, const Identifier& assetId,
+    EXPORT OTTrade(const Identifier& notaryID, const Identifier& assetId,
                    const Identifier& assetAcctId, const Identifier& userId,
                    const Identifier& currencyId,
                    const Identifier& currencyAcctId);

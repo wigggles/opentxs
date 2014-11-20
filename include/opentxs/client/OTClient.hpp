@@ -255,7 +255,7 @@ public:
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
                                     const OTServerConnection& theConnection,
                                     const Message& theReply) const;
-    bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theServerID,
+    bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theNotaryID,
                             const OTServerContract& theServerContract,
                             Nym& theNym, Message& theMessage);
 
@@ -267,7 +267,7 @@ private:
                                       OTLedger& ledger) const;
 
     struct ProcessServerReplyArgs;
-    void setRecentHash(const Message& theReply, const String& strServerID,
+    void setRecentHash(const Message& theReply, const String& strNotaryID,
                        Nym* pNym, bool setNymboxHash);
     bool processServerReplyTriggerClause(const Message& theReply,
                                          ProcessServerReplyArgs& args);

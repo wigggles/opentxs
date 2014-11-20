@@ -236,26 +236,26 @@ public:
     // NOTE: Current iteration, these functions ASSUME that m_pNym is loaded.
     // They will definitely fail if you haven't already loaded the Nym.
     //
-    bool VerifyIssuedNumber(const int64_t& lNumber, const String& strServerID);
+    bool VerifyIssuedNumber(const int64_t& lNumber, const String& strNotaryID);
     bool VerifyTransactionNumber(const int64_t& lNumber,
-                                 const String& strServerID);
+                                 const String& strNotaryID);
 
-    bool RemoveIssuedNumber(const int64_t& lNumber, const String& strServerID,
+    bool RemoveIssuedNumber(const int64_t& lNumber, const String& strNotaryID,
                             bool bSave = false, Nym* pSignerNym = nullptr);
     bool RemoveTransactionNumber(const int64_t& lNumber,
-                                 const String& strServerID, Nym& SIGNER_NYM,
+                                 const String& strNotaryID, Nym& SIGNER_NYM,
                                  bool bSave = true);
 
     bool HarvestTransactionNumber(
-        const int64_t& lNumber, const String& strServerID,
+        const int64_t& lNumber, const String& strNotaryID,
         bool bSave = false,         // Each agent's nym is used if pSignerNym is
                                     // nullptr,
                                     // whereas the server
         Nym* pSignerNym = nullptr); // uses this optional arg to
                                     // substitute serverNym as signer.
 
-    bool ReserveOpeningTransNum(const String& strServerID);
-    bool ReserveClosingTransNum(const String& strServerID,
+    bool ReserveOpeningTransNum(const String& strNotaryID);
+    bool ReserveClosingTransNum(const String& strNotaryID,
                                 OTPartyAccount& thePartyAcct);
     EXPORT bool SignContract(Contract& theInput) const;
 
@@ -444,7 +444,7 @@ public:
                                   Nym* pActualNym = nullptr);
 
     bool DropFinalReceiptToInbox(
-        mapOfNyms* pNymMap, const String& strServerID, Nym& theServerNym,
+        mapOfNyms* pNymMap, const String& strNotaryID, Nym& theServerNym,
         OTSmartContract& theSmartContract, const Identifier& theAccountID,
         const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
         const String& strOrigCronItem, String* pstrNote = nullptr,
@@ -452,7 +452,7 @@ public:
 
     bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // the notice can be "acknowledgment" or "rejection"
-        Nym& theServerNym, const Identifier& theServerID,
+        Nym& theServerNym, const Identifier& theNotaryID,
         const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
         const String& strReference, String* pstrNote = nullptr,
         String* pstrAttachment = nullptr, Nym* pActualNym = nullptr);

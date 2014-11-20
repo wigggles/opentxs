@@ -339,7 +339,7 @@ public:
                                            // transfers within.
     EXPORT const mapOfTransactions& GetTransactionMap() const;
     EXPORT OTLedger(const Identifier& theUserID, const Identifier& theAccountID,
-                    const Identifier& theServerID);
+                    const Identifier& theNotaryID);
     EXPORT virtual ~OTLedger();
 
     EXPORT virtual void Release();
@@ -355,16 +355,16 @@ public:
     // loaded up, and the UserID will hopefully be loaded up with the rest of
     // it.
     EXPORT OTLedger(const Identifier& theAccountID,
-                    const Identifier& theServerID);
+                    const Identifier& theNotaryID);
     EXPORT void InitLedger();
     EXPORT static OTLedger* GenerateLedger(const Identifier& theUserID,
                                            const Identifier& theAcctID,
-                                           const Identifier& theServerID,
+                                           const Identifier& theNotaryID,
                                            ledgerType theType,
                                            bool bCreateFile = false);
 
     EXPORT bool GenerateLedger(const Identifier& theAcctID,
-                               const Identifier& theServerID,
+                               const Identifier& theNotaryID,
                                ledgerType theType, bool bCreateFile = false);
 
     EXPORT static char const* _GetTypeString(ledgerType theType);

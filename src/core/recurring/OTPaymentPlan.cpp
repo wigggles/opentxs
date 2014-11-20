@@ -265,7 +265,7 @@ void OTPaymentPlan::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(GetServerID()), ASSET_TYPE_ID(GetAssetID()),
+    const String SERVER_ID(GetNotaryID()), ASSET_TYPE_ID(GetAssetID()),
         SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
         RECIPIENT_ACCT_ID(GetRecipientAcctID()),
         RECIPIENT_USER_ID(GetRecipientUserID());
@@ -279,7 +279,7 @@ void OTPaymentPlan::UpdateContents()
     // OTAgreement
     m_xmlUnsigned.Concatenate(
         "<agreement\n version=\"%s\"\n"
-        " serverID=\"%s\"\n"
+        " notaryID=\"%s\"\n"
         " assetTypeID=\"%s\"\n"
         " senderAcctID=\"%s\"\n"
         " senderUserID=\"%s\"\n"
@@ -478,11 +478,11 @@ bool OTPaymentPlan::VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const
         return false;
     }
 
-    const String strServerID(GetServerID());
+    const String strNotaryID(GetNotaryID());
 
     // Verify Transaction Num and Closing Nums against SENDER's issued list
     if ((GetCountClosingNumbers() < 1) ||
-        !SENDER_NYM.VerifyIssuedNum(strServerID, GetTransactionNum())) {
+        !SENDER_NYM.VerifyIssuedNum(strNotaryID, GetTransactionNum())) {
         otErr << "OTPaymentPlan::" << __FUNCTION__ << ": Transaction number "
               << GetTransactionNum()
               << " isn't on sender's issued list, "
@@ -490,7 +490,7 @@ bool OTPaymentPlan::VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const
         return false;
     }
     for (int32_t i = 0; i < GetCountClosingNumbers(); i++)
-        if (!SENDER_NYM.VerifyIssuedNum(strServerID,
+        if (!SENDER_NYM.VerifyIssuedNum(strNotaryID,
                                         GetClosingTransactionNoAt(i))) {
             otErr << "OTPaymentPlan::" << __FUNCTION__
                   << ": Closing transaction number "
@@ -509,7 +509,7 @@ bool OTPaymentPlan::VerifyAgreement(Nym& RECIPIENT_NYM, Nym& SENDER_NYM) const
     }
     for (int32_t i = 0; i < GetRecipientCountClosingNumbers(); i++)
         if (!RECIPIENT_NYM.VerifyIssuedNum(
-                strServerID, GetRecipientClosingTransactionNoAt(i))) {
+                strNotaryID, GetRecipientClosingTransactionNoAt(i))) {
             otErr << "OTPaymentPlan::" << __FUNCTION__
                   << ": Recipient's Closing transaction number "
                   << GetRecipientClosingTransactionNoAt(i)
@@ -672,7 +672,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
     bool bSuccess = false; // The return value.
 
-    const Identifier SERVER_ID(pCron->GetServerID());
+    const Identifier SERVER_ID(pCron->GetNotaryID());
     const Identifier SERVER_USER_ID(*pServerNym);
 
     const Identifier& SOURCE_ACCT_ID = GetSenderAcctID();

@@ -166,9 +166,9 @@ public:
     {
         return m_AssetTypeID;
     }
-    inline const Identifier& GetServerID() const
+    inline const Identifier& GetNotaryID() const
     {
-        return m_ServerID;
+        return m_NotaryID;
     }
     void InitInstrument();
 
@@ -187,14 +187,14 @@ protected:
     {
         m_AssetTypeID = ASSET_ID;
     }
-    inline void SetServerID(const Identifier& SERVER_ID)
+    inline void SetNotaryID(const Identifier& SERVER_ID)
     {
-        m_ServerID = SERVER_ID;
+        m_NotaryID = SERVER_ID;
     }
 
 protected:
     Identifier m_AssetTypeID; // Every cheque or cash note has an Asset Type
-    Identifier m_ServerID;    // ...As well as a Server ID...
+    Identifier m_NotaryID;    // ...As well as a Server ID...
     // Expiration Date (valid from/to date)
     time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
                            // FROM.

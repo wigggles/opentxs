@@ -186,7 +186,7 @@ namespace opentxs
 namespace
 {
 
-void askInteractively(std::string& strContract, std::string& strServerID,
+void askInteractively(std::string& strContract, std::string& strNotaryID,
                       std::string& strCert, std::string& strNymID,
                       std::string& strCachedKey)
 {
@@ -249,8 +249,8 @@ void askInteractively(std::string& strContract, std::string& strServerID,
         "process now...\n";
 
     OTLog::Output(0, szInstructions);
-    OTLog::Output(0, "Enter the ServerID for your server contract: ");
-    strServerID = OT_CLI_ReadLine();
+    OTLog::Output(0, "Enter the NotaryID for your server contract: ");
+    strNotaryID = OT_CLI_ReadLine();
     OTLog::Output(0, "Enter the Server User ID (the NymID of the Nym who "
                      "signed the server contract): ");
     strNymID = OT_CLI_ReadLine();
@@ -496,14 +496,14 @@ void OTServer::Init(bool readOnly)
         }
         else {
             std::string strContract;
-            std::string strServerID;
+            std::string strNotaryID;
             std::string strCert;
             std::string strNymID;
             std::string strCachedKey;
-            askInteractively(strContract, strServerID, strCert, strNymID,
+            askInteractively(strContract, strNotaryID, strCert, strNymID,
                              strCachedKey);
             mainFileExists = mainFile_.CreateMainFile(
-                strContract, strServerID, strCert, strNymID, strCachedKey);
+                strContract, strNotaryID, strCert, strNymID, strCachedKey);
         }
     }
 
@@ -697,7 +697,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
                 break; // should never happen.
             }
         }
-        pMsg->m_strServerID = m_strServerID;
+        pMsg->m_strNotaryID = m_strNotaryID;
         pMsg->m_bSuccess = true;
         SENDER_USER_ID.GetString(pMsg->m_strNymID);
         RECIPIENT_USER_ID.GetString(pMsg->m_strNymID2); // set the recipient ID

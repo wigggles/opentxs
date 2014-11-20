@@ -1711,7 +1711,7 @@ template <>
 void ContactAcctPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
-    __pb_obj.set_server_id(server_id);
+    __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_server_type(server_type);
     __pb_obj.set_asset_type_id(asset_type_id);
     __pb_obj.set_acct_id(acct_id);
@@ -1723,7 +1723,7 @@ template <>
 void ContactAcctPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
-    server_id = __pb_obj.server_id();
+    notary_id = __pb_obj.notary_id();
     server_type = __pb_obj.server_type();
     asset_type_id = __pb_obj.asset_type_id();
     acct_id = __pb_obj.acct_id();
@@ -1735,13 +1735,13 @@ void ContactAcctPB::hookAfterUnpack()
 template <>
 void ServerInfoPB::hookBeforePack()
 {
-    __pb_obj.set_server_id(server_id);
+    __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_server_type(server_type);
 }
 template <>
 void ServerInfoPB::hookAfterUnpack()
 {
-    server_id = __pb_obj.server_id();
+    notary_id = __pb_obj.notary_id();
     server_type = __pb_obj.server_type();
 }
 
@@ -1750,7 +1750,7 @@ void BitcoinAcctPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_acct_id(acct_id);
-    __pb_obj.set_server_id(server_id);
+    __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_bitcoin_acct_name(bitcoin_acct_name);
 }
 template <>
@@ -1758,7 +1758,7 @@ void BitcoinAcctPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
     acct_id = __pb_obj.acct_id();
-    server_id = __pb_obj.server_id();
+    notary_id = __pb_obj.notary_id();
     bitcoin_acct_name = __pb_obj.bitcoin_acct_name();
 }
 
@@ -1766,7 +1766,7 @@ template <>
 void BitcoinServerPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
-    __pb_obj.set_server_id(server_id);
+    __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_server_type(server_type);
     __pb_obj.set_server_host(server_host);
     __pb_obj.set_server_port(server_port);
@@ -1777,7 +1777,7 @@ template <>
 void BitcoinServerPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
-    server_id = __pb_obj.server_id();
+    notary_id = __pb_obj.notary_id();
     server_type = __pb_obj.server_type();
     server_host = __pb_obj.server_host();
     server_port = __pb_obj.server_port();
@@ -1789,7 +1789,7 @@ template <>
 void RippleServerPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
-    __pb_obj.set_server_id(server_id);
+    __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_server_type(server_type);
     __pb_obj.set_server_host(server_host);
     __pb_obj.set_server_port(server_port);
@@ -1802,7 +1802,7 @@ template <>
 void RippleServerPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
-    server_id = __pb_obj.server_id();
+    notary_id = __pb_obj.notary_id();
     server_type = __pb_obj.server_type();
     server_host = __pb_obj.server_host();
     server_port = __pb_obj.server_port();
@@ -1816,7 +1816,7 @@ template <>
 void LoomServerPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
-    __pb_obj.set_server_id(server_id);
+    __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_server_type(server_type);
     __pb_obj.set_server_host(server_host);
     __pb_obj.set_server_port(server_port);
@@ -1827,7 +1827,7 @@ template <>
 void LoomServerPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
-    server_id = __pb_obj.server_id();
+    notary_id = __pb_obj.notary_id();
     server_type = __pb_obj.server_type();
     server_host = __pb_obj.server_host();
     server_port = __pb_obj.server_port();
@@ -1839,7 +1839,7 @@ template <>
 void MarketDataPB::hookBeforePack()
 {
     __pb_obj.set_gui_label(gui_label);
-    __pb_obj.set_server_id(server_id);
+    __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_market_id(market_id);
     __pb_obj.set_asset_type_id(asset_type_id);
     __pb_obj.set_currency_type_id(currency_type_id);
@@ -1862,7 +1862,7 @@ template <>
 void MarketDataPB::hookAfterUnpack()
 {
     gui_label = __pb_obj.gui_label();
-    server_id = __pb_obj.server_id();
+    notary_id = __pb_obj.notary_id();
     market_id = __pb_obj.market_id();
     asset_type_id = __pb_obj.asset_type_id();
     currency_type_id = __pb_obj.currency_type_id();
@@ -1990,7 +1990,7 @@ void OfferDataNymPB::hookBeforePack()
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_valid_from(valid_from);
     __pb_obj.set_valid_to(valid_to);
-    __pb_obj.set_server_id(server_id);
+    __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_asset_type_id(asset_type_id);
     __pb_obj.set_asset_acct_id(asset_acct_id);
     __pb_obj.set_currency_type_id(currency_type_id);
@@ -2013,7 +2013,7 @@ void OfferDataNymPB::hookAfterUnpack()
     gui_label = __pb_obj.gui_label();
     valid_from = __pb_obj.valid_from();
     valid_to = __pb_obj.valid_to();
-    server_id = __pb_obj.server_id();
+    notary_id = __pb_obj.notary_id();
     asset_type_id = __pb_obj.asset_type_id();
     asset_acct_id = __pb_obj.asset_acct_id();
     currency_type_id = __pb_obj.currency_type_id();

@@ -170,7 +170,7 @@ public:
     EXPORT OTMessageOutbuffer();
     EXPORT ~OTMessageOutbuffer();
 
-    EXPORT void Clear(const String* serverId = nullptr,
+    EXPORT void Clear(const String* notaryID = nullptr,
                       const String* nymId = nullptr, Nym* nym = nullptr,
                       const bool* harvestingForRetry = nullptr);
     // Allocate theMsg on the heap (takes ownership.) Mapped by request num.
@@ -181,10 +181,10 @@ public:
     EXPORT void AddSentMessage(Message& message);
     // null == not found. caller NOT responsible to delete.
     EXPORT Message* GetSentMessage(const int64_t& requestNum,
-                                   const String& serverId, const String& nymId);
+                                   const String& notaryID, const String& nymId);
     // true == it was removed. false == it wasn't found.
     EXPORT bool RemoveSentMessage(const int64_t& requestNum,
-                                  const String& serverId, const String& nymId);
+                                  const String& notaryID, const String& nymId);
     // null == not found. caller NOT responsible to delete.
     EXPORT Message* GetSentMessage(const OTTransaction& transaction);
     // true == it was removed. false == it wasn't found.

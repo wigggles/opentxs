@@ -247,7 +247,7 @@ bool Transactor::issueNextTransactionNumber(Nym& theNym,
     // numbers are valid for each Nym.
     else if (bStoreTheNumber && (false ==
                                  pNym->AddTransactionNum(server_->m_nymServer,
-                                                         server_->m_strServerID,
+                                                         server_->m_strNotaryID,
                                                          transactionNumber_,
                                                          true))) // bSave = true
     {
@@ -293,12 +293,12 @@ bool Transactor::verifyTransactionNumber(
         pNym = &server_->m_nymServer;
     else
         pNym = &theNym;
-    if (pNym->VerifyTransactionNum(server_->m_strServerID, lTransactionNumber))
+    if (pNym->VerifyTransactionNum(server_->m_strNotaryID, lTransactionNumber))
         return true;
     else {
         const String strNymID(NYM_ID);
         const String strIssued(
-            pNym->VerifyIssuedNum(server_->m_strServerID, lTransactionNumber)
+            pNym->VerifyIssuedNum(server_->m_strNotaryID, lTransactionNumber)
                 ? "(However, that number IS issued to that Nym... He must have "
                   "already used it.)\n"
                 : "(In fact, that number isn't even issued to that Nym, though "
@@ -338,12 +338,12 @@ bool Transactor::removeTransactionNumber(Nym& theNym,
 
     if (bSave)
         bRemoved = pNym->RemoveTransactionNum(
-            server_->m_nymServer, server_->m_strServerID,
+            server_->m_nymServer, server_->m_strNotaryID,
             lTransactionNumber); // the version that passes in a signer nym --
                                  // saves to local storage.
     else
         bRemoved = pNym->RemoveTransactionNum(
-            server_->m_strServerID,
+            server_->m_strNotaryID,
             lTransactionNumber); // the version that doesn't save.
 
     return bRemoved;
@@ -369,7 +369,7 @@ bool Transactor::removeIssuedNumber(Nym& theNym,
         pNym = &theNym;
 
     bool bRemoved =
-        pNym->RemoveIssuedNum(server_->m_nymServer, server_->m_strServerID,
+        pNym->RemoveIssuedNum(server_->m_nymServer, server_->m_strNotaryID,
                               lTransactionNumber, bSave);
 
     return bRemoved;
@@ -538,7 +538,7 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
 {
     std::shared_ptr<Account> pAccount;
     const Identifier SERVER_USER_ID(server_->m_nymServer),
-        SERVER_ID(server_->m_strServerID);
+        SERVER_ID(server_->m_strNotaryID);
     bool bWasAcctCreated = false;
     pAccount = voucherAccounts_.GetOrCreateAccount(
         server_->m_nymServer, SERVER_USER_ID, ASSET_TYPE_ID, SERVER_ID,
@@ -585,13 +585,13 @@ Mint* Transactor::getMint(const Identifier& ASSET_TYPE_ID,
     const String ASSET_ID_STR(ASSET_TYPE_ID);
 
     String strMintFilename;
-    strMintFilename.Format("%s%s%s%s%d", server_->m_strServerID.Get(),
+    strMintFilename.Format("%s%s%s%s%d", server_->m_strNotaryID.Get(),
                            OTLog::PathSeparator(), ASSET_ID_STR.Get(), ".",
                            nSeries);
 
     const char* szFoldername = OTFolders::Mint().Get();
     const char* szFilename = strMintFilename.Get();
-    pMint = Mint::MintFactory(server_->m_strServerID,
+    pMint = Mint::MintFactory(server_->m_strNotaryID,
                               server_->m_strServerUserID, ASSET_ID_STR);
 
     // You cannot hash the Mint to get its ID. (The ID is a hash of the asset

@@ -171,9 +171,9 @@ using namespace opentxs;
 
 void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt);
 bool SetupPointersForWalletMyNymAndServerContract(
-    std::string& str_ServerID, std::string& str_MyNym, Nym*& pMyNym,
+    std::string& str_NotaryID, std::string& str_MyNym, Nym*& pMyNym,
     OTWallet*& pWallet, OTServerContract*& pServerContract);
-void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
+void CollectDefaultedCLValues(AnyOption* opt, std::string& str_NotaryID,
                               std::string& str_MyAcct, std::string& str_MyNym,
                               std::string& str_MyPurse,
                               std::string& str_HisAcct, std::string& str_HisNym,
@@ -196,7 +196,7 @@ ACCT starting j43k)
 // If false, error happened, usually based on what user just attemped.
 //
 bool SetupPointersForWalletMyNymAndServerContract(
-    std::string& str_ServerID, std::string& str_MyNym, Nym*& pMyNym,
+    std::string& str_NotaryID, std::string& str_MyNym, Nym*& pMyNym,
     OTWallet*& pWallet, OTServerContract*& pServerContract)
 {
     // If we got down here, that means there were no commands on the command
@@ -222,21 +222,21 @@ bool SetupPointersForWalletMyNymAndServerContract(
 
     // Below this point, pWallet is available :-)
 
-    if (str_ServerID.size() > 0) {
-        const Identifier SERVER_ID(str_ServerID.c_str());
+    if (str_NotaryID.size() > 0) {
+        const Identifier SERVER_ID(str_NotaryID.c_str());
 
         pServerContract = pWallet->GetServerContract(SERVER_ID);
         // If failure, then we try PARTIAL match.
         if (nullptr == pServerContract)
             pServerContract =
-                pWallet->GetServerContractPartialMatch(str_ServerID);
+                pWallet->GetServerContractPartialMatch(str_NotaryID);
 
         if (nullptr != pServerContract) {
             String strTemp;
             pServerContract->GetIdentifier(strTemp);
 
-            str_ServerID = strTemp.Get();
-            otOut << "Using as server: " << str_ServerID << "\n";
+            str_NotaryID = strTemp.Get();
+            otOut << "Using as server: " << str_NotaryID << "\n";
         }
         else {
             otOut
@@ -366,7 +366,7 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
         "ot  --marketoffer    [--mynym  <nym_id> ]    (Place an offer "
         "on a market.)");
     opt->addUsage(
-        "Also, [--server <server_id>] will work with all of the above.");
+        "Also, [--server <notary_id>] will work with all of the above.");
     opt->addUsage("");
     opt->addUsage("Recurring payments:");
     opt->addUsage("ot --proposeplan  <arguments>   (Merchant)");
@@ -502,7 +502,7 @@ made a function to avoid duplicating code. These are values such
 as "my account ID" and "his NymID" that are provided on the command
 line, and which also can be defaulted in a config file in ~/.ot
 */
-void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
+void CollectDefaultedCLValues(AnyOption* opt, std::string& str_NotaryID,
                               std::string& str_MyAcct, std::string& str_MyNym,
                               std::string& str_MyPurse,
                               std::string& str_HisAcct, std::string& str_HisNym,
@@ -516,10 +516,10 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
     // file.
     //
     if (opt->getValue("defaultserver") != nullptr) {
-        //      cerr << "Server default: " << (str_ServerID = opt->getValue(
+        //      cerr << "Server default: " << (str_NotaryID = opt->getValue(
         // "defaultserver" )) << endl;
-        str_ServerID = opt->getValue("defaultserver");
-        otWarn << "Server default: " << str_ServerID << " \n";
+        str_NotaryID = opt->getValue("defaultserver");
+        otWarn << "Server default: " << str_NotaryID << " \n";
     }
 
     if (opt->getValue("defaultmyacct") != nullptr) {
@@ -564,10 +564,10 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_ServerID,
     // line.
 
     if (opt->getValue("server") != nullptr) {
-        //      cerr << "Server from command-line: " << (str_ServerID =
+        //      cerr << "Server from command-line: " << (str_NotaryID =
         // opt->getValue( "server" )) << endl;
-        str_ServerID = opt->getValue("server");
-        otWarn << "Server from command-line: " << str_ServerID << " \n";
+        str_NotaryID = opt->getValue("server");
+        otWarn << "Server from command-line: " << str_NotaryID << " \n";
     }
 
     if (opt->getValue("myacct") != nullptr) {
@@ -676,7 +676,7 @@ int32_t main(int32_t argc, char* argv[])
     // command line values such as account ID, Nym ID, etc.
     // Also available as defaults in a config file in the ~/.ot folder
     //
-    std::string str_ServerID;
+    std::string str_NotaryID;
 
     std::string str_MyAcct;
     std::string str_MyNym;
@@ -686,7 +686,7 @@ int32_t main(int32_t argc, char* argv[])
     std::string str_HisNym;
     std::string str_HisPurse;
 
-    CollectDefaultedCLValues(opt, str_ServerID, str_MyAcct, str_MyNym,
+    CollectDefaultedCLValues(opt, str_NotaryID, str_MyAcct, str_MyNym,
                              str_MyPurse, str_HisAcct, str_HisNym,
                              str_HisPurse);
     // Users can put --args "key value key value key value etc"
@@ -849,7 +849,7 @@ int32_t main(int32_t argc, char* argv[])
         //
         bool bMainPointersSetupSuccessful =
             SetupPointersForWalletMyNymAndServerContract(
-                str_ServerID, str_MyNym, pMyNym, pWallet, pServerContract);
+                str_NotaryID, str_MyNym, pMyNym, pWallet, pServerContract);
 
         OT_ASSERT_MSG(
             bMainPointersSetupSuccessful,
@@ -875,12 +875,12 @@ int32_t main(int32_t argc, char* argv[])
             //          return 0;
         }
 
-        Identifier theServerID;
-        String strServerID;
+        Identifier theNotaryID;
+        String strNotaryID;
 
         if (nullptr != pServerContract) {
-            pServerContract->GetIdentifier(theServerID);
-            theServerID.GetString(strServerID);
+            pServerContract->GetIdentifier(theNotaryID);
+            theNotaryID.GetString(strNotaryID);
         }
         //      int32_t       nServerPort = 0;
         //      OTString  strServerHostname;
@@ -896,7 +896,7 @@ int32_t main(int32_t argc, char* argv[])
         // nServerPort))
         //      {
         //          otErr << "Failed retrieving connection info from server "
-        //                   "contract: " << strServerID << "\n";
+        //                   "contract: " << strNotaryID << "\n";
         //          return 0;
         //      }
 
@@ -1200,9 +1200,9 @@ int32_t main(int32_t argc, char* argv[])
                           "arguments) isn't set...\n";
             }
 
-            if (str_ServerID.size() > 0) {
+            if (str_NotaryID.size() > 0) {
                 const std::string str_var_name("Server");
-                const std::string str_var_value(str_ServerID);
+                const std::string str_var_value(str_NotaryID);
 
                 otWarn << "Adding constant with name " << str_var_name
                        << " and value: " << str_var_value << " ...\n";
@@ -1483,7 +1483,7 @@ int32_t main(int32_t argc, char* argv[])
                   << pMyAccount->GetBalance() << "\n\n";
 
             Purse* pPurse = OTAPI_Wrap::OTAPI()->LoadPurse(
-                theServerID, thePurseAssetTypeID, MY_NYM_ID);
+                theNotaryID, thePurseAssetTypeID, MY_NYM_ID);
             std::unique_ptr<Purse> thePurseAngel(pPurse);
             if (nullptr != pPurse)
                 otOut << " CASH PURSE (client-side): "
@@ -1496,7 +1496,7 @@ int32_t main(int32_t argc, char* argv[])
         if ((nullptr == pServerNym) ||
             (false == pServerNym->VerifyPseudonym())) {
             otOut << "The server Nym was nullptr or failed to verify on server "
-                     "contract: " << strServerID << "\n";
+                     "contract: " << strNotaryID << "\n";
             return 0;
         }
         //
@@ -1556,10 +1556,10 @@ int32_t main(int32_t argc, char* argv[])
     // wallet,
     // although there is a COMMAND for doing that.)
     //
-    if ((str_ServerID.size() > 0) || (str_MyNym.size() > 0)) {
+    if ((str_NotaryID.size() > 0) || (str_MyNym.size() > 0)) {
         if (false ==
             SetupPointersForWalletMyNymAndServerContract(
-                str_ServerID, str_MyNym, pMyNym, pWallet, pServerContract)) {
+                str_NotaryID, str_MyNym, pMyNym, pWallet, pServerContract)) {
             return 0;
         }
     }
@@ -1609,7 +1609,7 @@ int32_t main(int32_t argc, char* argv[])
             otOut << "User has instructed to load wallet.xml...\n";
 
             if (!SetupPointersForWalletMyNymAndServerContract(
-                    str_ServerID, str_MyNym, pMyNym, pWallet,
+                    str_NotaryID, str_MyNym, pMyNym, pWallet,
                     pServerContract)) {
                 return 0;
             }
@@ -1664,25 +1664,25 @@ int32_t main(int32_t argc, char* argv[])
                 continue;
             }
 
-            String strServerID;
-            pServerContract->GetIdentifier(strServerID);
+            String strNotaryID;
+            pServerContract->GetIdentifier(strNotaryID);
 
             otOut << "You are trying to mess around with your (clear your) "
                      "request numbers.\n"
-                     "Enter the relevant server ID [" << strServerID << "]: ";
+                     "Enter the relevant server ID [" << strNotaryID << "]: ";
 
-            std::string str_ServerID = OT_CLI_ReadLine();
+            std::string str_NotaryID = OT_CLI_ReadLine();
 
-            const String strReqNumServerID((str_ServerID.size() > 0)
-                                               ? str_ServerID.c_str()
-                                               : strServerID.Get());
+            const String strReqNumNotaryID((str_NotaryID.size() > 0)
+                                               ? str_NotaryID.c_str()
+                                               : strNotaryID.Get());
 
-            pMyNym->RemoveReqNumbers(&strReqNumServerID);
+            pMyNym->RemoveReqNumbers(&strReqNumNotaryID);
 
             pMyNym->SaveSignedNymfile(*pMyNym);
 
             otOut << "Successfully removed request number for server "
-                  << strReqNumServerID << ". Saving nym...\n";
+                  << strReqNumNotaryID << ". Saving nym...\n";
             continue;
         }
         else if (strLine.compare(0, 5, "clear") == 0) {
@@ -1691,25 +1691,25 @@ int32_t main(int32_t argc, char* argv[])
                 continue;
             }
 
-            String strServerID;
-            pServerContract->GetIdentifier(strServerID);
+            String strNotaryID;
+            pServerContract->GetIdentifier(strNotaryID);
 
             otOut << "You are trying to mess around with your (clear your) "
                      "transaction numbers.\n"
-                     "Enter the relevant server ID [" << strServerID << "]: ";
+                     "Enter the relevant server ID [" << strNotaryID << "]: ";
 
-            std::string str_ServerID = OT_CLI_ReadLine();
+            std::string str_NotaryID = OT_CLI_ReadLine();
 
-            const String strTransNumServerID((str_ServerID.size() > 0)
-                                                 ? str_ServerID.c_str()
-                                                 : strServerID.Get());
+            const String strTransNumNotaryID((str_NotaryID.size() > 0)
+                                                 ? str_NotaryID.c_str()
+                                                 : strNotaryID.Get());
 
-            pMyNym->RemoveAllNumbers(&strTransNumServerID,
+            pMyNym->RemoveAllNumbers(&strTransNumNotaryID,
                                      true); // bRemoveHighestNum = true.
             pMyNym->SaveSignedNymfile(*pMyNym);
 
             otOut << "Successfully removed all issued and transaction "
-                     "numbers for server " << strTransNumServerID
+                     "numbers for server " << strTransNumNotaryID
                   << ". Saving nym...\n";
             continue;
         }
@@ -2078,21 +2078,21 @@ int32_t main(int32_t argc, char* argv[])
                 ((strlen(buf) > 2) ? String::StringToLong(&(buf[2])) : 0);
 
             if (lTransactionNumber > 0) {
-                String strServerID;
-                pServerContract->GetIdentifier(strServerID);
+                String strNotaryID;
+                pServerContract->GetIdentifier(strNotaryID);
 
                 otOut << "You are trying to mess around with your (add to "
                          "your) transaction numbers.\n"
-                         "Enter the relevant server ID [" << strServerID
+                         "Enter the relevant server ID [" << strNotaryID
                       << "]: ";
 
-                std::string str_ServerID = OT_CLI_ReadLine();
+                std::string str_NotaryID = OT_CLI_ReadLine();
 
-                const String strTransNumServerID((str_ServerID.size() > 0)
-                                                     ? str_ServerID.c_str()
-                                                     : strServerID.Get());
+                const String strTransNumNotaryID((str_NotaryID.size() > 0)
+                                                     ? str_NotaryID.c_str()
+                                                     : strNotaryID.Get());
 
-                pMyNym->AddTransactionNum(*pMyNym, strTransNumServerID,
+                pMyNym->AddTransactionNum(*pMyNym, strTransNumNotaryID,
                                           lTransactionNumber,
                                           true); // bool bSave=true
 

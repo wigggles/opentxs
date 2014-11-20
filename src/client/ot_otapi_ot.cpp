@@ -202,7 +202,7 @@ OTAPI_Func::~OTAPI_Func()
 {
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID)
 {
     // otOut << "(Version of OTAPI_Func with 3 arguments.)\n";
@@ -211,21 +211,21 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_strParam)
 {
     // otOut << "(Version of OTAPI_Func with 4 arguments.)\n";
@@ -234,8 +234,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
@@ -245,7 +245,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
@@ -273,7 +273,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_strParam,
                        const string& p_strData)
 {
@@ -283,8 +283,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID \n";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID \n";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID \n";
@@ -299,7 +299,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
@@ -323,7 +323,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_strParam,
                        int64_t p_lData)
 {
@@ -333,8 +333,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID \n";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID \n";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID \n";
@@ -345,7 +345,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
@@ -363,7 +363,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_nymID2,
                        const string& p_strData, const string& p_strData2)
 {
@@ -372,8 +372,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
@@ -389,7 +389,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
@@ -431,7 +431,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, int64_t p_lData,
                        const string& p_strData2)
@@ -442,8 +442,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
@@ -456,7 +456,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
@@ -476,7 +476,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, const string& p_strData,
                        int64_t p_lData2)
@@ -487,8 +487,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
@@ -501,7 +501,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
@@ -529,7 +529,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_accountID,
                        const string& p_strParam, const string& p_strData,
                        const string& p_strData2)
@@ -540,8 +540,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
@@ -554,7 +554,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = 1;
     bBool = false;
@@ -582,7 +582,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& p_assetID,
                        const string& p_basket, const string& p_accountID,
                        bool p_bBool, int32_t p_nTransNumsNeeded)
@@ -593,8 +593,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
@@ -610,7 +610,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     nTransNumsNeeded = p_nTransNumsNeeded;
     bBool = p_bBool;
@@ -619,7 +619,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     accountID = p_accountID;
 }
 
-OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
+OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
                        const string& p_nymID, const string& assetAccountID,
                        const string& currencyAcctID, const string& scale,
                        const string& minIncrement, const string& quantity,
@@ -631,8 +631,8 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
 
     string strError =
         "ERROR! Empty string passed to OTAPI_Func.OTAPI_Func() as: ";
-    if (!VerifyStringVal(p_serverID)) {
-        otOut << strError << "p_serverID";
+    if (!VerifyStringVal(p_notaryID)) {
+        otOut << strError << "p_notaryID";
     }
     if (!VerifyStringVal(p_nymID)) {
         otOut << strError << "p_nymID";
@@ -657,7 +657,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_serverID,
     }
 
     funcType = theType;
-    serverID = p_serverID;
+    notaryID = p_notaryID;
     nymID = p_nymID;
     accountID = assetAccountID;
     accountID2 = currencyAcctID;
@@ -684,86 +684,86 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     //
     switch (funcType) {
     case CHECK_NYM:
-        return OTAPI_Wrap::checkNym(serverID, nymID, nymID2);
+        return OTAPI_Wrap::checkNym(notaryID, nymID, nymID2);
     case REGISTER_NYM:
-        return OTAPI_Wrap::registerNym(serverID, nymID);
+        return OTAPI_Wrap::registerNym(notaryID, nymID);
     case DELETE_NYM:
-        return OTAPI_Wrap::deleteNym(serverID, nymID);
+        return OTAPI_Wrap::deleteNym(notaryID, nymID);
     case SEND_USER_MESSAGE:
-        return OTAPI_Wrap::sendNymMessage(serverID, nymID, nymID2, strData,
+        return OTAPI_Wrap::sendNymMessage(notaryID, nymID, nymID2, strData,
                                           strData2);
     case SEND_USER_INSTRUMENT:
         // accountID stores here the sender's copy of the instrument, which is
         // used only in the case of a cash purse.
-        return OTAPI_Wrap::sendNymInstrument(serverID, nymID, nymID2, strData,
+        return OTAPI_Wrap::sendNymInstrument(notaryID, nymID, nymID2, strData,
                                              strData2, accountID);
     case GET_NYM_MARKET_OFFERS:
-        return OTAPI_Wrap::getNym_MarketOffers(serverID, nymID);
+        return OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID);
     case CREATE_ASSET_ACCT:
-        return OTAPI_Wrap::createAssetAccount(serverID, nymID, assetID);
+        return OTAPI_Wrap::createAssetAccount(notaryID, nymID, assetID);
     case DELETE_ASSET_ACCT:
-        return OTAPI_Wrap::deleteAssetAccount(serverID, nymID, accountID);
+        return OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID);
     case ACTIVATE_SMART_CONTRACT:
-        return OTAPI_Wrap::activateSmartContract(serverID, nymID, strData2);
+        return OTAPI_Wrap::activateSmartContract(notaryID, nymID, strData2);
     case TRIGGER_CLAUSE:
-        return OTAPI_Wrap::triggerClause(serverID, nymID, stoll(strData),
+        return OTAPI_Wrap::triggerClause(notaryID, nymID, stoll(strData),
                                          strData2, strData3);
     case EXCHANGE_BASKET:
-        return OTAPI_Wrap::exchangeBasket(serverID, nymID, assetID, basket,
+        return OTAPI_Wrap::exchangeBasket(notaryID, nymID, assetID, basket,
                                           bBool);
     case GET_CONTRACT:
-        return OTAPI_Wrap::getContract(serverID, nymID, assetID);
+        return OTAPI_Wrap::getContract(notaryID, nymID, assetID);
     case GET_MINT:
-        return OTAPI_Wrap::getMint(serverID, nymID, assetID);
+        return OTAPI_Wrap::getMint(notaryID, nymID, assetID);
     case QUERY_ASSET_TYPES:
-        return OTAPI_Wrap::queryAssetTypes(serverID, nymID, strData);
+        return OTAPI_Wrap::queryAssetTypes(notaryID, nymID, strData);
     case ISSUE_ASSET_TYPE:
-        return OTAPI_Wrap::issueAssetType(serverID, nymID, strData);
+        return OTAPI_Wrap::issueAssetType(notaryID, nymID, strData);
     case ISSUE_BASKET:
-        return OTAPI_Wrap::issueBasket(serverID, nymID, basket);
+        return OTAPI_Wrap::issueBasket(notaryID, nymID, basket);
     case EXCHANGE_CASH:
-        return OTAPI_Wrap::exchangePurse(serverID, assetID, nymID, strData);
+        return OTAPI_Wrap::exchangePurse(notaryID, assetID, nymID, strData);
     case KILL_MARKET_OFFER:
-        return OTAPI_Wrap::killMarketOffer(serverID, nymID, accountID,
+        return OTAPI_Wrap::killMarketOffer(notaryID, nymID, accountID,
                                            stoll(strData));
     case KILL_PAYMENT_PLAN:
-        return OTAPI_Wrap::killPaymentPlan(serverID, nymID, accountID,
+        return OTAPI_Wrap::killPaymentPlan(notaryID, nymID, accountID,
                                            stoll(strData));
     case GET_BOX_RECEIPT:
-        return OTAPI_Wrap::getBoxReceipt(serverID, nymID, accountID, nData,
+        return OTAPI_Wrap::getBoxReceipt(notaryID, nymID, accountID, nData,
                                          stoll(strData));
     case PROCESS_INBOX:
-        return OTAPI_Wrap::processInbox(serverID, nymID, accountID, strData);
+        return OTAPI_Wrap::processInbox(notaryID, nymID, accountID, strData);
     case DEPOSIT_CASH:
-        return OTAPI_Wrap::notarizeDeposit(serverID, nymID, accountID, strData);
+        return OTAPI_Wrap::notarizeDeposit(notaryID, nymID, accountID, strData);
     case DEPOSIT_CHEQUE:
-        return OTAPI_Wrap::depositCheque(serverID, nymID, accountID, strData);
+        return OTAPI_Wrap::depositCheque(notaryID, nymID, accountID, strData);
     case DEPOSIT_PAYMENT_PLAN:
-        return OTAPI_Wrap::depositPaymentPlan(serverID, nymID, strData);
+        return OTAPI_Wrap::depositPaymentPlan(notaryID, nymID, strData);
     case WITHDRAW_CASH:
-        return OTAPI_Wrap::notarizeWithdrawal(serverID, nymID, accountID,
+        return OTAPI_Wrap::notarizeWithdrawal(notaryID, nymID, accountID,
                                               lData);
     case WITHDRAW_VOUCHER:
-        return OTAPI_Wrap::withdrawVoucher(serverID, nymID, accountID, nymID2,
+        return OTAPI_Wrap::withdrawVoucher(notaryID, nymID, accountID, nymID2,
                                            strData, lData);
     case PAY_DIVIDEND:
-        return OTAPI_Wrap::payDividend(serverID, nymID, accountID, assetID,
+        return OTAPI_Wrap::payDividend(notaryID, nymID, accountID, assetID,
                                        strData, lData);
     case SEND_TRANSFER:
-        return OTAPI_Wrap::notarizeTransfer(serverID, nymID, accountID,
+        return OTAPI_Wrap::notarizeTransfer(notaryID, nymID, accountID,
                                             accountID2, lData, strData);
     case GET_MARKET_LIST:
-        return OTAPI_Wrap::getMarketList(serverID, nymID);
+        return OTAPI_Wrap::getMarketList(notaryID, nymID);
     case GET_MARKET_OFFERS:
-        return OTAPI_Wrap::getMarketOffers(serverID, nymID, strData, lData);
+        return OTAPI_Wrap::getMarketOffers(notaryID, nymID, strData, lData);
     case GET_MARKET_RECENT_TRADES:
-        return OTAPI_Wrap::getMarketRecentTrades(serverID, nymID, strData);
+        return OTAPI_Wrap::getMarketRecentTrades(notaryID, nymID, strData);
     case CREATE_MARKET_OFFER:
         return OTAPI_Wrap::issueMarketOffer(
             accountID, accountID2, stoll(strData), stoll(strData2),
             stoll(strData3), stoll(strData4), bBool, tData, strData5, lData);
     case ADJUST_USAGE_CREDITS:
-        return OTAPI_Wrap::usageCredits(serverID, nymID, nymID2,
+        return OTAPI_Wrap::usageCredits(notaryID, nymID, nymID2,
                                         stoll(strData));
     default:
         break;
@@ -834,7 +834,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
     Utility MsgUtil;
     string strLocation = "OTAPI_Func::SendTransaction: " + IN_FUNCTION;
 
-    if (!MsgUtil.getIntermediaryFiles(theFunction.serverID, theFunction.nymID,
+    if (!MsgUtil.getIntermediaryFiles(theFunction.notaryID, theFunction.nymID,
                                       theFunction.accountID,
                                       false)) // bForceDownload=false))
     {
@@ -846,7 +846,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
     // GET TRANSACTION NUMBERS HERE IF NECESSARY.
     //
     int32_t getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
-        theFunction.serverID, theFunction.nymID);
+        theFunction.notaryID, theFunction.nymID);
     int32_t configTxnCount = MsgUtil.getNbrTransactionCount();
     bool b1 = (theFunction.nTransNumsNeeded > configTxnCount);
     int32_t comparative = 0;
@@ -863,13 +863,13 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
                                 "perform this transaction. Grabbing more "
                                 "now...\n";
         MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(theFunction.serverID, theFunction.nymID);
+        MsgUtil.getTransactionNumbers(theFunction.notaryID, theFunction.nymID);
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // second try
     getnym_trnsnum_count =
-        OTAPI_Wrap::GetNym_TransactionNumCount(serverID, nymID);
+        OTAPI_Wrap::GetNym_TransactionNumCount(notaryID, nymID);
     if (getnym_trnsnum_count < comparative) {
         otOut
             << strLocation
@@ -879,13 +879,13 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         // it can skip the first call to getTransNumLowLevel)
         //
         MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(serverID, nymID, false);
+        MsgUtil.getTransactionNumbers(notaryID, nymID, false);
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // third try
     getnym_trnsnum_count =
-        OTAPI_Wrap::GetNym_TransactionNumCount(serverID, nymID);
+        OTAPI_Wrap::GetNym_TransactionNumCount(notaryID, nymID);
     if (getnym_trnsnum_count < comparative) {
         otOut
             << strLocation
@@ -895,14 +895,14 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         // it can skip the first call to getTransNumLowLevel)
         //
         MsgUtil.setNbrTransactionCount(comparative);
-        MsgUtil.getTransactionNumbers(serverID, nymID, false);
+        MsgUtil.getTransactionNumbers(notaryID, nymID, false);
         MsgUtil.setNbrTransactionCount(configTxnCount);
     }
 
     // Giving up, if still a failure by this point.
     //
     getnym_trnsnum_count = OTAPI_Wrap::GetNym_TransactionNumCount(
-        theFunction.serverID, theFunction.nymID);
+        theFunction.notaryID, theFunction.nymID);
 
     if (getnym_trnsnum_count < comparative) {
         otOut
@@ -919,7 +919,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
     if (VerifyStringVal(strResult)) {
         otOut << " Getting Intermediary files.. \n";
 
-        if (!MsgUtil.getIntermediaryFiles(theFunction.serverID,
+        if (!MsgUtil.getIntermediaryFiles(theFunction.notaryID,
                                           theFunction.nymID,
                                           theFunction.accountID, true)) {
             otOut << strLocation << ", getIntermediaryFiles returned false. "
@@ -969,7 +969,7 @@ OT_OTAPI_OT string OTAPI_Func::SendTransaction(OTAPI_Func& theFunction,
         // see the results of our success. So we get these either way...
         //
         if (VerifyStringVal(strResult)) {
-            if (!MsgUtil.getIntermediaryFiles(theFunction.serverID,
+            if (!MsgUtil.getIntermediaryFiles(theFunction.notaryID,
                                               theFunction.nymID,
                                               theFunction.accountID, true)) {
                 otOut << strLocation
@@ -1026,7 +1026,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
         }
 
         strReply = MsgUtil.ReceiveReplyLowLevel(
-            theFunction.serverID, theFunction.nymID, nlocalRequestNum,
+            theFunction.notaryID, theFunction.nymID, nlocalRequestNum,
             IN_FUNCTION); // <==== Here we RECEIVE the REPLY...;
     }
 
@@ -1073,7 +1073,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                               // transaction was, too.
         {
             nBalanceSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
-                theFunction.serverID, theFunction.nymID, theFunction.accountID,
+                theFunction.notaryID, theFunction.nymID, theFunction.accountID,
                 strReply);
 
             if (nBalanceSuccess > 0) {
@@ -1093,7 +1093,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 //
                 int32_t nTransCancelled =
                     OTAPI_Wrap::Message_IsTransactionCanceled(
-                        theFunction.serverID, theFunction.nymID,
+                        theFunction.notaryID, theFunction.nymID,
                         theFunction.accountID, strReply);
 
                 // If it's not cancelled, then we assume it's a normal
@@ -1102,7 +1102,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 //
                 if (1 != nTransCancelled) {
                     nTransSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
-                        theFunction.serverID, theFunction.nymID,
+                        theFunction.notaryID, theFunction.nymID,
                         theFunction.accountID, strReply);
                 }
                 else // If it WAS cancelled, then for the UI we say "Success"
@@ -1192,7 +1192,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
         //
         //          var nRemoved =
         // OTAPI_Wrap::RemoveSentMessage(Integer.toString(nlocalRequestNum),
-        // theFunction.serverID, theFunction.nymID);
+        // theFunction.notaryID, theFunction.nymID);
         //
         // NOTE: The above call is unnecessary, since a successful reply means
         // we already received the successful server reply, and OT's
@@ -1222,7 +1222,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
     {
         bool bWasGetReqSent = false;
         int32_t nGetRequestNumber = MsgUtil.getRequestNumber(
-            theFunction.serverID, theFunction.nymID,
+            theFunction.notaryID, theFunction.nymID,
             bWasGetReqSent); // <==== RE-SYNC ATTEMPT...;
 
         // GET REQUEST WAS A SUCCESS.
@@ -1241,7 +1241,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 //
                 bool bForceDownload = true;
                 if (!MsgUtil.getIntermediaryFiles(
-                        theFunction.serverID, theFunction.nymID,
+                        theFunction.notaryID, theFunction.nymID,
                         theFunction.accountID, bForceDownload)) {
                     otOut << strLocation << ", getIntermediaryFiles returned "
                                             "false. (After a failure to send "
@@ -1259,7 +1259,7 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 bForceDownload = false;
 
                 int32_t nProcessNymboxResult = MsgUtil.getAndProcessNymbox_8(
-                    theFunction.serverID, theFunction.nymID, bWasSent,
+                    theFunction.notaryID, theFunction.nymID, bWasSent,
                     bForceDownload, nlocalRequestNum, bWasFound,
                     bWillRetryAfterThis, the_foursome);
 
@@ -1294,13 +1294,13 @@ OT_OTAPI_OT string OTAPI_Func::SendRequestOnce(OTAPI_Func& theFunction,
                 //
                 else if (bWasSent && (nProcessNymboxResult > 1)) {
                     string strNymbox = OTAPI_Wrap::LoadNymboxNoVerify(
-                        theFunction.serverID,
+                        theFunction.notaryID,
                         theFunction.nymID); // FLUSH SENT MESSAGES!!!!  (AND
                                             // HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
                         OTAPI_Wrap::FlushSentMessages(
-                            false, theFunction.serverID, theFunction.nymID,
+                            false, theFunction.notaryID, theFunction.nymID,
                             strNymbox);
                     }
                 }
@@ -1343,15 +1343,15 @@ the_lambda_struct::the_lambda_struct()
 {
 }
 
-OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& serverID,
+OT_OTAPI_OT OTDB::OfferListNym* loadNymOffers(const string& notaryID,
                                               const string& nymID)
 {
     OTDB::OfferListNym* offerList = nullptr;
 
-    if (OTDB::Exists("nyms", serverID, "offers", nymID + ".bin")) {
+    if (OTDB::Exists("nyms", notaryID, "offers", nymID + ".bin")) {
         otWarn << "Offers file exists... Querying nyms...\n";
         OTDB::Storable* storable =
-            OTDB::QueryObject(OTDB::STORED_OBJ_OFFER_LIST_NYM, "nyms", serverID,
+            OTDB::QueryObject(OTDB::STORED_OBJ_OFFER_LIST_NYM, "nyms", notaryID,
                               "offers", nymID + ".bin");
 
         if (nullptr == storable) {

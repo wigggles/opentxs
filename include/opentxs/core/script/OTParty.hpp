@@ -237,17 +237,17 @@ public:
     // Set aside all the necessary transaction #s from the various Nyms.
     // (Assumes those Nym pointers are available inside their various agents.)
     //
-    bool ReserveTransNumsForConfirm(const String& strServerID);
-    void HarvestAllTransactionNumbers(const String& strServerID);
-    void HarvestOpeningNumber(const String& strServerID);
-    void HarvestOpeningNumber(OTAgent& theAgent, const String& strServerID);
-    void HarvestOpeningNumber(Nym& theNym, const String& strServerID);
-    void CloseoutOpeningNumber(const String& strServerID, bool bSave = false,
+    bool ReserveTransNumsForConfirm(const String& strNotaryID);
+    void HarvestAllTransactionNumbers(const String& strNotaryID);
+    void HarvestOpeningNumber(const String& strNotaryID);
+    void HarvestOpeningNumber(OTAgent& theAgent, const String& strNotaryID);
+    void HarvestOpeningNumber(Nym& theNym, const String& strNotaryID);
+    void CloseoutOpeningNumber(const String& strNotaryID, bool bSave = false,
                                Nym* pSignerNym = nullptr);
-    void HarvestClosingNumbers(const String& strServerID, bool bSave = false,
+    void HarvestClosingNumbers(const String& strNotaryID, bool bSave = false,
                                Nym* pSignerNym = nullptr);
-    void HarvestClosingNumbers(OTAgent& theAgent, const String& strServerID);
-    void HarvestClosingNumbers(Nym& theNym, const String& strServerID);
+    void HarvestClosingNumbers(OTAgent& theAgent, const String& strNotaryID);
+    void HarvestClosingNumbers(Nym& theNym, const String& strNotaryID);
     // Iterates through the agents.
     //
     bool DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
@@ -258,13 +258,13 @@ public:
     // Iterates through the accounts.
     //
     bool DropFinalReceiptToInboxes(mapOfNyms* pNymMap,
-                                   const String& strServerID, Nym& theServerNym,
+                                   const String& strNotaryID, Nym& theServerNym,
                                    const int64_t& lNewTransactionNumber,
                                    const String& strOrigCronItem,
                                    String* pstrNote = nullptr,
                                    String* pstrAttachment = nullptr);
     bool SendNoticeToParty(bool bSuccessMsg, Nym& theServerNym,
-                           const Identifier& theServerID,
+                           const Identifier& theNotaryID,
                            const int64_t& lNewTransactionNumber,
                            // const int64_t& lInReferenceTo,
                            // We use GetOpenTransNo() now.
@@ -416,7 +416,7 @@ public:
                         OTPartyAccount** ppPartyAccount = nullptr) const;
     bool VerifyOwnershipOfAccount(const Account& theAccount) const;
     bool VerifyAccountsWithTheirAgents(Nym& theSignerNym,
-                                       const String& strServerID,
+                                       const String& strNotaryID,
                                        bool bBurnTransNo = false);
     EXPORT bool CopyAcctsToConfirmingParty(OTParty& theParty)
         const; // When confirming a party, a new version replaces the original.
@@ -427,7 +427,7 @@ public:
                                 mapOfNyms& map_NewlyLoaded);
 
     bool LoadAndVerifyAssetAccounts(Nym& theServerNym,
-                                    const String& strServerID,
+                                    const String& strNotaryID,
                                     mapOfAccounts& map_Accts_Already_Loaded,
                                     mapOfAccounts& map_NewlyLoaded);
 

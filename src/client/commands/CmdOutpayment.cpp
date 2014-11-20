@@ -221,7 +221,7 @@ bool CmdOutpayment::showOutpayment(const string& mynym, int32_t index,
         cout << "Verified outpayment message " << index << "\n";
     }
 
-    string server = OTAPI_Wrap::GetNym_OutpaymentsServerIDByIndex(mynym, index);
+    string server = OTAPI_Wrap::GetNym_OutpaymentsNotaryIDByIndex(mynym, index);
     string recipient =
         OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex(mynym, index);
     int64_t amount = OTAPI_Wrap::Instrmnt_GetAmount(payment);

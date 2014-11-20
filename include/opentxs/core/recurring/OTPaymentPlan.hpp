@@ -507,11 +507,11 @@ public:
      : OTContract()
 
      inline const OTIdentifier& GetAssetID() const { return m_AssetTypeID; }
-     inline const OTIdentifier& GetServerID() const { return m_ServerID; }
+     inline const OTIdentifier& GetNotaryID() const { return m_NotaryID; }
 
      inline void SetAssetID(const OTIdentifier& ASSET_ID)  { m_AssetTypeID    =
      ASSET_ID; }
-     inline void SetServerID(const OTIdentifier& SERVER_ID) { m_ServerID    =
+     inline void SetNotaryID(const OTIdentifier& SERVER_ID) { m_NotaryID    =
      SERVER_ID; }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }

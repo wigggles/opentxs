@@ -177,7 +177,7 @@ public:
     void ProcessCron();
 
 private:
-    bool SendInstrumentToNym(const Identifier& serverId,
+    bool SendInstrumentToNym(const Identifier& notaryID,
                              const Identifier& senderUserId,
                              const Identifier& recipientUserId,
                              Message* msg = nullptr,
@@ -186,7 +186,7 @@ private:
 
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
-    bool DropMessageToNymbox(const Identifier& serverId,
+    bool DropMessageToNymbox(const Identifier& notaryID,
                              const Identifier& senderUserId,
                              const Identifier& recipientUserId,
                              OTTransaction::transactionType transactionType,
@@ -208,7 +208,7 @@ private:
     bool m_bShutdownFlag;
 
     // A hash of the server contract
-    String m_strServerID;
+    String m_strNotaryID;
     // A hash of the public key that signed the server contract
     String m_strServerUserID;
     // This is the server's own contract, containing its public key and

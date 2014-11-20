@@ -248,7 +248,7 @@ protected:
 
     Identifier m_AssetTypeID;  // These are for convenience only, for caching
                                // once they happen to be loaded.
-    Identifier m_ServerID;     // These values are NOT serialized other than via
+    Identifier m_NotaryID;     // These values are NOT serialized other than via
                                // the payment instrument itself
     Identifier m_SenderUserID; // (where they are captured from, whenever it
                                // is instantiated.) Until m_bAreTempValuesSet
@@ -357,7 +357,7 @@ public:
     EXPORT bool HasTransactionNum(const int64_t& lInput) const;
     EXPORT bool GetMemo(String& strOutput) const;
     EXPORT bool GetAssetTypeID(Identifier& theOutput) const;
-    EXPORT bool GetServerID(Identifier& theOutput) const;
+    EXPORT bool GetNotaryID(Identifier& theOutput) const;
     EXPORT bool GetSenderUserID(Identifier& theOutput) const;
     EXPORT bool GetSenderAcctID(Identifier& theOutput) const;
     EXPORT bool GetRecipientUserID(Identifier& theOutput) const;

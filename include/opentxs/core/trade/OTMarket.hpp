@@ -263,7 +263,7 @@ public:
     {
         m_CURRENCY_TYPE_ID = CURRENCY_ID;
     }
-    void SetServerID(const Identifier& SERVER_ID)
+    void SetNotaryID(const Identifier& SERVER_ID)
     {
         m_SERVER_ID = SERVER_ID;
     }
@@ -276,7 +276,7 @@ public:
     {
         return m_CURRENCY_TYPE_ID;
     }
-    inline const Identifier& GetServerID() const
+    inline const Identifier& GetNotaryID() const
     {
         return m_SERVER_ID;
     }

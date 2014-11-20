@@ -397,8 +397,8 @@ bool ConfigLoader::load(String& walletFilename)
                              ServerSettings::__cmd_issue_asset);
     p_Config->SetOption_bool("permissions", "cmd_get_contract",
                              ServerSettings::__cmd_get_contract);
-    p_Config->SetOption_bool("permissions", "cmd_check_server_id",
-                             ServerSettings::__cmd_check_server_id);
+    p_Config->SetOption_bool("permissions", "cmd_check_notary_id",
+                             ServerSettings::__cmd_check_notary_id);
     p_Config->SetOption_bool("permissions", "cmd_create_user_acct",
                              ServerSettings::__cmd_create_user_acct);
     p_Config->SetOption_bool("permissions", "cmd_del_user_acct",

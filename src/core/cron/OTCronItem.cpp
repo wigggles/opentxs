@@ -261,30 +261,30 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
 // static
 OTCronItem* OTCronItem::LoadActiveCronReceipt(
     const int64_t& lTransactionNum,
-    const Identifier& serverID) // Client-side only.
+    const Identifier& notaryID) // Client-side only.
 {
-    String strFilename, strServerID(serverID);
+    String strFilename, strNotaryID(notaryID);
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
 
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
 
-    if (!OTDB::Exists(szFoldername, strServerID.Get(), szFilename)) {
+    if (!OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
+              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
               << szFilename << "\n";
         return nullptr;
     }
 
     String strFileContents(
-        OTDB::QueryPlainString(szFoldername, strServerID.Get(),
+        OTDB::QueryPlainString(szFoldername, strNotaryID.Get(),
                                szFilename)); // <=== LOADING FROM DATA STORE.
 
     if (strFileContents.GetLength() < 2) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error reading file: " << szFoldername
-              << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
+              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
               << szFilename << "\n";
         return nullptr;
     }
@@ -302,7 +302,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
 // Client-side only.
 bool OTCronItem::GetActiveCronTransNums(OTNumList& output,
                                         const Identifier& nymID,
-                                        const Identifier& serverID)
+                                        const Identifier& notaryID)
 {
     const char* szFoldername = OTFolders::Cron().Get();
 
@@ -310,14 +310,14 @@ bool OTCronItem::GetActiveCronTransNums(OTNumList& output,
 
     // We need to load up the local list of active (recurring) transactions.
     //
-    String strListFilename(nymID), strServerID(serverID);
+    String strListFilename(nymID), strNotaryID(notaryID);
     strListFilename.Concatenate(".lst"); // nymID.lst
 
-    if (OTDB::Exists(szFoldername, strServerID.Get(), strListFilename.Get())) {
+    if (OTDB::Exists(szFoldername, strNotaryID.Get(), strListFilename.Get())) {
         // Load up existing list, if it exists.
         //
         String strNumlist(OTDB::QueryPlainString(
-            szFoldername, strServerID.Get(), strListFilename.Get()));
+            szFoldername, strNotaryID.Get(), strListFilename.Get()));
 
         if (strNumlist.Exists()) {
             if (false ==
@@ -343,9 +343,9 @@ bool OTCronItem::GetActiveCronTransNums(OTNumList& output,
 // Client-side only.
 bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
                                         const Identifier& nymID,
-                                        const Identifier& serverID)
+                                        const Identifier& notaryID)
 {
-    String strFilename, strServerID(serverID);
+    String strFilename, strNotaryID(notaryID);
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
 
     const char* szFoldername = OTFolders::Cron().Get();
@@ -359,13 +359,13 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
     String strListFilename(nymID);
     strListFilename.Concatenate(".lst"); // nymID.lst
 
-    if (OTDB::Exists(szFoldername, strServerID.Get(), strListFilename.Get())) {
+    if (OTDB::Exists(szFoldername, strNotaryID.Get(), strListFilename.Get())) {
         // Load up existing list, to remove the transaction num from it.
         //
         OTNumList numlist;
 
         String strNumlist(OTDB::QueryPlainString(
-            szFoldername, strServerID.Get(), strListFilename.Get()));
+            szFoldername, strNotaryID.Get(), strListFilename.Get()));
 
         if (strNumlist.Exists()) {
             if (false ==
@@ -387,11 +387,11 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
         if (numlist.Count() > 0) numlist.Remove(lTransactionNum);
 
         if (0 == numlist.Count()) {
-            if (!OTDB::EraseValueByKey(szFoldername, strServerID.Get(),
+            if (!OTDB::EraseValueByKey(szFoldername, strNotaryID.Get(),
                                        strListFilename.Get())) {
                 otOut << "OTCronItem::" << __FUNCTION__
                       << ": FYI, failure erasing recurring IDs file: "
-                      << szFoldername << OTLog::PathSeparator() << strServerID
+                      << szFoldername << OTLog::PathSeparator() << strNotaryID
                       << OTLog::PathSeparator() << strListFilename << "\n";
             }
         }
@@ -408,19 +408,19 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
                 otErr << "OTCronItem::" << __FUNCTION__
                       << ": Error re-saving recurring IDs (failed writing "
                          "armored string): " << szFoldername
-                      << OTLog::PathSeparator() << strServerID
+                      << OTLog::PathSeparator() << strNotaryID
                       << OTLog::PathSeparator() << strListFilename << "\n";
                 return false;
             }
             else {
                 bool bSaved = OTDB::StorePlainString(
-                    strFinal.Get(), szFoldername, strServerID.Get(),
+                    strFinal.Get(), szFoldername, strNotaryID.Get(),
                     strListFilename.Get());
 
                 if (!bSaved) {
                     otErr << "OTCronItem::" << __FUNCTION__
                           << ": Error re-saving recurring IDs: " << szFoldername
-                          << OTLog::PathSeparator() << strServerID
+                          << OTLog::PathSeparator() << strNotaryID
                           << OTLog::PathSeparator() << strListFilename << "\n";
                     return false;
                 }
@@ -431,18 +431,18 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
     // Now that the list is updated, let's go ahead and erase the actual cron
     // item itself.
     //
-    if (!OTDB::Exists(szFoldername, strServerID.Get(), szFilename)) {
+    if (!OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
+              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
               << szFilename << "\n";
         return false;
     }
 
-    if (!OTDB::EraseValueByKey(szFoldername, strServerID.Get(), szFilename)) {
+    if (!OTDB::EraseValueByKey(szFoldername, strNotaryID.Get(), szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error erasing file: " << szFoldername
-              << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
+              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
               << szFilename << "\n";
         return false;
     }
@@ -455,17 +455,17 @@ bool OTCronItem::SaveActiveCronReceipt(
 {
     const int64_t lOpeningNum = GetOpeningNumber(theNymID);
 
-    String strFilename, strServerID(GetServerID());
+    String strFilename, strNotaryID(GetNotaryID());
     strFilename.Format("%" PRId64 ".crn", lOpeningNum);
 
     const char* szFoldername = OTFolders::Cron().Get(); // cron
     const char* szFilename = strFilename.Get(); // cron/TRANSACTION_NUM.crn
 
-    if (OTDB::Exists(szFoldername, strServerID.Get(), szFilename)) {
+    if (OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename)) {
         otInfo << "OTCronItem::" << __FUNCTION__
                << ": Cron Record already exists for transaction "
                << GetTransactionNum() << " " << szFoldername
-               << OTLog::PathSeparator() << strServerID
+               << OTLog::PathSeparator() << strNotaryID
                << OTLog::PathSeparator() << szFilename << ", "
                                                           "overwriting.\n";
         // NOTE: We could just return here. But what if the record we have is
@@ -480,12 +480,12 @@ bool OTCronItem::SaveActiveCronReceipt(
         strListFilename.Concatenate(".lst"); // nymID.lst
         OTNumList numlist;
 
-        if (OTDB::Exists(szFoldername, strServerID.Get(),
+        if (OTDB::Exists(szFoldername, strNotaryID.Get(),
                          strListFilename.Get())) {
             // Load up existing list, to add the new transaction num to it.
             //
             String strNumlist(OTDB::QueryPlainString(
-                szFoldername, strServerID.Get(), strListFilename.Get()));
+                szFoldername, strNotaryID.Get(), strListFilename.Get()));
 
             if (strNumlist.Exists()) {
                 if (false ==
@@ -517,19 +517,19 @@ bool OTCronItem::SaveActiveCronReceipt(
                 otErr << "OTCronItem::" << __FUNCTION__
                       << ": Error saving recurring IDs (failed writing armored "
                          "string): " << szFoldername << OTLog::PathSeparator()
-                      << strServerID << OTLog::PathSeparator()
+                      << strNotaryID << OTLog::PathSeparator()
                       << strListFilename << "\n";
                 return false;
             }
 
             bool bSaved = OTDB::StorePlainString(strFinal.Get(), szFoldername,
-                                                 strServerID.Get(),
+                                                 strNotaryID.Get(),
                                                  strListFilename.Get());
 
             if (!bSaved) {
                 otErr << "OTCronItem::" << __FUNCTION__
                       << ": Error saving recurring IDs: " << szFoldername
-                      << OTLog::PathSeparator() << strServerID
+                      << OTLog::PathSeparator() << strNotaryID
                       << OTLog::PathSeparator() << strListFilename << "\n";
                 return false;
             }
@@ -543,18 +543,18 @@ bool OTCronItem::SaveActiveCronReceipt(
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
-              << szFoldername << OTLog::PathSeparator() << strServerID
+              << szFoldername << OTLog::PathSeparator() << strNotaryID
               << OTLog::PathSeparator() << szFilename << "\n";
         return false;
     }
 
     bool bSaved = OTDB::StorePlainString(strFinal.Get(), szFoldername,
-                                         strServerID.Get(), szFilename);
+                                         strNotaryID.Get(), szFilename);
 
     if (!bSaved) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error saving file: " << szFoldername
-              << OTLog::PathSeparator() << strServerID << OTLog::PathSeparator()
+              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
               << szFilename << "\n";
         return false;
     }
@@ -720,9 +720,9 @@ bool OTCronItem::CanRemoveItemFromCron(Nym& theNym)
         return false;
     }
 
-    const String strServerID(GetServerID());
+    const String strNotaryID(GetNotaryID());
 
-    if (!theNym.VerifyIssuedNum(strServerID, GetClosingNum())) {
+    if (!theNym.VerifyIssuedNum(strNotaryID, GetClosingNum())) {
         otOut << "OTCronItem::CanRemoveItemFromCron: Closing number didn't "
                  "verify (for removal from cron).\n";
         return false;
@@ -737,7 +737,7 @@ bool OTCronItem::CanRemoveItemFromCron(Nym& theNym)
     // to authorize removal, as long as the transaction num is still issued to
     // theNym (this check here.)
     //
-    return theNym.VerifyIssuedNum(strServerID, GetOpeningNum());
+    return theNym.VerifyIssuedNum(strNotaryID, GetOpeningNum());
 
     // Normally this will be all we need to check. The originator will have the
     // transaction
@@ -1019,7 +1019,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
     const int64_t lOpeningNumber = theOrigCronItem.GetOpeningNum();
     const int64_t lClosingNumber = theOrigCronItem.GetClosingNum();
 
-    const String strServerID(GetServerID());
+    const String strNotaryID(GetNotaryID());
 
     Nym theActualNym; // unused unless it's really not already loaded.
                       // (use pActualNym.)
@@ -1031,7 +1031,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
     // That's why they have a different version of onFinalReceipt.
     //
     if ((lOpeningNumber > 0) &&
-        theOriginator.VerifyIssuedNum(strServerID, lOpeningNumber)) {
+        theOriginator.VerifyIssuedNum(strNotaryID, lOpeningNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s.
         // So when the number is released from the Nym, we also take it off that
@@ -1040,7 +1040,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         std::set<int64_t>& theIDSet = theOriginator.GetSetOpenCronItems();
         theIDSet.erase(lOpeningNumber);
 
-        theOriginator.RemoveIssuedNum(*pServerNym, strServerID, lOpeningNumber,
+        theOriginator.RemoveIssuedNum(*pServerNym, strNotaryID, lOpeningNumber,
                                       false); // bSave=false
         theOriginator.SaveSignedNymfile(*pServerNym);
 
@@ -1114,7 +1114,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
     }
 
     if ((lClosingNumber > 0) &&
-        theOriginator.VerifyIssuedNum(strServerID, lClosingNumber)) {
+        theOriginator.VerifyIssuedNum(strNotaryID, lClosingNumber)) {
         // SENDER only. (CronItem has no recipient. That's in the subclass.)
         //
         if (!DropFinalReceiptToInbox(
@@ -1134,7 +1134,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         // This part below doesn't happen until you ACCEPT the final receipt
         // (when processing your inbox.)
         //
-        //      theOriginator.RemoveIssuedNum(strServerID, lClosingNumber,
+        //      theOriginator.RemoveIssuedNum(strNotaryID, lClosingNumber,
         // true); //bSave=false
     }
     else {
@@ -1171,7 +1171,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     std::unique_ptr<Account> theDestAcctGuardian;
 
     // Load the inbox in case it already exists.
-    OTLedger theInbox(USER_ID, ACCOUNT_ID, GetServerID());
+    OTLedger theInbox(USER_ID, ACCOUNT_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theInbox.LoadInbox();
@@ -1185,7 +1185,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     //        otErr << szFunc << ": ERROR loading inbox ledger.\n";
     //  else
     //        bSuccessLoading        = theInbox.GenerateLedger(ACCOUNT_ID,
-    // GetServerID(), OTLedger::inbox, true); // bGenerateFile=true
+    // GetNotaryID(), OTLedger::inbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
         otErr << szFunc << ": ERROR loading or generating an inbox. (FAILED "
@@ -1292,7 +1292,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
                                     // loaded, so let's load it ourselves then.
         {
             pActualAcct =
-                Account::LoadExistingAccount(ACCOUNT_ID, GetServerID());
+                Account::LoadExistingAccount(ACCOUNT_ID, GetNotaryID());
             theDestAcctGuardian.reset(pActualAcct);
         }
 
@@ -1356,7 +1356,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox"; // RESUME!!!!!!!
 
-    OTLedger theLedger(USER_ID, USER_ID, GetServerID());
+    OTLedger theLedger(USER_ID, USER_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theLedger.LoadNymbox();
@@ -1369,7 +1369,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
         otErr << szFunc << ": Unable to load Nymbox.\n";
     //    else
     //        bSuccessLoading        = theLedger.GenerateLedger(USER_ID,
-    // GetServerID(), OTLedger::nymbox, true); // bGenerateFile=true
+    // GetNotaryID(), OTLedger::nymbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
         otErr << szFunc << ": ERROR loading or generating a nymbox. (FAILED "
@@ -1617,7 +1617,7 @@ void OTCronItem::HarvestOpeningNumber(Nym& theNym)
         // (Verifies it is on issued list first, before adding to available
         // list.)
         //
-        theNym.ClawbackTransactionNumber(GetServerID(), GetOpeningNum(),
+        theNym.ClawbackTransactionNumber(GetNotaryID(), GetOpeningNum(),
                                          true); // bSave=true
     }
 
@@ -1657,7 +1657,7 @@ void OTCronItem::HarvestClosingNumbers(Nym& theNym)
             // list.)
             //
             const bool bClawedBack = theNym.ClawbackTransactionNumber(
-                GetServerID(), GetClosingTransactionNoAt(i),
+                GetNotaryID(), GetClosingTransactionNoAt(i),
                 (i == (GetCountClosingNumbers() - 1)
                      ? true
                      : false)); // bSave=true only on the last iteration.
@@ -1675,7 +1675,7 @@ OTCronItem::OTCronItem()
     : ot_super()
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , serverId_(nullptr)
+    , notaryID_(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -1691,7 +1691,7 @@ OTCronItem::OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
     : ot_super(SERVER_ID, ASSET_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , serverId_(nullptr)
+    , notaryID_(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -1708,7 +1708,7 @@ OTCronItem::OTCronItem(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
     : ot_super(SERVER_ID, ASSET_ID, ACCT_ID, USER_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , serverId_(nullptr)
+    , notaryID_(nullptr)
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)

@@ -147,7 +147,7 @@ private:
     int32_t m_nBoxIndex;
     time64_t m_ValidFrom;
     time64_t m_ValidTo;
-    const std::string& m_str_server_id;
+    const std::string& m_str_notary_id;
     const std::string& m_str_asset_id;
     const std::string& m_str_currency_tla;
     const std::string& m_str_nym_id;
@@ -291,7 +291,7 @@ public:
                                                   // box.
     EXPORT void SetTransNumForDisplay(int64_t lTransNum);
     EXPORT OTRecordType GetRecordType() const;
-    EXPORT const std::string& GetServerID() const;
+    EXPORT const std::string& GetNotaryID() const;
     EXPORT const std::string& GetAssetID() const;
     EXPORT const std::string& GetCurrencyTLA() const; // BTC, USD, etc.
     EXPORT const std::string& GetNymID() const;
@@ -340,7 +340,7 @@ public:
     EXPORT bool FormatShortMailDescription(std::string& str_output) const;
     EXPORT bool FormatMailSubject(std::string& str_output) const;
     bool operator<(const OTRecord& rhs);
-    OTRecord(const std::string& str_server_id, const std::string& str_asset_id,
+    OTRecord(const std::string& str_notary_id, const std::string& str_asset_id,
              const std::string& str_currency_tla, const std::string& str_nym_id,
              const std::string& str_account_id, const std::string& str_name,
              const std::string& str_date, const std::string& str_amount,

@@ -485,7 +485,7 @@ string CmdBase::getAccountNym(const string& myacct) const
 
 string CmdBase::getAccountServer(const string& myacct) const
 {
-    string server = OTAPI_Wrap::GetAccountWallet_ServerID(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
         otOut << "Error: cannot determine server from myacct.\n";
     }

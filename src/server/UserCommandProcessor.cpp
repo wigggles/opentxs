@@ -189,7 +189,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
     // Validate the server ID, to keep users from intercepting a valid requst
     // and sending it to the wrong server.
-    if (!(server_->m_strServerID == theMessage.m_strServerID)) {
+    if (!(server_->m_strNotaryID == theMessage.m_strNotaryID)) {
         OTLog::Error("UserCommandProcessor::ProcessUserCommand: Invalid server "
                      "ID sent in "
                      "command request.\n");
@@ -237,7 +237,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     if (theMessage.m_strCommand.Compare("pingNotary")) {
         OTLog::vOutput(0, "\n==> Received a pingNotary message. Nym: %s ...\n",
                        strMsgNymID.Get());
-        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_server_id);
+        OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_notary_id);
         std::unique_ptr<OTAsymmetricKey> pNymAuthentKey(
             OTAsymmetricKey::KeyFactory());
         std::unique_ptr<OTAsymmetricKey> pNymEncryptKey(
@@ -493,8 +493,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         // reply to registerNym
                         msgOut.m_strCommand = "registerNymResponse";
                         msgOut.m_strNymID = theMessage.m_strNymID; // UserID
-                        msgOut.m_strServerID =
-                            server_->m_strServerID; // ServerID, a hash of
+                        msgOut.m_strNotaryID =
+                            server_->m_strNotaryID; // NotaryID, a hash of
                                                     // the server
                                                     // contract.
                         msgOut.m_bSuccess = false;
@@ -525,7 +525,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                             String strNymContents;
                             pNym->SavePseudonym(strNymContents);
                             Identifier theNewNymID,
-                                SERVER_ID(server_->m_strServerID);
+                                SERVER_ID(server_->m_strNotaryID);
                             pNym->GetIdentifier(theNewNymID);
                             OTLedger theNymbox(theNewNymID, theNewNymID,
                                                SERVER_ID);
@@ -602,7 +602,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                                          "file.\n");
 
                         Identifier theNewNymID,
-                            SERVER_ID(server_->m_strServerID);
+                            SERVER_ID(server_->m_strNotaryID);
                         pNym->GetIdentifier(theNewNymID);
                         OTLedger theNymbox(theNewNymID, theNewNymID, SERVER_ID);
                         bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
@@ -756,7 +756,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     int64_t lRequestNumber = 0;
 
     if (false ==
-        pNym->GetCurrentRequestNum(server_->m_strServerID, lRequestNumber)) {
+        pNym->GetCurrentRequestNum(server_->m_strNotaryID, lRequestNumber)) {
         OTLog::Output(0, "Nym file request number doesn't exist. "
                          "Apparently first-ever request to "
                          "server--but everything checks out. "
@@ -769,10 +769,10 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         // isn't there for that server.
         // Therefore, since it's the first time, we'll create it
         // now:
-        pNym->IncrementRequestNum(server_->m_nymServer, server_->m_strServerID);
+        pNym->IncrementRequestNum(server_->m_nymServer, server_->m_strNotaryID);
 
         // Call it again so that lRequestNumber is set to 1 also
-        if (pNym->GetCurrentRequestNum(server_->m_strServerID,
+        if (pNym->GetCurrentRequestNum(server_->m_strNotaryID,
                                        lRequestNumber)) {
             OTLog::Output(0, "Created first request number in Nym "
                              "file, apparently first-ever request. "
@@ -855,7 +855,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         // AND the request number verifies, so we're going to
         // increment
         // the number, and let the command process.
-        pNym->IncrementRequestNum(server_->m_nymServer, server_->m_strServerID);
+        pNym->IncrementRequestNum(server_->m_nymServer, server_->m_strNotaryID);
 
         // **INSIDE** THE INNER SANCTUM OF SECURITY. If the user
         // got all the way to here,
@@ -874,7 +874,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // So we allow it to go through without verifying this step,
     // and without incrementing the counter.
     {
-        // pNym->IncrementRequestNum(server_->m_strServerID); //
+        // pNym->IncrementRequestNum(server_->m_strNotaryID); //
         // commented
         // out cause this is the one case where we DON'T increment
         // this number.
@@ -948,7 +948,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // as well.
     //
 
-    const Identifier SERVER_ID(server_->m_strServerID);
+    const Identifier SERVER_ID(server_->m_strNotaryID);
 
     // The server reads the list of acknowledged replies from the incoming
     // client message...
@@ -983,7 +983,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                 // its internal list for safe-keeping.
                 //
                 if (false ==
-                    pNym->VerifyAcknowledgedNum(server_->m_strServerID,
+                    pNym->VerifyAcknowledgedNum(server_->m_strNotaryID,
                                                 lRequestNum)) {
                     // Verify whether a replyNotice exists in the Nymbox, with
                     // that lRequestNum
@@ -1013,7 +1013,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         // list. (So this can't happen twice with same #.)
                         //
                         if (pNym->AddAcknowledgedNum(
-                                server_->m_strServerID,
+                                server_->m_strNotaryID,
                                 lRequestNum))   // doesn't save (here).
                             bIsDirtyNym = true; // So we don't have to save EACH
                                                 // iteration, but instead just
@@ -1076,7 +1076,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                 for (auto& it : set_server_ack) {
                     const int64_t lRequestNum = it;
                     if (pNym->RemoveAcknowledgedNum(server_->m_nymServer,
-                                                    server_->m_strServerID,
+                                                    server_->m_strNotaryID,
                                                     lRequestNum, false))
                         bIsDirtyNym = true;
                 }
@@ -1113,9 +1113,9 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // when it doesn't save it right away, because otherwise
     // it wouldn't know to save it later, either.
 
-    msgOut.m_strServerID = server_->m_strServerID;
+    msgOut.m_strNotaryID = server_->m_strNotaryID;
     msgOut.SetAcknowledgments(*pNym); // Must be called AFTER
-                                      // msgOut.m_strServerID is already set.
+                                      // msgOut.m_strNotaryID is already set.
                                       // (It uses it.)
 
     if (theMessage.m_strCommand.Compare("getRequestNumber")) // This command is
@@ -1419,7 +1419,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         msgOut.m_strCommand = strTemp;
         msgOut.m_strAcctID = theMessage.m_strAcctID;
-        msgOut.m_strServerID = theMessage.m_strServerID;
+        msgOut.m_strNotaryID = theMessage.m_strNotaryID;
         msgOut.m_strNymID = theMessage.m_strNymID;
 
         msgOut.m_bSuccess = false;
@@ -1442,7 +1442,7 @@ void UserCommandProcessor::UserCmdGetMarketList(Nym&, Message& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand = "getMarketListResponse"; // reply to getMarketList
     msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
-    //    msgOut.m_strServerID    = m_strServerID;    // This is already set in
+    //    msgOut.m_strNotaryID    = m_strNotaryID;    // This is already set in
     // ProcessUserCommand.
 
     OTASCIIArmor ascOutput;
@@ -1631,7 +1631,7 @@ void UserCommandProcessor::UserCmdPingNotary(Nym&, Message& MsgIn,
     msgOut.m_strCommand = "pingNotaryResponse";
     msgOut.m_strNymID = MsgIn.m_strNymID;
 
-    if (MsgIn.m_strServerID == server_->m_strServerID)
+    if (MsgIn.m_strNotaryID == server_->m_strNotaryID)
         msgOut.m_bSuccess = true;
     else
         msgOut.m_bSuccess = false;
@@ -1657,7 +1657,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
         "getTransactionNumbersResponse";  // reply to getTransactionNumbers
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
-    const Identifier SERVER_ID(server_->m_strServerID);
+    const Identifier SERVER_ID(server_->m_strNotaryID);
 
     // A few client requests, and a few server replies (not exactly matched up)
     // will include a copy of the NymboxHash.  The server may reject certain
@@ -1885,7 +1885,7 @@ void UserCommandProcessor::UserCmdGetRequestNumber(Nym& theNym, Message& MsgIn,
                          // will be sent in msgOut.m_lNewRequestNum
 
     msgOut.m_bSuccess =
-        theNym.GetCurrentRequestNum(server_->m_strServerID, lReqNum);
+        theNym.GetCurrentRequestNum(server_->m_strNotaryID, lReqNum);
 
     // Server was unable to load ReqNum, which is unusual because the calling
     // function
@@ -1897,7 +1897,7 @@ void UserCommandProcessor::UserCmdGetRequestNumber(Nym& theNym, Message& MsgIn,
     else
         msgOut.m_lNewRequestNum = lReqNum;
 
-    const Identifier SERVER_ID(server_->m_strServerID);
+    const Identifier SERVER_ID(server_->m_strNotaryID);
     Identifier EXISTING_NYMBOX_HASH;
     if (theNym.GetNymboxHashServerSide(SERVER_ID, EXISTING_NYMBOX_HASH))
         EXISTING_NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
@@ -1939,7 +1939,7 @@ void UserCommandProcessor::UserCmdSendNymMessage(Nym& theNym, Message& MsgIn,
 
     const String strInMessage(MsgIn);
     const Identifier SENDER_USER_ID(theNym),
-        RECIPIENT_USER_ID(MsgIn.m_strNymID2), SERVER_ID(server_->m_strServerID);
+        RECIPIENT_USER_ID(MsgIn.m_strNymID2), SERVER_ID(server_->m_strNotaryID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
     const bool bSent =
         SendMessageToNym(SERVER_ID, SENDER_USER_ID, RECIPIENT_USER_ID,
@@ -1978,7 +1978,7 @@ void UserCommandProcessor::UserCmdSendNymInstrument(Nym& theNym, Message& MsgIn,
 
     const String strInMessage(MsgIn);
     const Identifier SENDER_USER_ID(theNym),
-        RECIPIENT_USER_ID(MsgIn.m_strNymID2), SERVER_ID(server_->m_strServerID);
+        RECIPIENT_USER_ID(MsgIn.m_strNymID2), SERVER_ID(server_->m_strNotaryID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
     const bool bSent = server_->SendInstrumentToNym(
         SERVER_ID, SENDER_USER_ID, RECIPIENT_USER_ID,
@@ -2126,7 +2126,7 @@ void UserCommandProcessor::UserCmdUsageCredits(Nym& theNym, Message& MsgIn,
 
     msgOut.m_lDepth = 0; // Returns total Usage Credits on Nym at the end.
     Nym nym2;
-    Identifier nym2ID, SERVER_ID(server_->m_strServerID);
+    Identifier nym2ID, SERVER_ID(server_->m_strNotaryID);
     nym2.SetIdentifier(MsgIn.m_strNymID2);
     nym2.GetIdentifier(nym2ID);
 
@@ -2317,7 +2317,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
     msgOut.m_strAssetID =
         MsgIn.m_strAssetID; // Asset Type ID, a hash of the asset contract.
 
-    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
+    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strNotaryID),
         ASSET_TYPE_ID(MsgIn.m_strAssetID);
 
     AssetContract* pAssetContract =
@@ -2643,7 +2643,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
-    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strServerID),
+    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strNotaryID),
         SERVER_USER_ID(server_->m_nymServer);
 
     String strBasket(MsgIn.m_ascPayload);
@@ -2934,7 +2934,7 @@ void UserCommandProcessor::UserCmdCreateAccount(Nym& theNym, Message& MsgIn,
     String tempInMessage(MsgIn);
     msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
-    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strServerID);
+    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strNotaryID);
 
     std::unique_ptr<Account> pNewAccount(Account::GenerateNewAccount(
         USER_ID, SERVER_ID, server_->m_nymServer, MsgIn));
@@ -3101,7 +3101,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
-        SERVER_ID(MsgIn.m_strServerID);
+        SERVER_ID(MsgIn.m_strNotaryID);
 
     String strAccount, strInbox, strOutbox, strInboxHash, strOutboxHash;
     Account* pAccount = Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
@@ -3428,7 +3428,7 @@ void UserCommandProcessor::UserCmdTriggerClause(Nym& theNym, Message& MsgIn,
     msgOut.m_strCommand = "triggerClauseResponse"; // reply to triggerClause
     msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
     msgOut.m_bSuccess = false;                     // Default value.
-    const Identifier SERVER_ID(server_->m_strServerID),
+    const Identifier SERVER_ID(server_->m_strNotaryID),
         theMsgNymboxHash(MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash
                                                  // sent by the client side
     Identifier theSrvrNymboxHash;
@@ -3582,7 +3582,7 @@ void UserCommandProcessor::UserCmdGetMint(Nym&, Message& MsgIn, Message& msgOut)
     bool bSuccessLoadingMint = false;
 
     std::unique_ptr<Mint> pMint(
-        Mint::MintFactory(server_->m_strServerID, ASSET_ID_STR));
+        Mint::MintFactory(server_->m_strNotaryID, ASSET_ID_STR));
     OT_ASSERT(nullptr != pMint);
     if (true == (bSuccessLoadingMint = pMint->LoadMint(".PUBLIC"))) {
         // You cannot hash the Mint to get its ID.
@@ -3643,7 +3643,7 @@ void UserCommandProcessor::UserCmdDeleteUser(Nym& theNym, Message& MsgIn,
     msgOut.m_strCommand = "deleteNymResponse"; // reply to deleteNym
     msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
 
-    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID);
+    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strNotaryID);
 
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
 
@@ -3794,7 +3794,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
     msgOut.m_lDepth = MsgIn.m_lDepth;
     msgOut.m_bSuccess = false;
 
-    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID),
+    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strNotaryID),
         ACCOUNT_ID(MsgIn.m_strAcctID);
 
     std::unique_ptr<OTLedger> pLedger(
@@ -3995,7 +3995,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account being deleted.
 
-    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID),
+    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strNotaryID),
         ACCOUNT_ID(MsgIn.m_strAcctID);
 
     std::unique_ptr<Account> pAccount(
@@ -4135,7 +4135,7 @@ void UserCommandProcessor::UserCmdGetNymbox(Nym& theNym, Message& MsgIn,
     msgOut.m_strCommand = "getNymboxResponse"; // reply to getNymbox
     msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
 
-    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strServerID);
+    const Identifier USER_ID(MsgIn.m_strNymID), SERVER_ID(MsgIn.m_strNotaryID);
     Identifier NYMBOX_HASH;
     bool bSavedNymbox = false;
 
@@ -4254,7 +4254,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(Nym& theNym, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
     const Identifier USER_ID(msgOut.m_strNymID),
-        SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
+        SERVER_ID(server_->m_strNotaryID), SERVER_USER_ID(server_->m_nymServer);
 
     OTLedger theLedger(USER_ID, USER_ID, SERVER_ID); // These are ledgers used
                                                      // as messages. The one we
@@ -4488,7 +4488,7 @@ void UserCommandProcessor::UserCmdProcessInbox(Nym& theNym, Message& MsgIn,
     msgOut.m_strAcctID = MsgIn.m_strAcctID;       // The Account ID in question
 
     const Identifier USER_ID(msgOut.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
-        SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
+        SERVER_ID(server_->m_strNotaryID), SERVER_USER_ID(server_->m_nymServer);
 
     OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID); // These are ledgers
                                                         // used as messages. The
@@ -4820,7 +4820,7 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(Nym& theNym,
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
-        SERVER_ID(server_->m_strServerID), SERVER_USER_ID(server_->m_nymServer);
+        SERVER_ID(server_->m_strNotaryID), SERVER_USER_ID(server_->m_nymServer);
 
     OTLedger theLedger(USER_ID, ACCOUNT_ID, SERVER_ID); // These are ledgers
                                                         // used as messages. The
@@ -4930,7 +4930,7 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(Nym& theNym,
             // back to the client in a message.
             //
             // On this new "response transaction", I set the ACCT ID, the
-            // serverID, and Transaction Number.
+            // notaryID, and Transaction Number.
             OTTransaction* pTranResponse = OTTransaction::GenerateTransaction(
                 *pResponseLedger, OTTransaction::error_state,
                 pTransaction->GetTransactionNum());

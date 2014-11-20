@@ -1657,7 +1657,7 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTDB::Displayable::gui_label), "gui_label");
         //      theScript.chai->add(fun(&OTDB::MarketData::gui_label),
         // "gui_label");
-        theScript.chai->add(fun(&OTDB::MarketData::server_id), "server_id");
+        theScript.chai->add(fun(&OTDB::MarketData::notary_id), "notary_id");
         theScript.chai->add(fun(&OTDB::MarketData::market_id), "market_id");
         theScript.chai->add(fun(&OTDB::MarketData::asset_type_id),
                             "asset_type_id");
@@ -1726,7 +1726,7 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
         // "gui_label");
         theScript.chai->add(fun(&OTDB::OfferDataNym::valid_from), "valid_from");
         theScript.chai->add(fun(&OTDB::OfferDataNym::valid_to), "valid_to");
-        theScript.chai->add(fun(&OTDB::OfferDataNym::server_id), "server_id");
+        theScript.chai->add(fun(&OTDB::OfferDataNym::notary_id), "notary_id");
         theScript.chai->add(fun(&OTDB::OfferDataNym::asset_type_id),
                             "asset_type_id");
         theScript.chai->add(fun(&OTDB::OfferDataNym::asset_acct_id),
@@ -1938,8 +1938,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_GetAccountWallet_Type");
         theScript.chai->add(fun(&OTAPI_Wrap::GetAccountWallet_AssetTypeID),
                             "OT_API_GetAccountWallet_AssetTypeID");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetAccountWallet_ServerID),
-                            "OT_API_GetAccountWallet_ServerID");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetAccountWallet_NotaryID),
+                            "OT_API_GetAccountWallet_NotaryID");
         theScript.chai->add(fun(&OTAPI_Wrap::GetAccountWallet_NymID),
                             "OT_API_GetAccountWallet_NymID");
 
@@ -1976,8 +1976,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_GetNym_MailContentsByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MailSenderIDByIndex),
                             "OT_API_GetNym_MailSenderIDByIndex");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MailServerIDByIndex),
-                            "OT_API_GetNym_MailServerIDByIndex");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MailNotaryIDByIndex),
+                            "OT_API_GetNym_MailNotaryIDByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::Nym_RemoveMailByIndex),
                             "OT_API_Nym_RemoveMailByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::Nym_VerifyMailByIndex),
@@ -1988,8 +1988,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_GetNym_OutmailContentsByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_OutmailRecipientIDByIndex),
                             "OT_API_GetNym_OutmailRecipientIDByIndex");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_OutmailServerIDByIndex),
-                            "OT_API_GetNym_OutmailServerIDByIndex");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_OutmailNotaryIDByIndex),
+                            "OT_API_GetNym_OutmailNotaryIDByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::Nym_RemoveOutmailByIndex),
                             "OT_API_Nym_RemoveOutmailByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::Nym_VerifyOutmailByIndex),
@@ -2001,8 +2001,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(
             fun(&OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex),
             "OT_API_GetNym_OutpaymentsRecipientIDByIndex");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_OutpaymentsServerIDByIndex),
-                            "OT_API_GetNym_OutpaymentsServerIDByIndex");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_OutpaymentsNotaryIDByIndex),
+                            "OT_API_GetNym_OutpaymentsNotaryIDByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::Nym_RemoveOutpaymentsByIndex),
                             "OT_API_Nym_RemoveOutpaymentsByIndex");
         theScript.chai->add(fun(&OTAPI_Wrap::Nym_VerifyOutpaymentsByIndex),
@@ -2037,8 +2037,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetNymIDFromPartial),
                             "OT_API_Wallet_GetNymIDFromPartial");
-        theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetServerIDFromPartial),
-                            "OT_API_Wallet_GetServerIDFromPartial");
+        theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetNotaryIDFromPartial),
+                            "OT_API_Wallet_GetNotaryIDFromPartial");
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetAssetIDFromPartial),
                             "OT_API_Wallet_GetAssetIDFromPartial");
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetAccountIDFromPartial),
@@ -2191,8 +2191,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_Instrmnt_GetMemo");
         theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetType),
                             "OT_API_Instrmnt_GetType");
-        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetServerID),
-                            "OT_API_Instrmnt_GetServerID");
+        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetNotaryID),
+                            "OT_API_Instrmnt_GetNotaryID");
         theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetAssetID),
                             "OT_API_Instrmnt_GetAssetID");
 
@@ -2244,8 +2244,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_Token_GetValidTo");
         theScript.chai->add(fun(&OTAPI_Wrap::Token_GetAssetID),
                             "OT_API_Token_GetAssetID");
-        theScript.chai->add(fun(&OTAPI_Wrap::Token_GetServerID),
-                            "OT_API_Token_GetServerID");
+        theScript.chai->add(fun(&OTAPI_Wrap::Token_GetNotaryID),
+                            "OT_API_Token_GetNotaryID");
 
         theScript.chai->add(fun(&OTAPI_Wrap::pingNotary), "OT_API_pingNotary");
         theScript.chai->add(fun(&OTAPI_Wrap::registerNym),

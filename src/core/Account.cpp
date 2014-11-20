@@ -174,15 +174,15 @@ char const* const __TypeStringsAccount[] = {
     "err_acct"};
 
 // Used for generating accounts, thus no accountID needed.
-Account::Account(const Identifier& userId, const Identifier& serverId)
+Account::Account(const Identifier& userId, const Identifier& notaryID)
     : OTTransactionType()
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
     InitAccount();
     SetUserID(userId);
-    SetRealServerID(serverId);
-    SetPurportedServerID(serverId);
+    SetRealNotaryID(notaryID);
+    SetPurportedNotaryID(notaryID);
 }
 
 Account::Account()
@@ -194,8 +194,8 @@ Account::Account()
 }
 
 Account::Account(const Identifier& userId, const Identifier& accountId,
-                 const Identifier& serverId, const String& name)
-    : OTTransactionType(userId, accountId, serverId)
+                 const Identifier& notaryID, const String& name)
+    : OTTransactionType(userId, accountId, notaryID)
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
@@ -204,8 +204,8 @@ Account::Account(const Identifier& userId, const Identifier& accountId,
 }
 
 Account::Account(const Identifier& userId, const Identifier& accountId,
-                 const Identifier& serverId)
-    : OTTransactionType(userId, accountId, serverId)
+                 const Identifier& notaryID)
+    : OTTransactionType(userId, accountId, notaryID)
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
@@ -227,7 +227,7 @@ char const* Account::_GetTypeString(AccountType accountType)
 OTLedger* Account::LoadInbox(Nym& nym) const
 {
     auto* box =
-        new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
+        new OTLedger(GetUserID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(box != nullptr);
 
     if (box->LoadInbox() && box->VerifyAccount(nym)) {
@@ -244,7 +244,7 @@ OTLedger* Account::LoadInbox(Nym& nym) const
 OTLedger* Account::LoadOutbox(Nym& nym) const
 {
     auto* box =
-        new OTLedger(GetUserID(), GetRealAccountID(), GetRealServerID());
+        new OTLedger(GetUserID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(nullptr != box);
 
     if (box->LoadOutbox() && box->VerifyAccount(nym)) {
@@ -263,13 +263,13 @@ bool Account::SaveInbox(OTLedger& box, Identifier* hash)
 {
     if (!IsSameAccount(box)) {
         String strAcctID(GetRealAccountID());
-        String strServerID(GetRealServerID());
+        String strNotaryID(GetRealNotaryID());
         String strBoxAcctID(box.GetRealAccountID());
-        String strBoxSvrID(box.GetRealServerID());
+        String strBoxSvrID(box.GetRealNotaryID());
         otErr << "OTAccount::SaveInbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
                  "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
-              << "\n Server ID: " << strServerID
+              << "\n Server ID: " << strNotaryID
               << "\n Other ID: " << strBoxSvrID << "\n";
         return false;
     }
@@ -290,13 +290,13 @@ bool Account::SaveOutbox(OTLedger& box, Identifier* hash)
 {
     if (!IsSameAccount(box)) {
         String strAcctID(GetRealAccountID());
-        String strServerID(GetRealServerID());
+        String strNotaryID(GetRealNotaryID());
         String strBoxAcctID(box.GetRealAccountID());
-        String strBoxSvrID(box.GetRealServerID());
+        String strBoxSvrID(box.GetRealNotaryID());
         otErr << "OTAccount::SaveOutbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
                  "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
-              << "\n Server ID: " << strServerID
+              << "\n Server ID: " << strNotaryID
               << "\n Other ID: " << strBoxSvrID << "\n";
         return false;
     }
@@ -325,8 +325,8 @@ bool Account::GetInboxHash(Identifier& output)
         return true;
     }
     else if (!GetUserID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
-               !GetRealServerID().IsEmpty()) {
-        OTLedger inbox(GetUserID(), GetRealAccountID(), GetRealServerID());
+               !GetRealNotaryID().IsEmpty()) {
+        OTLedger inbox(GetUserID(), GetRealAccountID(), GetRealNotaryID());
 
         if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
             SetInboxHash(output);
@@ -351,8 +351,8 @@ bool Account::GetOutboxHash(Identifier& output)
         return true;
     }
     else if (!GetUserID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
-               !GetRealServerID().IsEmpty()) {
-        OTLedger outbox(GetUserID(), GetRealAccountID(), GetRealServerID());
+               !GetRealNotaryID().IsEmpty()) {
+        OTLedger outbox(GetUserID(), GetRealAccountID(), GetRealNotaryID());
 
         if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
             SetOutboxHash(output);
@@ -364,7 +364,7 @@ bool Account::GetOutboxHash(Identifier& output)
 }
 
 // TODO:  add an override so that OTAccount, when it loads up, it performs the
-// check to see the ServerID, look at the Server Contract and make sure the
+// check to see the NotaryID, look at the Server Contract and make sure the
 // server hashes match.
 //
 // TODO: override "Verify". Have some way to verify a specific Nym to a specific
@@ -490,7 +490,7 @@ bool Account::VerifyOwnerByID(const Identifier& nymId) const
 // damn thing up.
 // Then call this function. It will set userID and server ID for you.
 Account* Account::LoadExistingAccount(const Identifier& accountId,
-                                      const Identifier& serverId)
+                                      const Identifier& notaryID)
 {
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
@@ -516,7 +516,7 @@ Account* Account::LoadExistingAccount(const Identifier& accountId,
     OT_ASSERT(account != nullptr);
 
     account->SetRealAccountID(accountId);
-    account->SetRealServerID(serverId);
+    account->SetRealNotaryID(notaryID);
 
     String strAcctID(accountId);
 
@@ -541,13 +541,13 @@ Account* Account::LoadExistingAccount(const Identifier& accountId,
 }
 
 Account* Account::GenerateNewAccount(const Identifier& userId,
-                                     const Identifier& serverId,
+                                     const Identifier& notaryID,
                                      const Nym& serverNym,
                                      const Message& message,
                                      Account::AccountType acctType,
                                      int64_t stashTransNum)
 {
-    Account* account = new Account(userId, serverId);
+    Account* account = new Account(userId, notaryID);
 
     if (account) {
         // This is only for stash accounts.
@@ -567,7 +567,7 @@ Account* Account::GenerateNewAccount(const Identifier& userId,
  Just make sure message has these members populated:
 message.m_strNymID;
 message.m_strAssetID;
-message.m_strServerID;
+message.m_strNotaryID;
  */
 bool Account::GenerateNewAccount(const Nym& server, const Message& message,
                                  Account::AccountType acctType,
@@ -632,11 +632,11 @@ bool Account::GenerateNewAccount(const Nym& server, const Message& message,
     otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
            << message.m_strAssetID << "\n";
 
-    Identifier serverId(message.m_strServerID);
-    // TODO: this assumes the serverID on the message
+    Identifier notaryID(message.m_strNotaryID);
+    // TODO: this assumes the notaryID on the message
     // is correct. It's vetted, but still...
-    SetRealServerID(serverId);
-    SetPurportedServerID(serverId);
+    SetRealNotaryID(notaryID);
+    SetPurportedNotaryID(notaryID);
 
     time64_t t = OTTimeGetCurrentTime(); // Today, now.
     balanceDate_.Format("%" PRId64, t);
@@ -683,7 +683,7 @@ int64_t Account::GetBalance() const
 bool Account::DisplayStatistics(String& contents) const
 {
     String strAccountID(GetPurportedAccountID());
-    String strServerID(GetPurportedServerID());
+    String strNotaryID(GetPurportedNotaryID());
     String strUserID(GetUserID());
     String strAssetTypeID(acctAssetTypeId_);
 
@@ -694,12 +694,12 @@ bool Account::DisplayStatistics(String& contents) const
                          " Last retrieved Balance: %s  on date: %s\n"
                          " accountID: %s\n"
                          " userID: %s\n"
-                         " serverID: %s\n"
+                         " notaryID: %s\n"
                          " assetTypeID: %s\n"
                          "\n",
                          acctType.Get(), m_strName.Get(), balanceAmount_.Get(),
                          balanceDate_.Get(), strAccountID.Get(),
-                         strUserID.Get(), strServerID.Get(),
+                         strUserID.Get(), strNotaryID.Get(),
                          strAssetTypeID.Get());
 
     return true;
@@ -708,7 +708,7 @@ bool Account::DisplayStatistics(String& contents) const
 bool Account::SaveContractWallet(String& contents) const
 {
     String strAccountID(GetPurportedAccountID());
-    String strServerID(GetPurportedServerID());
+    String strNotaryID(GetPurportedNotaryID());
     String strUserID(GetUserID());
     String strAssetTypeID(acctAssetTypeId_);
 
@@ -726,11 +726,11 @@ bool Account::SaveContractWallet(String& contents) const
         "<!-- Account type: %s --><assetAccount name=\"%s\"\n"
         " accountID=\"%s\"\n"
         " userID=\"%s\"\n"
-        " serverID=\"%s\" />\n"
+        " notaryID=\"%s\" />\n"
         "<!-- assetTypeID: %s -->\n\n",
         balanceAmount_.Get(), balanceDate_.Get(), acctType.Get(),
         m_strName.Exists() ? ascName.Get() : "", strAccountID.Get(),
-        strUserID.Get(), strServerID.Get(), strAssetTypeID.Get());
+        strUserID.Get(), strNotaryID.Get(), strAssetTypeID.Get());
     return true;
 }
 
@@ -750,7 +750,7 @@ void Account::UpdateContents()
     String strAssetTYPEID(acctAssetTypeId_);
 
     String ACCOUNT_ID(GetPurportedAccountID());
-    String SERVER_ID(GetPurportedServerID());
+    String SERVER_ID(GetPurportedNotaryID());
     String USER_ID(GetUserID());
 
     String acctType;
@@ -763,7 +763,7 @@ void Account::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<assetAccount\n version=\"%s\"\n type=\"%s\"\n "
                               "accountID=\"%s\"\n userID=\"%s\"\n"
-                              " serverID=\"%s\"\n assetTypeID=\"%s\" >\n\n",
+                              " notaryID=\"%s\"\n assetTypeID=\"%s\" >\n\n",
                               m_strVersion.Get(), acctType.Get(),
                               ACCOUNT_ID.Get(), USER_ID.Get(), SERVER_ID.Get(),
                               strAssetTYPEID.Get());
@@ -838,15 +838,15 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
             acctAssetTypeId_.SetString(strAcctAssetType);
         }
         String strAccountID(xml->getAttributeValue("accountID"));
-        String strServerID(xml->getAttributeValue("serverID"));
+        String strNotaryID(xml->getAttributeValue("notaryID"));
         String strAcctUserID(xml->getAttributeValue("userID"));
 
         Identifier ACCOUNT_ID(strAccountID);
-        Identifier SERVER_ID(strServerID);
+        Identifier SERVER_ID(strNotaryID);
         Identifier USER_ID(strAcctUserID);
 
         SetPurportedAccountID(ACCOUNT_ID);
-        SetPurportedServerID(SERVER_ID);
+        SetPurportedNotaryID(SERVER_ID);
         SetUserID(USER_ID);
 
         String strAssetTypeID(acctAssetTypeId_);
@@ -855,7 +855,7 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
                << "\nUserID: " << strAcctUserID
                << "\n"
                   "AssetTypeID: " << strAssetTypeID
-               << "\nServerID: " << strServerID << "\n";
+               << "\nNotaryID: " << strNotaryID << "\n";
 
         retval = 1;
     }

@@ -299,11 +299,11 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
 
         const Identifier MARKET_ID(*pMarket);
         const String str_MARKET_ID(MARKET_ID);
-        const String str_ServerID(pMarket->GetServerID());
+        const String str_NotaryID(pMarket->GetNotaryID());
         const String str_ASSET_ID(pMarket->GetAssetID());
         const String str_CURRENCY_ID(pMarket->GetCurrencyID());
 
-        pMarketData->server_id = str_ServerID.Get();
+        pMarketData->notary_id = str_NotaryID.Get();
         pMarketData->market_id = str_MARKET_ID.Get();
         pMarketData->asset_type_id = str_ASSET_ID.Get();
         pMarketData->currency_type_id = str_CURRENCY_ID.Get();
@@ -451,11 +451,11 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (!strcmp("cron", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
 
-        const String strServerID(xml->getAttributeValue("serverID"));
+        const String strNotaryID(xml->getAttributeValue("notaryID"));
 
-        m_SERVER_ID.SetString(strServerID);
+        m_SERVER_ID.SetString(strNotaryID);
 
-        otOut << "\n\nLoading OTCron for ServerID: " << strServerID << "\n";
+        otOut << "\n\nLoading OTCron for NotaryID: " << strNotaryID << "\n";
 
         nReturnVal = 1;
     }
@@ -593,7 +593,7 @@ void OTCron::UpdateContents()
     const String SERVER_ID(m_SERVER_ID);
 
     m_xmlUnsigned.Concatenate("<cron\n version=\"%s\"\n"
-                              " serverID=\"%s\""
+                              " notaryID=\"%s\""
                               " >\n\n",
                               m_strVersion.Get(), SERVER_ID.Get());
 
@@ -779,7 +779,7 @@ bool OTCron::AddCronItem(OTCronItem& theItem, Nym* pActivator,
 
         theItem.SetCronPointer(*this);
         theItem.setServerNym(m_pServerNym);
-        theItem.setServerId(&m_SERVER_ID);
+        theItem.setNotaryID(&m_SERVER_ID);
 
         bool bSuccess = true;
 
@@ -1074,7 +1074,7 @@ OTMarket* OTCron::GetOrCreateMarket(const Identifier& ASSET_ID,
                                     const int64_t& lScale)
 {
     OTMarket* pMarket =
-        new OTMarket(GetServerID(), ASSET_ID, CURRENCY_ID, lScale);
+        new OTMarket(GetNotaryID(), ASSET_ID, CURRENCY_ID, lScale);
 
     OT_ASSERT(nullptr != pMarket);
 
@@ -1157,7 +1157,7 @@ OTCron::OTCron(const Identifier& SERVER_ID)
                             // cleanup this pointer.
 {
     InitCron();
-    SetServerID(SERVER_ID);
+    SetNotaryID(SERVER_ID);
     otLog3 << "OTCron::OTCron: Finished calling InitCron 1.\n";
 }
 

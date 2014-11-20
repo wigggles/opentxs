@@ -639,7 +639,7 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
 // increments each
 // time a notice is sent to the parties, and will be passed in here as a
 // parameter. The nyms
-// will all store a map by ServerID, similar to request #, and for each, a list
+// will all store a map by NotaryID, similar to request #, and for each, a list
 // of notice #s
 // mapped by the transaction # for each Cron Item the Nym has open. This way the
 // Nym can
@@ -659,7 +659,7 @@ bool OTScriptable::ExecuteCallback(OTClause& theCallbackClause,
 // contents.
 
 bool OTScriptable::SendNoticeToAllParties(
-    bool bSuccessMsg, Nym& theServerNym, const Identifier& theServerID,
+    bool bSuccessMsg, Nym& theServerNym, const Identifier& theNotaryID,
     const int64_t& lNewTransactionNumber,
     // const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
@@ -691,7 +691,7 @@ bool OTScriptable::SendNoticeToAllParties(
             if (false ==
                 pParty->SendNoticeToParty(
                     bSuccessMsg, // "success" notice? or "failure" notice?
-                    theServerNym, theServerID, lNewTransactionNumber,
+                    theServerNym, theNotaryID, lNewTransactionNumber,
                     //                                                 lInReferenceTo,
                     // // each party has its own opening trans #.
                     strReference, pstrNote, pstrAttachment, pActualNym))
@@ -965,7 +965,7 @@ bool OTScriptable::VerifyPartyAuthorization(
                        // supposedly executed agreement.
     Nym& theSignerNym, // For verifying signature on the authorizing
                        // Nym, when loading it
-    const String& strServerID, // For verifying issued num, need the serverID
+    const String& strNotaryID, // For verifying issued num, need the notaryID
                                // the # goes with.
     mapOfNyms* pmap_ALREADY_LOADED, // If some nyms are already
                                     // loaded, pass them here so we
@@ -1124,7 +1124,7 @@ bool OTScriptable::VerifyPartyAuthorization(
     if (lOpeningNo > 0) // If one exists, then verify it.
     {
         if (false ==
-            pAuthorizingAgent->VerifyIssuedNumber(lOpeningNo, strServerID)) {
+            pAuthorizingAgent->VerifyIssuedNumber(lOpeningNo, strNotaryID)) {
             otErr << __FUNCTION__ << ": Opening trans number " << lOpeningNo
                   << " doesn't "
                      "verify for the nym listed as the authorizing agent for "
@@ -1144,7 +1144,7 @@ bool OTScriptable::VerifyPartyAuthorization(
         else if (bBurnTransNo) {
             if (false ==
                 pAuthorizingAgent->VerifyTransactionNumber(lOpeningNo,
-                                                           strServerID)) {
+                                                           strNotaryID)) {
                 otErr << __FUNCTION__ << ": Opening trans number " << lOpeningNo
                       << " doesn't "
                          "verify as available for use, for the "
@@ -1170,7 +1170,7 @@ bool OTScriptable::VerifyPartyAuthorization(
                 // (OTPseudonym::GetSetOpenCronItems)
                 //
                 pAuthorizingAgent->RemoveTransactionNumber(
-                    lOpeningNo, strServerID, theSignerNym, true); // bSave=true
+                    lOpeningNo, strNotaryID, theSignerNym, true); // bSave=true
             }
         }
 
@@ -1495,7 +1495,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
                                   // already via VerifyPartyAuthorization()
     Nym& theSignerNym,            // For verifying signature on the authorizing
                                   // Nym.
-    const String& strServerID,    // For verifying issued num, need the serverID
+    const String& strNotaryID,    // For verifying issued num, need the notaryID
                                   // the # goes with.
     const bool bBurnTransNo)      // In OTServer::VerifySmartContract(),
                                   // it not only wants to verify the
@@ -1580,7 +1580,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
     if (lClosingNo > 0) // If one exists, then verify it.
     {
         if (false ==
-            pAuthorizedAgent->VerifyIssuedNumber(lClosingNo, strServerID)) {
+            pAuthorizedAgent->VerifyIssuedNumber(lClosingNo, strNotaryID)) {
             otOut << "OTScriptable::" << __FUNCTION__
                   << ": Closing trans number " << lClosingNo
                   << " doesn't "
@@ -1596,7 +1596,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
         else if (bBurnTransNo) {
             if (false ==
                 pAuthorizedAgent->VerifyTransactionNumber(lClosingNo,
-                                                          strServerID)) {
+                                                          strNotaryID)) {
                 otOut << "OTScriptable::" << __FUNCTION__
                       << ": Closing trans number " << lClosingNo
                       << " doesn't "
@@ -1614,7 +1614,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
                 // GetSetOpenCronItems.
                 //
                 pAuthorizedAgent->RemoveTransactionNumber(
-                    lClosingNo, strServerID, theSignerNym, true); // bSave=true
+                    lClosingNo, strNotaryID, theSignerNym, true); // bSave=true
             }
         }
 

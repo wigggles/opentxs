@@ -156,7 +156,7 @@ public:
     EXPORT void Push(std::shared_ptr<Message> message);
     // Caller IS responsible to delete.
     EXPORT std::shared_ptr<Message> Pop(const int64_t& requestNum,
-                                        const String& serverId,
+                                        const String& notaryID,
                                         const String& nymId);
 
 private:

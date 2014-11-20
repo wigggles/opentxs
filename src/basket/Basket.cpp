@@ -184,10 +184,10 @@
 namespace opentxs
 {
 
-void Basket::HarvestClosingNumbers(Nym& theNym, const Identifier& theServerID,
+void Basket::HarvestClosingNumbers(Nym& theNym, const Identifier& theNotaryID,
                                    bool bSave)
 {
-    const String strServerID(theServerID);
+    const String strNotaryID(theNotaryID);
     bool bNeedToSave = false;
 
     // The SUB-CURRENCIES first...
@@ -206,7 +206,7 @@ void Basket::HarvestClosingNumbers(Nym& theNym, const Identifier& theServerID,
         // list.)
         //
         const bool bClawedBack = theNym.ClawbackTransactionNumber(
-            theServerID, lClosingTransNo, false); // bSave=false
+            theNotaryID, lClosingTransNo, false); // bSave=false
 
         if (bClawedBack) bNeedToSave = true;
     }
@@ -219,7 +219,7 @@ void Basket::HarvestClosingNumbers(Nym& theNym, const Identifier& theServerID,
     // (Verifies it is on issued list first, before adding to available list.)
     //
     const bool bClawedBack =
-        theNym.ClawbackTransactionNumber(theServerID, lClosingTransNo, false);
+        theNym.ClawbackTransactionNumber(theNotaryID, lClosingTransNo, false);
 
     if (bClawedBack) bNeedToSave = true;
 

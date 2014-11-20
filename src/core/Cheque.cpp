@@ -148,7 +148,7 @@ namespace opentxs
 
 void Cheque::UpdateContents()
 {
-    String ASSET_TYPE_ID(GetAssetID()), SERVER_ID(GetServerID()),
+    String ASSET_TYPE_ID(GetAssetID()), SERVER_ID(GetNotaryID()),
         SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
         RECIPIENT_USER_ID(GetRecipientUserID()),
         REMITTER_USER_ID(GetRemitterUserID()),
@@ -167,7 +167,7 @@ void Cheque::UpdateContents()
         " amount=\"%" PRId64 "\"\n"
         " assetTypeID=\"%s\"\n"
         " transactionNum=\"%" PRId64 "\"\n"
-        " serverID=\"%s\"\n"
+        " notaryID=\"%s\"\n"
         " senderAcctID=\"%s\"\n"
         " senderUserID=\"%s\"\n"
         " hasRecipient=\"%s\"\n"
@@ -230,18 +230,18 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
         SetValidTo(OTTimeGetTimeFromSeconds(str_valid_to.ToLong()));
 
         String strAssetTypeID(xml->getAttributeValue("assetTypeID")),
-            strServerID(xml->getAttributeValue("serverID")),
+            strNotaryID(xml->getAttributeValue("notaryID")),
             strSenderAcctID(xml->getAttributeValue("senderAcctID")),
             strSenderUserID(xml->getAttributeValue("senderUserID")),
             strRecipientUserID(xml->getAttributeValue("recipientUserID")),
             strRemitterUserID(xml->getAttributeValue("remitterUserID")),
             strRemitterAcctID(xml->getAttributeValue("remitterAcctID"));
 
-        Identifier ASSET_ID(strAssetTypeID), SERVER_ID(strServerID),
+        Identifier ASSET_ID(strAssetTypeID), SERVER_ID(strNotaryID),
             SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID);
 
         SetAssetID(ASSET_ID);
-        SetServerID(SERVER_ID);
+        SetNotaryID(SERVER_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
         SetSenderUserID(SENDER_USER_ID);
 
@@ -266,7 +266,7 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
                << "\n Valid From: " << str_valid_from.ToLong()
                << "\n Valid To: " << str_valid_to.ToLong()
                << "\n AssetTypeID: " << strAssetTypeID
-               << "\n ServerID: " << strServerID
+               << "\n NotaryID: " << strNotaryID
                << "\n"
                   " senderAcctID: " << strSenderAcctID
                << "\n senderUserID: " << strSenderUserID << "\n "
@@ -389,7 +389,7 @@ Cheque::Cheque(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
 {
     InitCheque();
 
-    // m_ServerID and m_AssetTypeID are now in a grandparent class
+    // m_NotaryID and m_AssetTypeID are now in a grandparent class
     // (OTInstrument)
     // So they are initialized there now.
 }

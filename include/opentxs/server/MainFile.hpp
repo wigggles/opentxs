@@ -146,7 +146,7 @@ public:
     explicit MainFile(OTServer* server);
 
     bool CreateMainFile(const std::string& strContract,
-                        const std::string& strServerID,
+                        const std::string& strNotaryID,
                         const std::string& strCert, const std::string& strNymID,
                         const std::string& strCachedKey);
     bool LoadMainFile(bool readOnly = false);

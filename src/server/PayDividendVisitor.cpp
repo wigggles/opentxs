@@ -143,11 +143,11 @@ namespace opentxs
 {
 
 PayDividendVisitor::PayDividendVisitor(
-    const Identifier& theServerID, const Identifier& theUserID,
+    const Identifier& theNotaryID, const Identifier& theUserID,
     const Identifier& thePayoutAssetID, const Identifier& theVoucherAcctID,
     const String& strMemo, OTServer& theServer, int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
-    : AccountVisitor(theServerID, pLoadedAccounts)
+    : AccountVisitor(theNotaryID, pLoadedAccounts)
     , m_pUserID(new Identifier(theUserID))
     , m_pPayoutAssetID(new Identifier(thePayoutAssetID))
     , m_pVoucherAcctID(new Identifier(theVoucherAcctID))
@@ -197,8 +197,8 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
         return true; // nothing to pay, since this account owns no shares.
                      // Success!
     }
-    OT_ASSERT(nullptr != GetServerID());
-    const Identifier& theServerID = *(GetServerID());
+    OT_ASSERT(nullptr != GetNotaryID());
+    const Identifier& theNotaryID = *(GetNotaryID());
     OT_ASSERT(nullptr != GetPayoutAssetID());
     const Identifier& thePayoutAssetID = *(GetPayoutAssetID());
     OT_ASSERT(nullptr != GetVoucherAcctID());
@@ -220,7 +220,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
     // just having it get lost in the ether.)
     bool bReturnValue = false;
 
-    Cheque theVoucher(theServerID, thePayoutAssetID);
+    Cheque theVoucher(theNotaryID, thePayoutAssetID);
 
     // 10 minutes ==    600 Seconds
     // 1 hour    ==     3600 Seconds
@@ -290,7 +290,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
 
             // calls DropMessageToNymbox
             bSent = theServer.SendInstrumentToNym(
-                theServerID, theServerNymID,          // sender nym
+                theNotaryID, theServerNymID,          // sender nym
                 RECIPIENT_ID,                         // recipient nym
                 nullptr, &thePayment, "payDividend"); // todo: hardcoding.
             bReturnValue = bSent;                     // <======= RETURN VALUE.
@@ -316,7 +316,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
         // came from.
         //
         if (!bSent) {
-            Cheque theReturnVoucher(theServerID, thePayoutAssetID);
+            Cheque theReturnVoucher(theNotaryID, thePayoutAssetID);
 
             const bool bIssueReturnVoucher = theReturnVoucher.IssueCheque(
                 lPayoutAmount,         // The amount of the cheque.
@@ -350,7 +350,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
 
                 // calls DropMessageToNymbox
                 bSent = theServer.SendInstrumentToNym(
-                    theServerID, theServerNymID, // sender nym
+                    theNotaryID, theServerNymID, // sender nym
                     theSenderUserID, // recipient nym (original sender.)
                     nullptr, &theReturnPayment,
                     "payDividend"); // todo: hardcoding.

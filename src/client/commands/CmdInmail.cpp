@@ -220,7 +220,7 @@ bool CmdInmail::showMail(const string& mynym, int32_t index,
         cout << "Mail from: " << nymId << " \"" << name << "\" \n";
     }
 
-    string server = OTAPI_Wrap::GetNym_MailServerIDByIndex(mynym, index);
+    string server = OTAPI_Wrap::GetNym_MailNotaryIDByIndex(mynym, index);
     if ("" != server) {
         string name = OTAPI_Wrap::GetServer_Name(server);
         cout << "At server: " << server << " \"" << name << "\" \n";

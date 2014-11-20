@@ -294,7 +294,7 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
             m_strMemo.Release();
 
         m_AssetTypeID = theInput.GetAssetID();
-        m_ServerID = theInput.GetServerID();
+        m_NotaryID = theInput.GetNotaryID();
 
         m_SenderUserID = theInput.GetSenderUserID();
         m_SenderAcctID = theInput.GetSenderAcctID();
@@ -362,7 +362,7 @@ bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
             m_strMemo.Release();
 
         m_AssetTypeID = theInput.GetAssetID();
-        m_ServerID = theInput.GetServerID();
+        m_NotaryID = theInput.GetNotaryID();
 
         m_SenderUserID = theInput.GetSenderUserID();
         m_SenderAcctID = theInput.GetSenderAcctID();
@@ -401,7 +401,7 @@ bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
         //
         m_strMemo.Release(); // not used here.
 
-        m_ServerID = theInput.GetServerID();
+        m_NotaryID = theInput.GetNotaryID();
         m_AssetTypeID.Release(); // not used here.
 
         m_SenderUserID = theInput.GetSenderUserID();
@@ -438,7 +438,7 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
                              // though.)
 
         m_AssetTypeID = theInput.GetAssetID();
-        m_ServerID = theInput.GetServerID();
+        m_NotaryID = theInput.GetNotaryID();
 
         m_SenderUserID.Release();
         m_SenderAcctID.Release();
@@ -990,7 +990,7 @@ bool OTPayment::GetAssetTypeID(Identifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetServerID(Identifier& theOutput) const
+bool OTPayment::GetNotaryID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1005,12 +1005,12 @@ bool OTPayment::GetServerID(Identifier& theOutput) const
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::SMART_CONTRACT:
     case OTPayment::PURSE:
-        theOutput = m_ServerID;
+        theOutput = m_NotaryID;
         bSuccess = true;
         break;
 
     default:
-        otErr << "OTPayment::GetServerID: Bad payment type!\n";
+        otErr << "OTPayment::GetNotaryID: Bad payment type!\n";
         break;
     }
 
@@ -1536,7 +1536,7 @@ void OTPayment::Release_Payment()
     m_strMemo.Release();
 
     m_AssetTypeID.Release();
-    m_ServerID.Release();
+    m_NotaryID.Release();
 
     m_SenderUserID.Release();
     m_SenderAcctID.Release();

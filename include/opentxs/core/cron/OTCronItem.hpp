@@ -159,7 +159,7 @@ private: // Private prevents erroneous use by other classes.
 private:
     OTCron* m_pCron;
     Nym* serverNym_;
-    Identifier* serverId_;
+    Identifier* notaryID_;
     time64_t m_CREATION_DATE;     // The date, in seconds, when the CronItem was
                                   // authorized.
     time64_t m_LAST_PROCESS_DATE; // The last time this item was processed.
@@ -254,14 +254,14 @@ public:
         const int64_t& lTransactionNum); // Server-side only.
     EXPORT static OTCronItem* LoadActiveCronReceipt(
         const int64_t& lTransactionNum,
-        const Identifier& serverID); // Client-side only.
+        const Identifier& notaryID); // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
         const int64_t& lTransactionNum, const Identifier& nymID,
-        const Identifier& serverID); // Client-side only.
+        const Identifier& notaryID); // Client-side only.
     EXPORT static bool GetActiveCronTransNums(OTNumList& output, // Client-side
                                                                  // only.
                                               const Identifier& nymID,
-                                              const Identifier& serverID);
+                                              const Identifier& notaryID);
     inline void SetCreationDate(const time64_t& CREATION_DATE)
     {
         m_CREATION_DATE = CREATION_DATE;
@@ -299,9 +299,9 @@ public:
     {
         serverNym_ = serverNym;
     }
-    void setServerId(Identifier* serverId)
+    void setNotaryID(Identifier* notaryID)
     {
-        serverId_ = serverId;
+        notaryID_ = notaryID;
     }
     // When first adding anything to Cron, a copy needs to be saved in a folder
     // somewhere.

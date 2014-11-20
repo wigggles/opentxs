@@ -257,14 +257,14 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_strContractType.Set((m_bSelling ? "ASK" : "BID"));
 
-        const String strServerID(xml->getAttributeValue("serverID")),
+        const String strNotaryID(xml->getAttributeValue("notaryID")),
             strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
-        const Identifier SERVER_ID(strServerID), ASSET_ID(strAssetTypeID),
+        const Identifier SERVER_ID(strNotaryID), ASSET_ID(strAssetTypeID),
             CURRENCY_TYPE_ID(strCurrencyTypeID);
 
-        SetServerID(SERVER_ID);
+        SetNotaryID(SERVER_ID);
         SetAssetID(ASSET_ID);
         SetCurrencyID(CURRENCY_TYPE_ID);
 
@@ -372,7 +372,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   " AssetTypeID: " << strAssetTypeID
                << "\n  CurrencyTypeID: " << strCurrencyTypeID
-               << "\n ServerID: " << strServerID
+               << "\n NotaryID: " << strNotaryID
                << "\n"
                   " Price Limit: " << GetPriceLimit()
                << ",  Total Assets on Offer: " << GetTotalAssetsOnOffer()
@@ -391,7 +391,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 void OTOffer::UpdateContents()
 {
-    const String SERVER_ID(GetServerID()), ASSET_TYPE_ID(GetAssetID()),
+    const String SERVER_ID(GetNotaryID()), ASSET_TYPE_ID(GetAssetID()),
         CURRENCY_TYPE_ID(GetCurrencyID());
 
     const int64_t lFrom = OTTimeGetSecondsFromTime(GetValidFrom());
@@ -411,7 +411,7 @@ void OTOffer::UpdateContents()
     m_xmlUnsigned.Concatenate(
         "<marketOffer\n version=\"%s\"\n"
         " isSelling=\"%s\"\n" // true or false.
-        " serverID=\"%s\"\n"
+        " notaryID=\"%s\"\n"
         " assetTypeID=\"%s\"\n"
         " currencyTypeID=\"%s\"\n"
         " priceLimit=\"%" PRId64 "\"\n"

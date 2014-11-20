@@ -196,7 +196,7 @@ struct ServerSettings
     static bool __cmd_usage_credits;
     static bool __cmd_issue_asset;
     static bool __cmd_get_contract;
-    static bool __cmd_check_server_id;
+    static bool __cmd_check_notary_id;
 
     static bool __cmd_create_user_acct;
     static bool __cmd_del_user_acct;

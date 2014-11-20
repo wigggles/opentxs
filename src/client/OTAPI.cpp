@@ -622,10 +622,10 @@ std::string OTAPI_Wrap::Wallet_GetNymIDFromPartial(
     return Exec()->Wallet_GetNymIDFromPartial(PARTIAL_ID);
 }
 
-std::string OTAPI_Wrap::Wallet_GetServerIDFromPartial(
+std::string OTAPI_Wrap::Wallet_GetNotaryIDFromPartial(
     const std::string& PARTIAL_ID)
 {
-    return Exec()->Wallet_GetServerIDFromPartial(PARTIAL_ID);
+    return Exec()->Wallet_GetNotaryIDFromPartial(PARTIAL_ID);
 }
 
 std::string OTAPI_Wrap::Wallet_GetAssetIDFromPartial(
@@ -702,10 +702,10 @@ std::string OTAPI_Wrap::GetNym_MailSenderIDByIndex(const std::string& NYM_ID,
     return Exec()->GetNym_MailSenderIDByIndex(NYM_ID, nIndex);
 }
 
-std::string OTAPI_Wrap::GetNym_MailServerIDByIndex(const std::string& NYM_ID,
+std::string OTAPI_Wrap::GetNym_MailNotaryIDByIndex(const std::string& NYM_ID,
                                                    const int32_t& nIndex)
 {
-    return Exec()->GetNym_MailServerIDByIndex(NYM_ID, nIndex);
+    return Exec()->GetNym_MailNotaryIDByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_RemoveMailByIndex(const std::string& NYM_ID,
@@ -737,10 +737,10 @@ std::string OTAPI_Wrap::GetNym_OutmailRecipientIDByIndex(
     return Exec()->GetNym_OutmailRecipientIDByIndex(NYM_ID, nIndex);
 }
 
-std::string OTAPI_Wrap::GetNym_OutmailServerIDByIndex(const std::string& NYM_ID,
+std::string OTAPI_Wrap::GetNym_OutmailNotaryIDByIndex(const std::string& NYM_ID,
                                                       const int32_t& nIndex)
 {
-    return Exec()->GetNym_OutmailServerIDByIndex(NYM_ID, nIndex);
+    return Exec()->GetNym_OutmailNotaryIDByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
@@ -772,10 +772,10 @@ std::string OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex(
     return Exec()->GetNym_OutpaymentsRecipientIDByIndex(NYM_ID, nIndex);
 }
 
-std::string OTAPI_Wrap::GetNym_OutpaymentsServerIDByIndex(
+std::string OTAPI_Wrap::GetNym_OutpaymentsNotaryIDByIndex(
     const std::string& NYM_ID, const int32_t& nIndex)
 {
-    return Exec()->GetNym_OutpaymentsServerIDByIndex(NYM_ID, nIndex);
+    return Exec()->GetNym_OutpaymentsNotaryIDByIndex(NYM_ID, nIndex);
 }
 
 bool OTAPI_Wrap::Nym_RemoveOutpaymentsByIndex(const std::string& NYM_ID,
@@ -820,9 +820,9 @@ std::string OTAPI_Wrap::Instrmnt_GetMemo(const std::string& THE_INSTRUMENT)
     return Exec()->Instrmnt_GetMemo(THE_INSTRUMENT);
 }
 
-std::string OTAPI_Wrap::Instrmnt_GetServerID(const std::string& THE_INSTRUMENT)
+std::string OTAPI_Wrap::Instrmnt_GetNotaryID(const std::string& THE_INSTRUMENT)
 {
-    return Exec()->Instrmnt_GetServerID(THE_INSTRUMENT);
+    return Exec()->Instrmnt_GetNotaryID(THE_INSTRUMENT);
 }
 
 std::string OTAPI_Wrap::Instrmnt_GetAssetID(const std::string& THE_INSTRUMENT)
@@ -1044,9 +1044,9 @@ std::string OTAPI_Wrap::GetAccountWallet_AssetTypeID(const std::string& THE_ID)
     return Exec()->GetAccountWallet_AssetTypeID(THE_ID);
 }
 
-std::string OTAPI_Wrap::GetAccountWallet_ServerID(const std::string& THE_ID)
+std::string OTAPI_Wrap::GetAccountWallet_NotaryID(const std::string& THE_ID)
 {
-    return Exec()->GetAccountWallet_ServerID(THE_ID);
+    return Exec()->GetAccountWallet_NotaryID(THE_ID);
 }
 
 std::string OTAPI_Wrap::GetAccountWallet_NymID(const std::string& THE_ID)
@@ -1972,9 +1972,9 @@ std::string OTAPI_Wrap::Token_GetAssetID(const std::string& THE_TOKEN)
     return Exec()->Token_GetAssetID(THE_TOKEN);
 }
 
-std::string OTAPI_Wrap::Token_GetServerID(const std::string& THE_TOKEN)
+std::string OTAPI_Wrap::Token_GetNotaryID(const std::string& THE_TOKEN)
 {
-    return Exec()->Token_GetServerID(THE_TOKEN);
+    return Exec()->Token_GetNotaryID(THE_TOKEN);
 }
 
 bool OTAPI_Wrap::IsBasketCurrency(const std::string& ASSET_TYPE_ID)

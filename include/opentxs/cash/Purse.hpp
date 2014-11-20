@@ -185,7 +185,7 @@ protected:
     // which must be ATTACHED to the purse, if that boolean is set to true.
 
     Identifier m_UserID;       // Optional
-    Identifier m_ServerID;     // Mandatory
+    Identifier m_NotaryID;     // Mandatory
     Identifier m_AssetID;      // Mandatory
     int64_t m_lTotalValue;     // Push increments this by denomination, and Pop
                                // decrements it by denomination.
@@ -318,18 +318,18 @@ public:
     EXPORT Purse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
                  const Identifier& USER_ID); // UserID optional
     EXPORT virtual ~Purse();
-    EXPORT bool LoadPurse(const char* szServerID = nullptr,
+    EXPORT bool LoadPurse(const char* szNotaryID = nullptr,
                           const char* szUserID = nullptr,
                           const char* szAssetTypeID = nullptr);
-    EXPORT bool SavePurse(const char* szServerID = nullptr,
+    EXPORT bool SavePurse(const char* szNotaryID = nullptr,
                           const char* szUserID = nullptr,
                           const char* szAssetTypeID = nullptr);
 
     virtual bool LoadContract();
 
-    inline const Identifier& GetServerID() const
+    inline const Identifier& GetNotaryID() const
     {
-        return m_ServerID;
+        return m_NotaryID;
     }
     inline const Identifier& GetAssetID() const
     {

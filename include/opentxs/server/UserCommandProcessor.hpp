@@ -153,13 +153,13 @@ public:
                             ClientConnection* connection, Nym* nym);
 
 private:
-    bool SendMessageToNym(const Identifier& serverId,
+    bool SendMessageToNym(const Identifier& notaryID,
                           const Identifier& senderUserId,
                           const Identifier& recipientUserId,
                           Message* msg = nullptr,
                           const String* messageString = nullptr);
 
-    void DropReplyNoticeToNymbox(const Identifier& serverId,
+    void DropReplyNoticeToNymbox(const Identifier& notaryID,
                                  const Identifier& userId,
                                  const String& messageString,
                                  const int64_t& requestNum,

@@ -547,7 +547,7 @@ public:
     // make this private so people don't confuse it with the API.
     // All the purse functions use this.
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerFromString(
-        const Identifier& theServerID, const Identifier& theAssetTypeID,
+        const Identifier& theNotaryID, const Identifier& theAssetTypeID,
         const String& strPurse, Purse& thePurse, // output
         OTPassword& thePassword, // Only used in the case of password-protected
                                  // purses. Passed in so it won't go out of

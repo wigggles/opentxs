@@ -241,7 +241,7 @@ public:
     OTIdentifier&
     RECIPIENT_USER_ID);
        OR:
-     OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealServerID(),
+     OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
                                     pAccount->GetAssetTypeID(),
                                     pAccount->GetRealAccountID(),
                                     pAccount->GetUserID(),
@@ -275,7 +275,7 @@ public:
     etc.
 
      1) OTPaymentPlan * pPlan =
-        new OTPaymentPlan(pAccount->GetRealServerID(),
+        new OTPaymentPlan(pAccount->GetRealNotaryID(),
             pAccount->GetAssetTypeID(),
             pAccount->GetRealAccountID(),
             pAccount->GetUserID(),
@@ -425,11 +425,11 @@ public:
      : OTContract()
 
      inline const OTIdentifier& GetAssetID() const { return m_AssetTypeID; }
-     inline const OTIdentifier& GetServerID() const { return m_ServerID; }
+     inline const OTIdentifier& GetNotaryID() const { return m_NotaryID; }
 
      inline void SetAssetID(const OTIdentifier& ASSET_ID)  { m_AssetTypeID    =
      ASSET_ID; }
-     inline void SetServerID(const OTIdentifier& SERVER_ID) { m_ServerID    =
+     inline void SetNotaryID(const OTIdentifier& SERVER_ID) { m_NotaryID    =
      SERVER_ID; }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
@@ -466,7 +466,7 @@ public:
 
      */
     EXPORT bool SendNoticeToAllParties(
-        bool bSuccessMsg, Nym& theServerNym, const Identifier& theServerID,
+        bool bSuccessMsg, Nym& theServerNym, const Identifier& theNotaryID,
         const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.

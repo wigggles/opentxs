@@ -165,7 +165,7 @@ int32_t CmdCancel::runWithOptions()
 // Update the "cancel" command, for outgoing cash, to give you a choice to
 // deposit the cash instead
 // of discarding it.
-// CmdDeposit::depositPurse(strServerID, strMyAcctID, strToNymID, strInstrument,
+// CmdDeposit::depositPurse(strNotaryID, strMyAcctID, strToNymID, strInstrument,
 // "") // strIndices is left blank in this case
 
 // NOTE: You can't just discard a sent cheque  from your outpayment box.
@@ -227,7 +227,7 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             continue;
         }
 
-        string server = OTAPI_Wrap::GetNym_OutpaymentsServerIDByIndex(mynym, i);
+        string server = OTAPI_Wrap::GetNym_OutpaymentsNotaryIDByIndex(mynym, i);
         if ("" == server) {
             otOut << "Error: cannot load server for payment " << i << ".\n";
             retVal = -1;

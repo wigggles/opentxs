@@ -199,7 +199,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
         // message,
         // Then skip this one. (Same with the NymID.)
         //
-        if (!theMessage.m_strServerID.Compare(pMsg->m_strServerID) ||
+        if (!theMessage.m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
             !theMessage.m_strNymID.Compare(pMsg->m_strNymID)) {
             continue;
         }
@@ -226,7 +226,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
     bool bAlreadyExists = false, bIsNewFolder = false;
     String strFolder, strFolder1, strFolder2;
     strFolder1.Format("%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
-                      theMessage.m_strServerID.Get());
+                      theMessage.m_strNotaryID.Get());
     strFolder2.Format("%s%s%s", strFolder1.Get(), OTLog::PathSeparator(),
                       "sent" /*todo hardcoding*/);
 
@@ -276,7 +276,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
             // this message,
             // Then skip this one. (Same with the NymID.)
             //
-            if (!theMessage.m_strServerID.Compare(pMsg->m_strServerID) ||
+            if (!theMessage.m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
                 !theMessage.m_strNymID.Compare(pMsg->m_strNymID)) {
                 ++it;
                 continue;
@@ -310,7 +310,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
 // ownership until you call RemoveSentMessage().
 
 Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
-                                            const String& strServerID,
+                                            const String& strNotaryID,
                                             const String& strNymID)
 {
     auto it = messagesMap_.begin();
@@ -330,7 +330,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
         // If a server ID was passed in, but doesn't match the server ID on this
         // message,
         // Then skip this one. (Same with the NymID.)
-        if (!strServerID.Compare(pMsg->m_strServerID) ||
+        if (!strNotaryID.Compare(pMsg->m_strNotaryID) ||
             !strNymID.Compare(pMsg->m_strNymID)) {
             continue;
         }
@@ -344,7 +344,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
     String strFolder, strFile;
     strFolder.Format(
         "%s%s%s%s%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
-        strServerID.Get(), OTLog::PathSeparator(), "sent",
+        strNotaryID.Get(), OTLog::PathSeparator(), "sent",
         /*todo hardcoding*/ OTLog::PathSeparator(), strNymID.Get());
     strFile.Format("%" PRId64 ".msg", lRequestNum);
 
@@ -391,7 +391,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 // getNymboxResponse has been received!
 // See comments below for more details.
 //
-void OTMessageOutbuffer::Clear(const String* pstrServerID,
+void OTMessageOutbuffer::Clear(const String* pstrNotaryID,
                                const String* pstrNymID, Nym* pNym,
                                const bool* pbHarvestingForRetry)
 {
@@ -409,8 +409,8 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
         // If a server ID was passed in, but doesn't match the server ID on this
         // message,
         // Then skip this one. (Same with the NymID.)
-        if (((nullptr != pstrServerID) &&
-             !pstrServerID->Compare(pThisMsg->m_strServerID)) ||
+        if (((nullptr != pstrNotaryID) &&
+             !pstrNotaryID->Compare(pThisMsg->m_strNotaryID)) ||
             ((nullptr != pstrNymID) &&
              !pstrNymID->Compare(pThisMsg->m_strNymID))) {
             ++it;
@@ -484,7 +484,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                 const Identifier MSG_NYM_ID(*pstrNymID);
                 OT_ASSERT(pNym->CompareID(MSG_NYM_ID));
 
-                OT_ASSERT(nullptr != pstrServerID && pstrServerID->Exists());
+                OT_ASSERT(nullptr != pstrNotaryID && pstrNotaryID->Exists());
 
                 OT_ASSERT(nullptr != pbHarvestingForRetry);
 
@@ -594,10 +594,10 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
             delete pThisMsg; // <============ DELETE
             pThisMsg = nullptr;
 
-            if (nullptr != pstrNymID && nullptr != pstrServerID) {
+            if (nullptr != pstrNymID && nullptr != pstrNotaryID) {
                 String strFolder, strFile;
                 strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
-                                 OTLog::PathSeparator(), pstrServerID->Get(),
+                                 OTLog::PathSeparator(), pstrNotaryID->Get(),
                                  OTLog::PathSeparator(), "sent",
                                  /*todo hardcoding*/ OTLog::PathSeparator(),
                                  pstrNymID->Get());
@@ -639,7 +639,7 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
                         // server ID on this message,
                         // Then skip this one. (Same with the NymID.)
                         //
-                        if (!pstrServerID->Compare(pMsg->m_strServerID) ||
+                        if (!pstrNotaryID->Compare(pMsg->m_strNotaryID) ||
                             !pstrNymID->Compare(pMsg->m_strNymID)) {
                             ++it;
                             continue;
@@ -692,13 +692,13 @@ void OTMessageOutbuffer::Clear(const String* pstrServerID,
 // OTMessageOutbuffer deletes the OTMessage when you call this.
 //
 bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
-                                           const String& strServerID,
+                                           const String& strNotaryID,
                                            const String& strNymID)
 {
     String strFolder, strFile;
     strFolder.Format(
         "%s%s%s%s%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
-        strServerID.Get(), OTLog::PathSeparator(), "sent",
+        strNotaryID.Get(), OTLog::PathSeparator(), "sent",
         /*todo hardcoding*/ OTLog::PathSeparator(), strNymID.Get());
     strFile.Format("%" PRId64 ".msg", lRequestNum);
 
@@ -722,7 +722,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
         // If a server ID was passed in, but doesn't match the server ID on this
         // message,
         // Then skip this one. (Same with the NymID.)
-        if (!strServerID.Compare(pMsg->m_strServerID) ||
+        if (!strNotaryID.Compare(pMsg->m_strNotaryID) ||
             !strNymID.Compare(pMsg->m_strNymID)) {
             ++it;
             continue;
@@ -774,7 +774,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
             // this message,
             // Then skip this one. (Same with the NymID.)
             //
-            if (!strServerID.Compare(pMsg->m_strServerID) ||
+            if (!strNotaryID.Compare(pMsg->m_strNotaryID) ||
                 !strNymID.Compare(pMsg->m_strNymID)) {
                 ++it;
                 continue;
@@ -823,10 +823,10 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
 Message* OTMessageOutbuffer::GetSentMessage(const OTTransaction& theTransaction)
 {
     const int64_t& lRequestNum = theTransaction.GetRequestNum();
-    const String strServerID(theTransaction.GetPurportedServerID());
+    const String strNotaryID(theTransaction.GetPurportedNotaryID());
     const String strNymID(theTransaction.GetUserID());
 
-    return GetSentMessage(lRequestNum, strServerID, strNymID);
+    return GetSentMessage(lRequestNum, strNotaryID, strNymID);
 }
 
 // OTMessageOutbuffer deletes the OTMessage when you call this.
@@ -834,10 +834,10 @@ Message* OTMessageOutbuffer::GetSentMessage(const OTTransaction& theTransaction)
 bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction& theTransaction)
 {
     const int64_t& lRequestNum = theTransaction.GetRequestNum();
-    const String strServerID(theTransaction.GetPurportedServerID());
+    const String strNotaryID(theTransaction.GetPurportedNotaryID());
     const String strNymID(theTransaction.GetUserID());
 
-    return RemoveSentMessage(lRequestNum, strServerID, strNymID);
+    return RemoveSentMessage(lRequestNum, strNotaryID, strNymID);
 }
 
 OTMessageOutbuffer::~OTMessageOutbuffer()

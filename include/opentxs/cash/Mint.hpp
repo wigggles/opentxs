@@ -164,7 +164,7 @@ protected:
     mapOfArmor m_mapPublic; // An Ascii-armored string of the mint Public
                             // information. Base64-encoded only.
 
-    Identifier m_ServerID;    // The Server ID, (a hash of the server contract
+    Identifier m_NotaryID;    // The Server ID, (a hash of the server contract
                               // whose public key is m_keyPublic)
     Identifier m_ServerNymID; // The Nym ID of the Server, whose public key is
                               // m_keyPublic
@@ -240,16 +240,16 @@ public:
     // Caller is responsible to delete.
     //
     EXPORT static Mint* MintFactory();
-    EXPORT static Mint* MintFactory(const String& strServerID,
+    EXPORT static Mint* MintFactory(const String& strNotaryID,
                                     const String& strAssetTypeID);
-    EXPORT static Mint* MintFactory(const String& strServerID,
+    EXPORT static Mint* MintFactory(const String& strNotaryID,
                                     const String& strServerNymID,
                                     const String& strAssetTypeID);
 
 protected:
     Mint();
-    EXPORT Mint(const String& strServerID, const String& strAssetTypeID);
-    EXPORT Mint(const String& strServerID, const String& strServerNymID,
+    EXPORT Mint(const String& strNotaryID, const String& strAssetTypeID);
+    EXPORT Mint(const String& strNotaryID, const String& strServerNymID,
                 const String& strAssetTypeID);
 
 public:
@@ -300,7 +300,7 @@ public:
     EXPORT void GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
                                 time64_t VALID_TO, time64_t MINT_EXPIRATION,
                                 const Identifier& theAssetID,
-                                const Identifier& theServerID, Nym& theNotary,
+                                const Identifier& theNotaryID, Nym& theNotary,
                                 int64_t nDenom1 = 0, int64_t nDenom2 = 0,
                                 int64_t nDenom3 = 0, int64_t nDenom4 = 0,
                                 int64_t nDenom5 = 0, int64_t nDenom6 = 0,

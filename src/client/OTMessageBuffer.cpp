@@ -157,8 +157,8 @@ void OTMessageBuffer::Push(std::shared_ptr<Message> theMessage)
 //
 // This would be a good place to return a smart pointer.
 //
-// Update: added arguments for: ServerID AND NymID AND request number
-// NOTE: Any messages, when popping, which have the CORRECT serverID
+// Update: added arguments for: NotaryID AND NymID AND request number
+// NOTE: Any messages, when popping, which have the CORRECT notaryID
 // and the CORRECT NymID, but the wrong Request number, will be discarded.
 //
 // (Why? Because the client using the OT API will have already treated
@@ -174,7 +174,7 @@ void OTMessageBuffer::Push(std::shared_ptr<Message> theMessage)
 // necessary -- only discarding the ones where the IDs match.
 //
 std::shared_ptr<Message> OTMessageBuffer::Pop(const int64_t& lRequestNum,
-                                              const String& strServerID,
+                                              const String& strNotaryID,
                                               const String& strNymID)
 {
     std::shared_ptr<Message> pReturnValue;
@@ -198,13 +198,13 @@ std::shared_ptr<Message> OTMessageBuffer::Pop(const int64_t& lRequestNum,
         // Below this point, pMsg has been popped, and it's NOT nullptr, and it
         // will be lost if not tracked or returned.
         //
-        if (!strServerID.Compare(pMsg->m_strServerID) ||
+        if (!strNotaryID.Compare(pMsg->m_strNotaryID) ||
             !strNymID.Compare(pMsg->m_strNymID)) {
             // Save it, so we can push it back again after this loop.
             temp_list.push_front(pMsg);
             continue;
         }
-        // Below this point, we KNOW that pMsg has the CORRECT ServerID and
+        // Below this point, we KNOW that pMsg has the CORRECT NotaryID and
         // NymID.
         // (And that all others, though popped, were pushed to temp_list in
         // order.)
@@ -221,7 +221,7 @@ std::shared_ptr<Message> OTMessageBuffer::Pop(const int64_t& lRequestNum,
                // message and skip.)
         {
             otOut << "OTMessageBuffer::Pop: Warning: While looking for server ("
-                  << strServerID << ") reply to request number " << lRequestNum
+                  << strNotaryID << ") reply to request number " << lRequestNum
                   << " for Nym (" << strNymID
                   << "), "
                      "discovered (and discarded) an old server reply for "

@@ -326,7 +326,7 @@ public:
                                                   // OTSmartContract
                                                   //
     // Returns true if it was empty (and thus successfully set).
-    EXPORT bool SetServerIDIfEmpty(const Identifier& theID);
+    EXPORT bool SetNotaryIDIfEmpty(const Identifier& theID);
 
     EXPORT bool VerifySmartContract(Nym& theNym, Account& theAcct,
                                     Nym& theServerNym,

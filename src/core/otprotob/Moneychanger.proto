@@ -6,7 +6,7 @@ package opentxs.OTDB;
 
 message ServerInfo_InternalPB {
   optional string server_type = 1;
-  optional string server_id = 2;
+  optional string notary_id = 2;
 }
 
 message ContactNym_InternalPB {
@@ -22,7 +22,7 @@ message ContactNym_InternalPB {
 message ContactAcct_InternalPB {
   optional string gui_label = 1;
   optional string server_type = 2;
-  optional string server_id = 3;
+  optional string notary_id = 3;
   optional string asset_type_id = 4;
   optional string acct_id = 5;
   optional string nym_id = 6;

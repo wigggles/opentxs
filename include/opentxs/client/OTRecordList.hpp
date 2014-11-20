@@ -157,12 +157,12 @@ public:
 
     EXPORT virtual std::string GetNymName(
         const std::string& str_id, // NymID
-        const std::string* p_server_id = nullptr) const;
+        const std::string* p_notary_id = nullptr) const;
 
     EXPORT virtual std::string GetAcctName(
         const std::string& str_id, // AcctID
         const std::string* p_nym_id = nullptr,
-        const std::string* p_server_id = nullptr,
+        const std::string* p_notary_id = nullptr,
         const std::string* p_asset_id = nullptr) const;
 
     EXPORT virtual std::string GetAddressName(const std::string& str_address)
@@ -211,12 +211,12 @@ public:
 
     EXPORT std::string GetNymName(
         const std::string& str_id, // NymID
-        const std::string* p_server_id = nullptr) const;
+        const std::string* p_notary_id = nullptr) const;
 
     EXPORT std::string GetAcctName(
         const std::string& str_id, // AcctID
         const std::string* p_nym_id = nullptr,
-        const std::string* p_server_id = nullptr,
+        const std::string* p_notary_id = nullptr,
         const std::string* p_asset_id = nullptr) const;
 
     EXPORT std::string GetAddressName(const std::string& str_address) const;
@@ -287,9 +287,9 @@ public:
     }
     // SETUP:
 
-    EXPORT void SetServerID(std::string str_id); // Set the default server
+    EXPORT void SetNotaryID(std::string str_id); // Set the default server
                                                  // here.
-    EXPORT void AddServerID(std::string str_id); // Unless you have many
+    EXPORT void AddNotaryID(std::string str_id); // Unless you have many
                                                  // servers, then use
                                                  // this.
     EXPORT void ClearServers();                  // Also clears m_contents

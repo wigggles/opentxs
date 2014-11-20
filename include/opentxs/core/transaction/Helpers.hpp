@@ -180,7 +180,7 @@ bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
                              String& strFilename);
 
 bool SetupBoxReceiptFilename(int64_t lLedgerType, const String& strUserOrAcctID,
-                             const String& strServerID,
+                             const String& strNotaryID,
                              const int64_t& lTransactionNum,
                              const char* szCaller, String& strFolder1name,
                              String& strFolder2name, String& strFolder3name,

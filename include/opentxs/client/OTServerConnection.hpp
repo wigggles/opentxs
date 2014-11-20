@@ -155,7 +155,7 @@ public:
     OTServerConnection(OTWallet* theWallet, OTClient* theClient,
                        OTSettings* pConfig);
 
-    bool GetServerID(Identifier& theID) const;
+    bool GetNotaryID(Identifier& theID) const;
 
     inline Nym* GetNym() const
     {

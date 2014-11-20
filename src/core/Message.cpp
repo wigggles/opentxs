@@ -166,7 +166,7 @@ bool Message::HarvestTransactionNumbers(
     bool bTransactionWasFailure) const // false until positively asserted.
 {
 
-    const Identifier MSG_NYM_ID(m_strNymID), SERVER_ID(m_strServerID),
+    const Identifier MSG_NYM_ID(m_strNymID), SERVER_ID(m_strNotaryID),
         ACCOUNT_ID(m_strAcctID.Exists() ? m_strAcctID
                                         : m_strNymID); // This may be
                                                        // unnecessary, but just
@@ -257,7 +257,7 @@ bool Message::HarvestTransactionNumbers(
 // seen for those request numbers.
 // IMPORTANT NOTE: The Server ID is used to lookup the numbers from the Nym.
 // Therefore,
-// make sure that OTMessage::m_strServerID is set BEFORE calling this function.
+// make sure that OTMessage::m_strNotaryID is set BEFORE calling this function.
 // (It will
 // ASSERT if you don't...)
 //
@@ -265,18 +265,18 @@ void Message::SetAcknowledgments(Nym& theNym)
 {
     m_AcknowledgedReplies.Release();
 
-    const Identifier theServerID(m_strServerID);
+    const Identifier theNotaryID(m_strNotaryID);
 
     for (auto& it : theNym.GetMapAcknowledgedNum()) {
-        std::string strServerID = it.first;
+        std::string strNotaryID = it.first;
         dequeOfTransNums* pDeque = it.second;
         OT_ASSERT(nullptr != pDeque);
 
-        String OTstrServerID = strServerID.c_str();
-        const Identifier theTempID(OTstrServerID);
+        String OTstrNotaryID = strNotaryID.c_str();
+        const Identifier theTempID(OTstrNotaryID);
 
         if (!(pDeque->empty()) &&
-            (theServerID == theTempID)) // only for the matching serverID.
+            (theNotaryID == theTempID)) // only for the matching notaryID.
         {
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 const int64_t lAckRequestNumber = pDeque->at(i);
@@ -313,11 +313,11 @@ void Message::UpdateContents()
                                   " success=\"false\"\n"
                                   " acctID=\"%s\"\n"
                                   " nymID=\"%s\"\n"
-                                  " serverID=\"%s\""
+                                  " notaryID=\"%s\""
                                   " ><!-- THIS IS AN INVALID MESSAGE -->\n\n",
                                   m_strCommand.Get(), m_strRequestNum.Get(),
                                   m_strAcctID.Get(), m_strNymID.Get(),
-                                  m_strServerID.Get());
+                                  m_strNotaryID.Get());
 
         m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
     }
@@ -574,12 +574,12 @@ public:
         result.Concatenate("<%s\n"
                            " requestNum=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " marketID=\"%s\"\n" // stored in NymID2
                            " depth=\"%" PRId64 "\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strNymID2.Get(), // Storing Market ID
                            m.m_lDepth);
 
@@ -591,7 +591,7 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID2 = xml->getAttributeValue("marketID");
 
@@ -601,7 +601,7 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\n Market ID: " << m.m_strNymID2
                << "\n Request #: " << m.m_strRequestNum << "\n";
 
@@ -622,13 +622,13 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " marketID=\"%s\"\n" // stored in NymID2
                            " depth=\"%" PRId64 "\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strNymID2.Get(), // Storing Market ID
                            m.m_lDepth);
 
@@ -651,7 +651,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strNymID2 = xml->getAttributeValue("marketID");
 
         String strDepth = xml->getAttributeValue("depth");
@@ -686,14 +686,14 @@ public:
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\n ServerID: " << m.m_strServerID
+                   << "\n NotaryID: " << m.m_strNotaryID
                    << "\n MarketID: " << m.m_strNymID2
                    << "\n\n"; // m_ascPayload.Get()
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\n ServerID: " << m.m_strServerID
+                   << "\n NotaryID: " << m.m_strNotaryID
                    << "\n MarketID: " << m.m_strNymID2
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
@@ -713,11 +713,11 @@ public:
         result.Concatenate("<%s\n"
                            " requestNum=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " marketID=\"%s\"" // stored in NymID2
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strNymID2.Get() // Storing Market ID
                            );
 
@@ -729,13 +729,13 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID2 = xml->getAttributeValue("marketID");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\n Market ID: " << m.m_strNymID2
                << "\n Request #: " << m.m_strRequestNum << "\n";
 
@@ -756,13 +756,13 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " marketID=\"%s\"\n" // stored in NymID2
                            " depth=\"%" PRId64 "\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strNymID2.Get(), // Storing Market ID
                            m.m_lDepth);
 
@@ -785,7 +785,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strNymID2 = xml->getAttributeValue("marketID");
 
         String strDepth = xml->getAttributeValue("depth");
@@ -820,14 +820,14 @@ public:
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\n ServerID: " << m.m_strServerID
+                   << "\n NotaryID: " << m.m_strNotaryID
                    << "\n MarketID: " << m.m_strNymID2
                    << "\n\n"; // m_ascPayload.Get()
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\n ServerID: " << m.m_strServerID
+                   << "\n NotaryID: " << m.m_strNotaryID
                    << "\n MarketID: " << m.m_strNymID2
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
@@ -848,10 +848,10 @@ public:
         result.Concatenate("<%s\n"
                            " requestNum=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -861,12 +861,12 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
         return 1;
@@ -886,12 +886,12 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " depth=\"%" PRId64 "\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_lDepth);
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
@@ -913,7 +913,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         String strDepth = xml->getAttributeValue("depth");
 
@@ -947,13 +947,13 @@ public:
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\n ServerID: " << m.m_strServerID
+                   << "\n NotaryID: " << m.m_strNotaryID
                    << "\n\n"; // m_ascPayload.Get()
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\n ServerID: " << m.m_strServerID
+                   << "\n NotaryID: " << m.m_strNotaryID
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
         return 1;
@@ -972,10 +972,10 @@ public:
         result.Concatenate("<%s\n"
                            " requestNum=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         result.Concatenate("<publicAuthentKey>\n%s</publicAuthentKey>\n\n",
                            m.m_strNymPublicKey.Get());
@@ -992,7 +992,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected = "publicAuthentKey";
         OTASCIIArmor ascTextExpected;
@@ -1024,7 +1024,7 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\n\n Public signing key:\n" << m.m_strNymPublicKey
                << "\nPublic encryption key:\n" << m.m_strNymID2 << "\n";
 
@@ -1045,11 +1045,11 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1062,13 +1062,13 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nSuccess: " << (m.m_bSuccess ? "true" : "false")
                << "\nNymID:    " << m.m_strNymID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -1086,10 +1086,10 @@ public:
         result.Concatenate("<%s\n"
                            " requestNum=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
         if (m.m_ascPayload.Exists())
             result.Concatenate("<credentialList>\n%s</credentialList>\n\n",
                                m.m_ascPayload.Get());
@@ -1106,7 +1106,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected = "credentialList";
 
@@ -1132,7 +1132,7 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID << "\n";
+               << "\nNotaryID: " << m.m_strNotaryID << "\n";
 
         return 1;
     }
@@ -1151,11 +1151,11 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2))
             result.Concatenate("<nymfile>\n%s</nymfile>\n\n",
@@ -1176,7 +1176,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         if (m.m_bSuccess) {
             const char* pElementExpected = "nymfile";
@@ -1207,7 +1207,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "  "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID << "\n\n\n";
+               << "\nNotaryID: " << m.m_strNotaryID << "\n\n\n";
 
         return 1;
     }
@@ -1225,10 +1225,10 @@ public:
         result.Concatenate("<%s\n"
                            " requestNum=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1238,12 +1238,12 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID << "\n\n";
+               << "\nNotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -1261,11 +1261,11 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength() > 2)
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -1282,7 +1282,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected = "inReferenceTo";
         OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
@@ -1299,7 +1299,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "  "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID << "\n\n\n";
+               << "\nNotaryID: " << m.m_strNotaryID << "\n\n\n";
 
         return 1;
     }
@@ -1318,11 +1318,11 @@ public:
                            " nymID=\"%s\"\n"
                            " nymID2=\"%s\"\n"
                            " requestNum=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
                            m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1333,13 +1333,13 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
                << "\nNymID2:    " << m.m_strNymID2
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
         return 1;
@@ -1365,13 +1365,13 @@ public:
                            " nymID=\"%s\"\n"
                            " nymID2=\"%s\"\n"
                            " hasCredentials=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strNymID.Get(), m.m_strNymID2.Get(),
                            (bCredentials ? "true" : "false"),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         if (m.m_bSuccess) {
             // Old style. (Deprecated.)
@@ -1404,7 +1404,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const String strHasCredentials(
             xml->getAttributeValue("hasCredentials"));
@@ -1464,7 +1464,7 @@ public:
                    << "\nNymID:    " << m.m_strNymID
                    << "\nNymID2:    " << m.m_strNymID2
                    << "\n"
-                      "ServerID: " << m.m_strServerID << "\nNym2 Public Key:\n"
+                      "NotaryID: " << m.m_strNotaryID << "\nNym2 Public Key:\n"
                    << m.m_strNymPublicKey << "\n\n";
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
@@ -1472,7 +1472,7 @@ public:
                    << "\nNymID:    " << m.m_strNymID
                    << "\nNymID2:    " << m.m_strNymID2
                    << "\n"
-                      "ServerID: " << m.m_strServerID
+                      "NotaryID: " << m.m_strNotaryID
                    << "\n\n"; // m.m_ascInReferenceTo.Get()
 
         return 1;
@@ -1493,11 +1493,11 @@ public:
                            " nymID2=\"%s\"\n"
                            " requestNum=\"%s\"\n"
                            " adjustment=\"%" PRId64 "\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
                            m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_lDepth, m.m_strServerID.Get());
+                           m.m_lDepth, m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1508,7 +1508,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         String strAdjustment = xml->getAttributeValue("adjustment");
@@ -1518,7 +1518,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
                << "\nNymID2:    " << m.m_strNymID2
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nRequest #: " << m.m_strRequestNum
                << "\nAdjustment: " << m.m_lDepth << "\n";
 
@@ -1541,12 +1541,12 @@ public:
                            " nymID=\"%s\"\n"
                            " nymID2=\"%s\"\n"
                            " totalCredits=\"%" PRId64 "\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strNymID.Get(), m.m_strNymID2.Get(), m.m_lDepth,
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1560,7 +1560,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         String strTotalCredits = xml->getAttributeValue("totalCredits");
 
@@ -1572,7 +1572,7 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nNymID2:    " << m.m_strNymID2
                << "\n"
-                  "ServerID: " << m.m_strServerID
+                  "NotaryID: " << m.m_strNotaryID
                << "\nTotal Credits: " << m.m_lDepth << " \n\n";
         return 1;
     }
@@ -1600,11 +1600,11 @@ public:
                            " nymID=\"%s\"\n"
                            " nymID2=\"%s\"\n"
                            " requestNum=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
                            m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         if (m.m_ascPayload.GetLength() > 2)
             result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
@@ -1619,7 +1619,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "messagePayload";
@@ -1637,7 +1637,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
                << "\nNymID2:    " << m.m_strNymID2
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
         return 1;
@@ -1660,11 +1660,11 @@ public:
                            " nymID=\"%s\"\n"
                            " nymID2=\"%s\"\n"
                            " requestNum=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
                            m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         if (m.m_ascPayload.GetLength() > 2)
             result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
@@ -1679,7 +1679,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "messagePayload";
@@ -1697,7 +1697,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
                << "\nNymID2:    " << m.m_strNymID2
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
         return 1;
@@ -1718,12 +1718,12 @@ public:
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
                            " nymID2=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strNymID.Get(), m.m_strNymID2.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1737,14 +1737,14 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\nNymID2:    " << m.m_strNymID2
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -1780,11 +1780,11 @@ public:
                            " nymID=\"%s\"\n"
                            " nymID2=\"%s\"\n"
                            " requestNum=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
                            m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         if (m.m_ascPayload.GetLength() > 2)
             result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
@@ -1799,7 +1799,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "messagePayload";
@@ -1817,7 +1817,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
                << "\nNymID2:    " << m.m_strNymID2
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
         return 1;
@@ -1841,12 +1841,12 @@ public:
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
                            " nymID2=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strNymID.Get(), m.m_strNymID2.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1860,14 +1860,14 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\nNymID2:    " << m.m_strNymID2
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -1884,11 +1884,11 @@ public:
         String result;
         result.Concatenate("<%s\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strRequestNum.Get());
+                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1899,11 +1899,11 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID << "\n\n";
+               << "\nNotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -1929,12 +1929,12 @@ public:
             " success=\"%s\"\n" // m.m_bSuccess
             " nymID=\"%s\"\n"
             " nymboxHash=\"%s\"\n"
-            " serverID=\"%s\"\n"
+            " notaryID=\"%s\"\n"
             " newRequestNum=\"%" PRId64 "\"\n"
             " requestNum=\"%s\""
             ">\n\n",
             m.m_strCommand.Get(), (m.m_bSuccess ? "true" : "false"),
-            m.m_strNymID.Get(), m.m_strNymboxHash.Get(), m.m_strServerID.Get(),
+            m.m_strNymID.Get(), m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
             m.m_lNewRequestNum, m.m_strRequestNum.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
@@ -1949,7 +1949,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const String strNewRequestNum = xml->getAttributeValue("newRequestNum");
         m.m_lNewRequestNum =
@@ -1959,7 +1959,7 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\n"
-                  "ServerID: " << m.m_strServerID
+                  "NotaryID: " << m.m_strNotaryID
                << "\nRequest Number:    " << m.m_strRequestNum
                << "  New Number: " << m.m_lNewRequestNum << "\n\n";
 
@@ -1978,12 +1978,12 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\"\n"
                            " assetType=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strRequestNum.Get(),
+                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get(),
                            m.m_strAssetID.Get());
 
         if (m.m_ascPayload.GetLength())
@@ -1998,7 +1998,7 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAssetID = xml->getAttributeValue("assetType");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
@@ -2017,7 +2017,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand
                << " \nNymID:    " << m.m_strNymID
                << "\n"
-                  "ServerID: " << m.m_strServerID
+                  "NotaryID: " << m.m_strNotaryID
                << "\nRequest#: " << m.m_strRequestNum << "\nAsset Type:\n"
                << m.m_strAssetID << "\n\n";
 
@@ -2040,12 +2040,12 @@ public:
                            " accountID=\"%s\"\n" // the new issuer account ID
                            " nymID=\"%s\"\n"
                            " assetType=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strAcctID.Get(), m.m_strNymID.Get(),
-                           m.m_strAssetID.Get(), m.m_strServerID.Get());
+                           m.m_strAssetID.Get(), m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -2066,7 +2066,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAssetID = xml->getAttributeValue("assetType");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
@@ -2122,7 +2122,7 @@ public:
                << "\nAccountID: " << m.m_strAcctID
                << "\nAsset Type ID: " << m.m_strAssetID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
         // acctContents.Get()
@@ -2142,11 +2142,11 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strRequestNum.Get());
+                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get());
 
         if (m.m_ascPayload.GetLength())
             result.Concatenate("<stringMap>\n%s</stringMap>\n\n",
@@ -2160,7 +2160,7 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "stringMap";
@@ -2178,7 +2178,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand
                << " \nNymID:    " << m.m_strNymID
                << "\n"
-                  "ServerID: " << m.m_strServerID
+                  "NotaryID: " << m.m_strNotaryID
                << "\nRequest#: " << m.m_strRequestNum << "\n\n";
 
         return 1;
@@ -2198,11 +2198,11 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -2223,7 +2223,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         // If successful, we need to read 2 more things: inReferenceTo and
         // issuerAccount payload.
@@ -2273,7 +2273,7 @@ public:
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\n NymID:    " << m.m_strNymID
-               << "\n ServerID: " << m.m_strServerID << "\n\n";
+               << "\n NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -2290,11 +2290,11 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strRequestNum.Get());
+                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get());
 
         if (m.m_ascPayload.GetLength())
             result.Concatenate("<currencyBasket>\n%s</currencyBasket>\n\n",
@@ -2308,7 +2308,7 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         {
@@ -2337,7 +2337,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand
                << " \nNymID:    " << m.m_strNymID
                << "\n"
-                  "ServerID: " << m.m_strServerID
+                  "NotaryID: " << m.m_strNotaryID
                << "\nRequest#: " << m.m_strRequestNum << "\n\n";
 
         return 1;
@@ -2360,11 +2360,11 @@ public:
             " accountID=\"%s\"\n" // the new basket issuer account ID
             " nymID=\"%s\"\n"
             " assetType=\"%s\"\n" // the new Asset Type
-            " serverID=\"%s\""
+            " notaryID=\"%s\""
             ">\n\n",
             m.m_strCommand.Get(), m.m_strRequestNum.Get(),
             (m.m_bSuccess ? "true" : "false"), m.m_strAcctID.Get(),
-            m.m_strNymID.Get(), m.m_strAssetID.Get(), m.m_strServerID.Get());
+            m.m_strNymID.Get(), m.m_strAssetID.Get(), m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -2382,7 +2382,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strAssetID = xml->getAttributeValue("assetType");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         {
@@ -2415,7 +2415,7 @@ public:
                << "\nAccountID: " << m.m_strAcctID
                << "\nAssetTypeID: " << m.m_strAssetID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -2432,12 +2432,12 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\"\n"
                            " assetType=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strRequestNum.Get(),
+                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get(),
                            m.m_strAssetID.Get());
 
         //        otErr << "DEBUG: Asset Type length: %d, Value:\n%s\n",
@@ -2451,14 +2451,14 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAssetID = xml->getAttributeValue("assetType");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << " \nNymID:    " << m.m_strNymID
                << "\n"
-                  "ServerID: " << m.m_strServerID
+                  "NotaryID: " << m.m_strNotaryID
                << "\nRequest#: " << m.m_strRequestNum << "\nAsset Type:\n"
                << m.m_strAssetID << "\n\n";
 
@@ -2480,12 +2480,12 @@ public:
                            " success=\"%s\"\n"
                            " accountID=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strAcctID.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.Exists())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -2506,7 +2506,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         // If successful, we need to read 2 more things: inReferenceTo and
@@ -2558,7 +2558,7 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAccountID: " << m.m_strAcctID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
         // acctContents.Get()
@@ -2579,14 +2579,14 @@ public:
         result.Concatenate(
             "<%s\n" // Command
             " nymID=\"%s\"\n"
-            " serverID=\"%s\"\n"
+            " notaryID=\"%s\"\n"
             " requestNum=\"%s\"\n"
             " transactionNum=\"%" PRId64 "\"\n"
             " boxType=\"%s\"\n"
             " accountID=\"%s\"" // If retrieving box receipt for Nymbox, NymID
                                 // will appear in this variable.
             ">\n\n",
-            m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strServerID.Get(),
+            m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNotaryID.Get(),
             m.m_strRequestNum.Get(), m.m_lTransactionNum,
             (m.m_lDepth == 0)
                 ? "nymbox"
@@ -2601,7 +2601,7 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
@@ -2629,7 +2629,7 @@ public:
                << " \n NymID:    " << m.m_strNymID
                << "\n AccountID:    " << m.m_strAcctID
                << "\n"
-                  " ServerID: " << m.m_strServerID
+                  " NotaryID: " << m.m_strNotaryID
                << "\n Request#: " << m.m_strRequestNum
                << "  Transaction#: " << m.m_lTransactionNum << "   boxType: "
                << ((m.m_lDepth == 0) ? "nymbox" : (m.m_lDepth == 1) ? "inbox"
@@ -2657,7 +2657,7 @@ public:
             " transactionNum=\"%" PRId64 "\"\n"
             " boxType=\"%s\"\n"
             " nymID=\"%s\"\n"
-            " serverID=\"%s\""
+            " notaryID=\"%s\""
             ">\n\n",
             m.m_strCommand.Get(), m.m_strRequestNum.Get(),
             (m.m_bSuccess ? "true" : "false"), m.m_strAcctID.Get(),
@@ -2666,7 +2666,7 @@ public:
                 ? "nymbox"
                 : ((m.m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
             m.m_strNymID.Get(),
-            m.m_strServerID.Get());
+            m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -2687,7 +2687,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         String strTransactionNum = xml->getAttributeValue("transactionNum");
@@ -2758,7 +2758,7 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAccountID: " << m.m_strAcctID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
         return 1;
@@ -2776,12 +2776,12 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\"\n"
                            " accountID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strRequestNum.Get(),
+                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get(),
                            m.m_strAcctID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
@@ -2792,7 +2792,7 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
@@ -2800,7 +2800,7 @@ public:
                << " \n NymID:    " << m.m_strNymID
                << "\n AccountID:    " << m.m_strAcctID
                << "\n"
-                  " ServerID: " << m.m_strServerID
+                  " NotaryID: " << m.m_strNotaryID
                << "\n Request#: " << m.m_strRequestNum << "\n\n";
 
         return 1;
@@ -2821,12 +2821,12 @@ public:
                            " success=\"%s\"\n"
                            " accountID=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strAcctID.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -2843,7 +2843,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         // inReferenceTo contains the deleteAssetAccount (original request)
@@ -2877,7 +2877,7 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAccountID: " << m.m_strAcctID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
         // acctContents.Get()
@@ -2899,12 +2899,12 @@ public:
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
                            " nymboxHash=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " accountID=\"%s\"\n"
                            " requestNum=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymboxHash.Get(), m.m_strServerID.Get(),
+                           m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
                            m.m_strAcctID.Get(), m.m_strRequestNum.Get());
 
         // I would check if this was empty, but it should never be empty...
@@ -2922,7 +2922,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
@@ -2944,7 +2944,7 @@ public:
                << " \n NymID:    " << m.m_strNymID
                << "\n AccountID:    " << m.m_strAcctID
                << "\n"
-                  " ServerID: " << m.m_strServerID
+                  " NotaryID: " << m.m_strNotaryID
                << "\n Request#: " << m.m_strRequestNum << "\n\n";
 
         return 1;
@@ -2965,12 +2965,12 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " accountID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
@@ -2994,7 +2994,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         // If successful or failure, we need to read 2 more things:
@@ -3046,7 +3046,7 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\n NymID:    " << m.m_strNymID
                << "\n AccountID: " << m.m_strAcctID
-               << "\n ServerID: " << m.m_strServerID << "\n\n";
+               << "\n NotaryID: " << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
         //    m.m_ascInReferenceTo.Get(),
         // acctContents.Get()
@@ -3067,11 +3067,11 @@ public:
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
                            " nymboxHash=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymboxHash.Get(), m.m_strServerID.Get(),
+                           m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
                            m.m_strRequestNum.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
@@ -3083,13 +3083,13 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
                << "\n"
-                  " ServerID: " << m.m_strServerID
+                  " NotaryID: " << m.m_strNotaryID
                << "\n Request#: " << m.m_strRequestNum << "\n\n";
 
         return 1;
@@ -3110,12 +3110,12 @@ public:
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
                            " nymboxHash=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strNymID.Get(), m.m_strNymboxHash.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -3129,13 +3129,13 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\n NymID:    " << m.m_strNymID
                << "\n"
-                  " ServerID: " << m.m_strServerID << "\n\n";
+                  " NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -3153,11 +3153,11 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strRequestNum.Get());
+                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -3167,12 +3167,12 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
         return 1;
@@ -3193,12 +3193,12 @@ public:
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
                            " nymboxHash=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strNymID.Get(), m.m_strNymboxHash.Get(),
-                           m.m_strServerID.Get());
+                           m.m_strNotaryID.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -3222,7 +3222,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected;
         if (m.m_bSuccess)
@@ -3250,7 +3250,7 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -3267,12 +3267,12 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " accountID=\"%s\"\n"
                            " requestNum=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strAcctID.Get(),
+                           m.m_strNotaryID.Get(), m.m_strAcctID.Get(),
                            m.m_strRequestNum.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
@@ -3283,13 +3283,13 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nAccountID:    " << m.m_strAcctID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
@@ -3315,13 +3315,13 @@ public:
                            " inboxHash=\"%s\"\n"
                            " outboxHash=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " accountID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
                            m.m_strInboxHash.Get(), m.m_strOutboxHash.Get(),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strAcctID.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength())
@@ -3351,7 +3351,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
         m.m_strInboxHash = xml->getAttributeValue("inboxHash");
         m.m_strOutboxHash = xml->getAttributeValue("outboxHash");
@@ -3397,7 +3397,7 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAccountID:    " << m.m_strAcctID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -3414,12 +3414,12 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " assetType=\"%s\"\n"
                            " requestNum=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strAssetID.Get(),
+                           m.m_strNotaryID.Get(), m.m_strAssetID.Get(),
                            m.m_strRequestNum.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
@@ -3430,13 +3430,13 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAssetID = xml->getAttributeValue("assetType");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nAsset Type:    " << m.m_strAssetID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
@@ -3458,12 +3458,12 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " assetType=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strAssetID.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength())
@@ -3487,7 +3487,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAssetID = xml->getAttributeValue("assetType");
 
         const char* pElementExpected;
@@ -3517,7 +3517,7 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAsset Type ID:    " << m.m_strAssetID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -3534,12 +3534,12 @@ public:
         String result;
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " assetType=\"%s\"\n"
                            " requestNum=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strServerID.Get(), m.m_strAssetID.Get(),
+                           m.m_strNotaryID.Get(), m.m_strAssetID.Get(),
                            m.m_strRequestNum.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
@@ -3550,13 +3550,13 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAssetID = xml->getAttributeValue("assetType");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nAsset Type:    " << m.m_strAssetID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
@@ -3577,12 +3577,12 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " assetType=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strAssetID.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength())
@@ -3605,7 +3605,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAssetID = xml->getAttributeValue("assetType");
 
         const char* pElementExpected;
@@ -3635,7 +3635,7 @@ public:
                << "\nNymID:    " << m.m_strNymID
                << "\nAsset Type ID:    " << m.m_strAssetID
                << "\n"
-                  "ServerID: " << m.m_strServerID << "\n\n";
+                  "NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -3654,12 +3654,12 @@ public:
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
                            " nymboxHash=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " accountID=\"%s\"\n"
                            " requestNum=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymboxHash.Get(), m.m_strServerID.Get(),
+                           m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
                            m.m_strAcctID.Get(), m.m_strRequestNum.Get());
 
         // I would check if this was empty, but it should never be empty...
@@ -3677,7 +3677,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
@@ -3699,7 +3699,7 @@ public:
                << " \n NymID:    " << m.m_strNymID
                << "\n AccountID:    " << m.m_strAcctID
                << "\n"
-                  " ServerID: " << m.m_strServerID
+                  " NotaryID: " << m.m_strNotaryID
                << "\n Request#: " << m.m_strRequestNum << "\n\n";
 
         return 1;
@@ -3720,12 +3720,12 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " accountID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
@@ -3749,7 +3749,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         // If successful or failure, we need to read 2 more things:
@@ -3800,7 +3800,7 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\n NymID:    " << m.m_strNymID
                << "\n AccountID: " << m.m_strAcctID
-               << "\n ServerID: " << m.m_strServerID << "\n\n";
+               << "\n NotaryID: " << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
         return 1;
@@ -3820,11 +3820,11 @@ public:
         result.Concatenate("<%s\n" // Command
                            " nymID=\"%s\"\n"
                            " nymboxHash=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " requestNum=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymboxHash.Get(), m.m_strServerID.Get(),
+                           m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
                            m.m_strRequestNum.Get());
 
         // I would check if this was empty, but it should never be empty...
@@ -3842,7 +3842,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         {
@@ -3862,7 +3862,7 @@ public:
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
                << "\n"
-                  " ServerID: " << m.m_strServerID
+                  " NotaryID: " << m.m_strNotaryID
                << "\n Request#: " << m.m_strRequestNum << "\n\n";
 
         return 1;
@@ -3883,11 +3883,11 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -3910,7 +3910,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         // If successful or failure, we need to read 2 more things:
         // inReferenceTo and the responseLedger payload.
@@ -3960,7 +3960,7 @@ public:
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\n NymID:    " << m.m_strNymID
                << "\n"
-                  " ServerID: " << m.m_strServerID << "\n\n";
+                  " NotaryID: " << m.m_strNotaryID << "\n\n";
         //    "****New Account****:\n%s\n",
 
         return 1;
@@ -3980,14 +3980,14 @@ public:
             "<%s\n" // Command
             " nymID=\"%s\"\n"
             " nymboxHash=\"%s\"\n"
-            " serverID=\"%s\"\n"
+            " notaryID=\"%s\"\n"
             " smartContractID=\"%" PRId64 "\"\n"
             " clauseName=\"%s\"\n"
             " hasParam=\"%s\"\n"
             " requestNum=\"%s\""
             " >\n\n",
             m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNymboxHash.Get(),
-            m.m_strServerID.Get(), m.m_lTransactionNum,
+            m.m_strNotaryID.Get(), m.m_lTransactionNum,
             m.m_strNymID2.Get(), // clause name is stored here for this message.
             (m.m_ascPayload.Exists()) ? "true" : "false",
             m.m_strRequestNum.Get());
@@ -4005,7 +4005,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strNymID2 = xml->getAttributeValue("clauseName");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         const String strHasParam = xml->getAttributeValue("hasParam");
@@ -4032,7 +4032,7 @@ public:
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nClause TransNum and Name:  " << m.m_lTransactionNum
                << "  /  " << m.m_strNymID2 << " \n"
                                               "Request #: " << m.m_strRequestNum
@@ -4056,11 +4056,11 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            " >\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength())
             result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
@@ -4077,7 +4077,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected = "inReferenceTo";
 
@@ -4097,7 +4097,7 @@ public:
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
-               << "   ServerID: " << m.m_strServerID << "\n\n";
+               << "   NotaryID: " << m.m_strNotaryID << "\n\n";
 
         return 1;
     }
@@ -4115,10 +4115,10 @@ public:
         result.Concatenate("<%s\n"
                            " requestNum=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\""
+                           " notaryID=\"%s\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strServerID.Get());
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -4128,12 +4128,12 @@ public:
     {
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
-               << "\nServerID: " << m.m_strServerID
+               << "\nNotaryID: " << m.m_strNotaryID
                << "\nRequest #: " << m.m_strRequestNum << "\n";
 
         return 1;
@@ -4154,7 +4154,7 @@ public:
         m.m_strCommand = xml->getNodeName(); // Command
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strServerID = xml->getAttributeValue("serverID");
+        m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         String strDepth = xml->getAttributeValue("depth");
 
@@ -4188,13 +4188,13 @@ public:
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\n ServerID: " << m.m_strServerID
+                   << "\n NotaryID: " << m.m_strNotaryID
                    << "\n\n"; // m_ascPayload.Get()
         else
             otWarn << "\nCommand: " << m.m_strCommand << "   "
                    << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                    << "\nNymID:    " << m.m_strNymID
-                   << "\n ServerID: " << m.m_strServerID
+                   << "\n NotaryID: " << m.m_strNotaryID
                    << "\n\n"; // m_ascInReferenceTo.Get()
 
         return 1;
@@ -4207,12 +4207,12 @@ public:
                            " requestNum=\"%s\"\n"
                            " success=\"%s\"\n"
                            " nymID=\"%s\"\n"
-                           " serverID=\"%s\"\n"
+                           " notaryID=\"%s\"\n"
                            " depth=\"%" PRId64 "\""
                            ">\n\n",
                            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
                            (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strServerID.Get(),
+                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
                            m.m_lDepth);
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&

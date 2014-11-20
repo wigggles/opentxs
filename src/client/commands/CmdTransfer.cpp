@@ -188,7 +188,7 @@ int32_t CmdTransfer::run(string myacct, string hisacct, string amount,
         return -1;
     }
 
-    string hisServer = OTAPI_Wrap::GetAccountWallet_ServerID(hisacct);
+    string hisServer = OTAPI_Wrap::GetAccountWallet_NotaryID(hisacct);
     if (hisServer != server) {
         otOut << "Error: myacct and hisacct are on different servers.\n";
         return -1;

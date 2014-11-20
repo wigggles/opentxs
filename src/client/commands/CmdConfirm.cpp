@@ -278,7 +278,7 @@ int32_t CmdConfirm::confirmInstrument(const string& server, const string& mynym,
 
 int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
 {
-    string server = OTAPI_Wrap::Instrmnt_GetServerID(plan);
+    string server = OTAPI_Wrap::Instrmnt_GetNotaryID(plan);
     if ("" == server) {
         otOut << "Error: cannot get server from instrument.\n";
         return -1;
@@ -340,7 +340,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
 }
 
 // NOTE: if index is -1, then it's assumed the instrument was PASTED in, and
-// therefore the serverID must be found on the instrument, or must be provided
+// therefore the notaryID must be found on the instrument, or must be provided
 // as Server, or we must ask the user to enter it. Then the Nym [and potentially
 // AcctID] must be ascertained by walking the user through the instrument, and
 // by making him choose a Nym and Acct(s) for the party he's confirming as.
@@ -351,7 +351,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
 // matched up to the proper box.
 //
 // If SOME parties have already confirmed the contract before you, then it
-// SHOULD already have a serverID attached to it. If a Server is also provided
+// SHOULD already have a notaryID attached to it. If a Server is also provided
 // at the command line, then the two must match, since the ID cannot be changed
 // after that point.
 
@@ -653,9 +653,9 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
     map<string, string> mapIDs;
     map<string, string> mapAgents;
 
-    // In the loop, if we have to devise the serverID, we store
+    // In the loop, if we have to devise the notaryID, we store
     // it in this var so we don't devise twice.
-    string foundServerID = "";
+    string foundNotaryID = "";
     string foundMyNymID = "";
 
     while (0 < accounts) {
@@ -697,7 +697,7 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
         // The account is NOT already confirmed (so we can confirm it,
         // once we select the Acct ID to use.)
 
-        string serverFromContract = OTAPI_Wrap::Instrmnt_GetServerID(contract);
+        string serverFromContract = OTAPI_Wrap::Instrmnt_GetNotaryID(contract);
         if ("" != serverFromContract && server != serverFromContract) {
             otOut << "Error: mismatching server in contract.\n";
             return -1;
@@ -725,7 +725,7 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
         bool foundAccounts = false;
         int32_t accountCount = OTAPI_Wrap::GetAccountCount();
 
-        otOut << "\nAccounts by index (filtered by serverID and nymID):\n\n";
+        otOut << "\nAccounts by index (filtered by notaryID and nymID):\n\n";
 
         for (int32_t i = 0; i < accountCount; i++) {
             string acct = OTAPI_Wrap::GetAccountWallet_ID(i);
@@ -735,7 +735,7 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
                 return -1;
             }
 
-            string acctServerID = OTAPI_Wrap::GetAccountWallet_ServerID(acct);
+            string acctNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(acct);
             string acctNymID = OTAPI_Wrap::GetAccountWallet_NymID(acct);
             string acctAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(acct);
 
@@ -747,7 +747,7 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
                 }
             }
 
-            if (server == acctServerID && mynym == acctNymID) {
+            if (server == acctNotaryID && mynym == acctNymID) {
                 // If the smart contract doesn't specify the asset type ID of
                 // the account, or if it DOES specify, AND they match, then
                 // it's a viable choice. Display it.
@@ -793,11 +793,11 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
             return -1;
         }
 
-        string acctServerID = OTAPI_Wrap::GetAccountWallet_ServerID(acct);
+        string acctNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(acct);
         string acctNymID = OTAPI_Wrap::GetAccountWallet_NymID(acct);
         string acctAssetID = OTAPI_Wrap::GetAccountWallet_AssetTypeID(acct);
 
-        if (server == acctServerID && mynym == acctNymID) {
+        if (server == acctNotaryID && mynym == acctNymID) {
             // If the smart contract doesn't specify the asset type ID of the
             // account, or if it DOES specify, AND they match, then it's a
             // viable choice. Allow it.
