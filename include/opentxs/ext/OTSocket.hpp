@@ -144,23 +144,6 @@ class OTSettings;
 
 class OTSocket
 {
-public:
-    class Defaults
-    {
-    public:
-        EXPORT Defaults(int64_t lLatencySendMs, int32_t nLatencySendNoTries,
-                        int64_t lLatencyReceiveMs,
-                        int32_t nLatencyReceiveNoTries,
-                        int64_t lLatencyDelayAfter, bool bIsBlocking);
-
-        const int64_t m_lLatencySendMs;
-        const int32_t m_nLatencySendNoTries;
-        const int64_t m_lLatencyReceiveMs;
-        const int32_t m_nLatencyReceiveNoTries;
-        const int64_t m_lLatencyDelayAfter;
-        const bool m_bIsBlocking;
-    };
-
 protected:
     OTSocket();
 
@@ -188,7 +171,7 @@ protected:
 public:
     virtual ~OTSocket(){};
 
-    EXPORT bool Init(const Defaults& defaults);
+    EXPORT bool Init();
     EXPORT bool Init(OTSettings* pSettings);
 
     EXPORT bool IsInitialized() const;

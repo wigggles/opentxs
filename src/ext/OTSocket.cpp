@@ -156,12 +156,12 @@ namespace opentxs
 {
 
 OTSocket::OTSocket()
-    : m_lLatencySendMs(0)
-    , m_nLatencySendNoTries(0)
-    , m_lLatencyReceiveMs(0)
-    , m_nLatencyReceiveNoTries(0)
-    , m_lLatencyDelayAfter(0)
-    , m_bIsBlocking(false)
+    : m_lLatencySendMs(DEFAULT_LATENCY_SEND_MS)
+    , m_nLatencySendNoTries(DEFAULT_LATENCY_SEND_NO_TRIES)
+    , m_lLatencyReceiveMs(DEFAULT_LATENCY_RECEIVE_MS)
+    , m_nLatencyReceiveNoTries(DEFAULT_LATENCY_RECEIVE_NO_TRIES)
+    , m_lLatencyDelayAfter(DEFAULT_LATENCY_DELAY_AFTER)
+    , m_bIsBlocking(DEFAULT_IS_BLOCKING)
     , m_bInitialized(false)
     , m_HasContext(false)
     , m_bConnected(false)
@@ -171,33 +171,12 @@ OTSocket::OTSocket()
 {
 }
 
-OTSocket::Defaults::Defaults(int64_t lLatencySendMs,
-                             int32_t nLatencySendNoTries,
-                             int64_t lLatencyReceiveMs,
-                             int32_t nLatencyReceiveNoTries,
-                             int64_t lLatencyDelayAfter, bool bIsBlocking)
-    : m_lLatencySendMs(lLatencySendMs)
-    , m_nLatencySendNoTries(nLatencySendNoTries)
-    , m_lLatencyReceiveMs(lLatencyReceiveMs)
-    , m_nLatencyReceiveNoTries(nLatencyReceiveNoTries)
-    , m_lLatencyDelayAfter(lLatencyDelayAfter)
-    , m_bIsBlocking(bIsBlocking)
-{
-}
-
-bool OTSocket::Init(const Defaults& defaults)
+bool OTSocket::Init()
 {
     if (m_bInitialized) return false;
     if (m_HasContext) return false;
     if (m_bConnected) return false;
     if (m_bListening) return false;
-
-    m_lLatencySendMs = defaults.m_lLatencySendMs;
-    m_nLatencySendNoTries = defaults.m_nLatencySendNoTries;
-    m_lLatencyReceiveMs = defaults.m_lLatencyReceiveMs;
-    m_nLatencyReceiveNoTries = defaults.m_nLatencyReceiveNoTries;
-    m_lLatencyDelayAfter = defaults.m_lLatencyDelayAfter;
-    m_bIsBlocking = defaults.m_bIsBlocking;
 
     m_bInitialized = true;
     return true;
@@ -214,23 +193,18 @@ bool OTSocket::Init(OTSettings* pSettings)
         OT_FAIL;
     }
 
-    Defaults defaults(DEFAULT_LATENCY_SEND_MS, DEFAULT_LATENCY_SEND_NO_TRIES,
-                      DEFAULT_LATENCY_RECEIVE_MS,
-                      DEFAULT_LATENCY_RECEIVE_NO_TRIES,
-                      DEFAULT_LATENCY_DELAY_AFTER, DEFAULT_IS_BLOCKING);
-
     bool bIsNew = false;
     {
         if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_MS,
-                                      defaults.m_lLatencySendMs,
-                                      m_lLatencySendMs, bIsNew)) {
+                                      DEFAULT_LATENCY_SEND_MS, m_lLatencySendMs,
+                                      bIsNew)) {
             OT_FAIL;
         }
     }
     {
         int64_t lResult = 0;
         if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_NO_TRIES,
-                                      defaults.m_nLatencySendNoTries, lResult,
+                                      DEFAULT_LATENCY_SEND_NO_TRIES, lResult,
                                       bIsNew)) {
             OT_FAIL;
         }
@@ -238,7 +212,7 @@ bool OTSocket::Init(OTSettings* pSettings)
     }
     {
         if (!pSettings->CheckSet_long("latency", KEY_LATENCY_RECEIVE_MS,
-                                      defaults.m_lLatencyReceiveMs,
+                                      DEFAULT_LATENCY_RECEIVE_MS,
                                       m_lLatencyReceiveMs, bIsNew)) {
             OT_FAIL;
         }
@@ -246,22 +220,22 @@ bool OTSocket::Init(OTSettings* pSettings)
     {
         int64_t lResult = 0;
         if (!pSettings->CheckSet_long("latency", KEY_LATENCY_RECEIVE_NO_TRIES,
-                                      defaults.m_nLatencyReceiveNoTries,
-                                      lResult, bIsNew)) {
+                                      DEFAULT_LATENCY_RECEIVE_NO_TRIES, lResult,
+                                      bIsNew)) {
             OT_FAIL;
         }
         m_nLatencyReceiveNoTries = static_cast<int32_t>(lResult);
     }
     {
         if (!pSettings->CheckSet_long("latency", KEY_LATENCY_DELAY_AFTER,
-                                      defaults.m_lLatencyDelayAfter,
+                                      DEFAULT_LATENCY_DELAY_AFTER,
                                       m_lLatencyDelayAfter, bIsNew)) {
             OT_FAIL;
         }
     }
     {
         if (!pSettings->CheckSet_bool("latency", KEY_IS_BLOCKING,
-                                      defaults.m_bIsBlocking, m_bIsBlocking,
+                                      DEFAULT_IS_BLOCKING, m_bIsBlocking,
                                       bIsNew)) {
             OT_FAIL;
         }
