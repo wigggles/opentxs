@@ -227,11 +227,6 @@ OTSocket::~OTSocket()
     delete context_zmq;
 }
 
-bool OTSocket::IsConnected() const
-{
-    return m_bConnected;
-}
-
 bool OTSocket::IsListening() const
 {
     return m_bListening;
