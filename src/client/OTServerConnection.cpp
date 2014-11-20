@@ -153,13 +153,6 @@ extern "C" {
 #endif
 }
 
-#define CLIENT_DEFAULT_LATENCY_SEND_MS 200
-#define CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES 7
-#define CLIENT_DEFAULT_LATENCY_RECEIVE_MS 200
-#define CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES 7
-#define CLIENT_DEFAULT_LATENCY_DELAY_AFTER 50
-#define CLIENT_DEFAULT_IS_BLOCKING false
-
 namespace opentxs
 {
 
@@ -180,13 +173,7 @@ OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
     m_pWallet = theWallet;
     m_pClient = theClient;
 
-    OTSocket::Defaults socketDefaults(
-        CLIENT_DEFAULT_LATENCY_SEND_MS, CLIENT_DEFAULT_LATENCY_SEND_NO_TRIES,
-        CLIENT_DEFAULT_LATENCY_RECEIVE_MS,
-        CLIENT_DEFAULT_LATENCY_RECEIVE_NO_TRIES,
-        CLIENT_DEFAULT_LATENCY_DELAY_AFTER, CLIENT_DEFAULT_IS_BLOCKING);
-
-    m_pSocket->Init(socketDefaults, pConfig);
+    m_pSocket->Init(pConfig);
 }
 
 // When the server sends a reply back with our new request number, we

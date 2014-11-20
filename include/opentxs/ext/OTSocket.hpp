@@ -210,7 +210,7 @@ public:
     EXPORT std::mutex* GetMutex();
 
     EXPORT bool Init(const Defaults& defaults);
-    EXPORT bool Init(const Defaults& defaults, OTSettings* pSettings);
+    EXPORT bool Init(OTSettings* pSettings);
 
     EXPORT bool IsInitialized() const;
     EXPORT bool HasContext() const;

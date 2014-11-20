@@ -143,10 +143,18 @@
 #define KEY_LATENCY_DELAY_AFTER "latency_delay_after"
 #define KEY_IS_BLOCKING "is_blocking"
 
+enum {
+    DEFAULT_LATENCY_SEND_MS = 5000,
+    DEFAULT_LATENCY_SEND_NO_TRIES = 2,
+    DEFAULT_LATENCY_RECEIVE_MS = 5000,
+    DEFAULT_LATENCY_RECEIVE_NO_TRIES = 2,
+    DEFAULT_LATENCY_DELAY_AFTER = 50,
+    DEFAULT_IS_BLOCKING = 0
+};
+
 namespace opentxs
 {
 
-// OTSocket base class.
 OTSocket::OTSocket()
     : m_Mutex()
     , m_lLatencySendMs(0)
@@ -217,7 +225,7 @@ bool OTSocket::Init(const Defaults& defaults)
     return true;
 }
 
-bool OTSocket::Init(const Defaults& defaults, OTSettings* pSettings)
+bool OTSocket::Init(OTSettings* pSettings)
 {
     if (m_bInitialized) return false;
     if (m_HasContext) return false;
@@ -228,7 +236,12 @@ bool OTSocket::Init(const Defaults& defaults, OTSettings* pSettings)
         OT_FAIL;
     }
 
-    bool bIsNew;
+    Defaults defaults(DEFAULT_LATENCY_SEND_MS, DEFAULT_LATENCY_SEND_NO_TRIES,
+                      DEFAULT_LATENCY_RECEIVE_MS,
+                      DEFAULT_LATENCY_RECEIVE_NO_TRIES,
+                      DEFAULT_LATENCY_DELAY_AFTER, DEFAULT_IS_BLOCKING);
+
+    bool bIsNew = false;
     {
         if (!pSettings->CheckSet_long("latency", KEY_LATENCY_SEND_MS,
                                       defaults.m_lLatencySendMs,
