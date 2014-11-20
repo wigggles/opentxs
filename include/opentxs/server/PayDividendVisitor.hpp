@@ -170,7 +170,7 @@ class PayDividendVisitor : public AccountVisitor
                                // count.
 
 public:
-    PayDividendVisitor(const Identifier& theServerID,
+    PayDividendVisitor(const Identifier& theNotaryID,
                        const Identifier& theUserID,
                        const Identifier& thePayoutAssetID,
                        const Identifier& theVoucherAcctID,

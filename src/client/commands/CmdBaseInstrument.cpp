@@ -200,7 +200,7 @@ int32_t CmdBaseInstrument::getTokens(vector<string>& tokens,
 int32_t CmdBaseInstrument::sendPayment(const string& cheque, string sender,
                                        const char* what) const
 {
-    string server = OTAPI_Wrap::Instrmnt_GetServerID(cheque);
+    string server = OTAPI_Wrap::Instrmnt_GetNotaryID(cheque);
     if ("" == server) {
         otOut << "Error: cannot get server.\n";
         return -1;

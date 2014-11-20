@@ -601,7 +601,7 @@ protected:
     //
     //
     //    Another example:
-    //    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealServerID());
+    //    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealNotaryID());
     //
     // Notice I am loading the account based on the ID from the transaction. If
     // I used the "Purported Account ID"
@@ -658,7 +658,7 @@ protected:
     // ===> Whereas with Real IDs, that's what I use when I am actually DOING
     // SOMETHING with the instrument. For
     // example again:
-    //    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealServerID());
+    //    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealNotaryID());
     // In that case, I am ACTUALLY LOADING AN ACCOUNT, and may move some money
     // from it. I do NOT want to load
     // ANY account whatsoever other than the actually-authorized account,
@@ -675,7 +675,7 @@ protected:
      this code segment, btw, completely illustrates that philsophy:
 
     // When actually doing something, we use the real IDs...
-    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealServerID());
+    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealNotaryID());
 
     // When distrusting the instrument (immediately following in the actual
     code), we
@@ -690,7 +690,7 @@ protected:
     }
     // the account, inbox, and outbox all have the same Server ID. But does it
     match *this receipt?
-    else if (THE_ACCOUNT.GetPurportedServerID() != GetPurportedServerID())
+    else if (THE_ACCOUNT.GetPurportedNotaryID() != GetPurportedNotaryID())
     {
         // error, return.
         otOut << "Account, inbox or outbox server ID fails to match receipt
@@ -727,10 +727,10 @@ protected:
                          // string or file. They should match, and signature
                          // should verify.
 
-    Identifier m_ServerID;     // Server ID as used to instantiate the
-                               // transaction, based on expected ServerID.
-    Identifier m_AcctServerID; // Actual ServerID within the signed portion.
-                               // (Compare to m_ServerID upon loading.)
+    Identifier m_NotaryID;     // Server ID as used to instantiate the
+                               // transaction, based on expected NotaryID.
+    Identifier m_AcctNotaryID; // Actual NotaryID within the signed portion.
+                               // (Compare to m_NotaryID upon loading.)
 
     // Update: instead of in the child classes, like OTLedger, OTTransaction,
     // OTItem, etc, I put the
@@ -861,28 +861,28 @@ public:
     }
 
     // Used for: Load or save a filename based on this ID.
-    inline const Identifier& GetRealServerID() const
+    inline const Identifier& GetRealNotaryID() const
     {
-        return m_ServerID;
+        return m_NotaryID;
     }
-    inline void SetRealServerID(const Identifier& theID)
+    inline void SetRealNotaryID(const Identifier& theID)
     {
-        m_ServerID = theID;
+        m_NotaryID = theID;
     }
 
     // Used for: Load or save the ID in the file contents into/out of this ID.
-    inline const Identifier& GetPurportedServerID() const
+    inline const Identifier& GetPurportedNotaryID() const
     {
-        return m_AcctServerID;
+        return m_AcctNotaryID;
     }
-    inline void SetPurportedServerID(const Identifier& theID)
+    inline void SetPurportedNotaryID(const Identifier& theID)
     {
-        m_AcctServerID = theID;
+        m_AcctNotaryID = theID;
     }
 
     // Compares the m_AcctID from the xml portion of the contract
     // with m_ID (supposedly the same number.)
-    // Also Verifies the ServerID, since this object type is all about the both
+    // Also Verifies the NotaryID, since this object type is all about the both
     // of those IDs.
     EXPORT virtual bool VerifyContractID() const;
 
@@ -900,13 +900,13 @@ public:
     // already passed in HERE to see if anything is fishy.
     // Thus, while OTContract instituted a constructor with an ID,
     // OTTransactionType will require
-    // both the Account ID and the ServerID.
+    // both the Account ID and the NotaryID.
     OTTransactionType(const Identifier& theUserID,
                       const Identifier& theAccountID,
-                      const Identifier& theServerID);
+                      const Identifier& theNotaryID);
     OTTransactionType(const Identifier& theUserID,
                       const Identifier& theAccountID,
-                      const Identifier& theServerID, int64_t lTransactionNum);
+                      const Identifier& theNotaryID, int64_t lTransactionNum);
 
     void InitTransactionType();
     virtual ~OTTransactionType();

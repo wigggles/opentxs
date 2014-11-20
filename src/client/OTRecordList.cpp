@@ -313,12 +313,12 @@ bool OTLookupCaller::isCallbackSet() const
 }
 
 std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
-                                       const std::string* p_server_id) const
+                                       const std::string* p_notary_id) const
 {
     if (isCallbackSet()) {
         otWarn << "OTLookupCaller::GetNymName: FYI, Executing address "
                   "book callback...\n";
-        return _callback->GetNymName(str_id, p_server_id);
+        return _callback->GetNymName(str_id, p_notary_id);
     }
     else {
         otOut << "OTLookupCaller::GetNymName: "
@@ -330,13 +330,13 @@ std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
 
 std::string OTLookupCaller::GetAcctName(const std::string& str_id, // AcctID
                                         const std::string* p_nym_id,
-                                        const std::string* p_server_id,
+                                        const std::string* p_notary_id,
                                         const std::string* p_asset_id) const
 {
     if (isCallbackSet()) {
         otWarn << "OTLookupCaller::GetAcctName: FYI, Executing address "
                   "book callback...\n";
-        return _callback->GetAcctName(str_id, p_nym_id, p_server_id,
+        return _callback->GetAcctName(str_id, p_nym_id, p_notary_id,
                                       p_asset_id);
     }
     else {
@@ -419,15 +419,15 @@ OTLookupCaller* OTRecordList::getAddrBookCaller()
 
 // Set the default server here.
 
-void OTRecordList::SetServerID(std::string str_id)
+void OTRecordList::SetNotaryID(std::string str_id)
 {
     ClearServers();
-    AddServerID(str_id);
+    AddNotaryID(str_id);
 }
 
 // Unless you have many servers, then use this.
 
-void OTRecordList::AddServerID(std::string str_id)
+void OTRecordList::AddNotaryID(std::string str_id)
 {
     m_servers.insert(m_servers.end(), str_id);
 }
@@ -587,14 +587,14 @@ bool OTRecordList::PerformAutoAccept()
             int32_t nServerIndex = -1;
             for (auto& it_server : m_servers) {
                 ++nServerIndex;
-                const std::string& str_server_id(it_server);
-                const Identifier theServerID(str_server_id);
+                const std::string& str_notary_id(it_server);
+                const Identifier theNotaryID(str_notary_id);
                 OTServerContract* pServer =
-                    pWallet->GetServerContract(theServerID);
+                    pWallet->GetServerContract(theNotaryID);
                 OT_ASSERT(nullptr != pServer);
-                const String strServerID(theServerID);
+                const String strNotaryID(theNotaryID);
                 otOut << __FUNCTION__ << ": Server " << nServerIndex
-                      << ", ID: " << strServerID.Get() << "\n";
+                      << ", ID: " << strNotaryID.Get() << "\n";
                 mapOfPayments thePaymentMap;
                 // OPTIMIZE FYI:
                 // The "NoVerify" version is much faster, but you will lose the
@@ -606,8 +606,8 @@ bool OTRecordList::PerformAutoAccept()
                 OTLedger* pInbox =
                     m_bRunFast
                         ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(
-                              theServerID, theNymID)
-                        : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID,
+                              theNotaryID, theNymID)
+                        : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID,
                                                                 theNymID);
                 std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
@@ -785,15 +785,15 @@ bool OTRecordList::PerformAutoAccept()
                             OT_ASSERT(nullptr != pAccount);
                             const Identifier& theAcctNymID =
                                 pAccount->GetUserID();
-                            const Identifier& theAcctServerID =
-                                pAccount->GetPurportedServerID();
+                            const Identifier& theAcctNotaryID =
+                                pAccount->GetPurportedNotaryID();
                             const Identifier& theAcctAssetID =
                                 pAccount->GetAssetTypeID();
                             const std::string str_acct_type =
                                 pAccount->GetTypeString();
                             //                      const OTString
                             // strAcctNymID   (theAcctNymID);
-                            const String strAcctServerID(theAcctServerID);
+                            const String strAcctNotaryID(theAcctNotaryID);
                             const String strAcctAssetID(theAcctAssetID);
                             // If the current account is owned by the Nym, AND
                             // it has the same asset type ID
@@ -805,8 +805,8 @@ bool OTRecordList::PerformAutoAccept()
                             // this loop in the first place.
                             //
                             if ((theNymID == theAcctNymID) &&
-                                (strAcctServerID.Compare(
-                                    str_server_id.c_str())) &&
+                                (strAcctNotaryID.Compare(
+                                    str_notary_id.c_str())) &&
                                 (strAcctAssetID.Compare(
                                     str_asset_type_id.c_str())) &&
                                 (0 ==
@@ -865,16 +865,16 @@ bool OTRecordList::PerformAutoAccept()
             Account* pAccount = pWallet->GetAccount(theAccountID);
             OT_ASSERT(nullptr != pAccount);
             const Identifier& theNymID = pAccount->GetUserID();
-            const Identifier& theServerID = pAccount->GetPurportedServerID();
+            const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
             const Identifier& theAssetID = pAccount->GetAssetTypeID();
             const String strNymID(theNymID);
-            const String strServerID(theServerID);
+            const String strNotaryID(theNotaryID);
             const String strAssetID(theAssetID);
             otOut << "------------\n" << __FUNCTION__
                   << ": Account: " << nAccountIndex
                   << ", ID: " << str_account_id.c_str() << "\n";
             const std::string str_nym_id(strNymID.Get());
-            const std::string str_server_id(strServerID.Get());
+            const std::string str_notary_id(strNotaryID.Get());
             const std::string str_asset_id(strAssetID.Get());
             // NOTE: Since this account is already on my "care about" list for
             // accounts,
@@ -891,7 +891,7 @@ bool OTRecordList::PerformAutoAccept()
             //
             auto it_nym = std::find(m_nyms.begin(), m_nyms.end(), str_nym_id);
             auto it_server =
-                std::find(m_servers.begin(), m_servers.end(), str_server_id);
+                std::find(m_servers.begin(), m_servers.end(), str_notary_id);
             auto it_asset = m_assets.find(str_asset_id);
             if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
                 (m_assets.end() == it_asset)) {
@@ -913,9 +913,9 @@ bool OTRecordList::PerformAutoAccept()
             //
             OTLedger* pInbox = m_bRunFast
                                    ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
-                                         theServerID, theNymID, theAccountID)
+                                         theNotaryID, theNymID, theAccountID)
                                    : OTAPI_Wrap::OTAPI()->LoadInbox(
-                                         theServerID, theNymID, theAccountID);
+                                         theNotaryID, theNymID, theAccountID);
             std::unique_ptr<OTLedger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otOut << __FUNCTION__ << ": Skipping an account ("
@@ -963,7 +963,7 @@ bool OTRecordList::PerformAutoAccept()
                                 nNumberNeeded, // I'm just hardcoding: "Make
                                                // sure I have at least 20
                                                // transaction numbers."
-                                str_server_id, str_nym_id)) {
+                                str_notary_id, str_nym_id)) {
                             otOut << "\n\nFailure: "
                                      "make_sure_enough_trans_nums: "
                                      "returned false. (Skipping inbox "
@@ -973,7 +973,7 @@ bool OTRecordList::PerformAutoAccept()
                         }
                         strResponseLedger =
                             OTAPI_Wrap::It()->Ledger_CreateResponse(
-                                str_server_id, str_nym_id, str_account_id,
+                                str_notary_id, str_nym_id, str_account_id,
                                 str_inbox);
 
                         if (strResponseLedger.empty()) {
@@ -989,7 +989,7 @@ bool OTRecordList::PerformAutoAccept()
                     const std::string str_trans(strTrans.Get());
                     std::string strNEW_ResponseLEDGER =
                         OTAPI_Wrap::It()->Transaction_CreateResponse(
-                            str_server_id, str_nym_id, str_account_id,
+                            str_notary_id, str_nym_id, str_account_id,
                             strResponseLedger, str_trans,
                             true); // accept = true (versus rejecting a pending
                                    // transfer, for example.)
@@ -1010,7 +1010,7 @@ bool OTRecordList::PerformAutoAccept()
             if (bFoundAnyToAccept && !strResponseLedger.empty()) {
                 std::string strFinalizedResponse =
                     OTAPI_Wrap::It()->Ledger_FinalizeResponse(
-                        str_server_id, str_nym_id, str_account_id,
+                        str_notary_id, str_nym_id, str_account_id,
                         strResponseLedger);
 
                 if (strFinalizedResponse.empty()) {
@@ -1027,12 +1027,12 @@ bool OTRecordList::PerformAutoAccept()
                 // Server communications are handled here...
                 //
                 std::string strResponse = madeEasy.process_inbox(
-                    str_server_id, str_nym_id, str_account_id,
+                    str_notary_id, str_nym_id, str_account_id,
                     strFinalizedResponse);
                 std::string strAttempt = "process_inbox";
 
                 int32_t nInterpretReply = madeEasy.InterpretTransactionMsgReply(
-                    str_server_id, str_nym_id, str_account_id, strAttempt,
+                    str_notary_id, str_nym_id, str_account_id, strAttempt,
                     strResponse);
 
                 if (1 == nInterpretReply) {
@@ -1041,7 +1041,7 @@ bool OTRecordList::PerformAutoAccept()
                     // since they have probably changed from this operation.
                     //
                     bool bRetrieved = madeEasy.retrieve_account(
-                        str_server_id, str_nym_id, str_account_id,
+                        str_notary_id, str_nym_id, str_account_id,
                         true); // bForceDownload defaults to false.
 
                     otOut << "\n\nServer response (" << strAttempt.c_str()
@@ -1230,7 +1230,7 @@ bool OTRecordList::Populate()
             // strOutpayment contains the actual outgoing payment instrument.
             //
             const std::string str_outpmt_server =
-                OTAPI_Wrap::GetNym_OutpaymentsServerIDByIndex(
+                OTAPI_Wrap::GetNym_OutpaymentsNotaryIDByIndex(
                     str_nym_id, nCurrentOutpayment);
             const std::string str_outpmt_recipientID =
                 OTAPI_Wrap::GetNym_OutpaymentsRecipientIDByIndex(
@@ -1244,7 +1244,7 @@ bool OTRecordList::Populate()
             auto it_server = std::find(m_servers.begin(), m_servers.end(),
                                        str_outpmt_server);
 
-            if (it_server != m_servers.end()) // Found the serverID on the list
+            if (it_server != m_servers.end()) // Found the notaryID on the list
                                               // of servers we care about.
             {
                 // TODO OPTIMIZE: instead of looking up the Nym's name every
@@ -1346,7 +1346,7 @@ bool OTRecordList::Populate()
             Message* pMsg = pNym->GetMailByIndex(nCurrentMail);
             OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
-                OTAPI_Wrap::GetNym_MailServerIDByIndex(str_nym_id,
+                OTAPI_Wrap::GetNym_MailNotaryIDByIndex(str_nym_id,
                                                        nCurrentMail);
             const std::string str_mail_senderID =
                 OTAPI_Wrap::GetNym_MailSenderIDByIndex(str_nym_id,
@@ -1359,7 +1359,7 @@ bool OTRecordList::Populate()
             auto it_server =
                 std::find(m_servers.begin(), m_servers.end(), str_mail_server);
 
-            if (it_server != m_servers.end()) // Found the serverID on the list
+            if (it_server != m_servers.end()) // Found the notaryID on the list
                                               // of servers we care about.
             {
                 // TODO OPTIMIZE: instead of looking up the Nym's name every
@@ -1443,7 +1443,7 @@ bool OTRecordList::Populate()
             Message* pMsg = pNym->GetOutmailByIndex(nCurrentOutmail);
             OT_ASSERT(nullptr != pMsg);
             const std::string str_mail_server =
-                OTAPI_Wrap::GetNym_OutmailServerIDByIndex(str_nym_id,
+                OTAPI_Wrap::GetNym_OutmailNotaryIDByIndex(str_nym_id,
                                                           nCurrentOutmail);
             const std::string str_mail_recipientID =
                 OTAPI_Wrap::GetNym_OutmailRecipientIDByIndex(str_nym_id,
@@ -1456,7 +1456,7 @@ bool OTRecordList::Populate()
             auto it_server =
                 std::find(m_servers.begin(), m_servers.end(), str_mail_server);
 
-            if (it_server != m_servers.end()) // Found the serverID on the list
+            if (it_server != m_servers.end()) // Found the notaryID on the list
                                               // of servers we care about.
             {
                 // TODO OPTIMIZE: instead of looking up the Nym's name every
@@ -1535,12 +1535,12 @@ bool OTRecordList::Populate()
         int32_t nServerIndex = -1;
         for (auto& it_server : m_servers) {
             ++nServerIndex;
-            const Identifier theServerID(it_server);
-            OTServerContract* pServer = pWallet->GetServerContract(theServerID);
+            const Identifier theNotaryID(it_server);
+            OTServerContract* pServer = pWallet->GetServerContract(theNotaryID);
             OT_ASSERT(nullptr != pServer);
-            const String strServerID(theServerID);
+            const String strNotaryID(theNotaryID);
             otOut << __FUNCTION__ << ": Server " << nServerIndex
-                  << ", ID: " << strServerID.Get() << "\n";
+                  << ", ID: " << strNotaryID.Get() << "\n";
             // OPTIMIZE FYI:
             // The "NoVerify" version is much faster, but you will lose the
             // ability to get the
@@ -1550,9 +1550,9 @@ bool OTRecordList::Populate()
             //
             OTLedger* pInbox =
                 m_bRunFast
-                    ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(theServerID,
+                    ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(theNotaryID,
                                                                     theNymID)
-                    : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID,
+                    : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID,
                                                             theNymID);
             std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
@@ -1804,9 +1804,9 @@ bool OTRecordList::Populate()
             OTLedger* pRecordbox =
                 m_bRunFast
                     ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
-                          theServerID, theNymID, theNymID)
+                          theNotaryID, theNymID, theNymID)
                     : // twice.
-                    OTAPI_Wrap::OTAPI()->LoadRecordBox(theServerID, theNymID,
+                    OTAPI_Wrap::OTAPI()->LoadRecordBox(theNotaryID, theNymID,
                                                        theNymID);
             std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
 
@@ -2234,9 +2234,9 @@ bool OTRecordList::Populate()
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             OTLedger* pExpiredbox =
                 m_bRunFast
-                    ? OTAPI_Wrap::OTAPI()->LoadExpiredBoxNoVerify(theServerID,
+                    ? OTAPI_Wrap::OTAPI()->LoadExpiredBoxNoVerify(theNotaryID,
                                                                   theNymID)
-                    : OTAPI_Wrap::OTAPI()->LoadExpiredBox(theServerID,
+                    : OTAPI_Wrap::OTAPI()->LoadExpiredBox(theNotaryID,
                                                           theNymID);
             std::unique_ptr<OTLedger> theExpiredBoxAngel(pExpiredbox);
 
@@ -2678,19 +2678,19 @@ bool OTRecordList::Populate()
         Account* pAccount = pWallet->GetAccount(theAccountID);
         OT_ASSERT(nullptr != pAccount);
         const Identifier& theNymID = pAccount->GetUserID();
-        const Identifier& theServerID = pAccount->GetPurportedServerID();
+        const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
         const Identifier& theAssetID = pAccount->GetAssetTypeID();
         const String strNymID(theNymID);
-        const String strServerID(theServerID);
+        const String strNotaryID(theNotaryID);
         const String strAssetID(theAssetID);
         otOut << "------------\n" << __FUNCTION__
               << ": Account: " << nAccountIndex
               << ", ID: " << str_account_id.c_str() << "\n";
         const std::string str_nym_id(strNymID.Get());
-        const std::string str_server_id(strServerID.Get());
+        const std::string str_notary_id(strNotaryID.Get());
         const std::string str_asset_id(strAssetID.Get());
         const std::string* pstr_nym_id = &OTRecordList::s_blank;
-        const std::string* pstr_server_id = &OTRecordList::s_blank;
+        const std::string* pstr_notary_id = &OTRecordList::s_blank;
         const std::string* pstr_asset_id = &OTRecordList::s_blank;
         const std::string* pstr_asset_name = &OTRecordList::s_blank;
         // NOTE: Since this account is already on my "care about" list for
@@ -2707,7 +2707,7 @@ bool OTRecordList::Populate()
         //
         auto it_nym = std::find(m_nyms.begin(), m_nyms.end(), str_nym_id);
         auto it_server =
-            std::find(m_servers.begin(), m_servers.end(), str_server_id);
+            std::find(m_servers.begin(), m_servers.end(), str_notary_id);
         auto it_asset = m_assets.find(str_asset_id);
         if ((m_nyms.end() == it_nym) || (m_servers.end() == it_server) ||
             (m_assets.end() == it_asset)) {
@@ -2720,7 +2720,7 @@ bool OTRecordList::Populate()
         // These pointers are what we'll use to construct each OTRecord.
         //
         pstr_nym_id = &(*it_nym);
-        pstr_server_id = &(*it_server);
+        pstr_notary_id = &(*it_server);
         pstr_asset_id = &(it_asset->first);
         pstr_asset_name = &(it_asset->second);
         // Loop through asset account INBOX.
@@ -2735,9 +2735,9 @@ bool OTRecordList::Populate()
         //
         OTLedger* pInbox = m_bRunFast
                                ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
-                                     theServerID, theNymID, theAccountID)
+                                     theNotaryID, theNymID, theAccountID)
                                : OTAPI_Wrap::OTAPI()->LoadInbox(
-                                     theServerID, theNymID, theAccountID);
+                                     theNotaryID, theNymID, theAccountID);
         std::unique_ptr<OTLedger> theInboxAngel(pInbox);
 
         // It loaded up, so let's loop through it.
@@ -2772,7 +2772,7 @@ bool OTRecordList::Populate()
                         //
                         //                    if (strBoxTrans.Exists())
                         //                        str_memo =
-                        // OTAPI_Wrap::Pending_GetNote(*pstr_server_id,
+                        // OTAPI_Wrap::Pending_GetNote(*pstr_notary_id,
                         // *pstr_nym_id, str_account_id, strBoxTrans.Get());
                         Identifier theSenderID, theSenderAcctID;
 
@@ -2795,7 +2795,7 @@ bool OTRecordList::Populate()
                                 str_other_nym_id.empty()
                                     ? nullptr
                                     : &str_other_nym_id, // nym ID if known
-                                pstr_server_id,          // server ID if known.
+                                pstr_notary_id,          // server ID if known.
                                 pstr_asset_id)),         // asset ID if known.
                                 strNameTemp;
 
@@ -2895,7 +2895,7 @@ bool OTRecordList::Populate()
                             String strName(m_pLookup->GetAcctName(
                                 str_recipient_acct_id,
                                 nullptr,         // nym ID if known
-                                pstr_server_id,  // server ID if known.
+                                pstr_notary_id,  // server ID if known.
                                 pstr_asset_id)), // asset ID if known.
                                 strNameTemp;
 
@@ -2944,7 +2944,7 @@ bool OTRecordList::Populate()
                       << ")\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
-                    *pstr_server_id, *pstr_asset_id, *pstr_asset_name,
+                    *pstr_notary_id, *pstr_asset_id, *pstr_asset_name,
                     *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                     str_account_id, // This is the Nym's account for this box.
                     // Everything above this line, it stores a reference to an
@@ -2996,9 +2996,9 @@ bool OTRecordList::Populate()
         //
         OTLedger* pOutbox = m_bRunFast
                                 ? OTAPI_Wrap::OTAPI()->LoadOutboxNoVerify(
-                                      theServerID, theNymID, theAccountID)
+                                      theNotaryID, theNymID, theAccountID)
                                 : OTAPI_Wrap::OTAPI()->LoadOutbox(
-                                      theServerID, theNymID, theAccountID);
+                                      theNotaryID, theNymID, theAccountID);
         std::unique_ptr<OTLedger> theOutboxAngel(pOutbox);
 
         // It loaded up, so let's loop through it.
@@ -3056,7 +3056,7 @@ bool OTRecordList::Populate()
 
                         String strName(m_pLookup->GetAcctName(
                             str_recipient_acct_id, nullptr, // nym ID if known
-                            pstr_server_id,  // server ID if known.
+                            pstr_notary_id,  // server ID if known.
                             pstr_asset_id)), // asset ID if known.
                             strNameTemp;
 
@@ -3082,7 +3082,7 @@ bool OTRecordList::Populate()
                         //
                         //                    if (strBoxTrans.Exists())
                         //                        str_memo =
-                        // OTAPI_Wrap::Pending_GetNote(*pstr_server_id,
+                        // OTAPI_Wrap::Pending_GetNote(*pstr_notary_id,
                         // *pstr_nym_id, str_account_id, strBoxTrans.Get());
                     }
                 }
@@ -3122,7 +3122,7 @@ bool OTRecordList::Populate()
                       << ").\n";
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
-                    *pstr_server_id, *pstr_asset_id, *pstr_asset_name,
+                    *pstr_notary_id, *pstr_asset_id, *pstr_asset_name,
                     *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                     str_account_id, // This is the Nym's account for this box.
                     // Everything above this line, it stores a reference to an
@@ -3167,9 +3167,9 @@ bool OTRecordList::Populate()
         //
         OTLedger* pRecordbox = m_bRunFast
                                    ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
-                                         theServerID, theNymID, theAccountID)
+                                         theNotaryID, theNymID, theAccountID)
                                    : OTAPI_Wrap::OTAPI()->LoadRecordBox(
-                                         theServerID, theNymID, theAccountID);
+                                         theNotaryID, theNymID, theAccountID);
         std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
 
         // It loaded up, so let's loop through it.
@@ -3267,7 +3267,7 @@ bool OTRecordList::Populate()
                                         bGotRecipientUserIDForDisplay
                                             ? &str_recip_user_id
                                             : nullptr,   // nym ID if known
-                                        pstr_server_id,  // server ID if known.
+                                        pstr_notary_id,  // server ID if known.
                                         pstr_asset_id)), // asset ID if known.
                                         strNameTemp;
 
@@ -3330,7 +3330,7 @@ bool OTRecordList::Populate()
                                 str_other_nym_id.empty()
                                     ? nullptr
                                     : &str_other_nym_id, // nym ID if known
-                                pstr_server_id,          // server ID if known.
+                                pstr_notary_id,          // server ID if known.
                                 pstr_asset_id)),         // asset ID if known.
                                 strNameTemp;
 
@@ -3379,7 +3379,7 @@ bool OTRecordList::Populate()
                                 str_other_nym_id.empty()
                                     ? nullptr
                                     : &str_other_nym_id, // nym ID if known
-                                pstr_server_id,          // server ID if known.
+                                pstr_notary_id,          // server ID if known.
                                 pstr_asset_id)),         // asset ID if known.
                                 strNameTemp;
 
@@ -3587,7 +3587,7 @@ bool OTRecordList::Populate()
                 // we just say "transferReceipt."
 
                 shared_ptr_OTRecord sp_Record(new OTRecord(
-                    *pstr_server_id, *pstr_asset_id, *pstr_asset_name,
+                    *pstr_notary_id, *pstr_asset_id, *pstr_asset_name,
                     *pstr_nym_id,   // This is the Nym WHOSE BOX IT IS.
                     str_account_id, // This is the Nym's account for this box.
                     // Everything above this line, it stores a reference to an

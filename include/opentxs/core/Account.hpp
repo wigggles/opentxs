@@ -169,9 +169,9 @@ public:
 
 public:
     EXPORT Account(const Identifier& userId, const Identifier& accountId,
-                   const Identifier& serverId, const String& name);
+                   const Identifier& notaryID, const String& name);
     EXPORT Account(const Identifier& userId, const Identifier& accountId,
-                   const Identifier& serverId);
+                   const Identifier& notaryID);
 
     EXPORT virtual ~Account();
 
@@ -219,7 +219,7 @@ public:
 
     EXPORT void Release_Account();
     EXPORT static Account* GenerateNewAccount(const Identifier& userId,
-                                              const Identifier& serverId,
+                                              const Identifier& notaryID,
                                               const Nym& serverNym,
                                               const Message& message,
                                               AccountType acctType = simple,
@@ -232,7 +232,7 @@ public:
     // the damn thing up.
     // Then call this function. It will set userID for you.
     EXPORT static Account* LoadExistingAccount(const Identifier& accountId,
-                                               const Identifier& serverId);
+                                               const Identifier& notaryID);
     // Caller responsible to delete.
     EXPORT OTLedger* LoadInbox(Nym& nym) const;
     // Caller responsible to delete.
@@ -271,7 +271,7 @@ public:
     }
 
 protected:
-    Account(const Identifier& userId, const Identifier& serverId);
+    Account(const Identifier& userId, const Identifier& notaryID);
     Account();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.

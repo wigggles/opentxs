@@ -254,7 +254,7 @@ public:
         m_strAcctID = strAccountID;
     }
     EXPORT OTAgent* GetAuthorizedAgent();
-    Account* LoadAccount(Nym& theSignerNym, const String& strServerID);
+    Account* LoadAccount(Nym& theSignerNym, const String& strNotaryID);
     bool IsAccount(Account& theAccount);
     bool IsAccountByID(const Identifier& theAcctID) const;
     bool VerifyOwnership() const; // I have a ptr to my owner (party), as well
@@ -272,7 +272,7 @@ public:
         m_lClosingTransNo = lTransNo;
     }
     bool Compare(const OTPartyAccount& rhs) const;
-    bool DropFinalReceiptToInbox(mapOfNyms* pNymMap, const String& strServerID,
+    bool DropFinalReceiptToInbox(mapOfNyms* pNymMap, const String& strNotaryID,
                                  Nym& theServerNym,
                                  OTSmartContract& theSmartContract,
                                  const int64_t& lNewTransactionNumber,

@@ -176,7 +176,7 @@ bool OTServerContract::DisplayStatistics(String& strContents) const
     const String strID(m_ID);
 
     strContents.Concatenate(" Notary Provider: %s\n"
-                            " ServerID: %s\n"
+                            " NotaryID: %s\n"
                             "\n",
                             m_strName.Get(), strID.Get());
 
@@ -194,7 +194,7 @@ bool OTServerContract::SaveContractWallet(String& strContents) const
         ascName.SetString(m_strName, false); // linebreaks == false
     }
     strContents.Concatenate("<notaryProvider name=\"%s\"\n"
-                            " serverID=\"%s\" />\n\n",
+                            " notaryID=\"%s\" />\n\n",
                             m_strName.Exists() ? ascName.Get() : "",
                             strID.Get());
 

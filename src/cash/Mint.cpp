@@ -171,12 +171,12 @@ Mint* Mint::MintFactory()
 }
 
 // static
-Mint* Mint::MintFactory(const String& strServerID, const String& strAssetTypeID)
+Mint* Mint::MintFactory(const String& strNotaryID, const String& strAssetTypeID)
 {
     Mint* pMint = nullptr;
 
 #if defined(OT_CASH_USING_LUCRE)
-    pMint = new MintLucre(strServerID, strAssetTypeID);
+    pMint = new MintLucre(strNotaryID, strAssetTypeID);
 #elif defined(OT_CASH_USING_MAGIC_MONEY)
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money "
@@ -192,13 +192,13 @@ Mint* Mint::MintFactory(const String& strServerID, const String& strAssetTypeID)
 }
 
 // static
-Mint* Mint::MintFactory(const String& strServerID, const String& strServerNymID,
+Mint* Mint::MintFactory(const String& strNotaryID, const String& strServerNymID,
                         const String& strAssetTypeID)
 {
     Mint* pMint = nullptr;
 
 #if defined(OT_CASH_USING_LUCRE)
-    pMint = new MintLucre(strServerID, strServerNymID, strAssetTypeID);
+    pMint = new MintLucre(strNotaryID, strServerNymID, strAssetTypeID);
 #elif defined(OT_CASH_USING_MAGIC_MONEY)
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support Magic Money "
@@ -310,10 +310,10 @@ void Mint::InitMint()
     m_pReserveAcct = nullptr;
 }
 
-Mint::Mint(const String& strServerID, const String& strServerNymID,
+Mint::Mint(const String& strNotaryID, const String& strServerNymID,
            const String& strAssetTypeID)
     : Contract(strAssetTypeID)
-    , m_ServerID(strServerID)
+    , m_NotaryID(strNotaryID)
     , m_ServerNymID(strServerNymID)
     , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
     , m_AssetID(strAssetTypeID)
@@ -326,15 +326,15 @@ Mint::Mint(const String& strServerID, const String& strServerNymID,
     , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format("%s%s%s", strServerID.Get(), OTLog::PathSeparator(),
+    m_strFilename.Format("%s%s%s", strNotaryID.Get(), OTLog::PathSeparator(),
                          strAssetTypeID.Get());
 
     InitMint();
 }
 
-Mint::Mint(const String& strServerID, const String& strAssetTypeID)
+Mint::Mint(const String& strNotaryID, const String& strAssetTypeID)
     : Contract(strAssetTypeID)
-    , m_ServerID(strServerID)
+    , m_NotaryID(strNotaryID)
     , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
     , m_AssetID(strAssetTypeID)
     , m_nDenominationCount(0)
@@ -346,7 +346,7 @@ Mint::Mint(const String& strServerID, const String& strAssetTypeID)
     , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format("%s%s%s", strServerID.Get(), OTLog::PathSeparator(),
+    m_strFilename.Format("%s%s%s", strNotaryID.Get(), OTLog::PathSeparator(),
                          strAssetTypeID.Get());
 
     InitMint();
@@ -379,17 +379,17 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 
-    const String strServerID(m_ServerID), strAssetTypeID(m_AssetID);
+    const String strNotaryID(m_NotaryID), strAssetTypeID(m_AssetID);
 
     if (!m_strFilename.Exists()) {
         if (nullptr != szAppend)
-            m_strFilename.Format("%s%s%s%s", strServerID.Get(),
+            m_strFilename.Format("%s%s%s%s", strNotaryID.Get(),
                                  OTLog::PathSeparator(), // server appends ".1"
                                                          // or ".PUBLIC" here.
                                  strAssetTypeID.Get(), szAppend);
         else
             m_strFilename.Format(
-                "%s%s%s", strServerID.Get(), OTLog::PathSeparator(),
+                "%s%s%s", strNotaryID.Get(), OTLog::PathSeparator(),
                 strAssetTypeID.Get()); // client uses only asset ID, no append.
     }
 
@@ -401,7 +401,7 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
         strFilename = strAssetTypeID.Get(); // client side
 
     const char* szFolder1name = OTFolders::Mint().Get(); // "mints"
-    const char* szFolder2name = strServerID.Get();       // "mints/SERVER_ID"
+    const char* szFolder2name = strNotaryID.Get();       // "mints/SERVER_ID"
     const char* szFilename =
         strFilename.Get(); // "mints/SERVER_ID/ASSET_TYPE_ID<szAppend>"
 
@@ -438,15 +438,15 @@ bool Mint::SaveMint(const char* szAppend)
 {
     if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
 
-    const String strServerID(m_ServerID), strAssetTypeID(m_AssetID);
+    const String strNotaryID(m_NotaryID), strAssetTypeID(m_AssetID);
 
     if (!m_strFilename.Exists()) {
         if (nullptr != szAppend)
-            m_strFilename.Format("%s%s%s%s", strServerID.Get(),
+            m_strFilename.Format("%s%s%s%s", strNotaryID.Get(),
                                  OTLog::PathSeparator(), // server side
                                  strAssetTypeID.Get(), szAppend);
         else
-            m_strFilename.Format("%s%s%s", strServerID.Get(),
+            m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                                  OTLog::PathSeparator(),
                                  strAssetTypeID.Get()); // client side
     }
@@ -458,7 +458,7 @@ bool Mint::SaveMint(const char* szAppend)
         strFilename = strAssetTypeID.Get();
 
     const char* szFolder1name = OTFolders::Mint().Get();
-    const char* szFolder2name = strServerID.Get();
+    const char* szFolder2name = strNotaryID.Get();
     const char* szFilename = strFilename.Get();
 
     String strRawFile;
@@ -633,7 +633,7 @@ void Mint::UpdateContents()
 {
     OT_ASSERT(nullptr != m_pKeyPublic);
 
-    String SERVER_ID(m_ServerID), SERVER_NYM_ID(m_ServerNymID),
+    String SERVER_ID(m_NotaryID), SERVER_NYM_ID(m_ServerNymID),
         ASSET_ID(m_AssetID), CASH_ACCOUNT_ID(m_CashAccountID);
 
     int64_t lFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
@@ -646,7 +646,7 @@ void Mint::UpdateContents()
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
     m_xmlUnsigned.Concatenate("<mint version=\"%s\"\n"
-                              " serverID=\"%s\"\n"
+                              " notaryID=\"%s\"\n"
                               " serverNymID=\"%s\"\n"
                               " assetTypeID=\"%s\"\n"
                               " cashAcctID=\"%s\"\n"
@@ -719,10 +719,10 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (strNodeName.Compare("mint")) {
-        String strServerID, strServerNymID, strAssetID, strCashAcctID;
+        String strNotaryID, strServerNymID, strAssetID, strCashAcctID;
 
         m_strVersion = xml->getAttributeValue("version");
-        strServerID = xml->getAttributeValue("serverID");
+        strNotaryID = xml->getAttributeValue("notaryID");
         strServerNymID = xml->getAttributeValue("serverNymID");
         strAssetID = xml->getAttributeValue("assetTypeID");
         strCashAcctID = xml->getAttributeValue("cashAcctID");
@@ -737,7 +737,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_VALID_FROM = OTTimeGetTimeFromSeconds(str_valid_from.ToLong());
         m_VALID_TO = OTTimeGetTimeFromSeconds(str_valid_to.ToLong());
 
-        m_ServerID.SetString(strServerID);
+        m_NotaryID.SetString(strNotaryID);
         m_ServerNymID.SetString(strServerNymID);
         m_AssetID.SetString(strAssetID);
         m_CashAccountID.SetString(strCashAcctID);
@@ -751,7 +751,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // for transactions.
         if (strCashAcctID.Exists())
             m_pReserveAcct =
-                Account::LoadExistingAccount(m_CashAccountID, m_ServerID);
+                Account::LoadExistingAccount(m_CashAccountID, m_NotaryID);
 
         int64_t nValidFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
         int64_t nValidTo = OTTimeGetSecondsFromTime(m_VALID_TO);
@@ -760,7 +760,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn <<
             //    "\n===> Loading XML for mint into memory structures..."
             "\n\nMint version: " << m_strVersion
-               << "\n Server ID: " << strServerID
+               << "\n Server ID: " << strNotaryID
                << "\n Asset Type ID: " << strAssetID
                << "\n Cash Acct ID: " << strCashAcctID << "\n"
                                                           ""
@@ -849,12 +849,12 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
  //
  // theMessage.m_strNymID;
  // theMessage.m_strAssetID;
- // theMessage.m_strServerID;
+ // theMessage.m_strNotaryID;
 
  // static method (call it without an instance, using notation:
  OTAccount::GenerateNewAccount)
  OTAccount * OTAccount::GenerateNewAccount(    const OTIdentifier & theUserID,
- const OTIdentifier & theServerID,
+ const OTIdentifier & theNotaryID,
                                             const OTPseudonym & theServerNym,
  const OTMessage & theMessage,
                                             const OTAccount::AccountType
@@ -879,7 +879,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
                            time64_t VALID_TO, time64_t MINT_EXPIRATION,
                            const Identifier& theAssetID,
-                           const Identifier& theServerID, Nym& theNotary,
+                           const Identifier& theNotaryID, Nym& theNotary,
                            int64_t nDenom1, int64_t nDenom2, int64_t nDenom3,
                            int64_t nDenom4, int64_t nDenom5, int64_t nDenom6,
                            int64_t nDenom7, int64_t nDenom8, int64_t nDenom9,
@@ -888,7 +888,7 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     Release();
 
     m_AssetID = theAssetID;
-    m_ServerID = theServerID;
+    m_NotaryID = theNotaryID;
 
     Identifier SERVER_NYM_ID(theNotary);
     m_ServerNymID = SERVER_NYM_ID;
@@ -904,17 +904,17 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     Message theMessage;
     SERVER_NYM_ID.GetString(theMessage.m_strNymID);
     theAssetID.GetString(theMessage.m_strAssetID);
-    theServerID.GetString(theMessage.m_strServerID);
+    theNotaryID.GetString(theMessage.m_strNotaryID);
 
     /* OTAccount::
      GenerateNewAccount(const OTIdentifier & theUserID, const OTIdentifier &
-     theServerID,
+     theNotaryID,
                         const OTPseudonym & theServerNym, const OTMessage &
      theMessage,
                         const AccountType eAcctType=simple);
      */
     m_pReserveAcct = Account::GenerateNewAccount(
-        SERVER_NYM_ID, theServerID, theNotary, theMessage, Account::mint);
+        SERVER_NYM_ID, theNotaryID, theNotary, theMessage, Account::mint);
 
     if (m_pReserveAcct) {
         m_pReserveAcct->GetIdentifier(m_CashAccountID);

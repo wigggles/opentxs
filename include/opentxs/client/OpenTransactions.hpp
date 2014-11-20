@@ -547,7 +547,7 @@ public:
     // make this private so people don't confuse it with the API.
     // All the purse functions use this.
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerFromString(
-        const Identifier& theServerID, const Identifier& theAssetTypeID,
+        const Identifier& theNotaryID, const Identifier& theAssetTypeID,
         const String& strPurse, Purse& thePurse, // output
         OTPassword& thePassword, // Only used in the case of password-protected
                                  // purses. Passed in so it won't go out of
@@ -741,8 +741,8 @@ public:
 
     // These commands below send messages to the server:
 
-    EXPORT int32_t checkServerID(const Identifier& SERVER_ID,
-                                 const Identifier& USER_ID) const;
+    EXPORT int32_t pingNotary(const Identifier& SERVER_ID,
+                              const Identifier& USER_ID) const;
 
     EXPORT int32_t registerNym(const Identifier& SERVER_ID,
                                const Identifier& USER_ID) const;

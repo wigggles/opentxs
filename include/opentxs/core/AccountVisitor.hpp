@@ -147,9 +147,9 @@ typedef std::map<std::string, Account*> mapOfAccounts;
 class AccountVisitor
 {
 public:
-    EXPORT AccountVisitor(const Identifier& serverId,
+    EXPORT AccountVisitor(const Identifier& notaryID,
                           mapOfAccounts* loadedAccounts = nullptr)
-        : serverId_(serverId)
+        : notaryID_(notaryID)
         , loadedAccounts_(loadedAccounts)
     {
     }
@@ -158,9 +158,9 @@ public:
     {
     }
 
-    EXPORT Identifier* GetServerID()
+    EXPORT Identifier* GetNotaryID()
     {
-        return &serverId_;
+        return &notaryID_;
     }
 
     EXPORT mapOfAccounts* GetLoadedAccts()
@@ -171,7 +171,7 @@ public:
     EXPORT virtual bool Trigger(Account& account) = 0;
 
 protected:
-    Identifier serverId_;
+    Identifier notaryID_;
     mapOfAccounts* loadedAccounts_;
 };
 

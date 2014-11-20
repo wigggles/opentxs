@@ -202,9 +202,9 @@ void OTServerConnection::OnServerResponseToGetRequestNumber(
         otOut << "Received new request number from the server: "
               << lNewRequestNumber << ". Updating Nym records...\n";
 
-        String strServerID;
-        m_pServerContract->GetIdentifier(strServerID);
-        m_pNym->OnUpdateRequestNum(*m_pNym, strServerID, lNewRequestNumber);
+        String strNotaryID;
+        m_pServerContract->GetIdentifier(strNotaryID);
+        m_pNym->OnUpdateRequestNum(*m_pNym, strNotaryID, lNewRequestNumber);
     }
     else {
         otErr << "Expected m_pNym or m_pServerContract to be not null in "
@@ -212,7 +212,7 @@ void OTServerConnection::OnServerResponseToGetRequestNumber(
     }
 }
 
-bool OTServerConnection::GetServerID(Identifier& theID) const
+bool OTServerConnection::GetNotaryID(Identifier& theID) const
 {
     if (m_pServerContract) {
         m_pServerContract->GetIdentifier(theID);

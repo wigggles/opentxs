@@ -924,7 +924,7 @@ public:
 
     using Displayable::gui_label; // The label that appears in the GUI
 
-    std::string server_id;
+    std::string notary_id;
     std::string market_id;
 
     std::string asset_type_id;
@@ -1195,7 +1195,7 @@ public:
     std::string valid_from;
     std::string valid_to;
 
-    std::string server_id;
+    std::string notary_id;
     std::string asset_type_id;    // the asset type on offer.
     std::string asset_acct_id;    // the account where the asset is.
     std::string currency_type_id; // the currency being used to purchase the
@@ -1347,7 +1347,7 @@ public:
     using Displayable::gui_label; // The label that appears in the GUI
 
     std::string acct_id;
-    std::string server_id;
+    std::string notary_id;
 
     DEFINE_OT_DYNAMIC_CAST(Acct)
 };
@@ -1372,7 +1372,7 @@ public:
     using Displayable::gui_label; // The label that appears in the GUI
 
     using Acct::acct_id;
-    using Acct::server_id;
+    using Acct::notary_id;
 
     std::string bitcoin_acct_name;
 
@@ -1400,7 +1400,7 @@ public:
 
     using Displayable::gui_label; // The label that appears in the GUI
 
-    std::string server_id;
+    std::string notary_id;
     std::string server_type;
 
     DEFINE_OT_DYNAMIC_CAST(ServerInfo)
@@ -1425,7 +1425,7 @@ public:
 
     using Displayable::gui_label; // The label that appears in the GUI
 
-    using ServerInfo::server_id;   // in base class
+    using ServerInfo::notary_id;   // in base class
     using ServerInfo::server_type; // in base class
 
     std::string server_host;
@@ -1453,7 +1453,7 @@ public:
 
     using Displayable::gui_label; // The label that appears in the GUI
 
-    using ServerInfo::server_id;   // in base class
+    using ServerInfo::notary_id;   // in base class
     using ServerInfo::server_type; // in base class
 
     using Server::server_host; // in base class
@@ -1484,7 +1484,7 @@ public:
 
     using Displayable::gui_label; // The label that appears in the GUI
 
-    using ServerInfo::server_id;   // in base class
+    using ServerInfo::notary_id;   // in base class
     using ServerInfo::server_type; // in base class
 
     using Server::server_host; // in base class
@@ -1518,7 +1518,7 @@ public:
 
     using Displayable::gui_label; // The label that appears in the GUI
 
-    using ServerInfo::server_id;   // in base class
+    using ServerInfo::notary_id;   // in base class
     using ServerInfo::server_type; // in base class
 
     using Server::server_host; // in base class
@@ -1609,7 +1609,7 @@ public:
     using Displayable::gui_label; // The label that appears in the GUI
 
     std::string server_type;
-    std::string server_id;
+    std::string notary_id;
     std::string asset_type_id;
     std::string acct_id;
     std::string nym_id;

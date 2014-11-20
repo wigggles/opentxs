@@ -153,20 +153,20 @@ public:
                             ClientConnection* connection, Nym* nym);
 
 private:
-    bool SendMessageToNym(const Identifier& serverId,
+    bool SendMessageToNym(const Identifier& notaryID,
                           const Identifier& senderUserId,
                           const Identifier& recipientUserId,
                           Message* msg = nullptr,
                           const String* messageString = nullptr);
 
-    void DropReplyNoticeToNymbox(const Identifier& serverId,
+    void DropReplyNoticeToNymbox(const Identifier& notaryID,
                                  const Identifier& userId,
                                  const String& messageString,
                                  const int64_t& requestNum,
                                  const bool replyTransSuccess,
                                  Nym* actualNym = nullptr);
 
-    void UserCmdCheckServerID(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdPingNotary(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdCheckNym(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendNymMessage(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendNymInstrument(Nym& nym, Message& msgIn, Message& msgOut);

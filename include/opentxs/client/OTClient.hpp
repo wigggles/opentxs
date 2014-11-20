@@ -153,8 +153,8 @@ class OTClient
 {
 public:
     enum OT_CLIENT_CMD_TYPE {
-        checkServerID, // Your public key is sent along with this message so the
-                       // server can reply to
+        pingNotary, // Your public key is sent along with this message so the
+                    // server can reply to
         // you even without your being a registered user. Other than these top
         // two commands,
         // all other commands can only be executed by registered users.
@@ -255,7 +255,7 @@ public:
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
                                     const OTServerConnection& theConnection,
                                     const Message& theReply) const;
-    bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theServerID,
+    bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theNotaryID,
                             const OTServerContract& theServerContract,
                             Nym& theNym, Message& theMessage);
 
@@ -267,7 +267,7 @@ private:
                                       OTLedger& ledger) const;
 
     struct ProcessServerReplyArgs;
-    void setRecentHash(const Message& theReply, const String& strServerID,
+    void setRecentHash(const Message& theReply, const String& strNotaryID,
                        Nym* pNym, bool setNymboxHash);
     bool processServerReplyTriggerClause(const Message& theReply,
                                          ProcessServerReplyArgs& args);

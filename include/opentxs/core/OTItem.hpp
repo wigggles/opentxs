@@ -420,7 +420,7 @@ public:
     void ReleaseItems();
     void Release_Item();
     virtual void Release();
-    // the "From" accountID and the ServerID are now in the parent class. (2 of
+    // the "From" accountID and the NotaryID are now in the parent class. (2 of
     // each.)
 
     inline void SetNewOutboxTransNum(int64_t lTransNum)
@@ -493,7 +493,7 @@ public:
         m_AcctToID = theID;
     }
     EXPORT static OTItem* CreateItemFromString(const String& strItem,
-                                               const Identifier& theServerID,
+                                               const Identifier& theNotaryID,
                                                int64_t lTransactionNumber);
 
     EXPORT static OTItem* CreateItemFromTransaction(

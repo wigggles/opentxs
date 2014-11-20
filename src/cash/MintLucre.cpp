@@ -160,14 +160,14 @@ MintLucre::MintLucre()
 {
 }
 
-MintLucre::MintLucre(const String& strServerID, const String& strAssetTypeID)
-    : ot_super(strServerID, strAssetTypeID)
+MintLucre::MintLucre(const String& strNotaryID, const String& strAssetTypeID)
+    : ot_super(strNotaryID, strAssetTypeID)
 {
 }
 
-MintLucre::MintLucre(const String& strServerID, const String& strServerNymID,
+MintLucre::MintLucre(const String& strNotaryID, const String& strServerNymID,
                      const String& strAssetTypeID)
-    : ot_super(strServerID, strServerNymID, strAssetTypeID)
+    : ot_super(strNotaryID, strServerNymID, strAssetTypeID)
 {
 }
 

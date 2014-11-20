@@ -963,7 +963,7 @@ bool OTParty::VerifyOwnershipOfAccount(const Account& theAccount) const
 // This is only for SmartContracts, NOT all scriptables.
 //
 bool OTParty::DropFinalReceiptToInboxes(
-    mapOfNyms* pNymMap, const String& strServerID, Nym& theServerNym,
+    mapOfNyms* pNymMap, const String& strNotaryID, Nym& theServerNym,
     const int64_t& lNewTransactionNumber, const String& strOrigCronItem,
     String* pstrNote, String* pstrAttachment)
 {
@@ -994,7 +994,7 @@ bool OTParty::DropFinalReceiptToInboxes(
             pAcct->DropFinalReceiptToInbox(
                 pNymMap, // contains any Nyms who might already be
                          // loaded, mapped by ID.
-                strServerID, theServerNym, *pSmartContract,
+                strNotaryID, theServerNym, *pSmartContract,
                 lNewTransactionNumber, strOrigCronItem, pstrNote,
                 pstrAttachment)) {
             otErr << szFunc
@@ -1053,7 +1053,7 @@ bool OTParty::DropFinalReceiptToNymboxes(const int64_t& lNewTransactionNumber,
 }
 
 bool OTParty::SendNoticeToParty(bool bSuccessMsg, Nym& theServerNym,
-                                const Identifier& theServerID,
+                                const Identifier& theNotaryID,
                                 const int64_t& lNewTransactionNumber,
                                 const String& strReference, String* pstrNote,
                                 String* pstrAttachment, Nym* pActualNym)
@@ -1076,7 +1076,7 @@ bool OTParty::SendNoticeToParty(bool bSuccessMsg, Nym& theServerNym,
 
             if (false ==
                 pAgent->DropServerNoticeToNymbox(
-                    bSuccessMsg, theServerNym, theServerID,
+                    bSuccessMsg, theServerNym, theNotaryID,
                     lNewTransactionNumber, lOpeningTransNo, // lInReferenceTo
                     strReference, pstrNote, pstrAttachment, pActualNym))
                 otErr << __FUNCTION__
@@ -1089,7 +1089,7 @@ bool OTParty::SendNoticeToParty(bool bSuccessMsg, Nym& theServerNym,
 }
 
 bool OTParty::LoadAndVerifyAssetAccounts(
-    Nym& theServerNym, const String& strServerID,
+    Nym& theServerNym, const String& strNotaryID,
     mapOfAccounts& map_Accts_Already_Loaded, mapOfAccounts& map_NewlyLoaded)
 {
     std::set<std::string> theAcctIDSet; // Make sure all the acct IDs are
@@ -1165,7 +1165,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         //
         if (bHadToLoadtheAcctMyself == true) {
             if (nullptr == (pAccount = pPartyAcct->LoadAccount(
-                                theServerNym, strServerID))) // This calls
+                                theServerNym, strNotaryID))) // This calls
                                                              // VerifyAccount(),
                                                              // AND it sets
                                                              // pPartyAcct's
@@ -1365,7 +1365,7 @@ bool OTParty::LoadAndVerifyAgentNyms(Nym& theServerNym,
 // internal pointers to them available.
 //
 bool OTParty::VerifyAccountsWithTheirAgents(Nym& theSignerNym,
-                                            const String& strServerID,
+                                            const String& strNotaryID,
                                             bool bBurnTransNo)
 {
     OT_ASSERT(nullptr != m_pOwnerAgreement);
@@ -1387,7 +1387,7 @@ bool OTParty::VerifyAccountsWithTheirAgents(Nym& theSignerNym,
                     // VerifyPartyAuthorization()
             theSignerNym,  // For verifying signature on the authorizing Nym and
                            // for accts as well.
-            strServerID,   // For verifying issued num, need the serverID the #
+            strNotaryID,   // For verifying issued num, need the notaryID the #
                            // goes with.
             bBurnTransNo); // bBurnTransNo=false ) // In
                            // OTServer::VerifySmartContract(), it not only wants
@@ -1443,7 +1443,7 @@ bool OTParty::SignContract(Contract& theInput) const
 // harvest the closing trans#s.
 // Calls OTAgent::HarvestTransactionNumber
 //
-void OTParty::HarvestClosingNumbers(const String& strServerID, bool bSave,
+void OTParty::HarvestClosingNumbers(const String& strNotaryID, bool bSave,
                                     Nym* pSignerNym)
 {
 
@@ -1469,7 +1469,7 @@ void OTParty::HarvestClosingNumbers(const String& strServerID, bool bSave,
                   << ") for asset account: " << pAcct->GetName() << "\n";
         else
             pAgent->HarvestTransactionNumber(
-                pAcct->GetClosingTransNo(), strServerID, bSave,
+                pAcct->GetClosingTransNo(), strNotaryID, bSave,
                 pSignerNym); // server passes in serverNym here, otherwise each
                              // agent uses its own nym.
     }
@@ -1479,7 +1479,7 @@ void OTParty::HarvestClosingNumbers(const String& strServerID, bool bSave,
 // Calls OTAgent::HarvestTransactionNumber
 //
 void OTParty::HarvestClosingNumbers(OTAgent& theAgent,
-                                    const String& strServerID)
+                                    const String& strNotaryID)
 {
     for (auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
@@ -1500,7 +1500,7 @@ void OTParty::HarvestClosingNumbers(OTAgent& theAgent,
 
         if (theAgent.GetName().Compare(str_agent_name.c_str()))
             theAgent.HarvestTransactionNumber(pAcct->GetClosingTransNo(),
-                                              strServerID);
+                                              strNotaryID);
         // We don't break here, on success, because this agent might represent
         // multiple accounts.
         // else nothing...
@@ -1511,13 +1511,13 @@ void OTParty::HarvestClosingNumbers(OTAgent& theAgent,
 // IF theNym is one of my agents, then grab his numbers back for him.
 // If he is NOT one of my agents, then do nothing.
 //
-void OTParty::HarvestClosingNumbers(Nym& theNym, const String& strServerID)
+void OTParty::HarvestClosingNumbers(Nym& theNym, const String& strNotaryID)
 {
     OTAgent* pAgent = nullptr;
 
     if (HasAgent(theNym, &pAgent)) {
         OT_ASSERT(nullptr != pAgent);
-        HarvestClosingNumbers(*pAgent, strServerID);
+        HarvestClosingNumbers(*pAgent, strNotaryID);
     }
     // else nothing...
 }
@@ -1526,13 +1526,13 @@ void OTParty::HarvestClosingNumbers(Nym& theNym, const String& strServerID)
 // IF theNym is one of my agents, then grab his opening number back for him.
 // If he is NOT one of my agents, then do nothing.
 //
-void OTParty::HarvestOpeningNumber(Nym& theNym, const String& strServerID)
+void OTParty::HarvestOpeningNumber(Nym& theNym, const String& strNotaryID)
 {
     OTAgent* pAgent = nullptr;
 
     if (HasAuthorizingAgent(theNym, &pAgent)) {
         OT_ASSERT(nullptr != pAgent);
-        HarvestOpeningNumber(*pAgent, strServerID);
+        HarvestOpeningNumber(*pAgent, strNotaryID);
     }
     // else no error, since many nyms could get passed in here (in a loop)
 } // The function above me, calls the one below.
@@ -1540,7 +1540,7 @@ void OTParty::HarvestOpeningNumber(Nym& theNym, const String& strServerID)
 // Done
 // Calls OTAgent::HarvestTransactionNumber
 //
-void OTParty::HarvestOpeningNumber(OTAgent& theAgent, const String& strServerID)
+void OTParty::HarvestOpeningNumber(OTAgent& theAgent, const String& strNotaryID)
 {
     if (!(GetAuthorizingAgentName().compare(theAgent.GetName().Get()) == 0))
         otErr << "OTParty::" << __FUNCTION__
@@ -1550,7 +1550,7 @@ void OTParty::HarvestOpeningNumber(OTAgent& theAgent, const String& strServerID)
     else if (GetOpeningTransNo() > 0)
         theAgent.HarvestTransactionNumber(
             GetOpeningTransNo(),
-            strServerID); // bSave=false, pSignerNym=nullptr
+            strNotaryID); // bSave=false, pSignerNym=nullptr
     else
         otOut << "OTParty::" << __FUNCTION__
               << ": Nothing to harvest, it was already 0 for party: "
@@ -1559,7 +1559,7 @@ void OTParty::HarvestOpeningNumber(OTAgent& theAgent, const String& strServerID)
 
 // Done.
 // The function below me, calls the one above.
-void OTParty::HarvestOpeningNumber(const String& strServerID)
+void OTParty::HarvestOpeningNumber(const String& strNotaryID)
 {
     if (GetAuthorizingAgentName().size() <= 0) {
         otErr << "OTParty::" << __FUNCTION__
@@ -1574,19 +1574,19 @@ void OTParty::HarvestOpeningNumber(const String& strServerID)
               << GetAuthorizingAgentName() << ") for party: " << GetPartyName()
               << ".\n";
     else
-        HarvestOpeningNumber(*pAgent, strServerID);
+        HarvestOpeningNumber(*pAgent, strNotaryID);
 }
 
 // Done
-void OTParty::HarvestAllTransactionNumbers(const String& strServerID)
+void OTParty::HarvestAllTransactionNumbers(const String& strNotaryID)
 {
-    HarvestOpeningNumber(strServerID);
-    HarvestClosingNumbers(strServerID);
+    HarvestOpeningNumber(strNotaryID);
+    HarvestClosingNumbers(strNotaryID);
 }
 
 // Calls OTAgent::RemoveIssuedNumber (above)
 //
-void OTParty::CloseoutOpeningNumber(const String& strServerID, bool bSave,
+void OTParty::CloseoutOpeningNumber(const String& strNotaryID, bool bSave,
                                     Nym* pSignerNym)
 {
     if (GetAuthorizingAgentName().size() <= 0) {
@@ -1602,7 +1602,7 @@ void OTParty::CloseoutOpeningNumber(const String& strServerID, bool bSave,
               << GetAuthorizingAgentName() << ") for party: " << GetPartyName()
               << ".\n";
     else if (GetOpeningTransNo() > 0)
-        pAgent->RemoveIssuedNumber(GetOpeningTransNo(), strServerID, bSave,
+        pAgent->RemoveIssuedNumber(GetOpeningTransNo(), strNotaryID, bSave,
                                    pSignerNym);
     else
         otOut << "OTParty::" << __FUNCTION__
@@ -1622,7 +1622,7 @@ void OTParty::CloseoutOpeningNumber(const String& strServerID, bool bSave,
 // to reserve
 // those. Client-side.
 //
-bool OTParty::ReserveTransNumsForConfirm(const String& strServerID)
+bool OTParty::ReserveTransNumsForConfirm(const String& strNotaryID)
 {
 
     // RESERVE THE OPENING TRANSACTION NUMBER, LOCATED ON THE AUTHORIZING AGENT
@@ -1647,7 +1647,7 @@ bool OTParty::ReserveTransNumsForConfirm(const String& strServerID)
 
     if (false ==
         pMainAgent->ReserveOpeningTransNum(
-            strServerID)) // <==============================
+            strNotaryID)) // <==============================
     {
         otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Authorizing "
                  "agent (" << GetAuthorizingAgentName()
@@ -1657,7 +1657,7 @@ bool OTParty::ReserveTransNumsForConfirm(const String& strServerID)
     }
     // BELOW THIS POINT, the OPENING trans# has been RESERVED and
     // must be RETRIEVED in the event of failure, using this call:
-    // HarvestAllTransactionNumbers(strServerID);
+    // HarvestAllTransactionNumbers(strNotaryID);
 
     // RESERVE THE CLOSING TRANSACTION NUMBER for each asset account, LOCATED ON
     // ITS AUTHORIZED AGENT.
@@ -1671,7 +1671,7 @@ bool OTParty::ReserveTransNumsForConfirm(const String& strServerID)
             otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Authorized "
                      "agent name is blank for account: "
                   << pPartyAccount->GetName() << " \n";
-            HarvestAllTransactionNumbers(strServerID); // We have to put them
+            HarvestAllTransactionNumbers(strNotaryID); // We have to put them
                                                        // back before returning,
                                                        // since this function
                                                        // has failed.
@@ -1684,7 +1684,7 @@ bool OTParty::ReserveTransNumsForConfirm(const String& strServerID)
             otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Unable to "
                      "locate Authorized agent for account: "
                   << pPartyAccount->GetName() << " \n";
-            HarvestAllTransactionNumbers(strServerID); // We have to put them
+            HarvestAllTransactionNumbers(strNotaryID); // We have to put them
                                                        // back before returning,
                                                        // since this function
                                                        // has failed.
@@ -1694,13 +1694,13 @@ bool OTParty::ReserveTransNumsForConfirm(const String& strServerID)
 
         if (false ==
             pAgent->ReserveClosingTransNum(
-                strServerID, *pPartyAccount)) // <==============================
+                strNotaryID, *pPartyAccount)) // <==============================
         {
             otOut << "OTParty::ReserveTransNumsForConfirm: Failure: "
                      "Authorizing agent (" << GetAuthorizingAgentName()
                   << ") didn't have a closing transaction #, on party: "
                   << GetPartyName() << " \n";
-            HarvestAllTransactionNumbers(strServerID); // We have to put them
+            HarvestAllTransactionNumbers(strNotaryID); // We have to put them
                                                        // back before returning,
                                                        // since this function
                                                        // has failed.

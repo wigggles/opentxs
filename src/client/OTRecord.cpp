@@ -656,9 +656,9 @@ bool OTRecord::DeleteRecord() const
 {
     if (!CanDeleteRecord()) return false;
     if (!m_bIsSpecialMail &&
-        (m_str_server_id.empty() || m_str_nym_id.empty())) {
+        (m_str_notary_id.empty() || m_str_nym_id.empty())) {
         otErr << __FUNCTION__ << ": Error: missing server id ("
-              << m_str_server_id << ") or nym id (" << m_str_nym_id << ")\n";
+              << m_str_notary_id << ") or nym id (" << m_str_nym_id << ")\n";
         return false;
     }
     std::string str_using_account;
@@ -737,20 +737,20 @@ bool OTRecord::DeleteRecord() const
     if (0 == m_lTransactionNum) {
         otErr << __FUNCTION__
               << ": Error: Transaction number is 0, in recordbox for "
-                 "server id (" << m_str_server_id << "), nym id ("
+                 "server id (" << m_str_notary_id << "), nym id ("
               << m_str_nym_id << "), acct id (" << str_using_account << ")\n";
         return false;
     }
-    const Identifier theServerID(m_str_server_id), theNymID(m_str_nym_id),
+    const Identifier theNotaryID(m_str_notary_id), theNymID(m_str_nym_id),
         theAcctID(str_using_account); // this last one sometimes contains NymID
                                       // (see above.)
 
     OTLedger* pRecordbox =
-        OTAPI_Wrap::OTAPI()->LoadRecordBox(theServerID, theNymID, theAcctID);
+        OTAPI_Wrap::OTAPI()->LoadRecordBox(theNotaryID, theNymID, theAcctID);
     std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
     if (nullptr == pRecordbox) {
         otErr << __FUNCTION__ << ": Failed loading record box for server ID ("
-              << m_str_server_id << ") nymID "
+              << m_str_notary_id << ") nymID "
                                     "(" << m_str_nym_id << ") accountID ("
               << str_using_account << ")\n";
         return false;
@@ -762,7 +762,7 @@ bool OTRecord::DeleteRecord() const
     if ((-1) == nIndex) {
         otErr << __FUNCTION__ << ": Error: Unable to find transaction "
               << m_lTransactionNum << " in recordbox "
-                                      "for server id (" << m_str_server_id
+                                      "for server id (" << m_str_notary_id
               << "), nym id (" << m_str_nym_id << "), acct id ("
               << str_using_account << ")\n";
         return false;
@@ -770,7 +770,7 @@ bool OTRecord::DeleteRecord() const
     // Accept it.
     //
     return OTAPI_Wrap::ClearRecord(
-        m_str_server_id, m_str_nym_id, str_using_account, nIndex,
+        m_str_notary_id, m_str_nym_id, str_using_account, nIndex,
         false); // clear all = false. We're only clearing one record.
 }
 bool OTRecord::AcceptIncomingTransfer() const
@@ -790,10 +790,10 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
     //
     case OTRecord::Transfer:
     case OTRecord::Receipt: {
-        if (m_str_server_id.empty() || m_str_nym_id.empty() ||
+        if (m_str_notary_id.empty() || m_str_nym_id.empty() ||
             m_str_account_id.empty()) {
             otErr << __FUNCTION__ << ": Error: missing server id ("
-                  << m_str_server_id << ") or nym id (" << m_str_nym_id
+                  << m_str_notary_id << ") or nym id (" << m_str_nym_id
                   << ") or "
                      "acct id (" << m_str_account_id << ")\n";
             return false;
@@ -801,21 +801,21 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
         if (0 == m_lTransactionNum) {
             otErr << __FUNCTION__
                   << ": Error: Transaction number is 0, in asset "
-                     "account inbox for server id (" << m_str_server_id
+                     "account inbox for server id (" << m_str_notary_id
                   << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
-        const Identifier theServerID(m_str_server_id), theNymID(m_str_nym_id),
+        const Identifier theNotaryID(m_str_notary_id), theNymID(m_str_nym_id),
             theAcctID(m_str_account_id);
 
         // Open the Nym's asset account inbox.
         OTLedger* pInbox =
-            OTAPI_Wrap::OTAPI()->LoadInbox(theServerID, theNymID, theAcctID);
+            OTAPI_Wrap::OTAPI()->LoadInbox(theNotaryID, theNymID, theAcctID);
         std::unique_ptr<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load asset account inbox for "
-                     "server id (" << m_str_server_id << "), nym id ("
+                     "server id (" << m_str_notary_id << "), nym id ("
                   << m_str_nym_id << ")\n";
             return false;
         }
@@ -826,7 +826,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
         if ((-1) == nIndex) {
             otErr << __FUNCTION__ << ": Error: Unable to find transaction "
                   << m_lTransactionNum << " in payment inbox "
-                                          "for server id (" << m_str_server_id
+                                          "for server id (" << m_str_notary_id
                   << "), nym id (" << m_str_nym_id << "), acct id ("
                   << m_str_account_id << ")\n";
             return false;
@@ -859,29 +859,29 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
     // Accept from Nym's payments inbox.
     //
     case OTRecord::Instrument: {
-        if (m_str_server_id.empty() || m_str_nym_id.empty()) {
+        if (m_str_notary_id.empty() || m_str_nym_id.empty()) {
             otErr << __FUNCTION__ << ": Error: missing server id ("
-                  << m_str_server_id << ") or nym id (" << m_str_nym_id
+                  << m_str_notary_id << ") or nym id (" << m_str_nym_id
                   << ")\n";
             return false;
         }
         if (0 == m_lTransactionNum) {
             otErr << __FUNCTION__
                   << ": Error: Transaction number is 0, in payment "
-                     "inbox for server id (" << m_str_server_id << "), nym id ("
+                     "inbox for server id (" << m_str_notary_id << "), nym id ("
                   << m_str_nym_id << ")\n";
             return false;
         }
-        const Identifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
+        const Identifier theNotaryID(m_str_notary_id), theNymID(m_str_nym_id);
 
         // Open the Nym's payments inbox.
         OTLedger* pInbox =
-            OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
+            OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
         std::unique_ptr<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load payment inbox for server "
-                     "id (" << m_str_server_id << "), nym id (" << m_str_nym_id
+                     "id (" << m_str_notary_id << "), nym id (" << m_str_nym_id
                   << ")\n";
             return false;
         }
@@ -893,7 +893,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
             otErr << __FUNCTION__ << ": Error: Unable to find transaction "
                   << m_lTransactionNum << " in "
                                           "payment inbox for server id ("
-                  << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
+                  << m_str_notary_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
         // Accept it.
@@ -927,28 +927,28 @@ bool OTRecord::DiscardIncoming() const
 
     switch (GetRecordType()) {
     case OTRecord::Instrument: {
-        if (m_str_server_id.empty() || m_str_nym_id.empty()) {
+        if (m_str_notary_id.empty() || m_str_nym_id.empty()) {
             otErr << __FUNCTION__ << ": Error: missing server id ("
-                  << m_str_server_id << ") or nym id (" << m_str_nym_id
+                  << m_str_notary_id << ") or nym id (" << m_str_nym_id
                   << ")\n";
             return false;
         }
         if (0 == m_lTransactionNum) {
             otErr << __FUNCTION__ << ": Error: Transaction number is 0, in "
                                      "payment inbox for server id ("
-                  << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
+                  << m_str_notary_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
-        const Identifier theServerID(m_str_server_id), theNymID(m_str_nym_id);
+        const Identifier theNotaryID(m_str_notary_id), theNymID(m_str_nym_id);
 
         // Open the Nym's payments inbox.
         OTLedger* pInbox =
-            OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theServerID, theNymID);
+            OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
         std::unique_ptr<OTLedger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load payment inbox for server id ("
-                  << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
+                  << m_str_notary_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
         // Find the payment therein that correlates to this OTRecord.
@@ -959,7 +959,7 @@ bool OTRecord::DiscardIncoming() const
             otErr << __FUNCTION__ << ": Error: Unable to find transaction "
                   << m_lTransactionNum << " in "
                                           "payment inbox for server id ("
-                  << m_str_server_id << "), nym id (" << m_str_nym_id << ")\n";
+                  << m_str_notary_id << "), nym id (" << m_str_nym_id << ")\n";
             return false;
         }
         // Accept it.
@@ -970,7 +970,7 @@ bool OTRecord::DiscardIncoming() const
 
         OT_ME madeEasy;
 
-        return madeEasy.discard_incoming_payments(m_str_server_id, m_str_nym_id,
+        return madeEasy.discard_incoming_payments(m_str_notary_id, m_str_nym_id,
                                                   str_indices);
 
     } // case: instrument
@@ -1202,9 +1202,9 @@ bool OTRecord::IsCanceled() const
 {
     return m_bIsCanceled;
 }
-const std::string& OTRecord::GetServerID() const
+const std::string& OTRecord::GetNotaryID() const
 {
-    return m_str_server_id;
+    return m_str_notary_id;
 }
 const std::string& OTRecord::GetAssetID() const
 {
@@ -1386,7 +1386,7 @@ bool OTRecord::operator<(const OTRecord& rhs)
 {
     return m_ValidFrom < rhs.m_ValidFrom;
 }
-OTRecord::OTRecord(const std::string& str_server_id,
+OTRecord::OTRecord(const std::string& str_notary_id,
                    const std::string& str_asset_id,
                    const std::string& str_currency_tla,
                    const std::string& str_nym_id,
@@ -1398,7 +1398,7 @@ OTRecord::OTRecord(const std::string& str_server_id,
     : m_nBoxIndex(-1)
     , m_ValidFrom(OT_TIME_ZERO)
     , m_ValidTo(OT_TIME_ZERO)
-    , m_str_server_id(str_server_id)
+    , m_str_notary_id(str_notary_id)
     , m_str_asset_id(str_asset_id)
     , m_str_currency_tla(str_currency_tla)
     , m_str_nym_id(str_nym_id)

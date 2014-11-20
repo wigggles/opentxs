@@ -350,8 +350,8 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     replyMessage.m_strCommand.Format("%sResponse", message.m_strCommand.Get());
     // UserID
     replyMessage.m_strNymID = message.m_strNymID;
-    // ServerID, a hash of the server contract
-    replyMessage.m_strServerID = message.m_strServerID;
+    // NotaryID, a hash of the server contract
+    replyMessage.m_strNotaryID = message.m_strNotaryID;
     // The default reply. In fact this is probably superfluous
     replyMessage.m_bSuccess = false;
 

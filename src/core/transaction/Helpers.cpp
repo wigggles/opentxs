@@ -362,7 +362,7 @@ bool VerifyBoxReceiptExists(
 {
     const int64_t lLedgerType = static_cast<int64_t>(nBoxType);
 
-    const String strServerID(SERVER_ID),
+    const String strNotaryID(SERVER_ID),
         strUserOrAcctID(0 == lLedgerType ? USER_ID : ACCOUNT_ID); // (For Nymbox
                                                                   // aka type 0,
                                                                   // the UserID
@@ -372,7 +372,7 @@ bool VerifyBoxReceiptExists(
     String strFolder1name, strFolder2name, strFolder3name, strFilename;
 
     if (!SetupBoxReceiptFilename(lLedgerType, // nBoxType is lLedgerType
-                                 strUserOrAcctID, strServerID, lTransactionNum,
+                                 strUserOrAcctID, strNotaryID, lTransactionNum,
                                  "OTTransaction::VerifyBoxReceiptExists",
                                  strFolder1name, strFolder2name, strFolder3name,
                                  strFilename))
@@ -536,7 +536,7 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
 }
 
 bool SetupBoxReceiptFilename(int64_t lLedgerType, const String& strUserOrAcctID,
-                             const String& strServerID,
+                             const String& strNotaryID,
                              const int64_t& lTransactionNum,
                              const char* szCaller, String& strFolder1name,
                              String& strFolder2name, String& strFolder3name,
@@ -573,7 +573,7 @@ bool SetupBoxReceiptFilename(int64_t lLedgerType, const String& strUserOrAcctID,
     }
 
     strFolder1name.Set(pszFolder);   // "nymbox" (or "inbox" or "outbox")
-    strFolder2name.Set(strServerID); // "SERVER_ID"
+    strFolder2name.Set(strNotaryID); // "SERVER_ID"
     strFolder3name.Format("%s.r", strUserOrAcctID.Get()); // "USER_ID.r"
 
     // "TRANSACTION_ID.rct"
@@ -593,9 +593,9 @@ bool SetupBoxReceiptFilename(int64_t lLedgerType, OTTransaction& theTransaction,
     String strUserOrAcctID;
     theTransaction.GetIdentifier(strUserOrAcctID);
 
-    const String strServerID(theTransaction.GetRealServerID());
+    const String strNotaryID(theTransaction.GetRealNotaryID());
 
-    return SetupBoxReceiptFilename(lLedgerType, strUserOrAcctID, strServerID,
+    return SetupBoxReceiptFilename(lLedgerType, strUserOrAcctID, strNotaryID,
                                    theTransaction.GetTransactionNum(), szCaller,
                                    strFolder1name, strFolder2name,
                                    strFolder3name, strFilename);

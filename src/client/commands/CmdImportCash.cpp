@@ -173,7 +173,7 @@ int32_t CmdImportCash::run(string mynym)
         return -1;
     }
 
-    string server = OTAPI_Wrap::Instrmnt_GetServerID(instrument);
+    string server = OTAPI_Wrap::Instrmnt_GetNotaryID(instrument);
     if ("" == server) {
         otOut << "Error: cannot determine instrument server.\n";
         return -1;

@@ -164,11 +164,11 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     strMainFile.Format(
         "<?xml version=\"1.0\"?>\n"
         "<notaryServer version=\"%s\"\n"
-        " serverID=\"%s\"\n"
+        " notaryID=\"%s\"\n"
         " serverUserID=\"%s\"\n"
         " transactionNum=\"%" PRId64 "\" >\n\n",
         OTCachedKey::It()->IsGenerated() ? "2.0" : version_.c_str(),
-        server_->m_strServerID.Get(), server_->m_strServerUserID.Get(),
+        server_->m_strNotaryID.Get(), server_->m_strServerUserID.Get(),
         server_->transactor_.transactionNumber());
 
     if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
@@ -277,12 +277,12 @@ bool MainFile::SaveMainFile()
 }
 
 bool MainFile::CreateMainFile(const std::string& strContract,
-                              const std::string& strServerID,
+                              const std::string& strNotaryID,
                               const std::string& strCert,
                               const std::string& strNymID,
                               const std::string& strCachedKey)
 {
-    if (!OTDB::StorePlainString(strContract, "contracts", strServerID)) {
+    if (!OTDB::StorePlainString(strContract, "contracts", strNotaryID)) {
         OTLog::Error("Failed trying to store the server contract.\n");
         return false;
     }
@@ -297,7 +297,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     const char* szBlankFile = // todo hardcoding.
         "<?xml version=\"1.0\"?>\n"
         "<notaryServer version=\"2.0\"\n"
-        " serverID=\"%s\"\n"
+        " notaryID=\"%s\"\n"
         " serverUserID=\"%s\"\n"
         " transactionNum=\"%ld\" >\n"
         "\n"
@@ -313,7 +313,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     int64_t lTransNum = 5; // a starting point, for the new server.
 
     String strNotaryFile;
-    strNotaryFile.Format(szBlankFile, strServerID.c_str(), strNymID.c_str(),
+    strNotaryFile.Format(szBlankFile, strNotaryID.c_str(), strNymID.c_str(),
                          lTransNum, strCachedKey.c_str());
 
     std::string str_Notary(strNotaryFile.Get());
@@ -439,7 +439,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
             case irr::io::EXN_ELEMENT: {
                 if (strNodeName.Compare("notaryServer")) {
                     version_ = xml->getAttributeValue("version");
-                    server_->m_strServerID = xml->getAttributeValue("serverID");
+                    server_->m_strNotaryID = xml->getAttributeValue("notaryID");
                     server_->m_strServerUserID =
                         xml->getAttributeValue("serverUserID");
 
@@ -460,7 +460,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         " %s\n Server User ID: %s\n",
                         version_.c_str(),
                         server_->transactor_.transactionNumber(),
-                        server_->m_strServerID.Get(),
+                        server_->m_strNotaryID.Get(),
                         server_->m_strServerUserID.Get());
 
                     // This means this Nym has not been converted yet
@@ -656,7 +656,7 @@ bool MainFile::LoadServerUserAndContract()
     const char* szFunc = "MainFile::LoadServerUserAndContract";
     bool bSuccess = false;
     OT_ASSERT(!version_.empty());
-    OT_ASSERT(server_->m_strServerID.Exists());
+    OT_ASSERT(server_->m_strNotaryID.Exists());
     OT_ASSERT(server_->m_strServerUserID.Exists());
 
     server_->m_nymServer.SetIdentifier(server_->m_strServerUserID);
@@ -688,12 +688,12 @@ bool MainFile::LoadServerUserAndContract()
         // (I WAS loading this erroneously in Server.Init(), before
         // the Nym had actually been loaded from disk. That didn't work.)
         //
-        const Identifier SERVER_ID(server_->m_strServerID);
+        const Identifier SERVER_ID(server_->m_strNotaryID);
 
         // Make sure the Cron object has a pointer to the server's Nym.
         // (For signing stuff...)
         //
-        server_->m_Cron.SetServerID(SERVER_ID);
+        server_->m_Cron.SetNotaryID(SERVER_ID);
         server_->m_Cron.SetServerNym(&server_->m_nymServer);
 
         if (!server_->m_Cron.LoadCron())
@@ -702,12 +702,12 @@ bool MainFile::LoadServerUserAndContract()
                           szFunc);
         OTLog::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-        // We have the serverID, so let's load  up the server Contract!
+        // We have the notaryID, so let's load  up the server Contract!
         String strContractPath(OTFolders::Contract().Get());
 
         std::unique_ptr<OTServerContract> pContract(new OTServerContract(
-            server_->m_strServerID, strContractPath, server_->m_strServerID,
-            server_->m_strServerID));
+            server_->m_strNotaryID, strContractPath, server_->m_strNotaryID,
+            server_->m_strNotaryID));
         OT_ASSERT_MSG(nullptr != pContract,
                       "ASSERT while allocating memory for main Server Contract "
                       "in MainFile::LoadServerUserAndContract\n");

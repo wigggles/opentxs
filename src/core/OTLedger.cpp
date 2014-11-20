@@ -469,9 +469,9 @@ bool OTLedger::LoadInbox()
     return bRetVal;
 }
 
-// TODO really should verify the ServerID after loading the ledger.
+// TODO really should verify the NotaryID after loading the ledger.
 // Perhaps just call "VerifyContract" and we'll make sure, for ledgers
-// VerifyContract is overriden and explicitly checks the serverID.
+// VerifyContract is overriden and explicitly checks the notaryID.
 // Should also check the Type at the same time.
 
 bool OTLedger::LoadOutbox()
@@ -573,10 +573,10 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType, const String* pString)
     String strID;
     GetIdentifier(strID);
 
-    const String strServerID(GetRealServerID());
+    const String strNotaryID(GetRealNotaryID());
 
     if (!m_strFilename.Exists())
-        m_strFilename.Format("%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strID.Get());
 
     String strFilename;
@@ -584,7 +584,7 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType, const String* pString)
 
     const char* szFolder1name =
         m_strFoldername.Get(); // "nymbox" (or "inbox" or "outbox")
-    const char* szFolder2name = strServerID.Get(); // "nymbox/SERVER_ID"
+    const char* szFolder2name = strNotaryID.Get(); // "nymbox/SERVER_ID"
     const char* szFilename = strFilename.Get();    // "nymbox/SERVER_ID/USER_ID"
     // (or "inbox/SERVER_ID/ACCT_ID"
     // or
@@ -688,10 +688,10 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
 
     String strID;
     GetIdentifier(strID);
-    const String strServerID(GetRealServerID());
+    const String strNotaryID(GetRealNotaryID());
 
     if (!m_strFilename.Exists())
-        m_strFilename.Format("%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strID.Get());
 
     String strFilename;
@@ -699,7 +699,7 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
 
     const char* szFolder1name =
         m_strFoldername.Get(); // "nymbox" (or "inbox" or "outbox")
-    const char* szFolder2name = strServerID.Get(); // "nymbox/SERVER_ID"
+    const char* szFolder2name = strNotaryID.Get(); // "nymbox/SERVER_ID"
     const char* szFilename = strFilename.Get();    // "nymbox/SERVER_ID/USER_ID"
     // (or "inbox/SERVER_ID/ACCT_ID"
     // or
@@ -946,55 +946,55 @@ OTLedger* OTLedger::GenerateLedger(
     const Identifier& theUserID,
     const Identifier& theAcctID, // AcctID should be "OwnerID" since could be
                                  // acct OR Nym (with nymbox)
-    const Identifier& theServerID, ledgerType theType, bool bCreateFile)
+    const Identifier& theNotaryID, ledgerType theType, bool bCreateFile)
 {
-    OTLedger* pLedger = new OTLedger(theUserID, theAcctID, theServerID);
+    OTLedger* pLedger = new OTLedger(theUserID, theAcctID, theNotaryID);
     OT_ASSERT(nullptr != pLedger);
 
-    pLedger->GenerateLedger(theAcctID, theServerID, theType, bCreateFile);
+    pLedger->GenerateLedger(theAcctID, theNotaryID, theType, bCreateFile);
     pLedger->SetUserID(theUserID);
 
     return pLedger;
 }
 
 bool OTLedger::GenerateLedger(const Identifier& theAcctID,
-                              const Identifier& theServerID, ledgerType theType,
+                              const Identifier& theNotaryID, ledgerType theType,
                               bool bCreateFile)
 {
     // First we set the "Safe" ID and try to load the file, to make sure it
     // doesn't already exist.
-    String strID(theAcctID), strServerID(theServerID);
+    String strID(theAcctID), strNotaryID(theNotaryID);
 
     switch (theType) {
     case OTLedger::nymbox: // stored by NymID ONLY.
         m_strFoldername = OTFolders::Nymbox().Get();
-        m_strFilename.Format("%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strID.Get());
         break;
     case OTLedger::inbox: // stored by AcctID ONLY.
         m_strFoldername = OTFolders::Inbox().Get();
-        m_strFilename.Format("%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strID.Get());
         break;
     case OTLedger::outbox: // stored by AcctID ONLY.
         m_strFoldername = OTFolders::Outbox().Get();
-        m_strFilename.Format("%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strID.Get());
         break;
     case OTLedger::paymentInbox: // stored by NymID ONLY.
         m_strFoldername = OTFolders::PaymentInbox().Get();
-        m_strFilename.Format("%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strID.Get());
         break;
     case OTLedger::recordBox: // stored by Acct ID *and* Nym ID (depending on
                               // the box.)
         m_strFoldername = OTFolders::RecordBox().Get();
-        m_strFilename.Format("%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strID.Get());
         break;
     case OTLedger::expiredBox: // stored by Nym ID only.
         m_strFoldername = OTFolders::ExpiredBox().Get();
-        m_strFilename.Format("%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strID.Get());
         break;
     case OTLedger::message:
@@ -1003,8 +1003,8 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
         SetPurportedAccountID(theAcctID); // It's safe to set these the same
                                           // here, since we're creating the
                                           // ledger now.
-        SetRealServerID(theServerID);
-        SetPurportedServerID(theServerID); // Always want the server ID on
+        SetRealNotaryID(theNotaryID);
+        SetPurportedNotaryID(theNotaryID); // Always want the server ID on
                                            // anything that the server signs.
         m_Type = theType;
         return true;
@@ -1019,7 +1019,7 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
     SetRealAccountID(theAcctID);  // set this before calling LoadContract... (In
                                   // this case, will just be the Nym ID as
                                   // well...)
-    SetRealServerID(theServerID); // (Ledgers/transactions/items were originally
+    SetRealNotaryID(theNotaryID); // (Ledgers/transactions/items were originally
                                   // meant just for account-related functions.)
 
     if (bCreateFile) {
@@ -1029,7 +1029,7 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
 
         const char* szFolder1name =
             m_strFoldername.Get(); // "nymbox" (or "inbox" or "outbox")
-        const char* szFolder2name = strServerID.Get(); // "nymbox/SERVER_ID"
+        const char* szFolder2name = strNotaryID.Get(); // "nymbox/SERVER_ID"
         const char* szFilename =
             strFilename.Get(); // "nymbox/SERVER_ID/USER_ID"  (or
                                // "inbox/SERVER_ID/ACCT_ID" or
@@ -1051,7 +1051,7 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
         // Have to look up the UserID here. No way around it. We need that ID.
         // Plus it helps verify things.
         std::unique_ptr<Account> pAccount(
-            Account::LoadExistingAccount(theAcctID, theServerID));
+            Account::LoadExistingAccount(theAcctID, theNotaryID));
 
         if (nullptr != pAccount)
             SetUserID(pAccount->GetUserID());
@@ -1066,7 +1066,7 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
         // So we TRY to lookup the acct.
         //
         std::unique_ptr<Account> pAccount(
-            Account::LoadExistingAccount(theAcctID, theServerID));
+            Account::LoadExistingAccount(theAcctID, theNotaryID));
 
         if (nullptr != pAccount) // Found it!
             SetUserID(pAccount->GetUserID());
@@ -1096,7 +1096,7 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
     // (even if we don't actually save the file in this function.)
     //
     SetPurportedAccountID(theAcctID);
-    SetPurportedServerID(theServerID);
+    SetPurportedNotaryID(theNotaryID);
 
     return true;
 }
@@ -1119,8 +1119,8 @@ void OTLedger::InitLedger()
 // specific file,
 // then I've decided to restrict ledgers to a single account.
 OTLedger::OTLedger(const Identifier& theUserID, const Identifier& theAccountID,
-                   const Identifier& theServerID)
-    : OTTransactionType(theUserID, theAccountID, theServerID)
+                   const Identifier& theNotaryID)
+    : OTTransactionType(theUserID, theAccountID, theNotaryID)
     , m_Type(OTLedger::message)
     , m_bLoadedLegacyData(false)
 {
@@ -1135,7 +1135,7 @@ OTLedger::OTLedger(const Identifier& theUserID, const Identifier& theAccountID,
 // function to get it
 // loaded up, and the UserID will hopefully be loaded up with the rest of it.
 OTLedger::OTLedger(const Identifier& theAccountID,
-                   const Identifier& theServerID)
+                   const Identifier& theNotaryID)
     : OTTransactionType()
     , m_Type(OTLedger::message)
     , m_bLoadedLegacyData(false)
@@ -1143,7 +1143,7 @@ OTLedger::OTLedger(const Identifier& theAccountID,
     InitLedger();
 
     SetRealAccountID(theAccountID);
-    SetRealServerID(theServerID);
+    SetRealNotaryID(theNotaryID);
 }
 
 // This is private now and hopefully will stay that way.
@@ -1335,7 +1335,7 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
             pTransaction->GetReferenceString(strReference);
 
             std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
-                strReference, pTransaction->GetPurportedServerID(),
+                strReference, pTransaction->GetPurportedNotaryID(),
                 pTransaction->GetReferenceToNum()));
             OT_ASSERT(nullptr != pOriginalItem);
 
@@ -1414,7 +1414,7 @@ OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
         pCurrentReceipt->GetReferenceString(strDepositChequeMsg);
 
         std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
-            strDepositChequeMsg, GetPurportedServerID(),
+            strDepositChequeMsg, GetPurportedNotaryID(),
             pCurrentReceipt->GetReferenceToNum()));
 
         if (nullptr == pOriginalItem) {
@@ -1541,14 +1541,14 @@ OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
     const Identifier theNymID(theNym);
 
     if ((theAccount.GetPurportedAccountID() != GetPurportedAccountID()) ||
-        (theAccount.GetPurportedServerID() != GetPurportedServerID()) ||
+        (theAccount.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
         (theAccount.GetUserID() != GetUserID())) {
         otErr << "Wrong Account passed in to "
                  "OTLedger::GenerateBalanceStatement.\n";
         return nullptr;
     }
     if ((theOutbox.GetPurportedAccountID() != GetPurportedAccountID()) ||
-        (theOutbox.GetPurportedServerID() != GetPurportedServerID()) ||
+        (theOutbox.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
         (theOutbox.GetUserID() != GetUserID())) {
         otErr << "Wrong Outbox passed in to "
                  "OTLedger::GenerateBalanceStatement.\n";
@@ -1575,7 +1575,7 @@ OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
     Nym theMessageNym;
 
     theMessageNym.HarvestIssuedNumbers(
-        GetPurportedServerID(),
+        GetPurportedNotaryID(),
         theNym /*unused in this case, not saving to disk*/, theNym,
         false); // bSave = false;
 
@@ -1594,12 +1594,12 @@ OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
     case OTTransaction::payDividend:
 
         theMessageNym.RemoveIssuedNum(
-            theOwner.GetRealServerID(),
+            theOwner.GetRealNotaryID(),
             theOwner.GetTransactionNum()); // a transaction number is being
                                            // used, and REMOVED from my list of
                                            // responsibility,
         theMessageNym.RemoveTransactionNum(
-            theOwner.GetRealServerID(),
+            theOwner.GetRealNotaryID(),
             theOwner.GetTransactionNum()); // a transaction number is being
                                            // used, and REMOVED from my list of
                                            // available numbers.
@@ -1821,7 +1821,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
     // write as well!
     //
     String strType(GetTypeString()), strLedgerAcctID(GetPurportedAccountID()),
-        strLedgerAcctServerID(GetPurportedServerID()), strUserID(GetUserID());
+        strLedgerAcctNotaryID(GetPurportedNotaryID()), strUserID(GetUserID());
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -1893,10 +1893,10 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
                               "numPartialRecords=\"%d\"\n "
                               "accountID=\"%s\"\n "
                               "userID=\"%s\"\n "
-                              "serverID=\"%s\" >\n\n",
+                              "notaryID=\"%s\" >\n\n",
                               m_strVersion.Get(), strType.Get(),
                               nPartialRecordCount, strLedgerAcctID.Get(),
-                              strUserID.Get(), strLedgerAcctServerID.Get());
+                              strUserID.Get(), strLedgerAcctNotaryID.Get());
 
     m_xmlUnsigned.Concatenate("%s", strLedgerContents.Get());
     m_xmlUnsigned.Concatenate("</accountLedger>\n");
@@ -1913,7 +1913,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (strNodeName.Compare("accountLedger")) {
         String strType,                      // ledger type
             strLedgerAcctID,                 // purported
-            strLedgerAcctServerID,           // purported
+            strLedgerAcctNotaryID,           // purported
             strUserID, strNumPartialRecords; // Ledger contains either full
                                              // receipts, or abbreviated
                                              // receipts with hashes and partial
@@ -1953,32 +1953,32 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_Type = OTLedger::error_state; // Danger, Will Robinson.
 
         strLedgerAcctID = xml->getAttributeValue("accountID");
-        strLedgerAcctServerID = xml->getAttributeValue("serverID");
+        strLedgerAcctNotaryID = xml->getAttributeValue("notaryID");
         strUserID = xml->getAttributeValue("userID");
 
-        if (!strLedgerAcctID.Exists() || !strLedgerAcctServerID.Exists() ||
+        if (!strLedgerAcctID.Exists() || !strLedgerAcctNotaryID.Exists() ||
             !strUserID.Exists()) {
             otOut << szFunc << ": Failure: missing strLedgerAcctID ("
                   << strLedgerAcctID << ") or "
-                                        "strLedgerAcctServerID ("
-                  << strLedgerAcctServerID << ") or strUserID (" << strUserID
+                                        "strLedgerAcctNotaryID ("
+                  << strLedgerAcctNotaryID << ") or strUserID (" << strUserID
                   << ") while loading transaction "
                      "from " << strType << " ledger. \n";
             return (-1);
         }
 
         Identifier ACCOUNT_ID(strLedgerAcctID),
-            SERVER_ID(strLedgerAcctServerID), USER_ID(strUserID);
+            SERVER_ID(strLedgerAcctNotaryID), USER_ID(strUserID);
 
         SetPurportedAccountID(ACCOUNT_ID);
-        SetPurportedServerID(SERVER_ID);
+        SetPurportedNotaryID(SERVER_ID);
         SetUserID(USER_ID);
 
         if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
-            SetRealServerID(SERVER_ID);
+            SetRealNotaryID(SERVER_ID);
             //            OTString str1(GetRealAccountID()),
-            // str2(GetRealServerID());
+            // str2(GetRealNotaryID());
             //            otErr << "DEBUGGING:\nReal Acct ID: %s\nReal Server
             // ID: %s\n",
             //                          str1.Get(), str2.Get());
@@ -2131,7 +2131,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     OT_ASSERT(nullptr != pTransaction);
                     //
                     // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported
-                    // AcctID and purported ServerID.
+                    // AcctID and purported NotaryID.
                     // WHY? Normally you set the "real" IDs at construction, and
                     // then set the "purported" IDs
                     // when loading from string. But this constructor (only this
@@ -2139,7 +2139,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     // loading abbreviated receipts as you load their
                     // inbox/outbox/nymbox.
                     // Abbreviated receipts are not like real transactions,
-                    // which have serverID, AcctID, userID,
+                    // which have notaryID, AcctID, userID,
                     // and signature attached, and the whole thing is
                     // base64-encoded and then added to the ledger
                     // as part of a list of contained objects. Rather, with
@@ -2166,8 +2166,8 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     //
                     //                    pTransaction->SetPurportedAccountID(
                     // GetPurportedAccountID());
-                    //                    pTransaction->SetPurportedServerID(
-                    // GetPurportedServerID());
+                    //                    pTransaction->SetPurportedNotaryID(
+                    // GetPurportedNotaryID());
 
                     // Add it to the ledger's list of transactions...
                     //
@@ -2205,10 +2205,10 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         otLog4 << szFunc << ": Loading account ledger of type \"" << strType
                << "\", version: " << m_strVersion << "\n";
-        //                "accountID: %s\n userID: %s\n serverID:
+        //                "accountID: %s\n userID: %s\n notaryID:
         // %s\n----------\n",  szFunc,
         //                strLedgerAcctID.Get(), strUserID.Get(),
-        // strLedgerAcctServerID.Get()
+        // strLedgerAcctNotaryID.Get()
 
         // Since we just loaded this stuff, let's verify it.
         // We may have to remove this verification here and do it outside this
@@ -2304,9 +2304,9 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             //
             //            OTTransaction * pTransaction = new
             // OTTransaction(GetUserID(), GetRealAccountID(),
-            // GetRealServerID());
+            // GetRealNotaryID());
             OTTransaction* pTransaction = new OTTransaction(
-                GetUserID(), GetPurportedAccountID(), GetPurportedServerID());
+                GetUserID(), GetPurportedAccountID(), GetPurportedNotaryID());
             OT_ASSERT(nullptr != pTransaction);
 
             // Need this set before the LoadContractFromString().
@@ -2371,7 +2371,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     const bool bBoxReceiptAlreadyExists =
                         VerifyBoxReceiptExists(
-                            pTransaction->GetRealServerID(),
+                            pTransaction->GetRealNotaryID(),
                             pTransaction->GetUserID(),
                             pTransaction->GetRealAccountID(), // If Nymbox (vs
                                                               // inbox/outbox)

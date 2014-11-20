@@ -197,7 +197,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
         }
 
         // This causes pItem to load ASSUMING that the PurportedAcctID and
-        // PurportedServerID are correct.
+        // PurportedNotaryID are correct.
         // The object is still expected to be internally consistent with its
         // sub-items, regarding those IDs,
         // but the big difference is that it will SET the Real Acct and Real
@@ -213,7 +213,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
             // OTLedger::ProcessXMLNode.
             // Specifically, it happens when m_bLoadSecurely is set to false.
             //
-            //          pContract->SetRealServerID(pItem->GetPurportedServerID());
+            //          pContract->SetRealNotaryID(pItem->GetPurportedNotaryID());
             //          pContract->SetRealAccountID(pItem->GetPurportedAccountID());
             //
             return pContract;
@@ -266,9 +266,9 @@ OTTransactionType::OTTransactionType()
 
 OTTransactionType::OTTransactionType(const Identifier& theUserID,
                                      const Identifier& theAccountID,
-                                     const Identifier& theServerID)
+                                     const Identifier& theNotaryID)
     : Contract(theAccountID)
-    , m_ServerID(theServerID)
+    , m_NotaryID(theNotaryID)
     , m_AcctUserID(theUserID)
     , m_lTransactionNum(0)
     , m_lInReferenceToTransaction(0)
@@ -280,16 +280,16 @@ OTTransactionType::OTTransactionType(const Identifier& theUserID,
     //  m_ID            = theAccountID  -- This happens in OTContract, no need
     // to do it twice.
 
-    // do NOT set m_AcctID and m_AcctServerID here.  Let the child classes LOAD
+    // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes LOAD
     // them or GENERATE them.
 }
 
 OTTransactionType::OTTransactionType(const Identifier& theUserID,
                                      const Identifier& theAccountID,
-                                     const Identifier& theServerID,
+                                     const Identifier& theNotaryID,
                                      int64_t lTransactionNum)
     : Contract(theAccountID)
-    , m_ServerID(theServerID)
+    , m_NotaryID(theNotaryID)
     , m_AcctUserID(theUserID)
     , m_lTransactionNum(lTransactionNum)
     , m_lInReferenceToTransaction(0)
@@ -303,7 +303,7 @@ OTTransactionType::OTTransactionType(const Identifier& theUserID,
     //  m_ID                = theAccountID  -- This happens in OTContract, no
     // need to do it twice.
 
-    // do NOT set m_AcctID and m_AcctServerID here.  Let the child classes LOAD
+    // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes LOAD
     // them or GENERATE them.
 }
 
@@ -331,10 +331,10 @@ void OTTransactionType::Release_TransactionType()
                         // or file. They should match, and signature should
                         // verify.
 
-    //    m_ServerID.Release();       // Server ID as used to instantiate the
-    // transaction, based on expected ServerID.
-    m_AcctServerID.Release(); // Actual ServerID within the signed portion.
-                              // (Compare to m_ServerID upon loading.)
+    //    m_NotaryID.Release();       // Server ID as used to instantiate the
+    // transaction, based on expected NotaryID.
+    m_AcctNotaryID.Release(); // Actual NotaryID within the signed portion.
+                              // (Compare to m_NotaryID upon loading.)
 
     //    m_AcctUserID.Release();
 
@@ -373,7 +373,7 @@ bool OTTransactionType::IsSameAccount(const OTTransactionType& rhs) const
 {
     if ((GetUserID() != rhs.GetUserID()) ||
         (GetRealAccountID() != rhs.GetRealAccountID()) ||
-        (GetRealServerID() != rhs.GetRealServerID()))
+        (GetRealNotaryID() != rhs.GetRealNotaryID()))
         return false;
     return true;
 }
@@ -428,15 +428,15 @@ bool OTTransactionType::VerifyContractID() const
     //
     // Now let's compare the two and make sure they match...
 
-    // Also, for this class, we compare ServerID as well.  They go hand in hand.
+    // Also, for this class, we compare NotaryID as well.  They go hand in hand.
 
-    if ((m_ID != m_AcctID) || (m_ServerID != m_AcctServerID)) {
-        String str1(m_ID), str2(m_AcctID), str3(m_ServerID),
-            str4(m_AcctServerID);
+    if ((m_ID != m_AcctID) || (m_NotaryID != m_AcctNotaryID)) {
+        String str1(m_ID), str2(m_AcctID), str3(m_NotaryID),
+            str4(m_AcctNotaryID);
         otErr << "Identifiers do NOT match in "
                  "OTTransactionType::VerifyContractID.\n"
                  "m_ID: " << str1 << "\n m_AcctID: " << str2
-              << "\n m_ServerID: " << str3 << "\n m_AcctServerID: " << str4
+              << "\n m_NotaryID: " << str3 << "\n m_AcctNotaryID: " << str4
               << "\n";
 
         //        OT_FAIL;  // I was debugging.
@@ -444,10 +444,10 @@ bool OTTransactionType::VerifyContractID() const
         return false;
     }
     else {
-        //        OTString str1(m_AcctID), str2(m_AcctServerID);
+        //        OTString str1(m_AcctID), str2(m_AcctNotaryID);
         //        otErr << "Expected Account ID and Server ID both *SUCCESSFUL*
         // match to "
-        //                "IDs in the xml:\n Account ID:\n%s\n ServerID:\n%s\n"
+        //                "IDs in the xml:\n Account ID:\n%s\n NotaryID:\n%s\n"
         //                "-----------------------------------------------------------------------------\n",
         //                str1.Get(), str2.Get());
         return true;

@@ -248,7 +248,7 @@ Token::Token(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
 {
     InitToken();
 
-    // m_ServerID and m_AssetTypeID are now in the parent class (OTInstrument)
+    // m_NotaryID and m_AssetTypeID are now in the parent class (OTInstrument)
     // So they are initialized there now.
 }
 
@@ -267,7 +267,7 @@ Token::Token(const Purse& thePurse)
     // These are in the parent class, OTInstrument.
     // I set them here because the "Purse" argument only exists
     // in this subclass constructor, not the base.
-    m_ServerID = thePurse.GetServerID();
+    m_NotaryID = thePurse.GetNotaryID();
     m_AssetTypeID = thePurse.GetAssetID();
 }
 
@@ -762,7 +762,7 @@ void Token::UpdateContents()
 {
     if (m_State == Token::spendableToken) m_strContractType.Set("CASH TOKEN");
 
-    String ASSET_TYPE_ID(m_AssetTypeID), SERVER_ID(m_ServerID);
+    String ASSET_TYPE_ID(m_AssetTypeID), SERVER_ID(m_NotaryID);
 
     String strState;
     switch (m_State) {
@@ -798,7 +798,7 @@ void Token::UpdateContents()
         "<token\n version=\"%s\"\n state=\"%s\"\n denomination=\"%" PRId64
         "\"\n"
         " assetTypeID=\"%s\"\n"
-        " serverID=\"%s\"\n"
+        " notaryID=\"%s\"\n"
         " series=\"%d\"\n"
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
@@ -916,10 +916,10 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_strContractType.Set("CASH TOKEN");
 
         String strAssetTypeID(xml->getAttributeValue("assetTypeID")),
-            strServerID(xml->getAttributeValue("serverID"));
+            strNotaryID(xml->getAttributeValue("notaryID"));
 
         m_AssetTypeID.SetString(strAssetTypeID);
-        m_ServerID.SetString(strServerID);
+        m_NotaryID.SetString(strNotaryID);
 
         otLog4 <<
             //    "\n===> Loading XML for token into memory structures..."
@@ -927,7 +927,7 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n Denomination: " << GetDenomination()
                << "\n"
                   " AssetTypeID: " << strAssetTypeID
-               << "\nServerID: " << strServerID << "\n";
+               << "\nNotaryID: " << strNotaryID << "\n";
 
         nReturnVal = 1;
     }

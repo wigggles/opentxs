@@ -172,11 +172,11 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             String::StringToLong(xml->getAttributeValue("lastSalePrice"));
         m_strLastSaleDate = xml->getAttributeValue("lastSaleDate");
 
-        const String strServerID(xml->getAttributeValue("serverID")),
+        const String strNotaryID(xml->getAttributeValue("notaryID")),
             strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
-        m_SERVER_ID.SetString(strServerID);
+        m_SERVER_ID.SetString(strNotaryID);
         m_ASSET_TYPE_ID.SetString(strAssetTypeID);
         m_CURRENCY_TYPE_ID.SetString(strCurrencyTypeID);
 
@@ -186,7 +186,7 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   " currencyTypeID: " << strCurrencyTypeID
                << "\n"
-                  " ServerID: " << strServerID << "\n";
+                  " NotaryID: " << strNotaryID << "\n";
 
         nReturnVal = 1;
     }
@@ -243,7 +243,7 @@ void OTMarket::UpdateContents()
         CURRENCY_TYPE_ID(m_CURRENCY_TYPE_ID);
 
     m_xmlUnsigned.Concatenate("<market\n version=\"%s\"\n"
-                              " serverID=\"%s\"\n"
+                              " notaryID=\"%s\"\n"
                               " assetTypeID=\"%s\"\n"
                               " currencyTypeID=\"%s\"\n"
                               " marketScale=\"%" PRId64 "\"\n"
@@ -349,8 +349,8 @@ bool OTMarket::GetNym_OfferList(const Identifier& NYM_ID,
 
         const time64_t tDateAddedToMarket = pOffer->GetDateAddedToMarket();
 
-        const Identifier& theServerID = pOffer->GetServerID();
-        const String strServerID(theServerID);
+        const Identifier& theNotaryID = pOffer->GetNotaryID();
+        const String strNotaryID(theNotaryID);
         const Identifier& theAssetID = pOffer->GetAssetID();
         const String strAssetID(theAssetID);
         const Identifier& theAssetAcctID = pTrade->GetSenderAcctID();
@@ -387,7 +387,7 @@ bool OTMarket::GetNym_OfferList(const Identifier& NYM_ID,
 
         pOfferData->date = to_string<time64_t>(tDateAddedToMarket);
 
-        pOfferData->server_id = strServerID.Get();
+        pOfferData->notary_id = strNotaryID.Get();
         pOfferData->asset_type_id = strAssetID.Get();
         pOfferData->asset_acct_id = strAssetAcctID.Get();
         pOfferData->currency_type_id = strCurrencyID.Get();
@@ -1045,7 +1045,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                   "there is no Server Nym on the Cron "
                   "object authorizing the trades.");
 
-    const Identifier SERVER_ID(pCron->GetServerID());
+    const Identifier SERVER_ID(pCron->GetNotaryID());
 
     if (pCron->GetTransactionCount() < 1) {
         otOut << "Failed to process trades: Out of transaction numbers!\n";
@@ -2663,9 +2663,9 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
     bool bValidOffer = true;
     String strReason("");
 
-    if (GetServerID() != theOffer.GetServerID()) {
+    if (GetNotaryID() != theOffer.GetNotaryID()) {
         bValidOffer = false;
-        const String strID(GetServerID()), strOtherID(theOffer.GetServerID());
+        const String strID(GetNotaryID()), strOtherID(theOffer.GetNotaryID());
         strReason.Format("Wrong Server ID on offer. Expected %s, but found %s",
                          strID.Get(), strOtherID.Get());
     }

@@ -501,8 +501,8 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
     // this function.
     //
     if (nullptr != pMap) {
-        Identifier* pServerID = visitor.GetServerID();
-        OT_ASSERT_MSG(nullptr != pServerID,
+        Identifier* pNotaryID = visitor.GetNotaryID();
+        OT_ASSERT_MSG(nullptr != pNotaryID,
                       "Assert: nullptr Server ID on functor. "
                       "(How did you even construct the "
                       "thing?)");
@@ -563,7 +563,7 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
                 //
                 if (nullptr == pAccount) {
                     pAccount =
-                        Account::LoadExistingAccount(theAccountID, *pServerID);
+                        Account::LoadExistingAccount(theAccountID, *pNotaryID);
                     theAcctAngel.reset(pAccount);
                 }
 

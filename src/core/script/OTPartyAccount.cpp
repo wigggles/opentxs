@@ -343,7 +343,7 @@ bool OTPartyAccount::VerifyAgency()
 }
 
 bool OTPartyAccount::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap, const String& strServerID, Nym& theServerNym,
+    mapOfNyms* pNymMap, const String& strNotaryID, Nym& theServerNym,
     OTSmartContract& theSmartContract, const int64_t& lNewTransactionNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment)
 {
@@ -375,7 +375,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
         const Identifier theAccountID(m_strAcctID);
 
         return pAgent->DropFinalReceiptToInbox(
-            pNymMap, strServerID, theServerNym, theSmartContract,
+            pNymMap, strNotaryID, theServerNym, theSmartContract,
             theAccountID,                             // acct ID from this.
             lNewTransactionNumber, m_lClosingTransNo, // closing_no from this.
             strOrigCronItem, pstrNote, pstrAttachment);
@@ -391,7 +391,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 // appropriate in certain cases.
 //
 Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
-                                     const String& strServerID)
+                                     const String& strNotaryID)
 {
     if (!m_strAcctID.Exists()) {
         otOut << "OTPartyAccount::LoadAccount: Bad: Acct ID is blank for "
@@ -399,9 +399,9 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
         return nullptr;
     }
 
-    const Identifier theAcctID(m_strAcctID), theServerID(strServerID);
+    const Identifier theAcctID(m_strAcctID), theNotaryID(strNotaryID);
 
-    Account* pAccount = Account::LoadExistingAccount(theAcctID, theServerID);
+    Account* pAccount = Account::LoadExistingAccount(theAcctID, theNotaryID);
 
     if (nullptr == pAccount) {
         otOut << "OTPartyAccount::LoadAccount: Failed trying to load account: "

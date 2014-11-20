@@ -314,8 +314,8 @@ public:
                            // supposedly executed agreement.
         Nym& theSignerNym, // For verifying signature on the authorizing
                            // Nym, when loading it
-        const String& strServerID, // For verifying issued num, need the
-                                   // serverID the # goes with.
+        const String& strNotaryID, // For verifying issued num, need the
+                                   // notaryID the # goes with.
         mapOfNyms* pmap_ALREADY_LOADED = nullptr, // If some nyms are already
                                                   // loaded, pass them here so
                                                   // we don't
@@ -339,8 +339,8 @@ public:
                                       // VerifyPartyAuthorization()
         Nym& theSignerNym,          // For verifying signature on the authorized
                                     // Nym
-        const String& strServerID,  // For verifying issued num, need the
-                                    // serverID the # goes with.
+        const String& strNotaryID,  // For verifying issued num, need the
+                                    // notaryID the # goes with.
         bool bBurnTransNo = false); // In OTServer::VerifySmartContract(), it
                                     // not only wants to
     // verify the closing # is properly issued, but it
@@ -391,7 +391,7 @@ public:
                        // and see if any have been changed (if it's DIRTY
                        // again.)
     EXPORT bool SendNoticeToAllParties(
-        bool bSuccessMsg, Nym& theServerNym, const Identifier& theServerID,
+        bool bSuccessMsg, Nym& theServerNym, const Identifier& theNotaryID,
         const int64_t& lNewTransactionNumber,
         // const int64_t& lInReferenceTo, //
         // each party has its own opening trans #.

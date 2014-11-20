@@ -714,7 +714,7 @@ bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 }
 
 bool OTAgent::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap, const String& strServerID, Nym& theServerNym,
+    mapOfNyms* pNymMap, const String& strNotaryID, Nym& theServerNym,
     OTSmartContract& theSmartContract, const Identifier& theAccountID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment)
@@ -783,7 +783,7 @@ bool OTAgent::DropFinalReceiptToInbox(
         ClearTemporaryPointers();
 
         if ((nullptr != pNym) && (lClosingNumber > 0) &&
-            pNym->VerifyIssuedNum(strServerID,
+            pNym->VerifyIssuedNum(strNotaryID,
                                   lClosingNumber)) // <====================
         {
             return theSmartContract.DropFinalReceiptToInbox(
@@ -796,7 +796,7 @@ bool OTAgent::DropFinalReceiptToInbox(
         else
             otErr << szFunc
                   << ": Error: pNym is nullptr, or lClosingNumber <=0, "
-                     "or pNym->VerifyIssuedNum(strServerID, "
+                     "or pNym->VerifyIssuedNum(strNotaryID, "
                      "lClosingNumber)) failed to verify.\n";
     }
     else
@@ -839,7 +839,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
 bool OTAgent::DropServerNoticeToNymbox(
     bool bSuccessMsg, // Added this so we can notify smart contract parties when
                       // it FAILS to activate.
-    Nym& theServerNym, const Identifier& theServerID,
+    Nym& theServerNym, const Identifier& theNotaryID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
     const String& strReference, String* pstrNote, String* pstrAttachment,
     Nym* pActualNym)
@@ -858,7 +858,7 @@ bool OTAgent::DropServerNoticeToNymbox(
             pToActualNym = m_pNym;
 
         return OTAgreement::DropServerNoticeToNymbox(
-            bSuccessMsg, theServerNym, theServerID, theAgentNymID,
+            bSuccessMsg, theServerNym, theNotaryID, theAgentNymID,
             lNewTransactionNumber, lInReferenceTo, strReference, pstrNote,
             pstrAttachment, pToActualNym);
     }
@@ -887,7 +887,7 @@ bool OTAgent::SignContract(Contract& theInput) const
 }
 
 bool OTAgent::VerifyIssuedNumber(const int64_t& lNumber,
-                                 const String& strServerID)
+                                 const String& strNotaryID)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -897,7 +897,7 @@ bool OTAgent::VerifyIssuedNumber(const int64_t& lNumber,
     }
 
     if (nullptr != m_pNym)
-        return m_pNym->VerifyIssuedNum(strServerID, lNumber);
+        return m_pNym->VerifyIssuedNum(strNotaryID, lNumber);
     else
         otErr << "OTAgent::VerifyIssuedNumber: Error: m_pNym was nullptr. For "
                  "agent: " << m_strName << "\n";
@@ -906,7 +906,7 @@ bool OTAgent::VerifyIssuedNumber(const int64_t& lNumber,
 }
 
 bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
-                                      const String& strServerID)
+                                      const String& strNotaryID)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -916,7 +916,7 @@ bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
     }
 
     if (nullptr != m_pNym)
-        return m_pNym->VerifyTransactionNum(strServerID, lNumber);
+        return m_pNym->VerifyTransactionNum(strNotaryID, lNumber);
     else
         otErr << "OTAgent::VerifyTransactionNumber: Error: m_pNym was nullptr. "
                  "For agent: " << m_strName << "\n";
@@ -928,7 +928,7 @@ bool OTAgent::VerifyTransactionNumber(const int64_t& lNumber,
 // ASSUMES m_pNym is set already -- doesn't bother loading the nym!
 //
 bool OTAgent::HarvestTransactionNumber(
-    const int64_t& lNumber, const String& strServerID,
+    const int64_t& lNumber, const String& strNotaryID,
     bool bSave,      // Each agent's nym is used if pSignerNym is nullptr,
                      // whereas the server
     Nym* pSignerNym) // uses this optional arg to substitute
@@ -952,13 +952,13 @@ bool OTAgent::HarvestTransactionNumber(
         //
         if (nullptr == pSignerNym) pSignerNym = m_pNym;
 
-        const Identifier theServerID(strServerID);
+        const Identifier theNotaryID(strNotaryID);
 
         // This won't "add it back" unless we're SURE he had it in the first
         // place...
         //
         const bool bSuccess = m_pNym->ClawbackTransactionNumber(
-            theServerID, lNumber, bSave, pSignerNym);
+            theNotaryID, lNumber, bSave, pSignerNym);
 
         if (bSuccess) {
             // The transaction is being removed from play, so we will remove it
@@ -1001,7 +1001,7 @@ bool OTAgent::HarvestTransactionNumber(
 // keeps track of (for opening AND closing numbers.)
 //
 bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
-                                      const String& strServerID,
+                                      const String& strNotaryID,
                                       Nym& SIGNER_NYM, bool bSave)
 {
     // Todo: this function may change when entities / roles are added.
@@ -1018,7 +1018,7 @@ bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
                                            // we are going to add it to this
                                            // list.
         const bool bSuccess =
-            m_pNym->RemoveTransactionNum(strServerID, lNumber); // Doesn't save.
+            m_pNym->RemoveTransactionNum(strNotaryID, lNumber); // Doesn't save.
 
         if (bSuccess) {
             theIDSet.insert(lNumber); // Since the Trans# is now in play, the
@@ -1046,7 +1046,7 @@ bool OTAgent::RemoveTransactionNumber(const int64_t& lNumber,
 // keeps track of (for opening AND closing numbers.)
 //
 bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
-                                 const String& strServerID, bool bSave,
+                                 const String& strNotaryID, bool bSave,
                                  Nym* pSignerNym)
 {
     // Todo: this function may change when entities / roles are added.
@@ -1063,7 +1063,7 @@ bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
                                            // from play, so we will remove it
                                            // from this list.
         const bool bSuccess =
-            m_pNym->RemoveIssuedNum(strServerID, lNumber); // Doesn't save.
+            m_pNym->RemoveIssuedNum(strNotaryID, lNumber); // Doesn't save.
 
         if (bSuccess) {
             if (nullptr == pSignerNym) pSignerNym = m_pNym;
@@ -1096,7 +1096,7 @@ bool OTAgent::RemoveIssuedNumber(const int64_t& lNumber,
 }
 
 // Done
-bool OTAgent::ReserveClosingTransNum(const String& strServerID,
+bool OTAgent::ReserveClosingTransNum(const String& strNotaryID,
                                      OTPartyAccount& thePartyAcct)
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
@@ -1109,7 +1109,7 @@ bool OTAgent::ReserveClosingTransNum(const String& strServerID,
             return false;
         }
 
-        if (m_pNym->GetTransactionNumCount(strServerID) <
+        if (m_pNym->GetTransactionNumCount(strNotaryID) <
             1) // Need a closing number...
         {
             otOut << "OTAgent::ReserveClosingTransNum: *** Failure *** Nym "
@@ -1118,7 +1118,7 @@ bool OTAgent::ReserveClosingTransNum(const String& strServerID,
             return false;
         }
         else if (false ==
-                   m_pNym->GetNextTransactionNum(*m_pNym, strServerID,
+                   m_pNym->GetNextTransactionNum(*m_pNym, strNotaryID,
                                                  lTransactionNumber)) {
             otErr << "OTAgent::ReserveClosingTransNum: Error: Strangely, "
                      "unable to get a transaction number, even though "
@@ -1129,7 +1129,7 @@ bool OTAgent::ReserveClosingTransNum(const String& strServerID,
         // BELOW THIS POINT, TRANSACTION # HAS BEEN RESERVED, AND MUST BE
         // SAVED...
         // Any errors below this point will require this call before returning:
-        // HarvestAllTransactionNumbers(strServerID);
+        // HarvestAllTransactionNumbers(strNotaryID);
         //
         thePartyAcct.SetClosingTransNo(lTransactionNumber);
         thePartyAcct.SetAgentName(m_strName);
@@ -1149,7 +1149,7 @@ bool OTAgent::ReserveClosingTransNum(const String& strServerID,
 }
 
 // Done
-bool OTAgent::ReserveOpeningTransNum(const String& strServerID)
+bool OTAgent::ReserveOpeningTransNum(const String& strNotaryID)
 {
     if (IsAnIndividual() && DoesRepresentHimself() && (nullptr != m_pNym)) {
         int64_t lTransactionNumber = 0;
@@ -1166,7 +1166,7 @@ bool OTAgent::ReserveOpeningTransNum(const String& strServerID)
             return false;
         }
 
-        if (m_pNym->GetTransactionNumCount(strServerID) <
+        if (m_pNym->GetTransactionNumCount(strNotaryID) <
             1) // Need opening number...
         {
             otOut << "OTAgent::ReserveOpeningTransNum: *** Failure *** Nym "
@@ -1175,7 +1175,7 @@ bool OTAgent::ReserveOpeningTransNum(const String& strServerID)
             return false;
         }
         else if (false ==
-                   m_pNym->GetNextTransactionNum(*m_pNym, strServerID,
+                   m_pNym->GetNextTransactionNum(*m_pNym, strNotaryID,
                                                  lTransactionNumber)) {
             otErr << "OTAgent::ReserveOpeningTransNum: Error: Strangely, "
                      "unable to get a transaction number, even though "
@@ -1186,7 +1186,7 @@ bool OTAgent::ReserveOpeningTransNum(const String& strServerID)
         // BELOW THIS POINT, TRANSACTION # HAS BEEN RESERVED, AND MUST BE
         // SAVED...
         // Any errors below this point will require this call before returning:
-        // HarvestAllTransactionNumbers(strServerID);
+        // HarvestAllTransactionNumbers(strNotaryID);
         //
         m_pForParty->SetOpeningTransNo(lTransactionNumber);
         m_pForParty->SetAuthorizingAgentName(m_strName.Get());

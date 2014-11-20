@@ -191,7 +191,8 @@ private:
     int32_t processXmlNodeAckReplies(Message& m, irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(Message& m,
                                               irr::io::IrrXMLReader*& xml);
-    int32_t processXmlNodeOTmessage(Message& m, irr::io::IrrXMLReader*& xml);
+    int32_t processXmlNodeNotaryMessage(Message& m,
+                                        irr::io::IrrXMLReader*& xml);
 
 public:
     EXPORT Message();
@@ -218,7 +219,7 @@ public:
     // seen for those request numbers.
     // IMPORTANT NOTE: The Server ID is used to lookup the numbers from the Nym.
     // Therefore,
-    // make sure that OTMessage::m_strServerID is set BEFORE calling this
+    // make sure that OTMessage::m_strNotaryID is set BEFORE calling this
     // function. (It will
     // ASSERT if you don't...)
     //
@@ -229,7 +230,7 @@ public:
 
     String m_strCommand;  // perhaps @register is the string for "reply to
                           // register" a-ha
-    String m_strServerID; // This is sent with every message for security
+    String m_strNotaryID; // This is sent with every message for security
                           // reasons.
     String m_strNymID;    // The hash of the user's public key... or x509 cert.
     String m_strNymboxHash; // Sometimes in a server reply as FYI, sometimes

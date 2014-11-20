@@ -270,7 +270,7 @@ void AccountList::Release()
 
 std::shared_ptr<Account> AccountList::GetOrCreateAccount(
     Nym& serverNym, const Identifier& accountOwnerId,
-    const Identifier& assetTypeId, const Identifier& serverId,
+    const Identifier& assetTypeId, const Identifier& notaryID,
     // this will be set to true if the acct is created here.
     // Otherwise set to false;
     bool& wasAcctCreated, int64_t stashTransNum)
@@ -347,7 +347,7 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
         // The Account ID exists, but we don't have the pointer to a loaded
         // account for it. So, let's load it.
         Account* loadedAccount =
-            Account::LoadExistingAccount(accountID, serverId);
+            Account::LoadExistingAccount(accountID, notaryID);
 
         if (!loadedAccount) {
             otErr << "Failed trying to load " << acctTypeString
@@ -380,10 +380,10 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
     Message message;
     accountOwnerId.GetString(message.m_strNymID);
     assetTypeId.GetString(message.m_strAssetID);
-    serverId.GetString(message.m_strServerID);
+    notaryID.GetString(message.m_strNotaryID);
 
     Account* createdAccount = Account::GenerateNewAccount(
-        accountOwnerId, serverId, serverNym, message, acctType_, stashTransNum);
+        accountOwnerId, notaryID, serverNym, message, acctType_, stashTransNum);
 
     if (!createdAccount) {
         otErr << " AccountList::GetOrCreateAccount: Failed trying to generate"

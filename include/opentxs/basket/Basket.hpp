@@ -295,7 +295,7 @@ public:
     // numbers back
     //
     EXPORT void HarvestClosingNumbers(Nym& theNym,
-                                      const Identifier& theServerID,
+                                      const Identifier& theNotaryID,
                                       bool bSave = true);
 
 private:

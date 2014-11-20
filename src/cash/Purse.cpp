@@ -579,7 +579,7 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
 
 // static -- class factory.
 //
-// Checks the serverID / AssetID, so you don't have to.
+// Checks the notaryID / AssetID, so you don't have to.
 //
 Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID,
                            const Identifier& ASSET_ID)
@@ -598,12 +598,12 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID,
         // Does the contract successfully load from the string passed in?
         if (pPurse->LoadContractFromString(strContract)) {
             const char* szFunc = "Purse::PurseFactory";
-            if (SERVER_ID != pPurse->GetServerID()) {
-                const String strServerID(SERVER_ID),
-                    strPurseServerID(pPurse->GetServerID());
-                otErr << szFunc << ": Failure: ServerID on purse ("
-                      << strPurseServerID << ") doesn't match expected "
-                                             "server ID (" << strServerID
+            if (SERVER_ID != pPurse->GetNotaryID()) {
+                const String strNotaryID(SERVER_ID),
+                    strPurseNotaryID(pPurse->GetNotaryID());
+                otErr << szFunc << ": Failure: NotaryID on purse ("
+                      << strPurseNotaryID << ") doesn't match expected "
+                                             "server ID (" << strNotaryID
                       << ").\n";
                 delete pPurse;
                 pPurse = nullptr;
@@ -630,7 +630,7 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID,
     return nullptr;
 }
 
-// Checks the serverID, so you don't have to.
+// Checks the notaryID, so you don't have to.
 //
 Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID)
 {
@@ -646,12 +646,12 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID)
 
         // Does the contract successfully load from the string passed in?
         if (pPurse->LoadContractFromString(strContract)) {
-            if (SERVER_ID != pPurse->GetServerID()) {
-                const String strServerID(SERVER_ID),
-                    strPurseServerID(pPurse->GetServerID());
+            if (SERVER_ID != pPurse->GetNotaryID()) {
+                const String strNotaryID(SERVER_ID),
+                    strPurseNotaryID(pPurse->GetNotaryID());
                 otErr << "Purse::PurseFactory"
-                      << ": Failure: ServerID on purse (" << strPurseServerID
-                      << ") doesn't match expected server ID (" << strServerID
+                      << ": Failure: NotaryID on purse (" << strPurseNotaryID
+                      << ") doesn't match expected server ID (" << strNotaryID
                       << ").\n";
                 delete pPurse;
                 pPurse = nullptr;
@@ -696,7 +696,7 @@ Purse* Purse::PurseFactory(String strInput)
 Purse::Purse()
     : Contract()
     ,
-    //    m_ServerID(),
+    //    m_NotaryID(),
     //    m_AssetID(),
     m_lTotalValue(0)
     , m_bPasswordProtected(false)
@@ -711,7 +711,7 @@ Purse::Purse()
 Purse::Purse(const Purse& thePurse)
     : Contract()
     , m_UserID()
-    , m_ServerID(thePurse.GetServerID())
+    , m_NotaryID(thePurse.GetNotaryID())
     , m_AssetID(thePurse.GetAssetID())
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
@@ -728,7 +728,7 @@ Purse::Purse(const Purse& thePurse)
 // know the asset type is in there anyway. So you use this constructor.
 Purse::Purse(const Identifier& SERVER_ID)
     : Contract()
-    , m_ServerID(SERVER_ID)
+    , m_NotaryID(SERVER_ID)
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
@@ -741,7 +741,7 @@ Purse::Purse(const Identifier& SERVER_ID)
 
 Purse::Purse(const Identifier& SERVER_ID, const Identifier& ASSET_ID)
     : Contract()
-    , m_ServerID(SERVER_ID)
+    , m_NotaryID(SERVER_ID)
     , m_AssetID(ASSET_ID)
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
@@ -757,7 +757,7 @@ Purse::Purse(const Identifier& SERVER_ID, const Identifier& ASSET_ID,
              const Identifier& USER_ID)
     : Contract()
     , m_UserID(USER_ID)
-    , m_ServerID(SERVER_ID)
+    , m_NotaryID(SERVER_ID)
     , m_AssetID(ASSET_ID)
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
@@ -820,7 +820,7 @@ void Purse::Release()
 
 /*
  OTIdentifier    m_UserID;    // Optional
- OTIdentifier    m_ServerID;    // Mandatory
+ OTIdentifier    m_NotaryID;    // Mandatory
  OTIdentifier    m_AssetID;    // Mandatory
  */
 
@@ -829,7 +829,7 @@ bool Purse::LoadContract()
     return LoadPurse();
 }
 
-bool Purse::LoadPurse(const char* szServerID, const char* szUserID,
+bool Purse::LoadPurse(const char* szNotaryID, const char* szUserID,
                       const char* szAssetTypeID)
 {
     OT_ASSERT(!IsPasswordProtected());
@@ -837,21 +837,21 @@ bool Purse::LoadPurse(const char* szServerID, const char* szUserID,
     if (!m_strFoldername.Exists())
         m_strFoldername.Set(OTFolders::Purse().Get());
 
-    String strServerID(m_ServerID), strUserID(m_UserID),
+    String strNotaryID(m_NotaryID), strUserID(m_UserID),
         strAssetTypeID(m_AssetID);
 
-    if (nullptr != szServerID) strServerID = szServerID;
+    if (nullptr != szNotaryID) strNotaryID = szNotaryID;
     if (nullptr != szUserID) strUserID = szUserID;
     if (nullptr != szAssetTypeID) strAssetTypeID = szAssetTypeID;
 
     if (!m_strFilename.Exists()) {
-        m_strFilename.Format("%s%s%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strUserID.Get(),
                              OTLog::PathSeparator(), strAssetTypeID.Get());
     }
 
     const char* szFolder1name = OTFolders::Purse().Get(); // purse
-    const char* szFolder2name = strServerID.Get();        // purse/SERVER_ID
+    const char* szFolder2name = strNotaryID.Get();        // purse/SERVER_ID
     const char* szFolder3name = strUserID.Get(); // purse/SERVER_ID/USER_ID
     const char* szFilename =
         strAssetTypeID.Get(); // purse/SERVER_ID/USER_ID/ASSET_TYPE_ID
@@ -886,7 +886,7 @@ bool Purse::LoadPurse(const char* szServerID, const char* szUserID,
     return LoadContractFromString(strRawFile);
 }
 
-bool Purse::SavePurse(const char* szServerID, const char* szUserID,
+bool Purse::SavePurse(const char* szNotaryID, const char* szUserID,
                       const char* szAssetTypeID)
 {
     OT_ASSERT(!IsPasswordProtected());
@@ -894,21 +894,21 @@ bool Purse::SavePurse(const char* szServerID, const char* szUserID,
     if (!m_strFoldername.Exists())
         m_strFoldername.Set(OTFolders::Purse().Get());
 
-    String strServerID(m_ServerID), strUserID(m_UserID),
+    String strNotaryID(m_NotaryID), strUserID(m_UserID),
         strAssetTypeID(m_AssetID);
 
-    if (nullptr != szServerID) strServerID = szServerID;
+    if (nullptr != szNotaryID) strNotaryID = szNotaryID;
     if (nullptr != szUserID) strUserID = szUserID;
     if (nullptr != szAssetTypeID) strAssetTypeID = szAssetTypeID;
 
     if (!m_strFilename.Exists()) {
-        m_strFilename.Format("%s%s%s%s%s", strServerID.Get(),
+        m_strFilename.Format("%s%s%s%s%s", strNotaryID.Get(),
                              OTLog::PathSeparator(), strUserID.Get(),
                              OTLog::PathSeparator(), strAssetTypeID.Get());
     }
 
     const char* szFolder1name = OTFolders::Purse().Get(); // purse
-    const char* szFolder2name = strServerID.Get();        // purse/SERVER_ID
+    const char* szFolder2name = strNotaryID.Get();        // purse/SERVER_ID
     const char* szFolder3name = strUserID.Get(); // purse/SERVER_ID/USER_ID
     const char* szFilename =
         strAssetTypeID.Get(); // purse/SERVER_ID/USER_ID/ASSET_TYPE_ID
@@ -952,7 +952,7 @@ bool Purse::SavePurse(const char* szServerID, const char* szUserID,
 void Purse::UpdateContents() // Before transmission or serialization, this is
                              // where the Purse saves its contents
 {
-    const String SERVER_ID(m_ServerID), USER_ID(m_UserID),
+    const String SERVER_ID(m_NotaryID), USER_ID(m_UserID),
         ASSET_TYPE_ID(m_AssetID);
 
     int64_t lValidFrom = OTTimeGetSecondsFromTime(m_tLatestValidFrom);
@@ -972,7 +972,7 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
         " isNymIDIncluded=\"%s\"\n"
         " userID=\"%s\"\n"       // UserID   is optional.
         " assetTypeID=\"%s\"\n"  // assetTypeID required.
-        " serverID=\"%s\">\n\n", // serverID is required.
+        " notaryID=\"%s\">\n\n", // notaryID is required.
         m_strVersion.Get(),
         m_lTotalValue, lValidFrom, lValidTo,
         m_bPasswordProtected ? "true" : "false",
@@ -991,7 +991,7 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
         (!m_AssetID.IsEmpty()) ? ASSET_TYPE_ID.Get()
                                : "", // (Should never actually be empty.) todo:
                                      // Change this to just the Get()
-        (!m_ServerID.IsEmpty()) ? SERVER_ID.Get()
+        (!m_NotaryID.IsEmpty()) ? SERVER_ID.Get()
                                 : "" // (Should never actually be empty.) todo:
                                      // Change this to just the Get()
         );
@@ -1101,13 +1101,13 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // TODO security: Might want to verify the server ID here, if it's
         // already set.
         // Just to make sure it's the one we were expecting.
-        const String strServerID = xml->getAttributeValue("serverID");
-        if (strServerID.Exists())
-            m_ServerID.SetString(strServerID);
+        const String strNotaryID = xml->getAttributeValue("notaryID");
+        if (strNotaryID.Exists())
+            m_NotaryID.SetString(strNotaryID);
         else {
-            m_ServerID.Release();
+            m_NotaryID.Release();
             otErr << szFunc
-                  << ": Failed loading serverID, when one was expected.\n";
+                  << ": Failed loading notaryID, when one was expected.\n";
             return (-1);
         }
 
@@ -1149,7 +1149,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otLog4 << szFunc << ": Loaded purse... ("
                << (m_bPasswordProtected ? "Password-protected"
                                         : "NOT password-protected")
-               << ")\n ServerID: " << strServerID
+               << ")\n NotaryID: " << strNotaryID
                << "\n UserID: " << (m_bIsNymIDIncluded ? strUserID.Get() : "")
                << "\n Asset ID: " << strAssetTypeID << "\n----------\n";
 
@@ -1438,7 +1438,7 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
         OT_ASSERT(nullptr != pToken);
 
         if (pToken->GetAssetID() != m_AssetID ||
-            pToken->GetServerID() != m_ServerID) {
+            pToken->GetNotaryID() != m_NotaryID) {
             delete pToken;
             pToken = nullptr;
 

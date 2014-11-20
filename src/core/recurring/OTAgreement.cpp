@@ -148,7 +148,7 @@ namespace opentxs
 {
 
 bool OTAgreement::SendNoticeToAllParties(
-    bool bSuccessMsg, Nym& theServerNym, const Identifier& theServerID,
+    bool bSuccessMsg, Nym& theServerNym, const Identifier& theNotaryID,
     const int64_t& lNewTransactionNumber,
     //                                       const int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
@@ -248,7 +248,7 @@ bool OTAgreement::SendNoticeToAllParties(
     // Sender
     if (!OTAgreement::DropServerNoticeToNymbox(
             bSuccessMsg, // "success" notice? or "failure" notice?
-            theServerNym, theServerID, GetSenderUserID(), lNewTransactionNumber,
+            theServerNym, theNotaryID, GetSenderUserID(), lNewTransactionNumber,
             GetTransactionNum(), // in reference to
             strReference, pstrNote, pstrAttachment, pSender))
         bSuccess = false;
@@ -258,7 +258,7 @@ bool OTAgreement::SendNoticeToAllParties(
     // Recipient
     if (!OTAgreement::DropServerNoticeToNymbox(
             bSuccessMsg, // "success" notice? or "failure" notice?
-            theServerNym, theServerID, GetRecipientUserID(),
+            theServerNym, theNotaryID, GetRecipientUserID(),
             lNewTransactionNumber,
             GetRecipientOpeningNum(), // in reference to
             strReference, pstrNote, pstrAttachment, pRecipient))
@@ -624,14 +624,14 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
             : 0; // index 0 is closing number for sender, since
                  // GetTransactionNum() is his opening #.
 
-    const String strServerID(GetServerID());
+    const String strNotaryID(GetNotaryID());
 
     Nym theActualNym; // unused unless it's really not already loaded.
                       // (use pActualNym.)
 
     //
     if ((lSenderOpeningNumber > 0) &&
-        theOriginator.VerifyIssuedNum(strServerID, lSenderOpeningNumber)) {
+        theOriginator.VerifyIssuedNum(strNotaryID, lSenderOpeningNumber)) {
 
         Nym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
@@ -652,7 +652,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         // remains ISSUED, until the final receipt itself is accepted during a
         // process inbox.
         //
-        theOriginator.RemoveIssuedNum(*pServerNym, strServerID,
+        theOriginator.RemoveIssuedNum(*pServerNym, strNotaryID,
                                       lSenderOpeningNumber,
                                       false); // bSave=false
         theOriginator.SaveSignedNymfile(*pServerNym);
@@ -717,7 +717,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     }
 
     if ((lSenderClosingNumber > 0) &&
-        theOriginator.VerifyIssuedNum(strServerID, lSenderClosingNumber)) {
+        theOriginator.VerifyIssuedNum(strNotaryID, lSenderClosingNumber)) {
         // In this case, I'm passing nullptr for pstrNote, since there is no
         // note.
         // (Additional information would normally be stored in the note.)
@@ -737,7 +737,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         // This part below doesn't happen until theOriginator ACCEPTS the final
         // receipt (when processing his inbox.)
         //
-        //      theOriginator.RemoveIssuedNum(strServerID, lSenderClosingNumber,
+        //      theOriginator.RemoveIssuedNum(strNotaryID, lSenderClosingNumber,
         // true); //bSave=false
     }
     else {
@@ -750,7 +750,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     //
     if ((nullptr != pRecipient) && (lRecipientOpeningNumber > 0) &&
-        pRecipient->VerifyIssuedNum(strServerID, lRecipientOpeningNumber)) {
+        pRecipient->VerifyIssuedNum(strNotaryID, lRecipientOpeningNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s.
         // So when the number is released from the Nym, we also take it off that
@@ -768,7 +768,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         // remains ISSUED, until the final receipt itself is accepted during a
         // process inbox.
         //
-        pRecipient->RemoveIssuedNum(*pServerNym, strServerID,
+        pRecipient->RemoveIssuedNum(*pServerNym, strNotaryID,
                                     lRecipientOpeningNumber,
                                     false); // bSave=false
         //      pRecipient->SaveSignedNymfile(*pServerNym); // Moved lower.
@@ -806,7 +806,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
 
     //
     if ((nullptr != pRecipient) && (lRecipientClosingNumber > 0) &&
-        pRecipient->VerifyIssuedNum(strServerID, lRecipientClosingNumber)) {
+        pRecipient->VerifyIssuedNum(strNotaryID, lRecipientClosingNumber)) {
         if (!DropFinalReceiptToInbox(
                 GetRecipientUserID(), GetRecipientAcctID(),
                 lNewTransactionNumber,
@@ -820,7 +820,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
         // This part below doesn't happen until pRecipient ACCEPTs the final
         // receipt (when processing his inbox.)
         //
-        //      pRecipient->RemoveIssuedNum(strServerID,
+        //      pRecipient->RemoveIssuedNum(strNotaryID,
         // lRecipientClosingNumber, true); //bSave=false
     }
     else {
@@ -888,7 +888,7 @@ void OTAgreement::HarvestOpeningNumber(Nym& theNym)
         // list.)
         //
         const bool bClawedBack = theNym.ClawbackTransactionNumber(
-            GetServerID(), GetRecipientOpeningNum(), true); // bSave=true
+            GetNotaryID(), GetRecipientOpeningNum(), true); // bSave=true
 
         if (!bClawedBack) {
             //          otErr << "OTAgreement::HarvestOpeningNumber: Number
@@ -947,7 +947,7 @@ void OTAgreement::HarvestClosingNumbers(Nym& theNym)
         // list.)
         //
         const bool bClawedBack = theNym.ClawbackTransactionNumber(
-            GetServerID(), GetRecipientClosingNum(), true); // bSave=true
+            GetNotaryID(), GetRecipientClosingNum(), true); // bSave=true
 
         if (!bClawedBack) {
             //          otErr << "OTAgreement::HarvestClosingNumbers: Number
@@ -1051,7 +1051,7 @@ bool OTAgreement::CanRemoveItemFromCron(Nym& theNym)
     //
     if (true == ot_super::CanRemoveItemFromCron(theNym)) return true;
 
-    const String strServerID(GetServerID());
+    const String strNotaryID(GetNotaryID());
 
     // Usually the Nym is the originator. (Meaning GetTransactionNum() on this
     // agreement
@@ -1080,7 +1080,7 @@ bool OTAgreement::CanRemoveItemFromCron(Nym& theNym)
     }
 
     if (false ==
-        theNym.VerifyIssuedNum(strServerID, GetRecipientClosingNum())) {
+        theNym.VerifyIssuedNum(strNotaryID, GetRecipientClosingNum())) {
         otOut << "OTAgreement::" << __FUNCTION__ << ": Recipient Closing "
                                                     "number didn't verify (for "
                                                     "removal from cron).\n";
@@ -1096,7 +1096,7 @@ bool OTAgreement::CanRemoveItemFromCron(Nym& theNym)
     // to authorize removal, as long as the transaction num is still issued to
     // theNym (this check here.)
     //
-    return theNym.VerifyIssuedNum(strServerID, GetRecipientOpeningNum());
+    return theNym.VerifyIssuedNum(strNotaryID, GetRecipientOpeningNum());
 
     // Normally this will be all we need to check. The originator will have the
     // transaction
@@ -1139,7 +1139,7 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
         // and then allow the customer to add them in his version,
         (GetAssetID() == rhs.GetAssetID()) && // (and this Compare function
                                               // still still verify it.)
-        (GetServerID() == rhs.GetServerID()) &&
+        (GetNotaryID() == rhs.GetNotaryID()) &&
         (GetValidFrom() == rhs.GetValidFrom()) &&
         (GetValidTo() == rhs.GetValidTo()))
         return true;
@@ -1173,7 +1173,7 @@ bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
                                  "Nym ID (not allowed.)\n";
         return false;
     }
-    else if (MERCHANT_NYM.GetTransactionNumCount(GetServerID()) <
+    else if (MERCHANT_NYM.GetTransactionNumCount(GetNotaryID()) <
                2) // Need opening and closing numbers (that's 2)...
     {
         otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction "
@@ -1226,11 +1226,11 @@ bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
     // Since we'll be needing 2 transaction numbers to do this, let's grab
     // 'em...
     //
-    String strServerID(GetServerID());
+    String strNotaryID(GetNotaryID());
 
     int64_t lTransactionNumber = 0, lClosingTransactionNo = 0;
 
-    if (MERCHANT_NYM.GetTransactionNumCount(GetServerID()) <
+    if (MERCHANT_NYM.GetTransactionNumCount(GetNotaryID()) <
         2) // Need opening and closing numbers (that's 2)...
     {
         otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction "
@@ -1238,18 +1238,18 @@ bool OTAgreement::SetProposal(Nym& MERCHANT_NYM, const String& strConsideration,
         return false;
     }
     else if (false ==
-               MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strServerID,
+               MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strNotaryID,
                                                   lTransactionNumber)) {
         otErr << __FUNCTION__
               << ": Error: Strangely unable to get a transaction number.\n";
         return false;
     }
     else if (false ==
-               MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strServerID,
+               MERCHANT_NYM.GetNextTransactionNum(MERCHANT_NYM, strNotaryID,
                                                   lClosingTransactionNo)) {
         otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing "
                                  "transaction number.\n";
-        MERCHANT_NYM.AddTransactionNum(MERCHANT_NYM, strServerID,
+        MERCHANT_NYM.AddTransactionNum(MERCHANT_NYM, strNotaryID,
                                        lTransactionNumber, true); // bSave=true
         // (Since the first one was successful, we just put it back before
         // returning.)
@@ -1306,7 +1306,7 @@ bool OTAgreement::Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM,
               << ": Payer has wrong NymID (should be same as SenderUserID.)\n";
         return false;
     }
-    else if (PAYER_NYM.GetTransactionNumCount(GetServerID()) <
+    else if (PAYER_NYM.GetTransactionNumCount(GetNotaryID()) <
                2) // Need opening and closing numbers (that's 2)...
     {
         otOut << __FUNCTION__ << ": Failure. You need at least 2 transaction "
@@ -1340,22 +1340,22 @@ bool OTAgreement::Confirm(Nym& PAYER_NYM, Nym* pMERCHANT_NYM,
     // The payer has to submit TWO transaction numbers in order to activate this
     // agreement...
     //
-    String strServerID(GetServerID());
+    String strNotaryID(GetNotaryID());
     int64_t lTransactionNumber = 0, lClosingTransactionNo = 0;
 
     if (false ==
-        PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID,
+        PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strNotaryID,
                                         lTransactionNumber)) {
         otErr << __FUNCTION__
               << ": Error: Strangely unable to get a transaction number.\n";
         return false;
     }
     else if (false ==
-               PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strServerID,
+               PAYER_NYM.GetNextTransactionNum(PAYER_NYM, strNotaryID,
                                                lClosingTransactionNo)) {
         otErr << __FUNCTION__ << ": Error: Strangely unable to get a closing "
                                  "transaction number.\n";
-        PAYER_NYM.AddTransactionNum(PAYER_NYM, strServerID, lTransactionNumber,
+        PAYER_NYM.AddTransactionNum(PAYER_NYM, strNotaryID, lTransactionNumber,
                                     true); // bSave=true
         // (Since the first one was successful, we just put it back before
         // returning.)
@@ -1554,7 +1554,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
 
-        const String strServerID(xml->getAttributeValue("serverID")),
+        const String strNotaryID(xml->getAttributeValue("notaryID")),
             strAssetTypeID(xml->getAttributeValue("assetTypeID")),
             strSenderAcctID(xml->getAttributeValue("senderAcctID")),
             strSenderUserID(xml->getAttributeValue("senderUserID")),
@@ -1575,12 +1575,12 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_pCancelerNymID->Release();
         }
 
-        const Identifier SERVER_ID(strServerID), ASSET_ID(strAssetTypeID),
+        const Identifier SERVER_ID(strNotaryID), ASSET_ID(strAssetTypeID),
             SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID),
             RECIPIENT_ACCT_ID(strRecipientAcctID),
             RECIPIENT_USER_ID(strRecipientUserID);
 
-        SetServerID(SERVER_ID);
+        SetNotaryID(SERVER_ID);
         SetAssetID(ASSET_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
         SetSenderUserID(SENDER_USER_ID);
@@ -1594,7 +1594,7 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
                << "\n"
                   " AssetTypeID: " << strAssetTypeID
-               << "\n ServerID: " << strServerID
+               << "\n NotaryID: " << strNotaryID
                << "\n"
                   " senderAcctID: " << strSenderAcctID
                << "\n senderUserID: " << strSenderUserID

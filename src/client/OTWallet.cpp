@@ -780,8 +780,8 @@ bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::VerifyAssetAccount";
 
-    if (SERVER_ID != theAcct.GetRealServerID()) {
-        const String s1(SERVER_ID), s2(theAcct.GetRealServerID());
+    if (SERVER_ID != theAcct.GetRealNotaryID()) {
+        const String s1(SERVER_ID), s2(theAcct.GetRealNotaryID());
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
               << ": Server ID passed in (" << s1 << ") didn't match the one "
                                                     "on the account (" << s2
@@ -1686,7 +1686,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
             String AssetID;
 
             String ServerName;
-            String ServerID;
+            String NotaryID;
 
             String AcctName;
             String AcctID;
@@ -1931,17 +1931,17 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                     //                    ServerName =
                     // xml->getAttributeValue("name");
-                    ServerID =
-                        xml->getAttributeValue("serverID"); // hash of contract
+                    NotaryID =
+                        xml->getAttributeValue("notaryID"); // hash of contract
 
                     otInfo << "\n\n\n****Server Contract**** (wallet "
                               "listing):\n Server Name: " << ServerName
-                           << "\n   Server ID: " << ServerID << "\n";
+                           << "\n   Server ID: " << NotaryID << "\n";
 
                     String strContractPath(OTFolders::Contract().Get());
 
                     OTServerContract* pContract = new OTServerContract(
-                        ServerName, strContractPath, ServerID, ServerID);
+                        ServerName, strContractPath, NotaryID, NotaryID);
 
                     OT_ASSERT_MSG(nullptr != pContract,
                                   "Error allocating memory "
@@ -1962,7 +1962,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                             // block to regenerate some newly-signed contracts.
                             // (for testing only.) Otherwise leave here where it
                             // belongs.
-                            m_mapServers[ServerID.Get()] = pContract;
+                            m_mapServers[NotaryID.Get()] = pContract;
                         }
                         else {
                             delete pContract;
@@ -1987,16 +1987,16 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                               false); // linebreaks == false
 
                     AcctID = xml->getAttributeValue("accountID");
-                    ServerID = xml->getAttributeValue("serverID");
+                    NotaryID = xml->getAttributeValue("notaryID");
 
                     otInfo << "\n----------------------------------------------"
                               "----------------------------\n"
                               "****Account**** (wallet listing)\n"
                               " Account Name: " << AcctName
                            << "\n   Account ID: " << AcctID
-                           << "\n    Server ID: " << ServerID << "\n";
+                           << "\n    Server ID: " << NotaryID << "\n";
 
-                    const Identifier ACCOUNT_ID(AcctID), SERVER_ID(ServerID);
+                    const Identifier ACCOUNT_ID(AcctID), SERVER_ID(NotaryID);
 
                     Account* pAccount =
                         Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);

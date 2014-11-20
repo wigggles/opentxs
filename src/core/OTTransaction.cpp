@@ -352,7 +352,7 @@ bool OTTransaction::HarvestOpeningNumber(
         if (bReplyWasFailure) // NOTE: If I'm harvesting for a re-try,
         {
             bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedServerID(),
+                GetPurportedNotaryID(),
                 GetTransactionNum()); // bSave=false, pSignerNym=nullptr
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
@@ -365,7 +365,7 @@ bool OTTransaction::HarvestOpeningNumber(
             // going to claw it back!
             //
             //              bSuccess =
-            // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+            // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
             //                                                          GetTransactionNum());
             // //bSave=false, pSignerNym=nullptr
         }
@@ -381,7 +381,7 @@ bool OTTransaction::HarvestOpeningNumber(
         //
         if (bReplyWasFailure) {
             bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedServerID(),
+                GetPurportedNotaryID(),
                 GetTransactionNum()); // bSave=false, pSignerNym=nullptr
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
@@ -397,7 +397,7 @@ bool OTTransaction::HarvestOpeningNumber(
                 // EITHER WAY, you certainly can't claw that number back now!
                 // (It is still outstanding, though. It's not gone, yet...)
                 //                  bSuccess =
-                // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+                // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
                 //                                                              GetTransactionNum());
                 // //bSave=false, pSignerNym=nullptr
             }
@@ -406,7 +406,7 @@ bool OTTransaction::HarvestOpeningNumber(
                 // transaction number was DEFINITELY burned.
                 // (No point clawing it back now--it's gone already.)
                 //                  bSuccess =
-                // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+                // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
                 //                                                              GetTransactionNum());
                 // //bSave=false, pSignerNym=nullptr
             }
@@ -426,7 +426,7 @@ bool OTTransaction::HarvestOpeningNumber(
         //
         if (bReplyWasFailure) {
             bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedServerID(),
+                GetPurportedNotaryID(),
                 GetTransactionNum()); // bSave=false, pSignerNym=nullptr
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
@@ -442,7 +442,7 @@ bool OTTransaction::HarvestOpeningNumber(
                 // EITHER WAY, you certainly can't claw that number back now!
                 // (It is still outstanding, though. It's not gone, yet...)
                 //                  bSuccess =
-                // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+                // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
                 //                                                              GetTransactionNum());
                 // //bSave=false, pSignerNym=nullptr
             }
@@ -451,7 +451,7 @@ bool OTTransaction::HarvestOpeningNumber(
                 // transaction number was DEFINITELY burned.
                 // (No point clawing it back now--it's gone already.)
                 //                  bSuccess =
-                // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+                // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
                 //                                                              GetTransactionNum());
                 // //bSave=false, pSignerNym=nullptr
             }
@@ -471,7 +471,7 @@ bool OTTransaction::HarvestOpeningNumber(
         //
         if (bReplyWasFailure) {
             bSuccess = theNym.ClawbackTransactionNumber(
-                GetPurportedServerID(),
+                GetPurportedNotaryID(),
                 GetTransactionNum()); // bSave=false, pSignerNym=nullptr
         }
         // Else if the server reply message was unambiguously a SUCCESS, that
@@ -484,7 +484,7 @@ bool OTTransaction::HarvestOpeningNumber(
             // not going to claw it back!
             //
             //              bSuccess =
-            // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+            // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
             //                                                          GetTransactionNum());
             // //bSave=false, pSignerNym=nullptr
         }
@@ -617,7 +617,7 @@ bool OTTransaction::HarvestOpeningNumber(
                 //
                 if (bReplyWasFailure && !bHarvestingForRetry) {
                     bSuccess = theNym.ClawbackTransactionNumber(
-                        GetPurportedServerID(),
+                        GetPurportedNotaryID(),
                         GetTransactionNum()); // bSave=false, pSignerNym=nullptr
                 }
                 // Else if the server reply message was unambiguously a SUCCESS,
@@ -635,7 +635,7 @@ bool OTTransaction::HarvestOpeningNumber(
                         // now! (It is still outstanding, though. It's not gone,
                         // yet...)
                         //                      bSuccess =
-                        // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+                        // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
                         //                                                                  GetTransactionNum());
                         // //bSave=false, pSignerNym=nullptr
                     }
@@ -644,7 +644,7 @@ bool OTTransaction::HarvestOpeningNumber(
                         // the transaction number was DEFINITELY burned.
                         // (No point clawing it back now--it's gone already.)
                         //                      bSuccess =
-                        // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+                        // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
                         //                                                                  GetTransactionNum());
                         // //bSave=false, pSignerNym=nullptr
                     }
@@ -718,7 +718,7 @@ bool OTTransaction::HarvestOpeningNumber(
 
                     if (lRecipientOpeningNum > 0)
                         bSuccess = theNym.ClawbackTransactionNumber(
-                            GetPurportedServerID(),
+                            GetPurportedNotaryID(),
                             lRecipientOpeningNum); // bSave=false,
                                                    // pSignerNym=nullptr
                 }
@@ -747,7 +747,7 @@ bool OTTransaction::HarvestOpeningNumber(
                         // now! (It is still outstanding, though. It's not gone,
                         // yet...)
                         //                      bSuccess =
-                        // theNym.ClawbackTransactionNumber(GetPurportedServerID(),
+                        // theNym.ClawbackTransactionNumber(GetPurportedNotaryID(),
                         //                                                                  RECIPIENTS--OPENING--NUMBER--GOES--HERE);
                         // //bSave=false, pSignerNym=nullptr
                     }
@@ -766,7 +766,7 @@ bool OTTransaction::HarvestOpeningNumber(
 
                         if (lRecipientOpeningNum > 0)
                             bSuccess = theNym.ClawbackTransactionNumber(
-                                GetPurportedServerID(),
+                                GetPurportedNotaryID(),
                                 lRecipientOpeningNum); // bSave=false,
                                                        // pSignerNym=nullptr
                     }
@@ -818,7 +818,7 @@ bool OTTransaction::HarvestOpeningNumber(
             else // Load up the smart contract...
             {
                 String strSmartContract;
-                OTSmartContract theSmartContract(GetPurportedServerID());
+                OTSmartContract theSmartContract(GetPurportedNotaryID());
                 pItem->GetAttachment(strSmartContract);
 
                 // If we failed to load the smart contract...
@@ -1154,7 +1154,7 @@ bool OTTransaction::HarvestClosingNumbers(
             else // Load up the smart contract...
             {
                 String strSmartContract;
-                OTSmartContract theSmartContract(GetPurportedServerID());
+                OTSmartContract theSmartContract(GetPurportedNotaryID());
                 pItem->GetAttachment(strSmartContract);
 
                 // If we failed to load the smart contract...
@@ -1468,7 +1468,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     Identifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
 
-    const String strServerID(GetRealServerID()), strReceiptID(USER_ID);
+    const String strNotaryID(GetRealNotaryID()), strReceiptID(USER_ID);
 
     //    if (USER_ID != GetUserID())
     //    {
@@ -1484,7 +1484,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     strFilename.Format("%s.success", strReceiptID.Get());
 
     const char* szFolder1name = OTFolders::Receipt().Get(); // receipts
-    const char* szFolder2name = strServerID.Get(); // receipts/SERVER_ID
+    const char* szFolder2name = strNotaryID.Get(); // receipts/SERVER_ID
     const char* szFilename =
         strFilename.Get(); // receipts/SERVER_ID/USER_ID.success
 
@@ -1509,7 +1509,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     String strTransaction(strFileContents.c_str());
 
-    //    OTTransaction tranOut(SERVER_USER_ID, USER_ID, GetRealServerID());
+    //    OTTransaction tranOut(SERVER_USER_ID, USER_ID, GetRealNotaryID());
     std::unique_ptr<OTTransactionType> pContents(
         OTTransactionType::TransactionFactory(strTransaction));
 
@@ -1607,7 +1607,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         }
 
         pTransactionItem = OTItem::CreateItemFromString(
-            strBalanceItem, GetRealServerID(),
+            strBalanceItem, GetRealNotaryID(),
             pResponseTransactionItem->GetReferenceToNum());
 
         if (nullptr == pTransactionItem) {
@@ -1633,7 +1633,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // LOAD THE ACCOUNT
 
-    Account THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealServerID());
+    Account THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealNotaryID());
 
     if (!THE_ACCOUNT.LoadContract() || !THE_ACCOUNT.VerifyAccount(THE_NYM)) {
         // error, return.
@@ -1641,8 +1641,8 @@ bool OTTransaction::VerifyBalanceReceipt(
                  "OTTransaction::VerifyBalanceReceipt.\n";
         return false;
     }
-    else if (THE_ACCOUNT.GetPurportedServerID() !=
-               GetPurportedServerID()) // the account, inbox, and outbox all
+    else if (THE_ACCOUNT.GetPurportedNotaryID() !=
+               GetPurportedNotaryID()) // the account, inbox, and outbox all
                                        // have the same Server ID. But does it
                                        // match *this receipt?
     {
@@ -1710,7 +1710,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     }
 
     pBalanceItem =
-        OTItem::CreateItemFromString(strBalanceItem, GetRealServerID(),
+        OTItem::CreateItemFromString(strBalanceItem, GetRealNotaryID(),
                                      pResponseBalanceItem->GetReferenceToNum());
 
     if (nullptr == pBalanceItem) {
@@ -2663,7 +2663,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         // that's listed on the instrument. Maybe I already used it up a long
         // time ago...)
         //
-        if (!theMessageNym.VerifyIssuedNum(strServerID, lIssuedNum)) {
+        if (!theMessageNym.VerifyIssuedNum(strNotaryID, lIssuedNum)) {
             otErr << "OTTransaction::" << __FUNCTION__
                   << ": Error verifying if transaction num in inbox ("
                   << pTransaction->GetTransactionNum()
@@ -3160,7 +3160,7 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 }
 
 // When the items are first loaded up, VerifyContractID() is called on them.
-// Therefore, the serverID and account ID have already been verified.
+// Therefore, the notaryID and account ID have already been verified.
 // Now I want to go deeper, before actually processing a transaction, and
 // make sure that the items on it also have the right owner, as well as that
 // owner's signature, and a matching transaction number to boot.
@@ -3245,7 +3245,7 @@ OTTransaction::OTTransaction()
 //
 OTTransaction::OTTransaction(const OTLedger& theOwner)
     : OTTransactionType(theOwner.GetUserID(), theOwner.GetPurportedAccountID(),
-                        theOwner.GetPurportedServerID())
+                        theOwner.GetPurportedNotaryID())
     , m_pParent(&theOwner)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3273,8 +3273,8 @@ OTTransaction::OTTransaction(const OTLedger& theOwner)
 // similar in OTItem
 OTTransaction::OTTransaction(const Identifier& theUserID,
                              const Identifier& theAccountID,
-                             const Identifier& theServerID)
-    : OTTransactionType(theUserID, theAccountID, theServerID)
+                             const Identifier& theNotaryID)
+    : OTTransactionType(theUserID, theAccountID, theNotaryID)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3291,15 +3291,15 @@ OTTransaction::OTTransaction(const Identifier& theUserID,
 
     //    m_AcctID    = theID;        // these must be loaded or generated. NOT
     // set in constructor, for security reasons.
-    //    m_ServerID    = theServerID;    // There are only here in ghostly form
+    //    m_NotaryID    = theNotaryID;    // There are only here in ghostly form
     // as a WARNING to you!
 }
 
 OTTransaction::OTTransaction(const Identifier& theUserID,
                              const Identifier& theAccountID,
-                             const Identifier& theServerID,
+                             const Identifier& theNotaryID,
                              int64_t lTransactionNum)
-    : OTTransactionType(theUserID, theAccountID, theServerID, lTransactionNum)
+    : OTTransactionType(theUserID, theAccountID, theNotaryID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3315,10 +3315,10 @@ OTTransaction::OTTransaction(const Identifier& theUserID,
     InitTransaction();
 
     //    m_lTransactionNum = lTransactionNum;    // This is set in
-    // OTTransactionType's constructor, as are m_ID and m_ServerID
+    // OTTransactionType's constructor, as are m_ID and m_NotaryID
     //    m_AcctID    = theID;                    // these must be loaded or
     // generated. NOT set in constructor, for security reasons.
-    //    m_ServerID    = theServerID;                // There are only here in
+    //    m_NotaryID    = theNotaryID;                // There are only here in
     // ghostly form as a WARNING to you!
 }
 
@@ -3344,13 +3344,13 @@ void OTTransaction::InitTransaction()
 //
 OTTransaction::OTTransaction(
     const Identifier& theUserID, const Identifier& theAccountID,
-    const Identifier& theServerID, const int64_t& lNumberOfOrigin,
+    const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
     const int64_t& lTransactionNum, const int64_t& lInRefTo,
     const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
     transactionType theType, const String& strHash, const int64_t& lAdjustment,
     const int64_t& lDisplayValue, const int64_t& lClosingNum,
     const int64_t& lRequestNum, bool bReplyTransSuccess, OTNumList* pNumList)
-    : OTTransactionType(theUserID, theAccountID, theServerID, lTransactionNum)
+    : OTTransactionType(theUserID, theAccountID, theNotaryID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(true)
     , m_lAbbrevAmount(lAdjustment)
@@ -3386,13 +3386,13 @@ OTTransaction::OTTransaction(
     m_Hash.SetString(strHash);
     m_lTransactionNum = lTransactionNum; // This is set in OTTransactionType's
                                          // constructor, as are m_ID and
-                                         // m_ServerID
+                                         // m_NotaryID
 
     SetReferenceToNum(lInRefTo);
     SetNumberOfOrigin(lNumberOfOrigin);
 
     // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported AcctID and
-    // purported ServerID.
+    // purported NotaryID.
     // (AFTER the constructor has executed, in OTLedger::ProcessXMLNode();
     //
     // WHY? Normally you set the "real" IDs at construction, and then set the
@@ -3400,7 +3400,7 @@ OTTransaction::OTTransaction(
     // when loading from string. But this constructor (only this one) is
     // actually used when
     // loading abbreviated receipts as you load their inbox/outbox/nymbox.
-    // Abbreviated receipts are not like real transactions, which have serverID,
+    // Abbreviated receipts are not like real transactions, which have notaryID,
     // AcctID, userID,
     // and signature attached, and the whole thing is base64-encoded and then
     // added to the ledger
@@ -3428,8 +3428,8 @@ OTTransaction::OTTransaction(
     SetRealAccountID(theAccountID);
     SetPurportedAccountID(theAccountID);
 
-    SetRealServerID(theServerID);
-    SetPurportedServerID(theServerID);
+    SetRealNotaryID(theNotaryID);
+    SetPurportedNotaryID(theNotaryID);
 
     SetUserID(theUserID);
 
@@ -3437,12 +3437,12 @@ OTTransaction::OTTransaction(
 }
 
 // bool GenerateTransaction(const OTIdentifier& theAccountID, const
-// OTIdentifier& theServerID, int64_t lTransactionNum);
+// OTIdentifier& theNotaryID, int64_t lTransactionNum);
 //
 // static
 // OTTransaction * GenerateTransaction(const OTIdentifier& theUserID, const
 // OTIdentifier& theAccountID,
-//                                    const OTIdentifier& theServerID,
+//                                    const OTIdentifier& theNotaryID,
 // transactionType theType,
 //                                    int64_t lTransactionNum=0);
 // static
@@ -3456,7 +3456,7 @@ OTTransaction* OTTransaction::GenerateTransaction(const OTLedger& theOwner,
 {
     OTTransaction* pTransaction = GenerateTransaction(
         theOwner.GetUserID(), theOwner.GetPurportedAccountID(),
-        theOwner.GetPurportedServerID(), theType, lTransactionNum);
+        theOwner.GetPurportedNotaryID(), theType, lTransactionNum);
     if (nullptr != pTransaction) pTransaction->SetParent(theOwner);
 
     return pTransaction;
@@ -3465,11 +3465,11 @@ OTTransaction* OTTransaction::GenerateTransaction(const OTLedger& theOwner,
 // static
 OTTransaction* OTTransaction::GenerateTransaction(
     const Identifier& theUserID, const Identifier& theAccountID,
-    const Identifier& theServerID, transactionType theType,
+    const Identifier& theNotaryID, transactionType theType,
     int64_t lTransactionNum)
 {
     OTTransaction* pTransaction = new OTTransaction(
-        theUserID, theAccountID, theServerID, lTransactionNum);
+        theUserID, theAccountID, theNotaryID, lTransactionNum);
     OT_ASSERT(nullptr != pTransaction);
 
     pTransaction->m_Type = theType;
@@ -3480,7 +3480,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
     // No need to security check the IDs since we are creating this transaction
     // versus loading and inspecting it.
     pTransaction->SetPurportedAccountID(theAccountID);
-    pTransaction->SetPurportedServerID(theServerID);
+    pTransaction->SetPurportedNotaryID(theNotaryID);
 
     return pTransaction;
 }
@@ -4150,14 +4150,14 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_DATE_SIGNED = OTTimeGetTimeFromSeconds(lDateSigned); // Todo casting ?
 
         const String strAcctID = xml->getAttributeValue("accountID");
-        const String strServerID = xml->getAttributeValue("serverID");
+        const String strNotaryID = xml->getAttributeValue("notaryID");
         const String strUserID = xml->getAttributeValue("userID");
 
-        if (!strAcctID.Exists() || !strServerID.Exists() ||
+        if (!strAcctID.Exists() || !strNotaryID.Exists() ||
             !strUserID.Exists()) {
             otOut
                 << "OTTransaction::ProcessXMLNode: Failure: missing strAcctID ("
-                << strAcctID << ") or strServerID (" << strServerID
+                << strAcctID << ") or strNotaryID (" << strNotaryID
                 << ") or strUserID (" << strUserID << "). \n";
             return (-1);
         }
@@ -4202,17 +4202,17 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              // now becomes std::set<int64_t>.)
         }
 
-        Identifier ACCOUNT_ID(strAcctID), SERVER_ID(strServerID),
+        Identifier ACCOUNT_ID(strAcctID), SERVER_ID(strNotaryID),
             USER_ID(strUserID);
 
         SetPurportedAccountID(
             ACCOUNT_ID); // GetPurportedAccountID() const { return m_AcctID; }
-        SetPurportedServerID(SERVER_ID); // GetPurportedServerID() const {
-                                         // return m_AcctServerID; }
+        SetPurportedNotaryID(SERVER_ID); // GetPurportedNotaryID() const {
+                                         // return m_AcctNotaryID; }
         SetUserID(USER_ID);
 
         //  m_bLoadSecurely defaults to true.
-        // Normally the RealAccountID and RealServerID are set from above,
+        // Normally the RealAccountID and RealNotaryID are set from above,
         // before
         // loading. That way, I can compare them to whatever is actually loaded.
         // (So people don't swap files on us!!)
@@ -4236,7 +4236,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //
         if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
-            SetRealServerID(SERVER_ID);
+            SetRealNotaryID(SERVER_ID);
         }
 
         if (strOrigin.Exists()) SetNumberOfOrigin(strOrigin.ToLong());
@@ -4390,7 +4390,7 @@ void OTTransaction::UpdateContents()
 
     const char* pTypeStr = GetTypeString(); // TYPE
     const String strType((nullptr != pTypeStr) ? pTypeStr : "error_state"),
-        strAcctID(GetPurportedAccountID()), strServerID(GetPurportedServerID()),
+        strAcctID(GetPurportedAccountID()), strNotaryID(GetPurportedNotaryID()),
         strUserID(GetUserID());
 
     m_DATE_SIGNED = OTTimeGetCurrentTime(); // We store the timestamp of when
@@ -4404,13 +4404,13 @@ void OTTransaction::UpdateContents()
                               " dateSigned=\"%" PRId64 "\"\n"
                               " accountID=\"%s\"\n"
                               " userID=\"%s\"\n"
-                              " serverID=\"%s\"\n%s"
+                              " notaryID=\"%s\"\n%s"
                               " numberOfOrigin=\"%" PRId64 "\"\n"
                               " transactionNum=\"%" PRId64 "\"\n%s"
                               " inReferenceTo=\"%" PRId64 "\" >\n\n",
                               strType.Get(), strCancelled.Get(), lDateSigned,
                               strAcctID.Get(), strUserID.Get(),
-                              strServerID.Get(), strRequestNum.Get(),
+                              strNotaryID.Get(), strRequestNum.Get(),
                               GetRawNumberOfOrigin(), GetTransactionNum(),
                               strListOfBlanks.Get(), GetReferenceToNum());
 
@@ -5595,7 +5595,7 @@ int64_t OTTransaction::GetReceiptAmount()
             GetReferenceString(strReference);
 
             pOriginalItem = OTItem::CreateItemFromString(
-                strReference, GetPurportedServerID(), GetReferenceToNum());
+                strReference, GetPurportedNotaryID(), GetReferenceToNum());
 
             if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -5850,7 +5850,7 @@ void OTTransaction::CalculateNumberOfOrigin()
             // as its transaction number.
             //
             std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
-                strReference, GetPurportedServerID(), GetReferenceToNum()));
+                strReference, GetPurportedNotaryID(), GetReferenceToNum()));
             OT_ASSERT(nullptr != pOriginalItem);
 
             if (OTItem::depositCheque != pOriginalItem->GetType()) {
@@ -6137,7 +6137,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
     case OTTransaction::chequeReceipt:
     case OTTransaction::voucherReceipt: {
         pOriginalItem = OTItem::CreateItemFromString(
-            strReference, GetPurportedServerID(), GetReferenceToNum());
+            strReference, GetPurportedNotaryID(), GetReferenceToNum());
 
         if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6326,7 +6326,7 @@ bool OTTransaction::GetRecipientUserIDForDisplay(Identifier& theReturnID)
     case OTTransaction::chequeReceipt:
     case OTTransaction::voucherReceipt: {
         pOriginalItem = OTItem::CreateItemFromString(
-            strReference, GetPurportedServerID(), GetReferenceToNum());
+            strReference, GetPurportedNotaryID(), GetReferenceToNum());
 
         if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6469,7 +6469,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                                         // to depositCheque item, attached.)
         {
             pOriginalItem = OTItem::CreateItemFromString(
-                strReference, GetPurportedServerID(), GetReferenceToNum());
+                strReference, GetPurportedNotaryID(), GetReferenceToNum());
 
             if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6604,7 +6604,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
     case OTTransaction::chequeReceipt:
     case OTTransaction::voucherReceipt: {
         pOriginalItem = OTItem::CreateItemFromString(
-            strReference, GetPurportedServerID(), GetReferenceToNum());
+            strReference, GetPurportedNotaryID(), GetReferenceToNum());
 
         if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6735,7 +6735,7 @@ bool OTTransaction::GetMemo(String& strMemo)
     case OTTransaction::chequeReceipt:
     case OTTransaction::voucherReceipt: {
         pOriginalItem = OTItem::CreateItemFromString(
-            strReference, GetPurportedServerID(), GetReferenceToNum());
+            strReference, GetPurportedNotaryID(), GetReferenceToNum());
 
         if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 

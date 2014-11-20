@@ -158,7 +158,7 @@ bool ServerSettings::__cmd_usage_credits =
     false; // Command for setting / viewing usage credits.
 bool ServerSettings::__cmd_issue_asset = true;
 bool ServerSettings::__cmd_get_contract = true;
-bool ServerSettings::__cmd_check_server_id = true;
+bool ServerSettings::__cmd_check_notary_id = true;
 bool ServerSettings::__cmd_create_user_acct = true;
 bool ServerSettings::__cmd_del_user_acct = true;
 bool ServerSettings::__cmd_check_nym = true;

@@ -155,8 +155,8 @@ private: // Private prevents erroneous use by other classes.
     friend class Mint; // for the factory.
 protected:
     MintLucre();
-    EXPORT MintLucre(const String& strServerID, const String& strAssetTypeID);
-    EXPORT MintLucre(const String& strServerID, const String& strServerNymID,
+    EXPORT MintLucre(const String& strNotaryID, const String& strAssetTypeID);
+    EXPORT MintLucre(const String& strNotaryID, const String& strServerNymID,
                      const String& strAssetTypeID);
 
 public:

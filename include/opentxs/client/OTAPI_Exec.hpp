@@ -761,7 +761,7 @@ public:
     EXPORT std::string GetAccountWallet_AssetTypeID(
         const std::string& ACCOUNT_ID) const; // returns asset type ID of the
                                               // account
-    EXPORT std::string GetAccountWallet_ServerID(
+    EXPORT std::string GetAccountWallet_NotaryID(
         const std::string& ACCOUNT_ID) const; // returns Server ID of the
                                               // account
     EXPORT std::string GetAccountWallet_NymID(
@@ -793,7 +793,7 @@ public:
     //
     // This function returns the count of numbers available. If 0, then no
     // transactions will work until you call getTransactionNumber()
-    // to replenish your Nym's supply for that ServerID...
+    // to replenish your Nym's supply for that NotaryID...
     //
     // Returns a count (0 through N numbers available),
     // or -1 for error (no nym found.)
@@ -817,7 +817,7 @@ public:
     EXPORT std::string GetNym_NymboxHash(const std::string& SERVER_ID,
                                          const std::string& NYM_ID)
         const; // NymboxHash for "most recently DOWNLOADED"
-               // Nymbox (by ServerID)
+               // Nymbox (by NotaryID)
     EXPORT std::string GetNym_RecentHash(const std::string& SERVER_ID,
                                          const std::string& NYM_ID)
         const; // "Most recent NymboxHash according to the
@@ -851,7 +851,7 @@ public:
     -- Call GetNym_MailCount() to find out how many mail items there are.
 
     -- Then LOOP through them, and use GetNym_MailSenderIDByIndex and
-    GetNym_MailServerIDByIndex to populate the list.
+    GetNym_MailNotaryIDByIndex to populate the list.
 
     -- If you want to add a subject display, you'll have to call
     GetNym_MailContentsByIndex()
@@ -875,9 +875,9 @@ public:
     EXPORT std::string GetNym_MailSenderIDByIndex(
         const std::string& NYM_ID,
         const int32_t& nIndex) const; // returns the NymID of the sender.
-    EXPORT std::string GetNym_MailServerIDByIndex(
+    EXPORT std::string GetNym_MailNotaryIDByIndex(
         const std::string& NYM_ID, const int32_t& nIndex) const; // returns the
-    // ServerID where the
+    // NotaryID where the
     // message came from.
 
     EXPORT bool Nym_RemoveMailByIndex(const std::string& NYM_ID,
@@ -901,9 +901,9 @@ public:
     EXPORT std::string GetNym_OutmailRecipientIDByIndex(
         const std::string& NYM_ID,
         const int32_t& nIndex) const; // returns the NymID of the recipient.
-    EXPORT std::string GetNym_OutmailServerIDByIndex(
+    EXPORT std::string GetNym_OutmailNotaryIDByIndex(
         const std::string& NYM_ID, const int32_t& nIndex) const; // returns the
-    // ServerID where the
+    // NotaryID where the
     // message came from.
 
     EXPORT bool Nym_RemoveOutmailByIndex(const std::string& NYM_ID,
@@ -923,9 +923,9 @@ public:
     EXPORT std::string GetNym_OutpaymentsRecipientIDByIndex(
         const std::string& NYM_ID,
         const int32_t& nIndex) const; // returns the NymID of the recipient.
-    EXPORT std::string GetNym_OutpaymentsServerIDByIndex(
+    EXPORT std::string GetNym_OutpaymentsNotaryIDByIndex(
         const std::string& NYM_ID, const int32_t& nIndex) const; // returns the
-    // ServerID where the
+    // NotaryID where the
     // message came from.
 
     EXPORT bool Nym_RemoveOutpaymentsByIndex(
@@ -1063,7 +1063,7 @@ public:
     //
     EXPORT std::string Wallet_GetNymIDFromPartial(
         const std::string& PARTIAL_ID) const;
-    EXPORT std::string Wallet_GetServerIDFromPartial(
+    EXPORT std::string Wallet_GetNotaryIDFromPartial(
         const std::string& PARTIAL_ID) const;
     EXPORT std::string Wallet_GetAssetIDFromPartial(
         const std::string& PARTIAL_ID) const;
@@ -1233,7 +1233,7 @@ public:
     FYI, here are all the OT library calls that are performed by this single API
     call:
 
-    OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealServerID(),
+    OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
     pAccount->GetAssetTypeID(),
     pAccount->GetRealAccountID(),    pAccount->GetUserID(),
     RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
@@ -2508,7 +2508,7 @@ public:
                                      const std::string& THE_TOKEN) const;
 
     EXPORT std::string Token_GetAssetID(const std::string& THE_TOKEN) const;
-    EXPORT std::string Token_GetServerID(const std::string& THE_TOKEN) const;
+    EXPORT std::string Token_GetNotaryID(const std::string& THE_TOKEN) const;
 
     /**
     //
@@ -2536,7 +2536,7 @@ public:
         const std::string& THE_INSTRUMENT) const;
     EXPORT std::string Instrmnt_GetType(
         const std::string& THE_INSTRUMENT) const;
-    EXPORT std::string Instrmnt_GetServerID(
+    EXPORT std::string Instrmnt_GetNotaryID(
         const std::string& THE_INSTRUMENT) const;
     EXPORT std::string Instrmnt_GetAssetID(
         const std::string& THE_INSTRUMENT) const;
@@ -2592,8 +2592,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT int32_t checkServerID(const std::string& SERVER_ID,
-                                 const std::string& USER_ID) const;
+    EXPORT int32_t pingNotary(const std::string& SERVER_ID,
+                              const std::string& USER_ID) const;
 
     /**
     CREATE USER's ACCOUNT (On a specific server.)
@@ -2679,7 +2679,7 @@ public:
     USAGE CREDITS --- (Based on a UserID, retrieve or adjust the Usage Credits
     for that Nym.)
 
-    ServerID -- Must be included with every message.
+    NotaryID -- Must be included with every message.
     USER_ID -- You must include your own userID so the server can reply.
     USER_CHECK_ID -- This is a SECOND user's ID. (Whose usage credits we are
     checking)
@@ -2741,7 +2741,7 @@ public:
     /**
     CHECK USER --- (Grab his public key based on his User ID.)
 
-    ServerID -- Must be included with every message.
+    NotaryID -- Must be included with every message.
     USER_ID -- You must include your own userID so the server can reply.
     USER_CHECK_ID -- This is a SECOND user's ID.
 
@@ -2771,7 +2771,7 @@ public:
     SEND USER MESSAGE --- (Send a message to another user, encrypted to his
     pubkey.)
 
-    ServerID -- Must be included with every message.
+    NotaryID -- Must be included with every message.
     USER_ID -- You must include your own userID so the server can reply.
     USER_ID_RECIPIENT -- This is a recipient user ID.
     RECIPIENT_PUBKEY -- Recipient's public key in base64-encoded form.
@@ -2814,7 +2814,7 @@ public:
     SEND USER INSTRUMENT --- (Send a financial instrument to another user,
     encrypted to his pubkey.)
 
-    ServerID -- Must be included with every message.
+    NotaryID -- Must be included with every message.
     USER_ID -- You must include your own userID so the server can reply.
     USER_ID_RECIPIENT -- This is a recipient user ID.
     RECIPIENT_PUBKEY -- Recipient's public key in base64-encoded form.
@@ -3615,8 +3615,8 @@ public:
     // Returns the message as a string.
     //
 
-    // Update: added arguments for: ServerID AND NymID AND request number
-    // NOTE: Any messages, when popping, which have the CORRECT serverID
+    // Update: added arguments for: NotaryID AND NymID AND request number
+    // NOTE: Any messages, when popping, which have the CORRECT notaryID
     // and the CORRECT NymID, but the wrong Request number, will be discarded.
     //
     // (Why? Because the client using the OT API will have already treated

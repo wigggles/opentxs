@@ -237,7 +237,7 @@ public:
      : OTContract()
 
      inline const OTIdentifier& GetAssetID()  const { return m_AssetTypeID; }
-     inline const OTIdentifier& GetServerID() const { return m_ServerID;    }
+     inline const OTIdentifier& GetNotaryID() const { return m_NotaryID;    }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
      inline time64_t GetValidTo()        const { return m_VALID_TO;   }

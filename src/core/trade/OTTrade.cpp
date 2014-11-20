@@ -219,18 +219,18 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             hasTradeActivated_ = false;
 
-        const String serverID(xml->getAttributeValue("serverID")),
+        const String notaryID(xml->getAttributeValue("notaryID")),
             userID(xml->getAttributeValue("userID")),
             assetTypeID(xml->getAttributeValue("assetTypeID")),
             assetAcctID(xml->getAttributeValue("assetAcctID")),
             currencyTypeID(xml->getAttributeValue("currencyTypeID")),
             currencyAcctID(xml->getAttributeValue("currencyAcctID"));
 
-        const Identifier SERVER_ID(serverID), USER_ID(userID),
+        const Identifier SERVER_ID(notaryID), USER_ID(userID),
             ASSET_TYPE_ID(assetTypeID), ASSET_ACCT_ID(assetAcctID),
             CURRENCY_TYPE_ID(currencyTypeID), CURRENCY_ACCT_ID(currencyAcctID);
 
-        SetServerID(SERVER_ID);
+        SetNotaryID(SERVER_ID);
         SetSenderUserID(USER_ID);
         SetAssetID(ASSET_TYPE_ID);
         SetSenderAcctID(ASSET_ACCT_ID);
@@ -245,7 +245,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n"
                   " assetTypeID: " << assetTypeID
                << "\n assetAcctID: " << assetAcctID << "\n"
-                                                       " ServerID: " << serverID
+                                                       " NotaryID: " << notaryID
                << "\n UserID: " << userID
                << "\n "
                   " currencyTypeID: " << currencyTypeID
@@ -315,7 +315,7 @@ void OTTrade::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(GetServerID()), USER_ID(GetSenderUserID()),
+    const String SERVER_ID(GetNotaryID()), USER_ID(GetSenderUserID()),
         ASSET_TYPE_ID(GetAssetID()), ASSET_ACCT_ID(GetSenderAcctID()),
         CURRENCY_TYPE_ID(GetCurrencyID()),
         CURRENCY_ACCT_ID(GetCurrencyAcctID());
@@ -323,7 +323,7 @@ void OTTrade::UpdateContents()
     m_xmlUnsigned.Concatenate(
         "<trade\n version=\"%s\"\n"
         " hasActivated=\"%s\"\n"
-        " serverID=\"%s\"\n"
+        " notaryID=\"%s\"\n"
         " assetTypeID=\"%s\"\n"
         " assetAcctID=\"%s\"\n"
         " currencyTypeID=\"%s\"\n"
@@ -396,7 +396,7 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
         otErr << "While verifying offer, failed matching transaction number.\n";
         return false;
     }
-    else if (GetServerID() != offer.GetServerID()) {
+    else if (GetNotaryID() != offer.GetNotaryID()) {
         otErr << "While verifying offer, failed matching Server ID.\n";
         return false;
     }
@@ -840,15 +840,15 @@ bool OTTrade::CanRemoveItemFromCron(Nym& nym)
         return false;
     }
 
-    const String serverID(GetServerID());
+    const String notaryID(GetNotaryID());
 
-    if (!nym.VerifyIssuedNum(serverID, GetAssetAcctClosingNum())) {
+    if (!nym.VerifyIssuedNum(notaryID, GetAssetAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for asset account.\n";
         return false;
     }
 
-    if (!nym.VerifyIssuedNum(serverID, GetCurrencyAcctClosingNum())) {
+    if (!nym.VerifyIssuedNum(notaryID, GetCurrencyAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
                  "for currency account.\n";
         return false;
@@ -863,7 +863,7 @@ bool OTTrade::CanRemoveItemFromCron(Nym& nym)
     // to authorize removal, as long as the transaction num is still issued to
     // nym (this check here.)
     //
-    return nym.VerifyIssuedNum(serverID, GetOpeningNum());
+    return nym.VerifyIssuedNum(notaryID, GetOpeningNum());
 
     // Normally this will be all we need to check. The originator will have the
     // transaction
@@ -922,7 +922,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
             ? origCronItem.GetClosingTransactionNoAt(1)
             : 0;
 
-    const String serverID(GetServerID());
+    const String notaryID(GetNotaryID());
 
     // The marketReceipt ITEM's NOTE contains the UPDATED TRADE.
     // And the **UPDATED OFFER** is stored on the ATTACHMENT on the **ITEM.**
@@ -985,7 +985,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     // (which happens in a "process inbox" transaction.)
     //
     if ((openingNumber > 0) &&
-        originator.VerifyIssuedNum(serverID, openingNumber)) {
+        originator.VerifyIssuedNum(notaryID, openingNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s.
         // So when the number is released from the Nym, we also take it off that
@@ -994,7 +994,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
         std::set<int64_t>& idSet = originator.GetSetOpenCronItems();
         idSet.erase(openingNumber);
 
-        originator.RemoveIssuedNum(*serverNym, serverID, openingNumber,
+        originator.RemoveIssuedNum(*serverNym, notaryID, openingNumber,
                                    false);        // bSave=false
         originator.SaveSignedNymfile(*serverNym); // forcing a save here,
                                                   // since multiple things
@@ -1063,7 +1063,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     // ASSET ACCT
     //
     if ((closingAssetNumber > 0) &&
-        originator.VerifyIssuedNum(serverID, closingAssetNumber)) {
+        originator.VerifyIssuedNum(notaryID, closingAssetNumber)) {
         DropFinalReceiptToInbox(
             GetSenderUserID(), GetSenderAcctID(), newTransactionNumber,
             closingAssetNumber, // The closing transaction number to put on the
@@ -1081,7 +1081,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     // CURRENCY ACCT
     //
     if ((closingCurrencyNumber > 0) &&
-        originator.VerifyIssuedNum(serverID, closingCurrencyNumber)) {
+        originator.VerifyIssuedNum(notaryID, closingCurrencyNumber)) {
         DropFinalReceiptToInbox(
             GetSenderUserID(), GetCurrencyAcctID(), newTransactionNumber,
             closingCurrencyNumber, // closing transaction number for the
@@ -1113,10 +1113,10 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     // processing your inbox.)
     //
     //      if (bDroppedReceiptAssetAcct)
-    //          originator.RemoveIssuedNum(serverID, closingAssetNumber,
+    //          originator.RemoveIssuedNum(notaryID, closingAssetNumber,
     // true); //bSave=false
     //      else if (bDroppedReceiptCurrencyAcct)
-    //          originator.RemoveIssuedNum(serverID,
+    //          originator.RemoveIssuedNum(notaryID,
     // closingCurrencyNumber, true); //bSave=false
     //    }
     //    else
@@ -1288,7 +1288,7 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, int64_t stopPrice)
         OTTimeGetCurrentTime()); // This time is set to TODAY NOW  (OTCronItem)
 
     // Validate the Server ID, Asset Type ID, Currency Type ID, and Date Range.
-    if ((GetServerID() != offer.GetServerID()) ||
+    if ((GetNotaryID() != offer.GetNotaryID()) ||
         (GetCurrencyID() != offer.GetCurrencyID()) ||
         (GetAssetID() != offer.GetAssetID()) ||
         (offer.GetValidFrom() < OT_TIME_ZERO) ||
@@ -1333,10 +1333,10 @@ OTTrade::OTTrade()
     InitTrade();
 }
 
-OTTrade::OTTrade(const Identifier& serverId, const Identifier& assetId,
+OTTrade::OTTrade(const Identifier& notaryID, const Identifier& assetId,
                  const Identifier& assetAcctId, const Identifier& userId,
                  const Identifier& currencyId, const Identifier& currencyAcctId)
-    : ot_super(serverId, assetId, assetAcctId, userId)
+    : ot_super(notaryID, assetId, assetAcctId, userId)
     , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)

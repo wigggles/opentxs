@@ -226,7 +226,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
 /// That is, to just accept everything there.
 //
 bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
-                                  const Identifier& theServerID,
+                                  const Identifier& theNotaryID,
                                   const OTServerContract& theServerContract,
                                   Nym& theNym, Message& theMessage)
 {
@@ -246,13 +246,13 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
     Nym* pNym = &theNym;
 
     const Identifier theNymID(*pNym);
-    const String strServerID(theServerID), strNymID(theNymID);
+    const String strNotaryID(theNotaryID), strNymID(theNymID);
 
     int64_t lHighestNum = 0;
-    // get the last/current highest transaction number for the serverID.
+    // get the last/current highest transaction number for the notaryID.
     // (making sure we're not being slipped any new ones with a lower value
     // than this.)
-    const bool bGotHighestNum = pNym->GetHighestNum(strServerID, lHighestNum);
+    const bool bGotHighestNum = pNym->GetHighestNum(strNotaryID, lHighestNum);
 
     // Contrasting Inbox and Nymbox.
     //
@@ -295,11 +295,11 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
     // the message to the server will contain a ledger to be processed for a
     // specific acct. (in this case no acct, but user ID used twice instead.)
     OTLedger processLedger(theNymbox.GetUserID(), theNymbox.GetUserID(),
-                           theServerID);
+                           theNotaryID);
 
     // bGenerateFile defaults to false on GenerateLedger call, so I left out the
     // false.
-    processLedger.GenerateLedger(theNymbox.GetUserID(), theServerID,
+    processLedger.GenerateLedger(theNymbox.GetUserID(), theNotaryID,
                                  OTLedger::message); // Can't just use one of
                                                      // these. It either has to
                                                      // be read out of a file or
@@ -309,7 +309,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
     // it loaded securely. (No need to verify if you just generated it.)
 
     OTTransaction* pAcceptTransaction = OTTransaction::GenerateTransaction(
-        theNymbox.GetUserID(), theNymbox.GetUserID(), theServerID,
+        theNymbox.GetUserID(), theNymbox.GetUserID(), theNotaryID,
         OTTransaction::processNymbox, lStoredTransactionNumber);
 
     // This insures that the ledger will handle cleaning up the transaction, so
@@ -513,7 +513,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             //
             for (const auto& lValue : theNumbers) {
 
-                if (!pNym->VerifyTentativeNum(strServerID, lValue))
+                if (!pNym->VerifyTentativeNum(strNotaryID, lValue))
                     otWarn << __FUNCTION__
                            << ": OTTransaction::successNotice: This wasn't on "
                               "my tentative list (" << lValue
@@ -573,7 +573,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
         {
 
             const bool bAlreadySeenIt = pNym->VerifyAcknowledgedNum(
-                strServerID, pTransaction->GetRequestNum()); // Client verifies
+                strNotaryID, pTransaction->GetRequestNum()); // Client verifies
                                                              // it has already
                                                              // seen a server
                                                              // reply.
@@ -730,7 +730,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                 // be 20 of them...)
                 //
                 if (pNym->VerifyIssuedNum(
-                        strServerID, lTransactionNumber)) // Trans number is
+                        strNotaryID, lTransactionNumber)) // Trans number is
                                                           // already issued to
                                                           // this nym (must be
                                                           // an old notice.)
@@ -738,7 +738,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                              "transaction number that I "
                                              "ALREADY HAD...(Skipping.)\n";
                 else if (pNym->VerifyTentativeNum(
-                             strServerID, lTransactionNumber)) // Trans number
+                             strNotaryID, lTransactionNumber)) // Trans number
                                                                // is already on
                                                                // the tentative
                                                                // list (meaning
@@ -759,7 +759,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                              "that I've HAD BEFORE, or at least, is <= to ones "
                              "I've had before. (Skipping...)\n";
                 else {
-                    theIssuedNym.AddIssuedNum(strServerID, lTransactionNumber);
+                    theIssuedNym.AddIssuedNum(strNotaryID, lTransactionNumber);
                     theBlankList.Add(lTransactionNumber);
                 }
             } // for-each
@@ -812,7 +812,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             // my future balance agreements. (The instant a finalReceipt
             // appears, the "in ref to" # is already gone..)
             //
-            if (pNym->RemoveIssuedNum(*pNym, strServerID,
+            if (pNym->RemoveIssuedNum(*pNym, strNotaryID,
                                       pTransaction->GetReferenceToNum(),
                                       true)) // bool bSave=true
                 otWarn << __FUNCTION__
@@ -856,7 +856,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             //
             OTCronItem::EraseActiveCronReceipt(
                 pTransaction->GetReferenceToNum(), pNym->GetConstID(),
-                pTransaction->GetPurportedServerID());
+                pTransaction->GetPurportedNotaryID());
             OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
                 *pAcceptTransaction, OTItem::acceptFinalReceipt);
 
@@ -898,7 +898,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             // tentative.)
             //
             //            int64_t lViolator = pNym->UpdateHighestNum(*pNym,
-            // strServerID, setNoticeNumbers); // bSave=false (saved below if
+            // strNotaryID, setNoticeNumbers); // bSave=false (saved below if
             // necessary)
             //
             //            if (lViolator != 0)
@@ -917,10 +917,10 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                     const int64_t lNoticeNum = it;
 
                     if (pNym->RemoveTentativeNum(
-                            strServerID,
+                            strNotaryID,
                             lNoticeNum)) // doesn't save (but saved below)
                         pNym->AddTransactionNum(
-                            *pNym, strServerID, lNoticeNum,
+                            *pNym, strNotaryID, lNoticeNum,
                             false); // bSave = false (but saved below...)
                 }
 
@@ -958,9 +958,9 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             // numbers, so I can add them to my Nym and them remove them again
             // after generating the statement.
             //
-            for (int32_t i = 0; i < theIssuedNym.GetIssuedNumCount(theServerID);
+            for (int32_t i = 0; i < theIssuedNym.GetIssuedNumCount(theNotaryID);
                  i++) {
-                int64_t lTemp = theIssuedNym.GetIssuedNum(theServerID, i);
+                int64_t lTemp = theIssuedNym.GetIssuedNum(theNotaryID, i);
                 // We know it's not already issued on the Nym, or it wouldn't
                 // have even gotten
                 // set inside theIssuedNym in the first place (further up
@@ -969,7 +969,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                 // transaction statement,
                 // and then remove it again.
                 //
-                pNym->AddIssuedNum(strServerID, lTemp); // doesn't save.
+                pNym->AddIssuedNum(strNotaryID, lTemp); // doesn't save.
             }
 
             // TRANSACTION STATEMENT
@@ -985,11 +985,11 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             // real.
             //
             bool bAddedTentative = false;
-            for (int32_t i = 0; i < theIssuedNym.GetIssuedNumCount(theServerID);
+            for (int32_t i = 0; i < theIssuedNym.GetIssuedNumCount(theNotaryID);
                  i++) {
-                int64_t lTemp = theIssuedNym.GetIssuedNum(theServerID, i);
-                pNym->RemoveIssuedNum(strServerID, lTemp);
-                pNym->AddTentativeNum(strServerID,
+                int64_t lTemp = theIssuedNym.GetIssuedNum(theNotaryID, i);
+                pNym->RemoveIssuedNum(strNotaryID, lTemp);
+                pNym->AddTentativeNum(strNotaryID,
                                       lTemp); // So when I see the success
                                               // notice later, I'll know the
                                               // server isn't lying. (Store a
@@ -1128,7 +1128,7 @@ void OTClient::load_str_trans_add_to_ledger(
 ///
 /// Also: Need to call this function after Nymbox notices of old server replies
 /// (to prevent sync issues).
-/// But what if already processed? Call pNym-VerifyIssuedNum(strServerID,
+/// But what if already processed? Call pNym-VerifyIssuedNum(strNotaryID,
 /// pTrans->GetTransactionNum()
 /// and if you discover that it's already been removed, then discard it (or save
 /// it in your auto-receipt
@@ -1155,12 +1155,12 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 {
     const Identifier ACCOUNT_ID(theReply.m_strAcctID);
     Identifier SERVER_ID;
-    theConnection.GetServerID(SERVER_ID);
+    theConnection.GetNotaryID(SERVER_ID);
     Nym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
     const String strNymID(USER_ID);
-    String strServerID(SERVER_ID),
+    String strNotaryID(SERVER_ID),
         strReceiptID("ID_NOT_SET_YET"); // This will be user ID or acct ID
                                         // depending on whether trans statement
                                         // or balance statement.
@@ -1206,7 +1206,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
         // from our issued list.
         //
         if (false ==
-            pNym->VerifyIssuedNum(strServerID,
+            pNym->VerifyIssuedNum(strNotaryID,
                                   pTransaction->GetTransactionNum())) {
             otInfo << "OTClient::ProcessIncomingTransactions: Skipping "
                       "processing of server reply to transaction number "
@@ -1282,7 +1282,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             switch (pTransaction->GetType()) {
             case OTTransaction::atDeposit:
                 ProcessDepositResponse(*pTransaction, theConnection, theReply);
-                pNym->RemoveIssuedNum(*pNym, strServerID,
+                pNym->RemoveIssuedNum(*pNym, strNotaryID,
                                       pTransaction->GetTransactionNum(),
                                       true); // bool bSave=true
                 break;
@@ -1290,13 +1290,13 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             case OTTransaction::atPayDividend:
                 ProcessPayDividendResponse(*pTransaction, theConnection,
                                            theReply);
-                pNym->RemoveIssuedNum(*pNym, strServerID,
+                pNym->RemoveIssuedNum(*pNym, strNotaryID,
                                       pTransaction->GetTransactionNum(),
                                       true); // bool bSave=true
                 break;
 
             case OTTransaction::atExchangeBasket:
-                pNym->RemoveIssuedNum(*pNym, strServerID,
+                pNym->RemoveIssuedNum(*pNym, strNotaryID,
                                       pTransaction->GetTransactionNum(),
                                       true); // bool bSave=true
                 // If the exchangeBasket FAILS, then I put all the transaction
@@ -1350,7 +1350,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 break;
 
             case OTTransaction::atCancelCronItem:
-                pNym->RemoveIssuedNum(*pNym, strServerID,
+                pNym->RemoveIssuedNum(*pNym, strNotaryID,
                                       pTransaction->GetTransactionNum(),
                                       true); // bool bSave=true
                 // Just above, we remove the issued number that was used to
@@ -1388,7 +1388,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                         if (nullptr != pOriginalItem) {
                             if (false ==
                                 pNym->RemoveIssuedNum(
-                                    *pNym, strServerID,
+                                    *pNym, strNotaryID,
                                     pOriginalItem->GetReferenceToNum(),
                                     true)) // bool bSave=true
                             {
@@ -1417,7 +1417,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             case OTTransaction::atWithdrawal:
                 ProcessWithdrawalResponse(*pTransaction, theConnection,
                                           theReply);
-                pNym->RemoveIssuedNum(*pNym, strServerID,
+                pNym->RemoveIssuedNum(*pNym, strNotaryID,
                                       pTransaction->GetTransactionNum(),
                                       true); // bool bSave=true
                 break;
@@ -1443,7 +1443,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                         //
                         if (false ==
                             pNym->RemoveIssuedNum(
-                                *pNym, strServerID,
+                                *pNym, strNotaryID,
                                 pTransaction->GetTransactionNum(),
                                 true)) // bool bSave=true
                         {
@@ -1533,7 +1533,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     //
                                     if (false ==
                                         pNym->RemoveIssuedNum(
-                                            *pNym, strServerID,
+                                            *pNym, strNotaryID,
                                             lNymOpeningNumber,
                                             true)) // bool bSave=true
                                     {
@@ -1696,10 +1696,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     {
                                         const bool bExists1 = OTDB::Exists(
                                             OTFolders::PaymentInbox().Get(),
-                                            strServerID.Get(), strNymID.Get());
+                                            strNotaryID.Get(), strNymID.Get());
                                         const bool bExists2 = OTDB::Exists(
                                             OTFolders::RecordBox().Get(),
-                                            strServerID.Get(), strNymID.Get());
+                                            strNotaryID.Get(), strNymID.Get());
                                         OTLedger thePmntInbox(
                                             USER_ID, USER_ID,
                                             SERVER_ID); // payment inbox
@@ -2267,7 +2267,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             // SAVE THE RECEIPT....
             //
             // OTFolders::Receipt().Get()
-            const String strServerID(SERVER_ID);
+            const String strNotaryID(SERVER_ID);
             String strReceiptFilename; // contains: strReceiptID .success,
                                        // fail, or error.
             OTItem* pItem = pTransaction->GetItem(OTItem::atBalanceStatement);
@@ -2299,7 +2299,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 otErr << __FUNCTION__ << ": Error saving transaction receipt "
                                          "(failed writing armored string):\n"
                       << OTFolders::Receipt() << OTLog::PathSeparator()
-                      << strServerID << OTLog::PathSeparator()
+                      << strNotaryID << OTLog::PathSeparator()
                       << strReceiptFilename << "\n";
                 return;
             }
@@ -2313,7 +2313,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
                 OTDB::StorePlainString(
                     strFinal.Get(), OTFolders::Receipt().Get(),
-                    strServerID.Get(), strReceiptFilename.Get());
+                    strNotaryID.Get(), strReceiptFilename.Get());
             }
             else // This should never happen...
             {
@@ -2325,7 +2325,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
 
                 OTDB::StorePlainString(
                     strFinal.Get(), OTFolders::Receipt().Get(),
-                    strServerID.Get(), strReceiptFilename.Get());
+                    strNotaryID.Get(), strReceiptFilename.Get());
             }
 
             // No matter what kind of transaction it is,
@@ -2351,7 +2351,7 @@ void OTClient::ProcessPayDividendResponse(
 {
     const Identifier ACCOUNT_ID(theReply.m_strAcctID);
     Identifier SERVER_ID;
-    theConnection.GetServerID(SERVER_ID);
+    theConnection.GetNotaryID(SERVER_ID);
     Nym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
@@ -2385,7 +2385,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
 {
     const Identifier ACCOUNT_ID(theReply.m_strAcctID);
     Identifier SERVER_ID;
-    theConnection.GetServerID(SERVER_ID);
+    theConnection.GetNotaryID(SERVER_ID);
     Nym* pNym = theConnection.GetNym();
     Identifier USER_ID;
     pNym->GetIdentifier(USER_ID);
@@ -2549,10 +2549,10 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                         //
                                         if (strPmntInboxTransaction.Exists()) {
                                             const String strNymID(USER_ID);
-                                            const String strServerID(SERVER_ID);
+                                            const String strNotaryID(SERVER_ID);
                                             const bool bExists = OTDB::Exists(
                                                 OTFolders::RecordBox().Get(),
-                                                strServerID.Get(),
+                                                strNotaryID.Get(),
                                                 strNymID.Get());
                                             OTLedger theRecordBox(
                                                 USER_ID, USER_ID,
@@ -2662,9 +2662,9 @@ void OTClient::ProcessWithdrawalResponse(
 {
     const Identifier ACCOUNT_ID(theReply.m_strAcctID);
     Identifier SERVER_ID;
-    theConnection.GetServerID(SERVER_ID);
+    theConnection.GetNotaryID(SERVER_ID);
 
-    String strServerID(SERVER_ID);
+    String strNotaryID(SERVER_ID);
 
     Nym* pNym = theConnection.GetNym();
     Identifier USER_ID;
@@ -2725,7 +2725,7 @@ void OTClient::ProcessWithdrawalResponse(
 
                 String strAssetID(thePurse.GetAssetID());
                 std::unique_ptr<Mint> pMint(
-                    Mint::MintFactory(strServerID, strAssetID));
+                    Mint::MintFactory(strNotaryID, strAssetID));
                 OT_ASSERT(nullptr != pMint);
                 // Unlike the purse which we read out of a message,
                 // now we try to open a purse as a file on the client side,
@@ -2748,7 +2748,7 @@ void OTClient::ProcessWithdrawalResponse(
                 // shouldn't be a problem since they would be in the archive
                 // somewhere.
 
-                theWalletPurse.LoadPurse(strServerID.Get(), strUserID.Get(),
+                theWalletPurse.LoadPurse(strNotaryID.Get(), strUserID.Get(),
                                          strAssetID.Get());
 
                 bool bSuccess = false;
@@ -2827,7 +2827,7 @@ void OTClient::ProcessWithdrawalResponse(
                                                         // has changed.
                     theWalletPurse.SignContract(*pNym);
                     theWalletPurse.SaveContract();
-                    theWalletPurse.SavePurse(strServerID.Get(), strUserID.Get(),
+                    theWalletPurse.SavePurse(strNotaryID.Get(), strUserID.Get(),
                                              strAssetID.Get());
 
                     otOut << "SUCCESSFULLY UNBLINDED token, and added the cash "
@@ -2843,15 +2843,15 @@ struct OTClient::ProcessServerReplyArgs
     Identifier ACCOUNT_ID, SERVER_ID;
     Nym* pNym;
     Identifier USER_ID;
-    String strServerID, strNymID;
+    String strNotaryID, strNymID;
     Nym* pServerNym;
 };
 
-void OTClient::setRecentHash(const Message& theReply, const String& strServerID,
+void OTClient::setRecentHash(const Message& theReply, const String& strNotaryID,
                              Nym* pNym, bool setNymboxHash)
 {
     Identifier NYMBOX_HASH, RECENT_HASH;
-    const std::string str_server(strServerID.Get());
+    const std::string str_server(strNotaryID.Get());
 
     if (theReply.m_strNymboxHash.Exists()) {
         if (setNymboxHash) {
@@ -2884,7 +2884,7 @@ void OTClient::setRecentHash(const Message& theReply, const String& strServerID,
 bool OTClient::processServerReplyTriggerClause(const Message& theReply,
                                                ProcessServerReplyArgs& args)
 {
-    setRecentHash(theReply, args.strServerID, args.pNym, false);
+    setRecentHash(theReply, args.strNotaryID, args.pNym, false);
 
     return true;
 }
@@ -2914,7 +2914,7 @@ bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
     OTServerConnection& theConnection = *m_pConnection;
     theConnection.OnServerResponseToGetRequestNumber(lNewRequestNumber);
 
-    setRecentHash(theReply, args.strServerID, args.pNym, false);
+    setRecentHash(theReply, args.strNotaryID, args.pNym, false);
 
     return true;
 }
@@ -3059,7 +3059,7 @@ bool OTClient::processServerReplyNotarizeTransaction(
 {
     otOut << "Received server response to notarize Transactions message.\n";
 
-    setRecentHash(theReply, args.strServerID, args.pNym, false);
+    setRecentHash(theReply, args.strNotaryID, args.pNym, false);
     ProcessIncomingTransactions(*m_pConnection, theReply);
 
     // todo (gui):
@@ -3082,7 +3082,7 @@ bool OTClient::processServerReplyGetTransactionNum(const Message& theReply,
 {
     otOut << "Received server response to Get Transaction Num message.\n";
 
-    setRecentHash(theReply, args.strServerID, args.pNym, false);
+    setRecentHash(theReply, args.strNotaryID, args.pNym, false);
     return true;
 }
 
@@ -3116,7 +3116,7 @@ bool OTClient::processServerReplyGetNymBox(const Message& theReply,
     // Load the ledger object from that string.
     OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
 
-    setRecentHash(theReply, args.strServerID, args.pNym, true);
+    setRecentHash(theReply, args.strNotaryID, args.pNym, true);
 
     // I receive the nymbox, verify the server's signature, then RE-SIGN IT
     // WITH MY OWN
@@ -3179,7 +3179,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
     const auto& USER_ID = args.USER_ID;
     const auto& pServerNym = args.pServerNym;
     const auto& strNymID = args.strNymID;
-    const auto& strServerID = args.strServerID;
+    const auto& strNotaryID = args.strNotaryID;
 
     otOut << "Received server response to getBoxReceipt request ("
           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
@@ -3297,9 +3297,9 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                     (OTTransaction::instrumentRejection ==
                      pBoxReceipt->GetType())) {
                     // Just make sure not to add it if it's already there...
-                    if (!strServerID.Exists()) {
+                    if (!strNotaryID.Exists()) {
                         otErr << __FUNCTION__
-                              << ": strServerID doesn't Exist!\n";
+                              << ": strNotaryID doesn't Exist!\n";
                         OT_FAIL;
                     }
                     if (!strNymID.Exists()) {
@@ -3308,7 +3308,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                     }
                     const bool bExists =
                         OTDB::Exists(OTFolders::PaymentInbox().Get(),
-                                     strServerID.Get(), strNymID.Get());
+                                     strNotaryID.Get(), strNymID.Get());
                     OTLedger thePmntInbox(USER_ID, USER_ID,
                                           SERVER_ID); // payment inbox
                     bool bSuccessLoading =
@@ -3470,11 +3470,11 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
     const auto& pServerNym = args.pServerNym;
     const auto& strNymID = args.strNymID;
 
-    String strServerID(SERVER_ID), strReply(theReply);
+    String strNotaryID(SERVER_ID), strReply(theReply);
 
     otOut << "Received server response: " << theReply.m_strCommand << " \n";
 
-    setRecentHash(theReply, args.strServerID, args.pNym, false);
+    setRecentHash(theReply, args.strNotaryID, args.pNym, false);
     // If the server acknowledges either of the above commands, then my
     // transaction
     // numbers have changed. I need to read the numbers from my last
@@ -3600,7 +3600,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     // (Therefore remove here too, to match..)
                     //
                     const bool bIsSignedOut = pNym->VerifyIssuedNum(
-                        strServerID, pTransaction->GetTransactionNum());
+                        strNotaryID, pTransaction->GetTransactionNum());
 
                     // Why? Because we might have already processed this,
                     // when it first happened, and now we're just
@@ -3612,7 +3612,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     // between client and server.)
                     //
                     if (bIsSignedOut)
-                        pNym->RemoveIssuedNum(*pNym, strServerID,
+                        pNym->RemoveIssuedNum(*pNym, strNotaryID,
                                               pTransaction->GetTransactionNum(),
                                               true); // bool bSave=true
                     if (bIsSignedOut && (nullptr != pReplyTransaction)) {
@@ -3621,7 +3621,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         OTLedger theRecordBox(USER_ID, ACCOUNT_ID, SERVER_ID);
 
                         bool bInbox = OTDB::Exists(OTFolders::Inbox().Get(),
-                                                   strServerID.Get(),
+                                                   strNotaryID.Get(),
                                                    theReply.m_strAcctID.Get());
 
                         if (bInbox && theInbox.LoadInbox())
@@ -3637,7 +3637,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                       "Was trying to load / verify Inbox.");
                         bool bLoadedRecordBox = false;
                         bool bRecordBoxExists = OTDB::Exists(
-                            OTFolders::RecordBox().Get(), strServerID.Get(),
+                            OTFolders::RecordBox().Get(), strNotaryID.Get(),
                             theReply.m_strAcctID.Get());
                         // Next, loop through the reply items for each
                         // "process inbox" item that I must have previously
@@ -4058,7 +4058,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         // chequeReceipt/voucherReceipt.)
                                         {
                                             pNym->RemoveIssuedNum(
-                                                *pNym, strServerID,
+                                                *pNym, strNotaryID,
                                                 theCheque.GetTransactionNum(),
                                                 true); // bool bSave=true
                                             /* Inside OT, when processing
@@ -4123,7 +4123,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                     else if (OTItem::acceptPending ==
                                              pOriginalItem->GetType()) {
                                         pNym->RemoveIssuedNum(
-                                            *pNym, strServerID,
+                                            *pNym, strNotaryID,
                                             pOriginalItem->GetNumberOfOrigin(),
                                             true); // bool bSave=true
                                     }
@@ -4304,7 +4304,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         if (OTDB::Exists(OTFolders::Nym().Get(),
                                                          "trades", // todo stop
                                                          // hardcoding.
-                                                         strServerID.Get(),
+                                                         strNotaryID.Get(),
                                                          strUserID.Get()))
                                             pList.reset(dynamic_cast<
                                                 OTDB::TradeListNym*>(
@@ -4314,7 +4314,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                     OTFolders::Nym().Get(),
                                                     "trades", // todo stop
                                                               // hardcoding.
-                                                    strServerID.Get(),
+                                                    strNotaryID.Get(),
                                                     strUserID.Get())));
                                         if (nullptr == pList) {
                                             otInfo << "Creating storage list "
@@ -4441,13 +4441,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                          OTFolders::Nym().Get(),
                                                          "trades", // todo stop
                                                          // hardcoding.
-                                                         strServerID.Get(),
+                                                         strNotaryID.Get(),
                                                          strUserID.Get()))
                                             otErr
                                                 << "OTClient::" << __FUNCTION__
                                                 << ": Failed storing list "
                                                    "of trades for Nym. "
-                                                   "Server ID: " << strServerID
+                                                   "Server ID: " << strNotaryID
                                                 << " Nym ID: " << strUserID
                                                 << " \n";
                                     }
@@ -4468,7 +4468,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                        << pServerTransaction->GetClosingNum()
                                        << "\n";
                                 pNym->RemoveIssuedNum(
-                                    *pNym, strServerID,
+                                    *pNym, strNotaryID,
                                     pServerTransaction->GetClosingNum(),
                                     true); // bool bSave=true
 
@@ -4478,7 +4478,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 // while debugging:
                                 //
                                 if (pNym->RemoveIssuedNum(
-                                        *pNym, strServerID,
+                                        *pNym, strNotaryID,
                                         pServerTransaction->GetReferenceToNum(),
                                         true)) // bool bSave=true
                                     otWarn << "**** Due to finding a "
@@ -4511,7 +4511,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 OTCronItem::EraseActiveCronReceipt(
                                     pServerTransaction->GetReferenceToNum(),
                                     pNym->GetConstID(),
-                                    pServerTransaction->GetPurportedServerID());
+                                    pServerTransaction->GetPurportedNotaryID());
                             } // OTItem::atAcceptFinalReceipt
                             break;
 
@@ -4522,7 +4522,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                        << pServerTransaction->GetClosingNum()
                                        << "\n";
                                 pNym->RemoveIssuedNum(
-                                    *pNym, strServerID,
+                                    *pNym, strNotaryID,
                                     pServerTransaction->GetClosingNum(),
                                     true); // bool bSave=true
                             }              // OTItem::atAcceptBasketReceipt
@@ -4784,11 +4784,11 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // affirmative (here):
                             //
                             pNym->HarvestTransactionNumbers(
-                                pStatementItem->GetPurportedServerID(), *pNym,
+                                pStatementItem->GetPurportedNotaryID(), *pNym,
                                 theMessageNym, true); // bSave=true
                             // New version now takes tentative numbers into
                             // account, to reduce sync issues.
-                            //                                pNym->HarvestIssuedNumbers(pStatementItem->GetPurportedServerID(),
+                            //                                pNym->HarvestIssuedNumbers(pStatementItem->GetPurportedNotaryID(),
                             //                                                           *pNym,
                             // theMessageNym, true); // bSave=true
                         }
@@ -5346,7 +5346,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 //
                                                 if (false ==
                                                     pNym->RemoveIssuedNum(
-                                                        *pNym, strServerID,
+                                                        *pNym, strNotaryID,
                                                         lNymOpeningNumber,
                                                         true)) // bool
                                                                // bSave=true
@@ -5577,13 +5577,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                         OTFolders::
                                                             PaymentInbox()
                                                                 .Get(),
-                                                        strServerID.Get(),
+                                                        strNotaryID.Get(),
                                                         strNymID.Get());
                                                 const bool bExists2 =
                                                     OTDB::Exists(
                                                         OTFolders::RecordBox()
                                                             .Get(),
-                                                        strServerID.Get(),
+                                                        strNotaryID.Get(),
                                                         strNymID.Get());
                                                 OTLedger thePmntInbox(
                                                     USER_ID, USER_ID,
@@ -6468,7 +6468,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                    << "\n";
 
                             if (pNym->RemoveIssuedNum(
-                                    *pNym, strServerID,
+                                    *pNym, strNotaryID,
                                     pServerTransaction->GetReferenceToNum(),
                                     true)) // bool bSave=true
                                 otWarn
@@ -6495,7 +6495,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // Process Inbox.
                             //
                             //                              pNym->RemoveIssuedNum(*pNym,
-                            // strServerID,
+                            // strNotaryID,
                             // pServerTransaction->GetReferenceToNum(),
                             // true); // bool bSave=true
                             // The client side keeps a list of active
@@ -6526,7 +6526,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             OTCronItem::EraseActiveCronReceipt(
                                 pServerTransaction->GetReferenceToNum(),
                                 pNym->GetConstID(),
-                                pServerTransaction->GetPurportedServerID());
+                                pServerTransaction->GetPurportedNotaryID());
 
                             break;
 
@@ -6576,7 +6576,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                 //
                 // SAVE THE RECEIPT....
 
-                String strServerID(SERVER_ID);
+                String strNotaryID(SERVER_ID);
 
                 String strReceiptID("NOT_SET_YET");
 
@@ -6617,7 +6617,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     otErr << "OTClient::ProcessServerReply: Error saving "
                              "transaction receipt (failed writing armored "
                              "string):\n" << OTFolders::Receipt()
-                          << OTLog::PathSeparator() << strServerID
+                          << OTLog::PathSeparator() << strNotaryID
                           << OTLog::PathSeparator() << strReceiptFilename
                           << "\n Contents:\n" << strTransaction << "\n";
                 }
@@ -6626,7 +6626,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     if (nullptr != pReplyItem) {
                         OTDB::StorePlainString(
                             strFinal.Get(), OTFolders::Receipt().Get(),
-                            strServerID.Get(), strReceiptFilename.Get());
+                            strNotaryID.Get(), strReceiptFilename.Get());
                     }
                     else // This should never happen...
                     {
@@ -6634,13 +6634,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                   strReceiptID.Get());
 
                         otErr << "OTClient::ProcessServerReply: Error "
-                                 "saving transaction receipt:  " << strServerID
+                                 "saving transaction receipt:  " << strNotaryID
                               << OTLog::PathSeparator() << strReceiptFilename
                               << "\n";
 
                         OTDB::StorePlainString(
                             strFinal.Get(), OTFolders::Receipt().Get(),
-                            strServerID.Get(), strReceiptFilename.Get());
+                            strNotaryID.Get(), strReceiptFilename.Get());
                     }
                 } // success writing armored string
             }
@@ -6725,7 +6725,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
     const std::string str_acct_id(strAcctID.Get());
 
     if (strInbox.Exists()) {
-        const String strServerID(SERVER_ID);
+        const String strNotaryID(SERVER_ID);
 
         // Load the ledger object from strInbox
         OTLedger theInbox(USER_ID, ACCOUNT_ID, SERVER_ID);
@@ -6796,7 +6796,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
                               "retrieving asset account inbox. "
                               "***\n";
 
-                    if (pNym->RemoveIssuedNum(*pNym, strServerID,
+                    if (pNym->RemoveIssuedNum(*pNym, strNotaryID,
                                               pTempTrans->GetReferenceToNum(),
                                               true)) // bool bSave=true
                         otWarn << "**** Due to finding a "
@@ -6811,7 +6811,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
                                   "nym. \n";
 
                     //                              pNym->RemoveIssuedNum(*pNym,
-                    // strServerID, pTempTrans->GetReferenceToNum(),
+                    // strNotaryID, pTempTrans->GetReferenceToNum(),
                     // true); // bSave = true;
                     // The client side keeps a list of active
                     // (recurring) transactions.
@@ -6829,7 +6829,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
                     //
                     OTCronItem::EraseActiveCronReceipt(
                         pTempTrans->GetReferenceToNum(), pNym->GetConstID(),
-                        pTempTrans->GetPurportedServerID());
+                        pTempTrans->GetPurportedNotaryID());
 
                 } // We also do this in AcceptEntireNymbox
             }
@@ -6957,7 +6957,7 @@ bool OTClient::processServerReplyGetMint(const Message& theReply)
     String strMint(theReply.m_ascPayload);
     // Load the mint object from that string...
     std::unique_ptr<Mint> pMint(
-        Mint::MintFactory(theReply.m_strServerID, theReply.m_strAssetID));
+        Mint::MintFactory(theReply.m_strNotaryID, theReply.m_strAssetID));
     OT_ASSERT(nullptr != pMint);
     // TODO check the server signature on the mint here...
     if (pMint->LoadContractFromString(strMint)) {
@@ -6985,8 +6985,8 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
             OTFolders::Market().Get(),    // "markets"
-            theReply.m_strServerID.Get(), // "markets/<serverID>"
-            strMarketDatafile.Get()); // "markets/<serverID>/market_data.bin"
+            theReply.m_strNotaryID.Get(), // "markets/<notaryID>"
+            strMarketDatafile.Get()); // "markets/<notaryID>/market_data.bin"
         if (!bSuccessErase)
             otErr << "Error erasing market list from market folder: "
                   << strMarketDatafile << " \n";
@@ -7030,8 +7030,8 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pMarketList, OTFolders::Market().Get(), // "markets"
-        theReply.m_strServerID.Get(),            // "markets/<serverID>"
-        strMarketDatafile.Get()); // "markets/<serverID>/market_data.bin"
+        theReply.m_strNotaryID.Get(),            // "markets/<notaryID>"
+        strMarketDatafile.Get()); // "markets/<notaryID>/market_data.bin"
     if (!bSuccessStore)
         otErr << "Error storing market list to market folder: "
               << strMarketDatafile << " \n";
@@ -7060,12 +7060,12 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
             OTFolders::Market().Get(),    // "markets"
-            theReply.m_strServerID.Get(), // "markets/<serverID>offers", //
-                                          // "markets/<serverID>/offers"
+            theReply.m_strNotaryID.Get(), // "markets/<notaryID>offers", //
+                                          // "markets/<notaryID>/offers"
                                           // // todo stop
                                           // hardcoding.
             strOfferDatafile
-                .Get()); // "markets/<serverID>/offers/<marketID>.bin"
+                .Get()); // "markets/<notaryID>/offers/<marketID>.bin"
         if (!bSuccessErase)
             otErr << "Error erasing offers list from market folder: "
                   << strOfferDatafile << " \n";
@@ -7109,10 +7109,10 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList, OTFolders::Market().Get(), // "markets"
-        theReply.m_strServerID.Get(), // "markets/<serverID>offers", //
-                                      // "markets/<serverID>/offers"   //
+        theReply.m_strNotaryID.Get(), // "markets/<notaryID>offers", //
+                                      // "markets/<notaryID>/offers"   //
                                       // todo stop hardcoding.
-        strOfferDatafile.Get()); // "markets/<serverID>/offers/<marketID>.bin"
+        strOfferDatafile.Get()); // "markets/<notaryID>/offers/<marketID>.bin"
     if (!bSuccessStore)
         otErr << "Error storing " << strOfferDatafile << " to market folder.\n";
 
@@ -7139,12 +7139,12 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
             OTFolders::Market().Get(),    // "markets"
-            theReply.m_strServerID.Get(), // "markets/<serverID>recent", //
-                                          // "markets/<serverID>/recent"
+            theReply.m_strNotaryID.Get(), // "markets/<notaryID>recent", //
+                                          // "markets/<notaryID>/recent"
                                           // // todo stop
                                           // hardcoding.
             strTradeDatafile
-                .Get()); // "markets/<serverID>/recent/<marketID>.bin"
+                .Get()); // "markets/<notaryID>/recent/<marketID>.bin"
         if (!bSuccessErase)
             otErr << "Error erasing recent trades list from market folder: "
                   << strTradeDatafile << " \n";
@@ -7188,10 +7188,10 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pTradeList, OTFolders::Market().Get(), // "markets"
-        theReply.m_strServerID.Get(), // "markets/<serverID>recent", //
-                                      // "markets/<serverID>/recent"   //
+        theReply.m_strNotaryID.Get(), // "markets/<notaryID>recent", //
+                                      // "markets/<notaryID>/recent"   //
                                       // todo stop hardcoding.
-        strTradeDatafile.Get()); // "markets/<serverID>/recent/<marketID>.bin"
+        strTradeDatafile.Get()); // "markets/<notaryID>/recent/<marketID>.bin"
     if (!bSuccessStore)
         otErr << "Error storing " << strTradeDatafile << " to market folder.\n";
 
@@ -7216,10 +7216,10 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
             OTFolders::Nym().Get(),       // "nyms"
-            theReply.m_strServerID.Get(), // "nyms/<serverID>offers", //
-                                          // "nyms/<serverID>/offers"   //
+            theReply.m_strNotaryID.Get(), // "nyms/<notaryID>offers", //
+                                          // "nyms/<notaryID>/offers"   //
                                           // todo stop hardcoding.
-            strOfferDatafile.Get()); // "nyms/<serverID>/offers/<NymID>.bin"
+            strOfferDatafile.Get()); // "nyms/<notaryID>/offers/<NymID>.bin"
         if (!bSuccessErase)
             otErr << "Error erasing offers list from nyms folder: "
                   << strOfferDatafile << " \n";
@@ -7263,10 +7263,10 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList, OTFolders::Nym().Get(), // "nyms"
-        theReply.m_strServerID.Get(),        // "nyms/<serverID>offers", //
-        // "nyms/<serverID>/offers"   // todo
+        theReply.m_strNotaryID.Get(),        // "nyms/<notaryID>offers", //
+        // "nyms/<notaryID>/offers"   // todo
         // stop hardcoding.
-        strOfferDatafile.Get()); // "nyms/<serverID>/offers/<NymID>.bin"
+        strOfferDatafile.Get()); // "nyms/<notaryID>/offers/<NymID>.bin"
     if (!bSuccessStore)
         otErr << "Error storing " << strOfferDatafile << " to nyms folder.\n";
 
@@ -7285,7 +7285,7 @@ bool OTClient::processServerReplyDeleteNym(const Message& theReply,
 
     Message theOriginalMessage;
 
-    const String strServerID(SERVER_ID);
+    const String strNotaryID(SERVER_ID);
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
@@ -7295,14 +7295,14 @@ bool OTClient::processServerReplyDeleteNym(const Message& theReply,
 
         while (pNym->GetTransactionNumCount(SERVER_ID) > 0) {
             int64_t lTemp = pNym->GetTransactionNum(SERVER_ID, 0); // index 0
-            pNym->RemoveTransactionNum(strServerID, lTemp); // doesn't save.
+            pNym->RemoveTransactionNum(strNotaryID, lTemp); // doesn't save.
         }
         while (pNym->GetIssuedNumCount(SERVER_ID) > 0) {
             int64_t lTemp = pNym->GetIssuedNum(SERVER_ID, 0); // index 0
-            pNym->RemoveIssuedNum(strServerID, lTemp);        // doesn't save.
+            pNym->RemoveIssuedNum(strNotaryID, lTemp);        // doesn't save.
         }
         pNym->UnRegisterAtServer(
-            strServerID); // Remove request number for that server.
+            strNotaryID); // Remove request number for that server.
 
         // SAVE the updated Nym to local storage.
         //
@@ -7311,12 +7311,12 @@ bool OTClient::processServerReplyDeleteNym(const Message& theReply,
 
         otOut << "Successfully DELETED Nym from Server: removed request "
                  "number, plus all issued and transaction numbers for Nym "
-              << theReply.m_strNymID << " for Server " << strServerID << ".\n";
+              << theReply.m_strNymID << " for Server " << strNotaryID << ".\n";
     }
     else
         otErr << "The server just for some reason tried to trick me into "
                  "erasing my issued and transaction numbers for Nym "
-              << theReply.m_strNymID << ", Server " << strServerID << ".\n";
+              << theReply.m_strNymID << ", Server " << strNotaryID << ".\n";
 
     return true;
 }
@@ -7333,7 +7333,7 @@ bool OTClient::processServerReplyDeleteAssetAccount(
 
     Message theOriginalMessage;
 
-    const String strServerID(SERVER_ID);
+    const String strNotaryID(SERVER_ID);
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
@@ -7363,12 +7363,12 @@ bool OTClient::processServerReplyDeleteAssetAccount(
         }
 
         otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID
-              << " from Server: " << strServerID << ".\n";
+              << " from Server: " << strNotaryID << ".\n";
     }
     else
         otErr << "The server just for some reason tried to trick me into "
                  "erasing my account " << theReply.m_strAcctID << " on Server "
-              << strServerID << ".\n";
+              << strNotaryID << ".\n";
 
     return true;
 }
@@ -7515,16 +7515,16 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
 
     ProcessServerReplyArgs args;
     args.ACCOUNT_ID = Identifier(theReply.m_strAcctID);
-    theConnection.GetServerID(args.SERVER_ID);
+    theConnection.GetNotaryID(args.SERVER_ID);
     args.pNym = theConnection.GetNym();
     args.USER_ID = Identifier(*args.pNym);
-    args.strServerID = args.SERVER_ID;
+    args.strNotaryID = args.SERVER_ID;
     args.strNymID = args.USER_ID;
     args.pServerNym = const_cast<Nym*>(
         theConnection.GetServerContract()->GetContractPublicNym());
 
     Nym* pNym = args.pNym;
-    const String& strServerID = args.strServerID;
+    const String& strNotaryID = args.strNotaryID;
     const String& strNymID = args.strNymID;
     Nym* pServerNym = args.pServerNym;
 
@@ -7537,7 +7537,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
         return false;
     }
     Message* pSentMsg = GetMessageOutbuffer().GetSentMessage(
-        theReply.m_strRequestNum.ToLong(), strServerID,
+        theReply.m_strRequestNum.ToLong(), strNotaryID,
         strNymID); // doesn't delete.
     // We couldn't find it in the "sent message" outbuffer (todo: persist this
     // buffer on the Nym.)
@@ -7587,7 +7587,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     const int64_t lReplyRequestNum = theReply.m_strRequestNum.ToLong();
 
     //  bool bRemoved =
-    GetMessageOutbuffer().RemoveSentMessage(lReplyRequestNum, strServerID,
+    GetMessageOutbuffer().RemoveSentMessage(lReplyRequestNum, strNotaryID,
                                             strNymID); // deletes.
     bool bDirtyNym = false;
 
@@ -7600,7 +7600,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     // trick that enables us to avoid downloading many box receipts -- the
     // replyNotices, specifically.)
     //
-    if (pNym->AddAcknowledgedNum(strServerID,
+    if (pNym->AddAcknowledgedNum(strNotaryID,
                                  lReplyRequestNum)) // doesn't save (here).
     {
         bDirtyNym = true;
@@ -7631,7 +7631,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
             const int64_t lTempRequestNum = it;
             Nym* pSignerNym = pNym;
 
-            if (pNym->RemoveAcknowledgedNum(*pSignerNym, strServerID,
+            if (pNym->RemoveAcknowledgedNum(*pSignerNym, strNotaryID,
                                             lTempRequestNum,
                                             false)) // bSave=false
                 bDirtyNym = true;
@@ -7747,7 +7747,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
 
 /// This function sets up "theMessage" so that it is ready to be sent out to the
 /// server.
-/// If you want to set up a checkServerID command and send it to the server,
+/// If you want to set up a pingNotary command and send it to the server,
 /// then
 /// you just call this to get the OTMessage object all set up and ready to be
 /// sent.
@@ -7771,20 +7771,20 @@ int32_t OTClient::ProcessUserCommand(
     // -- only
     // then can we put those pieces into a message.
     Identifier CONTRACT_ID;
-    String strNymID, strContractID, strServerID, strNymPublicKey, strAccountID;
+    String strNymID, strContractID, strNotaryID, strNymPublicKey, strAccountID;
     int64_t lRequestNumber = 0;
 
     theNym.GetIdentifier(strNymID);
-    theServer.GetIdentifier(strServerID);
+    theServer.GetIdentifier(strNotaryID);
 
-    const Identifier SERVER_ID(strServerID);
+    const Identifier SERVER_ID(strNotaryID);
 
     if (nullptr != pAccount) {
         pAccount->GetIdentifier(strAccountID);
 
-        if (pAccount->GetPurportedServerID() != SERVER_ID) {
+        if (pAccount->GetPurportedNotaryID() != SERVER_ID) {
             otErr << "OTClient::ProcessUserCommand: "
-                     "pAccount->GetPurportedServerID() doesn't match "
+                     "pAccount->GetPurportedNotaryID() doesn't match "
                      "SERVER_ID.\n(Try adding:  --server SERVER_ID)\n";
 
             return -1;
@@ -7795,18 +7795,18 @@ int32_t OTClient::ProcessUserCommand(
 
     switch (requestedCommand) {
 
-    case (OTClient::checkServerID): {
+    case (OTClient::pingNotary): {
         String strAuthentKey, strEncryptionKey;
 
         theNym.GetPublicAuthKey().GetPublicKey(strAuthentKey);
         theNym.GetPublicEncrKey().GetPublicKey(strEncryptionKey);
 
         // (1) set up member variables
-        theMessage.m_strCommand = "checkServerID";
+        theMessage.m_strCommand = "pingNotary";
         theMessage.m_strNymID = strNymID; // Not expected to verify in any way
                                           // (for this message.) Just mirrored
                                           // back in the reply.
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.m_strNymPublicKey =
             strAuthentKey; // Authentication public key for this Nym. (That he's
                            // signing this message with...)
@@ -7912,7 +7912,7 @@ int32_t OTClient::ProcessUserCommand(
             // (1) set up member variables
             theMessage.m_strCommand = "registerNym";
             theMessage.m_strNymID = strNymID;
-            theMessage.m_strServerID = strServerID;
+            theMessage.m_strNotaryID = strNotaryID;
 
             //          theNym.GetPublicKey().GetPublicKey(strNymPublicKey);
             //          theMessage.m_strNymPublicKey    = strNymPublicKey; //
@@ -7948,7 +7948,7 @@ int32_t OTClient::ProcessUserCommand(
         // (1) set up member variables
         theMessage.m_strCommand = "getRequestNumber";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
 
         theMessage.m_strRequestNum.Format(
             "%d", 1); // Request Number, if unused, should be set to 1.
@@ -7995,19 +7995,19 @@ int32_t OTClient::ProcessUserCommand(
     break;
     case OTClient::deleteNym: {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
+        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
+        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
 
         // (1) set up member variables
         theMessage.m_strCommand = "deleteNym";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strServerID is
+                                               // theMessage.m_strNotaryID is
                                                // already set. (It uses it.)
 
         // (2) Sign the Message
@@ -8022,26 +8022,26 @@ int32_t OTClient::ProcessUserCommand(
     case OTClient::processNymbox: // PROCESS NYMBOX
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
+        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
+        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
 
         // (1) Set up member variables
         theMessage.m_strCommand = "processNymbox";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strServerID is
+                                               // theMessage.m_strNotaryID is
                                                // already set. (It uses it.)
 
         Identifier EXISTING_NYMBOX_HASH;
-        const std::string str_server_id(strServerID.Get());
+        const std::string str_notary_id(strNotaryID.Get());
 
         const bool bSuccess =
-            theNym.GetNymboxHash(str_server_id, EXISTING_NYMBOX_HASH);
+            theNym.GetNymboxHash(str_notary_id, EXISTING_NYMBOX_HASH);
 
         if (bSuccess)
             EXISTING_NYMBOX_HASH.GetString(theMessage.m_strNymboxHash);
@@ -8096,9 +8096,9 @@ int32_t OTClient::ProcessUserCommand(
             CONTRACT_ID.GetString(strContractID);
         }
 
-        if (pAccount->GetPurportedServerID() != SERVER_ID) {
+        if (pAccount->GetPurportedNotaryID() != SERVER_ID) {
             otErr << "OTClient::ProcessUserCommand: "
-                     "pAccount->GetPurportedServerID() doesn't match "
+                     "pAccount->GetPurportedNotaryID() doesn't match "
                      "SERVER_ID.\n(Try adding:  --server SERVER_ID)\n";
             return (-1);
         }
@@ -8163,11 +8163,11 @@ int32_t OTClient::ProcessUserCommand(
             pMyAssetContract->GetIdentifier(strAssetTypeID);
 
             bool bLoadedSourcePurse = theSourcePurse.LoadPurse(
-                strServerID.Get(), strNymID.Get(), strAssetTypeID.Get());
+                strNotaryID.Get(), strNymID.Get(), strAssetTypeID.Get());
 
             if (!bLoadedSourcePurse) {
                 otOut << "Deposit purse: Failure trying to load purse from "
-                         "local storage:\nServer " << strServerID << "  Nym "
+                         "local storage:\nServer " << strNotaryID << "  Nym "
                       << strNymID << "  Asset Type " << strAssetTypeID << "\n";
                 return (-1);
             }
@@ -8181,7 +8181,7 @@ int32_t OTClient::ProcessUserCommand(
                          "there depositing them one-by-one, in order\nto sort "
                          "it all out.\n (So just use the GUI and save yourself "
                          "the trouble.)\n\nDeposit purse: using purse from "
-                         "local storage.\n Server " << strServerID << "  Nym "
+                         "local storage.\n Server " << strNotaryID << "  Nym "
                       << strNymID << "  Asset Type " << strAssetTypeID << "\n";
 
             theSourcePurse.GetAssetID().GetString(strAssetTypeID);
@@ -8225,7 +8225,7 @@ int32_t OTClient::ProcessUserCommand(
             break;
         }
 
-        bGotTransNum = theNym.GetNextTransactionNum(theNym, strServerID,
+        bGotTransNum = theNym.GetNextTransactionNum(theNym, strNotaryID,
                                                     lStoredTransactionNumber);
         if (!bGotTransNum) {
             otOut << "No Transaction Numbers were available. Try requesting "
@@ -8236,7 +8236,7 @@ int32_t OTClient::ProcessUserCommand(
         if (!pServerNym) {
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            theNym.AddTransactionNum(theNym, strServerID,
+            theNym.AddTransactionNum(theNym, strNotaryID,
                                      lStoredTransactionNumber,
                                      true); // bSave=true
             break;
@@ -8375,10 +8375,10 @@ int32_t OTClient::ProcessUserCommand(
                                                // want to encode it
 
             // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-            theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
+            theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
             theMessage.m_strRequestNum.Format(
                 "%" PRId64 "", lRequestNumber); // Always have to send this.
-            theNym.IncrementRequestNum(theNym, strServerID); // since I used it
+            theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it
                                                              // for a server
                                                              // request, I have
                                                              // to increment it
@@ -8386,9 +8386,9 @@ int32_t OTClient::ProcessUserCommand(
             // (1) Set up member variables
             theMessage.m_strCommand = "notarizeTransaction";
             theMessage.m_strNymID = strNymID;
-            theMessage.m_strServerID = strServerID;
+            theMessage.m_strNotaryID = strNotaryID;
             theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                                   // theMessage.m_strServerID
+                                                   // theMessage.m_strNotaryID
                                                    // is already set. (It uses
                                                    // it.)
 
@@ -8396,7 +8396,7 @@ int32_t OTClient::ProcessUserCommand(
             theMessage.m_ascPayload = ascLedger;
 
             Identifier NYMBOX_HASH;
-            const std::string str_server(strServerID.Get());
+            const std::string str_server(strNotaryID.Get());
             const bool bNymboxHash =
                 theNym.GetNymboxHash(str_server, NYMBOX_HASH);
 
@@ -8418,7 +8418,7 @@ int32_t OTClient::ProcessUserCommand(
         else {
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            theNym.AddTransactionNum(theNym, strServerID,
+            theNym.AddTransactionNum(theNym, strNotaryID,
                                      lStoredTransactionNumber,
                                      true); // bSave=true
 
@@ -8465,9 +8465,9 @@ int32_t OTClient::ProcessUserCommand(
             CONTRACT_ID.GetString(strContractID);
         }
 
-        if (pAccount->GetPurportedServerID() != SERVER_ID) {
+        if (pAccount->GetPurportedNotaryID() != SERVER_ID) {
             otErr << "OTClient::ProcessUserCommand: "
-                     "pAccount->GetPurportedServerID() doesn't match "
+                     "pAccount->GetPurportedNotaryID() doesn't match "
                      "SERVER_ID.\n(Try adding:  --server SERVER_ID)\n";
             return (-1);
         }
@@ -8498,7 +8498,7 @@ int32_t OTClient::ProcessUserCommand(
 
         int64_t lStoredTransactionNumber = 0;
         bool bGotTransNum = theNym.GetNextTransactionNum(
-            theNym, strServerID, lStoredTransactionNumber);
+            theNym, strNotaryID, lStoredTransactionNumber);
 
         if (!bGotTransNum) {
             otOut << "No Transaction Numbers were available. Try requesting "
@@ -8514,7 +8514,7 @@ int32_t OTClient::ProcessUserCommand(
                          "You are: " << strNymID << " \n";
                 // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
                 // NUMBERS.
-                theNym.AddTransactionNum(theNym, strServerID,
+                theNym.AddTransactionNum(theNym, strNotaryID,
                                          lStoredTransactionNumber,
                                          true); // bSave=true
             }
@@ -8560,7 +8560,7 @@ int32_t OTClient::ProcessUserCommand(
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
-                    theNym.AddTransactionNum(theNym, strServerID,
+                    theNym.AddTransactionNum(theNym, strNotaryID,
                                              lStoredTransactionNumber,
                                              true); // bSave=true
                 }
@@ -8569,7 +8569,7 @@ int32_t OTClient::ProcessUserCommand(
 
                     // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF
                     // AVAILABLE NUMBERS.
-                    theNym.AddTransactionNum(theNym, strServerID,
+                    theNym.AddTransactionNum(theNym, strNotaryID,
                                              lStoredTransactionNumber,
                                              true); // bSave=true
                 }
@@ -8616,28 +8616,28 @@ int32_t OTClient::ProcessUserCommand(
                     OTASCIIArmor ascLedger(strLedger);
 
                     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-                    theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
+                    theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
                     theMessage.m_strRequestNum.Format(
                         "%" PRId64 "",
                         lRequestNumber); // Always have to send this.
                     theNym.IncrementRequestNum(
-                        theNym, strServerID); // since I used it for a server
+                        theNym, strNotaryID); // since I used it for a server
                                               // request, I have to increment it
 
                     // (1) Set up member variables
                     theMessage.m_strCommand = "notarizeTransaction";
                     theMessage.m_strNymID = strNymID;
-                    theMessage.m_strServerID = strServerID;
+                    theMessage.m_strNotaryID = strNotaryID;
                     theMessage.SetAcknowledgments(
                         theNym); // Must be called AFTER
-                                 // theMessage.m_strServerID is already set. (It
+                                 // theMessage.m_strNotaryID is already set. (It
                                  // uses it.)
 
                     theMessage.m_strAcctID = strFromAcct;
                     theMessage.m_ascPayload = ascLedger;
 
                     Identifier NYMBOX_HASH;
-                    const std::string str_server(strServerID.Get());
+                    const std::string str_server(strNotaryID.Get());
                     const bool bNymboxHash =
                         theNym.GetNymboxHash(str_server, NYMBOX_HASH);
 
@@ -8664,7 +8664,7 @@ int32_t OTClient::ProcessUserCommand(
         {
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            theNym.AddTransactionNum(theNym, strServerID,
+            theNym.AddTransactionNum(theNym, strNotaryID,
                                      lStoredTransactionNumber,
                                      true); // bSave=true
         }
@@ -8672,23 +8672,23 @@ int32_t OTClient::ProcessUserCommand(
     case OTClient::getTransactionNumbers: // GET TRANSACTION NUM
     {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-        theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
+        theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
             "%" PRId64 "", lRequestNumber); // Always have to send this.
-        theNym.IncrementRequestNum(theNym, strServerID); // since I used it for
+        theNym.IncrementRequestNum(theNym, strNotaryID); // since I used it for
                                                          // a server request, I
                                                          // have to increment it
 
         // (1) Set up member variables
         theMessage.m_strCommand = "getTransactionNumbers";
         theMessage.m_strNymID = strNymID;
-        theMessage.m_strServerID = strServerID;
+        theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(theNym); // Must be called AFTER
-                                               // theMessage.m_strServerID is
+                                               // theMessage.m_strNotaryID is
                                                // already set. (It uses it.)
 
         Identifier NYMBOX_HASH;
-        const std::string str_server(strServerID.Get());
+        const std::string str_server(strNotaryID.Get());
         const bool bNymboxHash = theNym.GetNymboxHash(str_server, NYMBOX_HASH);
 
         if (bNymboxHash)
@@ -8746,9 +8746,9 @@ int32_t OTClient::ProcessUserCommand(
 
         const Identifier ACCOUNT_ID(strFromAcct);
 
-        if (pAccount->GetPurportedServerID() != SERVER_ID) {
+        if (pAccount->GetPurportedNotaryID() != SERVER_ID) {
             otErr << "OTClient::ProcessUserCommand: "
-                     "pAccount->GetPurportedServerID() doesn't match "
+                     "pAccount->GetPurportedNotaryID() doesn't match "
                      "SERVER_ID.\n(Try adding:  --server SERVER_ID)\n";
             return (-1);
         }
@@ -8800,7 +8800,7 @@ int32_t OTClient::ProcessUserCommand(
         int64_t lTransactionNumber = 0;
 
         if (false ==
-            theNym.GetNextTransactionNum(theNym, strServerID,
+            theNym.GetNextTransactionNum(theNym, strNotaryID,
                                          lTransactionNumber)) {
             otOut << "Cheques are written offline, but you still need a "
                      "transaction number\n(and you have none, currently.) Try "
@@ -8808,7 +8808,7 @@ int32_t OTClient::ProcessUserCommand(
             return (-1);
         }
 
-        Cheque theCheque(pAccount->GetRealServerID(),
+        Cheque theCheque(pAccount->GetRealNotaryID(),
                          pAccount->GetAssetTypeID());
 
         // Memo
@@ -8868,7 +8868,7 @@ int32_t OTClient::ProcessUserCommand(
 
             // IF FAILED, ADD TRANSACTION NUMBER BACK TO LIST OF AVAILABLE
             // NUMBERS.
-            theNym.AddTransactionNum(theNym, strServerID, lTransactionNumber,
+            theNym.AddTransactionNum(theNym, strNotaryID, lTransactionNumber,
                                      true); // bSave=true
         }
 
@@ -8991,26 +8991,26 @@ int32_t OTClient::ProcessUserCommand(
                 OTASCIIArmor ascLedger(strLedger);
 
                 // (0) Set up the REQUEST NUMBER and then INCREMENT IT
-                theNym.GetCurrentRequestNum(strServerID, lRequestNumber);
+                theNym.GetCurrentRequestNum(strNotaryID, lRequestNumber);
                 theMessage.m_strRequestNum.Format(
                     "%" PRId64 "", lRequestNumber); // Always have to send this.
                 theNym.IncrementRequestNum(
-                    theNym, strServerID); // since I used it for a server
+                    theNym, strNotaryID); // since I used it for a server
                                           // request, I have to increment it
 
                 // (1) Set up member variables
                 theMessage.m_strCommand = "notarizeTransaction";
                 theMessage.m_strNymID = strNymID;
-                theMessage.m_strServerID = strServerID;
+                theMessage.m_strNotaryID = strNotaryID;
                 theMessage.SetAcknowledgments(
-                    theNym); // Must be called AFTER theMessage.m_strServerID is
+                    theNym); // Must be called AFTER theMessage.m_strNotaryID is
                              // already set. (It uses it.)
 
                 theMessage.m_strAcctID = strFromAcct;
                 theMessage.m_ascPayload = ascLedger;
 
                 Identifier NYMBOX_HASH;
-                const std::string str_server(strServerID.Get());
+                const std::string str_server(strNotaryID.Get());
                 const bool bNymboxHash =
                     theNym.GetNymboxHash(str_server, NYMBOX_HASH);
 

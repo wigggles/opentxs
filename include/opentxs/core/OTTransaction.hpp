@@ -271,10 +271,10 @@ actual box receipt.
 (parent class). Here we use it for the REAL ACCOUNT ID (set before loading.)
  OTIdentifier    m_AcctID;        // Compare m_AcctID to m_ID after loading it
 from string or file. They should match, and signature should verify.
- OTIdentifier    m_ServerID;        // Server ID as used to instantiate the
-transaction, based on expected ServerID.
- OTIdentifier    m_AcctServerID;    // Actual ServerID within the signed
-portion. (Compare to m_ServerID upon loading.)
+ OTIdentifier    m_NotaryID;        // Server ID as used to instantiate the
+transaction, based on expected NotaryID.
+ OTIdentifier    m_AcctNotaryID;    // Actual NotaryID within the signed
+portion. (Compare to m_NotaryID upon loading.)
  OTIdentifier    m_AcctUserID;        // NymID of the user who created this
 item. (In the future, this item
  OTASCIIArmor    m_ascInReferenceTo;    // This item may be in reference to a
@@ -423,7 +423,7 @@ to verify the
 "expected" values
  with the actual ones from the box receipts. Rather than store each value
 separately, (as we did
- with serverID, acctID, etc in OTTransactionType) we will instead simply take
+ with notaryID, acctID, etc in OTTransactionType) we will instead simply take
 care to verify them
  during loading, if the "abbreviated" flag is set.
 
@@ -526,17 +526,17 @@ public:
 
     EXPORT OTTransaction(const Identifier& theUserID,
                          const Identifier& theAccountID,
-                         const Identifier& theServerID);
+                         const Identifier& theNotaryID);
 
     OTTransaction(const Identifier& theUserID, const Identifier& theAccountID,
-                  const Identifier& theServerID, int64_t lTransactionNum);
+                  const Identifier& theNotaryID, int64_t lTransactionNum);
 
     // THIS constructor only used when loading an abbreviated box receipt
     // (inbox, nymbox, or outbox receipt).
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
     OTTransaction(const Identifier& theUserID, const Identifier& theAccountID,
-                  const Identifier& theServerID, const int64_t& lNumberOfOrigin,
+                  const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
                   const int64_t& lTransactionNum, const int64_t& lInRefTo,
                   const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
                   transactionType theType, const String& strHash,
@@ -664,7 +664,7 @@ public:
 
     EXPORT static OTTransaction* GenerateTransaction(
         const Identifier& theUserID, const Identifier& theAccountID,
-        const Identifier& theServerID, transactionType theType,
+        const Identifier& theNotaryID, transactionType theType,
         int64_t lTransactionNum = 0);
 
     EXPORT static OTTransaction* GenerateTransaction(
@@ -695,7 +695,7 @@ public:
     EXPORT bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM);
 
     // First VerifyContractID() is performed already on all the items when
-    // they are first loaded up. ServerID and AccountID have been verified.
+    // they are first loaded up. NotaryID and AccountID have been verified.
     // Now we check ownership, and signatures, and transaction #s, etc.
     // (We go deeper.)
     EXPORT bool VerifyItems(Nym& theNym);
