@@ -148,7 +148,7 @@ public:
     explicit OTSocket(OTSettings* pSettings);
     ~OTSocket();
 
-    EXPORT bool RemakeSocket(bool bNewContext = false);
+    EXPORT bool RemakeSocket();
 
     EXPORT bool Connect();
     EXPORT bool Listen();
@@ -167,7 +167,7 @@ private:
     bool HandleReceivingError();
 
     bool NewContext();
-    bool CloseSocket(bool bNewContext = false);
+    bool CloseSocket();
     bool NewSocket(bool bIsRequest);
 
 private:

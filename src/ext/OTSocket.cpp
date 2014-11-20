@@ -166,7 +166,7 @@ OTSocket::OTSocket(OTSettings* pSettings)
     , m_bListening(false)
     , connectPath_("")
     , bindingPath_("")
-    , context_zmq(nullptr)
+    , context_zmq(new zmq::context_t(1, 31))
     , socket_zmq(nullptr)
 {
     bool bIsNew = false;
@@ -216,8 +216,6 @@ OTSocket::OTSocket(OTSettings* pSettings)
             OT_FAIL;
         }
     }
-
-    NewContext();
 }
 
 OTSocket::~OTSocket()
@@ -227,10 +225,8 @@ OTSocket::~OTSocket()
     delete context_zmq;
 }
 
-bool OTSocket::CloseSocket(bool bNewContext)
+bool OTSocket::CloseSocket()
 {
-    if (!bNewContext) return false;
-
     zmq_close(socket_zmq);
 
     m_bConnected = false;
@@ -257,32 +253,13 @@ bool OTSocket::NewSocket(bool bIsRequest)
     return true;
 }
 
-bool OTSocket::NewContext()
-{
-    if (!CloseSocket(true)) return false;
-
-    if (context_zmq) zmq_term(context_zmq);
-
-    try {
-        context_zmq = new zmq::context_t(1, 31);
-    }
-    catch (const std::exception& e) {
-        OTLog::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
-        OT_FAIL;
-    }
-
-    return true;
-}
-
-bool OTSocket::RemakeSocket(bool bNewContext)
+bool OTSocket::RemakeSocket()
 {
     if (!m_bConnected || !m_bListening) return false;
     if (m_bConnected && m_bListening) return false;
 
     bool bConnected = m_bConnected;
     bool bListening = m_bListening;
-
-    if (bNewContext) NewContext();
 
     if (bConnected) return Connect();
     if (bListening) return Listen();
@@ -570,7 +547,6 @@ bool OTSocket::HandlePollingError()
                      "the members of the items array refers to a socket whose "
                      "associated ØMQ context was terminated. (Deleting and "
                      "re-creating the context.)\n");
-        NewContext();
         break;
     // The provided items was not valid (nullptr).
     case EFAULT:
@@ -632,7 +608,7 @@ bool OTSocket::HandleSendingError()
                      "with the specified socket was terminated. (Deleting and "
                      "re-creating the context and the socket, and trying "
                      "again.)\n");
-        RemakeSocket(true);
+        RemakeSocket();
         keepTrying = true;
         break;
     // The provided socket was invalid.
@@ -704,7 +680,7 @@ bool OTSocket::HandleReceivingError()
         OTLog::Error("OTSocket::HandleReceivingError: The ØMQ context "
                      "associated with the specified socket was terminated. "
                      "(Re-creating the context, and trying again...)\n");
-        RemakeSocket(true);
+        RemakeSocket();
         {
             OTASCIIArmor ascTemp(m_ascLastMsgSent);
             keepTrying = Send(ascTemp);
