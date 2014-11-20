@@ -264,9 +264,6 @@ void MessageProcessor::run()
             bool received = socket_.Receive(messageString);
 
             if (received) {
-                OTLog::vOutput(0, "received message:\n");
-                OTLog::vOutput(0, "%s\n", messageString.c_str());
-
                 if (messageString.size() == 0) {
                     OTLog::Error("skipping zero-length message\n");
                 }
