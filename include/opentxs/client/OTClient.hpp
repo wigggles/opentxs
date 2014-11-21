@@ -298,8 +298,8 @@ private:
     bool processServerReplyGetNymMarketOffers(const Message& theReply);
     bool processServerReplyUnregisterNym(const Message& theReply,
                                          ProcessServerReplyArgs& args);
-    bool processServerReplyDeleteAssetAccount(const Message& theReply,
-                                              ProcessServerReplyArgs& args);
+    bool processServerReplyUnregisterAccount(const Message& theReply,
+                                             ProcessServerReplyArgs& args);
     bool processServerReplyIssueAssetType(const Message& theReply,
                                           ProcessServerReplyArgs& args);
     bool processServerReplyRegisterAccount(const Message& theReply,

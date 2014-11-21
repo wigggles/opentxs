@@ -1192,9 +1192,9 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("deleteAssetAccount")) {
+    else if (theMessage.m_strCommand.Compare("unregisterAccount")) {
         OTLog::vOutput(
-            0, "\n==> Received a deleteAssetAccount message. Nym: %s ...\n",
+            0, "\n==> Received a unregisterAccount message. Nym: %s ...\n",
             strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_del_asset_acct);
@@ -4016,7 +4016,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
 
     // (1) set up member variables
     msgOut.m_strCommand =
-        "deleteAssetAccountResponse";       // reply to deleteAssetAccount
+        "unregisterAccountResponse";        // reply to unregisterAccount
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account being deleted.
 

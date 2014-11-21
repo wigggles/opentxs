@@ -7334,8 +7334,8 @@ bool OTClient::processServerReplyUnregisterNym(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyDeleteAssetAccount(
-    const Message& theReply, ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyUnregisterAccount(const Message& theReply,
+                                                   ProcessServerReplyArgs& args)
 {
     const auto& NOTARY_ID = args.NOTARY_ID;
     const auto& pNym = args.pNym;
@@ -7353,7 +7353,7 @@ bool OTClient::processServerReplyDeleteAssetAccount(
         theOriginalMessage.VerifySignature(*pNym) &&
         theOriginalMessage.m_strNymID.Compare(theReply.m_strNymID) &&
         theOriginalMessage.m_strAcctID.Compare(theReply.m_strAcctID) &&
-        theOriginalMessage.m_strCommand.Compare("deleteAssetAccount")) {
+        theOriginalMessage.m_strCommand.Compare("unregisterAccount")) {
 
         const Identifier theAccountID(theReply.m_strAcctID);
 
@@ -7742,8 +7742,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("unregisterNymResponse")) {
         return processServerReplyUnregisterNym(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("deleteAssetAccountResponse")) {
-        return processServerReplyDeleteAssetAccount(theReply, args);
+    if (theReply.m_strCommand.Compare("unregisterAccountResponse")) {
+        return processServerReplyUnregisterAccount(theReply, args);
     }
     if (theReply.m_strCommand.Compare("issueAssetTypeResponse")) {
         return processServerReplyIssueAssetType(theReply, args);

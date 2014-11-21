@@ -2777,7 +2777,7 @@ public:
 RegisterStrategy StrategyGetBoxReceiptResponse::reg(
     "getBoxReceiptResponse", new StrategyGetBoxReceiptResponse());
 
-class StrategyDeleteAssetAccount : public OTMessageStrategy
+class StrategyUnregisterAccount : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2816,10 +2816,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyDeleteAssetAccount::reg(
-    "deleteAssetAccount", new StrategyDeleteAssetAccount());
+RegisterStrategy StrategyUnregisterAccount::reg(
+    "unregisterAccount", new StrategyUnregisterAccount());
 
-class StrategyDeleteAssetAccountResponse : public OTMessageStrategy
+class StrategyUnregisterAccountResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2855,7 +2855,7 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
-        // inReferenceTo contains the deleteAssetAccount (original request)
+        // inReferenceTo contains the unregisterAccount (original request)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
@@ -2877,7 +2877,7 @@ public:
         if (!m.m_ascInReferenceTo.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
-                     "deleteAssetAccountResponse reply\n";
+                     "unregisterAccountResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2895,8 +2895,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyDeleteAssetAccountResponse::reg(
-    "deleteAssetAccountResponse", new StrategyDeleteAssetAccountResponse());
+RegisterStrategy StrategyUnregisterAccountResponse::reg(
+    "unregisterAccountResponse", new StrategyUnregisterAccountResponse());
 
 class StrategyNotarizeTransaction : public OTMessageStrategy
 {

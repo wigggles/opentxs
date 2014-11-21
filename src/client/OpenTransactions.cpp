@@ -12945,7 +12945,7 @@ int32_t OT_API::deleteAssetAccount(const Identifier& NOTARY_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "deleteAssetAccount";
+    theMessage.m_strCommand = "unregisterAccount";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER
