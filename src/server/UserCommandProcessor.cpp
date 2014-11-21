@@ -1376,14 +1376,14 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("getNym_MarketOffers")) {
+    else if (theMessage.m_strCommand.Compare("getNymMarketOffers")) {
         OTLog::vOutput(
-            0, "\n==> Received a getNym_MarketOffers message. Nym: %s ...\n",
+            0, "\n==> Received a getNymMarketOffers message. Nym: %s ...\n",
             strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_nym_market_offers);
 
-        UserCmdGetNym_MarketOffers(*pNym, theMessage, msgOut);
+        UserCmdGetNymMarketOffers(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -1583,13 +1583,13 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(Nym&, Message& MsgIn,
 
 // Get the offers that a specific Nym has placed on a specific market.
 //
-void UserCommandProcessor::UserCmdGetNym_MarketOffers(Nym& theNym,
-                                                      Message& MsgIn,
-                                                      Message& msgOut)
+void UserCommandProcessor::UserCmdGetNymMarketOffers(Nym& theNym,
+                                                     Message& MsgIn,
+                                                     Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand =
-        "getNym_MarketOffersResponse";    // reply to getMarketOffers
+        "getNymMarketOffersResponse";     // reply to getMarketOffers
     msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
 
     Identifier NYM_ID;

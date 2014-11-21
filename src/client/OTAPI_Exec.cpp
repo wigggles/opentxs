@@ -14718,8 +14718,8 @@ int32_t OTAPI_Exec::getMarketRecentTrades(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getNym_MarketOffers(const std::string& NOTARY_ID,
-                                        const std::string& NYM_ID) const
+int32_t OTAPI_Exec::getNymMarketOffers(const std::string& NOTARY_ID,
+                                       const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14732,7 +14732,7 @@ int32_t OTAPI_Exec::getNym_MarketOffers(const std::string& NOTARY_ID,
 
     const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
-    return OTAPI()->getNym_MarketOffers(theNotaryID, theUserID);
+    return OTAPI()->getNymMarketOffers(theNotaryID, theUserID);
 }
 
 // POP MESSAGE BUFFER
@@ -15470,7 +15470,7 @@ int32_t OTAPI_Exec::Message_GetSuccess(const std::string& THE_MESSAGE) const
 //
 // The "depth" variable stores the count of items being returned.
 // For example, if I call getMarketList, and 10 markets are returned,
-// then depth will be set to 10. OR, if I call getNym_MarketOffers, and
+// then depth will be set to 10. OR, if I call getNymMarketOffers, and
 // the Nym has 16 offers on the various markets, then the depth will be 16.
 //
 // This value is important when processing server replies to market inquiries.

@@ -2321,10 +2321,10 @@ int32_t OTAPI_Wrap::getMarketRecentTrades(const std::string& NOTARY_ID,
     return Exec()->getMarketRecentTrades(NOTARY_ID, NYM_ID, MARKET_ID);
 }
 
-int32_t OTAPI_Wrap::getNym_MarketOffers(const std::string& NOTARY_ID,
-                                        const std::string& NYM_ID)
+int32_t OTAPI_Wrap::getNymMarketOffers(const std::string& NOTARY_ID,
+                                       const std::string& NYM_ID)
 {
-    return Exec()->getNym_MarketOffers(NOTARY_ID, NYM_ID);
+    return Exec()->getNymMarketOffers(NOTARY_ID, NYM_ID);
 }
 
 std::string OTAPI_Wrap::PopMessageBuffer(const int64_t& REQUEST_NUMBER,

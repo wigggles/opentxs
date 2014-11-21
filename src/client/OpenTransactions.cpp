@@ -12005,8 +12005,8 @@ int32_t OT_API::getMarketRecentTrades(const Identifier& NOTARY_ID,
 /// #s,
 /// and then I request them one-by-one after that...
 ///
-int32_t OT_API::getNym_MarketOffers(const Identifier& NOTARY_ID,
-                                    const Identifier& NYM_ID) const
+int32_t OT_API::getNymMarketOffers(const Identifier& NOTARY_ID,
+                                   const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
@@ -12033,7 +12033,7 @@ int32_t OT_API::getNym_MarketOffers(const Identifier& NOTARY_ID,
     String strNymID(NYM_ID);
 
     // (1) Set up member variables
-    theMessage.m_strCommand = "getNym_MarketOffers";
+    theMessage.m_strCommand = "getNymMarketOffers";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER

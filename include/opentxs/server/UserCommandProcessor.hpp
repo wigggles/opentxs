@@ -202,7 +202,7 @@ private:
                                       Message& msgOut);
 
     // Get the offers that a specific Nym has placed on a specific market.
-    void UserCmdGetNym_MarketOffers(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetNymMarketOffers(Nym& nym, Message& msgIn, Message& msgOut);
 
 private:
     OTServer* server_;

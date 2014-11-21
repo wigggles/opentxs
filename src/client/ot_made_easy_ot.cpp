@@ -2105,7 +2105,7 @@ Here are parameters for the first group above.
 else if (funcType == DELETE_NYM)
 { OTAPI_Wrap::unregisterNym(notaryID, nymID); }
 else if (funcType == GET_NYM_MARKET_OFFERS)
-{ OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID); }
+{ OTAPI_Wrap::getNymMarketOffers(notaryID, nymID); }
 else if (funcType == CREATE_ASSET_ACCT)
 { OTAPI_Wrap::registerAccount(notaryID, nymID, instrumentDefinitionID); }
 else if (funcType == DELETE_ASSET_ACCT)

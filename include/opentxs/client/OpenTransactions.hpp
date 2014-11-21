@@ -1103,8 +1103,8 @@ public:
     EXPORT int32_t getMarketRecentTrades(const Identifier& NOTARY_ID,
                                          const Identifier& NYM_ID,
                                          const Identifier& MARKET_ID) const;
-    EXPORT int32_t getNym_MarketOffers(const Identifier& NOTARY_ID,
-                                       const Identifier& NYM_ID) const;
+    EXPORT int32_t getNymMarketOffers(const Identifier& NOTARY_ID,
+                                      const Identifier& NYM_ID) const;
     // For cancelling market offers and payment plans.
     EXPORT int32_t cancelCronItem(const Identifier& NOTARY_ID,
                                   const Identifier& NYM_ID,

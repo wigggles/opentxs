@@ -700,7 +700,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
         return OTAPI_Wrap::sendNymInstrument(notaryID, nymID, nymID2, strData,
                                              strData2, accountID);
     case GET_NYM_MARKET_OFFERS:
-        return OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID);
+        return OTAPI_Wrap::getNymMarketOffers(notaryID, nymID);
     case CREATE_ASSET_ACCT:
         return OTAPI_Wrap::registerAccount(notaryID, nymID,
                                            instrumentDefinitionID);

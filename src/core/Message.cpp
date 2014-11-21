@@ -874,7 +874,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetNymMarketOffers::reg(
-    "getNym_MarketOffers", new StrategyGetNymMarketOffers());
+    "getNymMarketOffers", new StrategyGetNymMarketOffers());
 
 class StrategyGetNymMarketOffersResponse : public OTMessageStrategy
 {
@@ -961,7 +961,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetNymMarketOffersResponse::reg(
-    "getNym_MarketOffersResponse", new StrategyGetNymMarketOffersResponse());
+    "getNymMarketOffersResponse", new StrategyGetNymMarketOffersResponse());
 
 class StrategyPingNotary : public OTMessageStrategy
 {

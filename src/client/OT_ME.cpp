@@ -2337,8 +2337,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_getMarketOffers");
         theScript.chai->add(fun(&OTAPI_Wrap::getMarketRecentTrades),
                             "OT_API_getMarketRecentTrades");
-        theScript.chai->add(fun(&OTAPI_Wrap::getNym_MarketOffers),
-                            "OT_API_getNym_MarketOffers");
+        theScript.chai->add(fun(&OTAPI_Wrap::getNymMarketOffers),
+                            "OT_API_getNymMarketOffers");
         theScript.chai->add(fun(&OTAPI_Wrap::killMarketOffer),
                             "OT_API_killMarketOffer");
         theScript.chai->add(fun(&OTAPI_Wrap::killPaymentPlan),

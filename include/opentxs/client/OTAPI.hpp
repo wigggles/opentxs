@@ -3571,7 +3571,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t getNym_MarketOffers(
+    EXPORT static int32_t getNymMarketOffers(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID); // Offers this Nym has out on market.
     // These may just be the Cron Receipts...
@@ -3788,7 +3788,7 @@ public:
     //
     // The "depth" variable stores the count of items being returned.
     // For example, if I call getMarketList, and 10 markets are returned,
-    // then depth will be set to 10. OR, if I call getNym_MarketOffers, and
+    // then depth will be set to 10. OR, if I call getNymMarketOffers, and
     // the Nym has 16 offers on the various markets, then the depth will be 16.
     //
     // This value is important when processing server replies to market
