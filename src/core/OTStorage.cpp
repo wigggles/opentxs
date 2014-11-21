@@ -1715,7 +1715,7 @@ void ContactAcctPB::hookBeforePack()
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_server_type(server_type);
-    __pb_obj.set_asset_type_id(asset_type_id);
+    __pb_obj.set_instrument_definition_id(instrument_definition_id);
     __pb_obj.set_acct_id(acct_id);
     __pb_obj.set_nym_id(nym_id);
     __pb_obj.set_memo(memo);
@@ -1727,7 +1727,7 @@ void ContactAcctPB::hookAfterUnpack()
     gui_label = __pb_obj.gui_label();
     notary_id = __pb_obj.notary_id();
     server_type = __pb_obj.server_type();
-    asset_type_id = __pb_obj.asset_type_id();
+    instrument_definition_id = __pb_obj.instrument_definition_id();
     acct_id = __pb_obj.acct_id();
     nym_id = __pb_obj.nym_id();
     memo = __pb_obj.memo();
@@ -1843,7 +1843,7 @@ void MarketDataPB::hookBeforePack()
     __pb_obj.set_gui_label(gui_label);
     __pb_obj.set_notary_id(notary_id);
     __pb_obj.set_market_id(market_id);
-    __pb_obj.set_asset_type_id(asset_type_id);
+    __pb_obj.set_instrument_definition_id(instrument_definition_id);
     __pb_obj.set_currency_type_id(currency_type_id);
     __pb_obj.set_scale(scale);
     __pb_obj.set_total_assets(total_assets);
@@ -1866,7 +1866,7 @@ void MarketDataPB::hookAfterUnpack()
     gui_label = __pb_obj.gui_label();
     notary_id = __pb_obj.notary_id();
     market_id = __pb_obj.market_id();
-    asset_type_id = __pb_obj.asset_type_id();
+    instrument_definition_id = __pb_obj.instrument_definition_id();
     currency_type_id = __pb_obj.currency_type_id();
     scale = __pb_obj.scale();
     total_assets = __pb_obj.total_assets();
@@ -1993,7 +1993,7 @@ void OfferDataNymPB::hookBeforePack()
     __pb_obj.set_valid_from(valid_from);
     __pb_obj.set_valid_to(valid_to);
     __pb_obj.set_notary_id(notary_id);
-    __pb_obj.set_asset_type_id(asset_type_id);
+    __pb_obj.set_instrument_definition_id(instrument_definition_id);
     __pb_obj.set_asset_acct_id(asset_acct_id);
     __pb_obj.set_currency_type_id(currency_type_id);
     __pb_obj.set_currency_acct_id(currency_acct_id);
@@ -2016,7 +2016,7 @@ void OfferDataNymPB::hookAfterUnpack()
     valid_from = __pb_obj.valid_from();
     valid_to = __pb_obj.valid_to();
     notary_id = __pb_obj.notary_id();
-    asset_type_id = __pb_obj.asset_type_id();
+    instrument_definition_id = __pb_obj.instrument_definition_id();
     asset_acct_id = __pb_obj.asset_acct_id();
     currency_type_id = __pb_obj.currency_type_id();
     currency_acct_id = __pb_obj.currency_acct_id();

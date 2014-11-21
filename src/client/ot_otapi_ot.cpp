@@ -1406,7 +1406,8 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 
             OTDB::OfferDataNym& offerData = *offerDataPtr;
             string strScale = offerData.scale;
-            string strInstrumentDefinitionID = offerData.asset_type_id;
+            string strInstrumentDefinitionID =
+                offerData.instrument_definition_id;
             string strCurrencyTypeID = offerData.currency_type_id;
             string strSellStatus = offerData.selling ? "SELL" : "BUY";
             string strTransactionID = offerData.transaction_id;
@@ -1479,7 +1480,7 @@ OT_OTAPI_OT int32_t
     // (It's used as a lambda.)
 
     string strScale = offer_data.scale;
-    string strInstrumentDefinitionID = offer_data.asset_type_id;
+    string strInstrumentDefinitionID = offer_data.instrument_definition_id;
     string strCurrencyTypeID = offer_data.currency_type_id;
     string strSellStatus = offer_data.selling ? "SELL" : "BUY";
     string strTransactionID = offer_data.transaction_id;

@@ -768,14 +768,15 @@ bool OTRecordList::PerformAutoAccept()
                         bool bGotAsset = pPayment->GetInstrumentDefinitionID(
                             paymentAssetType);
 
-                        std::string str_asset_type_id;
+                        std::string str_instrument_definition_id;
 
                         if (bGotAsset) {
                             const String strInstrumentDefinitionID(
                                 paymentAssetType);
-                            str_asset_type_id = strInstrumentDefinitionID.Get();
+                            str_instrument_definition_id =
+                                strInstrumentDefinitionID.Get();
                         }
-                        if (str_asset_type_id.empty()) {
+                        if (str_instrument_definition_id.empty()) {
                             otErr
                                 << __FUNCTION__
                                 << ": Error: Failed while trying to "
@@ -816,7 +817,7 @@ bool OTRecordList::PerformAutoAccept()
                                 (strAcctNotaryID.Compare(
                                     str_notary_id.c_str())) &&
                                 (strAcctInstrumentDefinitionID.Compare(
-                                    str_asset_type_id.c_str())) &&
+                                    str_instrument_definition_id.c_str())) &&
                                 (0 ==
                                  str_acct_type.compare("simple"))) // No issuer
                                                                    // accounts

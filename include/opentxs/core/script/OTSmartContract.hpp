@@ -417,7 +417,7 @@ public:
                                                    // lAmount * (-1) )
     std::string GetAcctBalance(std::string from_acct_name);
     std::string GetStashBalance(std::string stash_name,
-                                std::string asset_type_id);
+                                std::string instrument_definition_id);
 
     std::string GetInstrumentDefinitionIDofAcct(std::string from_acct_name);
 

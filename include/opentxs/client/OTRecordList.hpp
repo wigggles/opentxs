@@ -246,7 +246,7 @@ class OTRecordList
     static std::string s_strTextTo;   // "To: "
     static std::string s_strTextFrom; // "From: "
     list_of_strings m_servers;
-    map_of_strings m_assets; // <asset_type_id, asset_name>
+    map_of_strings m_assets; // <instrument_definition_id, asset_name>
     list_of_strings m_accounts;
     list_of_strings m_nyms;
     vec_OTRecordList m_contents;

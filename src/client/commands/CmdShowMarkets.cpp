@@ -189,8 +189,9 @@ int32_t CmdShowMarkets::run(string server)
         }
 
         cout << i << "\t" << marketData->scale << "\tM "
-             << marketData->market_id << "\tA " << marketData->asset_type_id
-             << "\tC " << marketData->currency_type_id << "\n";
+             << marketData->market_id << "\tA "
+             << marketData->instrument_definition_id << "\tC "
+             << marketData->currency_type_id << "\n";
     }
 
     return 1;

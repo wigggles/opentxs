@@ -392,7 +392,7 @@ bool OTMarket::GetNym_OfferList(const Identifier& NYM_ID,
         pOfferData->date = to_string<time64_t>(tDateAddedToMarket);
 
         pOfferData->notary_id = strNotaryID.Get();
-        pOfferData->asset_type_id = strInstrumentDefinitionID.Get();
+        pOfferData->instrument_definition_id = strInstrumentDefinitionID.Get();
         pOfferData->asset_acct_id = strAssetAcctID.Get();
         pOfferData->currency_type_id = strCurrencyID.Get();
         pOfferData->currency_acct_id = strCurrencyAcctID.Get();

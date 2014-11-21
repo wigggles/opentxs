@@ -356,8 +356,8 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
         "ot  --verify         [--mynym  <nym_id> ]   (Verify a signature.)");
     opt->addUsage(
         "ot  --purse    | -p   <arguments>           (Display a purse.)");
-    opt->addUsage(
-        "  Arguments:     [--mynym  <nym_id> ] [--mypurse <asset_type_id>]");
+    opt->addUsage("  Arguments:     [--mynym  <nym_id> ] [--mypurse "
+                  "<instrument_definition_id>]");
     opt->addUsage("ot  --refresh  | -r  [--myacct <acct_id>]    (Download "
                   "account files from server.)");
     opt->addUsage("ot  --refreshnym     [--mynym  <nym_id> ]    (Download nym "

@@ -927,7 +927,7 @@ public:
     std::string notary_id;
     std::string market_id;
 
-    std::string asset_type_id;
+    std::string instrument_definition_id;
     std::string currency_type_id;
 
     std::string scale; // the Market scale. (A trade in any particular asset is
@@ -1196,8 +1196,8 @@ public:
     std::string valid_to;
 
     std::string notary_id;
-    std::string asset_type_id;    // the instrument definition on offer.
-    std::string asset_acct_id;    // the account where the asset is.
+    std::string instrument_definition_id; // the instrument definition on offer.
+    std::string asset_acct_id;            // the account where the asset is.
     std::string currency_type_id; // the currency being used to purchase the
                                   // asset.
     std::string currency_acct_id; // the account where currency is.
@@ -1611,7 +1611,7 @@ public:
 
     std::string server_type;
     std::string notary_id;
-    std::string asset_type_id;
+    std::string instrument_definition_id;
     std::string acct_id;
     std::string nym_id;
     std::string memo;

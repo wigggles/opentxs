@@ -306,7 +306,8 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
 
         pMarketData->notary_id = str_NotaryID.Get();
         pMarketData->market_id = str_MARKET_ID.Get();
-        pMarketData->asset_type_id = str_INSTRUMENT_DEFINITION_ID.Get();
+        pMarketData->instrument_definition_id =
+            str_INSTRUMENT_DEFINITION_ID.Get();
         pMarketData->currency_type_id = str_CURRENCY_ID.Get();
         // --------------------------------------------
         const int64_t& lScale = pMarket->GetScale();

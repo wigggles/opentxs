@@ -757,9 +757,11 @@ activated with NO stashes. Server creates/maintains stashes AFTER activation.)
 
 DONE get_acct_balance(acct)                        Returns int64_t.     (Named
 acct must be party to agreement with legitimate authorized agent.)
-DONE get_acct_asset_type_id(acct)                Returns std::string. (Named
+DONE get_acct_instrument_definition_id(acct)                Returns std::string.
+(Named
 acct must be party to agreement with legitimate authorized agent.)
-DONE get_stash_balance(stash, asset_type_id)    Returns int64_t.     (Named
+DONE get_stash_balance(stash, instrument_definition_id)    Returns int64_t.
+(Named
 stash must exist.)
 
 DONE send_notice(to_party)        (Like sendMessage, except it comes from the
@@ -855,7 +857,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
                            "get_acct_balance");
         pScript->chai->add(
             fun(&OTSmartContract::GetInstrumentDefinitionIDofAcct, this),
-            "get_acct_asset_type_id");
+            "get_acct_instrument_definition_id");
         pScript->chai->add(fun(&OTSmartContract::GetStashBalance, this),
                            "get_stash_balance");
         pScript->chai->add(fun(&OTSmartContract::SendNoticeToParty, this),
@@ -1587,8 +1589,8 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     return str_return_value;
 }
 
-std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
-                                             std::string asset_type_id)
+std::string OTSmartContract::GetStashBalance(
+    std::string from_stash_name, std::string instrument_definition_id)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1606,8 +1608,9 @@ std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
                  "non-existent.\n";
         return 0;
     }
-    if (asset_type_id.size() <= 0) {
-        otErr << "OTSmartContract::GetStashBalance: error: asset_type_id is "
+    if (instrument_definition_id.size() <= 0) {
+        otErr << "OTSmartContract::GetStashBalance: error: "
+                 "instrument_definition_id is "
                  "non-existent.\n";
         return 0;
     }
@@ -1615,7 +1618,7 @@ std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
     // Below this point, these are all good:
     //
     //        from_stash_name,
-    //        asset_type_id
+    //        instrument_definition_id
     //        pServerNym, pCron.
     //
 
@@ -1627,11 +1630,11 @@ std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
     // Below this point, these are all good:
     //
     //        pStash,        from_stash_name,
-    //        asset_type_id
+    //        instrument_definition_id
     //        pServerNym, pCron.
     //
     String strBalance;
-    strBalance.Format("%" PRId64, pStash->GetAmount(asset_type_id));
+    strBalance.Format("%" PRId64, pStash->GetAmount(instrument_definition_id));
     return strBalance.Get();
 }
 
@@ -2327,13 +2330,15 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     //
     const String strInstrumentDefinitionID(
         pPartyAssetAcct->GetInstrumentDefinitionID());
-    const std::string str_asset_type_id = strInstrumentDefinitionID.Get();
+    const std::string str_instrument_definition_id =
+        strInstrumentDefinitionID.Get();
 
-    OTStashItem* pStashItem = theStash.GetStash(str_asset_type_id);
+    OTStashItem* pStashItem = theStash.GetStash(str_instrument_definition_id);
     OT_ASSERT(nullptr !=
               pStashItem); // should never happen. Creates if non-existent.
 
-    // Below this point, pStashItem is good, and has the right asset_type_id.
+    // Below this point, pStashItem is good, and has the right
+    // instrument_definition_id.
 
     //
     const bool bUnstashing =
@@ -5530,12 +5535,12 @@ void OTSmartContract::UpdateContents()
         // Save m_StashAccts.
         //
         // (This is an object that contains a map of OTAccountIDs, by
-        // asset_type_id)
+        // instrument_definition_id)
         //
         m_StashAccts.Serialize(m_xmlUnsigned);
 
         // This is a map of OTStash's, by stash_name.
-        // EACH ONE contains a map of OTStashItems, by asset_type_id
+        // EACH ONE contains a map of OTStashItems, by instrument_definition_id
 
         // These stashes are what the scripts interact with. They have names.
         // Whereas the stash accts (above) are the actual accountIDs

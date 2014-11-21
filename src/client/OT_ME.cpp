@@ -1661,8 +1661,8 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
         // "gui_label");
         theScript.chai->add(fun(&OTDB::MarketData::notary_id), "notary_id");
         theScript.chai->add(fun(&OTDB::MarketData::market_id), "market_id");
-        theScript.chai->add(fun(&OTDB::MarketData::asset_type_id),
-                            "asset_type_id");
+        theScript.chai->add(fun(&OTDB::MarketData::instrument_definition_id),
+                            "instrument_definition_id");
         theScript.chai->add(fun(&OTDB::MarketData::currency_type_id),
                             "currency_type_id");
         theScript.chai->add(fun(&OTDB::MarketData::scale), "scale");
@@ -1729,8 +1729,8 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTDB::OfferDataNym::valid_from), "valid_from");
         theScript.chai->add(fun(&OTDB::OfferDataNym::valid_to), "valid_to");
         theScript.chai->add(fun(&OTDB::OfferDataNym::notary_id), "notary_id");
-        theScript.chai->add(fun(&OTDB::OfferDataNym::asset_type_id),
-                            "asset_type_id");
+        theScript.chai->add(fun(&OTDB::OfferDataNym::instrument_definition_id),
+                            "instrument_definition_id");
         theScript.chai->add(fun(&OTDB::OfferDataNym::asset_acct_id),
                             "asset_acct_id");
         theScript.chai->add(fun(&OTDB::OfferDataNym::currency_type_id),

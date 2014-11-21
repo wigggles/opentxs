@@ -152,9 +152,10 @@ void OTStash::Serialize(String& strAppend) const
                           m_str_stash_name.c_str(), m_mapStashItems.size());
 
     for (auto& it : m_mapStashItems) {
-        const std::string str_asset_type_id = it.first;
+        const std::string str_instrument_definition_id = it.first;
         OTStashItem* pStashItem = it.second;
-        OT_ASSERT((str_asset_type_id.size() > 0) && (nullptr != pStashItem));
+        OT_ASSERT((str_instrument_definition_id.size() > 0) &&
+                  (nullptr != pStashItem));
 
         strAppend.Concatenate(
             "<stashItem instrumentDefinitionID=\"%s\" balance=\"%" PRId64
@@ -279,14 +280,15 @@ OTStash::~OTStash()
 // Creates it if it's not already there.
 // (*this owns it and will clean it up when destroyed.)
 //
-OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
+OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
 {
-    auto it = m_mapStashItems.find(str_asset_type_id);
+    auto it = m_mapStashItems.find(str_instrument_definition_id);
 
     if (m_mapStashItems.end() ==
         it) // It's not already there for this instrument definition.
     {
-        const String strInstrumentDefinitionID(str_asset_type_id.c_str());
+        const String strInstrumentDefinitionID(
+            str_instrument_definition_id.c_str());
         OTStashItem* pStashItem = new OTStashItem(strInstrumentDefinitionID);
         OT_ASSERT(nullptr != pStashItem);
 
@@ -301,29 +303,31 @@ OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
     return pStashItem;
 }
 
-int64_t OTStash::GetAmount(std::string str_asset_type_id)
+int64_t OTStash::GetAmount(std::string str_instrument_definition_id)
 {
-    OTStashItem* pStashItem =
-        GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT()
-                                     // if failure.)
+    OTStashItem* pStashItem = GetStash(
+        str_instrument_definition_id); // (Always succeeds, and will OT_ASSERT()
+                                       // if failure.)
 
     return pStashItem->GetAmount();
 }
 
-bool OTStash::CreditStash(std::string str_asset_type_id, const int64_t& lAmount)
+bool OTStash::CreditStash(std::string str_instrument_definition_id,
+                          const int64_t& lAmount)
 {
-    OTStashItem* pStashItem =
-        GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT()
-                                     // if failure.)
+    OTStashItem* pStashItem = GetStash(
+        str_instrument_definition_id); // (Always succeeds, and will OT_ASSERT()
+                                       // if failure.)
 
     return pStashItem->CreditStash(lAmount);
 }
 
-bool OTStash::DebitStash(std::string str_asset_type_id, const int64_t& lAmount)
+bool OTStash::DebitStash(std::string str_instrument_definition_id,
+                         const int64_t& lAmount)
 {
-    OTStashItem* pStashItem =
-        GetStash(str_asset_type_id); // (Always succeeds, and will OT_ASSERT()
-                                     // if failure.)
+    OTStashItem* pStashItem = GetStash(
+        str_instrument_definition_id); // (Always succeeds, and will OT_ASSERT()
+                                       // if failure.)
 
     return pStashItem->DebitStash(lAmount);
 }
