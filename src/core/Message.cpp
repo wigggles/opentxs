@@ -1077,7 +1077,7 @@ public:
 RegisterStrategy StrategyPingNotaryResponse::reg(
     "pingNotaryResponse", new StrategyPingNotaryResponse());
 
-class StrategyCreateUserAccount : public OTMessageStrategy
+class StrategyRegisterNym : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1138,10 +1138,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCreateUserAccount::reg(
-    "registerNym", new StrategyCreateUserAccount());
+RegisterStrategy StrategyRegisterNym::reg("registerNym",
+                                          new StrategyRegisterNym());
 
-class StrategyCreateUserAccountResponse : public OTMessageStrategy
+class StrategyRegisterNymResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1213,8 +1213,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCreateUserAccountResponse::reg(
-    "registerNymResponse", new StrategyCreateUserAccountResponse());
+RegisterStrategy StrategyRegisterNymResponse::reg(
+    "registerNymResponse", new StrategyRegisterNymResponse());
 
 class StrategyUnregisterNym : public OTMessageStrategy
 {

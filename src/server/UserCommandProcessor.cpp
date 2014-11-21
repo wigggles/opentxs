@@ -751,7 +751,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // Request numbers start at 100 (currently). (Since certain
     // special messages USE 1 already...
     // Such as messages that occur before requestnumbers are
-    // possible, like CreateUserAccount.)
+    // possible, like RegisterNym.)
     //
     int64_t lRequestNumber = 0;
 
