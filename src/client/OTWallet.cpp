@@ -1984,7 +1984,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                             << ": Error reading file for Transaction Server.\n";
                     }
                 }
-                else if (strNodeName.Compare("assetAccount")) {
+                else if (strNodeName.Compare("account")) {
                     OTASCIIArmor ascAcctName = xml->getAttributeValue("name");
 
                     if (ascAcctName.Exists())

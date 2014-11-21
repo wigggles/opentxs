@@ -2607,7 +2607,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             }
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
-                                (!strcmp("assetAccount", xml->getNodeName()))) {
+                                (!strcmp("account", xml->getNodeName()))) {
                                 String strAcctName = xml->getAttributeValue(
                                     "name"); // Acct name (if needed in script
                                              // code)
@@ -2705,7 +2705,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             }
                             else {
-                                otErr << szFunc << ": Expected assetAccount "
+                                otErr << szFunc << ": Expected account "
                                                    "element in party.\n";
                                 delete pParty;
                                 pParty = nullptr;

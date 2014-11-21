@@ -723,7 +723,7 @@ bool Account::SaveContractWallet(String& contents) const
 
     contents.Concatenate(
         "<!-- Last retrieved balance: %s on date: %s -->\n"
-        "<!-- Account type: %s --><assetAccount name=\"%s\"\n"
+        "<!-- Account type: %s --><account name=\"%s\"\n"
         " accountID=\"%s\"\n"
         " nymID=\"%s\"\n"
         " notaryID=\"%s\" />\n"
@@ -762,7 +762,7 @@ void Account::UpdateContents()
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
     m_xmlUnsigned.Concatenate(
-        "<assetAccount\n version=\"%s\"\n type=\"%s\"\n "
+        "<account\n version=\"%s\"\n type=\"%s\"\n "
         "accountID=\"%s\"\n nymID=\"%s\"\n"
         " notaryID=\"%s\"\n instrumentDefinitionID=\"%s\" >\n\n",
         m_strVersion.Get(), acctType.Get(), ACCOUNT_ID.Get(), NYM_ID.Get(),
@@ -791,7 +791,7 @@ void Account::UpdateContents()
             "%s</MARKED_FOR_DELETION>\n\n",
             "THIS ACCOUNT HAS BEEN MARKED FOR DELETION AT ITS OWN REQUEST");
     }
-    m_xmlUnsigned.Concatenate("</assetAccount>\n");
+    m_xmlUnsigned.Concatenate("</account>\n");
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -812,14 +812,14 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
     // if (retval = OTTransactionType::ProcessXMLNode(xml))
     //    return retval;
 
-    if (strNodeName.Compare("assetAccount")) {
+    if (strNodeName.Compare("account")) {
         String acctType;
 
         m_strVersion = xml->getAttributeValue("version");
         acctType = xml->getAttributeValue("type");
 
         if (!acctType.Exists()) {
-            otErr << "OTAccount::ProcessXMLNode: Failed: Empty assetAccount "
+            otErr << "OTAccount::ProcessXMLNode: Failed: Empty account "
                      "'type' attribute.\n";
             return -1;
         }
@@ -827,7 +827,7 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         acctType_ = TranslateAccountTypeStringToEnum(acctType);
 
         if (Account::err_acct == acctType_) {
-            otErr << "OTAccount::ProcessXMLNode: Failed: assetAccount 'type' "
+            otErr << "OTAccount::ProcessXMLNode: Failed: account 'type' "
                      "attribute contains unknown value.\n";
             return -1;
         }

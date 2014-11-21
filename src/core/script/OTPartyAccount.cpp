@@ -443,7 +443,7 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
 void OTPartyAccount::Serialize(String& strAppend, bool bCalculatingID,
                                bool bSpecifyInstrumentDefinitionID) const
 {
-    strAppend.Concatenate("<assetAccount\n name=\"%s\"\n"
+    strAppend.Concatenate("<account\n name=\"%s\"\n"
                           " acctID=\"%s\"\n"
                           " instrumentDefinitionID=\"%s\"\n"
                           " agentName=\"%s\"\n"
