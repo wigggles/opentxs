@@ -2116,7 +2116,7 @@ bBool); }
 else if (funcType == GET_CONTRACT)
 { OTAPI_Wrap::getContract(notaryID, nymID, instrumentDefinitionID); }
 else if (funcType == ISSUE_ASSET_TYPE)
-{ OTAPI_Wrap::issueAssetType(notaryID, nymID, strData); }
+{ OTAPI_Wrap::issueInstrumentDefinition(notaryID, nymID, strData); }
 else if (funcType == ISSUE_BASKET)
 { OTAPI_Wrap::issueBasket(notaryID, nymID, basket); }
 else if (funcType == EXCHANGE_CASH)

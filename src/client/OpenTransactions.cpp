@@ -12486,9 +12486,9 @@ int32_t OT_API::processInbox(const Identifier& NOTARY_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::issueAssetType(const Identifier& NOTARY_ID,
-                               const Identifier& NYM_ID,
-                               const String& THE_CONTRACT) const
+int32_t OT_API::issueInstrumentDefinition(const Identifier& NOTARY_ID,
+                                          const Identifier& NYM_ID,
+                                          const String& THE_CONTRACT) const
 {
 
     // Upload a currency contract to the server and create
@@ -12510,7 +12510,8 @@ int32_t OT_API::issueAssetType(const Identifier& NOTARY_ID,
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    // otErr << "OT_API::issueAssetType: About to trim this contract: **BEGIN:"
+    // otErr << "OT_API::issueInstrumentDefinition: About to trim this contract:
+    // **BEGIN:"
     //  << THE_CONTRACT << "***END\n\n";
 
     std::string str_Trim(THE_CONTRACT.Get());
@@ -12541,7 +12542,7 @@ int32_t OT_API::issueAssetType(const Identifier& NOTARY_ID,
                                                        // to increment it
 
         // (1) set up member variables
-        theMessage.m_strCommand = "issueAssetType";
+        theMessage.m_strCommand = "issueInstrumentDefinition";
         theMessage.m_strNymID = strNymID;
         theMessage.m_strNotaryID = strNotaryID;
         theMessage.SetAcknowledgments(*pNym); // Must be called AFTER

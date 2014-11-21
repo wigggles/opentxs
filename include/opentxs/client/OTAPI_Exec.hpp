@@ -2949,7 +2949,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT int32_t issueAssetType(const std::string& NOTARY_ID,
+    EXPORT int32_t
+        issueInstrumentDefinition(const std::string& NOTARY_ID,
                                   const std::string& NYM_ID,
                                   const std::string& THE_CONTRACT) const;
 
