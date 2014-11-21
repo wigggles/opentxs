@@ -2139,7 +2139,7 @@ public:
 RegisterStrategy StrategyIssueAssetTypeResponse::reg(
     "issueAssetTypeResponse", new StrategyIssueAssetTypeResponse());
 
-class StrategyQueryAssetTypes : public OTMessageStrategy
+class StrategyQueryInstrumentDefinitions : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2190,10 +2190,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyQueryAssetTypes::reg("queryAssetTypes",
-                                              new StrategyQueryAssetTypes());
+RegisterStrategy StrategyQueryInstrumentDefinitions::reg(
+    "queryInstrumentDefinitions", new StrategyQueryInstrumentDefinitions());
 
-class StrategyQueryAssetTypesResponse : public OTMessageStrategy
+class StrategyQueryInstrumentDefinitionsResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2271,7 +2271,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected stringMap and/or inReferenceTo elements with "
                      "text fields in "
-                     "queryAssetTypesResponse reply\n";
+                     "queryInstrumentDefinitionsResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2284,8 +2284,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyQueryAssetTypesResponse::reg(
-    "queryAssetTypesResponse", new StrategyQueryAssetTypesResponse());
+RegisterStrategy StrategyQueryInstrumentDefinitionsResponse::reg(
+    "queryInstrumentDefinitionsResponse",
+    new StrategyQueryInstrumentDefinitionsResponse());
 
 class StrategyIssueBasket : public OTMessageStrategy
 {

@@ -15090,9 +15090,9 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::queryAssetTypes(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& ENCODED_MAP) const
+int32_t OTAPI_Exec::queryInstrumentDefinitions(
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& ENCODED_MAP) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -15110,14 +15110,16 @@ int32_t OTAPI_Exec::queryAssetTypes(const std::string& NOTARY_ID,
     Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     OTASCIIArmor theArmor(ENCODED_MAP);
 
-    return OTAPI()->queryAssetTypes(theNotaryID, theUserID, theArmor);
+    return OTAPI()->queryInstrumentDefinitions(theNotaryID, theUserID,
+                                               theArmor);
 }
 
 // GET MESSAGE PAYLOAD
 //
 // This way you can retrieve the payload from any message.
 // Useful, for example, for getting the encoded StringMap object
-// from the queryAssetTypes and queryAssetTypesResponse messages, which both
+// from the queryInstrumentDefinitions and queryInstrumentDefinitionsResponse
+// messages, which both
 // use the m_ascPayload field to transport it.
 //
 std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const

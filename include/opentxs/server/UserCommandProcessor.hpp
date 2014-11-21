@@ -189,7 +189,8 @@ private:
     void UserCmdUsageCredits(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdTriggerClause(Nym& nym, Message& msgIn, Message& msgOut);
 
-    void UserCmdQueryAssetTypes(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdQueryInstrumentDefinitions(Nym& nym, Message& msgIn,
+                                           Message& msgOut);
 
     // Get the list of markets on this server.
     void UserCmdGetMarketList(Nym& nym, Message& msgIn, Message& msgOut);

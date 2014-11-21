@@ -800,7 +800,8 @@ public:
                       int32_t nBoxType, // 0/nymbox, 1/inbox, 2/outbox
                       const int64_t& lTransactionNum) const;
 
-    EXPORT int32_t queryAssetTypes(const Identifier& NOTARY_ID,
+    EXPORT int32_t
+        queryInstrumentDefinitions(const Identifier& NOTARY_ID,
                                    const Identifier& NYM_ID,
                                    const OTASCIIArmor& ENCODED_MAP) const;
 

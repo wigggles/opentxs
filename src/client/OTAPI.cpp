@@ -2374,11 +2374,11 @@ bool OTAPI_Wrap::ResyncNymWithServer(const std::string& NOTARY_ID,
     return Exec()->ResyncNymWithServer(NOTARY_ID, NYM_ID, THE_MESSAGE);
 }
 
-int32_t OTAPI_Wrap::queryAssetTypes(const std::string& NOTARY_ID,
-                                    const std::string& NYM_ID,
-                                    const std::string& ENCODED_MAP)
+int32_t OTAPI_Wrap::queryInstrumentDefinitions(const std::string& NOTARY_ID,
+                                               const std::string& NYM_ID,
+                                               const std::string& ENCODED_MAP)
 {
-    return Exec()->queryAssetTypes(NOTARY_ID, NYM_ID, ENCODED_MAP);
+    return Exec()->queryInstrumentDefinitions(NOTARY_ID, NYM_ID, ENCODED_MAP);
 }
 
 std::string OTAPI_Wrap::Message_GetPayload(const std::string& THE_MESSAGE)

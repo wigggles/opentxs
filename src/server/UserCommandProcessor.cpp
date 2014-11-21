@@ -1311,14 +1311,14 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("queryAssetTypes")) {
-        OTLog::vOutput(
-            0, "\n==> Received a queryAssetTypes message. Nym: %s ...\n",
-            strMsgNymID.Get());
+    else if (theMessage.m_strCommand.Compare("queryInstrumentDefinitions")) {
+        OTLog::vOutput(0, "\n==> Received a queryInstrumentDefinitions "
+                          "message. Nym: %s ...\n",
+                       strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_contract);
 
-        UserCmdQueryAssetTypes(*pNym, theMessage, msgOut);
+        UserCmdQueryInstrumentDefinitions(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -3298,12 +3298,14 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdQueryAssetTypes(Nym&, Message& MsgIn,
-                                                  Message& msgOut)
+void UserCommandProcessor::UserCmdQueryInstrumentDefinitions(Nym&,
+                                                             Message& MsgIn,
+                                                             Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "queryAssetTypesResponse"; // reply to queryAssetTypes
-    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strCommand = "queryInstrumentDefinitionsResponse"; // reply to
+    // queryInstrumentDefinitions
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
     msgOut.m_bSuccess = false;
 
     // Send the user's command back to him whether success or failure.

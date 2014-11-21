@@ -719,7 +719,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case GET_MINT:
         return OTAPI_Wrap::getMint(notaryID, nymID, instrumentDefinitionID);
     case QUERY_ASSET_TYPES:
-        return OTAPI_Wrap::queryAssetTypes(notaryID, nymID, strData);
+        return OTAPI_Wrap::queryInstrumentDefinitions(notaryID, nymID, strData);
     case ISSUE_ASSET_TYPE:
         return OTAPI_Wrap::issueAssetType(notaryID, nymID, strData);
     case ISSUE_BASKET:

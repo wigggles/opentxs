@@ -12727,9 +12727,9 @@ int32_t OT_API::getMint(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
 // issuer's receipts
 // in that spot.)
 //
-int32_t OT_API::queryAssetTypes(const Identifier& NOTARY_ID,
-                                const Identifier& NYM_ID,
-                                const OTASCIIArmor& ENCODED_MAP) const
+int32_t OT_API::queryInstrumentDefinitions(
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+    const OTASCIIArmor& ENCODED_MAP) const
 {
     /*
      // Java code will create a StringMap object:
@@ -12832,7 +12832,7 @@ int32_t OT_API::queryAssetTypes(const Identifier& NOTARY_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "queryAssetTypes";
+    theMessage.m_strCommand = "queryInstrumentDefinitions";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER

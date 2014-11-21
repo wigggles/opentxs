@@ -3766,15 +3766,16 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t queryAssetTypes(const std::string& NOTARY_ID,
-                                          const std::string& NYM_ID,
-                                          const std::string& ENCODED_MAP);
+    EXPORT static int32_t queryInstrumentDefinitions(
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
+        const std::string& ENCODED_MAP);
     /** -----------------------------------------------------------
     // GET MESSAGE PAYLOAD
     //
     // This way you can retrieve the payload from any message.
     // Useful, for example, for getting the encoded StringMap object
-    // from the queryAssetTypes and queryAssetTypesResponse messages, which both
+    // from the queryInstrumentDefinitions and
+    queryInstrumentDefinitionsResponse messages, which both
     // use the m_ascPayload field to transport it.
     */
     EXPORT static std::string Message_GetPayload(
