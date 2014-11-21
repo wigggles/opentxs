@@ -2107,7 +2107,7 @@ else if (funcType == DELETE_NYM)
 else if (funcType == GET_NYM_MARKET_OFFERS)
 { OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID); }
 else if (funcType == CREATE_ASSET_ACCT)
-{ OTAPI_Wrap::createAssetAccount(notaryID, nymID, instrumentDefinitionID); }
+{ OTAPI_Wrap::registerAccount(notaryID, nymID, instrumentDefinitionID); }
 else if (funcType == DELETE_ASSET_ACCT)
 { OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID); }
 else if (funcType == EXCHANGE_BASKET)

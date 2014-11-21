@@ -13592,7 +13592,7 @@ int32_t OTAPI_Exec::getMint(const std::string& SERVER_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::createAssetAccount(
+int32_t OTAPI_Exec::registerAccount(
     const std::string& SERVER_ID, const std::string& USER_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
@@ -13613,8 +13613,8 @@ int32_t OTAPI_Exec::createAssetAccount(
     Identifier theNotaryID(SERVER_ID), theUserID(USER_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    return OTAPI()->createAssetAccount(theNotaryID, theUserID,
-                                       theInstrumentDefinitionID);
+    return OTAPI()->registerAccount(theNotaryID, theUserID,
+                                    theInstrumentDefinitionID);
 }
 
 // Sends a message to the server to retrieve latest copy of an asset acct.
@@ -15328,11 +15328,11 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
         return "";
     }
 
-    // It's not a response to createAccount, so the m_strAcctID wouldn't
+    // It's not a response to registerAccount, so the m_strAcctID wouldn't
     // contain a new account ID anyway, right? (Don't want to pass back whatever
     // it DOES contain in that case, now do I?)
     //
-    if (!theMessage.m_strCommand.Compare("createAccountResponse")) {
+    if (!theMessage.m_strCommand.Compare("registerAccountResponse")) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";

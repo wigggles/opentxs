@@ -177,7 +177,7 @@ private:
     void UserCmdGetBoxReceipt(Message& msgIn, Message& msgOut);
     void UserCmdDeleteUser(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdDeleteAssetAcct(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdCreateAccount(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdRegisterAccount(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdNotarizeTransaction(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetNymbox(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetAccountData(Nym& nym, Message& msgIn, Message& msgOut);

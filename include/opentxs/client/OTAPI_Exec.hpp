@@ -2621,7 +2621,7 @@ public:
                               const std::string& USER_ID) const;
 
     /**
-    CREATE USER's ACCOUNT (On a specific server.)
+    REGISTER USER's ACCOUNT (On a specific server.)
 
     Note: There are USER accounts and ASSET accounts...
 
@@ -2984,7 +2984,7 @@ public:
 
     /**
     ---------------------------------------------------------------------------
-    // CREATE ASSET ACCOUNT -- of any asset type, (just pass in the Asset Type
+    // REGISTER ACCOUNT -- of any asset type, (just pass in the Asset Type
     ID.)
     //
     // Returns int32_t:
@@ -2996,9 +2996,9 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
     EXPORT int32_t
-        createAssetAccount(const std::string& SERVER_ID,
-                           const std::string& USER_ID,
-                           const std::string& INSTRUMENT_DEFINITION_ID) const;
+        registerAccount(const std::string& SERVER_ID,
+                        const std::string& USER_ID,
+                        const std::string& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int32_t getAccountData(const std::string& SERVER_ID,
                                   const std::string& USER_ID,

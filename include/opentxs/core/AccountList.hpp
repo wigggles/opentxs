@@ -175,7 +175,7 @@ public:
         acctType_ = acctType;
     }
 
-    EXPORT std::shared_ptr<Account> GetOrCreateAccount(
+    EXPORT std::shared_ptr<Account> GetOrRegisterAccount(
         Nym& serverNym, const Identifier& ACCOUNT_OWNER_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID, const Identifier& SERVER_ID,
         bool& wasAcctCreated, // this will be set to true if the acct is
@@ -189,7 +189,8 @@ private:
     Account::AccountType acctType_;
     // AcctIDs as second mapped by ASSET TYPE ID as first.
     String::Map mapAcctIDs_;
-    // If someone calls GetOrCreateAccount(), we pass them a shared pointer. We
+    // If someone calls GetOrRegisterAccount(), we pass them a shared pointer.
+    // We
     // store the weak pointer here only to make sure accounts don't get loaded
     // twice.
     MapOfWeakAccounts mapWeakAccts_;

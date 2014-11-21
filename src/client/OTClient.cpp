@@ -7434,8 +7434,8 @@ bool OTClient::processServerReplyIssueAssetType(const Message& theReply,
     return false;
 }
 
-bool OTClient::processServerReplyCreateAccount(const Message& theReply,
-                                               ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyRegisterAccount(const Message& theReply,
+                                                 ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& SERVER_ID = args.SERVER_ID;
@@ -7473,7 +7473,7 @@ bool OTClient::processServerReplyCreateAccount(const Message& theReply,
             pAccount->SaveAccount();
 
             // Need to consider other security considerations.
-            // What if I wasn't EXPECTING a createAccountResponse message?
+            // What if I wasn't EXPECTING a registerAccountResponse message?
             // Well actually, in that case, the server wouldn't have a
             // copy of my request to send back to me, would he? So I should
             // check that request to make sure it's good.
@@ -7747,8 +7747,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("issueAssetTypeResponse")) {
         return processServerReplyIssueAssetType(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("createAccountResponse")) {
-        return processServerReplyCreateAccount(theReply, args);
+    if (theReply.m_strCommand.Compare("registerAccountResponse")) {
+        return processServerReplyRegisterAccount(theReply, args);
     }
     return false;
 }

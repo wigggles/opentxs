@@ -806,9 +806,8 @@ public:
                                    const OTASCIIArmor& ENCODED_MAP) const;
 
     EXPORT int32_t
-        createAssetAccount(const Identifier& SERVER_ID,
-                           const Identifier& USER_ID,
-                           const Identifier& INSTRUMENT_DEFINITION_ID) const;
+        registerAccount(const Identifier& SERVER_ID, const Identifier& USER_ID,
+                        const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int32_t deleteAssetAccount(const Identifier& SERVER_ID,
                                       const Identifier& USER_ID,

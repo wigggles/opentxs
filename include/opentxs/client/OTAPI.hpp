@@ -2579,7 +2579,7 @@ public:
                                      const std::string& USER_ID);
 
     /**
-    CREATE USER's ACCOUNT (On a specific server.)
+    REGISTER USER's ACCOUNT (On a specific server.)
 
     Note: There are USER accounts and ASSET accounts...
 
@@ -2942,7 +2942,7 @@ public:
 
     /**
     ---------------------------------------------------------------------------
-    // CREATE ASSET ACCOUNT -- of any asset type, (just pass in the Asset Type
+    // REGISTER ACCOUNT -- of any asset type, (just pass in the Asset Type
     ID.)
     //
     // Returns int32_t:
@@ -2953,7 +2953,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t createAssetAccount(
+    EXPORT static int32_t registerAccount(
         const std::string& SERVER_ID, const std::string& USER_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
 

@@ -183,7 +183,7 @@ public:
         // that users will connect to when they import the contract, as well as
         // the private
         // key that matches the public key from the contract.
-        registerNym,      // Create user account on a specific server, with
+        registerNym,      // register user account on a specific server, with
                           // public key. User ID will be hash of said public
                           // key.
         unregisterNym,    // Delete user account from a specific server.
@@ -302,8 +302,8 @@ private:
                                               ProcessServerReplyArgs& args);
     bool processServerReplyIssueAssetType(const Message& theReply,
                                           ProcessServerReplyArgs& args);
-    bool processServerReplyCreateAccount(const Message& theReply,
-                                         ProcessServerReplyArgs& args);
+    bool processServerReplyRegisterAccount(const Message& theReply,
+                                           ProcessServerReplyArgs& args);
 
 private:
     OTServerConnection* m_pConnection;

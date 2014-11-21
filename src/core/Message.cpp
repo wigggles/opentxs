@@ -2431,7 +2431,7 @@ public:
 RegisterStrategy StrategyIssueBasketResponse::reg(
     "issueBasketResponse", new StrategyIssueBasketResponse());
 
-class StrategyCreateAccount : public OTMessageStrategy
+class StrategyRegisterAccount : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2475,10 +2475,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCreateAccount::reg("createAccount",
-                                            new StrategyCreateAccount());
+RegisterStrategy StrategyRegisterAccount::reg("registerAccount",
+                                              new StrategyRegisterAccount());
 
-class StrategyCreateAccountResponse : public OTMessageStrategy
+class StrategyRegisterAccountResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2558,7 +2558,7 @@ public:
         if (m.m_bSuccess && !m.m_ascPayload.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected newAccount element with text field, in "
-                     "createAccountResponse reply\n";
+                     "registerAccountResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2576,8 +2576,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCreateAccountResponse::reg(
-    "createAccountResponse", new StrategyCreateAccountResponse());
+RegisterStrategy StrategyRegisterAccountResponse::reg(
+    "registerAccountResponse", new StrategyRegisterAccountResponse());
 
 class StrategyGetBoxReceipt : public OTMessageStrategy
 {

@@ -2115,12 +2115,12 @@ int32_t OTAPI_Wrap::getMint(const std::string& SERVER_ID,
     return Exec()->getMint(SERVER_ID, USER_ID, INSTRUMENT_DEFINITION_ID);
 }
 
-int32_t OTAPI_Wrap::createAssetAccount(
-    const std::string& SERVER_ID, const std::string& USER_ID,
-    const std::string& INSTRUMENT_DEFINITION_ID)
+int32_t OTAPI_Wrap::registerAccount(const std::string& SERVER_ID,
+                                    const std::string& USER_ID,
+                                    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->createAssetAccount(SERVER_ID, USER_ID,
-                                      INSTRUMENT_DEFINITION_ID);
+    return Exec()->registerAccount(SERVER_ID, USER_ID,
+                                   INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::getAccountData(const std::string& SERVER_ID,

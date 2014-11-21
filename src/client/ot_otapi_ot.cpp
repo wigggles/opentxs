@@ -702,8 +702,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case GET_NYM_MARKET_OFFERS:
         return OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID);
     case CREATE_ASSET_ACCT:
-        return OTAPI_Wrap::createAssetAccount(notaryID, nymID,
-                                              instrumentDefinitionID);
+        return OTAPI_Wrap::registerAccount(notaryID, nymID,
+                                           instrumentDefinitionID);
     case DELETE_ASSET_ACCT:
         return OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID);
     case ACTIVATE_SMART_CONTRACT:

@@ -12839,7 +12839,7 @@ int32_t OT_API::queryAssetTypes(const Identifier& SERVER_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::createAssetAccount(
+int32_t OT_API::registerAccount(
     const Identifier& SERVER_ID, const Identifier& USER_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
@@ -12881,7 +12881,7 @@ int32_t OT_API::createAssetAccount(
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "createAccount";
+    theMessage.m_strCommand = "registerAccount";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER

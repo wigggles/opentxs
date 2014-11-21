@@ -1203,14 +1203,14 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("createAccount")) {
-        OTLog::vOutput(0,
-                       "\n==> Received a createAccount message. Nym: %s ...\n",
-                       strMsgNymID.Get());
+    else if (theMessage.m_strCommand.Compare("registerAccount")) {
+        OTLog::vOutput(
+            0, "\n==> Received a registerAccount message. Nym: %s ...\n",
+            strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_create_asset_acct);
 
-        UserCmdCreateAccount(*pNym, theMessage, msgOut);
+        UserCmdRegisterAccount(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -2935,12 +2935,12 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
 }
 
 /// An existing user is creating an asset account.
-void UserCommandProcessor::UserCmdCreateAccount(Nym& theNym, Message& MsgIn,
-                                                Message& msgOut)
+void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
+                                                  Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "createAccountResponse"; // reply to createAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_strCommand = "registerAccountResponse"; // reply to registerAccount
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
 
     // Either way, we need to send the user's command back to him as well.
     String tempInMessage(MsgIn);
@@ -2954,7 +2954,7 @@ void UserCommandProcessor::UserCmdCreateAccount(Nym& theNym, Message& MsgIn,
     // If we successfully create the account, then bundle it in the message XML
     // payload
     if (nullptr != pNewAccount) {
-        const char* szFunc = "UserCommandProcessor::UserCmdCreateAccount";
+        const char* szFunc = "UserCommandProcessor::UserCmdRegisterAccount";
         AssetContract* pContract = server_->transactor_.getAssetContract(
             pNewAccount->GetInstrumentDefinitionID());
 

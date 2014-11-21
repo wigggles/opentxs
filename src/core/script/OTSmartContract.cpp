@@ -2377,10 +2377,11 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
 
-    bool bWasAcctCreated = false; // GetOrCreateAccount() will verifyContractID
-                                  // and verifySignature on the account
-                                  // internally.
-    std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrCreateAccount(
+    bool bWasAcctCreated =
+        false; // GetOrRegisterAccount() will verifyContractID
+               // and verifySignature on the account
+               // internally.
+    std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrRegisterAccount(
         *pServerNym, SERVER_USER_ID,
         pPartyAssetAcct->GetInstrumentDefinitionID(), SERVER_ID,
         bWasAcctCreated, GetTransactionNum());
