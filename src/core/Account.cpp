@@ -750,7 +750,7 @@ void Account::UpdateContents()
     String strAssetTYPEID(acctInstrumentDefinitionID_);
 
     String ACCOUNT_ID(GetPurportedAccountID());
-    String SERVER_ID(GetPurportedNotaryID());
+    String NOTARY_ID(GetPurportedNotaryID());
     String USER_ID(GetUserID());
 
     String acctType;
@@ -766,7 +766,7 @@ void Account::UpdateContents()
         "accountID=\"%s\"\n userID=\"%s\"\n"
         " notaryID=\"%s\"\n instrumentDefinitionID=\"%s\" >\n\n",
         m_strVersion.Get(), acctType.Get(), ACCOUNT_ID.Get(), USER_ID.Get(),
-        SERVER_ID.Get(), strAssetTYPEID.Get());
+        NOTARY_ID.Get(), strAssetTYPEID.Get());
     if (IsStashAcct()) {
         m_xmlUnsigned.Concatenate(
             "<stashinfo cronItemNum=\"%" PRId64 "\"/>\n\n", stashTransNum_);
@@ -843,11 +843,11 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         String strAcctUserID(xml->getAttributeValue("userID"));
 
         Identifier ACCOUNT_ID(strAccountID);
-        Identifier SERVER_ID(strNotaryID);
+        Identifier NOTARY_ID(strNotaryID);
         Identifier USER_ID(strAcctUserID);
 
         SetPurportedAccountID(ACCOUNT_ID);
-        SetPurportedNotaryID(SERVER_ID);
+        SetPurportedNotaryID(NOTARY_ID);
         SetUserID(USER_ID);
 
         String strInstrumentDefinitionID(acctInstrumentDefinitionID_);

@@ -1484,9 +1484,9 @@ bool OTTransaction::VerifyBalanceReceipt(
     strFilename.Format("%s.success", strReceiptID.Get());
 
     const char* szFolder1name = OTFolders::Receipt().Get(); // receipts
-    const char* szFolder2name = strNotaryID.Get(); // receipts/SERVER_ID
+    const char* szFolder2name = strNotaryID.Get(); // receipts/NOTARY_ID
     const char* szFilename =
-        strFilename.Get(); // receipts/SERVER_ID/USER_ID.success
+        strFilename.Get(); // receipts/NOTARY_ID/USER_ID.success
 
     if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otWarn << "Receipt file doesn't exist in "
@@ -4202,12 +4202,12 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              // now becomes std::set<int64_t>.)
         }
 
-        Identifier ACCOUNT_ID(strAcctID), SERVER_ID(strNotaryID),
+        Identifier ACCOUNT_ID(strAcctID), NOTARY_ID(strNotaryID),
             USER_ID(strUserID);
 
         SetPurportedAccountID(
             ACCOUNT_ID); // GetPurportedAccountID() const { return m_AcctID; }
-        SetPurportedNotaryID(SERVER_ID); // GetPurportedNotaryID() const {
+        SetPurportedNotaryID(NOTARY_ID); // GetPurportedNotaryID() const {
                                          // return m_AcctNotaryID; }
         SetUserID(USER_ID);
 
@@ -4236,7 +4236,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //
         if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
-            SetRealNotaryID(SERVER_ID);
+            SetRealNotaryID(NOTARY_ID);
         }
 
         if (strOrigin.Exists()) SetNumberOfOrigin(strOrigin.ToLong());

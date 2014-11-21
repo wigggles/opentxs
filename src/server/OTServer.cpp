@@ -526,7 +526,7 @@ void OTServer::Init(bool readOnly)
 // szCommand for passing payDividend (as the message command instead of
 // sendNymInstrument, the default.)
 bool OTServer::SendInstrumentToNym(
-    const Identifier& SERVER_ID, const Identifier& SENDER_USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& SENDER_USER_ID,
     const Identifier& RECIPIENT_USER_ID,
     Message* pMsg,             // the request msg from payer, which is attached
                                // WHOLE to the Nymbox receipt. contains payment
@@ -562,7 +562,7 @@ bool OTServer::SendInstrumentToNym(
             OTLog::vError("%s: Error GetPaymentContents Failed", __FUNCTION__);
     }
     const bool bDropped = DropMessageToNymbox(
-        SERVER_ID, SENDER_USER_ID, RECIPIENT_USER_ID,
+        NOTARY_ID, SENDER_USER_ID, RECIPIENT_USER_ID,
         OTTransaction::instrumentNotice, pMsg,
         (nullptr != pMsg) ? nullptr : &strPayment, szCommand);
 
@@ -630,7 +630,7 @@ bool OTServer::SendInstrumentToNym(
 // pass it in here and attach it to the new message. Or maybe we just set it as
 // the voucher memo.
 //
-bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
+bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
                                    const Identifier& SENDER_USER_ID,
                                    const Identifier& RECIPIENT_USER_ID,
                                    OTTransaction::transactionType theType,
@@ -767,7 +767,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
     //
     const String strInMessage(*pMsg);
     OTLedger theLedger(RECIPIENT_USER_ID, RECIPIENT_USER_ID,
-                       SERVER_ID); // The recipient's Nymbox.
+                       NOTARY_ID); // The recipient's Nymbox.
     // Drop in the Nymbox
     if ((theLedger.LoadNymbox() && // I think this loads the box receipts too,
                                    // since I didn't call "LoadNymboxNoVerify"

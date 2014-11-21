@@ -533,7 +533,7 @@ bool Purse::Merge(const Nym& theSigner,
 // static -- class factory.
 //
 Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
-                                  const Identifier& SERVER_ID,
+                                  const Identifier& NOTARY_ID,
                                   const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     Purse* pPurse = nullptr;
@@ -542,14 +542,14 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
                                                                // todo
                                                                // hardcoding.
     {
-        pPurse = new Purse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+        pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
 }
 
 Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
-                                  const Identifier& SERVER_ID)
+                                  const Identifier& NOTARY_ID)
 {
     Purse* pPurse = nullptr;
     if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----")) // this string is
@@ -557,7 +557,7 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine,
                                                                // todo
                                                                // hardcoding.
     {
-        pPurse = new Purse(SERVER_ID);
+        pPurse = new Purse(NOTARY_ID);
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
@@ -581,7 +581,7 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
 //
 // Checks the notaryID / InstrumentDefinitionID, so you don't have to.
 //
-Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID,
+Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID,
                            const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     String strContract, strFirstLine; // output for the below function.
@@ -589,7 +589,7 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID,
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine, SERVER_ID,
+        Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine, NOTARY_ID,
                                                    INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
@@ -598,8 +598,8 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID,
         // Does the contract successfully load from the string passed in?
         if (pPurse->LoadContractFromString(strContract)) {
             const char* szFunc = "Purse::PurseFactory";
-            if (SERVER_ID != pPurse->GetNotaryID()) {
-                const String strNotaryID(SERVER_ID),
+            if (NOTARY_ID != pPurse->GetNotaryID()) {
+                const String strNotaryID(NOTARY_ID),
                     strPurseNotaryID(pPurse->GetNotaryID());
                 otErr << szFunc << ": Failure: NotaryID on purse ("
                       << strPurseNotaryID << ") doesn't match expected "
@@ -637,22 +637,22 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID,
 
 // Checks the notaryID, so you don't have to.
 //
-Purse* Purse::PurseFactory(String strInput, const Identifier& SERVER_ID)
+Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID)
 {
     String strContract, strFirstLine; // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine, SERVER_ID);
+        Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine, NOTARY_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pPurse) return nullptr;
 
         // Does the contract successfully load from the string passed in?
         if (pPurse->LoadContractFromString(strContract)) {
-            if (SERVER_ID != pPurse->GetNotaryID()) {
-                const String strNotaryID(SERVER_ID),
+            if (NOTARY_ID != pPurse->GetNotaryID()) {
+                const String strNotaryID(NOTARY_ID),
                     strPurseNotaryID(pPurse->GetNotaryID());
                 otErr << "Purse::PurseFactory"
                       << ": Failure: NotaryID on purse (" << strPurseNotaryID
@@ -731,9 +731,9 @@ Purse::Purse(const Purse& thePurse)
 // Don't use this unless you really don't have the asset type handy.
 // Perhaps you know you're about to read this purse from a string and you
 // know the asset type is in there anyway. So you use this constructor.
-Purse::Purse(const Identifier& SERVER_ID)
+Purse::Purse(const Identifier& NOTARY_ID)
     : Contract()
-    , m_NotaryID(SERVER_ID)
+    , m_NotaryID(NOTARY_ID)
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
@@ -744,10 +744,10 @@ Purse::Purse(const Identifier& SERVER_ID)
     InitPurse();
 }
 
-Purse::Purse(const Identifier& SERVER_ID,
+Purse::Purse(const Identifier& NOTARY_ID,
              const Identifier& INSTRUMENT_DEFINITION_ID)
     : Contract()
-    , m_NotaryID(SERVER_ID)
+    , m_NotaryID(NOTARY_ID)
     , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
@@ -759,12 +759,12 @@ Purse::Purse(const Identifier& SERVER_ID,
     InitPurse();
 }
 
-Purse::Purse(const Identifier& SERVER_ID,
+Purse::Purse(const Identifier& NOTARY_ID,
              const Identifier& INSTRUMENT_DEFINITION_ID,
              const Identifier& USER_ID)
     : Contract()
     , m_UserID(USER_ID)
-    , m_NotaryID(SERVER_ID)
+    , m_NotaryID(NOTARY_ID)
     , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
@@ -860,11 +860,11 @@ bool Purse::LoadPurse(const char* szNotaryID, const char* szUserID,
     }
 
     const char* szFolder1name = OTFolders::Purse().Get(); // purse
-    const char* szFolder2name = strNotaryID.Get();        // purse/SERVER_ID
-    const char* szFolder3name = strUserID.Get(); // purse/SERVER_ID/USER_ID
+    const char* szFolder2name = strNotaryID.Get();        // purse/NOTARY_ID
+    const char* szFolder3name = strUserID.Get(); // purse/NOTARY_ID/USER_ID
     const char* szFilename =
         strInstrumentDefinitionID
-            .Get(); // purse/SERVER_ID/USER_ID/INSTRUMENT_DEFINITION_ID
+            .Get(); // purse/NOTARY_ID/USER_ID/INSTRUMENT_DEFINITION_ID
 
     if (false ==
         OTDB::Exists(szFolder1name, szFolder2name, szFolder3name, szFilename)) {
@@ -920,11 +920,11 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szUserID,
     }
 
     const char* szFolder1name = OTFolders::Purse().Get(); // purse
-    const char* szFolder2name = strNotaryID.Get();        // purse/SERVER_ID
-    const char* szFolder3name = strUserID.Get(); // purse/SERVER_ID/USER_ID
+    const char* szFolder2name = strNotaryID.Get();        // purse/NOTARY_ID
+    const char* szFolder3name = strUserID.Get(); // purse/NOTARY_ID/USER_ID
     const char* szFilename =
         strInstrumentDefinitionID
-            .Get(); // purse/SERVER_ID/USER_ID/INSTRUMENT_DEFINITION_ID
+            .Get(); // purse/NOTARY_ID/USER_ID/INSTRUMENT_DEFINITION_ID
 
     String strRawFile;
 
@@ -965,7 +965,7 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szUserID,
 void Purse::UpdateContents() // Before transmission or serialization, this is
                              // where the Purse saves its contents
 {
-    const String SERVER_ID(m_NotaryID), USER_ID(m_UserID),
+    const String NOTARY_ID(m_NotaryID), USER_ID(m_UserID),
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID);
 
     int64_t lValidFrom = OTTimeGetSecondsFromTime(m_tLatestValidFrom);
@@ -1005,7 +1005,7 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
             ? INSTRUMENT_DEFINITION_ID.Get()
             : "", // (Should never actually be empty.) todo:
                   // Change this to just the Get()
-        (!m_NotaryID.IsEmpty()) ? SERVER_ID.Get()
+        (!m_NotaryID.IsEmpty()) ? NOTARY_ID.Get()
                                 : "" // (Should never actually be empty.) todo:
                                      // Change this to just the Get()
         );

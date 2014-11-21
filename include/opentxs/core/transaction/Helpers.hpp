@@ -158,7 +158,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               OTNumList* pNumList = nullptr);
 
 EXPORT bool VerifyBoxReceiptExists(
-    const Identifier& SERVER_ID, const Identifier& USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& USER_ID,
     const Identifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
     // pass USER_ID in this field also.
     int32_t nBoxType, // 0/nymbox, 1/inbox, 2/outbox

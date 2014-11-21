@@ -170,7 +170,7 @@ private:
     mapOfMarkets m_mapMarkets;     // A list of all valid markets.
     mapOfCronItems m_mapCronItems; // Cron Items are found on both lists.
     multimapOfCronItems m_multimapCronItems;
-    Identifier m_SERVER_ID; // Always store this in any object that's
+    Identifier m_NOTARY_ID; // Always store this in any object that's
                             // associated with a specific server.
 
     listOfLongNumbers m_listTransactionNumbers; // I can't put receipts in
@@ -286,13 +286,13 @@ public:
     //
     EXPORT void ProcessCronItems();
 
-    inline void SetNotaryID(const Identifier& SERVER_ID)
+    inline void SetNotaryID(const Identifier& NOTARY_ID)
     {
-        m_SERVER_ID = SERVER_ID;
+        m_NOTARY_ID = NOTARY_ID;
     }
     inline const Identifier& GetNotaryID() const
     {
-        return m_SERVER_ID;
+        return m_NOTARY_ID;
     }
 
     inline void SetServerNym(Nym* pServerNym)
@@ -309,7 +309,7 @@ public:
     EXPORT bool SaveCron();
 
     EXPORT OTCron();
-    OTCron(const Identifier& SERVER_ID);
+    OTCron(const Identifier& NOTARY_ID);
     OTCron(const char* szFilename);
 
     EXPORT virtual ~OTCron();

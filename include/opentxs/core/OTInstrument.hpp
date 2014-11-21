@@ -142,7 +142,7 @@ class OTInstrument : public OTScriptable
 {
 public:
     EXPORT OTInstrument();
-    EXPORT OTInstrument(const Identifier& SERVER_ID,
+    EXPORT OTInstrument(const Identifier& NOTARY_ID,
                         const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~OTInstrument();
 
@@ -188,9 +188,9 @@ protected:
     {
         m_InstrumentDefinitionID = INSTRUMENT_DEFINITION_ID;
     }
-    inline void SetNotaryID(const Identifier& SERVER_ID)
+    inline void SetNotaryID(const Identifier& NOTARY_ID)
     {
-        m_NotaryID = SERVER_ID;
+        m_NotaryID = NOTARY_ID;
     }
 
 protected:

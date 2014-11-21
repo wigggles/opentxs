@@ -201,7 +201,7 @@ private: // Private prevents erroneous use by other classes.
 
 protected:
     EXPORT Token_Lucre();
-    EXPORT Token_Lucre(const Identifier& SERVER_ID,
+    EXPORT Token_Lucre(const Identifier& NOTARY_ID,
                        const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT Token_Lucre(const Purse& thePurse);
 

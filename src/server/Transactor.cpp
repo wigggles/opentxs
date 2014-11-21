@@ -539,11 +539,11 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
 {
     std::shared_ptr<Account> pAccount;
     const Identifier SERVER_USER_ID(server_->m_nymServer),
-        SERVER_ID(server_->m_strNotaryID);
+        NOTARY_ID(server_->m_strNotaryID);
     bool bWasAcctCreated = false;
     pAccount = voucherAccounts_.GetOrRegisterAccount(
         server_->m_nymServer, SERVER_USER_ID, INSTRUMENT_DEFINITION_ID,
-        SERVER_ID, bWasAcctCreated);
+        NOTARY_ID, bWasAcctCreated);
     if (bWasAcctCreated) {
         String strAcctID;
         pAccount->GetIdentifier(strAcctID);

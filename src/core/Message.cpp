@@ -166,7 +166,7 @@ bool Message::HarvestTransactionNumbers(
     bool bTransactionWasFailure) const // false until positively asserted.
 {
 
-    const Identifier MSG_NYM_ID(m_strNymID), SERVER_ID(m_strNotaryID),
+    const Identifier MSG_NYM_ID(m_strNymID), NOTARY_ID(m_strNotaryID),
         ACCOUNT_ID(m_strAcctID.Exists() ? m_strAcctID
                                         : m_strNymID); // This may be
                                                        // unnecessary, but just
@@ -174,7 +174,7 @@ bool Message::HarvestTransactionNumbers(
 
     const String strLedger(m_ascPayload);
 
-    OTLedger theLedger(MSG_NYM_ID, ACCOUNT_ID, SERVER_ID); // We're going to
+    OTLedger theLedger(MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID); // We're going to
                                                            // load a messsage
                                                            // ledger from *this.
 

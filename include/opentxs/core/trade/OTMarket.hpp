@@ -174,7 +174,7 @@ private:
     mapOfOffersTrnsNum m_mapOffers; // All of the offers on a single list,
                                     // ordered by transaction number.
 
-    Identifier m_SERVER_ID; // Always store this in any object that's
+    Identifier m_NOTARY_ID; // Always store this in any object that's
                             // associated with a specific server.
 
     // Every market involves a certain asset type being traded in a certain
@@ -264,9 +264,9 @@ public:
     {
         m_CURRENCY_TYPE_ID = CURRENCY_ID;
     }
-    void SetNotaryID(const Identifier& SERVER_ID)
+    void SetNotaryID(const Identifier& NOTARY_ID)
     {
-        m_SERVER_ID = SERVER_ID;
+        m_NOTARY_ID = NOTARY_ID;
     }
 
     inline const Identifier& GetInstrumentDefinitionID() const
@@ -279,7 +279,7 @@ public:
     }
     inline const Identifier& GetNotaryID() const
     {
-        return m_SERVER_ID;
+        return m_NOTARY_ID;
     }
 
     inline const int64_t& GetScale() const
@@ -310,7 +310,7 @@ public:
     int64_t GetTotalAvailableAssets();
     OTMarket();
     OTMarket(const char* szFilename);
-    OTMarket(const Identifier& SERVER_ID,
+    OTMarket(const Identifier& NOTARY_ID,
              const Identifier& INSTRUMENT_DEFINITION_ID,
              const Identifier& CURRENCY_TYPE_ID, const int64_t& lScale);
 

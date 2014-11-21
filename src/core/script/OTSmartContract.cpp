@@ -1316,7 +1316,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
     const Identifier SERVER_USER_ID(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
@@ -1328,7 +1328,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     // Load up the party's account so we can get the balance.
     //
     Account* pPartyAssetAcct =
-        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(PARTY_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::GetAcctBalance: ERROR verifying existence "
@@ -1542,7 +1542,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
     const Identifier SERVER_USER_ID(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
@@ -1554,7 +1554,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     // Load up the party's account and get the asset type.
     //
     Account* pPartyAssetAcct =
-        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(PARTY_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: ERROR "
@@ -2287,14 +2287,14 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
     const Identifier SERVER_USER_ID(*pServerNym);
 
     // Load up the party's account and get the asset type, so we know which
     // stash to get off the stash.
     //
     Account* pPartyAssetAcct =
-        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(PARTY_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::StashFunds: ERROR verifying existence of "
@@ -2383,7 +2383,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                // internally.
     std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrRegisterAccount(
         *pServerNym, SERVER_USER_ID,
-        pPartyAssetAcct->GetInstrumentDefinitionID(), SERVER_ID,
+        pPartyAssetAcct->GetInstrumentDefinitionID(), NOTARY_ID,
         bWasAcctCreated, GetTransactionNum());
 
     if (!pStashAccount) {
@@ -2613,7 +2613,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         // (No need for the stash's inbox -- the server owns it.)
 
         // Load the inbox in case it already exists
-        OTLedger thePartyInbox(PARTY_USER_ID, PARTY_ACCT_ID, SERVER_ID);
+        OTLedger thePartyInbox(PARTY_USER_ID, PARTY_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -2630,7 +2630,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         //            OT_FAIL_MSG("ASSERT:  TRYING TO GENERATE INBOX IN STASH
         // FUNDS!!!\n");
         //            bSuccessLoadingPartyInbox        =
-        // thePartyInbox.GenerateLedger(PARTY_ACCT_ID, SERVER_ID,
+        // thePartyInbox.GenerateLedger(PARTY_ACCT_ID, NOTARY_ID,
         // OTLedger::inbox, true); // bGenerateFile=true
 
         if (!bSuccessLoadingPartyInbox) {
@@ -5321,12 +5321,12 @@ OTSmartContract::OTSmartContract()
     InitSmartContract();
 }
 
-OTSmartContract::OTSmartContract(const Identifier& SERVER_ID)
+OTSmartContract::OTSmartContract(const Identifier& NOTARY_ID)
     : ot_super()
     , m_StashAccts(Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
-    OTInstrument::SetNotaryID(SERVER_ID);
+    OTInstrument::SetNotaryID(NOTARY_ID);
     InitSmartContract();
 }
 
@@ -5447,7 +5447,7 @@ void OTSmartContract::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    const String SERVER_ID(GetNotaryID()), ACTIVATOR_USER_ID(GetSenderUserID()),
+    const String NOTARY_ID(GetNotaryID()), ACTIVATOR_USER_ID(GetSenderUserID()),
         ACTIVATOR_ACCT_ID(GetSenderAcctID());
 
     OT_ASSERT(nullptr != m_pCancelerNymID);
@@ -5483,7 +5483,7 @@ void OTSmartContract::UpdateContents()
         " validTo=\"%" PRId64 "\"\n"
         " nextProcessDate=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), m_bCalculatingID ? "" : SERVER_ID.Get(),
+        m_strVersion.Get(), m_bCalculatingID ? "" : NOTARY_ID.Get(),
         m_bCalculatingID ? "" : ACTIVATOR_USER_ID.Get(),
         m_bCalculatingID ? "" : ACTIVATOR_ACCT_ID.Get(),
         m_bCalculatingID ? "" : m_strLastSenderUser.Get(),
@@ -5629,8 +5629,8 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("cancelerUserID"));
 
         if (strNotaryID.Exists()) {
-            const Identifier SERVER_ID(strNotaryID);
-            SetNotaryID(SERVER_ID);
+            const Identifier NOTARY_ID(strNotaryID);
+            SetNotaryID(NOTARY_ID);
         }
         if (strActivatorUserID.Exists()) {
             const Identifier ACTIVATOR_USER_ID(strActivatorUserID);
@@ -5776,7 +5776,7 @@ bool OTSmartContract::MoveFunds(
 
     bool bSuccess = false; // The return value.
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
     const Identifier SERVER_USER_ID(*pServerNym);
 
     String strSenderUserID(SENDER_USER_ID),
@@ -6152,7 +6152,7 @@ bool OTSmartContract::MoveFunds(
     // LOAD THE ACCOUNTS
     //
     Account* pSourceAcct =
-        Account::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(SOURCE_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pSourceAcct) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of source "
@@ -6164,7 +6164,7 @@ bool OTSmartContract::MoveFunds(
     std::unique_ptr<Account> theSourceAcctSmrtPtr(pSourceAcct);
 
     Account* pRecipientAcct =
-        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pRecipientAcct) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of "
@@ -6228,8 +6228,8 @@ bool OTSmartContract::MoveFunds(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inboxes in case they already exist
-        OTLedger theSenderInbox(SENDER_USER_ID, SOURCE_ACCT_ID, SERVER_ID),
-            theRecipientInbox(RECIPIENT_USER_ID, RECIPIENT_ACCT_ID, SERVER_ID);
+        OTLedger theSenderInbox(SENDER_USER_ID, SOURCE_ACCT_ID, NOTARY_ID),
+            theRecipientInbox(RECIPIENT_USER_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -6246,7 +6246,7 @@ bool OTSmartContract::MoveFunds(
                      "ledger.\n";
         //        else
         //            bSuccessLoadingSenderInbox        =
-        // theSenderInbox.GenerateLedger(SOURCE_ACCT_ID, SERVER_ID,
+        // theSenderInbox.GenerateLedger(SOURCE_ACCT_ID, NOTARY_ID,
         // OTLedger::inbox, true); // bGenerateFile=true
 
         if (true == bSuccessLoadingRecipientInbox)
@@ -6257,7 +6257,7 @@ bool OTSmartContract::MoveFunds(
                      "ledger.\n";
         //        else
         //            bSuccessLoadingRecipientInbox    =
-        // theRecipientInbox.GenerateLedger(RECIPIENT_ACCT_ID, SERVER_ID,
+        // theRecipientInbox.GenerateLedger(RECIPIENT_ACCT_ID, NOTARY_ID,
         // OTLedger::inbox, true); // bGenerateFile=true
 
         if ((false == bSuccessLoadingSenderInbox) ||

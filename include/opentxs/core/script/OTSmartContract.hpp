@@ -465,7 +465,7 @@ public:
                            const Identifier& PARTY_ACCT_ID,
                            const Identifier& PARTY_USER_ID, OTStash& theStash);
     EXPORT OTSmartContract();
-    EXPORT OTSmartContract(const Identifier& SERVER_ID);
+    EXPORT OTSmartContract(const Identifier& NOTARY_ID);
 
     EXPORT virtual ~OTSmartContract();
 

@@ -233,7 +233,7 @@ public:
 
     // From OTInstrument (parent class of OTTrackable, parent class of this)
     /*
-     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier&
+     OTInstrument(const OTIdentifier& NOTARY_ID, const OTIdentifier&
      INSTRUMENT_DEFINITION_ID)
      : OTContract()
 
@@ -248,7 +248,7 @@ public:
      / TO dates.
      */
     EXPORT Cheque();
-    EXPORT Cheque(const Identifier& SERVER_ID,
+    EXPORT Cheque(const Identifier& NOTARY_ID,
                   const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~Cheque();
 

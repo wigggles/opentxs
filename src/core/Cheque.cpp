@@ -149,7 +149,7 @@ namespace opentxs
 void Cheque::UpdateContents()
 {
     String INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
-        SERVER_ID(GetNotaryID()), SENDER_ACCT_ID(GetSenderAcctID()),
+        NOTARY_ID(GetNotaryID()), SENDER_ACCT_ID(GetSenderAcctID()),
         SENDER_USER_ID(GetSenderUserID()),
         RECIPIENT_USER_ID(GetRecipientUserID()),
         REMITTER_USER_ID(GetRemitterUserID()),
@@ -180,7 +180,7 @@ void Cheque::UpdateContents()
         " validTo=\"%" PRId64 "\""
         " >\n\n",
         m_strVersion.Get(), m_lAmount, INSTRUMENT_DEFINITION_ID.Get(),
-        GetTransactionNum(), SERVER_ID.Get(), SENDER_ACCT_ID.Get(),
+        GetTransactionNum(), NOTARY_ID.Get(), SENDER_ACCT_ID.Get(),
         SENDER_USER_ID.Get(), (m_bHasRecipient ? "true" : "false"),
         (m_bHasRecipient ? RECIPIENT_USER_ID.Get() : ""),
         (m_bHasRemitter ? "true" : "false"),
@@ -240,11 +240,11 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
             strRemitterAcctID(xml->getAttributeValue("remitterAcctID"));
 
         Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
-            SERVER_ID(strNotaryID), SENDER_ACCT_ID(strSenderAcctID),
+            NOTARY_ID(strNotaryID), SENDER_ACCT_ID(strSenderAcctID),
             SENDER_USER_ID(strSenderUserID);
 
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-        SetNotaryID(SERVER_ID);
+        SetNotaryID(NOTARY_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
         SetSenderUserID(SENDER_USER_ID);
 
@@ -384,9 +384,9 @@ Cheque::Cheque()
     InitCheque();
 }
 
-Cheque::Cheque(const Identifier& SERVER_ID,
+Cheque::Cheque(const Identifier& NOTARY_ID,
                const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lAmount(0)
     , m_bHasRecipient(false)
     , m_bHasRemitter(false)

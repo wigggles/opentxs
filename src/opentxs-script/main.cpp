@@ -181,7 +181,7 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_NotaryID,
 
 /*
 
---server     (SERVER_ID)
+--server     (NOTARY_ID)
 
 USAGE:  ot -COMMAND [AMOUNT] [--from ACCT/NYM/ASSET] [--to ACCT or NYM]
 
@@ -223,9 +223,9 @@ bool SetupPointersForWalletMyNymAndServerContract(
     // Below this point, pWallet is available :-)
 
     if (str_NotaryID.size() > 0) {
-        const Identifier SERVER_ID(str_NotaryID.c_str());
+        const Identifier NOTARY_ID(str_NotaryID.c_str());
 
-        pServerContract = pWallet->GetServerContract(SERVER_ID);
+        pServerContract = pWallet->GetServerContract(NOTARY_ID);
         // If failure, then we try PARTIAL match.
         if (nullptr == pServerContract)
             pServerContract =
@@ -241,8 +241,8 @@ bool SetupPointersForWalletMyNymAndServerContract(
         else {
             otOut
                 << "Unable to find a server contract. Please use the option:  "
-                   "--server SERVER_ID\n"
-                   "(Where SERVER_ID is the server ID. Partial matches are "
+                   "--server NOTARY_ID\n"
+                   "(Where NOTARY_ID is the server ID. Partial matches are "
                    "accepted "
                    "if the contract is already in the wallet.)\n"
                    "Also, see default values located in "
@@ -869,8 +869,8 @@ int32_t main(int32_t argc, char* argv[])
         //
         if (nullptr == pServerContract) {
             otOut << "Unable to find a server contract to use. Please use "
-                     "the option: --server SERVER_ID\n"
-                     "(Where SERVER_ID is the Server's ID. Partial matches "
+                     "the option: --server NOTARY_ID\n"
+                     "(Where NOTARY_ID is the Server's ID. Partial matches "
                      "ARE accepted.)\n";
             //          return 0;
         }
@@ -1569,7 +1569,7 @@ int32_t main(int32_t argc, char* argv[])
     }
     else
         otOut << "\nYou may wish to 'load' then 'stat'.\n"
-                 "(FYI, --server SERVER_ID  and  --mynym NYM_ID  were both "
+                 "(FYI, --server NOTARY_ID  and  --mynym NYM_ID  were both "
                  "valid options.)\n"
                  "Also, see:  ~/.ot/command-line-ot.opt for defaults.\n";
 
@@ -1885,8 +1885,8 @@ int32_t main(int32_t argc, char* argv[])
 
         if (nullptr == pServerContract) {
             otOut << "Unable to find a server contract. Please restart using "
-                     "the option:  --server SERVER_ID\n"
-                     "(Where SERVER_ID is the server ID. Partial matches ARE "
+                     "the option:  --server NOTARY_ID\n"
+                     "(Where NOTARY_ID is the server ID. Partial matches ARE "
                      "accepted.)\n";
             continue;
         }

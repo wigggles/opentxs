@@ -265,7 +265,7 @@ void OTPaymentPlan::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(GetNotaryID()),
+    const String NOTARY_ID(GetNotaryID()),
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
         RECIPIENT_ACCT_ID(GetRecipientAcctID()),
@@ -293,7 +293,7 @@ void OTPaymentPlan::UpdateContents()
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), SERVER_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(),
+        m_strVersion.Get(), NOTARY_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(),
         SENDER_ACCT_ID.Get(), SENDER_USER_ID.Get(), RECIPIENT_ACCT_ID.Get(),
         RECIPIENT_USER_ID.Get(), m_bCanceled ? "true" : "false",
         m_bCanceled ? strCanceler.Get() : "", m_lTransactionNum,
@@ -621,22 +621,22 @@ OTPaymentPlan::OTPaymentPlan()
     InitPaymentPlan();
 }
 
-OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
+OTPaymentPlan::OTPaymentPlan(const Identifier& NOTARY_ID,
                              const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
     InitPaymentPlan();
 }
 
-OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
+OTPaymentPlan::OTPaymentPlan(const Identifier& NOTARY_ID,
                              const Identifier& INSTRUMENT_DEFINITION_ID,
                              const Identifier& SENDER_ACCT_ID,
                              const Identifier& SENDER_USER_ID,
                              const Identifier& RECIPIENT_ACCT_ID,
                              const Identifier& RECIPIENT_USER_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
                SENDER_USER_ID, RECIPIENT_ACCT_ID, RECIPIENT_USER_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
@@ -673,7 +673,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
     bool bSuccess = false; // The return value.
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
     const Identifier SERVER_USER_ID(*pServerNym);
 
     const Identifier& SOURCE_ACCT_ID = GetSenderAcctID();
@@ -858,7 +858,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // I know for a fact they have both signed pOrigCronItem...
 
     std::unique_ptr<Account> pSourceAcct(
-        Account::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID));
+        Account::LoadExistingAccount(SOURCE_ACCT_ID, NOTARY_ID));
 
     if (nullptr == pSourceAcct) {
         otOut << "ERROR verifying existence of source account during attempted "
@@ -868,7 +868,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     }
 
     std::unique_ptr<Account> pRecipientAcct(
-        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID));
+        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, NOTARY_ID));
 
     if (nullptr == pRecipientAcct) {
         otOut << "ERROR verifying existence of recipient account during "
@@ -931,8 +931,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        OTLedger theSenderInbox(SENDER_USER_ID, SOURCE_ACCT_ID, SERVER_ID),
-            theRecipientInbox(RECIPIENT_USER_ID, RECIPIENT_ACCT_ID, SERVER_ID);
+        OTLedger theSenderInbox(SENDER_USER_ID, SOURCE_ACCT_ID, NOTARY_ID),
+            theRecipientInbox(RECIPIENT_USER_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -946,7 +946,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                 theSenderInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingSenderInbox = theSenderInbox.GenerateLedger(
-                SOURCE_ACCT_ID, SERVER_ID, OTLedger::inbox,
+                SOURCE_ACCT_ID, NOTARY_ID, OTLedger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingRecipientInbox)
@@ -954,7 +954,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                 theRecipientInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingRecipientInbox = theRecipientInbox.GenerateLedger(
-                RECIPIENT_ACCT_ID, SERVER_ID, OTLedger::inbox,
+                RECIPIENT_ACCT_ID, NOTARY_ID, OTLedger::inbox,
                 true); // bGenerateFile=true
 
         if ((false == bSuccessLoadingSenderInbox) ||

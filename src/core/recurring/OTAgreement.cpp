@@ -271,12 +271,12 @@ bool OTAgreement::SendNoticeToAllParties(
 bool OTAgreement::DropServerNoticeToNymbox(
     bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
                       // OTItem::rejection.
-    Nym& theServerNym, const Identifier& SERVER_ID, const Identifier& USER_ID,
+    Nym& theServerNym, const Identifier& NOTARY_ID, const Identifier& USER_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
     const String& strReference, String* pstrNote, String* pstrAttachment,
     Nym* pActualNym)
 {
-    OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
+    OTLedger theLedger(USER_ID, USER_ID, NOTARY_ID);
 
     // Inbox will receive notification of something ALREADY DONE.
     //
@@ -286,7 +286,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         bSuccessLoading = theLedger.VerifyAccount(theServerNym);
     else
         bSuccessLoading = theLedger.GenerateLedger(
-            USER_ID, SERVER_ID, OTLedger::nymbox, true); // bGenerateFile=true
+            USER_ID, NOTARY_ID, OTLedger::nymbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
         otErr << __FUNCTION__ << ": Failed loading or generating a nymbox. "
@@ -1459,20 +1459,20 @@ OTAgreement::OTAgreement()
     InitAgreement();
 }
 
-OTAgreement::OTAgreement(const Identifier& SERVER_ID,
+OTAgreement::OTAgreement(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
 {
     InitAgreement();
 }
 
-OTAgreement::OTAgreement(const Identifier& SERVER_ID,
+OTAgreement::OTAgreement(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID,
                          const Identifier& SENDER_ACCT_ID,
                          const Identifier& SENDER_USER_ID,
                          const Identifier& RECIPIENT_ACCT_ID,
                          const Identifier& RECIPIENT_USER_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
                SENDER_USER_ID)
 {
     InitAgreement();
@@ -1578,13 +1578,13 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_pCancelerNymID->Release();
         }
 
-        const Identifier SERVER_ID(strNotaryID),
+        const Identifier NOTARY_ID(strNotaryID),
             INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
             SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID),
             RECIPIENT_ACCT_ID(strRecipientAcctID),
             RECIPIENT_USER_ID(strRecipientUserID);
 
-        SetNotaryID(SERVER_ID);
+        SetNotaryID(NOTARY_ID);
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
         SetSenderUserID(SENDER_USER_ID);

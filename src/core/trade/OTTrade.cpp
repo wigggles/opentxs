@@ -227,12 +227,12 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             currencyTypeID(xml->getAttributeValue("currencyTypeID")),
             currencyAcctID(xml->getAttributeValue("currencyAcctID"));
 
-        const Identifier SERVER_ID(notaryID), USER_ID(userID),
+        const Identifier NOTARY_ID(notaryID), USER_ID(userID),
             INSTRUMENT_DEFINITION_ID(instrumentDefinitionID),
             ASSET_ACCT_ID(assetAcctID), CURRENCY_TYPE_ID(currencyTypeID),
             CURRENCY_ACCT_ID(currencyAcctID);
 
-        SetNotaryID(SERVER_ID);
+        SetNotaryID(NOTARY_ID);
         SetSenderUserID(USER_ID);
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetSenderAcctID(ASSET_ACCT_ID);
@@ -317,7 +317,7 @@ void OTTrade::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(GetNotaryID()), USER_ID(GetSenderUserID()),
+    const String NOTARY_ID(GetNotaryID()), USER_ID(GetSenderUserID()),
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         ASSET_ACCT_ID(GetSenderAcctID()), CURRENCY_TYPE_ID(GetCurrencyID()),
         CURRENCY_ACCT_ID(GetCurrencyAcctID());
@@ -338,7 +338,7 @@ void OTTrade::UpdateContents()
         " validTo=\"%" PRId64 "\""
         " >\n\n",
         m_strVersion.Get(), (hasTradeActivated_ ? "true" : "false"),
-        SERVER_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(), ASSET_ACCT_ID.Get(),
+        NOTARY_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(), ASSET_ACCT_ID.Get(),
         CURRENCY_TYPE_ID.Get(), CURRENCY_ACCT_ID.Get(), USER_ID.Get(),
         tradesAlreadyDone_, m_lTransactionNum,
         OTTimeGetSecondsFromTime(GetCreationDate()),

@@ -513,8 +513,8 @@ public:
                                           // public key as the source.)
 
     EXPORT static std::string GetNym_ActiveCronItemIDs(
-        const std::string& NYM_ID, const std::string& SERVER_ID);
-    EXPORT static std::string GetActiveCronItem(const std::string& SERVER_ID,
+        const std::string& NYM_ID, const std::string& NOTARY_ID);
+    EXPORT static std::string GetActiveCronItem(const std::string& NOTARY_ID,
                                                 int64_t lTransNum);
 
     EXPORT static std::string GetNym_SourceForID(const std::string& NYM_ID);
@@ -568,7 +568,7 @@ public:
     // Use these below functions to get the new contract ITSELF, using its ID
     // that was returned by the above two functions:
     //
-    // EXPORT std::string GetServer_Contract(const std::string& SERVER_ID); //
+    // EXPORT std::string GetServer_Contract(const std::string& NOTARY_ID); //
     // Return's Server's contract (based on server ID)
     // EXPORT std::string GetAssetType_Contract(const std::string&
     // INSTRUMENT_DEFINITION_ID); // Returns currency contract based on Asset
@@ -693,10 +693,10 @@ public:
                                                                    // Server's
                                                                    // ID
     EXPORT static std::string GetServer_Name(
-        const std::string& SERVER_ID); // Return's Server's name (based on
+        const std::string& NOTARY_ID); // Return's Server's name (based on
                                        // server ID)
     EXPORT static std::string GetServer_Contract(
-        const std::string& SERVER_ID); // Return's Server's contract (based on
+        const std::string& NOTARY_ID); // Return's Server's contract (based on
                                        // server ID)
 
     /** FormatAmount:
@@ -780,7 +780,7 @@ public:
     // Obviously this will fail for any new account that hasn't done any
     transactions yet, and thus has no receipts.
      */
-    EXPORT static bool VerifyAccountReceipt(const std::string& SERVER_ID,
+    EXPORT static bool VerifyAccountReceipt(const std::string& NOTARY_ID,
                                             const std::string& NYM_ID,
                                             const std::string& ACCT_ID);
 
@@ -796,7 +796,7 @@ public:
     // or -1 for error (no nym found.)
     */
     EXPORT static int32_t GetNym_TransactionNumCount(
-        const std::string& SERVER_ID, const std::string& NYM_ID);
+        const std::string& NOTARY_ID, const std::string& NYM_ID);
 
     EXPORT static std::string GetNym_ID(const int32_t& nIndex); // based on
                                                                 // Index (above
@@ -808,11 +808,11 @@ public:
     EXPORT static std::string GetNym_Stats(
         const std::string& NYM_ID); // Returns Nym Statistics (based on NymID)
     EXPORT static std::string GetNym_NymboxHash(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& NYM_ID); // NymboxHash for "most recently DOWNLOADED"
                                     // Nymbox (by NotaryID)
     EXPORT static std::string GetNym_RecentHash(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& NYM_ID); // "Most recent NymboxHash according to the
                                     // SERVER's records" (Which is often sent as
                                     // an 'FYI' with various server replies to
@@ -832,7 +832,7 @@ public:
                                     // GetAccountWallet_OutboxHash
 
     EXPORT static bool IsNym_RegisteredAtServer(const std::string& NYM_ID,
-                                                const std::string& SERVER_ID);
+                                                const std::string& NOTARY_ID);
 
     /** Each Nym has mail messages, they can come from different servers.
     // This allows you to peruse the mail for a given Nym, and erase messages.
@@ -937,7 +937,7 @@ public:
     not. (Whether there are accounts...)
     // returns OT_BOOL
     */
-    EXPORT static bool Wallet_CanRemoveServer(const std::string& SERVER_ID);
+    EXPORT static bool Wallet_CanRemoveServer(const std::string& NOTARY_ID);
 
     /** Remove this server contract from my wallet!
     //
@@ -946,7 +946,7 @@ public:
     server ID.
     // returns OT_BOOL
     */
-    EXPORT static bool Wallet_RemoveServer(const std::string& SERVER_ID);
+    EXPORT static bool Wallet_RemoveServer(const std::string& NOTARY_ID);
 
     /** Can I remove this asset contract from my wallet?
     //
@@ -1095,7 +1095,7 @@ public:
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& STR_NEW_NAME);
 
-    EXPORT static bool SetServer_Name(const std::string& SERVER_ID,
+    EXPORT static bool SetServer_Name(const std::string& NOTARY_ID,
                                       const std::string& STR_NEW_NAME);
 
     /** (Above) IMPORTANT: USE the above functions for setting the CLIENT-SIDE
@@ -1132,7 +1132,7 @@ public:
     ==> WriteCheque() internally constructs an OTCheque
     and issues it, like so:
 
-    OTCheque theCheque( SERVER_ID, INSTRUMENT_DEFINITION_ID );
+    OTCheque theCheque( NOTARY_ID, INSTRUMENT_DEFINITION_ID );
 
     theCheque.IssueCheque( AMOUNT // The amount of the cheque, in string form,
     which OTAPI
@@ -1154,7 +1154,7 @@ public:
     // empty string here, to write a blank cheque, or pass nullptr.)
     */
     EXPORT static std::string WriteCheque(
-        const std::string& SERVER_ID, const int64_t& CHEQUE_AMOUNT,
+        const std::string& NOTARY_ID, const int64_t& CHEQUE_AMOUNT,
         const time64_t& VALID_FROM, const time64_t& VALID_TO,
         const std::string& SENDER_ACCT_ID, const std::string& SENDER_USER_ID,
         const std::string& CHEQUE_MEMO, const std::string& RECIPIENT_USER_ID);
@@ -1187,7 +1187,7 @@ public:
 
     //Returns OT_BOOL
     */
-    EXPORT static bool DiscardCheque(const std::string& SERVER_ID,
+    EXPORT static bool DiscardCheque(const std::string& NOTARY_ID,
                                      const std::string& USER_ID,
                                      const std::string& ACCT_ID,
                                      const std::string& THE_CHEQUE);
@@ -1256,7 +1256,7 @@ public:
     ----------------------------------------------------------------------------------------
     */
     EXPORT static std::string ProposePaymentPlan(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const time64_t& VALID_FROM, // Default (0 or nullptr) == current time
                                     // measured in seconds since Jan 1970.
         const time64_t& VALID_TO,   // Default (0 or nullptr) == no expiry /
@@ -1299,7 +1299,7 @@ public:
     // a single parameter, as a comma-separated list in string form.
     //
     EXPORT static std::string EasyProposePlan(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& DATE_RANGE, // "from,to"  Default 'from' (0 or "") ==
                                        // NOW, and default 'to' (0 or "") == no
                                        // expiry / cancel anytime
@@ -1327,7 +1327,7 @@ public:
     // Called by Customer. Pass in the plan obtained in the above call.
     //
     EXPORT static std::string ConfirmPaymentPlan(
-        const std::string& SERVER_ID, const std::string& SENDER_USER_ID,
+        const std::string& NOTARY_ID, const std::string& SENDER_USER_ID,
         const std::string& SENDER_ACCT_ID, const std::string& RECIPIENT_USER_ID,
         const std::string& PAYMENT_PLAN);
 
@@ -1620,7 +1620,7 @@ public:
     // See Create_SmartContract (etc.)
     */
     EXPORT static int32_t activateSmartContract(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& THE_SMART_CONTRACT);
     /**
     // If a smart contract is already running on the server, this allows a party
@@ -1636,7 +1636,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t triggerClause(const std::string& SERVER_ID,
+    EXPORT static int32_t triggerClause(const std::string& NOTARY_ID,
                                         const std::string& USER_ID,
                                         const int64_t& TRANSACTION_NUMBER,
                                         const std::string& CLAUSE_NAME,
@@ -1709,14 +1709,14 @@ public:
         const bool& bTransactionWasFailure);
 
     // Returns OT_BOOL
-    // int32_t HarvestClosingNumbers(const std::string& SERVER_ID,
+    // int32_t HarvestClosingNumbers(const std::string& NOTARY_ID,
     //    const std::string& NYM_ID,
     //    const std::string& THE_CRON_ITEM);
     //
     //
     //
     // Returns OT_BOOL
-    // int32_t HarvestAllNumbers(const std::string& SERVER_ID,
+    // int32_t HarvestAllNumbers(const std::string& NOTARY_ID,
     //    const std::string& NYM_ID,
     //    const std::string& THE_CRON_ITEM);
 
@@ -1766,14 +1766,14 @@ public:
     // and return it as a string -- or return nullptr if it wasn't found.
     */
     EXPORT static std::string LoadPurse(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& USER_ID); // returns
     // nullptr, or
     // a purse.
 
     EXPORT static std::string LoadMint(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID); // returns nullptr, or a
                                                       // mint
 
@@ -1783,13 +1783,13 @@ public:
                                                       // contract.
 
     EXPORT static std::string LoadServerContract(
-        const std::string& SERVER_ID); // returns nullptr, or a server contract.
+        const std::string& NOTARY_ID); // returns nullptr, or a server contract.
 
     //! Returns OT_TRUE if the mint is still usable.
     //! Returns OT_FALSE if expired or other error.
     //
     EXPORT static bool Mint_IsStillGood(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
 
     /** --------------------------------------------------------------
@@ -1860,34 +1860,34 @@ public:
     // and returns it as string (or returns nullptr if it couldn't load it.)
     */
     EXPORT static std::string LoadAssetAccount(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID); // Returns nullptr, or an account.
 
     EXPORT static std::string LoadInbox(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID); // Returns nullptr, or an inbox.
 
     EXPORT static std::string LoadOutbox(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID); // returns nullptr, or an outbox.
 
     //! These versions don't verify the ledger, they just load it up.
     //
     EXPORT static std::string LoadInboxNoVerify(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID); // Returns nullptr, or an inbox.
 
     EXPORT static std::string LoadOutboxNoVerify(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID); // returns nullptr, or an outbox.
 
     // from local storage.
     EXPORT static std::string LoadPaymentInbox(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& USER_ID); // Returns nullptr, or a payment inbox.
 
     EXPORT static std::string LoadPaymentInboxNoVerify(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& USER_ID); // Returns nullptr, or a payment inbox.
 
     //! NOTE: Sometimes the user ID is also passed in the "account ID" field,
@@ -1895,15 +1895,15 @@ public:
     //! on what kind of record box it is.
     // from local storage.
     EXPORT static std::string LoadRecordBox(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID); // Returns nullptr, or a RecordBox.
 
     EXPORT static std::string LoadRecordBoxNoVerify(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID); // Returns nullptr, or a RecordBox.
 
     EXPORT static bool ClearRecord(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, // USER_ID can be passed here as well.
         const int32_t& nIndex,
         const bool& bClearAll // if true, nIndex is ignored.
@@ -1931,22 +1931,22 @@ public:
     // it wasn't expired at the time that it was recorded.)
     //
     EXPORT static std::string LoadExpiredBox(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& USER_ID); // Returns nullptr, or an ExpiredBox
 
     EXPORT static std::string LoadExpiredBoxNoVerify(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& USER_ID); // Returns nullptr, or a ExpiredBox.
 
     EXPORT static bool ClearExpired(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const int32_t& nIndex,
         const bool& bClearAll // if true, nIndex is ignored.
         );
 
     //! Find out how many pending transactions (and receipts) are in this inbox.
     EXPORT static int32_t Ledger_GetCount(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID,
         const std::string& THE_LEDGER); // Returns number of transactions
                                         // within.
@@ -1959,31 +1959,31 @@ public:
     // response.)
     //
     EXPORT static std::string Ledger_CreateResponse(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& ORIGINAL_LEDGER);
 
     //! Lookup a transaction or its ID (from within a ledger) based on index or
     //! transaction number.
     //
     EXPORT static std::string Ledger_GetTransactionByIndex(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
         const int32_t& nIndex); // returns transaction by index.
 
     EXPORT static std::string Ledger_GetTransactionByID(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
         const int64_t& TRANSACTION_NUMBER); // returns transaction by ID.
 
     EXPORT static int64_t Ledger_GetTransactionIDByIndex(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
         const int32_t& nIndex); // returns transaction number by index.
 
     //! Add a transaction to a ledger.
     //
     EXPORT static std::string Ledger_AddTransaction(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
         const std::string& THE_TRANSACTION);
 
@@ -1993,7 +1993,7 @@ public:
     //! transactions in my inbox.
     //
     EXPORT static std::string Transaction_CreateResponse(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID,
         const std::string& RESPONSE_LEDGER,      // To be sent to the server...
         const std::string& ORIGINAL_TRANSACTION, // Responding to...?
@@ -2016,7 +2016,7 @@ public:
     // protect themselves against malicious servers.)
     */
     EXPORT static std::string Ledger_FinalizeResponse(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID,
         const std::string& THE_LEDGER // 'Response' ledger be sent to the
                                       // server...
@@ -2064,7 +2064,7 @@ public:
     the payload on that message and returns the decrypted cleartext.
     */
     EXPORT static std::string Ledger_GetInstrument(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
         const int32_t& nIndex); // returns financial instrument by index of the
                                 // transaction it's in.
@@ -2073,7 +2073,7 @@ public:
     // it will be moved
     // to the expired box instead of the record box.
     EXPORT static bool RecordPayment(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const bool& bIsInbox,   // true == payments inbox. false == payments
                                 // outbox.
         const int32_t& nIndex,  // removes payment instrument (from payments in
@@ -2084,7 +2084,7 @@ public:
     //! Get Transaction Type (internally uses GetTransactionTypeString().)
     //
     EXPORT static std::string Transaction_GetType(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     //! Transactions do not have request numbers. However, if you have a
@@ -2099,7 +2099,7 @@ public:
     //! processed the reply for that message.
     //
     EXPORT static int64_t ReplyNotice_GetRequestNum(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& THE_TRANSACTION);
 
     /** --------------------------------------------------------------------
@@ -2133,7 +2133,7 @@ public:
     // retrieve the voucher cheque itself from the transaction.
     */
     EXPORT static std::string Transaction_GetVoucher(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     /** --------------------------------------------------
@@ -2147,11 +2147,11 @@ public:
     // Returns OT_BOOL.
     */
     EXPORT static int32_t Transaction_GetSuccess(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     EXPORT static int32_t Transaction_IsCanceled(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     /** Gets the balance agreement success (from a transaction.)
@@ -2161,7 +2161,7 @@ public:
     // OT_ERROR(-1) == error_state (such as dropped message.)
     */
     EXPORT static int32_t Transaction_GetBalanceAgreementSuccess(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     /** --------------------------------------------------
@@ -2170,11 +2170,11 @@ public:
     OTTransaction::GetDateSigned().)
     */
     EXPORT static time64_t Transaction_GetDateSigned(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     EXPORT static int64_t Transaction_GetAmount(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     /** --------------------------------------------------
@@ -2188,23 +2188,23 @@ public:
     // then decide whether to accept or reject it (see the ledger functions.)
     */
     EXPORT static std::string Pending_GetNote(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     EXPORT static std::string Transaction_GetSenderUserID(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     EXPORT static std::string Transaction_GetSenderAcctID(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     EXPORT static std::string Transaction_GetRecipientUserID(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     EXPORT static std::string Transaction_GetRecipientAcctID(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     /** The pending notice in the inbox has a transaction number that
@@ -2215,7 +2215,7 @@ public:
     // it is "in reference to."
     */
     EXPORT static int64_t Transaction_GetDisplayReferenceToNum(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION);
 
     /**
@@ -2239,7 +2239,7 @@ public:
     mask applied by the currency contract.)
 
     (above a bit.)
-    EXPORT static std::string LoadPurse(const std::string& SERVER_ID,
+    EXPORT static std::string LoadPurse(const std::string& NOTARY_ID,
     const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& USER_ID); // returns nullptr, or a purse.
     */
@@ -2260,14 +2260,14 @@ public:
     // no longer any good, or because they were given to someone else
     // and then a copy was recorded in your payment outbox, or whatever.)
     */
-    EXPORT static bool SavePurse(const std::string& SERVER_ID,
+    EXPORT static bool SavePurse(const std::string& NOTARY_ID,
                                  const std::string& INSTRUMENT_DEFINITION_ID,
                                  const std::string& USER_ID,
                                  const std::string& THE_PURSE);
 
     //
     EXPORT static std::string CreatePurse(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& OWNER_ID,
         const std::string& SIGNER_ID); // returns nullptr, or a purse.
@@ -2275,7 +2275,7 @@ public:
     // Creates a password-protected purse, instead of nym-protected.
     //
     EXPORT static std::string CreatePurse_Passphrase(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& SIGNER_ID);
 
@@ -2284,14 +2284,14 @@ public:
     //! Returns the purported sum of all the tokens within.
     //
     EXPORT static int64_t Purse_GetTotalValue(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_PURSE);
 
     //! returns a count of the number of cash tokens inside this purse.
     //
     EXPORT static int32_t Purse_Count(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_PURSE);
 
@@ -2299,7 +2299,7 @@ public:
     //! Whereas other purses are encrypted to a passphrase.
     //! This function returns bool and lets you know, either way.
     //
-    EXPORT static bool Purse_HasPassword(const std::string& SERVER_ID,
+    EXPORT static bool Purse_HasPassword(const std::string& NOTARY_ID,
                                          const std::string& THE_PURSE);
 
     //! Returns the TOKEN on top of the stock (LEAVING it on top of the stack,
@@ -2308,7 +2308,7 @@ public:
     // returns empty string if failure.
     //
     EXPORT static std::string Purse_Peek(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& OWNER_ID, const std::string& THE_PURSE);
 
@@ -2318,7 +2318,7 @@ public:
     //! Otherwise you will lose the token and get left "holding the bag".
     // returns nullptr if failure.
     EXPORT static std::string Purse_Pop(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& OWNER_OR_SIGNER_ID, const std::string& THE_PURSE);
 
@@ -2326,7 +2326,7 @@ public:
     //! Returns the updated purse (now including the token.)
     // Returns nullptr if failure.
     EXPORT static std::string Purse_Push(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& SIGNER_ID, // The purse, in order to be changed, must
                                       // be re-signed, which requires a private
@@ -2399,14 +2399,14 @@ public:
     // Returns: the empty purse, or nullptr if failure.
     */
     EXPORT static std::string Purse_Empty(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& SIGNER_ID, const std::string& THE_PURSE);
 
     // Returns OT_BOOL
     //! Should handle duplicates. Should load, merge, and save.
     EXPORT static bool Wallet_ImportPurse(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& USER_ID,  // you pass in the purse you're trying to
                                      // import
@@ -2432,7 +2432,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
     EXPORT static int32_t exchangePurse(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID, const std::string& USER_ID,
         const std::string& THE_PURSE);
 
@@ -2441,7 +2441,7 @@ public:
     // such as a Dummy nym, or another user's Nym.
     */
     EXPORT static std::string Token_ChangeOwner(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN, const std::string& SIGNER_NYM_ID,
         const std::string& OLD_OWNER, // Pass a NymID here as a string, or a
@@ -2459,33 +2459,33 @@ public:
     // it, when you create a dummy recipient and attach it to the purse.)
     */
     EXPORT static std::string Token_GetID(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN);
 
     //! The actual cash value of the token. Returns a int64_t.
     //
     EXPORT static int64_t Token_GetDenomination(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN);
 
     EXPORT static int32_t Token_GetSeries(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN);
 
     //! the date is seconds since Jan 1970.
     //
     EXPORT static time64_t Token_GetValidFrom(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN);
 
     // the date is seconds since Jan 1970.
     //
     EXPORT static time64_t Token_GetValidTo(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& THE_TOKEN);
 
@@ -2575,7 +2575,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t pingNotary(const std::string& SERVER_ID,
+    EXPORT static int32_t pingNotary(const std::string& NOTARY_ID,
                                      const std::string& USER_ID);
 
     /**
@@ -2622,7 +2622,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t registerNym(const std::string& SERVER_ID,
+    EXPORT static int32_t registerNym(const std::string& NOTARY_ID,
                                       const std::string& USER_ID);
 
     /** This allows you to delete a Nym from any server it is
@@ -2639,7 +2639,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t unregisterNym(const std::string& SERVER_ID,
+    EXPORT static int32_t unregisterNym(const std::string& NOTARY_ID,
                                         const std::string& USER_ID);
 
     /** This allows you to delete an asset account from a server,
@@ -2654,7 +2654,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t deleteAssetAccount(const std::string& SERVER_ID,
+    EXPORT static int32_t deleteAssetAccount(const std::string& NOTARY_ID,
                                              const std::string& USER_ID,
                                              const std::string& ACCOUNT_ID);
 
@@ -2706,7 +2706,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t usageCredits(const std::string& SERVER_ID,
+    EXPORT static int32_t usageCredits(const std::string& NOTARY_ID,
                                        const std::string& USER_ID,
                                        const std::string& USER_ID_CHECK,
                                        const int64_t& ADJUSTMENT);
@@ -2746,7 +2746,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t checkNym(const std::string& SERVER_ID,
+    EXPORT static int32_t checkNym(const std::string& NOTARY_ID,
                                    const std::string& USER_ID,
                                    const std::string& USER_ID_CHECK);
 
@@ -2773,7 +2773,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t sendNymMessage(const std::string& SERVER_ID,
+    EXPORT static int32_t sendNymMessage(const std::string& NOTARY_ID,
                                          const std::string& USER_ID,
                                          const std::string& USER_ID_RECIPIENT,
                                          const std::string& RECIPIENT_PUBKEY,
@@ -2820,7 +2820,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT static int32_t sendNymInstrument(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& USER_ID_RECIPIENT,
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT,
         const std::string& INSTRUMENT_FOR_SENDER // Can be empty. Optional. Only
@@ -2857,7 +2857,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t getRequestNumber(const std::string& SERVER_ID,
+    EXPORT static int32_t getRequestNumber(const std::string& NOTARY_ID,
                                            const std::string& USER_ID);
 
     /**
@@ -2884,7 +2884,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t getTransactionNumber(const std::string& SERVER_ID,
+    EXPORT static int32_t getTransactionNumber(const std::string& NOTARY_ID,
                                                const std::string& USER_ID);
 
     /** --------------------------------------------------------------------
@@ -2902,7 +2902,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t issueAssetType(const std::string& SERVER_ID,
+    EXPORT static int32_t issueAssetType(const std::string& NOTARY_ID,
                                          const std::string& USER_ID,
                                          const std::string& THE_CONTRACT);
 
@@ -2919,7 +2919,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
     EXPORT static int32_t getContract(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
 
     /**
@@ -2936,7 +2936,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t getMint(const std::string& SERVER_ID,
+    EXPORT static int32_t getMint(const std::string& NOTARY_ID,
                                   const std::string& USER_ID,
                                   const std::string& INSTRUMENT_DEFINITION_ID);
 
@@ -2954,10 +2954,10 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
     EXPORT static int32_t registerAccount(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
 
-    EXPORT static int32_t getAccountData(const std::string& SERVER_ID,
+    EXPORT static int32_t getAccountData(const std::string& NOTARY_ID,
                                          const std::string& USER_ID,
                                          const std::string& ACCT_ID);
 
@@ -3022,7 +3022,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t issueBasket(const std::string& SERVER_ID,
+    EXPORT static int32_t issueBasket(const std::string& NOTARY_ID,
                                       const std::string& USER_ID,
                                       const std::string& THE_BASKET);
 
@@ -3036,7 +3036,7 @@ public:
     // send the request to the server.
     */
     EXPORT static std::string GenerateBasketExchange(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
         const std::string& BASKET_ASSET_ACCT_ID,
         const int32_t& TRANSFER_MULTIPLE);
@@ -3055,7 +3055,7 @@ public:
     // the request to the server.
     */
     EXPORT static std::string AddBasketExchangeItem(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& THE_BASKET,
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& ASSET_ACCT_ID);
@@ -3095,7 +3095,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
     EXPORT static int32_t exchangeBasket(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
         const std::string& THE_BASKET,
         const bool& BOOL_EXCHANGE_IN_OR_OUT // exchanging in == OT_TRUE, out ==
@@ -3132,7 +3132,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t notarizeWithdrawal(const std::string& SERVER_ID,
+    EXPORT static int32_t notarizeWithdrawal(const std::string& NOTARY_ID,
                                              const std::string& USER_ID,
                                              const std::string& ACCT_ID,
                                              const int64_t& AMOUNT);
@@ -3153,7 +3153,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t notarizeDeposit(const std::string& SERVER_ID,
+    EXPORT static int32_t notarizeDeposit(const std::string& NOTARY_ID,
                                           const std::string& USER_ID,
                                           const std::string& ACCT_ID,
                                           const std::string& THE_PURSE);
@@ -3179,7 +3179,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t notarizeTransfer(const std::string& SERVER_ID,
+    EXPORT static int32_t notarizeTransfer(const std::string& NOTARY_ID,
                                            const std::string& USER_ID,
                                            const std::string& ACCT_FROM,
                                            const std::string& ACCT_TO,
@@ -3195,18 +3195,18 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t getNymbox(const std::string& SERVER_ID,
+    EXPORT static int32_t getNymbox(const std::string& NOTARY_ID,
                                     const std::string& USER_ID);
 
     // from local storage.
-    EXPORT static std::string LoadNymbox(const std::string& SERVER_ID,
+    EXPORT static std::string LoadNymbox(const std::string& NOTARY_ID,
                                          const std::string& USER_ID); // Returns
     // nullptr,
     // or a
     // Nymbox.
 
     EXPORT static std::string LoadNymboxNoVerify(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& USER_ID); // Returns nullptr, or a Nymbox.
 
     /** Some server replies (to your messages) are so important that a notice is
@@ -3226,7 +3226,7 @@ public:
     // a copy of a message.)
     */
     EXPORT static std::string Nymbox_GetReplyNotice(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const int64_t& REQUEST_NUMBER); // returns replyNotice transaction by
                                         // requestNumber.
 
@@ -3264,7 +3264,7 @@ public:
     // returns OT_BOOL.
      */
     EXPORT static bool HaveAlreadySeenReply(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const int64_t& REQUEST_NUMBER); // returns OT_BOOL
 
     /** The Nymbox/Inbox/Outbox only contain abbreviated receipts, with a hash
@@ -3291,7 +3291,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT static int32_t getBoxReceipt(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
                                        // pass USER_ID in this field also.
         const int32_t& nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
@@ -3299,7 +3299,7 @@ public:
 
     //
     EXPORT static bool DoesBoxReceiptExist(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& USER_ID,    // Unused here for now, but still
                                        // convention.
         const std::string& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
@@ -3333,7 +3333,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t processInbox(const std::string& SERVER_ID,
+    EXPORT static int32_t processInbox(const std::string& NOTARY_ID,
                                        const std::string& USER_ID,
                                        const std::string& ACCT_ID,
                                        const std::string& ACCT_LEDGER);
@@ -3352,7 +3352,7 @@ public:
     // 0 if Nymbox is empty.
     // 1 or more: Count of items in Nymbox before processing.
     */
-    EXPORT static int32_t processNymbox(const std::string& SERVER_ID,
+    EXPORT static int32_t processNymbox(const std::string& NOTARY_ID,
                                         const std::string& USER_ID);
 
     /**
@@ -3374,7 +3374,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t withdrawVoucher(const std::string& SERVER_ID,
+    EXPORT static int32_t withdrawVoucher(const std::string& NOTARY_ID,
                                           const std::string& USER_ID,
                                           const std::string& ACCT_ID,
                                           const std::string& RECIPIENT_USER_ID,
@@ -3384,7 +3384,7 @@ public:
     //! PAY DIVIDEND -- to shareholders
     //
     EXPORT static int32_t payDividend(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& ISSUER_USER_ID, // must be issuer of
                                            // SHARES_INSTRUMENT_DEFINITION_ID
         const std::string& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
@@ -3420,7 +3420,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t depositCheque(const std::string& SERVER_ID,
+    EXPORT static int32_t depositCheque(const std::string& NOTARY_ID,
                                         const std::string& USER_ID,
                                         const std::string& ACCT_ID,
                                         const std::string& THE_CHEQUE);
@@ -3440,7 +3440,7 @@ public:
     */
 
     EXPORT static int32_t depositPaymentPlan(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& THE_PAYMENT_PLAN);
 
     /** --------------------------------------------------
@@ -3515,7 +3515,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t getMarketList(const std::string& SERVER_ID,
+    EXPORT static int32_t getMarketList(const std::string& NOTARY_ID,
                                         const std::string& USER_ID);
 
     //! Gets all offers for a specific market and their details (up until
@@ -3529,7 +3529,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT static int32_t getMarketOffers(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& MARKET_ID, const int64_t& MAX_DEPTH // Market Depth
         );
 
@@ -3542,7 +3542,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t getMarketRecentTrades(const std::string& SERVER_ID,
+    EXPORT static int32_t getMarketRecentTrades(const std::string& NOTARY_ID,
                                                 const std::string& USER_ID,
                                                 const std::string& MARKET_ID);
 
@@ -3557,7 +3557,7 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
     EXPORT static int32_t getNym_MarketOffers(
-        const std::string& SERVER_ID,
+        const std::string& NOTARY_ID,
         const std::string& USER_ID); // Offers this Nym has out on market.
     // These may just be the Cron Receipts...
 
@@ -3569,7 +3569,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t killMarketOffer(const std::string& SERVER_ID,
+    EXPORT static int32_t killMarketOffer(const std::string& NOTARY_ID,
                                           const std::string& USER_ID,
                                           const std::string& ASSET_ACCT_ID,
                                           const int64_t& TRANSACTION_NUMBER);
@@ -3582,7 +3582,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t killPaymentPlan(const std::string& SERVER_ID,
+    EXPORT static int32_t killPaymentPlan(const std::string& NOTARY_ID,
                                           const std::string& USER_ID,
                                           const std::string& FROM_ACCT_ID,
                                           const int64_t& TRANSACTION_NUMBER);
@@ -3615,7 +3615,7 @@ public:
     // necessary -- only discarding the ones where the IDs match.
     */
     EXPORT static std::string PopMessageBuffer(const int64_t& REQUEST_NUMBER,
-                                               const std::string& SERVER_ID,
+                                               const std::string& NOTARY_ID,
                                                const std::string& USER_ID);
 
     EXPORT static void FlushMessageBuffer();
@@ -3623,11 +3623,11 @@ public:
     // Outgoing:
 
     EXPORT static std::string GetSentMessage(const int64_t& REQUEST_NUMBER,
-                                             const std::string& SERVER_ID,
+                                             const std::string& NOTARY_ID,
                                              const std::string& USER_ID);
 
     EXPORT static bool RemoveSentMessage(const int64_t& REQUEST_NUMBER,
-                                         const std::string& SERVER_ID,
+                                         const std::string& NOTARY_ID,
                                          const std::string& USER_ID);
 
     // Note: Might remove this from API. Basically, the sent messages queue must
@@ -3690,7 +3690,7 @@ public:
     EXPORT static void FlushSentMessages(
         const bool& bHarvestingForRetry, // bHarvestingForRetry is actually
                                          // OT_BOOL
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& THE_NYMBOX);
 
     /** SLEEP
@@ -3716,7 +3716,7 @@ public:
     // here, so that it can read theMessageNym (to sync the transaction
     // numbers.)
     //
-    EXPORT static bool ResyncNymWithServer(const std::string& SERVER_ID,
+    EXPORT static bool ResyncNymWithServer(const std::string& NOTARY_ID,
                                            const std::string& USER_ID,
                                            const std::string& THE_MESSAGE);
     /** -----------------------------------------------------------
@@ -3751,7 +3751,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t queryAssetTypes(const std::string& SERVER_ID,
+    EXPORT static int32_t queryAssetTypes(const std::string& NOTARY_ID,
                                           const std::string& USER_ID,
                                           const std::string& ENCODED_MAP);
     /** -----------------------------------------------------------
@@ -3801,11 +3801,11 @@ public:
     // Returns OT_ERROR for error. (-1)
     */
     EXPORT static int32_t Message_GetTransactionSuccess(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE);
 
     EXPORT static int32_t Message_IsTransactionCanceled(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE);
     /** -----------------------------------------------------------
     // GET BALANCE AGREEMENT SUCCESS (From a MESSAGE.)
@@ -3814,7 +3814,7 @@ public:
     // Returns OT_ERROR for error. (-1)
     */
     EXPORT static int32_t Message_GetBalanceAgreementSuccess(
-        const std::string& SERVER_ID, const std::string& USER_ID,
+        const std::string& NOTARY_ID, const std::string& USER_ID,
         const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE);
     /** -----------------------------------------------------------
     // GET MESSAGE LEDGER

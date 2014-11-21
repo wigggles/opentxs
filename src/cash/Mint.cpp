@@ -406,10 +406,10 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
         strFilename = strInstrumentDefinitionID.Get(); // client side
 
     const char* szFolder1name = OTFolders::Mint().Get(); // "mints"
-    const char* szFolder2name = strNotaryID.Get();       // "mints/SERVER_ID"
+    const char* szFolder2name = strNotaryID.Get();       // "mints/NOTARY_ID"
     const char* szFilename =
         strFilename
-            .Get(); // "mints/SERVER_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
+            .Get(); // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
 
     if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
@@ -640,7 +640,7 @@ void Mint::UpdateContents()
 {
     OT_ASSERT(nullptr != m_pKeyPublic);
 
-    String SERVER_ID(m_NotaryID), SERVER_NYM_ID(m_ServerNymID),
+    String NOTARY_ID(m_NotaryID), SERVER_NYM_ID(m_ServerNymID),
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
         CASH_ACCOUNT_ID(m_CashAccountID);
 
@@ -664,7 +664,7 @@ void Mint::UpdateContents()
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), SERVER_ID.Get(), SERVER_NYM_ID.Get(),
+        m_strVersion.Get(), NOTARY_ID.Get(), SERVER_NYM_ID.Get(),
         INSTRUMENT_DEFINITION_ID.Get(), CASH_ACCOUNT_ID.Get(), m_nSeries,
         lExpiration, lFrom, lTo);
 
@@ -879,7 +879,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 
  OTAccount * pAcct = nullptr;
- pAcct = OTAccount::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
+ pAcct = OTAccount::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID);
  */
 
 // Lucre step 1: generate new mint

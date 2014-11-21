@@ -229,15 +229,15 @@ public:
     // in advance. I decided to add a factory for OTPurse to facilitate that.
     EXPORT static Purse* PurseFactory(String strInput);
     EXPORT static Purse* PurseFactory(String strInput,
-                                      const Identifier& SERVER_ID);
+                                      const Identifier& NOTARY_ID);
     EXPORT static Purse* PurseFactory(
-        String strInput, const Identifier& SERVER_ID,
+        String strInput, const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine);
     EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine,
-                                             const Identifier& SERVER_ID);
+                                             const Identifier& NOTARY_ID);
     EXPORT static Purse* LowLevelInstantiate(
-        const String& strFirstLine, const Identifier& SERVER_ID,
+        const String& strFirstLine, const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
     // What if you DON'T want to encrypt the purse to your Nym??
@@ -308,14 +308,14 @@ public:
                       OTNym_or_SymmetricKey theNewNym, Purse& theNewPurse);
     EXPORT Purse(const Purse& thePurse); // just for copy another purse's
                                          // Server and Instrument Definition Id
-    EXPORT Purse(const Identifier& SERVER_ID,
+    EXPORT Purse(const Identifier& NOTARY_ID,
                  const Identifier& INSTRUMENT_DEFINITION_ID); // similar thing
-    EXPORT Purse(const Identifier& SERVER_ID); // Don't use this unless you
+    EXPORT Purse(const Identifier& NOTARY_ID); // Don't use this unless you
                                                // really don't know the
                                                // asset type
     // (Like if you're about to read it out of a string.)
     // Normally you really really want to set the asset type.
-    EXPORT Purse(const Identifier& SERVER_ID,
+    EXPORT Purse(const Identifier& NOTARY_ID,
                  const Identifier& INSTRUMENT_DEFINITION_ID,
                  const Identifier& USER_ID); // UserID optional
     EXPORT virtual ~Purse();

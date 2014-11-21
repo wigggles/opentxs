@@ -155,20 +155,20 @@ private:
 
 public:
     EXPORT OT_MADE_EASY_OT static std::string activate_smart_contract(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& AGENT_NAME,
         const std::string& THE_SMART_CONTRACT);
     EXPORT OT_MADE_EASY_OT static std::string adjust_usage_credits(
-        const std::string& SERVER_ID, const std::string& USER_NYM_ID,
+        const std::string& NOTARY_ID, const std::string& USER_NYM_ID,
         const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT);
     EXPORT OT_MADE_EASY_OT static std::string cancel_payment_plan(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);
     EXPORT OT_MADE_EASY_OT static std::string check_nym(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string create_asset_acct(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
     EXPORT OT_MADE_EASY_OT static std::string create_market_offer(
         const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
@@ -180,13 +180,13 @@ public:
         int32_t nKeybits, const std::string& strNymIDSource,
         const std::string& strAltLocation);
     EXPORT OT_MADE_EASY_OT static std::string deposit_cheque(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& STR_CHEQUE);
     EXPORT OT_MADE_EASY_OT static std::string deposit_payment_plan(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);
     EXPORT OT_MADE_EASY_OT static std::string deposit_purse(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& STR_PURSE);
     EXPORT OT_MADE_EASY_OT static int32_t depositCashPurse(
         const std::string& notaryID, const std::string& instrumentDefinitionID,
@@ -196,7 +196,7 @@ public:
         bool bReimportIfFailure); // So we don't re-import a purse that
                                   // wasn't internal to begin with.
     EXPORT OT_MADE_EASY_OT static std::string exchange_basket_currency(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ASSET_TYPE, const std::string& THE_BASKET,
         const std::string& ACCT_ID, bool IN_OR_OUT);
     EXPORT OT_MADE_EASY_OT static bool exchangeCashPurse(
@@ -210,21 +210,21 @@ public:
         std::string& recipientNymID, bool bPasswordProtected,
         std::string& strRetainedCopy);
     EXPORT OT_MADE_EASY_OT static std::string get_box_receipt(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, int32_t nBoxType,
         const std::string& STR_TRANS_NUM);
     EXPORT OT_MADE_EASY_OT static std::string get_market_list(
-        const std::string& SERVER_ID, const std::string& NYM_ID);
+        const std::string& NOTARY_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string get_market_offers(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& MARKET_ID, int64_t MAX_DEPTH);
     EXPORT OT_MADE_EASY_OT static std::string get_market_recent_trades(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& MARKET_ID);
     EXPORT OT_MADE_EASY_OT static std::string get_nym_market_offers(
-        const std::string& SERVER_ID, const std::string& NYM_ID);
+        const std::string& NOTARY_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string get_payment_instrument(
-        const std::string& SERVER_ID, const std::string& NYM_ID, int32_t nIndex,
+        const std::string& NOTARY_ID, const std::string& NYM_ID, int32_t nIndex,
         const std::string& PRELOADED_INBOX); // PRELOADED_INBOX is optional.
     EXPORT OT_MADE_EASY_OT static bool importCashPurse(
         const std::string& notaryID, const std::string& nymID,
@@ -234,40 +234,40 @@ public:
         int32_t nNumberNeeded, const std::string& strMyNotaryID,
         const std::string& strMyNymID);
     EXPORT OT_MADE_EASY_OT static std::string issue_asset_type(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_CONTRACT);
     EXPORT OT_MADE_EASY_OT static std::string issue_basket_currency(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_BASKET);
     EXPORT OT_MADE_EASY_OT static std::string kill_market_offer(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ASSET_ACCT_ID, const std::string& STR_TRANS_NUM);
     EXPORT OT_MADE_EASY_OT static std::string kill_payment_plan(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& STR_TRANS_NUM);
     EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_contract(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& CONTRACT_ID);
     EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_encrypt_key(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_mint(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
     EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_signing_key(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string load_public_encryption_key(
         const std::string& NYM_ID); // from local storage.
     EXPORT OT_MADE_EASY_OT static std::string load_public_signing_key(
         const std::string& NYM_ID); // from local storage.
     EXPORT OT_MADE_EASY_OT static std::string pay_dividend(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& SOURCE_ACCT_ID,
         const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
         const std::string& STR_MEMO, int64_t AMOUNT_PER_SHARE);
     EXPORT OT_MADE_EASY_OT static std::string process_inbox(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID, const std::string& RESPONSE_LEDGER);
     EXPORT OT_MADE_EASY_OT static bool processCashPurse(
         std::string& newPurse, std::string& newPurseForSender,
@@ -277,61 +277,61 @@ public:
         const std::string& recipientNymID, bool bPWProtectOldPurse,
         bool bPWProtectNewPurse);
     EXPORT OT_MADE_EASY_OT static std::string query_asset_types(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ENCODED_MAP);
     EXPORT OT_MADE_EASY_OT static std::string register_nym(
-        const std::string& SERVER_ID, const std::string& NYM_ID);
+        const std::string& NOTARY_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static bool retrieve_account(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
         bool bForceDownload); // bForceDownload=false
     EXPORT OT_MADE_EASY_OT static std::string retrieve_contract(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& CONTRACT_ID);
     EXPORT OT_MADE_EASY_OT static std::string retrieve_mint(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
     EXPORT OT_MADE_EASY_OT static int32_t retrieve_nym(
         const std::string& strNotaryID, const std::string& strMyNymID,
         bool& bWasMsgSent, bool bForceDownload);
     EXPORT OT_MADE_EASY_OT static std::string send_transfer(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_FROM, const std::string& ACCT_TO,
         int64_t AMOUNT, const std::string& NOTE);
     EXPORT OT_MADE_EASY_OT static std::string send_user_cash(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID, const std::string& THE_PAYMENT,
         const std::string& SENDERS_COPY);
     EXPORT OT_MADE_EASY_OT static std::string send_user_cash_pubkey(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT,
         const std::string& INSTRUMENT_FOR_SENDER);
     EXPORT OT_MADE_EASY_OT static std::string send_user_msg(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID, const std::string& THE_MESSAGE);
     EXPORT OT_MADE_EASY_OT static std::string send_user_msg_pubkey(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_MESSAGE);
     EXPORT OT_MADE_EASY_OT static std::string send_user_payment(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID, const std::string& THE_PAYMENT);
     EXPORT OT_MADE_EASY_OT static std::string send_user_pmnt_pubkey(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT);
     EXPORT OT_MADE_EASY_OT static std::string stat_asset_account(
         const std::string& ACCOUNT_ID);
     EXPORT OT_MADE_EASY_OT static std::string trigger_clause(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& STR_TRANS_NUM, const std::string& CLAUSE_NAME,
         const std::string& STR_PARAM);
     EXPORT OT_MADE_EASY_OT static std::string withdraw_cash(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, int64_t AMOUNT);
     EXPORT OT_MADE_EASY_OT static std::string withdraw_voucher(
-        const std::string& SERVER_ID, const std::string& NYM_ID,
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& RECIP_NYM_ID,
         const std::string& STR_MEMO, int64_t AMOUNT);
 };

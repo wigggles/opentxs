@@ -192,7 +192,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym),
+    const Identifier NOTARY_ID(server_->m_strNotaryID), USER_ID(theNym),
         ACCOUNT_ID(theFromAccount),
         INSTRUMENT_DEFINITION_ID(theFromAccount.GetInstrumentDefinitionID());
 
@@ -289,7 +289,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
         // Set the ID on the To Account based on what the transaction request
         // said. (So we can load it up.)
         std::unique_ptr<Account> pDestinationAcct(Account::LoadExistingAccount(
-            pItem->GetDestinationAcctID(), SERVER_ID));
+            pItem->GetDestinationAcctID(), NOTARY_ID));
 
         // Only accept transfers with positive amounts.
         if (0 > pItem->GetAmount()) {
@@ -358,8 +358,8 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
             // IF they can be loaded up from file, or generated, that is.
 
             // Load the inbox/outbox in case they already exist
-            OTLedger theFromOutbox(USER_ID, IDFromAccount, SERVER_ID),
-                theToInbox(pItem->GetDestinationAcctID(), SERVER_ID);
+            OTLedger theFromOutbox(USER_ID, IDFromAccount, NOTARY_ID),
+                theToInbox(pItem->GetDestinationAcctID(), NOTARY_ID);
 
             bool bSuccessLoadingInbox = theToInbox.LoadInbox();
             bool bSuccessLoadingOutbox = theFromOutbox.LoadOutbox();
@@ -684,7 +684,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym),
+    const Identifier NOTARY_ID(server_->m_strNotaryID), USER_ID(theNym),
         ACCOUNT_ID(theAccount), SERVER_USER_ID(server_->m_nymServer),
         INSTRUMENT_DEFINITION_ID(theAccount.GetInstrumentDefinitionID());
 
@@ -852,8 +852,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             Account& theVoucherReserveAcct = (*pVoucherReserveAcct);
             Identifier VOUCHER_ACCOUNT_ID(theVoucherReserveAcct);
 
-            Cheque theVoucher(SERVER_ID, INSTRUMENT_DEFINITION_ID),
-                theVoucherRequest(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+            Cheque theVoucher(NOTARY_ID, INSTRUMENT_DEFINITION_ID),
+                theVoucherRequest(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
             bool bLoadContractFromString =
                 theVoucherRequest.LoadContractFromString(strVoucherRequest);
@@ -1133,8 +1133,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             // the Debits are done one-at-a-time
             // for each token and it's amount/denomination
 
-            Purse thePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
-            Purse theOutputPurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+            Purse thePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+            Purse theOutputPurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
             Token* pToken = nullptr;
             dequeOfTokenPtrs theDeque;
 
@@ -1504,7 +1504,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     //
-    const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym),
+    const Identifier NOTARY_ID(server_->m_strNotaryID), USER_ID(theNym),
         SOURCE_ACCT_ID(theSourceAccount), SERVER_USER_ID(server_->m_nymServer),
         PAYOUT_INSTRUMENT_DEFINITION_ID(
             theSourceAccount.GetInstrumentDefinitionID()); // Ex: Pepsi shares,
@@ -1667,7 +1667,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
 
             if (nullptr != pSharesContract) {
                 pSharesIssuerAccount = Account::LoadExistingAccount(
-                    SHARES_ISSUER_ACCT_ID, SERVER_ID);
+                    SHARES_ISSUER_ACCT_ID, NOTARY_ID);
                 theAcctAngel.reset(pSharesIssuerAccount);
             }
 
@@ -1976,7 +1976,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                         &theVoucherReserveAcct));
 
                                 PayDividendVisitor actionPayDividend(
-                                    SERVER_ID, USER_ID,
+                                    NOTARY_ID, USER_ID,
                                     PAYOUT_INSTRUMENT_DEFINITION_ID,
                                     VOUCHER_ACCOUNT_ID,
                                     strInReferenceTo, // Memo for each voucher
@@ -2072,7 +2072,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                         szFunc, lTotalCostOfDividend,
                                         lLeftovers);
                                     Cheque theVoucher(
-                                        SERVER_ID,
+                                        NOTARY_ID,
                                         PAYOUT_INSTRUMENT_DEFINITION_ID);
 
                                     // 10 minutes ==    600 Seconds
@@ -2191,7 +2191,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                             // calls DropMessageToNymbox
                                             bSent =
                                                 server_->SendInstrumentToNym(
-                                                    SERVER_ID,
+                                                    NOTARY_ID,
                                                     SERVER_NYM_ID, // sender nym
                                                     USER_ID, // recipient nym
                                                              // (returning to
@@ -2307,7 +2307,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym),
+    const Identifier NOTARY_ID(server_->m_strNotaryID), USER_ID(theNym),
         ACCOUNT_ID(theAccount), SERVER_USER_ID(server_->m_nymServer),
         INSTRUMENT_DEFINITION_ID(theAccount.GetInstrumentDefinitionID());
 
@@ -2467,7 +2467,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             String strCheque;
             pItem->GetAttachment(strCheque);
             Cheque theCheque(
-                SERVER_ID,
+                NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID); // allocated on the stack :-)
             bool bLoadContractFromString =
                 theCheque.LoadContractFromString(strCheque);
@@ -2480,7 +2480,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             // account
             // (the server running this code right now.)
             //
-            else if (SERVER_ID != theCheque.GetNotaryID()) {
+            else if (NOTARY_ID != theCheque.GetNotaryID()) {
                 const String strSenderUserID(theCheque.GetSenderUserID());
                 const String strRecipientUserID(theCheque.GetRecipientUserID());
                 OTLog::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
@@ -2762,10 +2762,10 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     strRemitterUserID(REMITTER_USER_ID),
                     strRemitterAcctID(REMITTER_ACCT_ID);
                 OTLedger theSenderInbox(SENDER_USER_ID, SOURCE_ACCT_ID,
-                                        SERVER_ID); // chequeReceipt goes here.
+                                        NOTARY_ID); // chequeReceipt goes here.
                 OTLedger theRemitterInbox(
                     REMITTER_USER_ID, REMITTER_ACCT_ID,
-                    SERVER_ID); // voucherReceipt goes here.
+                    NOTARY_ID); // voucherReceipt goes here.
                 OTLedger* pSenderInbox = &theSenderInbox;
                 OTLedger* pRemitterInbox = &theRemitterInbox;
                 Account* pRemitterAcct =
@@ -2946,7 +2946,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                        (bHasRemitter) ? "cheque" : "voucher");
                     //                  else
                     //                      bSuccessLoadSenderInbox =
-                    // pSenderInbox->GenerateLedger(SOURCE_ACCT_ID, SERVER_ID,
+                    // pSenderInbox->GenerateLedger(SOURCE_ACCT_ID, NOTARY_ID,
                     // OTLedger::inbox, true); // bGenerateFile=true
                 }
                 // To deposit a cheque, need to verify:  (in no special order)
@@ -3146,7 +3146,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 else if (!bSourceAcctAlreadyLoaded &&
                          ((nullptr ==
                            (pSourceAcct = Account::LoadExistingAccount(
-                                SOURCE_ACCT_ID, SERVER_ID))) ||
+                                SOURCE_ACCT_ID, NOTARY_ID))) ||
                           (theSourceAcctGuardian.reset(pSourceAcct),
                            false // I want this to eval to false, but I want
                                  // SetCleanup to call.
@@ -3232,7 +3232,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     if (bHasRemitter && !bRemitterAcctAlreadyLoaded &&
                         ((nullptr ==
                           (pRemitterAcct = Account::LoadExistingAccount(
-                               REMITTER_ACCT_ID, SERVER_ID))) ||
+                               REMITTER_ACCT_ID, NOTARY_ID))) ||
                          (theRemitterAcctGuardian.reset(pRemitterAcct),
                           false // I want this to eval to false, but I want
                                 // SetCleanup to call.
@@ -3792,7 +3792,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             String strPurse;
             pItem->GetAttachment(strPurse);
 
-            Purse thePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+            Purse thePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
             bool bLoadContractFromString =
                 thePurse.LoadContractFromString(strPurse);
@@ -3866,7 +3866,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                             break;
                         }
                         else if (!(pToken->GetNotaryID() ==
-                                     SERVER_ID)) // or if failure verifying
+                                     NOTARY_ID)) // or if failure verifying
                                                  // server ID
                         {
                             bSuccess = false;
@@ -4117,7 +4117,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID),
+    const Identifier NOTARY_ID(server_->m_strNotaryID),
         DEPOSITOR_USER_ID(theNym), SERVER_USER_ID(server_->m_nymServer),
         DEPOSITOR_ACCT_ID(theDepositorAccount), USER_ID(theNym);
 
@@ -4207,7 +4207,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                     "%s: ERROR loading payment plan from string:\n%s\n",
                     __FUNCTION__, strPaymentPlan.Get());
             }
-            else if (pPlan->GetNotaryID() != SERVER_ID) {
+            else if (pPlan->GetNotaryID() != NOTARY_ID) {
                 OTLog::vOutput(0, "%s: ERROR bad server ID on payment plan.\n",
                                __FUNCTION__);
             }
@@ -4520,7 +4520,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                             if (!bCancelling) // ACTIVATING
                             {
                                 pRecipientAcct = Account::LoadExistingAccount(
-                                    RECIPIENT_ACCT_ID, SERVER_ID);
+                                    RECIPIENT_ACCT_ID, NOTARY_ID);
                                 theRecipientAcctGuardian.reset(pRecipientAcct);
                             }
                             else // CANCELLING
@@ -4734,7 +4734,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                     if (false ==
                                         pPlan->SendNoticeToAllParties(
                                             true, // bSuccessMsg=true
-                                            server_->m_nymServer, SERVER_ID,
+                                            server_->m_nymServer, NOTARY_ID,
                                             lOtherNewTransNumber,
                                             // // Each party has its own opening
                                             // number. Handled internally.
@@ -4783,7 +4783,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                     if (false ==
                                         pPlan->SendNoticeToAllParties(
                                             false, server_->m_nymServer,
-                                            SERVER_ID, lOtherNewTransNumber,
+                                            NOTARY_ID, lOtherNewTransNumber,
                                             // // Each party has its own opening
                                             // number. Handled internally.
                                             strPaymentPlan, nullptr, nullptr,
@@ -4870,7 +4870,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID),
+    const Identifier NOTARY_ID(server_->m_strNotaryID),
         ACTIVATOR_USER_ID(theNym), SERVER_USER_ID(server_->m_nymServer),
         ACTIVATOR_ACCT_ID(theActivatingAccount), USER_ID(theNym);
     const String strUserID(USER_ID);
@@ -4948,7 +4948,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
             // Also load up the smart contract from inside the transaction item.
             String strContract;
             pItem->GetAttachment(strContract);
-            OTSmartContract* pContract = new OTSmartContract(SERVER_ID);
+            OTSmartContract* pContract = new OTSmartContract(NOTARY_ID);
             OT_ASSERT(nullptr != pContract);
 
             // If we failed to load the smart contract...
@@ -4957,7 +4957,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                     "%s: ERROR loading smart contract from string:\n\n%s\n\n",
                     __FUNCTION__, strContract.Get());
             }
-            else if (pContract->GetNotaryID() != SERVER_ID) {
+            else if (pContract->GetNotaryID() != NOTARY_ID) {
                 const String strWrongID(pContract->GetNotaryID());
                 OTLog::vOutput(0, "%s: ERROR bad server ID (%s) on smart "
                                   "contract. Expected %s\n",
@@ -5451,7 +5451,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
 
                     if (false ==
                         pContract->SendNoticeToAllParties(
-                            false, server_->m_nymServer, SERVER_ID,
+                            false, server_->m_nymServer, NOTARY_ID,
                             lNewTransactionNumber,
                             // // Each party has its own opening number. Handled
                             // internally.
@@ -5491,7 +5491,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
 
                     if (false ==
                         pContract->SendNoticeToAllParties(
-                            true, server_->m_nymServer, SERVER_ID,
+                            true, server_->m_nymServer, NOTARY_ID,
                             lNewTransactionNumber,
                             // // Each party has its own opening number. Handled
                             // internally.
@@ -5603,7 +5603,7 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym);
+    const Identifier NOTARY_ID(server_->m_strNotaryID), USER_ID(theNym);
 
     const String strUserID(USER_ID);
 
@@ -5790,7 +5790,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
     String strInReferenceTo;
     String strBalanceItem;
 
-    const Identifier USER_ID(theNym), SERVER_ID(server_->m_strNotaryID),
+    const Identifier USER_ID(theNym), NOTARY_ID(server_->m_strNotaryID),
         BASKET_CONTRACT_ID(theAccount.GetInstrumentDefinitionID()),
         ACCOUNT_ID(theAccount);
 
@@ -5923,7 +5923,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
             }
             else { // Load the basket account and make sure it exists.
                 pBasketAcct =
-                    Account::LoadExistingAccount(BASKET_ACCOUNT_ID, SERVER_ID);
+                    Account::LoadExistingAccount(BASKET_ACCOUNT_ID, NOTARY_ID);
 
                 // If the pointer is nullptr, that works too. Otherwise it
                 // cleans
@@ -6044,7 +6044,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     Account* pUserAcct =
                                         Account::LoadExistingAccount(
                                             pRequestItem->SUB_ACCOUNT_ID,
-                                            SERVER_ID);
+                                            NOTARY_ID);
 
                                     if (nullptr == pUserAcct) {
                                         OTLog::Error("ERROR loading a user's "
@@ -6058,7 +6058,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     Account* pServerAcct =
                                         Account::LoadExistingAccount(
                                             pBasketItem->SUB_ACCOUNT_ID,
-                                            SERVER_ID);
+                                            NOTARY_ID);
 
                                     if (nullptr == pServerAcct) {
                                         OTLog::Error("ERROR loading a basket "
@@ -6688,7 +6688,7 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym);
+    const Identifier NOTARY_ID(server_->m_strNotaryID), USER_ID(theNym);
     const String strUserID(USER_ID);
 
     pItem = tranIn.GetItem(OTItem::marketOffer);
@@ -6780,7 +6780,7 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
 
             // Load up the currency account and validate it.
             std::unique_ptr<Account> pCurrencyAcct(
-                Account::LoadExistingAccount(CURRENCY_ACCT_ID, SERVER_ID));
+                Account::LoadExistingAccount(CURRENCY_ACCT_ID, NOTARY_ID));
 
             // Also load up the Trade from inside the transaction item.
             String strOffer;
@@ -6867,8 +6867,8 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                 OTLog::Output(0, "ERROR needed 2 valid closing transaction "
                                  "numbers in Notary::NotarizeMarketOffer\n");
             }
-            else if (pTrade->GetNotaryID() != SERVER_ID) {
-                const String strID1(pTrade->GetNotaryID()), strID2(SERVER_ID);
+            else if (pTrade->GetNotaryID() != NOTARY_ID) {
+                const String strID1(pTrade->GetNotaryID()), strID2(NOTARY_ID);
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "Server ID (%s) on trade. Expected: %s\n",
                                strID1.Get(), strID2.Get());
@@ -7080,12 +7080,12 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                                  OTTransaction& tranOut, bool& bOutSuccess)
 {
     const int64_t lTransactionNumber = tranIn.GetTransactionNum();
-    const Identifier SERVER_ID(server_->m_strNotaryID);
+    const Identifier NOTARY_ID(server_->m_strNotaryID);
     Identifier USER_ID;
     theNym.GetIdentifier(USER_ID);
     const String strIDNym(USER_ID);
 
-    Account theFromAccount(USER_ID, tranIn.GetPurportedAccountID(), SERVER_ID);
+    Account theFromAccount(USER_ID, tranIn.GetPurportedAccountID(), NOTARY_ID);
 
     // Make sure the "from" account even exists...
     if (!theFromAccount.LoadContract()) {
@@ -7468,10 +7468,10 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID), USER_ID(theNym);
+    const Identifier NOTARY_ID(server_->m_strNotaryID), USER_ID(theNym);
     Nym theTempNym;
 
-    OTLedger theNymbox(USER_ID, USER_ID, SERVER_ID);
+    OTLedger theNymbox(USER_ID, USER_ID, NOTARY_ID);
     String strNymID(USER_ID);
 
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
@@ -7636,9 +7636,9 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
 
             // Remove all issued nums from theNym that are stored on theTempNym
             // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(SERVER_ID);
+            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
                  i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(SERVER_ID, i);
+                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
                 theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
             }
         }
@@ -7656,9 +7656,9 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
 
             // Remove all issued nums from theNym that are stored on theTempNym
             // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(SERVER_ID);
+            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
                  i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(SERVER_ID, i);
+                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
                 theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
             }
         }
@@ -7666,9 +7666,9 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
         {
             // Remove all issued nums from theNym that are stored on theTempNym
             // HERE.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(SERVER_ID);
+            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
                  i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(SERVER_ID, i);
+                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
                 theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
             }
 
@@ -8116,7 +8116,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
             // success.
             // Therefore, add any new issued numbers to theNym, and save.
 
-            theNym.HarvestIssuedNumbers(SERVER_ID, server_->m_nymServer,
+            theNym.HarvestIssuedNumbers(NOTARY_ID, server_->m_nymServer,
                                         theTempNym, true); // bSave=true
 
             bOutSuccess = true; // the processNymbox was successful.
@@ -8161,7 +8161,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
-    const Identifier SERVER_ID(server_->m_strNotaryID), ACCOUNT_ID(theAccount),
+    const Identifier NOTARY_ID(server_->m_strNotaryID), ACCOUNT_ID(theAccount),
         USER_ID(theNym);
 
     const String strUserID(USER_ID);
@@ -8481,7 +8481,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
 
                     std::unique_ptr<OTItem> pOriginalItem(
                         OTItem::CreateItemFromString(
-                            strOriginalItem, SERVER_ID,
+                            strOriginalItem, NOTARY_ID,
                             pServerTransaction->GetReferenceToNum()));
 
                     if (nullptr != pOriginalItem) {
@@ -8692,9 +8692,9 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
             // they were really there.
             // Otherwise it'd be pretty stupid to "re-add" them, eh?
             //
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(SERVER_ID);
+            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
                  i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(SERVER_ID, i);
+                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
                 theNym.RemoveIssuedNum(server_->m_strNotaryID, lTemp);
             }
 
@@ -8708,9 +8708,9 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
             // Here, add all the issued nums back (that had been temporarily
             // removed from theNym) that were stored on theTempNym for
             // safe-keeping.
-            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(SERVER_ID);
+            for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID);
                  i++) {
-                int64_t lTemp = theTempNym.GetIssuedNum(SERVER_ID, i);
+                int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
                 theNym.AddIssuedNum(server_->m_strNotaryID, lTemp);
             }
             // (They are removed for real at the bottom of this function, IF
@@ -8845,7 +8845,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         // process it.
                         // theAcctID is the ID on the client Account that was
                         // passed in.
-                        OTLedger theInbox(USER_ID, ACCOUNT_ID, SERVER_ID);
+                        OTLedger theInbox(USER_ID, ACCOUNT_ID, NOTARY_ID);
 
                         OTTransaction* pServerTransaction = nullptr;
 
@@ -9055,7 +9055,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
 
                             std::unique_ptr<OTItem> pOriginalItem(
                                 OTItem::CreateItemFromString(
-                                    strOriginalItem, SERVER_ID,
+                                    strOriginalItem, NOTARY_ID,
                                     pServerTransaction->GetReferenceToNum()));
 
                             if (nullptr != pOriginalItem) {
@@ -9211,10 +9211,10 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                     // sender's records.
                                     OTLedger theFromOutbox(
                                         IDFromAccount,
-                                        SERVER_ID), // Sender's *OUTBOX*
+                                        NOTARY_ID), // Sender's *OUTBOX*
                                         theFromInbox(
                                             IDFromAccount,
-                                            SERVER_ID); // Sender's *INBOX*
+                                            NOTARY_ID); // Sender's *INBOX*
 
                                     bool bSuccessLoadingInbox =
                                         theFromInbox.LoadInbox();
@@ -9552,8 +9552,8 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
         // Therefore, remove any relevant issued numbers from theNym (those he's
         // now officially no longer responsible for), and save.
         //
-        for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(SERVER_ID); i++) {
-            int64_t lTemp = theTempNym.GetIssuedNum(SERVER_ID, i);
+        for (int32_t i = 0; i < theTempNym.GetIssuedNumCount(NOTARY_ID); i++) {
+            int64_t lTemp = theTempNym.GetIssuedNum(NOTARY_ID, i);
             theNym.RemoveIssuedNum(server_->m_nymServer, server_->m_strNotaryID,
                                    lTemp, false); // bSave = false (saved below)
         }
@@ -9564,8 +9564,8 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
         //
         std::set<int64_t>& theIDSet = theNym.GetSetOpenCronItems();
         for (int32_t i = 0;
-             i < theTempClosingNumNym.GetIssuedNumCount(SERVER_ID); i++) {
-            int64_t lTemp = theTempClosingNumNym.GetIssuedNum(SERVER_ID, i);
+             i < theTempClosingNumNym.GetIssuedNumCount(NOTARY_ID); i++) {
+            int64_t lTemp = theTempClosingNumNym.GetIssuedNum(NOTARY_ID, i);
             theIDSet.erase(lTemp); // now it's erased from within the Nym.
         }
         theNym.SaveSignedNymfile(server_->m_nymServer);

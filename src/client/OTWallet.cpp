@@ -663,7 +663,7 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
 }
 
 // Pass in the Server ID and get the pointer back.
-OTServerContract* OTWallet::GetServerContract(const Identifier& SERVER_ID)
+OTServerContract* OTWallet::GetServerContract(const Identifier& NOTARY_ID)
 {
     for (auto& it : m_mapServers) {
         Contract* pServer = it.second;
@@ -674,7 +674,7 @@ OTServerContract* OTWallet::GetServerContract(const Identifier& SERVER_ID)
         Identifier id_CurrentContract;
         pServer->GetIdentifier(id_CurrentContract);
 
-        if (id_CurrentContract == SERVER_ID)
+        if (id_CurrentContract == NOTARY_ID)
             return dynamic_cast<OTServerContract*>(pServer);
     }
 
@@ -774,15 +774,15 @@ void OTWallet::AddAssetContract(const AssetContract& theContract)
 }
 
 bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
-                                  const Identifier& SERVER_ID,
+                                  const Identifier& NOTARY_ID,
                                   const String& strAcctID,
                                   const char* szFuncName)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::VerifyAssetAccount";
 
-    if (SERVER_ID != theAcct.GetRealNotaryID()) {
-        const String s1(SERVER_ID), s2(theAcct.GetRealNotaryID());
+    if (NOTARY_ID != theAcct.GetRealNotaryID()) {
+        const String s1(NOTARY_ID), s2(theAcct.GetRealNotaryID());
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
               << ": Server ID passed in (" << s1 << ") didn't match the one "
                                                     "on the account (" << s2
@@ -820,7 +820,7 @@ bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
 //
 Account* OTWallet::GetOrLoadAccount(const Nym& theNym,
                                     const Identifier& ACCT_ID,
-                                    const Identifier& SERVER_ID,
+                                    const Identifier& NOTARY_ID,
                                     const char* szFuncName)
 {
     const char* szFunc =
@@ -837,7 +837,7 @@ Account* OTWallet::GetOrLoadAccount(const Nym& theNym,
               << ": There's no asset account in the wallet with that ID ("
               << strAcctID << "). "
                               "Attempting to load it from storage...\n";
-        pAccount = LoadAccount(theNym, ACCT_ID, SERVER_ID, szFuncName);
+        pAccount = LoadAccount(theNym, ACCT_ID, NOTARY_ID, szFuncName);
     } // pAccount == nullptr.
 
     // It either was already there, or it loaded successfully...
@@ -860,21 +860,21 @@ Account* OTWallet::GetOrLoadAccount(const Nym& theNym,
 // is being called to load the new one from storage and update the wallet.
 //
 Account* OTWallet::LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
-                               const Identifier& SERVER_ID,
+                               const Identifier& NOTARY_ID,
                                const char* szFuncName)
 {
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTWallet::LoadAccount";
 
     const String strAcctID(ACCT_ID);
-    Account* pAccount = Account::LoadExistingAccount(ACCT_ID, SERVER_ID);
+    Account* pAccount = Account::LoadExistingAccount(ACCT_ID, NOTARY_ID);
 
     // It loaded successfully...
     //
     if (nullptr != pAccount) // pAccount EXISTS...
     {
         bool bVerified =
-            VerifyAssetAccount(theNym, *pAccount, SERVER_ID, strAcctID, szFunc);
+            VerifyAssetAccount(theNym, *pAccount, NOTARY_ID, strAcctID, szFunc);
 
         if (!bVerified) {
             delete pAccount;
@@ -2000,10 +2000,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
                            << "\n   Account ID: " << AcctID
                            << "\n    Server ID: " << NotaryID << "\n";
 
-                    const Identifier ACCOUNT_ID(AcctID), SERVER_ID(NotaryID);
+                    const Identifier ACCOUNT_ID(AcctID), NOTARY_ID(NotaryID);
 
                     Account* pAccount =
-                        Account::LoadExistingAccount(ACCOUNT_ID, SERVER_ID);
+                        Account::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID);
 
                     if (pAccount) {
                         pAccount->SetName(AcctName);
