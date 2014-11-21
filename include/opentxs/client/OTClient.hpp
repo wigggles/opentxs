@@ -300,8 +300,8 @@ private:
                                          ProcessServerReplyArgs& args);
     bool processServerReplyUnregisterAccount(const Message& theReply,
                                              ProcessServerReplyArgs& args);
-    bool processServerReplyIssueAssetType(const Message& theReply,
-                                          ProcessServerReplyArgs& args);
+    bool processServerReplyIssueInstrumentDefinition(
+        const Message& theReply, ProcessServerReplyArgs& args);
     bool processServerReplyRegisterAccount(const Message& theReply,
                                            ProcessServerReplyArgs& args);
 

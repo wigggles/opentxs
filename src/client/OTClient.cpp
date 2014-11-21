@@ -7386,8 +7386,8 @@ bool OTClient::processServerReplyUnregisterAccount(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyIssueAssetType(const Message& theReply,
-                                                ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyIssueInstrumentDefinition(
+    const Message& theReply, ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
@@ -7414,7 +7414,8 @@ bool OTClient::processServerReplyIssueAssetType(const Message& theReply,
             pAccount->SaveAccount();
 
             // Need to consider other security considerations.
-            // What if I wasn't EXPECTING a issueAssetTypeResponse message?
+            // What if I wasn't EXPECTING a issueInstrumentDefinitionResponse
+            // message?
             // Well actually, in that case, the server wouldn't have a
             // copy of my request to send back to me, would he? So I should
             // check that request to make sure it's good.
@@ -7745,8 +7746,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("unregisterAccountResponse")) {
         return processServerReplyUnregisterAccount(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("issueAssetTypeResponse")) {
-        return processServerReplyIssueAssetType(theReply, args);
+    if (theReply.m_strCommand.Compare("issueInstrumentDefinitionResponse")) {
+        return processServerReplyIssueInstrumentDefinition(theReply, args);
     }
     if (theReply.m_strCommand.Compare("registerAccountResponse")) {
         return processServerReplyRegisterAccount(theReply, args);

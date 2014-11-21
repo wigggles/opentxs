@@ -1214,14 +1214,14 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("issueAssetType")) {
-        OTLog::vOutput(
-            0, "\n==> Received an issueAssetType message. Nym: %s ...\n",
-            strMsgNymID.Get());
+    else if (theMessage.m_strCommand.Compare("issueInstrumentDefinition")) {
+        OTLog::vOutput(0, "\n==> Received an issueInstrumentDefinition "
+                          "message. Nym: %s ...\n",
+                       strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
-        UserCmdIssueAssetType(*pNym, theMessage, msgOut);
+        UserCmdIssueInstrumentDefinition(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -2307,14 +2307,17 @@ void UserCommandProcessor::UserCmdUsageCredits(Nym& theNym, Message& MsgIn,
 }
 
 /// An existing user is issuing a new currency.
-void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
-                                                 Message& msgOut)
+void UserCommandProcessor::UserCmdIssueInstrumentDefinition(Nym& theNym,
+                                                            Message& MsgIn,
+                                                            Message& msgOut)
 {
-    const char* szFunc = "UserCommandProcessor::UserCmdIssueAssetType";
+    const char* szFunc =
+        "UserCommandProcessor::UserCmdIssueInstrumentDefinition";
 
     // (1) set up member variables
-    msgOut.m_strCommand = "issueAssetTypeResponse"; // reply to issueAssetType
-    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
+    msgOut.m_strCommand = "issueInstrumentDefinitionResponse"; // reply to
+    // issueInstrumentDefinition
+    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
     msgOut.m_strInstrumentDefinitionID =
         MsgIn.m_strInstrumentDefinitionID; // Instrument Definition ID, a hash
                                            // of the asset
@@ -2524,7 +2527,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
 
                             OTLog::vError("ERROR generating inbox ledger in "
                                           "UserCommandProcessor::"
-                                          "UserCmdIssueAssetType:\n%"
+                                          "UserCmdIssueInstrumentDefinition:\n%"
                                           "s\n",
                                           strNewAcctID.Get());
                         }
@@ -2533,7 +2536,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
 
                             OTLog::vError("ERROR generating outbox ledger in "
                                           "UserCommandProcessor::"
-                                          "UserCmdIssueAssetType:\n%"
+                                          "UserCmdIssueInstrumentDefinition:\n%"
                                           "s\n",
                                           strNewAcctID.Get());
                         }
@@ -2562,14 +2565,14 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                         }
                     }
                     else
-                        OTLog::Error(
-                            "Failure generating new issuer account in "
-                            "UserCommandProcessor::UserCmdIssueAssetType.\n");
+                        OTLog::Error("Failure generating new issuer account in "
+                                     "UserCommandProcessor::"
+                                     "UserCmdIssueInstrumentDefinition.\n");
                 }
                 else
-                    OTLog::Error(
-                        "Failure verifying asset contract in "
-                        "UserCommandProcessor::UserCmdIssueAssetType.\n");
+                    OTLog::Error("Failure verifying asset contract in "
+                                 "UserCommandProcessor::"
+                                 "UserCmdIssueInstrumentDefinition.\n");
             }
             else {
                 String strAssetUserID(ASSET_NYM_ID), strUserID;
@@ -2610,7 +2613,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
     // its member, m_strRawFile
     msgOut.SaveContract();
 
-    // (You are in UserCmdIssueAssetType.)
+    // (You are in UserCmdIssueInstrumentDefinition.)
 
     // *************************************************************
     // REPLY NOTICE TO NYMBOX
@@ -2693,7 +2696,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
             // exists on this server. (For example, they couldn't use a basket
             // contract from some other
             // server, since it wouldn't be issued here...) Also note that
-            // issueAssetType explicitly prevents
+            // issueInstrumentDefinition explicitly prevents
             // baskets from being issued -- you HAVE to use issueBasket for
             // creating any basket currency.
             // Taken in tandem, this insures that the only possible way to have

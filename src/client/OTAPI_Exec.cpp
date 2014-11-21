@@ -13497,9 +13497,9 @@ int32_t OTAPI_Exec::getRequestNumber(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::issueAssetType(const std::string& NOTARY_ID,
-                                   const std::string& NYM_ID,
-                                   const std::string& THE_CONTRACT) const
+int32_t OTAPI_Exec::issueInstrumentDefinition(
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& THE_CONTRACT) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -13518,7 +13518,8 @@ int32_t OTAPI_Exec::issueAssetType(const std::string& NOTARY_ID,
 
     String strContract(THE_CONTRACT);
 
-    return OTAPI()->issueAssetType(theNotaryID, theUserID, strContract);
+    return OTAPI()->issueInstrumentDefinition(theNotaryID, theUserID,
+                                              strContract);
 }
 
 // Returns int32_t:
@@ -15246,7 +15247,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage.m_strCommand.Compare("issueAssetTypeResponse")) &&
+    if ((false ==
+         theMessage.m_strCommand.Compare(
+             "issueInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
@@ -15296,7 +15299,7 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     // contain
     // in that case, now do I?)
     //
-    if (!theMessage.m_strCommand.Compare("issueAssetTypeResponse")) {
+    if (!theMessage.m_strCommand.Compare("issueInstrumentDefinitionResponse")) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";
