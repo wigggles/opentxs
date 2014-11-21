@@ -196,7 +196,8 @@ int32_t CmdSendCash::run(string server, string mynym, string myacct,
         }
 
         if ("" != mypurse && mypurse != assetType) {
-            otOut << "Error: myacct asset type does not match mypurse.\n";
+            otOut << "Error: myacct instrument definition does not match "
+                     "mypurse.\n";
             return -1;
         }
 

@@ -384,10 +384,10 @@ bool OTLedger::LoadBoxReceipts(std::set<int64_t>* psetUnloaded)
 }
 
 /*
- While the box itself is stored at (for example) "nymbox/SERVER_ID/USER_ID"
- the box receipts for that box may be stored at: "nymbox/SERVER_ID/USER_ID.r"
+ While the box itself is stored at (for example) "nymbox/NOTARY_ID/NYM_ID"
+ the box receipts for that box may be stored at: "nymbox/NOTARY_ID/NYM_ID.r"
  With a specific receipt denoted by transaction:
- "nymbox/SERVER_ID/USER_ID.r/TRANSACTION_ID.rct"
+ "nymbox/NOTARY_ID/NYM_ID.r/TRANSACTION_ID.rct"
  */
 
 bool OTLedger::LoadBoxReceipt(const int64_t& lTransactionNum)
@@ -584,11 +584,11 @@ bool OTLedger::LoadGeneric(OTLedger::ledgerType theType, const String* pString)
 
     const char* szFolder1name =
         m_strFoldername.Get(); // "nymbox" (or "inbox" or "outbox")
-    const char* szFolder2name = strNotaryID.Get(); // "nymbox/SERVER_ID"
-    const char* szFilename = strFilename.Get();    // "nymbox/SERVER_ID/USER_ID"
-    // (or "inbox/SERVER_ID/ACCT_ID"
+    const char* szFolder2name = strNotaryID.Get(); // "nymbox/NOTARY_ID"
+    const char* szFilename = strFilename.Get();    // "nymbox/NOTARY_ID/NYM_ID"
+    // (or "inbox/NOTARY_ID/ACCT_ID"
     // or
-    // "outbox/SERVER_ID/ACCT_ID")
+    // "outbox/NOTARY_ID/ACCT_ID")
 
     String strRawFile;
 
@@ -699,11 +699,11 @@ bool OTLedger::SaveGeneric(OTLedger::ledgerType theType)
 
     const char* szFolder1name =
         m_strFoldername.Get(); // "nymbox" (or "inbox" or "outbox")
-    const char* szFolder2name = strNotaryID.Get(); // "nymbox/SERVER_ID"
-    const char* szFilename = strFilename.Get();    // "nymbox/SERVER_ID/USER_ID"
-    // (or "inbox/SERVER_ID/ACCT_ID"
+    const char* szFolder2name = strNotaryID.Get(); // "nymbox/NOTARY_ID"
+    const char* szFilename = strFilename.Get();    // "nymbox/NOTARY_ID/NYM_ID"
+    // (or "inbox/NOTARY_ID/ACCT_ID"
     // or
-    // "outbox/SERVER_ID/ACCT_ID")
+    // "outbox/NOTARY_ID/ACCT_ID")
 
     OT_ASSERT(m_strFoldername.GetLength() > 2);
     OT_ASSERT(m_strFilename.GetLength() > 2);
@@ -1029,11 +1029,11 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
 
         const char* szFolder1name =
             m_strFoldername.Get(); // "nymbox" (or "inbox" or "outbox")
-        const char* szFolder2name = strNotaryID.Get(); // "nymbox/SERVER_ID"
+        const char* szFolder2name = strNotaryID.Get(); // "nymbox/NOTARY_ID"
         const char* szFilename =
-            strFilename.Get(); // "nymbox/SERVER_ID/USER_ID"  (or
-                               // "inbox/SERVER_ID/ACCT_ID" or
-                               // "outbox/SERVER_ID/ACCT_ID")
+            strFilename.Get(); // "nymbox/NOTARY_ID/NYM_ID"  (or
+                               // "inbox/NOTARY_ID/ACCT_ID" or
+                               // "outbox/NOTARY_ID/ACCT_ID")
 
         if (OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
             otOut << "ERROR: trying to generate ledger that already exists: "
@@ -1892,7 +1892,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
                               "type=\"%s\"\n "
                               "numPartialRecords=\"%d\"\n "
                               "accountID=\"%s\"\n "
-                              "userID=\"%s\"\n "
+                              "nymID=\"%s\"\n "
                               "notaryID=\"%s\" >\n\n",
                               m_strVersion.Get(), strType.Get(),
                               nPartialRecordCount, strLedgerAcctID.Get(),
@@ -1954,7 +1954,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         strLedgerAcctID = xml->getAttributeValue("accountID");
         strLedgerAcctNotaryID = xml->getAttributeValue("notaryID");
-        strUserID = xml->getAttributeValue("userID");
+        strUserID = xml->getAttributeValue("nymID");
 
         if (!strLedgerAcctID.Exists() || !strLedgerAcctNotaryID.Exists() ||
             !strUserID.Exists()) {
@@ -1968,15 +1968,15 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         Identifier ACCOUNT_ID(strLedgerAcctID),
-            SERVER_ID(strLedgerAcctNotaryID), USER_ID(strUserID);
+            NOTARY_ID(strLedgerAcctNotaryID), NYM_ID(strUserID);
 
         SetPurportedAccountID(ACCOUNT_ID);
-        SetPurportedNotaryID(SERVER_ID);
-        SetUserID(USER_ID);
+        SetPurportedNotaryID(NOTARY_ID);
+        SetUserID(NYM_ID);
 
         if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
-            SetRealNotaryID(SERVER_ID);
+            SetRealNotaryID(NOTARY_ID);
             //            OTString str1(GetRealAccountID()),
             // str2(GetRealNotaryID());
             //            otErr << "DEBUGGING:\nReal Acct ID: %s\nReal Server
@@ -2119,7 +2119,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     // which is ONLY used here.
                     //
                     OTTransaction* pTransaction = new OTTransaction(
-                        USER_ID, ACCOUNT_ID, SERVER_ID, lNumberOfOrigin,
+                        NYM_ID, ACCOUNT_ID, NOTARY_ID, lNumberOfOrigin,
                         lTransactionNum, lInRefTo, // lInRefTo
                         lInRefDisplay, the_DATE_SIGNED,
                         static_cast<OTTransaction::transactionType>(theType),
@@ -2139,7 +2139,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     // loading abbreviated receipts as you load their
                     // inbox/outbox/nymbox.
                     // Abbreviated receipts are not like real transactions,
-                    // which have notaryID, AcctID, userID,
+                    // which have notaryID, AcctID, nymID,
                     // and signature attached, and the whole thing is
                     // base64-encoded and then added to the ledger
                     // as part of a list of contained objects. Rather, with
@@ -2205,7 +2205,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         otLog4 << szFunc << ": Loading account ledger of type \"" << strType
                << "\", version: " << m_strVersion << "\n";
-        //                "accountID: %s\n userID: %s\n notaryID:
+        //                "accountID: %s\n nymID: %s\n notaryID:
         // %s\n----------\n",  szFunc,
         //                strLedgerAcctID.Get(), strUserID.Get(),
         // strLedgerAcctNotaryID.Get()
@@ -2375,7 +2375,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             pTransaction->GetUserID(),
                             pTransaction->GetRealAccountID(), // If Nymbox (vs
                                                               // inbox/outbox)
-                                                              // the USER_ID
+                                                              // the NYM_ID
                                                               // will be in this
                                                               // field also.
                             nBoxType, // 0/nymbox, 1/inbox, 2/outbox

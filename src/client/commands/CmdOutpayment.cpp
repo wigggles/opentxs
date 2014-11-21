@@ -243,7 +243,7 @@ bool CmdOutpayment::showOutpayment(const string& mynym, int32_t index,
         cout << "\n";
     }
 
-    cout << "  Of asset type: " << instrumentDefinitionID;
+    cout << "  Of instrument definition: " << instrumentDefinitionID;
     if ("" != instrumentDefinitionID) {
         cout << " \"" << OTAPI_Wrap::GetAssetType_Name(instrumentDefinitionID)
              << "\"";

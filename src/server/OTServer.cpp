@@ -526,8 +526,8 @@ void OTServer::Init(bool readOnly)
 // szCommand for passing payDividend (as the message command instead of
 // sendNymInstrument, the default.)
 bool OTServer::SendInstrumentToNym(
-    const Identifier& SERVER_ID, const Identifier& SENDER_USER_ID,
-    const Identifier& RECIPIENT_USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& SENDER_NYM_ID,
+    const Identifier& RECIPIENT_NYM_ID,
     Message* pMsg,             // the request msg from payer, which is attached
                                // WHOLE to the Nymbox receipt. contains payment
                                // already.
@@ -562,7 +562,7 @@ bool OTServer::SendInstrumentToNym(
             OTLog::vError("%s: Error GetPaymentContents Failed", __FUNCTION__);
     }
     const bool bDropped = DropMessageToNymbox(
-        SERVER_ID, SENDER_USER_ID, RECIPIENT_USER_ID,
+        NOTARY_ID, SENDER_NYM_ID, RECIPIENT_NYM_ID,
         OTTransaction::instrumentNotice, pMsg,
         (nullptr != pMsg) ? nullptr : &strPayment, szCommand);
 
@@ -630,9 +630,9 @@ bool OTServer::SendInstrumentToNym(
 // pass it in here and attach it to the new message. Or maybe we just set it as
 // the voucher memo.
 //
-bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
-                                   const Identifier& SENDER_USER_ID,
-                                   const Identifier& RECIPIENT_USER_ID,
+bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
+                                   const Identifier& SENDER_NYM_ID,
+                                   const Identifier& RECIPIENT_NYM_ID,
                                    OTTransaction::transactionType theType,
                                    Message* pMsg, const String* pstrMessage,
                                    const char* szCommand) // If you pass
@@ -699,14 +699,14 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
         }
         pMsg->m_strNotaryID = m_strNotaryID;
         pMsg->m_bSuccess = true;
-        SENDER_USER_ID.GetString(pMsg->m_strNymID);
-        RECIPIENT_USER_ID.GetString(pMsg->m_strNymID2); // set the recipient ID
-                                                        // in pMsg to match our
-                                                        // recipient ID.
+        SENDER_NYM_ID.GetString(pMsg->m_strNymID);
+        RECIPIENT_NYM_ID.GetString(pMsg->m_strNymID2); // set the recipient ID
+                                                       // in pMsg to match our
+                                                       // recipient ID.
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
-        Nym nymRecipient(RECIPIENT_USER_ID);
+        Nym nymRecipient(RECIPIENT_NYM_ID);
 
         bool bLoadedNym =
             nymRecipient.LoadPublicKey(); // Old style (deprecated.) But this
@@ -766,8 +766,8 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
     // Grab a string copy of pMsg.
     //
     const String strInMessage(*pMsg);
-    OTLedger theLedger(RECIPIENT_USER_ID, RECIPIENT_USER_ID,
-                       SERVER_ID); // The recipient's Nymbox.
+    OTLedger theLedger(RECIPIENT_NYM_ID, RECIPIENT_NYM_ID,
+                       NOTARY_ID); // The recipient's Nymbox.
     // Drop in the Nymbox
     if ((theLedger.LoadNymbox() && // I think this loads the box receipts too,
                                    // since I didn't call "LoadNymboxNoVerify"
@@ -829,7 +829,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
         }
         else // should never happen
         {
-            const String strRecipientUserID(RECIPIENT_USER_ID);
+            const String strRecipientUserID(RECIPIENT_NYM_ID);
             OTLog::vError(
                 "%s: Failed while trying to generate transaction in order to "
                 "add a message to Nymbox: %s\n",
@@ -837,7 +837,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& SERVER_ID,
         }
     }
     else {
-        const String strRecipientUserID(RECIPIENT_USER_ID);
+        const String strRecipientUserID(RECIPIENT_NYM_ID);
         OTLog::vError("%s: Failed while trying to load or verify Nymbox: %s\n",
                       szFunc, strRecipientUserID.Get());
     }

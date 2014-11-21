@@ -373,23 +373,23 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             continue;
         }
 
-        string userID = isVoucher
-                            ? OTAPI_Wrap::Instrmnt_GetRemitterUserID(payment)
-                            : OTAPI_Wrap::Instrmnt_GetSenderUserID(payment);
-        if ("" == userID) {
+        string nymID = isVoucher
+                           ? OTAPI_Wrap::Instrmnt_GetRemitterUserID(payment)
+                           : OTAPI_Wrap::Instrmnt_GetSenderUserID(payment);
+        if ("" == nymID) {
             otOut << "Error: cannot retrieve sender nym.\n";
             retVal = -1;
             continue;
         }
 
-        if (userID != mynym) {
+        if (nymID != mynym) {
             otOut << "Error: unexpected sender nym.\n";
             retVal = -1;
             continue;
         }
 
         CmdDeposit deposit;
-        if (1 != deposit.depositCheque(server, acctID, userID, payment)) {
+        if (1 != deposit.depositCheque(server, acctID, nymID, payment)) {
             otOut << "Error: cannot cancel " << type << ".\n";
             retVal = -1;
             continue;

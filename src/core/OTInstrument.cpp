@@ -184,11 +184,11 @@ OTInstrument::OTInstrument()
     InitInstrument();
 }
 
-OTInstrument::OTInstrument(const Identifier& SERVER_ID,
+OTInstrument::OTInstrument(const Identifier& NOTARY_ID,
                            const Identifier& INSTRUMENT_DEFINITION_ID)
     : OTScriptable()
     , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
-    , m_NotaryID(SERVER_ID)
+    , m_NotaryID(NOTARY_ID)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {

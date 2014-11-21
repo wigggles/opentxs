@@ -264,11 +264,11 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 xml->getAttributeValue("instrumentDefinitionID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
-        const Identifier SERVER_ID(strNotaryID),
+        const Identifier NOTARY_ID(strNotaryID),
             INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
             CURRENCY_TYPE_ID(strCurrencyTypeID);
 
-        SetNotaryID(SERVER_ID);
+        SetNotaryID(NOTARY_ID);
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetCurrencyID(CURRENCY_TYPE_ID);
 
@@ -395,7 +395,7 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 void OTOffer::UpdateContents()
 {
-    const String SERVER_ID(GetNotaryID()),
+    const String NOTARY_ID(GetNotaryID()),
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         CURRENCY_TYPE_ID(GetCurrencyID());
 
@@ -428,7 +428,7 @@ void OTOffer::UpdateContents()
                               " validTo=\"%" PRId64 "\""
                               " />\n\n", //  <=== the tag ends here.
                               m_strVersion.Get(),
-                              (IsBid() ? "false" : "true"), SERVER_ID.Get(),
+                              (IsBid() ? "false" : "true"), NOTARY_ID.Get(),
                               INSTRUMENT_DEFINITION_ID.Get(),
                               CURRENCY_TYPE_ID.Get(), lPriceLimit,
                               lTotalAssetsOnOffer, lFinishedSoFar, lScale,
@@ -532,10 +532,10 @@ OTOffer::OTOffer()
     InitOffer();
 }
 
-OTOffer::OTOffer(const Identifier& SERVER_ID,
+OTOffer::OTOffer(const Identifier& NOTARY_ID,
                  const Identifier& INSTRUMENT_DEFINITION_ID,
                  const Identifier& CURRENCY_ID, const int64_t& lScale)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)
     , // No need to free m_pTrade, not responsible. Only here for convenience.

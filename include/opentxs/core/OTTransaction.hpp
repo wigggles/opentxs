@@ -373,12 +373,12 @@ gys4puOdx15pknQYcVtF4DmOo2tOYouoiqcQAHKApSF.success
 w06QIURsSDV7sdWWvyPSxRaiv4T2MUQbJyWmIKxSmuL.success
 
  basically:
- OT_DATA/receipts/SERVER_ID/ACCT_ID.success
- OT_DATA/receipts/SERVER_ID/ACCT_ID.fail
+ OT_DATA/receipts/NOTARY_ID/ACCT_ID.success
+ OT_DATA/receipts/NOTARY_ID/ACCT_ID.fail
 
  or:
- OT_DATA/receipts/SERVER_ID/NYM_ID.success
- OT_DATA/receipts/SERVER_ID/NYM_ID.fail
+ OT_DATA/receipts/NOTARY_ID/NYM_ID.success
+ OT_DATA/receipts/NOTARY_ID/NYM_ID.fail
 
  These receipts are related to balance agreement. These are the "last signed
 receipt" that you keep in order to
@@ -401,13 +401,13 @@ idea of "box receipts" which is really
 fit comfortably in a getInbox message.
  How to store them?
 
- Current inbox/outbox path:    OT_DATA/[inbox|outbox]/SERVER_ID/ACCT_ID
- Current nymbox path:        OT_DATA/nymbox/SERVER_ID/NYM_ID
+ Current inbox/outbox path:    OT_DATA/[inbox|outbox]/NOTARY_ID/ACCT_ID
+ Current nymbox path:        OT_DATA/nymbox/NOTARY_ID/NYM_ID
 
  Therefore I propose the box receipts to be stored:
 
- Inbox/outbox path:    OT_DATA/inbox/SERVER_ID/ACCT_ID.r/TRANSACTION_ID.rct
- nymbox path:        OT_DATA/nymbox/SERVER_ID/NYM_ID.r/TRANSACTION_ID.rct
+ Inbox/outbox path:    OT_DATA/inbox/NOTARY_ID/ACCT_ID.r/TRANSACTION_ID.rct
+ nymbox path:        OT_DATA/nymbox/NOTARY_ID/NYM_ID.r/TRANSACTION_ID.rct
 
  When querying the server for a box receipt, you will have to provide TYPE
 (inbox, outbox, etc)

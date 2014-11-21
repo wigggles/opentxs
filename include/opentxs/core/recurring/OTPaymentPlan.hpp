@@ -190,7 +190,8 @@ namespace opentxs
 
  You could even have the server manage an issuer account, backed in payment plan
  revenue,
- that would form a new asset type that can then be traded on markets. (The same
+ that would form a new instrument definition that can then be traded on markets.
+ (The same
  as you can
  have the server manage the issuer account for a basket currency now, which is
  backed with
@@ -460,11 +461,11 @@ public:
      inline OTIdentifier&    GetRecipientAcctID()        { return
      m_RECIPIENT_ACCT_ID; }
      inline OTIdentifier&    GetRecipientUserID()        { return
-     m_RECIPIENT_USER_ID; }
+     m_RECIPIENT_NYM_ID; }
      inline void            SetRecipientAcctID(OTIdentifier& ACCT_ID)    {
      m_RECIPIENT_ACCT_ID = ACCT_ID; }
-     inline void            SetRecipientUserID(OTIdentifier& USER_ID)    {
-     m_RECIPIENT_USER_ID = USER_ID; }
+     inline void            SetRecipientUserID(OTIdentifier& NYM_ID)    {
+     m_RECIPIENT_NYM_ID = NYM_ID; }
 
      const OTString&  GetConsideration() const { return m_strConsideration; }
      */
@@ -493,17 +494,17 @@ public:
      inline const   OTIdentifier&    GetSenderAcctID()               { return
      m_SENDER_ACCT_ID; }
      inline const   OTIdentifier&    GetSenderUserID()               { return
-     m_SENDER_USER_ID; }
+     m_SENDER_NYM_ID; }
      inline void    SetSenderAcctID(const OTIdentifier& ACCT_ID)    {
      m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void    SetSenderUserID(const OTIdentifier& USER_ID)    {
-     m_SENDER_USER_ID = USER_ID; }
+     inline void    SetSenderUserID(const OTIdentifier& NYM_ID)    {
+     m_SENDER_NYM_ID = NYM_ID; }
      */
 
     // From OTInstrument (parent of OTTrackable, parent of OTCronItem, parent of
     // OTAgreement, parent of this)
     /*
-     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier&
+     OTInstrument(const OTIdentifier& NOTARY_ID, const OTIdentifier&
      INSTRUMENT_DEFINITION_ID)
      : OTContract()
 
@@ -515,8 +516,8 @@ public:
      INSTRUMENT_DEFINITION_ID)  {
      m_InstrumentDefinitionID    =
      INSTRUMENT_DEFINITION_ID; }
-     inline void SetNotaryID(const OTIdentifier& SERVER_ID) { m_NotaryID    =
-     SERVER_ID; }
+     inline void SetNotaryID(const OTIdentifier& NOTARY_ID) { m_NotaryID    =
+     NOTARY_ID; }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
      inline time64_t GetValidTo()        const { return m_VALID_TO; }
@@ -542,14 +543,14 @@ protected:
 
 public:
     EXPORT OTPaymentPlan();
-    EXPORT OTPaymentPlan(const Identifier& SERVER_ID,
+    EXPORT OTPaymentPlan(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT OTPaymentPlan(const Identifier& SERVER_ID,
+    EXPORT OTPaymentPlan(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID,
                          const Identifier& SENDER_ACCT_ID,
-                         const Identifier& SENDER_USER_ID,
+                         const Identifier& SENDER_NYM_ID,
                          const Identifier& RECIPIENT_ACCT_ID,
-                         const Identifier& RECIPIENT_USER_ID);
+                         const Identifier& RECIPIENT_NYM_ID);
     EXPORT virtual ~OTPaymentPlan();
     void InitPaymentPlan();
     virtual void Release();

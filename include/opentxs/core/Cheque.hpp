@@ -148,11 +148,11 @@ protected:
 
     int64_t m_lAmount;
     String m_strMemo;
-    Identifier m_RECIPIENT_USER_ID; // Optional. If present, must match
-                                    // depositor's user ID.
+    Identifier m_RECIPIENT_NYM_ID; // Optional. If present, must match
+                                   // depositor's user ID.
     bool m_bHasRecipient;
-    Identifier m_REMITTER_USER_ID; // In the case of vouchers (cashier's
-                                   // cheques) we store the Remitter's ID.
+    Identifier m_REMITTER_NYM_ID; // In the case of vouchers (cashier's
+                                  // cheques) we store the Remitter's ID.
     Identifier m_REMITTER_ACCT_ID;
     bool m_bHasRemitter;
 
@@ -160,7 +160,7 @@ public:
     inline void SetAsVoucher(const Identifier& remitterUserID,
                              const Identifier& remitterAcctID)
     {
-        m_REMITTER_USER_ID = remitterUserID;
+        m_REMITTER_NYM_ID = remitterUserID;
         m_REMITTER_ACCT_ID = remitterAcctID;
         m_bHasRemitter = true;
         m_strContractType = "VOUCHER";
@@ -175,7 +175,7 @@ public:
     }
     inline const Identifier& GetRecipientUserID() const
     {
-        return m_RECIPIENT_USER_ID;
+        return m_RECIPIENT_NYM_ID;
     }
     inline bool HasRecipient() const
     {
@@ -183,7 +183,7 @@ public:
     }
     inline const Identifier& GetRemitterUserID() const
     {
-        return m_REMITTER_USER_ID;
+        return m_REMITTER_NYM_ID;
     }
     inline const Identifier& GetRemitterAcctID() const
     {
@@ -207,14 +207,14 @@ public:
         const time64_t& VALID_TO, // The expiration date (valid from/to dates.)
         const Identifier& SENDER_ACCT_ID, // The asset account the cheque is
                                           // drawn on.
-        const Identifier& SENDER_USER_ID, // This ID must match the user ID on
+        const Identifier& SENDER_NYM_ID,  // This ID must match the user ID on
                                           // the asset account,
         // AND must verify the cheque signature with that user's key.
-        const String& strMemo,                           // Optional memo field.
-        const Identifier* pRECIPIENT_USER_ID = nullptr); // Recipient
-                                                         // optional. (Might
-                                                         // be a blank
-                                                         // cheque.)
+        const String& strMemo,                          // Optional memo field.
+        const Identifier* pRECIPIENT_NYM_ID = nullptr); // Recipient
+                                                        // optional. (Might
+                                                        // be a blank
+                                                        // cheque.)
 
     EXPORT void CancelCheque(); // You still need to re-sign the cheque after
                                 // doing this.
@@ -228,12 +228,12 @@ public:
      inline const OTIdentifier&    GetSenderAcctID()           { return
      m_SENDER_ACCT_ID; }
      inline const OTIdentifier&    GetSenderUserID()           { return
-     m_SENDER_USER_ID; }
+     m_SENDER_NYM_ID; }
      */
 
     // From OTInstrument (parent class of OTTrackable, parent class of this)
     /*
-     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier&
+     OTInstrument(const OTIdentifier& NOTARY_ID, const OTIdentifier&
      INSTRUMENT_DEFINITION_ID)
      : OTContract()
 
@@ -248,7 +248,7 @@ public:
      / TO dates.
      */
     EXPORT Cheque();
-    EXPORT Cheque(const Identifier& SERVER_ID,
+    EXPORT Cheque(const Identifier& NOTARY_ID,
                   const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~Cheque();
 

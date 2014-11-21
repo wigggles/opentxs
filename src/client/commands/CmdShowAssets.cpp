@@ -158,12 +158,12 @@ int32_t CmdShowAssets::run()
 {
     int32_t items = OTAPI_Wrap::GetAssetTypeCount();
     if (0 > items) {
-        otOut << "Error: cannot load asset type list count.\n";
+        otOut << "Error: cannot load instrument definition list count.\n";
         return -1;
     }
 
     if (0 == items) {
-        otOut << "The asset type list is empty.\n";
+        otOut << "The instrument definition list is empty.\n";
         return 0;
     }
 

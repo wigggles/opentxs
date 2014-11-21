@@ -518,13 +518,15 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
             const std::string& str_acct_id =
                 it.first; // Containing the account ID.
             const std::string& str_instrument_definition_id =
-                it.second; // Containing the asset type ID. (Just in case
+                it.second; // Containing the instrument definition ID. (Just in
+                           // case
                            // someone copied the wrong file here...)
 
             if (!strInstrumentDefinitionID.Compare(
                     str_instrument_definition_id.c_str())) {
                 otErr << "OTAssetContract::VisitAccountRecords: Error: wrong "
-                         "asset type ID (" << str_instrument_definition_id
+                         "instrument definition ID ("
+                      << str_instrument_definition_id
                       << ") when expecting: " << strInstrumentDefinitionID
                       << "\n";
             }
@@ -599,7 +601,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Add it otherwise.
     //  Save the StringMap back again. (The account records list for a given
-    // asset type.)
+    // instrument definition.)
 
     const char* szFunc = "OTAssetContract::AddAccountRecord";
 
@@ -626,7 +628,8 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
         pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP,
                                       OTFolders::Contract().Get(),
                                       strAcctRecordFile.Get());
-    else // the account records file (for this asset type) doesn't exist.
+    else // the account records file (for this instrument definition) doesn't
+         // exist.
         pStorable = OTDB::CreateObject(
             OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
 
@@ -639,7 +642,8 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     if (nullptr == pMap) {
         otErr << szFunc
               << ": Error: failed trying to load or create the account records "
-                 "file for asset type: " << strInstrumentDefinitionID << "\n";
+                 "file for instrument definition: " << strInstrumentDefinitionID
+              << "\n";
         return false;
     }
 
@@ -649,14 +653,16 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
     if (theMap.end() != map_it) // we found it.
     {                           // We were ADDING IT, but it was ALREADY THERE.
         // (Thus, we're ALREADY DONE.)
-        // Let's just make sure the right asset type ID is associated with this
+        // Let's just make sure the right instrument definition ID is associated
+        // with this
         // account
         // (it better be, since we loaded the account records file based on the
-        // asset type ID as its filename...)
+        // instrument definition ID as its filename...)
         //
-        const std::string& str2 =
-            map_it->second; // Containing the asset type ID. (Just in case
-                            // someone copied the wrong file here,
+        const std::string& str2 = map_it->second; // Containing the instrument
+                                                  // definition ID. (Just in
+                                                  // case
+        // someone copied the wrong file here,
         // --------------------------------          // every account should map
         // to the SAME instrument definition id.)
 
@@ -664,16 +670,17 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
                                                                       // never
                                                                       // happen.
         {
-            otErr << szFunc
-                  << ": Error: wrong asset type found in account records "
-                     "file...\n For asset type: " << strInstrumentDefinitionID
-                  << "\n "
-                     "For account: " << strAcctID
-                  << "\n Found wrong asset type: " << str2 << "\n";
+            otErr << szFunc << ": Error: wrong instrument definition found in "
+                               "account records "
+                               "file...\n For instrument definition: "
+                  << strInstrumentDefinitionID << "\n "
+                                                  "For account: " << strAcctID
+                  << "\n Found wrong instrument definition: " << str2 << "\n";
             return false;
         }
 
-        return true; // already there (no need to add.) + the asset type ID
+        return true; // already there (no need to add.) + the instrument
+                     // definition ID
                      // matches.
     }
 
@@ -689,7 +696,7 @@ bool AssetContract::AddAccountRecord(const Account& theAccount) const // adds
                            strAcctRecordFile.Get())) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
-                 "account records file for asset type: "
+                 "account records file for instrument definition: "
               << strInstrumentDefinitionID
               << "\n to contain account ID: " << strAcctID << "\n";
         return false;
@@ -707,7 +714,7 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
     //  Load up account list StringMap. Create it if doesn't already exist.
     //  See if account is already there in the map. Erase it, if it is.
     //  Save the StringMap back again. (The account records list for a given
-    // asset type.)
+    // instrument definition.)
 
     const char* szFunc = "OTAssetContract::EraseAccountRecord";
 
@@ -727,7 +734,8 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
         pStorable = OTDB::QueryObject(OTDB::STORED_OBJ_STRING_MAP,
                                       OTFolders::Contract().Get(),
                                       strAcctRecordFile.Get());
-    else // the account records file (for this asset type) doesn't exist.
+    else // the account records file (for this instrument definition) doesn't
+         // exist.
         pStorable = OTDB::CreateObject(
             OTDB::STORED_OBJ_STRING_MAP); // this asserts already, on failure.
 
@@ -740,7 +748,8 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
     if (nullptr == pMap) {
         otErr << szFunc
               << ": Error: failed trying to load or create the account records "
-                 "file for asset type: " << strInstrumentDefinitionID << "\n";
+                 "file for instrument definition: " << strInstrumentDefinitionID
+              << "\n";
         return false;
     }
 
@@ -766,7 +775,7 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
                            strAcctRecordFile.Get())) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
-                 "account records file for asset type: "
+                 "account records file for instrument definition: "
               << strInstrumentDefinitionID
               << "\n to erase account ID: " << strAcctID << "\n";
         return false;

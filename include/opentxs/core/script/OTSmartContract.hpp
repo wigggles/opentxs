@@ -163,7 +163,7 @@ private:
     // it is much cleaner.
     //
     //    OTIdentifier    m_RECIPIENT_ACCT_ID;
-    //    OTIdentifier    m_RECIPIENT_USER_ID;
+    //    OTIdentifier    m_RECIPIENT_NYM_ID;
     // This is where the scripts inside the smart contract can stash money,
     // after it starts operating.
     //
@@ -172,15 +172,17 @@ private:
     // A smart contract may have any number of "stashes" which are stored by
     // name. Each stash
     // can be queried for balance for ANY ASSET TYPE. So stash "alice" might
-    // have 5 asset types
-    // in it, AND stash "bob" might also have 5 asset types stored in it.
+    // have 5 instrument definitions
+    // in it, AND stash "bob" might also have 5 instrument definitions stored in
+    // it.
     AccountList m_StashAccts; // The actual accounts where stash funds are
                               // stored
                               // (so they will turn up properly on an audit.)
-    // Assuming that Alice and Bob both use the same asset types, there will be
+    // Assuming that Alice and Bob both use the same instrument definitions,
+    // there will be
     // 5 stash accounts here,
     // not 10.  That's because, even if you create a thousand stashes, if they
-    // use the same 2 asset types
+    // use the same 2 instrument definitions
     // then OT is smart enough here to only create 2 stash accounts. The rest of
     // the information is
     // stored in m_mapStashes, not in the accounts themselves, which are only
@@ -206,9 +208,9 @@ private:
     // it is also nearly identically copied in OTPaymentPlan.
     bool MoveFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                    const int64_t& lAmount, const Identifier& SOURCE_ACCT_ID,
-                   const Identifier& SENDER_USER_ID,
+                   const Identifier& SENDER_NYM_ID,
                    const Identifier& RECIPIENT_ACCT_ID,
-                   const Identifier& RECIPIENT_USER_ID);
+                   const Identifier& RECIPIENT_NYM_ID);
 
 protected:
     virtual void onActivate(); // called by OTCronItem::HookActivationOnCron().
@@ -415,7 +417,7 @@ public:
                                                    // lAmount * (-1) )
     std::string GetAcctBalance(std::string from_acct_name);
     std::string GetStashBalance(std::string stash_name,
-                                std::string asset_type_id);
+                                std::string instrument_definition_id);
 
     std::string GetInstrumentDefinitionIDofAcct(std::string from_acct_name);
 
@@ -463,9 +465,9 @@ public:
                                                    // UNstash. Positive means
                                                    // STASH.
                            const Identifier& PARTY_ACCT_ID,
-                           const Identifier& PARTY_USER_ID, OTStash& theStash);
+                           const Identifier& PARTY_NYM_ID, OTStash& theStash);
     EXPORT OTSmartContract();
-    EXPORT OTSmartContract(const Identifier& SERVER_ID);
+    EXPORT OTSmartContract(const Identifier& NOTARY_ID);
 
     EXPORT virtual ~OTSmartContract();
 

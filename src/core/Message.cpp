@@ -166,7 +166,7 @@ bool Message::HarvestTransactionNumbers(
     bool bTransactionWasFailure) const // false until positively asserted.
 {
 
-    const Identifier MSG_NYM_ID(m_strNymID), SERVER_ID(m_strNotaryID),
+    const Identifier MSG_NYM_ID(m_strNymID), NOTARY_ID(m_strNotaryID),
         ACCOUNT_ID(m_strAcctID.Exists() ? m_strAcctID
                                         : m_strNymID); // This may be
                                                        // unnecessary, but just
@@ -174,7 +174,7 @@ bool Message::HarvestTransactionNumbers(
 
     const String strLedger(m_ascPayload);
 
-    OTLedger theLedger(MSG_NYM_ID, ACCOUNT_ID, SERVER_ID); // We're going to
+    OTLedger theLedger(MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID); // We're going to
                                                            // load a messsage
                                                            // ledger from *this.
 
@@ -874,7 +874,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetNymMarketOffers::reg(
-    "getNym_MarketOffers", new StrategyGetNymMarketOffers());
+    "getNymMarketOffers", new StrategyGetNymMarketOffers());
 
 class StrategyGetNymMarketOffersResponse : public OTMessageStrategy
 {
@@ -961,7 +961,7 @@ public:
     static RegisterStrategy reg;
 };
 RegisterStrategy StrategyGetNymMarketOffersResponse::reg(
-    "getNym_MarketOffersResponse", new StrategyGetNymMarketOffersResponse());
+    "getNymMarketOffersResponse", new StrategyGetNymMarketOffersResponse());
 
 class StrategyPingNotary : public OTMessageStrategy
 {
@@ -1077,7 +1077,7 @@ public:
 RegisterStrategy StrategyPingNotaryResponse::reg(
     "pingNotaryResponse", new StrategyPingNotaryResponse());
 
-class StrategyCreateUserAccount : public OTMessageStrategy
+class StrategyRegisterNym : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1138,10 +1138,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCreateUserAccount::reg(
-    "registerNym", new StrategyCreateUserAccount());
+RegisterStrategy StrategyRegisterNym::reg("registerNym",
+                                          new StrategyRegisterNym());
 
-class StrategyCreateUserAccountResponse : public OTMessageStrategy
+class StrategyRegisterNymResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -1213,8 +1213,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCreateUserAccountResponse::reg(
-    "registerNymResponse", new StrategyCreateUserAccountResponse());
+RegisterStrategy StrategyRegisterNymResponse::reg(
+    "registerNymResponse", new StrategyRegisterNymResponse());
 
 class StrategyUnregisterNym : public OTMessageStrategy
 {
@@ -2139,7 +2139,7 @@ public:
 RegisterStrategy StrategyIssueAssetTypeResponse::reg(
     "issueAssetTypeResponse", new StrategyIssueAssetTypeResponse());
 
-class StrategyQueryAssetTypes : public OTMessageStrategy
+class StrategyQueryInstrumentDefinitions : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2190,10 +2190,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyQueryAssetTypes::reg("queryAssetTypes",
-                                              new StrategyQueryAssetTypes());
+RegisterStrategy StrategyQueryInstrumentDefinitions::reg(
+    "queryInstrumentDefinitions", new StrategyQueryInstrumentDefinitions());
 
-class StrategyQueryAssetTypesResponse : public OTMessageStrategy
+class StrategyQueryInstrumentDefinitionsResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2271,7 +2271,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected stringMap and/or inReferenceTo elements with "
                      "text fields in "
-                     "queryAssetTypesResponse reply\n";
+                     "queryInstrumentDefinitionsResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2284,8 +2284,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyQueryAssetTypesResponse::reg(
-    "queryAssetTypesResponse", new StrategyQueryAssetTypesResponse());
+RegisterStrategy StrategyQueryInstrumentDefinitionsResponse::reg(
+    "queryInstrumentDefinitionsResponse",
+    new StrategyQueryInstrumentDefinitionsResponse());
 
 class StrategyIssueBasket : public OTMessageStrategy
 {
@@ -2431,7 +2432,7 @@ public:
 RegisterStrategy StrategyIssueBasketResponse::reg(
     "issueBasketResponse", new StrategyIssueBasketResponse());
 
-class StrategyCreateAccount : public OTMessageStrategy
+class StrategyRegisterAccount : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2475,10 +2476,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCreateAccount::reg("createAccount",
-                                            new StrategyCreateAccount());
+RegisterStrategy StrategyRegisterAccount::reg("registerAccount",
+                                              new StrategyRegisterAccount());
 
-class StrategyCreateAccountResponse : public OTMessageStrategy
+class StrategyRegisterAccountResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2558,7 +2559,7 @@ public:
         if (m.m_bSuccess && !m.m_ascPayload.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected newAccount element with text field, in "
-                     "createAccountResponse reply\n";
+                     "registerAccountResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2576,8 +2577,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyCreateAccountResponse::reg(
-    "createAccountResponse", new StrategyCreateAccountResponse());
+RegisterStrategy StrategyRegisterAccountResponse::reg(
+    "registerAccountResponse", new StrategyRegisterAccountResponse());
 
 class StrategyGetBoxReceipt : public OTMessageStrategy
 {
@@ -2777,7 +2778,7 @@ public:
 RegisterStrategy StrategyGetBoxReceiptResponse::reg(
     "getBoxReceiptResponse", new StrategyGetBoxReceiptResponse());
 
-class StrategyDeleteAssetAccount : public OTMessageStrategy
+class StrategyUnregisterAccount : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2816,10 +2817,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyDeleteAssetAccount::reg(
-    "deleteAssetAccount", new StrategyDeleteAssetAccount());
+RegisterStrategy StrategyUnregisterAccount::reg(
+    "unregisterAccount", new StrategyUnregisterAccount());
 
-class StrategyDeleteAssetAccountResponse : public OTMessageStrategy
+class StrategyUnregisterAccountResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2855,7 +2856,7 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
-        // inReferenceTo contains the deleteAssetAccount (original request)
+        // inReferenceTo contains the unregisterAccount (original request)
         // At this point, we do not send the REASON WHY if it failed.
 
         {
@@ -2877,7 +2878,7 @@ public:
         if (!m.m_ascInReferenceTo.GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
-                     "deleteAssetAccountResponse reply\n";
+                     "unregisterAccountResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2895,8 +2896,8 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyDeleteAssetAccountResponse::reg(
-    "deleteAssetAccountResponse", new StrategyDeleteAssetAccountResponse());
+RegisterStrategy StrategyUnregisterAccountResponse::reg(
+    "unregisterAccountResponse", new StrategyUnregisterAccountResponse());
 
 class StrategyNotarizeTransaction : public OTMessageStrategy
 {

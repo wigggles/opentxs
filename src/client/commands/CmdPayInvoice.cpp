@@ -321,7 +321,8 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
     // since details_deposit_cheque() already verifies that (so I don't need
     // to do it twice.)
 
-    // By this point, we know the invoice has the right asset type for the
+    // By this point, we know the invoice has the right instrument definition
+    // for the
     // account we're trying to use (to pay it from.)
     //
     // But we need to make sure the invoice is made out to mynym (or to no
@@ -352,7 +353,8 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
 
     if ("" != assetType && accountAssetType != assetType) {
         otOut << "The instrument at index " << index
-              << " has a different asset type than the selected account. "
+              << " has a different instrument definition than the selected "
+                 "account. "
                  "(Skipping.)\nTry specifying a different account, using "
                  "--myacct ACCT_ID \n";
         return -1;

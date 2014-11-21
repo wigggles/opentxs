@@ -168,9 +168,9 @@ public:
     };
 
 public:
-    EXPORT Account(const Identifier& userId, const Identifier& accountId,
+    EXPORT Account(const Identifier& nymID, const Identifier& accountId,
                    const Identifier& notaryID, const String& name);
-    EXPORT Account(const Identifier& userId, const Identifier& accountId,
+    EXPORT Account(const Identifier& nymID, const Identifier& accountId,
                    const Identifier& notaryID);
 
     EXPORT virtual ~Account();
@@ -218,7 +218,7 @@ public:
     EXPORT void InitAccount();
 
     EXPORT void Release_Account();
-    EXPORT static Account* GenerateNewAccount(const Identifier& userId,
+    EXPORT static Account* GenerateNewAccount(const Identifier& nymID,
                                               const Identifier& notaryID,
                                               const Nym& serverNym,
                                               const Message& message,
@@ -230,7 +230,7 @@ public:
                                    int64_t stashTransNum = 0);
     // Let's say you don't have or know the UserID, and you just want to load
     // the damn thing up.
-    // Then call this function. It will set userID for you.
+    // Then call this function. It will set nymID for you.
     EXPORT static Account* LoadExistingAccount(const Identifier& accountId,
                                                const Identifier& notaryID);
     // Caller responsible to delete.
@@ -271,7 +271,7 @@ public:
     }
 
 protected:
-    Account(const Identifier& userId, const Identifier& notaryID);
+    Account(const Identifier& nymID, const Identifier& notaryID);
     Account();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.

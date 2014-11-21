@@ -2372,7 +2372,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // These determine whether instrument definition ids and/or party owner
         // IDs
         // are used on the template for any given smart contract.
-        // (Some templates are specific to certain asset types, while
+        // (Some templates are specific to certain instrument definitions, while
         // other smart contract types allow you to leave instrument definition
         // id blank
         // until the confirmation phase.)
@@ -2607,7 +2607,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             }
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
-                                (!strcmp("assetAccount", xml->getNodeName()))) {
+                                (!strcmp("account", xml->getNodeName()))) {
                                 String strAcctName = xml->getAttributeValue(
                                     "name"); // Acct name (if needed in script
                                              // code)
@@ -2705,7 +2705,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             }
                             else {
-                                otErr << szFunc << ": Expected assetAccount "
+                                otErr << szFunc << ": Expected account "
                                                    "element in party.\n";
                                 delete pParty;
                                 pParty = nullptr;

@@ -246,7 +246,7 @@ class OTRecordList
     static std::string s_strTextTo;   // "To: "
     static std::string s_strTextFrom; // "From: "
     list_of_strings m_servers;
-    map_of_strings m_assets; // <asset_type_id, asset_name>
+    map_of_strings m_assets; // <instrument_definition_id, asset_name>
     list_of_strings m_accounts;
     list_of_strings m_nyms;
     vec_OTRecordList m_contents;
@@ -324,7 +324,7 @@ public:
     EXPORT bool Populate();      // Populates m_contents from OT API. Calls
                                  // ClearContents().
     EXPORT void ClearContents(); // Clears m_contents (NOT nyms, accounts,
-                                 // servers, or asset types.)
+                                 // servers, or instrument definitions.)
     EXPORT void SortRecords(); // Populate already sorts. But if you have to add
                                // some external records after Populate, then you
                                // can sort again. P.S. sorting is performed

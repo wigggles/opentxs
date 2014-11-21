@@ -23,7 +23,7 @@ message ContactAcct_InternalPB {
   optional string gui_label = 1;
   optional string server_type = 2;
   optional string notary_id = 3;
-  optional string asset_type_id = 4;
+  optional string instrument_definition_id = 4;
   optional string acct_id = 5;
   optional string nym_id = 6;
   optional string memo = 7;

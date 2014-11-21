@@ -242,7 +242,7 @@ int32_t CmdImportCash::run(string mynym)
     string instrumentDefinitionID =
         OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(instrument);
     if ("" == instrumentDefinitionID) {
-        otOut << "Error: cannot determine asset type ID.\n";
+        otOut << "Error: cannot determine instrument definition ID.\n";
         return -1;
     }
 

@@ -160,7 +160,7 @@ private:
                           const String* messageString = nullptr);
 
     void DropReplyNoticeToNymbox(const Identifier& notaryID,
-                                 const Identifier& userId,
+                                 const Identifier& nymID,
                                  const String& messageString,
                                  const int64_t& requestNum,
                                  const bool replyTransSuccess,
@@ -177,7 +177,7 @@ private:
     void UserCmdGetBoxReceipt(Message& msgIn, Message& msgOut);
     void UserCmdDeleteUser(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdDeleteAssetAcct(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdCreateAccount(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdRegisterAccount(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdNotarizeTransaction(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetNymbox(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetAccountData(Nym& nym, Message& msgIn, Message& msgOut);
@@ -189,7 +189,8 @@ private:
     void UserCmdUsageCredits(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdTriggerClause(Nym& nym, Message& msgIn, Message& msgOut);
 
-    void UserCmdQueryAssetTypes(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdQueryInstrumentDefinitions(Nym& nym, Message& msgIn,
+                                           Message& msgOut);
 
     // Get the list of markets on this server.
     void UserCmdGetMarketList(Nym& nym, Message& msgIn, Message& msgOut);
@@ -202,7 +203,7 @@ private:
                                       Message& msgOut);
 
     // Get the offers that a specific Nym has placed on a specific market.
-    void UserCmdGetNym_MarketOffers(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetNymMarketOffers(Nym& nym, Message& msgIn, Message& msgOut);
 
 private:
     OTServer* server_;

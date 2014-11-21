@@ -353,21 +353,21 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
 }
 
 bool VerifyBoxReceiptExists(
-    const Identifier& SERVER_ID,
-    const Identifier& USER_ID,    // Unused here for now, but still convention.
+    const Identifier& NOTARY_ID,
+    const Identifier& NYM_ID,     // Unused here for now, but still convention.
     const Identifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                  // USER_ID in this field also.
+                                  // NYM_ID in this field also.
     const int32_t nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum)
 {
     const int64_t lLedgerType = static_cast<int64_t>(nBoxType);
 
-    const String strNotaryID(SERVER_ID),
-        strUserOrAcctID(0 == lLedgerType ? USER_ID : ACCOUNT_ID); // (For Nymbox
-                                                                  // aka type 0,
-                                                                  // the UserID
-                                                                  // will be
-                                                                  // here.)
+    const String strNotaryID(NOTARY_ID),
+        strUserOrAcctID(0 == lLedgerType ? NYM_ID : ACCOUNT_ID); // (For Nymbox
+                                                                 // aka type 0,
+                                                                 // the UserID
+                                                                 // will be
+                                                                 // here.)
     // --------------------------------------------------------------------
     String strFolder1name, strFolder2name, strFolder3name, strFilename;
 
@@ -573,14 +573,14 @@ bool SetupBoxReceiptFilename(int64_t lLedgerType, const String& strUserOrAcctID,
     }
 
     strFolder1name.Set(pszFolder);   // "nymbox" (or "inbox" or "outbox")
-    strFolder2name.Set(strNotaryID); // "SERVER_ID"
-    strFolder3name.Format("%s.r", strUserOrAcctID.Get()); // "USER_ID.r"
+    strFolder2name.Set(strNotaryID); // "NOTARY_ID"
+    strFolder3name.Format("%s.r", strUserOrAcctID.Get()); // "NYM_ID.r"
 
     // "TRANSACTION_ID.rct"
     strFilename.Format("%" PRId64 ".rct", lTransactionNum);
     // todo hardcoding of file extension. Need to standardize extensions.
 
-    // Finished product: "nymbox/SERVER_ID/USER_ID.r/TRANSACTION_ID.rct"
+    // Finished product: "nymbox/NOTARY_ID/NYM_ID.r/TRANSACTION_ID.rct"
 
     return true;
 }

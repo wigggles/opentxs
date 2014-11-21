@@ -148,8 +148,8 @@ inline OT_UTILITY_OT bool VerifyStringVal(const std::string& nValue)
 }
 
 EXPORT OT_UTILITY_OT int32_t
-    InterpretTransactionMsgReply(const std::string& SERVER_ID,
-                                 const std::string& USER_ID,
+    InterpretTransactionMsgReply(const std::string& NOTARY_ID,
+                                 const std::string& NYM_ID,
                                  const std::string& ACCOUNT_ID,
                                  const std::string& strAttempt,
                                  const std::string& strResponse);
@@ -158,13 +158,13 @@ EXPORT OT_UTILITY_OT bool VerifyExists(const std::string& name,
 OT_UTILITY_OT bool VerifyMessage(const std::string& strMessage);
 EXPORT OT_UTILITY_OT int32_t VerifyMessageSuccess(const std::string& message);
 EXPORT OT_UTILITY_OT int32_t
-    VerifyMsgBalanceAgrmntSuccess(const std::string& SERVER_ID,
-                                  const std::string& USER_ID,
+    VerifyMsgBalanceAgrmntSuccess(const std::string& NOTARY_ID,
+                                  const std::string& NYM_ID,
                                   const std::string& ACCOUNT_ID,
                                   const std::string& strMessage);
 EXPORT OT_UTILITY_OT int32_t
-    VerifyMsgTrnxSuccess(const std::string& SERVER_ID,
-                         const std::string& USER_ID,
+    VerifyMsgTrnxSuccess(const std::string& NOTARY_ID,
+                         const std::string& NYM_ID,
                          const std::string& ACCOUNT_ID,
                          const std::string& strMessage);
 

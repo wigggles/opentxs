@@ -181,7 +181,7 @@ void CollectDefaultedCLValues(AnyOption* opt, std::string& str_NotaryID,
 
 /*
 
---server     (SERVER_ID)
+--server     (NOTARY_ID)
 
 USAGE:  ot -COMMAND [AMOUNT] [--from ACCT/NYM/ASSET] [--to ACCT or NYM]
 
@@ -223,9 +223,9 @@ bool SetupPointersForWalletMyNymAndServerContract(
     // Below this point, pWallet is available :-)
 
     if (str_NotaryID.size() > 0) {
-        const Identifier SERVER_ID(str_NotaryID.c_str());
+        const Identifier NOTARY_ID(str_NotaryID.c_str());
 
-        pServerContract = pWallet->GetServerContract(SERVER_ID);
+        pServerContract = pWallet->GetServerContract(NOTARY_ID);
         // If failure, then we try PARTIAL match.
         if (nullptr == pServerContract)
             pServerContract =
@@ -241,8 +241,8 @@ bool SetupPointersForWalletMyNymAndServerContract(
         else {
             otOut
                 << "Unable to find a server contract. Please use the option:  "
-                   "--server SERVER_ID\n"
-                   "(Where SERVER_ID is the server ID. Partial matches are "
+                   "--server NOTARY_ID\n"
+                   "(Where NOTARY_ID is the server ID. Partial matches are "
                    "accepted "
                    "if the contract is already in the wallet.)\n"
                    "Also, see default values located in "
@@ -272,8 +272,8 @@ bool SetupPointersForWalletMyNymAndServerContract(
         }
         else {
             otOut << "==> Unable to find My Nym. Please use the option:   "
-                     "--mynym USER_ID\n"
-                     "(Where USER_ID is the Nym's ID. Partial matches are "
+                     "--mynym NYM_ID\n"
+                     "(Where NYM_ID is the Nym's ID. Partial matches are "
                      "accepted "
                      "if the nym is already in the wallet.)\n"
                      "Also, see default values located in "
@@ -356,8 +356,8 @@ void HandleCommandLineArguments(int32_t argc, char* argv[], AnyOption* opt)
         "ot  --verify         [--mynym  <nym_id> ]   (Verify a signature.)");
     opt->addUsage(
         "ot  --purse    | -p   <arguments>           (Display a purse.)");
-    opt->addUsage(
-        "  Arguments:     [--mynym  <nym_id> ] [--mypurse <asset_type_id>]");
+    opt->addUsage("  Arguments:     [--mynym  <nym_id> ] [--mypurse "
+                  "<instrument_definition_id>]");
     opt->addUsage("ot  --refresh  | -r  [--myacct <acct_id>]    (Download "
                   "account files from server.)");
     opt->addUsage("ot  --refreshnym     [--mynym  <nym_id> ]    (Download nym "
@@ -869,8 +869,8 @@ int32_t main(int32_t argc, char* argv[])
         //
         if (nullptr == pServerContract) {
             otOut << "Unable to find a server contract to use. Please use "
-                     "the option: --server SERVER_ID\n"
-                     "(Where SERVER_ID is the Server's ID. Partial matches "
+                     "the option: --server NOTARY_ID\n"
+                     "(Where NOTARY_ID is the Server's ID. Partial matches "
                      "ARE accepted.)\n";
             //          return 0;
         }
@@ -987,8 +987,8 @@ int32_t main(int32_t argc, char* argv[])
                     // (ONLY the ones that use a nym.)
         {
             otOut << "Unable to find My Nym. Please use the option:   --mynym "
-                     "USER_ID\n"
-                     "(Where USER_ID is the Nym's ID. Partial matches and "
+                     "NYM_ID\n"
+                     "(Where NYM_ID is the Nym's ID. Partial matches and "
                      "names are "
                      "accepted.)\n";
             //          return 0;
@@ -1051,9 +1051,10 @@ int32_t main(int32_t argc, char* argv[])
             // download
             // any asset contract, if it can't find it in the wallet.
         }
-        // if no purse (asset type) ID was provided, but MyAccount WAS provided,
+        // if no purse (instrument definition) ID was provided, but MyAccount
+        // WAS provided,
         // then
-        // use the asset type for the account instead.
+        // use the instrument definition for the account instead.
         else if (nullptr != pMyAccount)
             thePurseInstrumentDefinitionID =
                 pMyAccount->GetInstrumentDefinitionID();
@@ -1091,7 +1092,7 @@ int32_t main(int32_t argc, char* argv[])
             }
         }
         // If no "HisPurse" was provided, but HisAcct WAS, then we use the
-        // asset type of HisAcct as HisPurse.
+        // instrument definition of HisAcct as HisPurse.
         else if (nullptr != pHisAccount)
             hisPurseInstrumentDefinitionID =
                 pHisAccount->GetInstrumentDefinitionID();
@@ -1569,7 +1570,7 @@ int32_t main(int32_t argc, char* argv[])
     }
     else
         otOut << "\nYou may wish to 'load' then 'stat'.\n"
-                 "(FYI, --server SERVER_ID  and  --mynym NYM_ID  were both "
+                 "(FYI, --server NOTARY_ID  and  --mynym NYM_ID  were both "
                  "valid options.)\n"
                  "Also, see:  ~/.ot/command-line-ot.opt for defaults.\n";
 
@@ -1885,8 +1886,8 @@ int32_t main(int32_t argc, char* argv[])
 
         if (nullptr == pServerContract) {
             otOut << "Unable to find a server contract. Please restart using "
-                     "the option:  --server SERVER_ID\n"
-                     "(Where SERVER_ID is the server ID. Partial matches ARE "
+                     "the option:  --server NOTARY_ID\n"
+                     "(Where NOTARY_ID is the server ID. Partial matches ARE "
                      "accepted.)\n";
             continue;
         }
@@ -1916,8 +1917,8 @@ int32_t main(int32_t argc, char* argv[])
         {
             otOut
                 << "Unable to find My Nym. Please restart and use the option:\n"
-                   "   --mynym USER_ID\n"
-                   "(Where USER_ID is the Nym's ID. Partial matches ARE "
+                   "   --mynym NYM_ID\n"
+                   "(Where NYM_ID is the Nym's ID. Partial matches ARE "
                    "accepted.)\n";
             continue;
         }

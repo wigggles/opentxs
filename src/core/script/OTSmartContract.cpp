@@ -757,9 +757,11 @@ activated with NO stashes. Server creates/maintains stashes AFTER activation.)
 
 DONE get_acct_balance(acct)                        Returns int64_t.     (Named
 acct must be party to agreement with legitimate authorized agent.)
-DONE get_acct_asset_type_id(acct)                Returns std::string. (Named
+DONE get_acct_instrument_definition_id(acct)                Returns std::string.
+(Named
 acct must be party to agreement with legitimate authorized agent.)
-DONE get_stash_balance(stash, asset_type_id)    Returns int64_t.     (Named
+DONE get_stash_balance(stash, instrument_definition_id)    Returns int64_t.
+(Named
 stash must exist.)
 
 DONE send_notice(to_party)        (Like sendMessage, except it comes from the
@@ -855,7 +857,7 @@ void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
                            "get_acct_balance");
         pScript->chai->add(
             fun(&OTSmartContract::GetInstrumentDefinitionIDofAcct, this),
-            "get_acct_asset_type_id");
+            "get_acct_instrument_definition_id");
         pScript->chai->add(fun(&OTSmartContract::GetStashBalance, this),
                            "get_stash_balance");
         pScript->chai->add(fun(&OTSmartContract::SendNoticeToParty, this),
@@ -1316,19 +1318,19 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
-    const Identifier SERVER_USER_ID(*pServerNym);
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
+    const Identifier SERVER_NYM_ID(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
     const String strPartyID(str_party_id);
-    const Identifier PARTY_USER_ID(strPartyID);
+    const Identifier PARTY_NYM_ID(strPartyID);
 
     const Identifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
     //
     Account* pPartyAssetAcct =
-        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(PARTY_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::GetAcctBalance: ERROR verifying existence "
@@ -1342,7 +1344,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return 0;
     }
-    else if (!pPartyAssetAcct->VerifyOwnerByID(PARTY_USER_ID)) {
+    else if (!pPartyAssetAcct->VerifyOwnerByID(PARTY_NYM_ID)) {
         otOut << "OTSmartContract::GetAcctBalance: ERROR failed to verify "
                  "party user ownership of party account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -1542,19 +1544,19 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
-    const Identifier SERVER_USER_ID(*pServerNym);
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
+    const Identifier SERVER_NYM_ID(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
     const String strPartyID(str_party_id);
-    const Identifier PARTY_USER_ID(strPartyID);
+    const Identifier PARTY_NYM_ID(strPartyID);
 
     const Identifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
 
-    // Load up the party's account and get the asset type.
+    // Load up the party's account and get the instrument definition.
     //
     Account* pPartyAssetAcct =
-        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(PARTY_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: ERROR "
@@ -1570,7 +1572,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return str_return_value;
     }
-    else if (!pPartyAssetAcct->VerifyOwnerByID(PARTY_USER_ID)) {
+    else if (!pPartyAssetAcct->VerifyOwnerByID(PARTY_NYM_ID)) {
         otOut << "OTSmartContract::GetInstrumentDefinitionIDofAcct: ERROR "
                  "failed to "
                  "verify party user ownership of party account.\n";
@@ -1587,8 +1589,8 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     return str_return_value;
 }
 
-std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
-                                             std::string asset_type_id)
+std::string OTSmartContract::GetStashBalance(
+    std::string from_stash_name, std::string instrument_definition_id)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1606,8 +1608,9 @@ std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
                  "non-existent.\n";
         return 0;
     }
-    if (asset_type_id.size() <= 0) {
-        otErr << "OTSmartContract::GetStashBalance: error: asset_type_id is "
+    if (instrument_definition_id.size() <= 0) {
+        otErr << "OTSmartContract::GetStashBalance: error: "
+                 "instrument_definition_id is "
                  "non-existent.\n";
         return 0;
     }
@@ -1615,7 +1618,7 @@ std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
     // Below this point, these are all good:
     //
     //        from_stash_name,
-    //        asset_type_id
+    //        instrument_definition_id
     //        pServerNym, pCron.
     //
 
@@ -1627,11 +1630,11 @@ std::string OTSmartContract::GetStashBalance(std::string from_stash_name,
     // Below this point, these are all good:
     //
     //        pStash,        from_stash_name,
-    //        asset_type_id
+    //        instrument_definition_id
     //        pServerNym, pCron.
     //
     String strBalance;
-    strBalance.Format("%" PRId64, pStash->GetAmount(asset_type_id));
+    strBalance.Format("%" PRId64, pStash->GetAmount(instrument_definition_id));
     return strBalance.Get();
 }
 
@@ -2273,7 +2276,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                                                          // Positive means
                                                          // STASH.
                                  const Identifier& PARTY_ACCT_ID,
-                                 const Identifier& PARTY_USER_ID,
+                                 const Identifier& PARTY_NYM_ID,
                                  OTStash& theStash)
 {
     OTCron* pCron = GetCron();
@@ -2287,14 +2290,15 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
-    const Identifier SERVER_USER_ID(*pServerNym);
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
+    const Identifier SERVER_NYM_ID(*pServerNym);
 
-    // Load up the party's account and get the asset type, so we know which
+    // Load up the party's account and get the instrument definition, so we know
+    // which
     // stash to get off the stash.
     //
     Account* pPartyAssetAcct =
-        Account::LoadExistingAccount(PARTY_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(PARTY_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pPartyAssetAcct) {
         otOut << "OTSmartContract::StashFunds: ERROR verifying existence of "
@@ -2308,7 +2312,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return false;
     }
-    else if (!pPartyAssetAcct->VerifyOwnerByID(PARTY_USER_ID)) {
+    else if (!pPartyAssetAcct->VerifyOwnerByID(PARTY_NYM_ID)) {
         otOut << "OTSmartContract::StashFunds: ERROR failed to verify party "
                  "user ownership of party account.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -2320,18 +2324,21 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     //
     // There could be many stashes, each with a name. (One was passed in
     // here...)
-    // And inside each one is a stash for each asset type. So let's get the one
-    // for the asset type matching the party's account.
+    // And inside each one is a stash for each instrument definition. So let's
+    // get the one
+    // for the instrument definition matching the party's account.
     //
     const String strInstrumentDefinitionID(
         pPartyAssetAcct->GetInstrumentDefinitionID());
-    const std::string str_asset_type_id = strInstrumentDefinitionID.Get();
+    const std::string str_instrument_definition_id =
+        strInstrumentDefinitionID.Get();
 
-    OTStashItem* pStashItem = theStash.GetStash(str_asset_type_id);
+    OTStashItem* pStashItem = theStash.GetStash(str_instrument_definition_id);
     OT_ASSERT(nullptr !=
               pStashItem); // should never happen. Creates if non-existent.
 
-    // Below this point, pStashItem is good, and has the right asset_type_id.
+    // Below this point, pStashItem is good, and has the right
+    // instrument_definition_id.
 
     //
     const bool bUnstashing =
@@ -2377,12 +2384,13 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
 
-    bool bWasAcctCreated = false; // GetOrCreateAccount() will verifyContractID
-                                  // and verifySignature on the account
-                                  // internally.
-    std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrCreateAccount(
-        *pServerNym, SERVER_USER_ID,
-        pPartyAssetAcct->GetInstrumentDefinitionID(), SERVER_ID,
+    bool bWasAcctCreated =
+        false; // GetOrRegisterAccount() will verifyContractID
+               // and verifySignature on the account
+               // internally.
+    std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrRegisterAccount(
+        *pServerNym, SERVER_NYM_ID,
+        pPartyAssetAcct->GetInstrumentDefinitionID(), NOTARY_ID,
         bWasAcctCreated, GetTransactionNum());
 
     if (!pStashAccount) {
@@ -2460,19 +2468,19 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
 
-    if (!pStashAccount->VerifyOwnerByID(SERVER_USER_ID)) {
+    if (!pStashAccount->VerifyOwnerByID(SERVER_NYM_ID)) {
         otErr << "OTSmartContract::StashFunds: Error: Somehow the stash "
                  "account isn't server-nym owned.\n";
         FlagForRemoval(); // Remove from Cron
         return false;
     }
-    const Identifier STASH_USER_ID(pStashAccount->GetUserID());
+    const Identifier STASH_NYM_ID(pStashAccount->GetUserID());
 
     bool bSuccess = false; // The return value.
 
-    String strPartyUserID(PARTY_USER_ID), strStashUserID(STASH_USER_ID),
+    String strPartyUserID(PARTY_NYM_ID), strStashUserID(STASH_NYM_ID),
         strPartyAcctID(PARTY_ACCT_ID), strStashAcctID(STASH_ACCT_ID),
-        strServerNymID(SERVER_USER_ID);
+        strServerNymID(SERVER_NYM_ID);
 
     // Need to load up the ORIGINAL VERSION OF THIS SMART CONTRACT
     // Will need to verify the party's signature, as well as attach a copy of it
@@ -2509,7 +2517,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 
     // Find out if party Nym is actually also the server nym.
     const bool bPartyNymIsServerNym =
-        ((PARTY_USER_ID == SERVER_USER_ID) ? true : false);
+        ((PARTY_NYM_ID == SERVER_NYM_ID) ? true : false);
 
     Nym* pPartyNym = nullptr;
     //    OTPseudonym * pStashNym            = pServerNym;
@@ -2522,7 +2530,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     {
         pPartyNym = it_party->second;
         OT_ASSERT((nullptr != pPartyNym) &&
-                  (pPartyNym->CompareID(PARTY_USER_ID)));
+                  (pPartyNym->CompareID(PARTY_NYM_ID)));
     }
 
     // Figure out if party Nym is also Server Nym.
@@ -2533,7 +2541,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     else if (nullptr == pPartyNym) // Else load the First Nym from storage, if
                                      // still not found.
     {
-        thePartyNym.SetIdentifier(PARTY_USER_ID); // thePartyNym is pPartyNym
+        thePartyNym.SetIdentifier(PARTY_NYM_ID); // thePartyNym is pPartyNym
 
         if (!thePartyNym.LoadPublicKey()) {
             otErr << "OTSmartContract::StashFunds: Failure loading party Nym "
@@ -2612,7 +2620,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         // (No need for the stash's inbox -- the server owns it.)
 
         // Load the inbox in case it already exists
-        OTLedger thePartyInbox(PARTY_USER_ID, PARTY_ACCT_ID, SERVER_ID);
+        OTLedger thePartyInbox(PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -2629,7 +2637,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         //            OT_FAIL_MSG("ASSERT:  TRYING TO GENERATE INBOX IN STASH
         // FUNDS!!!\n");
         //            bSuccessLoadingPartyInbox        =
-        // thePartyInbox.GenerateLedger(PARTY_ACCT_ID, SERVER_ID,
+        // thePartyInbox.GenerateLedger(PARTY_ACCT_ID, NOTARY_ID,
         // OTLedger::inbox, true); // bGenerateFile=true
 
         if (!bSuccessLoadingPartyInbox) {
@@ -2675,7 +2683,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 
             //            const int64_t lPartyTransRefNo    =
             // GetTransactionNum();
-            const int64_t lPartyTransRefNo = GetOpeningNumber(PARTY_USER_ID);
+            const int64_t lPartyTransRefNo = GetOpeningNumber(PARTY_NYM_ID);
 
             // Here I make sure that each receipt (each inbox notice) references
             // the original
@@ -5161,7 +5169,8 @@ void OTSmartContract::CleanupAccts(mapOfAccounts& theMap)
 // contract can be circulated BLANK and many different instances of it might be
 // used.
 //
-// (The party, at this stage, has a name, and accounts with asset types, but no
+// (The party, at this stage, has a name, and accounts with instrument
+// definitions, but no
 // actual Nym IDs
 // or account IDs.)
 // This way any Nym or Entity could later sign on as the "trustee" or as the
@@ -5320,12 +5329,12 @@ OTSmartContract::OTSmartContract()
     InitSmartContract();
 }
 
-OTSmartContract::OTSmartContract(const Identifier& SERVER_ID)
+OTSmartContract::OTSmartContract(const Identifier& NOTARY_ID)
     : ot_super()
     , m_StashAccts(Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
-    OTInstrument::SetNotaryID(SERVER_ID);
+    OTInstrument::SetNotaryID(NOTARY_ID);
     InitSmartContract();
 }
 
@@ -5446,7 +5455,7 @@ void OTSmartContract::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    const String SERVER_ID(GetNotaryID()), ACTIVATOR_USER_ID(GetSenderUserID()),
+    const String NOTARY_ID(GetNotaryID()), ACTIVATOR_NYM_ID(GetSenderUserID()),
         ACTIVATOR_ACCT_ID(GetSenderAcctID());
 
     OT_ASSERT(nullptr != m_pCancelerNymID);
@@ -5482,8 +5491,8 @@ void OTSmartContract::UpdateContents()
         " validTo=\"%" PRId64 "\"\n"
         " nextProcessDate=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), m_bCalculatingID ? "" : SERVER_ID.Get(),
-        m_bCalculatingID ? "" : ACTIVATOR_USER_ID.Get(),
+        m_strVersion.Get(), m_bCalculatingID ? "" : NOTARY_ID.Get(),
+        m_bCalculatingID ? "" : ACTIVATOR_NYM_ID.Get(),
         m_bCalculatingID ? "" : ACTIVATOR_ACCT_ID.Get(),
         m_bCalculatingID ? "" : m_strLastSenderUser.Get(),
         m_bCalculatingID ? "" : m_strLastSenderAcct.Get(),
@@ -5526,17 +5535,17 @@ void OTSmartContract::UpdateContents()
         // Save m_StashAccts.
         //
         // (This is an object that contains a map of OTAccountIDs, by
-        // asset_type_id)
+        // instrument_definition_id)
         //
         m_StashAccts.Serialize(m_xmlUnsigned);
 
         // This is a map of OTStash's, by stash_name.
-        // EACH ONE contains a map of OTStashItems, by asset_type_id
+        // EACH ONE contains a map of OTStashItems, by instrument_definition_id
 
         // These stashes are what the scripts interact with. They have names.
         // Whereas the stash accts (above) are the actual accountIDs
         for (auto& it : m_mapStashes) {
-            // where the actual funds are stored for each asset type.
+            // where the actual funds are stored for each instrument definition.
             OTStash* pStash = it.second;
             OT_ASSERT(nullptr != pStash);
             pStash->Serialize(m_xmlUnsigned);
@@ -5628,12 +5637,12 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("cancelerUserID"));
 
         if (strNotaryID.Exists()) {
-            const Identifier SERVER_ID(strNotaryID);
-            SetNotaryID(SERVER_ID);
+            const Identifier NOTARY_ID(strNotaryID);
+            SetNotaryID(NOTARY_ID);
         }
         if (strActivatorUserID.Exists()) {
-            const Identifier ACTIVATOR_USER_ID(strActivatorUserID);
-            SetSenderUserID(ACTIVATOR_USER_ID);
+            const Identifier ACTIVATOR_NYM_ID(strActivatorUserID);
+            SetSenderUserID(ACTIVATOR_NYM_ID);
         }
         if (strActivatorAcctID.Exists()) {
             const Identifier ACTIVATOR_ACCT_ID(strActivatorAcctID);
@@ -5757,9 +5766,9 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 bool OTSmartContract::MoveFunds(
     const mapOfNyms& map_NymsAlreadyLoaded, const int64_t& lAmount,
     const Identifier& SOURCE_ACCT_ID,    // GetSenderAcctID();
-    const Identifier& SENDER_USER_ID,    // GetSenderUserID();
+    const Identifier& SENDER_NYM_ID,     // GetSenderUserID();
     const Identifier& RECIPIENT_ACCT_ID, // GetRecipientAcctID();
-    const Identifier& RECIPIENT_USER_ID) // GetRecipientUserID();
+    const Identifier& RECIPIENT_NYM_ID)  // GetRecipientUserID();
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -5775,12 +5784,12 @@ bool OTSmartContract::MoveFunds(
 
     bool bSuccess = false; // The return value.
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
-    const Identifier SERVER_USER_ID(*pServerNym);
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
+    const Identifier SERVER_NYM_ID(*pServerNym);
 
-    String strSenderUserID(SENDER_USER_ID),
-        strRecipientUserID(RECIPIENT_USER_ID), strSourceAcctID(SOURCE_ACCT_ID),
-        strRecipientAcctID(RECIPIENT_ACCT_ID), strServerNymID(SERVER_USER_ID);
+    String strSenderUserID(SENDER_NYM_ID), strRecipientUserID(RECIPIENT_NYM_ID),
+        strSourceAcctID(SOURCE_ACCT_ID), strRecipientAcctID(RECIPIENT_ACCT_ID),
+        strServerNymID(SERVER_NYM_ID);
 
     // Make sure they're not the same Account IDs ...
     // Otherwise we would have to take care not to load them twice, like with
@@ -5798,7 +5807,8 @@ bool OTSmartContract::MoveFunds(
                       // other examples...)
     }
     // When the accounts are actually loaded up, then we should also compare
-    // the asset types to make sure they were what we expected them to be.
+    // the instrument definitions to make sure they were what we expected them
+    // to be.
 
     // Need to load up the ORIGINAL VERSION OF THIS SMART CONTRACT
     // Will need to verify the parties' signatures, as well as attach a copy of
@@ -5849,15 +5859,15 @@ bool OTSmartContract::MoveFunds(
 
     // Find out if either Nym is actually also the server.
     bool bSenderNymIsServerNym =
-        ((SENDER_USER_ID == SERVER_USER_ID) ? true : false);
+        ((SENDER_NYM_ID == SERVER_NYM_ID) ? true : false);
     bool bRecipientNymIsServerNym =
-        ((RECIPIENT_USER_ID == SERVER_USER_ID) ? true : false);
+        ((RECIPIENT_NYM_ID == SERVER_NYM_ID) ? true : false);
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity.
     // (We'll want to know that later.)
     bool bUsersAreSameNym =
-        ((SENDER_USER_ID == RECIPIENT_USER_ID) ? true : false);
+        ((SENDER_NYM_ID == RECIPIENT_NYM_ID) ? true : false);
 
     Nym* pSenderNym = nullptr;
     Nym* pRecipientNym = nullptr;
@@ -5870,7 +5880,7 @@ bool OTSmartContract::MoveFunds(
     {
         pSenderNym = it_sender->second;
         OT_ASSERT((nullptr != pSenderNym) &&
-                  (pSenderNym->CompareID(SENDER_USER_ID)));
+                  (pSenderNym->CompareID(SENDER_NYM_ID)));
     }
     if (map_NymsAlreadyLoaded.end() != it_recipient) // found the recipient in
                                                      // list of Nyms that are
@@ -5878,7 +5888,7 @@ bool OTSmartContract::MoveFunds(
     {
         pRecipientNym = it_recipient->second;
         OT_ASSERT((nullptr != pRecipientNym) &&
-                  (pRecipientNym->CompareID(RECIPIENT_USER_ID)));
+                  (pRecipientNym->CompareID(RECIPIENT_NYM_ID)));
     }
 
     // Figure out if Sender Nym is also Server Nym.
@@ -5890,11 +5900,10 @@ bool OTSmartContract::MoveFunds(
                pSenderNym) // Else load the First Nym from storage, if
                            // still not found.
     {
-        theSenderNym.SetIdentifier(
-            SENDER_USER_ID); // theSenderNym is pSenderNym
+        theSenderNym.SetIdentifier(SENDER_NYM_ID); // theSenderNym is pSenderNym
 
         if (!theSenderNym.LoadPublicKey()) {
-            String strNymID(SENDER_USER_ID);
+            String strNymID(SENDER_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading Sender Nym public "
                      "key: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -5916,7 +5925,7 @@ bool OTSmartContract::MoveFunds(
             pSenderNym = &theSenderNym; //  <=====
         }
         else {
-            String strNymID(SENDER_USER_ID);
+            String strNymID(SENDER_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading or verifying "
                      "Sender Nym public key: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -5938,10 +5947,10 @@ bool OTSmartContract::MoveFunds(
                pRecipientNym) // Otherwise load the Other Nym from Disk
                               // and point to that, if still not found.
     {
-        theRecipientNym.SetIdentifier(RECIPIENT_USER_ID);
+        theRecipientNym.SetIdentifier(RECIPIENT_NYM_ID);
 
         if (!theRecipientNym.LoadPublicKey()) {
-            String strNymID(RECIPIENT_USER_ID);
+            String strNymID(RECIPIENT_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading Recipient Nym "
                      "public key: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -5959,7 +5968,7 @@ bool OTSmartContract::MoveFunds(
             pRecipientNym = &theRecipientNym; //  <=====
         }
         else {
-            String strNymID(RECIPIENT_USER_ID);
+            String strNymID(RECIPIENT_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading or verifying "
                      "Recipient Nym public key: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -6151,7 +6160,7 @@ bool OTSmartContract::MoveFunds(
     // LOAD THE ACCOUNTS
     //
     Account* pSourceAcct =
-        Account::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(SOURCE_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pSourceAcct) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of source "
@@ -6163,7 +6172,7 @@ bool OTSmartContract::MoveFunds(
     std::unique_ptr<Account> theSourceAcctSmrtPtr(pSourceAcct);
 
     Account* pRecipientAcct =
-        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID);
+        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, NOTARY_ID);
 
     if (nullptr == pRecipientAcct) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of "
@@ -6191,7 +6200,7 @@ bool OTSmartContract::MoveFunds(
         // true.
         otOut << "OTCronItem::MoveFunds: ERROR - attempted payment between "
                  "accounts of different "
-                 "asset types.\n";
+                 "instrument definitions.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return false;
     }
@@ -6215,7 +6224,7 @@ bool OTSmartContract::MoveFunds(
     }
 
     // By this point, I know I have both accounts loaded, and I know that they
-    // have the right asset types,
+    // have the right instrument definitions,
     // and I know they have the right owners and they were all signed by the
     // server.
     // I also know that their account IDs in their internal records matched the
@@ -6227,8 +6236,8 @@ bool OTSmartContract::MoveFunds(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inboxes in case they already exist
-        OTLedger theSenderInbox(SENDER_USER_ID, SOURCE_ACCT_ID, SERVER_ID),
-            theRecipientInbox(RECIPIENT_USER_ID, RECIPIENT_ACCT_ID, SERVER_ID);
+        OTLedger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
+            theRecipientInbox(RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -6245,7 +6254,7 @@ bool OTSmartContract::MoveFunds(
                      "ledger.\n";
         //        else
         //            bSuccessLoadingSenderInbox        =
-        // theSenderInbox.GenerateLedger(SOURCE_ACCT_ID, SERVER_ID,
+        // theSenderInbox.GenerateLedger(SOURCE_ACCT_ID, NOTARY_ID,
         // OTLedger::inbox, true); // bGenerateFile=true
 
         if (true == bSuccessLoadingRecipientInbox)
@@ -6256,7 +6265,7 @@ bool OTSmartContract::MoveFunds(
                      "ledger.\n";
         //        else
         //            bSuccessLoadingRecipientInbox    =
-        // theRecipientInbox.GenerateLedger(RECIPIENT_ACCT_ID, SERVER_ID,
+        // theRecipientInbox.GenerateLedger(RECIPIENT_ACCT_ID, NOTARY_ID,
         // OTLedger::inbox, true); // bGenerateFile=true
 
         if ((false == bSuccessLoadingSenderInbox) ||
@@ -6310,9 +6319,8 @@ bool OTSmartContract::MoveFunds(
             pItemSend->SetStatus(OTItem::rejection);  // the default.
             pItemRecip->SetStatus(OTItem::rejection); // the default.
 
-            const int64_t lTransSendRefNo = GetOpeningNumber(SENDER_USER_ID);
-            const int64_t lTransRecipRefNo =
-                GetOpeningNumber(RECIPIENT_USER_ID);
+            const int64_t lTransSendRefNo = GetOpeningNumber(SENDER_NYM_ID);
+            const int64_t lTransRecipRefNo = GetOpeningNumber(RECIPIENT_NYM_ID);
 
             // Here I make sure that each receipt (each inbox notice) references
             // the original

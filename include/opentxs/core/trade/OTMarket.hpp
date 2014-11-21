@@ -132,7 +132,8 @@
 
 // A market has a list of OTOffers for all the bids, and another list of
 // OTOffers for all the asks.
-// Presumably the server will have different markets for different asset types.
+// Presumably the server will have different markets for different instrument
+// definitions.
 
 #ifndef OPENTXS_CORE_TRADE_OTMARKET_HPP
 #define OPENTXS_CORE_TRADE_OTMARKET_HPP
@@ -174,10 +175,11 @@ private:
     mapOfOffersTrnsNum m_mapOffers; // All of the offers on a single list,
                                     // ordered by transaction number.
 
-    Identifier m_SERVER_ID; // Always store this in any object that's
+    Identifier m_NOTARY_ID; // Always store this in any object that's
                             // associated with a specific server.
 
-    // Every market involves a certain asset type being traded in a certain
+    // Every market involves a certain instrument definition being traded in a
+    // certain
     // currency.
     Identifier m_INSTRUMENT_DEFINITION_ID; // This is the GOLD market. (Say.)
                                            // | (GOLD
@@ -195,18 +197,22 @@ private:
     std::string m_strLastSaleDate;
 
     // The server stores a map of markets, one for each unique combination of
-    // asset types.
-    // That's what this market class represents: one asset type being traded and
+    // instrument definitions.
+    // That's what this market class represents: one instrument definition being
+    // traded and
     // priced in another.
     // It could be wheat for dollars, wheat for yen, or gold for dollars, or
     // gold for wheat, or
     // gold for oil, or oil for wheat.  REALLY, THE TWO ARE JUST ARBITRARY ASSET
     // TYPES. But in
-    // order to keep terminology clear, I will refer to one as the "asset type"
+    // order to keep terminology clear, I will refer to one as the "instrument
+    // definition"
     // and the other as
-    // the "currency type" so that it stays VERY clear which asset type is up
+    // the "currency type" so that it stays VERY clear which instrument
+    // definition is up
     // for sale, and which
-    // asset type (currency type) it is being priced in. Other than that, the
+    // instrument definition (currency type) it is being priced in. Other than
+    // that, the
     // two are technically
     // interchangeable.
 
@@ -264,9 +270,9 @@ public:
     {
         m_CURRENCY_TYPE_ID = CURRENCY_ID;
     }
-    void SetNotaryID(const Identifier& SERVER_ID)
+    void SetNotaryID(const Identifier& NOTARY_ID)
     {
-        m_SERVER_ID = SERVER_ID;
+        m_NOTARY_ID = NOTARY_ID;
     }
 
     inline const Identifier& GetInstrumentDefinitionID() const
@@ -279,7 +285,7 @@ public:
     }
     inline const Identifier& GetNotaryID() const
     {
-        return m_SERVER_ID;
+        return m_NOTARY_ID;
     }
 
     inline const int64_t& GetScale() const
@@ -310,7 +316,7 @@ public:
     int64_t GetTotalAvailableAssets();
     OTMarket();
     OTMarket(const char* szFilename);
-    OTMarket(const Identifier& SERVER_ID,
+    OTMarket(const Identifier& NOTARY_ID,
              const Identifier& INSTRUMENT_DEFINITION_ID,
              const Identifier& CURRENCY_TYPE_ID, const int64_t& lScale);
 

@@ -172,7 +172,7 @@ int32_t CmdNewAsset::run(string mynym)
         return -1;
     }
 
-    cout << "New asset type ID : " << assetType << "\n";
+    cout << "New instrument definition ID : " << assetType << "\n";
 
     string contract = OTAPI_Wrap::GetAssetType_Contract(assetType);
     if ("" == contract) {

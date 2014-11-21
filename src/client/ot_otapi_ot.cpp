@@ -700,10 +700,10 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
         return OTAPI_Wrap::sendNymInstrument(notaryID, nymID, nymID2, strData,
                                              strData2, accountID);
     case GET_NYM_MARKET_OFFERS:
-        return OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID);
+        return OTAPI_Wrap::getNymMarketOffers(notaryID, nymID);
     case CREATE_ASSET_ACCT:
-        return OTAPI_Wrap::createAssetAccount(notaryID, nymID,
-                                              instrumentDefinitionID);
+        return OTAPI_Wrap::registerAccount(notaryID, nymID,
+                                           instrumentDefinitionID);
     case DELETE_ASSET_ACCT:
         return OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID);
     case ACTIVATE_SMART_CONTRACT:
@@ -719,7 +719,7 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case GET_MINT:
         return OTAPI_Wrap::getMint(notaryID, nymID, instrumentDefinitionID);
     case QUERY_ASSET_TYPES:
-        return OTAPI_Wrap::queryAssetTypes(notaryID, nymID, strData);
+        return OTAPI_Wrap::queryInstrumentDefinitions(notaryID, nymID, strData);
     case ISSUE_ASSET_TYPE:
         return OTAPI_Wrap::issueAssetType(notaryID, nymID, strData);
     case ISSUE_BASKET:
@@ -1406,7 +1406,8 @@ OT_OTAPI_OT MapOfMaps* convert_offerlist_to_maps(OTDB::OfferListNym& offerList)
 
             OTDB::OfferDataNym& offerData = *offerDataPtr;
             string strScale = offerData.scale;
-            string strInstrumentDefinitionID = offerData.asset_type_id;
+            string strInstrumentDefinitionID =
+                offerData.instrument_definition_id;
             string strCurrencyTypeID = offerData.currency_type_id;
             string strSellStatus = offerData.selling ? "SELL" : "BUY";
             string strTransactionID = offerData.transaction_id;
@@ -1479,7 +1480,7 @@ OT_OTAPI_OT int32_t
     // (It's used as a lambda.)
 
     string strScale = offer_data.scale;
-    string strInstrumentDefinitionID = offer_data.asset_type_id;
+    string strInstrumentDefinitionID = offer_data.instrument_definition_id;
     string strCurrencyTypeID = offer_data.currency_type_id;
     string strSellStatus = offer_data.selling ? "SELL" : "BUY";
     string strTransactionID = offer_data.transaction_id;

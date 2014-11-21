@@ -420,7 +420,8 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
         return nullptr;
     }
 
-    // This compares asset type ID, AND account ID on the actual loaded account,
+    // This compares instrument definition ID, AND account ID on the actual
+    // loaded account,
     // to what is expected.
     else if (!IsAccount(*pAccount)) // It also sets the internal pointer
                                     // m_pAccount... FYI.
@@ -442,7 +443,7 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
 void OTPartyAccount::Serialize(String& strAppend, bool bCalculatingID,
                                bool bSpecifyInstrumentDefinitionID) const
 {
-    strAppend.Concatenate("<assetAccount\n name=\"%s\"\n"
+    strAppend.Concatenate("<account\n name=\"%s\"\n"
                           " acctID=\"%s\"\n"
                           " instrumentDefinitionID=\"%s\"\n"
                           " agentName=\"%s\"\n"

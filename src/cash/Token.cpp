@@ -236,9 +236,9 @@ Token::Token()
 // bool                m_bSavePrivateKeys; // Determines whether it serializes
 // private keys 1 time (yes if true)
 
-Token::Token(const Identifier& SERVER_ID,
+Token::Token(const Identifier& NOTARY_ID,
              const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -339,7 +339,7 @@ void Token::ReleasePrototokens()
 // static -- class factory.
 //
 Token* Token::LowLevelInstantiate(const String& strFirstLine,
-                                  const Identifier& SERVER_ID,
+                                  const Identifier& NOTARY_ID,
                                   const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     Token* pToken = nullptr;
@@ -348,21 +348,21 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine,
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) // this string is
                                                               // 27 chars long.
     {
-        pToken = new Token_Lucre(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+        pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     }
     else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----")) // this string is 33
                                                          // chars long.
     {
-        pToken = new Token_Lucre(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+        pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     }
     else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) // this string is
                                                                // 39 chars long.
     {
-        pToken = new Token_Lucre(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+        pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     }
 #else
@@ -457,7 +457,7 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine)
 
 // static -- class factory.
 //
-Token* Token::TokenFactory(String strInput, const Identifier& SERVER_ID,
+Token* Token::TokenFactory(String strInput, const Identifier& NOTARY_ID,
                            const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     //  const char * szFunc = "Token::TokenFactory";
@@ -467,7 +467,7 @@ Token* Token::TokenFactory(String strInput, const Identifier& SERVER_ID,
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Token* pToken = Token::LowLevelInstantiate(strFirstLine, SERVER_ID,
+        Token* pToken = Token::LowLevelInstantiate(strFirstLine, NOTARY_ID,
                                                    INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
@@ -767,7 +767,7 @@ void Token::UpdateContents()
     if (m_State == Token::spendableToken) m_strContractType.Set("CASH TOKEN");
 
     String INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
-        SERVER_ID(m_NotaryID);
+        NOTARY_ID(m_NotaryID);
 
     String strState;
     switch (m_State) {
@@ -809,7 +809,7 @@ void Token::UpdateContents()
         " validTo=\"%" PRId64 "\""
         " >\n\n",
         m_strVersion.Get(), strState.Get(), GetDenomination(),
-        INSTRUMENT_DEFINITION_ID.Get(), SERVER_ID.Get(), m_nSeries, lFrom, lTo);
+        INSTRUMENT_DEFINITION_ID.Get(), NOTARY_ID.Get(), m_nSeries, lFrom, lTo);
 
     // signed tokens, as well as spendable tokens, both carry a TokenID
     // (The spendable token contains the unblinded version.)

@@ -306,7 +306,8 @@ bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, int32_t& nMarketCount)
 
         pMarketData->notary_id = str_NotaryID.Get();
         pMarketData->market_id = str_MARKET_ID.Get();
-        pMarketData->asset_type_id = str_INSTRUMENT_DEFINITION_ID.Get();
+        pMarketData->instrument_definition_id =
+            str_INSTRUMENT_DEFINITION_ID.Get();
         pMarketData->currency_type_id = str_CURRENCY_ID.Get();
         // --------------------------------------------
         const int64_t& lScale = pMarket->GetScale();
@@ -454,7 +455,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const String strNotaryID(xml->getAttributeValue("notaryID"));
 
-        m_SERVER_ID.SetString(strNotaryID);
+        m_NOTARY_ID.SetString(strNotaryID);
 
         otOut << "\n\nLoading OTCron for NotaryID: " << strNotaryID << "\n";
 
@@ -555,7 +556,7 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "Loaded cron entry for Market:\n" << strMarketID << ".\n";
 
         // LoadMarket() needs this info to do its thing.
-        OTMarket* pMarket = new OTMarket(m_SERVER_ID, INSTRUMENT_DEFINITION_ID,
+        OTMarket* pMarket = new OTMarket(m_NOTARY_ID, INSTRUMENT_DEFINITION_ID,
                                          CURRENCY_ID, lScale);
 
         OT_ASSERT(nullptr != pMarket);
@@ -593,12 +594,12 @@ void OTCron::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(m_SERVER_ID);
+    const String NOTARY_ID(m_NOTARY_ID);
 
     m_xmlUnsigned.Concatenate("<cron\n version=\"%s\"\n"
                               " notaryID=\"%s\""
                               " >\n\n",
-                              m_strVersion.Get(), SERVER_ID.Get());
+                              m_strVersion.Get(), NOTARY_ID.Get());
 
     // Save the Market entries (the markets themselves are saved in a markets
     // folder.)
@@ -784,7 +785,7 @@ bool OTCron::AddCronItem(OTCronItem& theItem, Nym* pActivator,
 
         theItem.SetCronPointer(*this);
         theItem.setServerNym(m_pServerNym);
-        theItem.setNotaryID(&m_SERVER_ID);
+        theItem.setNotaryID(&m_NOTARY_ID);
 
         bool bSuccess = true;
 
@@ -1155,14 +1156,14 @@ OTCron::OTCron()
     otLog3 << "OTCron::OTCron: Finished calling InitCron 0.\n";
 }
 
-OTCron::OTCron(const Identifier& SERVER_ID)
+OTCron::OTCron(const Identifier& NOTARY_ID)
     : Contract()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr) // just here for convenience, not responsible to
                             // cleanup this pointer.
 {
     InitCron();
-    SetNotaryID(SERVER_ID);
+    SetNotaryID(NOTARY_ID);
     otLog3 << "OTCron::OTCron: Finished calling InitCron 1.\n";
 }
 

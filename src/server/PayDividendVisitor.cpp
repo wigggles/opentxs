@@ -178,7 +178,7 @@ PayDividendVisitor::~PayDividendVisitor()
     m_lAmountReturned = 0;
 }
 
-// For each "simple" account of a specific asset type, this function
+// For each "simple" account of a specific instrument definition, this function
 // is called in order to pay a dividend to the Nym who owns that account.
 
 // PayDividendVisitor::Trigger() is used in
@@ -313,7 +313,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                           "issuing voucher (to send to dividend payout "
                           "recipient.) "
                           "WAS TRYING TO PAY %" PRId64
-                          " of asset type %s to Nym %s.\n",
+                          " of instrument definition %s to Nym %s.\n",
                           lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
                           strRecipientUserID.Get());
         }
@@ -371,15 +371,16 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                 const String strPayoutInstrumentDefinitionID(
                     thePayoutInstrumentDefinitionID),
                     strSenderUserID(theSenderUserID);
-                OTLog::vError(
-                    "PayDividendVisitor::Trigger: ERROR "
-                    "failed issuing voucher (to return back to "
-                    "the dividend payout initiator, after a failed "
-                    "payment attempt to the originally intended "
-                    "recipient.) WAS TRYING TO PAY %" PRId64 " of asset type "
-                    "%s to Nym %s.\n",
-                    lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
-                    strSenderUserID.Get());
+                OTLog::vError("PayDividendVisitor::Trigger: ERROR "
+                              "failed issuing voucher (to return back to "
+                              "the dividend payout initiator, after a failed "
+                              "payment attempt to the originally intended "
+                              "recipient.) WAS TRYING TO PAY %" PRId64
+                              " of instrument definition "
+                              "%s to Nym %s.\n",
+                              lPayoutAmount,
+                              strPayoutInstrumentDefinitionID.Get(),
+                              strSenderUserID.Get());
             }
         }  // if !bSent
     }
@@ -392,7 +393,8 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
             "PayDividendVisitor::Trigger: ERROR!! Failed issuing next "
             "transaction "
             "number while trying to send a voucher (while paying dividends.) "
-            "WAS TRYING TO PAY %" PRId64 " of asset type %s to Nym %s.\n",
+            "WAS TRYING TO PAY %" PRId64
+            " of instrument definition %s to Nym %s.\n",
             lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
             strRecipientUserID.Get());
     }

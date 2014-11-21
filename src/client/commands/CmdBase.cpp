@@ -470,7 +470,7 @@ string CmdBase::getAccountAssetType(const string& myacct) const
     string assetType =
         OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(myacct);
     if ("" == assetType) {
-        otOut << "Error: cannot load asset type from myacct.\n";
+        otOut << "Error: cannot load instrument definition from myacct.\n";
     }
     return assetType;
 }

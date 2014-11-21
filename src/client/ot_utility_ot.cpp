@@ -223,7 +223,7 @@ OT_UTILITY_OT int32_t VerifyMessageSuccess(const string& strMessage)
 }
 
 OT_UTILITY_OT int32_t VerifyMsgBalanceAgrmntSuccess(
-    const string& SERVER_ID, const string& USER_ID, const string& ACCOUNT_ID,
+    const string& NOTARY_ID, const string& NYM_ID, const string& ACCOUNT_ID,
     const string& strMessage) // For when an OTMessage is the input.
 {
     if (!VerifyMessage(strMessage)) {
@@ -231,7 +231,7 @@ OT_UTILITY_OT int32_t VerifyMsgBalanceAgrmntSuccess(
     }
 
     int32_t nSuccess = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
-        SERVER_ID, USER_ID, ACCOUNT_ID, strMessage);
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
     switch (nSuccess) {
     case -1:
         otOut << "VerifyMsgBalanceAgrmntSuccess: Error calling "
@@ -257,7 +257,7 @@ OT_UTILITY_OT int32_t VerifyMsgBalanceAgrmntSuccess(
 }
 
 OT_UTILITY_OT int32_t
-    VerifyMsgTrnxSuccess(const string& SERVER_ID, const string& USER_ID,
+    VerifyMsgTrnxSuccess(const string& NOTARY_ID, const string& NYM_ID,
                          const string& ACCOUNT_ID, const string& strMessage)
 {
     if (!VerifyMessage(strMessage)) {
@@ -265,7 +265,7 @@ OT_UTILITY_OT int32_t
     }
 
     int32_t nSuccess = OTAPI_Wrap::Message_GetTransactionSuccess(
-        SERVER_ID, USER_ID, ACCOUNT_ID, strMessage);
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
     switch (nSuccess) {
     case -1:
         otOut << "VerifyMsgTrnxSuccess: Error calling "
@@ -292,8 +292,8 @@ OT_UTILITY_OT int32_t
 //
 // This code was repeating a lot, so I just added a function for it.
 //
-OT_UTILITY_OT int32_t InterpretTransactionMsgReply(const string& SERVER_ID,
-                                                   const string& USER_ID,
+OT_UTILITY_OT int32_t InterpretTransactionMsgReply(const string& NOTARY_ID,
+                                                   const string& NYM_ID,
                                                    const string& ACCOUNT_ID,
                                                    const string& strAttempt,
                                                    const string& strResponse)
@@ -310,7 +310,7 @@ OT_UTILITY_OT int32_t InterpretTransactionMsgReply(const string& SERVER_ID,
     }
 
     int32_t nBalanceSuccess = VerifyMsgBalanceAgrmntSuccess(
-        SERVER_ID, USER_ID, ACCOUNT_ID, strResponse);
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, strResponse);
     if (-1 == nBalanceSuccess) {
         otOut << "Balance agreement error: " << strAttempt << ".\n";
         return -1;
@@ -322,7 +322,7 @@ OT_UTILITY_OT int32_t InterpretTransactionMsgReply(const string& SERVER_ID,
     }
 
     int32_t nTransSuccess =
-        VerifyMsgTrnxSuccess(SERVER_ID, USER_ID, ACCOUNT_ID, strResponse);
+        VerifyMsgTrnxSuccess(NOTARY_ID, NYM_ID, ACCOUNT_ID, strResponse);
     if (-1 == nTransSuccess) {
         otOut << "Transaction error: " << strAttempt << ".\n";
         return -1;
@@ -1087,8 +1087,8 @@ OT_UTILITY_OT int32_t Utility::getAndProcessNymbox_8(
         //
         //            void OTAPI_Wrap::FlushSentMessages( int32_t //
         // bHarvestingForRetry, // bHarvestingForRetry is actually OT_BOOL
-        //                              const char * SERVER_ID,
-        //                              const char * USER_ID,
+        //                              const char * NOTARY_ID,
+        //                              const char * NYM_ID,
         //                              const char * THE_NYMBOX);
         // NoVerify means don't load up all the box receipts.
         // Especially in this case--we only care about whether a box receipt is
@@ -2344,14 +2344,14 @@ OT_UTILITY_OT bool Utility::insureHaveAllBoxReceipts(
 }
 
 /*
-static void getBoxReceipt( string SERVER_ID, string USER_ID, string ACCT_ID, //
-If for Nymbox (vs inbox/outbox) then pass USER_ID
+static void getBoxReceipt( string NOTARY_ID, string NYM_ID, string ACCT_ID, //
+If for Nymbox (vs inbox/outbox) then pass NYM_ID
 in this field also.
 int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
 const string TRANSACTION_NUMBER);
 
-static bool DoesBoxReceiptExist( string SERVER_ID, string USER_ID, string
-ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID
+static bool DoesBoxReceiptExist( string NOTARY_ID, string NYM_ID, string
+ACCT_ID, // If for Nymbox (vs inbox/outbox) then pass NYM_ID
 in this field also.
 int32_t  nBoxType, // 0/nymbox, 1/inbox, 2/outbox
 const string TRANSACTION_NUMBER);

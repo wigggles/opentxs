@@ -931,7 +931,7 @@ void OTCronItem::HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo)
         if (nullptr == pOriginator) {
             // GetSenderUserID() should be the same on THIS (updated version of
             // the same cron item)
-            // but for whatever reason, I'm checking the userID on the original
+            // but for whatever reason, I'm checking the nymID on the original
             // version. Sue me.
             //
             const Identifier NYM_ID(pOrigCronItem->GetSenderUserID());
@@ -1158,7 +1158,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
 // transaction number.
 //
 bool OTCronItem::DropFinalReceiptToInbox(
-    const Identifier& USER_ID, const Identifier& ACCOUNT_ID,
+    const Identifier& NYM_ID, const Identifier& ACCOUNT_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
     const String& strOrigCronItem, String* pstrNote, String* pstrAttachment,
     Account* pActualAcct)
@@ -1171,7 +1171,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     std::unique_ptr<Account> theDestAcctGuardian;
 
     // Load the inbox in case it already exists.
-    OTLedger theInbox(USER_ID, ACCOUNT_ID, GetNotaryID());
+    OTLedger theInbox(NYM_ID, ACCOUNT_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theInbox.LoadInbox();
@@ -1225,7 +1225,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // Cron in the
         // first place.)
         //
-        const int64_t lOpeningNum = GetOpeningNumber(USER_ID);
+        const int64_t lOpeningNum = GetOpeningNumber(NYM_ID);
 
         pTrans1->SetReferenceToNum(lOpeningNum);
         pTrans1->SetNumberOfOrigin(lOpeningNum);
@@ -1343,7 +1343,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 // ref to" number
 // from your issued list (so your balance agreements will work :P)
 //
-bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
+bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                                           const int64_t& lNewTransactionNumber,
                                           const String& strOrigCronItem,
                                           String* pstrNote,
@@ -1356,7 +1356,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox"; // RESUME!!!!!!!
 
-    OTLedger theLedger(USER_ID, USER_ID, GetNotaryID());
+    OTLedger theLedger(NYM_ID, NYM_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theLedger.LoadNymbox();
@@ -1368,7 +1368,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
     else
         otErr << szFunc << ": Unable to load Nymbox.\n";
     //    else
-    //        bSuccessLoading        = theLedger.GenerateLedger(USER_ID,
+    //        bSuccessLoading        = theLedger.GenerateLedger(NYM_ID,
     // GetNotaryID(), OTLedger::nymbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
@@ -1399,7 +1399,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
 
         pItem1->SetStatus(OTItem::acknowledgement);
 
-        const int64_t lOpeningNumber = GetOpeningNumber(USER_ID);
+        const int64_t lOpeningNumber = GetOpeningNumber(NYM_ID);
 
         // Here I make sure that the receipt (the nymbox notice) references the
         // transaction number that the trader originally used to issue the cron
@@ -1489,7 +1489,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& USER_ID,
         // Update the NymboxHash (in the nymfile.)
         //
 
-        const Identifier ACTUAL_NYM_ID = USER_ID;
+        const Identifier ACTUAL_NYM_ID = NYM_ID;
         Nym theActualNym; // unused unless it's really not already
                           // loaded. (use pActualNym.)
 
@@ -1687,9 +1687,9 @@ OTCronItem::OTCronItem()
     InitCronItem();
 }
 
-OTCronItem::OTCronItem(const Identifier& SERVER_ID,
+OTCronItem::OTCronItem(const Identifier& NOTARY_ID,
                        const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
     , notaryID_(nullptr)
@@ -1704,10 +1704,10 @@ OTCronItem::OTCronItem(const Identifier& SERVER_ID,
     InitCronItem();
 }
 
-OTCronItem::OTCronItem(const Identifier& SERVER_ID,
+OTCronItem::OTCronItem(const Identifier& NOTARY_ID,
                        const Identifier& INSTRUMENT_DEFINITION_ID,
-                       const Identifier& ACCT_ID, const Identifier& USER_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, USER_ID)
+                       const Identifier& ACCT_ID, const Identifier& NYM_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, NYM_ID)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
     , notaryID_(nullptr)

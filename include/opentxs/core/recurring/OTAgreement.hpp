@@ -173,7 +173,7 @@ private: // Private prevents erroneous use by other classes.
 
 private:
     Identifier m_RECIPIENT_ACCT_ID;
-    Identifier m_RECIPIENT_USER_ID;
+    Identifier m_RECIPIENT_NYM_ID;
 
 protected:
     String m_strConsideration; // Presumably an agreement is in return for
@@ -232,21 +232,21 @@ public:
 
     /*
         FIRST: (Construction)
-     OTAgreement(const OTIdentifier& SERVER_ID,            const OTIdentifier&
+     OTAgreement(const OTIdentifier& NOTARY_ID,            const OTIdentifier&
     INSTRUMENT_DEFINITION_ID);
        OR:
-     OTAgreement(const OTIdentifier& SERVER_ID,            const OTIdentifier&
+     OTAgreement(const OTIdentifier& NOTARY_ID,            const OTIdentifier&
     INSTRUMENT_DEFINITION_ID, const OTIdentifier& SENDER_ACCT_ID,    const
     OTIdentifier&
-    SENDER_USER_ID, const OTIdentifier& RECIPIENT_ACCT_ID,    const
+    SENDER_NYM_ID, const OTIdentifier& RECIPIENT_ACCT_ID,    const
     OTIdentifier&
-    RECIPIENT_USER_ID);
+    RECIPIENT_NYM_ID);
        OR:
      OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
                                     pAccount->GetInstrumentDefinitionID(),
                                     pAccount->GetRealAccountID(),
                                     pAccount->GetUserID(),
-                                    RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
+                                    RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
      THEN:  (Agreement)
 
      bool bSuccessSetAgreement = pPlan->SetAgreement(lTransactionNumber,
@@ -280,7 +280,7 @@ public:
             pAccount->GetInstrumentDefinitionID(),
             pAccount->GetRealAccountID(),
             pAccount->GetUserID(),
-            RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
+            RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
 
     STILL, this is the MERCHANT. Step two is concerned with the specific terms
     of the offer.
@@ -346,15 +346,15 @@ public:
     }
     inline const Identifier& GetRecipientUserID() const
     {
-        return m_RECIPIENT_USER_ID;
+        return m_RECIPIENT_NYM_ID;
     }
     inline void SetRecipientAcctID(const Identifier& ACCT_ID)
     {
         m_RECIPIENT_ACCT_ID = ACCT_ID;
     }
-    inline void SetRecipientUserID(const Identifier& USER_ID)
+    inline void SetRecipientUserID(const Identifier& NYM_ID)
     {
-        m_RECIPIENT_USER_ID = USER_ID;
+        m_RECIPIENT_NYM_ID = NYM_ID;
     }
 
     // The recipient must also provide an opening and closing transaction
@@ -409,11 +409,11 @@ public:
      inline const OTIdentifier&    GetSenderAcctID()        { return
      m_SENDER_ACCT_ID; }
      inline const OTIdentifier&    GetSenderUserID()        { return
-     m_SENDER_USER_ID; }
+     m_SENDER_NYM_ID; }
      inline void            SetSenderAcctID(const OTIdentifier& ACCT_ID)
      { m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void            SetSenderUserID(const OTIdentifier& USER_ID)
-     { m_SENDER_USER_ID = USER_ID; }
+     inline void            SetSenderUserID(const OTIdentifier& NYM_ID)
+     { m_SENDER_NYM_ID = NYM_ID; }
      */
 
     virtual bool HasTransactionNum(const int64_t& lInput) const;
@@ -422,7 +422,7 @@ public:
     // From OTInstrument (parent class of OTTrackable, parent class of
     // OTCronItem, parent class of this)
     /*
-     OTInstrument(const OTIdentifier& SERVER_ID, const OTIdentifier&
+     OTInstrument(const OTIdentifier& NOTARY_ID, const OTIdentifier&
      INSTRUMENT_DEFINITION_ID)
      : OTContract()
 
@@ -434,8 +434,8 @@ public:
      INSTRUMENT_DEFINITION_ID)  {
      m_InstrumentDefinitionID    =
      INSTRUMENT_DEFINITION_ID; }
-     inline void SetNotaryID(const OTIdentifier& SERVER_ID) { m_NotaryID    =
-     SERVER_ID; }
+     inline void SetNotaryID(const OTIdentifier& NOTARY_ID) { m_NotaryID    =
+     NOTARY_ID; }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
      inline time64_t GetValidTo()        const { return m_VALID_TO; }
@@ -481,20 +481,20 @@ public:
     EXPORT static bool DropServerNoticeToNymbox(
         bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
                           // OTItem::rejection.
-        Nym& theServerNym, const Identifier& SERVER_ID,
-        const Identifier& USER_ID, const int64_t& lNewTransactionNumber,
+        Nym& theServerNym, const Identifier& NOTARY_ID,
+        const Identifier& NYM_ID, const int64_t& lNewTransactionNumber,
         const int64_t& lInReferenceTo, const String& strReference,
         String* pstrNote = nullptr, String* pstrAttachment = nullptr,
         Nym* pActualNym = nullptr);
     OTAgreement();
-    OTAgreement(const Identifier& SERVER_ID,
+    OTAgreement(const Identifier& NOTARY_ID,
                 const Identifier& INSTRUMENT_DEFINITION_ID);
-    OTAgreement(const Identifier& SERVER_ID,
+    OTAgreement(const Identifier& NOTARY_ID,
                 const Identifier& INSTRUMENT_DEFINITION_ID,
                 const Identifier& SENDER_ACCT_ID,
-                const Identifier& SENDER_USER_ID,
+                const Identifier& SENDER_NYM_ID,
                 const Identifier& RECIPIENT_ACCT_ID,
-                const Identifier& RECIPIENT_USER_ID);
+                const Identifier& RECIPIENT_NYM_ID);
     virtual ~OTAgreement();
 
     void InitAgreement();

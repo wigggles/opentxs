@@ -11,7 +11,7 @@ message MarketData_InternalPB {
   optional string notary_id = 2;	
   optional string market_id = 3;	
   
-  optional string asset_type_id = 4;	// Perhaps this is the gold market.
+  optional string instrument_definition_id = 4;	// Perhaps this is the gold market.
   optional string currency_type_id = 5;	// Perhaps the gold is trading for dollars.
 										// Based on that example, gold is the asset type, and dollars are the currency.
   optional string scale = 6;			// the Market scale. (A trade in any particular asset is measured in X units of SCALE.)
@@ -103,7 +103,7 @@ message OfferDataNym_InternalPB {
 	optional string valid_to = 3;
 
 	optional string notary_id = 4;
-	optional string asset_type_id = 5;		// the asset type on offer.
+	optional string instrument_definition_id = 5;		// the asset type on offer.
 	optional string asset_acct_id = 6;		// the account where asset is.
 	optional string currency_type_id = 7;	// the currency being used to purchase the asset.
 	optional string currency_acct_id = 8;	// the account where currency is.

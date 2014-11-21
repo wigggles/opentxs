@@ -375,11 +375,12 @@ bool Transactor::removeIssuedNumber(Nym& theNym,
     return bRemoved;
 }
 
-/// The server supports various different asset types.
-/// Any user may create a new asset type by uploading the asset contract to the
+/// The server supports various different instrument definitions.
+/// Any user may create a new instrument definition by uploading the asset
+/// contract to the
 /// server.
 /// The server stores the contract in a directory and in its in-memory list of
-/// asset types.
+/// instrument definitions.
 /// You can call this function to look up any asset contract by ID. If it
 /// returns nullptr,
 /// you can add it yourself by uploading the contract.  But be sure that the
@@ -531,19 +532,20 @@ bool Transactor::lookupBasketAccountID(const Identifier& BASKET_ID,
 }
 
 /// Looked up the voucher account (where cashier's cheques are issued for any
-/// given asset type) return a pointer to the account.  Since it's SUPPOSED to
+/// given instrument definition) return a pointer to the account.  Since it's
+/// SUPPOSED to
 /// exist, and since it's being requested, also will GENERATE it if it cannot
 /// be found, add it to the list, and return the pointer. Should always succeed.
 std::shared_ptr<Account> Transactor::getVoucherAccount(
     const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     std::shared_ptr<Account> pAccount;
-    const Identifier SERVER_USER_ID(server_->m_nymServer),
-        SERVER_ID(server_->m_strNotaryID);
+    const Identifier SERVER_NYM_ID(server_->m_nymServer),
+        NOTARY_ID(server_->m_strNotaryID);
     bool bWasAcctCreated = false;
-    pAccount = voucherAccounts_.GetOrCreateAccount(
-        server_->m_nymServer, SERVER_USER_ID, INSTRUMENT_DEFINITION_ID,
-        SERVER_ID, bWasAcctCreated);
+    pAccount = voucherAccounts_.GetOrRegisterAccount(
+        server_->m_nymServer, SERVER_NYM_ID, INSTRUMENT_DEFINITION_ID,
+        NOTARY_ID, bWasAcctCreated);
     if (bWasAcctCreated) {
         String strAcctID;
         pAccount->GetIdentifier(strAcctID);
@@ -563,7 +565,7 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
     return pAccount;
 }
 
-/// Lookup the current mint for any given asset type ID and series.
+/// Lookup the current mint for any given instrument definition ID and series.
 Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
                           int32_t nSeries) // Each asset contract has its own
                                            // Mint.

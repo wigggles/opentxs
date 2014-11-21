@@ -201,11 +201,11 @@ OT_MADE_EASY_OT bool MadeEasy::insure_enough_nums(int32_t nNumberNeeded,
 // REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)
 //
 OT_MADE_EASY_OT string
-    MadeEasy::register_nym(const string& SERVER_ID, const string& NYM_ID)
+    MadeEasy::register_nym(const string& NOTARY_ID, const string& NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(REGISTER_NYM, SERVER_ID, NYM_ID);
+    OTAPI_Func theRequest(REGISTER_NYM, NOTARY_ID, NYM_ID);
     string strResponse = theRequest.SendRequest(theRequest, "REGISTER_NYM");
     int32_t nSuccess = VerifyMessageSuccess(strResponse);
 
@@ -216,7 +216,7 @@ OT_MADE_EASY_OT string
         // number is
         // in sync.
         //
-        if (1 != MsgUtil.getRequestNumber(SERVER_ID, NYM_ID)) {
+        if (1 != MsgUtil.getRequestNumber(NOTARY_ID, NYM_ID)) {
             otOut << "\n Succeeded in register_nym, but strange: "
                      "then failed calling getRequestNumber, to sync the "
                      "request number for the first time.\n";
@@ -261,13 +261,13 @@ OT_MADE_EASY_OT int32_t
 
 // CHECK USER (download a public key)
 //
-OT_MADE_EASY_OT string MadeEasy::check_nym(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::check_nym(const string& NOTARY_ID,
                                            const string& NYM_ID,
                                            const string& TARGET_NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(CHECK_NYM, SERVER_ID, NYM_ID, TARGET_NYM_ID);
+    OTAPI_Func theRequest(CHECK_NYM, NOTARY_ID, NYM_ID, TARGET_NYM_ID);
     string strResponse = theRequest.SendRequest(theRequest, "CHECK_NYM");
 
     return strResponse;
@@ -296,13 +296,13 @@ OT_MADE_EASY_OT string MadeEasy::create_nym(int32_t nKeybits,
 
 //  ISSUE ASSET TYPE
 //
-OT_MADE_EASY_OT string MadeEasy::issue_asset_type(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::issue_asset_type(const string& NOTARY_ID,
                                                   const string& NYM_ID,
                                                   const string& THE_CONTRACT)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(ISSUE_ASSET_TYPE, SERVER_ID, NYM_ID, THE_CONTRACT);
+    OTAPI_Func theRequest(ISSUE_ASSET_TYPE, NOTARY_ID, NYM_ID, THE_CONTRACT);
     string strResponse = theRequest.SendRequest(theRequest, "ISSUE_ASSET_TYPE");
 
     return strResponse;
@@ -310,13 +310,13 @@ OT_MADE_EASY_OT string MadeEasy::issue_asset_type(const string& SERVER_ID,
 
 //  ISSUE BASKET CURRENCY
 //
-OT_MADE_EASY_OT string MadeEasy::issue_basket_currency(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::issue_basket_currency(const string& NOTARY_ID,
                                                        const string& NYM_ID,
                                                        const string& THE_BASKET)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(ISSUE_BASKET, SERVER_ID, NYM_ID, THE_BASKET);
+    OTAPI_Func theRequest(ISSUE_BASKET, NOTARY_ID, NYM_ID, THE_BASKET);
     string strResponse = theRequest.SendRequest(theRequest, "ISSUE_BASKET");
 
     return strResponse;
@@ -325,7 +325,7 @@ OT_MADE_EASY_OT string MadeEasy::issue_basket_currency(const string& SERVER_ID,
 //  EXCHANGE BASKET CURRENCY
 //
 OT_MADE_EASY_OT string MadeEasy::exchange_basket_currency(
-    const string& SERVER_ID, const string& NYM_ID, const string& ASSET_TYPE,
+    const string& NOTARY_ID, const string& NYM_ID, const string& ASSET_TYPE,
     const string& THE_BASKET, const string& ACCT_ID, bool IN_OR_OUT)
 {
     OTAPI_Func ot_Msg;
@@ -333,7 +333,7 @@ OT_MADE_EASY_OT string MadeEasy::exchange_basket_currency(
     int32_t nTransNumsNeeded =
         (OTAPI_Wrap::Basket_GetMemberCount(THE_BASKET) + 1);
 
-    OTAPI_Func theRequest(EXCHANGE_BASKET, SERVER_ID, NYM_ID, ASSET_TYPE,
+    OTAPI_Func theRequest(EXCHANGE_BASKET, NOTARY_ID, NYM_ID, ASSET_TYPE,
                           THE_BASKET, ACCT_ID, IN_OR_OUT, nTransNumsNeeded);
     string strResponse =
         theRequest.SendTransaction(theRequest, "EXCHANGE_BASKET");
@@ -343,13 +343,13 @@ OT_MADE_EASY_OT string MadeEasy::exchange_basket_currency(
 
 //  RETRIEVE CONTRACT
 //
-OT_MADE_EASY_OT string MadeEasy::retrieve_contract(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::retrieve_contract(const string& NOTARY_ID,
                                                    const string& NYM_ID,
                                                    const string& CONTRACT_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_CONTRACT, SERVER_ID, NYM_ID, CONTRACT_ID);
+    OTAPI_Func theRequest(GET_CONTRACT, NOTARY_ID, NYM_ID, CONTRACT_ID);
     string strResponse = theRequest.SendRequest(theRequest, "GET_CONTRACT");
 
     return strResponse;
@@ -358,7 +358,7 @@ OT_MADE_EASY_OT string MadeEasy::retrieve_contract(const string& SERVER_ID,
 //  LOAD OR RETRIEVE CONTRACT
 //
 OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_contract(const string& SERVER_ID,
+    MadeEasy::load_or_retrieve_contract(const string& NOTARY_ID,
                                         const string& NYM_ID,
                                         const string& CONTRACT_ID)
 {
@@ -367,7 +367,7 @@ OT_MADE_EASY_OT string
     string strContract = OTAPI_Wrap::LoadAssetContract(CONTRACT_ID);
 
     if (!VerifyStringVal(strContract)) {
-        string strResponse = retrieve_contract(SERVER_ID, NYM_ID, CONTRACT_ID);
+        string strResponse = retrieve_contract(NOTARY_ID, NYM_ID, CONTRACT_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strContract = OTAPI_Wrap::LoadAssetContract(CONTRACT_ID);
@@ -380,12 +380,12 @@ OT_MADE_EASY_OT string
 //  CREATE ASSET ACCOUNT
 //
 OT_MADE_EASY_OT string
-    MadeEasy::create_asset_acct(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::create_asset_acct(const string& NOTARY_ID, const string& NYM_ID,
                                 const string& INSTRUMENT_DEFINITION_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(CREATE_ASSET_ACCT, SERVER_ID, NYM_ID,
+    OTAPI_Func theRequest(CREATE_ASSET_ACCT, NOTARY_ID, NYM_ID,
                           INSTRUMENT_DEFINITION_ID);
     string strResponse =
         theRequest.SendRequest(theRequest, "CREATE_ASSET_ACCT");
@@ -405,9 +405,8 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
     string strInstrumentDefinitionID =
         OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(ACCOUNT_ID);
     if (!VerifyStringVal(strInstrumentDefinitionID)) {
-        otOut
-            << "\nstat_asset_account: Cannot cannot determine asset type for: "
-            << ACCOUNT_ID << "\n";
+        otOut << "\nstat_asset_account: Cannot cannot determine instrument "
+                 "definition for: " << ACCOUNT_ID << "\n";
         return "";
     }
 
@@ -433,12 +432,12 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
 
 // returns true/false
 OT_MADE_EASY_OT bool MadeEasy::retrieve_account(
-    const string& SERVER_ID, const string& NYM_ID, const string& ACCOUNT_ID,
+    const string& NOTARY_ID, const string& NYM_ID, const string& ACCOUNT_ID,
     bool bForceDownload) // bForceDownload=false
 {
     Utility MsgUtil;
 
-    bool bResponse = MsgUtil.getIntermediaryFiles(SERVER_ID, NYM_ID, ACCOUNT_ID,
+    bool bResponse = MsgUtil.getIntermediaryFiles(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                                   bForceDownload);
     return bResponse;
 }
@@ -446,13 +445,13 @@ OT_MADE_EASY_OT bool MadeEasy::retrieve_account(
 // SEND TRANSFER  -- TRANSACTION
 
 OT_MADE_EASY_OT string
-    MadeEasy::send_transfer(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::send_transfer(const string& NOTARY_ID, const string& NYM_ID,
                             const string& ACCT_FROM, const string& ACCT_TO,
                             int64_t AMOUNT, const string& NOTE)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(SEND_TRANSFER, SERVER_ID, NYM_ID, ACCT_FROM, ACCT_TO,
+    OTAPI_Func theRequest(SEND_TRANSFER, NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO,
                           AMOUNT, NOTE);
     string strResponse =
         theRequest.SendTransaction(theRequest, "SEND_TRANSFER");
@@ -462,14 +461,14 @@ OT_MADE_EASY_OT string
 
 // PROCESS INBOX  -- TRANSACTION
 
-OT_MADE_EASY_OT string MadeEasy::process_inbox(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::process_inbox(const string& NOTARY_ID,
                                                const string& NYM_ID,
                                                const string& ACCOUNT_ID,
                                                const string& RESPONSE_LEDGER)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(PROCESS_INBOX, SERVER_ID, NYM_ID, ACCOUNT_ID,
+    OTAPI_Func theRequest(PROCESS_INBOX, NOTARY_ID, NYM_ID, ACCOUNT_ID,
                           RESPONSE_LEDGER);
     string strResponse =
         theRequest.SendTransaction(theRequest, "PROCESS_INBOX");
@@ -537,7 +536,7 @@ OT_MADE_EASY_OT string
 // and return. (Might still return null.)
 //
 OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_encrypt_key(const string& SERVER_ID,
+    MadeEasy::load_or_retrieve_encrypt_key(const string& NOTARY_ID,
                                            const string& NYM_ID,
                                            const string& TARGET_NYM_ID)
 {
@@ -546,7 +545,7 @@ OT_MADE_EASY_OT string
     string strPubkey = load_public_encryption_key(TARGET_NYM_ID);
 
     if (!VerifyStringVal(strPubkey)) {
-        string strResponse = check_nym(SERVER_ID, NYM_ID, TARGET_NYM_ID);
+        string strResponse = check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strPubkey = load_public_encryption_key(TARGET_NYM_ID);
@@ -556,7 +555,7 @@ OT_MADE_EASY_OT string
 }
 
 OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_signing_key(const string& SERVER_ID,
+    MadeEasy::load_or_retrieve_signing_key(const string& NOTARY_ID,
                                            const string& NYM_ID,
                                            const string& TARGET_NYM_ID)
 {
@@ -565,7 +564,7 @@ OT_MADE_EASY_OT string
     string strPubkey = load_public_signing_key(TARGET_NYM_ID);
 
     if (!VerifyStringVal(strPubkey)) {
-        string strResponse = check_nym(SERVER_ID, NYM_ID, TARGET_NYM_ID);
+        string strResponse = check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strPubkey = load_public_signing_key(TARGET_NYM_ID);
@@ -577,7 +576,7 @@ OT_MADE_EASY_OT string
 // SEND USER MESSAGE  (requires recipient public key)
 //
 OT_MADE_EASY_OT string
-    MadeEasy::send_user_msg_pubkey(const string& SERVER_ID,
+    MadeEasy::send_user_msg_pubkey(const string& NOTARY_ID,
                                    const string& NYM_ID,
                                    const string& RECIPIENT_NYM_ID,
                                    const string& RECIPIENT_PUBKEY,
@@ -585,7 +584,7 @@ OT_MADE_EASY_OT string
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(SEND_USER_MESSAGE, SERVER_ID, NYM_ID,
+    OTAPI_Func theRequest(SEND_USER_MESSAGE, NOTARY_ID, NYM_ID,
                           RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_MESSAGE);
     string strResponse =
         theRequest.SendRequest(theRequest, "SEND_USER_MESSAGE");
@@ -596,7 +595,7 @@ OT_MADE_EASY_OT string
 // SEND USER INSTRUMENT  (requires recipient public key)
 //
 OT_MADE_EASY_OT string
-    MadeEasy::send_user_pmnt_pubkey(const string& SERVER_ID,
+    MadeEasy::send_user_pmnt_pubkey(const string& NOTARY_ID,
                                     const string& NYM_ID,
                                     const string& RECIPIENT_NYM_ID,
                                     const string& RECIPIENT_PUBKEY,
@@ -604,7 +603,7 @@ OT_MADE_EASY_OT string
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(SEND_USER_INSTRUMENT, SERVER_ID, NYM_ID,
+    OTAPI_Func theRequest(SEND_USER_INSTRUMENT, NOTARY_ID, NYM_ID,
                           RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT);
     string strResponse =
         theRequest.SendRequest(theRequest, "SEND_USER_INSTRUMENT");
@@ -615,13 +614,13 @@ OT_MADE_EASY_OT string
 // SEND USER CASH  (requires recipient public key)
 //
 OT_MADE_EASY_OT string MadeEasy::send_user_cash_pubkey(
-    const string& SERVER_ID, const string& NYM_ID,
+    const string& NOTARY_ID, const string& NYM_ID,
     const string& RECIPIENT_NYM_ID, const string& RECIPIENT_PUBKEY,
     const string& THE_INSTRUMENT, const string& INSTRUMENT_FOR_SENDER)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(SEND_USER_INSTRUMENT, SERVER_ID, NYM_ID,
+    OTAPI_Func theRequest(SEND_USER_INSTRUMENT, NOTARY_ID, NYM_ID,
                           RECIPIENT_NYM_ID, RECIPIENT_PUBKEY, THE_INSTRUMENT,
                           INSTRUMENT_FOR_SENDER);
     string strResponse =
@@ -633,7 +632,7 @@ OT_MADE_EASY_OT string MadeEasy::send_user_cash_pubkey(
 // SEND USER MESSAGE  (only requires recipient's ID, and retrieves pubkey
 // automatically)
 //
-OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& NOTARY_ID,
                                                const string& NYM_ID,
                                                const string& RECIPIENT_NYM_ID,
                                                const string& THE_MESSAGE)
@@ -641,7 +640,7 @@ OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& SERVER_ID,
     OTAPI_Func ot_Msg;
 
     string strRecipientPubkey =
-        load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID);
+        load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_msg: Unable to load or retrieve "
@@ -651,7 +650,7 @@ OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& SERVER_ID,
     }
 
     string strResponse = send_user_msg_pubkey(
-        SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, strRecipientPubkey, THE_MESSAGE);
+        NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID, strRecipientPubkey, THE_MESSAGE);
 
     return strResponse;
 }
@@ -660,14 +659,14 @@ OT_MADE_EASY_OT string MadeEasy::send_user_msg(const string& SERVER_ID,
 // automatically)
 //
 OT_MADE_EASY_OT string
-    MadeEasy::send_user_payment(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::send_user_payment(const string& NOTARY_ID, const string& NYM_ID,
                                 const string& RECIPIENT_NYM_ID,
                                 const string& THE_PAYMENT)
 {
     OTAPI_Func ot_Msg;
 
     string strRecipientPubkey =
-        load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID);
+        load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_payment: Unable to load or "
@@ -677,7 +676,7 @@ OT_MADE_EASY_OT string
     }
 
     string strResponse = send_user_pmnt_pubkey(
-        SERVER_ID, NYM_ID, RECIPIENT_NYM_ID, strRecipientPubkey, THE_PAYMENT);
+        NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID, strRecipientPubkey, THE_PAYMENT);
 
     return strResponse;
 }
@@ -685,7 +684,7 @@ OT_MADE_EASY_OT string
 // SEND USER CASH  (only requires recipient's ID, and retrieves pubkey
 // automatically)
 //
-OT_MADE_EASY_OT string MadeEasy::send_user_cash(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::send_user_cash(const string& NOTARY_ID,
                                                 const string& NYM_ID,
                                                 const string& RECIPIENT_NYM_ID,
                                                 const string& THE_PAYMENT,
@@ -694,7 +693,7 @@ OT_MADE_EASY_OT string MadeEasy::send_user_cash(const string& SERVER_ID,
     OTAPI_Func ot_Msg;
 
     string strRecipientPubkey =
-        load_or_retrieve_encrypt_key(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID);
+        load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
 
     if (!VerifyStringVal(strRecipientPubkey)) {
         otOut << "OT_ME_send_user_payment: Unable to load or "
@@ -704,7 +703,7 @@ OT_MADE_EASY_OT string MadeEasy::send_user_cash(const string& SERVER_ID,
     }
 
     string strResponse =
-        send_user_cash_pubkey(SERVER_ID, NYM_ID, RECIPIENT_NYM_ID,
+        send_user_cash_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
                               strRecipientPubkey, THE_PAYMENT, SENDERS_COPY);
 
     return strResponse;
@@ -713,7 +712,7 @@ OT_MADE_EASY_OT string MadeEasy::send_user_cash(const string& SERVER_ID,
 // GET PAYMENT INSTRUMENT (from payments inbox, by index.)
 //
 OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
-    const string& SERVER_ID, const string& NYM_ID, int32_t nIndex,
+    const string& NOTARY_ID, const string& NYM_ID, int32_t nIndex,
     const string& PRELOADED_INBOX) // PRELOADED_INBOX is optional.
 {
     string strInstrument;
@@ -721,7 +720,7 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
         VerifyStringVal(PRELOADED_INBOX)
             ? PRELOADED_INBOX
             : OTAPI_Wrap::LoadPaymentInbox(
-                  SERVER_ID, NYM_ID); // Returns nullptr, or an inbox.
+                  NOTARY_ID, NYM_ID); // Returns nullptr, or an inbox.
 
     if (!VerifyStringVal(strInbox)) {
         otWarn << "\n\n get_payment_instrument:  "
@@ -731,7 +730,7 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
     }
 
     int32_t nCount =
-        OTAPI_Wrap::Ledger_GetCount(SERVER_ID, NYM_ID, NYM_ID, strInbox);
+        OTAPI_Wrap::Ledger_GetCount(NOTARY_ID, NYM_ID, NYM_ID, strInbox);
     if (0 > nCount) {
         otOut
             << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
@@ -744,7 +743,7 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
         return "";
     }
 
-    strInstrument = OTAPI_Wrap::Ledger_GetInstrument(SERVER_ID, NYM_ID, NYM_ID,
+    strInstrument = OTAPI_Wrap::Ledger_GetInstrument(NOTARY_ID, NYM_ID, NYM_ID,
                                                      strInbox, nIndex);
     if (!VerifyStringVal(strInstrument)) {
         otOut << "Failed trying to get payment instrument from payments box.\n";
@@ -762,13 +761,13 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
 // Otherwise for inbox/outbox, pass the actual ACCT_ID there as normal.
 //
 OT_MADE_EASY_OT string
-    MadeEasy::get_box_receipt(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::get_box_receipt(const string& NOTARY_ID, const string& NYM_ID,
                               const string& ACCT_ID, int32_t nBoxType,
                               const string& STR_TRANS_NUM)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_BOX_RECEIPT, SERVER_ID, NYM_ID, ACCT_ID,
+    OTAPI_Func theRequest(GET_BOX_RECEIPT, NOTARY_ID, NYM_ID, ACCT_ID,
                           to_string(nBoxType), STR_TRANS_NUM);
     string strResponse = theRequest.SendRequest(theRequest, "GET_BOX_RECEIPT");
 
@@ -778,12 +777,12 @@ OT_MADE_EASY_OT string
 // DOWNLOAD PUBLIC MINT
 //
 OT_MADE_EASY_OT string
-    MadeEasy::retrieve_mint(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::retrieve_mint(const string& NOTARY_ID, const string& NYM_ID,
                             const string& INSTRUMENT_DEFINITION_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_MINT, SERVER_ID, NYM_ID,
+    OTAPI_Func theRequest(GET_MINT, NOTARY_ID, NYM_ID,
                           INSTRUMENT_DEFINITION_ID);
     string strResponse = theRequest.SendRequest(theRequest, "GET_MINT");
 
@@ -794,7 +793,7 @@ OT_MADE_EASY_OT string
 //
 // To load a mint withOUT retrieving it from server, call:
 //
-// var strMint = OTAPI_Wrap::LoadMint(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+// var strMint = OTAPI_Wrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 // It returns the mint, or null.
 
 // LOAD MINT (from local storage).
@@ -803,14 +802,14 @@ OT_MADE_EASY_OT string
 // Returns the mint, or null.
 
 OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_mint(const string& SERVER_ID,
+    MadeEasy::load_or_retrieve_mint(const string& NOTARY_ID,
                                     const string& NYM_ID,
                                     const string& INSTRUMENT_DEFINITION_ID)
 {
-    string response = check_nym(SERVER_ID, NYM_ID, NYM_ID);
+    string response = check_nym(NOTARY_ID, NYM_ID, NYM_ID);
     if (1 != VerifyMessageSuccess(response)) {
         otOut << "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n";
-        otOut << "  Server ID: " << SERVER_ID << "\n";
+        otOut << "  Server ID: " << NOTARY_ID << "\n";
         otOut << "     Nym ID: " << NYM_ID << "\n";
         otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
               << "\n";
@@ -823,28 +822,28 @@ OT_MADE_EASY_OT string
     // Also load it up into memory as a string (just to make sure it works.)
 
     // expired or missing.
-    if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID, INSTRUMENT_DEFINITION_ID)) {
+    if (!OTAPI_Wrap::Mint_IsStillGood(NOTARY_ID, INSTRUMENT_DEFINITION_ID)) {
         otWarn << "OT_ME_load_or_retrieve_mint: Mint file is "
                   "missing or expired. Downloading from "
                   "server...\n";
 
-        response = retrieve_mint(SERVER_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
+        response = retrieve_mint(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 
         if (1 != VerifyMessageSuccess(response)) {
             otOut << "OT_ME_load_or_retrieve_mint: Unable to "
                      "retrieve mint for IDs: \n";
-            otOut << "  Server ID: " << SERVER_ID << "\n";
+            otOut << "  Server ID: " << NOTARY_ID << "\n";
             otOut << "     Nym ID: " << NYM_ID << "\n";
             otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
                   << "\n";
             return "";
         }
 
-        if (!OTAPI_Wrap::Mint_IsStillGood(SERVER_ID,
+        if (!OTAPI_Wrap::Mint_IsStillGood(NOTARY_ID,
                                           INSTRUMENT_DEFINITION_ID)) {
             otOut << "OT_ME_load_or_retrieve_mint: Retrieved "
                      "mint, but still 'not good' for IDs: \n";
-            otOut << "  Server ID: " << SERVER_ID << "\n";
+            otOut << "  Server ID: " << NOTARY_ID << "\n";
             otOut << "     Nym ID: " << NYM_ID << "\n";
             otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
                   << "\n";
@@ -858,10 +857,10 @@ OT_MADE_EASY_OT string
     // or not.
     // It's here, and it's NOT expired. (Or we would have returned already.)
 
-    string strMint = OTAPI_Wrap::LoadMint(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+    string strMint = OTAPI_Wrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     if (!VerifyStringVal(strMint)) {
         otOut << "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n";
-        otOut << "  Server ID: " << SERVER_ID << "\n";
+        otOut << "  Server ID: " << NOTARY_ID << "\n";
         otOut << "     Nym ID: " << NYM_ID << "\n";
         otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
               << "\n";
@@ -872,15 +871,15 @@ OT_MADE_EASY_OT string
 
 // QUERY ASSET TYPES
 //
-// See if some asset types are issued on the server.
+// See if some instrument definitions are issued on the server.
 //
-OT_MADE_EASY_OT string MadeEasy::query_asset_types(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::query_asset_types(const string& NOTARY_ID,
                                                    const string& NYM_ID,
                                                    const string& ENCODED_MAP)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(QUERY_ASSET_TYPES, SERVER_ID, NYM_ID, ENCODED_MAP);
+    OTAPI_Func theRequest(QUERY_ASSET_TYPES, NOTARY_ID, NYM_ID, ENCODED_MAP);
     string strResponse =
         theRequest.SendRequest(theRequest, "QUERY_ASSET_TYPES");
 
@@ -929,14 +928,14 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
 
 // KILL MARKET OFFER  -- TRANSACTION
 //
-OT_MADE_EASY_OT string MadeEasy::kill_market_offer(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::kill_market_offer(const string& NOTARY_ID,
                                                    const string& NYM_ID,
                                                    const string& ASSET_ACCT_ID,
                                                    const string& STR_TRANS_NUM)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(KILL_MARKET_OFFER, SERVER_ID, NYM_ID, ASSET_ACCT_ID,
+    OTAPI_Func theRequest(KILL_MARKET_OFFER, NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
                           STR_TRANS_NUM);
     string strResponse =
         theRequest.SendTransaction(theRequest, "KILL_MARKET_OFFER");
@@ -946,14 +945,14 @@ OT_MADE_EASY_OT string MadeEasy::kill_market_offer(const string& SERVER_ID,
 
 // KILL PAYMENT PLAN (an active one that's already running) -- TRANSACTION
 //
-OT_MADE_EASY_OT string MadeEasy::kill_payment_plan(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::kill_payment_plan(const string& NOTARY_ID,
                                                    const string& NYM_ID,
                                                    const string& ACCT_ID,
                                                    const string& STR_TRANS_NUM)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(KILL_PAYMENT_PLAN, SERVER_ID, NYM_ID, ACCT_ID,
+    OTAPI_Func theRequest(KILL_PAYMENT_PLAN, NOTARY_ID, NYM_ID, ACCT_ID,
                           STR_TRANS_NUM);
     string strResponse =
         theRequest.SendTransaction(theRequest, "KILL_PAYMENT_PLAN");
@@ -964,15 +963,15 @@ OT_MADE_EASY_OT string MadeEasy::kill_payment_plan(const string& SERVER_ID,
 // ACTIVATE SMART CONTRACT  -- TRANSACTION
 //
 OT_MADE_EASY_OT string MadeEasy::activate_smart_contract(
-    const string& SERVER_ID, const string& NYM_ID, const string& ACCT_ID,
+    const string& NOTARY_ID, const string& NYM_ID, const string& ACCT_ID,
     const string& AGENT_NAME, const string& THE_SMART_CONTRACT)
 {
     OTAPI_Func ot_Msg;
 
-    //  int32_t OTAPI_Wrap::activateSmartContract(SERVER_ID, NYM_ID,
+    //  int32_t OTAPI_Wrap::activateSmartContract(NOTARY_ID, NYM_ID,
     // THE_SMART_CONTRACT)
 
-    OTAPI_Func theRequest(ACTIVATE_SMART_CONTRACT, SERVER_ID, NYM_ID, ACCT_ID,
+    OTAPI_Func theRequest(ACTIVATE_SMART_CONTRACT, NOTARY_ID, NYM_ID, ACCT_ID,
                           AGENT_NAME, THE_SMART_CONTRACT);
     string strResponse =
         theRequest.SendTransaction(theRequest, "ACTIVATE_SMART_CONTRACT");
@@ -983,7 +982,7 @@ OT_MADE_EASY_OT string MadeEasy::activate_smart_contract(
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-    MadeEasy::deposit_payment_plan(const string& SERVER_ID,
+    MadeEasy::deposit_payment_plan(const string& NOTARY_ID,
                                    const string& NYM_ID,
                                    const string& THE_PAYMENT_PLAN)
 {
@@ -1000,9 +999,9 @@ OT_MADE_EASY_OT string
     string strSenderAcctID =
         OTAPI_Wrap::Instrmnt_GetSenderAcctID(THE_PAYMENT_PLAN);
 
-    //  int32_t OTAPI_Wrap::depositPaymentPlan(SERVER_ID, NYM_ID,
+    //  int32_t OTAPI_Wrap::depositPaymentPlan(NOTARY_ID, NYM_ID,
     // THE_PAYMENT_PLAN)
-    OTAPI_Func theRequest(DEPOSIT_PAYMENT_PLAN, SERVER_ID, NYM_ID,
+    OTAPI_Func theRequest(DEPOSIT_PAYMENT_PLAN, NOTARY_ID, NYM_ID,
                           strSenderAcctID, THE_PAYMENT_PLAN);
     string strResponse =
         theRequest.SendTransaction(theRequest, "DEPOSIT_PAYMENT_PLAN");
@@ -1013,7 +1012,7 @@ OT_MADE_EASY_OT string
 // TRANSACTION
 //
 OT_MADE_EASY_OT string
-    MadeEasy::cancel_payment_plan(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::cancel_payment_plan(const string& NOTARY_ID, const string& NYM_ID,
                                   const string& THE_PAYMENT_PLAN)
 {
     OTAPI_Func ot_Msg;
@@ -1050,7 +1049,7 @@ OT_MADE_EASY_OT string
     //
     // (Therefore theRequest.SendTransaction is smart enough to check for that.)
 
-    OTAPI_Func theRequest(DEPOSIT_PAYMENT_PLAN, SERVER_ID, NYM_ID,
+    OTAPI_Func theRequest(DEPOSIT_PAYMENT_PLAN, NOTARY_ID, NYM_ID,
                           strRecipientAcctID, THE_PAYMENT_PLAN);
     string strResponse =
         theRequest.SendTransaction(theRequest, "CANCEL_PAYMENT_PLAN");
@@ -1060,19 +1059,19 @@ OT_MADE_EASY_OT string
 // TRIGGER CLAUSE (on running smart contract)  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-    MadeEasy::trigger_clause(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::trigger_clause(const string& NOTARY_ID, const string& NYM_ID,
                              const string& STR_TRANS_NUM,
                              const string& CLAUSE_NAME, const string& STR_PARAM)
 {
     OTAPI_Func ot_Msg;
 
-    //  int32_t OTAPI_Wrap::triggerClause(const char* SERVER_ID,
-    //                                    const char * USER_ID,
+    //  int32_t OTAPI_Wrap::triggerClause(const char* NOTARY_ID,
+    //                                    const char * NYM_ID,
     //                                    const char * TRANSACTION_NUMBER,
     //                                    const char * CLAUSE_NAME,
     //                                    const char * STR_PARAM);
 
-    OTAPI_Func theRequest(TRIGGER_CLAUSE, SERVER_ID, NYM_ID, STR_TRANS_NUM,
+    OTAPI_Func theRequest(TRIGGER_CLAUSE, NOTARY_ID, NYM_ID, STR_TRANS_NUM,
                           CLAUSE_NAME, STR_PARAM);
     string strResponse = theRequest.SendRequest(theRequest, "TRIGGER_CLAUSE");
 
@@ -1082,12 +1081,12 @@ OT_MADE_EASY_OT string
 // WITHDRAW CASH  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-    MadeEasy::withdraw_cash(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::withdraw_cash(const string& NOTARY_ID, const string& NYM_ID,
                             const string& ACCT_ID, int64_t AMOUNT)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(WITHDRAW_CASH, SERVER_ID, NYM_ID, ACCT_ID, AMOUNT);
+    OTAPI_Func theRequest(WITHDRAW_CASH, NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
     string strResponse =
         theRequest.SendTransaction(theRequest, "WITHDRAW_CASH");
 
@@ -1097,14 +1096,14 @@ OT_MADE_EASY_OT string
 // WITHDRAW VOUCHER  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-    MadeEasy::withdraw_voucher(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::withdraw_voucher(const string& NOTARY_ID, const string& NYM_ID,
                                const string& ACCT_ID,
                                const string& RECIP_NYM_ID,
                                const string& STR_MEMO, int64_t AMOUNT)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(WITHDRAW_VOUCHER, SERVER_ID, NYM_ID, ACCT_ID,
+    OTAPI_Func theRequest(WITHDRAW_VOUCHER, NOTARY_ID, NYM_ID, ACCT_ID,
                           RECIP_NYM_ID, STR_MEMO, AMOUNT);
     string strResponse =
         theRequest.SendTransaction(theRequest, "WITHDRAW_VOUCHER");
@@ -1115,14 +1114,14 @@ OT_MADE_EASY_OT string
 // PAY DIVIDEND  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
-    MadeEasy::pay_dividend(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::pay_dividend(const string& NOTARY_ID, const string& NYM_ID,
                            const string& SOURCE_ACCT_ID,
                            const string& SHARES_INSTRUMENT_DEFINITION_ID,
                            const string& STR_MEMO, int64_t AMOUNT_PER_SHARE)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(PAY_DIVIDEND, SERVER_ID, NYM_ID, SOURCE_ACCT_ID,
+    OTAPI_Func theRequest(PAY_DIVIDEND, NOTARY_ID, NYM_ID, SOURCE_ACCT_ID,
                           SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
                           AMOUNT_PER_SHARE);
     string strResponse = theRequest.SendTransaction(theRequest, "PAY_DIVIDEND");
@@ -1131,12 +1130,12 @@ OT_MADE_EASY_OT string
 }
 
 OT_MADE_EASY_OT string
-    MadeEasy::deposit_cheque(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::deposit_cheque(const string& NOTARY_ID, const string& NYM_ID,
                              const string& ACCT_ID, const string& STR_CHEQUE)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(DEPOSIT_CHEQUE, SERVER_ID, NYM_ID, ACCT_ID,
+    OTAPI_Func theRequest(DEPOSIT_CHEQUE, NOTARY_ID, NYM_ID, ACCT_ID,
                           STR_CHEQUE);
     string strResponse = theRequest.SendTransaction(
         theRequest, "DEPOSIT_CHEQUE"); // <========================;
@@ -1145,29 +1144,29 @@ OT_MADE_EASY_OT string
 }
 
 OT_MADE_EASY_OT string
-    MadeEasy::get_market_list(const string& SERVER_ID, const string& NYM_ID)
+    MadeEasy::get_market_list(const string& NOTARY_ID, const string& NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_MARKET_LIST, SERVER_ID, NYM_ID);
+    OTAPI_Func theRequest(GET_MARKET_LIST, NOTARY_ID, NYM_ID);
     string strResponse = theRequest.SendRequest(
         theRequest, "GET_MARKET_LIST"); // <========================;
 
     return strResponse;
 }
 
-// int32_t OTAPI_Wrap::getMarketOffers(const char* SERVER_ID,
-//                           const char * USER_ID,
+// int32_t OTAPI_Wrap::getMarketOffers(const char* NOTARY_ID,
+//                           const char * NYM_ID,
 //                           const char * MARKET_ID,
 //                           const char * MAX_DEPTH)
 
 OT_MADE_EASY_OT string
-    MadeEasy::get_market_offers(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::get_market_offers(const string& NOTARY_ID, const string& NYM_ID,
                                 const string& MARKET_ID, int64_t MAX_DEPTH)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_MARKET_OFFERS, SERVER_ID, NYM_ID, MARKET_ID,
+    OTAPI_Func theRequest(GET_MARKET_OFFERS, NOTARY_ID, NYM_ID, MARKET_ID,
                           MAX_DEPTH);
     string strResponse = theRequest.SendRequest(
         theRequest, "GET_MARKET_OFFERS"); // <========================;
@@ -1175,12 +1174,12 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-OT_MADE_EASY_OT string MadeEasy::get_nym_market_offers(const string& SERVER_ID,
+OT_MADE_EASY_OT string MadeEasy::get_nym_market_offers(const string& NOTARY_ID,
                                                        const string& NYM_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_NYM_MARKET_OFFERS, SERVER_ID, NYM_ID);
+    OTAPI_Func theRequest(GET_NYM_MARKET_OFFERS, NOTARY_ID, NYM_ID);
     string strResponse = theRequest.SendRequest(
         theRequest, "GET_NYM_MARKET_OFFERS"); // <========================;
 
@@ -1188,13 +1187,13 @@ OT_MADE_EASY_OT string MadeEasy::get_nym_market_offers(const string& SERVER_ID,
 }
 
 OT_MADE_EASY_OT string
-    MadeEasy::get_market_recent_trades(const string& SERVER_ID,
+    MadeEasy::get_market_recent_trades(const string& NOTARY_ID,
                                        const string& NYM_ID,
                                        const string& MARKET_ID)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(GET_MARKET_RECENT_TRADES, SERVER_ID, NYM_ID,
+    OTAPI_Func theRequest(GET_MARKET_RECENT_TRADES, NOTARY_ID, NYM_ID,
                           MARKET_ID);
     string strResponse = theRequest.SendRequest(
         theRequest, "GET_MARKET_RECENT_TRADES"); // <========================;
@@ -1203,14 +1202,14 @@ OT_MADE_EASY_OT string
 }
 
 OT_MADE_EASY_OT string
-    MadeEasy::adjust_usage_credits(const string& SERVER_ID,
+    MadeEasy::adjust_usage_credits(const string& NOTARY_ID,
                                    const string& USER_NYM_ID,
                                    const string& TARGET_NYM_ID,
                                    const string& ADJUSTMENT)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(ADJUST_USAGE_CREDITS, SERVER_ID, USER_NYM_ID,
+    OTAPI_Func theRequest(ADJUST_USAGE_CREDITS, NOTARY_ID, USER_NYM_ID,
                           TARGET_NYM_ID, ADJUSTMENT);
     string strResponse = theRequest.SendRequest(
         theRequest, "ADJUST_USAGE_CREDITS"); // <========================;
@@ -2014,12 +2013,12 @@ OT_MADE_EASY_OT bool MadeEasy::exchangeCashPurse(
 }
 
 OT_MADE_EASY_OT string
-    MadeEasy::deposit_purse(const string& SERVER_ID, const string& NYM_ID,
+    MadeEasy::deposit_purse(const string& NOTARY_ID, const string& NYM_ID,
                             const string& ACCT_ID, const string& STR_PURSE)
 {
     OTAPI_Func ot_Msg;
 
-    OTAPI_Func theRequest(DEPOSIT_CASH, SERVER_ID, NYM_ID, ACCT_ID, STR_PURSE);
+    OTAPI_Func theRequest(DEPOSIT_CASH, NOTARY_ID, NYM_ID, ACCT_ID, STR_PURSE);
     string strResponse = theRequest.SendTransaction(
         theRequest, "DEPOSIT_CASH"); // <========================;
 
@@ -2028,7 +2027,8 @@ OT_MADE_EASY_OT string
 
 /*
 
-DONE:  create nym, register nym, issue asset type, send transfer, accept entire
+DONE:  create nym, register nym, issue instrument definition, send transfer,
+accept entire
 inbox, write cheque.
 
 Next ones:  show purse, withdraw cash, deposit cash, withdraw voucher, deposit
@@ -2105,11 +2105,11 @@ Here are parameters for the first group above.
 else if (funcType == DELETE_NYM)
 { OTAPI_Wrap::unregisterNym(notaryID, nymID); }
 else if (funcType == GET_NYM_MARKET_OFFERS)
-{ OTAPI_Wrap::getNym_MarketOffers(notaryID, nymID); }
+{ OTAPI_Wrap::getNymMarketOffers(notaryID, nymID); }
 else if (funcType == CREATE_ASSET_ACCT)
-{ OTAPI_Wrap::createAssetAccount(notaryID, nymID, instrumentDefinitionID); }
+{ OTAPI_Wrap::registerAccount(notaryID, nymID, instrumentDefinitionID); }
 else if (funcType == DELETE_ASSET_ACCT)
-{ OTAPI_Wrap::deleteAssetAccount(notaryID, nymID, accountID); }
+{ OTAPI_Wrap::unregisterAccount(notaryID, nymID, accountID); }
 else if (funcType == EXCHANGE_BASKET)
 { OTAPI_Wrap::exchangeBasket(notaryID, nymID, instrumentDefinitionID, basket,
 bBool); }

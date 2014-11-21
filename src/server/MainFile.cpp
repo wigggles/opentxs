@@ -571,7 +571,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                 }
 
                 // Create an OTAssetContract and load them from file, (for each
-                // asset type),
+                // instrument definition),
                 // and add them to the internal map.
                 else if (strNodeName.Compare("assetType")) {
                     OTASCIIArmor ascAssetName = xml->getAttributeValue("name");
@@ -691,12 +691,12 @@ bool MainFile::LoadServerUserAndContract()
         // (I WAS loading this erroneously in Server.Init(), before
         // the Nym had actually been loaded from disk. That didn't work.)
         //
-        const Identifier SERVER_ID(server_->m_strNotaryID);
+        const Identifier NOTARY_ID(server_->m_strNotaryID);
 
         // Make sure the Cron object has a pointer to the server's Nym.
         // (For signing stuff...)
         //
-        server_->m_Cron.SetNotaryID(SERVER_ID);
+        server_->m_Cron.SetNotaryID(NOTARY_ID);
         server_->m_Cron.SetServerNym(&server_->m_nymServer);
 
         if (!server_->m_Cron.LoadCron())

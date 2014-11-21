@@ -187,12 +187,12 @@ public:
         const OTPassword* pImportPassword = nullptr);
 
     EXPORT Account* LoadAccount(const Nym& theNym, const Identifier& ACCT_ID,
-                                const Identifier& SERVER_ID,
+                                const Identifier& NOTARY_ID,
                                 const char* szFuncName = nullptr);
 
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
-                                     const Identifier& SERVER_ID,
+                                     const Identifier& NOTARY_ID,
                                      const char* szFuncName = nullptr);
     // Used by high-level wrapper.
 
@@ -216,7 +216,7 @@ public:
                                                                 // accepted.
 
     EXPORT void AddServerContract(const OTServerContract& theContract);
-    EXPORT OTServerContract* GetServerContract(const Identifier& SERVER_ID);
+    EXPORT OTServerContract* GetServerContract(const Identifier& NOTARY_ID);
     EXPORT OTServerContract* GetServerContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for server also accepted.
 
@@ -228,7 +228,7 @@ public:
     EXPORT AssetContract* GetAssetContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for asset also accepted.
     bool VerifyAssetAccount(const Nym& theNym, Account& theAcct,
-                            const Identifier& SERVER_ID,
+                            const Identifier& NOTARY_ID,
                             const String& strAcctID,
                             const char* szFuncName = nullptr);
     EXPORT Account* GetAccount(const Identifier& theAccountID);

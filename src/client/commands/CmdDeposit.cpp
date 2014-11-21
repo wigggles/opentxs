@@ -163,7 +163,8 @@ int32_t CmdDeposit::runWithOptions()
 
 // A bit complicated:
 //
-// If I specify MyPurse and MyAcct, then they MUST have the same asset type.
+// If I specify MyPurse and MyAcct, then they MUST have the same instrument
+// definition.
 // If I specify MyNym and MyPurse, that is where we will look for the purse.
 // If I specify MyAcct, and it's owned by a different Nym than MyNym, then
 // the cash tokens will be reassigned from MyNym to MyAcct's Nym, before
@@ -176,7 +177,8 @@ int32_t CmdDeposit::runWithOptions()
 // If MyNym isn't available, should use MyAcct's Nym.
 //
 // Shouldn't need to specify MyPurse, since we can ONLY deposit into MyAcct of
-// the same type as MyAcct. Thus we should ignore any other asset types or
+// the same type as MyAcct. Thus we should ignore any other instrument
+// definitions or
 // purses since they couldn't possibly be deposited into MyAcct anyway.
 
 int32_t CmdDeposit::run(string mynym, string myacct, string indices)
@@ -256,7 +258,8 @@ int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
 
     if (assetType !=
         OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(instrument)) {
-        otOut << "Error: asset types of instrument and myacct do not match.\n";
+        otOut << "Error: instrument definitions of instrument and myacct do "
+                 "not match.\n";
         return -1;
     }
 

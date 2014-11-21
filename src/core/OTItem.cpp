@@ -200,7 +200,7 @@ bool OTItem::VerifyTransactionStatement(Nym& THE_NYM,
     // Balance Agreement is always the user signing WHAT THE NEW VERSION WILL BE
     // AFTER THE TRANSACTION IS PROCESSED.)
     //
-    const String SERVER_ID(GetPurportedNotaryID());
+    const String NOTARY_ID(GetPurportedNotaryID());
 
     Nym theRemovedNym;
 
@@ -210,7 +210,7 @@ bool OTItem::VerifyTransactionStatement(Nym& THE_NYM,
     { //  In such cases, there's no point in checking the server-side to "make
         // sure it has number 0!" (because it won't.)
         bool bIWasFound =
-            THE_NYM.VerifyIssuedNum(SERVER_ID, GetTransactionNum());
+            THE_NYM.VerifyIssuedNum(NOTARY_ID, GetTransactionNum());
 
         if (!bIWasFound) {
             otOut << __FUNCTION__ << ": Transaction# (" << GetTransactionNum()
@@ -239,9 +239,9 @@ bool OTItem::VerifyTransactionStatement(Nym& THE_NYM,
             // (Don't want to "add it back" if it wasn't there in the first
             // place!)
             //
-            if (THE_NYM.RemoveIssuedNum(SERVER_ID,
+            if (THE_NYM.RemoveIssuedNum(NOTARY_ID,
                                         GetTransactionNum())) // doesn't save.
-                theRemovedNym.AddIssuedNum(SERVER_ID, GetTransactionNum());
+                theRemovedNym.AddIssuedNum(NOTARY_ID, GetTransactionNum());
             else
                 otOut << "OTItem::VerifyTransactionStatemen: Expected THE_NYM "
                          "to have trans# " << GetTransactionNum()
@@ -259,7 +259,7 @@ bool OTItem::VerifyTransactionStatement(Nym& THE_NYM,
         case OTTransaction::marketOffer:
         case OTTransaction::paymentPlan:
         case OTTransaction::smartContract:
-            //              THE_NYM.RemoveIssuedNum(SERVER_ID,
+            //              THE_NYM.RemoveIssuedNum(NOTARY_ID,
             // GetTransactionNum()); // commented out, explained just
             // above.
             break;
@@ -311,7 +311,7 @@ bool OTItem::VerifyTransactionStatement(Nym& THE_NYM,
                     otErr << "OTItem::VerifyTransactionStatement: THIS SHOULD "
                              "NOT HAPPEN.\n";
                 else if (false ==
-                         THE_NYM.AddIssuedNum(SERVER_ID,
+                         THE_NYM.AddIssuedNum(NOTARY_ID,
                                               lTemp)) // doesn't save.
                     otErr << "Failed adding issued number back to THE_NYM in "
                              "OTItem::VerifyTransactionStatement.\n";
@@ -322,7 +322,7 @@ bool OTItem::VerifyTransactionStatement(Nym& THE_NYM,
         case OTTransaction::paymentPlan:
         case OTTransaction::smartContract:
         default:
-            //              THE_NYM.RemoveIssuedNum(SERVER_ID,
+            //              THE_NYM.RemoveIssuedNum(NOTARY_ID,
             // GetTransactionNum()); // commented out, explained just
             // above.
             break;
@@ -591,14 +591,14 @@ bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
 
             int64_t lTempAmount = pSubItem->GetAmount();
 
-            OTIdentifier ACCOUNT_ID, SERVER_ID, USER_ID;
+            OTIdentifier ACCOUNT_ID, NOTARY_ID, NYM_ID;
 
             ACCOUNT_ID = pSubItem->GetPurportedAccountID();
-            SERVER_ID  = pSubItem->GetPurportedNotaryID();
-            USER_ID    = pSubItem->GetUserID();
+            NOTARY_ID  = pSubItem->GetPurportedNotaryID();
+            NYM_ID    = pSubItem->GetUserID();
 
-            const OTString strAccountID(ACCOUNT_ID), strNotaryID(SERVER_ID),
-            strUserID(USER_ID);
+            const OTString strAccountID(ACCOUNT_ID), strNotaryID(NOTARY_ID),
+            strUserID(NYM_ID);
 
 
             int64_t lTempNumOfOrigin = pSubItem->GetNumberOfOrigin();
@@ -758,7 +758,7 @@ bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
 
     Nym theRemovedNym;
 
-    String SERVER_ID(GetPurportedNotaryID());
+    String NOTARY_ID(GetPurportedNotaryID());
 
     // GetTransactionNum() is the ID for this balance agreement, THUS it's also
     // the ID
@@ -767,7 +767,7 @@ bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
     // on my issued list, then the whole transaction is invalid (not
     // authorized.)
     //
-    bool bIWasFound = THE_NYM.VerifyIssuedNum(SERVER_ID, GetTransactionNum());
+    bool bIWasFound = THE_NYM.VerifyIssuedNum(NOTARY_ID, GetTransactionNum());
 
     if (!bIWasFound) {
         otOut << "OTItem::" << __FUNCTION__ << ": Transaction has # that "
@@ -819,9 +819,9 @@ bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
         // make sure
         // they were there in the first place.
         //
-        if (THE_NYM.RemoveIssuedNum(SERVER_ID,
+        if (THE_NYM.RemoveIssuedNum(NOTARY_ID,
                                     GetTransactionNum())) // doesn't save.
-            theRemovedNym.AddIssuedNum(SERVER_ID, GetTransactionNum());
+            theRemovedNym.AddIssuedNum(NOTARY_ID, GetTransactionNum());
         break;
 
     case OTTransaction::transfer:
@@ -912,7 +912,7 @@ bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
                                           << ": THIS SHOULD NOT HAPPEN.\n";
                                 else if (false ==
                                          THE_NYM.AddIssuedNum(
-                                             SERVER_ID, lTemp)) // doesn't save.
+                                             NOTARY_ID, lTemp)) // doesn't save.
                                     otErr << "OTItem::" << __FUNCTION__
                                           << ": Failed adding issued number "
                                              "back to THE_NYM.\n";
@@ -967,7 +967,7 @@ bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
                     otErr << "OTItem::" << __FUNCTION__
                           << ": THIS SHOULD NOT HAPPEN.\n";
                 else if (false ==
-                         THE_NYM.AddIssuedNum(SERVER_ID,
+                         THE_NYM.AddIssuedNum(NOTARY_ID,
                                               lTemp)) // doesn't save.
                     otErr << "OTItem::" << __FUNCTION__
                           << ": Failed adding issued number back to THE_NYM.\n";
@@ -1027,7 +1027,7 @@ bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
                 otErr << "OTItem::" << __FUNCTION__
                       << ": THIS SHOULD NOT HAPPEN.\n";
             else if (false ==
-                     THE_NYM.AddIssuedNum(SERVER_ID, lTemp)) // doesn't save.
+                     THE_NYM.AddIssuedNum(NOTARY_ID, lTemp)) // doesn't save.
                 otErr << "OTItem::" << __FUNCTION__
                       << ": Failed adding issued number back to THE_NYM.\n";
         }
@@ -1813,7 +1813,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strAcctFromID = xml->getAttributeValue("fromAccountID");
         strAcctToID = xml->getAttributeValue("toAccountID");
         strNotaryID = xml->getAttributeValue("notaryID");
-        strUserID = xml->getAttributeValue("userID");
+        strUserID = xml->getAttributeValue("nymID");
 
         strOutboxNewTransNum = xml->getAttributeValue("outboxNewTransNum");
 
@@ -1834,19 +1834,19 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                              // now becomes std::set<int64_t>.)
         }
 
-        Identifier ACCOUNT_ID(strAcctFromID), SERVER_ID(strNotaryID),
-            DESTINATION_ACCOUNT(strAcctToID), USER_ID(strUserID);
+        Identifier ACCOUNT_ID(strAcctFromID), NOTARY_ID(strNotaryID),
+            DESTINATION_ACCOUNT(strAcctToID), NYM_ID(strUserID);
 
         SetPurportedAccountID(ACCOUNT_ID); // OTTransactionType::m_AcctID  the
                                            // PURPORTED Account ID
-        SetPurportedNotaryID(SERVER_ID);   // OTTransactionType::m_AcctNotaryID
+        SetPurportedNotaryID(NOTARY_ID);   // OTTransactionType::m_AcctNotaryID
                                            // the PURPORTED Server ID
         SetDestinationAcctID(DESTINATION_ACCOUNT);
-        SetUserID(USER_ID);
+        SetUserID(NYM_ID);
 
         if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
-            SetRealNotaryID(SERVER_ID);
+            SetRealNotaryID(NOTARY_ID);
         }
 
         String strTemp;
@@ -1943,18 +1943,18 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             strAccountID = xml->getAttributeValue("accountID");
             strNotaryID = xml->getAttributeValue("notaryID");
-            strUserID = xml->getAttributeValue("userID");
+            strUserID = xml->getAttributeValue("nymID");
 
-            Identifier ACCOUNT_ID(strAccountID), SERVER_ID(strNotaryID),
-                USER_ID(strUserID);
+            Identifier ACCOUNT_ID(strAccountID), NOTARY_ID(strNotaryID),
+                NYM_ID(strUserID);
 
             pItem->SetPurportedAccountID(
                 ACCOUNT_ID); // OTTransactionType::m_AcctID  the PURPORTED
                              // Account ID
             pItem->SetPurportedNotaryID(
-                SERVER_ID); // OTTransactionType::m_AcctNotaryID the PURPORTED
+                NOTARY_ID); // OTTransactionType::m_AcctNotaryID the PURPORTED
                             // Server ID
-            pItem->SetUserID(USER_ID);
+            pItem->SetUserID(NYM_ID);
 
             String strTemp;
 
@@ -2303,7 +2303,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
             " numberOfOrigin=\"%" PRId64 "\"\n"
             " transactionNum=\"%" PRId64 "\"\n"
             " notaryID=\"%s\"\n"
-            " userID=\"%s\"\n"
+            " nymID=\"%s\"\n"
             " fromAccountID=\"%s\"\n"
             " toAccountID=\"%s\"\n"
             " inReferenceTo=\"%" PRId64 "\"\n"
@@ -2319,7 +2319,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
             " numberOfOrigin=\"%" PRId64 "\"\n"
             " transactionNum=\"%" PRId64 "\"\n%s"
             " notaryID=\"%s\"\n"
-            " userID=\"%s\"\n"
+            " nymID=\"%s\"\n"
             " fromAccountID=\"%s\"\n"
             " toAccountID=\"%s\"\n"
             " inReferenceTo=\"%" PRId64 "\"\n"
@@ -2355,7 +2355,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
 
             String acctID(pItem->GetPurportedAccountID()),
                 notaryID(pItem->GetPurportedNotaryID()),
-                userID(pItem->GetUserID());
+                nymID(pItem->GetUserID());
 
             String receiptType;
             GetStringFromType(pItem->GetType(), receiptType);
@@ -2364,14 +2364,14 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
                 "<transactionReport type=\"%s\"\n"
                 " adjustment=\"%" PRId64 "\"\n"
                 " accountID=\"%s\"\n"
-                " userID=\"%s\"\n"
+                " nymID=\"%s\"\n"
                 " notaryID=\"%s\"\n"
                 " numberOfOrigin=\"%" PRId64 "\"\n"
                 " transactionNum=\"%" PRId64 "\"\n"
                 " closingTransactionNum=\"%" PRId64 "\"\n"
                 " inReferenceTo=\"%" PRId64 "\" />\n\n",
                 receiptType.Exists() ? receiptType.Get() : "error_state",
-                pItem->GetAmount(), acctID.Get(), userID.Get(), notaryID.Get(),
+                pItem->GetAmount(), acctID.Get(), nymID.Get(), notaryID.Get(),
                 pItem->GetRawNumberOfOrigin(), pItem->GetTransactionNum(),
                 pItem->GetClosingNum(), pItem->GetReferenceToNum());
         }

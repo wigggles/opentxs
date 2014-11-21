@@ -271,12 +271,12 @@ bool OTAgreement::SendNoticeToAllParties(
 bool OTAgreement::DropServerNoticeToNymbox(
     bool bSuccessMsg, // Nym receives an OTItem::acknowledgment or
                       // OTItem::rejection.
-    Nym& theServerNym, const Identifier& SERVER_ID, const Identifier& USER_ID,
+    Nym& theServerNym, const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const int64_t& lNewTransactionNumber, const int64_t& lInReferenceTo,
     const String& strReference, String* pstrNote, String* pstrAttachment,
     Nym* pActualNym)
 {
-    OTLedger theLedger(USER_ID, USER_ID, SERVER_ID);
+    OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
 
     // Inbox will receive notification of something ALREADY DONE.
     //
@@ -286,7 +286,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         bSuccessLoading = theLedger.VerifyAccount(theServerNym);
     else
         bSuccessLoading = theLedger.GenerateLedger(
-            USER_ID, SERVER_ID, OTLedger::nymbox, true); // bGenerateFile=true
+            NYM_ID, NOTARY_ID, OTLedger::nymbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
         otErr << __FUNCTION__ << ": Failed loading or generating a nymbox. "
@@ -386,7 +386,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
 
         // Update the NymboxHash (in the nymfile.)
         //
-        const Identifier ACTUAL_NYM_ID = USER_ID;
+        const Identifier ACTUAL_NYM_ID = NYM_ID;
         Nym theActualNym; // unused unless it's really not already
                           // loaded. (use pActualNym.)
 
@@ -576,7 +576,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
     if (nullptr == pRecipient) {
         // GetSenderUserID() should be the same on THIS (updated version of the
         // same cron item)
-        // but for whatever reason, I'm checking the userID on the original
+        // but for whatever reason, I'm checking the nymID on the original
         // version. Sue me.
         //
         const Identifier NYM_ID(GetRecipientUserID());
@@ -844,7 +844,7 @@ void OTAgreement::onFinalReceipt(OTCronItem& theOrigCronItem,
  inline const OTIdentifier&    GetRecipientAcctID() const { return
  m_RECIPIENT_ACCT_ID; }
  inline const OTIdentifier&    GetRecipientUserID() const { return
- m_RECIPIENT_USER_ID; }
+ m_RECIPIENT_NYM_ID; }
  */
 
 bool OTAgreement::IsValidOpeningNumber(const int64_t& lOpeningNum) const
@@ -1459,26 +1459,26 @@ OTAgreement::OTAgreement()
     InitAgreement();
 }
 
-OTAgreement::OTAgreement(const Identifier& SERVER_ID,
+OTAgreement::OTAgreement(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
 {
     InitAgreement();
 }
 
-OTAgreement::OTAgreement(const Identifier& SERVER_ID,
+OTAgreement::OTAgreement(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID,
                          const Identifier& SENDER_ACCT_ID,
-                         const Identifier& SENDER_USER_ID,
+                         const Identifier& SENDER_NYM_ID,
                          const Identifier& RECIPIENT_ACCT_ID,
-                         const Identifier& RECIPIENT_USER_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
-               SENDER_USER_ID)
+                         const Identifier& RECIPIENT_NYM_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
+               SENDER_NYM_ID)
 {
     InitAgreement();
 
     SetRecipientAcctID(RECIPIENT_ACCT_ID);
-    SetRecipientUserID(RECIPIENT_USER_ID);
+    SetRecipientUserID(RECIPIENT_NYM_ID);
 }
 
 OTAgreement::~OTAgreement()
@@ -1496,7 +1496,7 @@ void OTAgreement::Release_Agreement()
     // If there were any dynamically allocated objects, clean them up here.
     //
     m_RECIPIENT_ACCT_ID.Release();
-    m_RECIPIENT_USER_ID.Release();
+    m_RECIPIENT_NYM_ID.Release();
 
     m_strConsideration.Release();
     m_strMerchantSignedCopy.Release();
@@ -1578,18 +1578,18 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_pCancelerNymID->Release();
         }
 
-        const Identifier SERVER_ID(strNotaryID),
+        const Identifier NOTARY_ID(strNotaryID),
             INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
-            SENDER_ACCT_ID(strSenderAcctID), SENDER_USER_ID(strSenderUserID),
+            SENDER_ACCT_ID(strSenderAcctID), SENDER_NYM_ID(strSenderUserID),
             RECIPIENT_ACCT_ID(strRecipientAcctID),
-            RECIPIENT_USER_ID(strRecipientUserID);
+            RECIPIENT_NYM_ID(strRecipientUserID);
 
-        SetNotaryID(SERVER_ID);
+        SetNotaryID(NOTARY_ID);
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
-        SetSenderUserID(SENDER_USER_ID);
+        SetSenderUserID(SENDER_NYM_ID);
         SetRecipientAcctID(RECIPIENT_ACCT_ID);
-        SetRecipientUserID(RECIPIENT_USER_ID);
+        SetRecipientUserID(RECIPIENT_NYM_ID);
 
         otWarn << "\n\n" << (m_bCanceled ? "Canceled a" : "A")
                << "greement. Transaction Number: " << m_lTransactionNum << "\n";

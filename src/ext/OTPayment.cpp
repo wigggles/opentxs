@@ -1370,11 +1370,11 @@ Purse* OTPayment::InstantiatePurse() const
 }
 
 /*
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID) const
+OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& NOTARY_ID) const
 {
     if (OTPayment::PURSE == GetType())
     {
-        return OTPurse::PurseFactory(m_strPayment, SERVER_ID);
+        return OTPurse::PurseFactory(m_strPayment, NOTARY_ID);
        }
     else
         otErr << "OTPayment::InstantiatePurse: Failure: This payment object does
@@ -1384,12 +1384,12 @@ NOT contain a purse. "
     return nullptr;
 }
 
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
+OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& NOTARY_ID, const
 OTIdentifier& INSTRUMENT_DEFINITION_ID) const
 {
     if (OTPayment::PURSE == GetType())
     {
-        return OTPurse::PurseFactory(m_strPayment, SERVER_ID,
+        return OTPurse::PurseFactory(m_strPayment, NOTARY_ID,
 INSTRUMENT_DEFINITION_ID);
        }
     else
@@ -1418,7 +1418,7 @@ Purse* OTPayment::InstantiatePurse(const String& strPayment)
 }
 
 /*
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
+OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& NOTARY_ID, const
 OTString& strPayment)
 {
     if (!SetPayment(strPayment))
@@ -1430,13 +1430,13 @@ payment string based on "
 the "
                       "payment string:\n\n%s\n\n", strPayment.Get());
     else
-        return InstantiatePurse(SERVER_ID);
+        return InstantiatePurse(NOTARY_ID);
 
     return nullptr;
 }
 
 
-OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& SERVER_ID, const
+OTPurse * OTPayment::InstantiatePurse(const OTIdentifier& NOTARY_ID, const
 OTIdentifier& INSTRUMENT_DEFINITION_ID, const OTString& strPayment)
 {
     if (!SetPayment(strPayment))
@@ -1448,7 +1448,7 @@ payment string based on "
 the "
                       "payment string:\n\n%s\n\n", strPayment.Get());
     else
-        return InstantiatePurse(SERVER_ID, INSTRUMENT_DEFINITION_ID);
+        return InstantiatePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
     return nullptr;
 }

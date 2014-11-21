@@ -265,11 +265,11 @@ void OTPaymentPlan::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(GetNotaryID()),
+    const String NOTARY_ID(GetNotaryID()),
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
-        SENDER_ACCT_ID(GetSenderAcctID()), SENDER_USER_ID(GetSenderUserID()),
+        SENDER_ACCT_ID(GetSenderAcctID()), SENDER_NYM_ID(GetSenderUserID()),
         RECIPIENT_ACCT_ID(GetRecipientAcctID()),
-        RECIPIENT_USER_ID(GetRecipientUserID());
+        RECIPIENT_NYM_ID(GetRecipientUserID());
 
     OT_ASSERT(nullptr != m_pCancelerNymID);
 
@@ -293,9 +293,9 @@ void OTPaymentPlan::UpdateContents()
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), SERVER_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(),
-        SENDER_ACCT_ID.Get(), SENDER_USER_ID.Get(), RECIPIENT_ACCT_ID.Get(),
-        RECIPIENT_USER_ID.Get(), m_bCanceled ? "true" : "false",
+        m_strVersion.Get(), NOTARY_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(),
+        SENDER_ACCT_ID.Get(), SENDER_NYM_ID.Get(), RECIPIENT_ACCT_ID.Get(),
+        RECIPIENT_NYM_ID.Get(), m_bCanceled ? "true" : "false",
         m_bCanceled ? strCanceler.Get() : "", m_lTransactionNum,
         OTTimeGetSecondsFromTime(GetCreationDate()),
         OTTimeGetSecondsFromTime(GetValidFrom()),
@@ -621,23 +621,23 @@ OTPaymentPlan::OTPaymentPlan()
     InitPaymentPlan();
 }
 
-OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
+OTPaymentPlan::OTPaymentPlan(const Identifier& NOTARY_ID,
                              const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
     InitPaymentPlan();
 }
 
-OTPaymentPlan::OTPaymentPlan(const Identifier& SERVER_ID,
+OTPaymentPlan::OTPaymentPlan(const Identifier& NOTARY_ID,
                              const Identifier& INSTRUMENT_DEFINITION_ID,
                              const Identifier& SENDER_ACCT_ID,
-                             const Identifier& SENDER_USER_ID,
+                             const Identifier& SENDER_NYM_ID,
                              const Identifier& RECIPIENT_ACCT_ID,
-                             const Identifier& RECIPIENT_USER_ID)
-    : ot_super(SERVER_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
-               SENDER_USER_ID, RECIPIENT_ACCT_ID, RECIPIENT_USER_ID)
+                             const Identifier& RECIPIENT_NYM_ID)
+    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SENDER_ACCT_ID,
+               SENDER_NYM_ID, RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -673,18 +673,17 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
     bool bSuccess = false; // The return value.
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
-    const Identifier SERVER_USER_ID(*pServerNym);
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
+    const Identifier SERVER_NYM_ID(*pServerNym);
 
     const Identifier& SOURCE_ACCT_ID = GetSenderAcctID();
-    const Identifier& SENDER_USER_ID = GetSenderUserID();
+    const Identifier& SENDER_NYM_ID = GetSenderUserID();
 
     const Identifier& RECIPIENT_ACCT_ID = GetRecipientAcctID();
-    const Identifier& RECIPIENT_USER_ID = GetRecipientUserID();
+    const Identifier& RECIPIENT_NYM_ID = GetRecipientUserID();
 
-    String strSenderUserID(SENDER_USER_ID),
-        strRecipientUserID(RECIPIENT_USER_ID), strSourceAcctID(SOURCE_ACCT_ID),
-        strRecipientAcctID(RECIPIENT_ACCT_ID);
+    String strSenderUserID(SENDER_NYM_ID), strRecipientUserID(RECIPIENT_NYM_ID),
+        strSourceAcctID(SOURCE_ACCT_ID), strRecipientAcctID(RECIPIENT_ACCT_ID);
 
     // Make sure they're not the same Account IDs ...
     // Otherwise we would have to take care not to load them twice, like with
@@ -698,7 +697,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                       // weeds this crap out before we even get here.
     }
     // When the accounts are actually loaded up, then we should also compare
-    // the asset types to make sure they were what we expected them to be.
+    // the instrument definitions to make sure they were what we expected them
+    // to be.
 
     // Need to load up the ORIGINAL PAYMENT PLAN (with BOTH users' original
     // SIGNATURES on it!)
@@ -738,15 +738,15 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
     // Find out if either Nym is actually also the server.
     bool bSenderNymIsServerNym =
-        ((SENDER_USER_ID == SERVER_USER_ID) ? true : false);
+        ((SENDER_NYM_ID == SERVER_NYM_ID) ? true : false);
     bool bRecipientNymIsServerNym =
-        ((RECIPIENT_USER_ID == SERVER_USER_ID) ? true : false);
+        ((RECIPIENT_NYM_ID == SERVER_NYM_ID) ? true : false);
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity.
     // (We'll want to know that later.)
     bool bUsersAreSameNym =
-        ((SENDER_USER_ID == RECIPIENT_USER_ID) ? true : false);
+        ((SENDER_NYM_ID == RECIPIENT_NYM_ID) ? true : false);
 
     Nym* pSenderNym = nullptr;
     Nym* pRecipientNym = nullptr;
@@ -758,11 +758,10 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     }
     else // Else load the First Nym from storage.
     {
-        theSenderNym.SetIdentifier(
-            SENDER_USER_ID); // theSenderNym is pSenderNym
+        theSenderNym.SetIdentifier(SENDER_NYM_ID); // theSenderNym is pSenderNym
 
         if (!theSenderNym.LoadPublicKey()) {
-            String strNymID(SENDER_USER_ID);
+            String strNymID(SENDER_NYM_ID);
             otErr << "Failure loading Sender Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -779,7 +778,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             pSenderNym = &theSenderNym; //  <=====
         }
         else {
-            String strNymID(SENDER_USER_ID);
+            String strNymID(SENDER_NYM_ID);
             otErr << "Failure loading or verifying Sender Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -799,10 +798,10 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     }
     else // Otherwise load the Other Nym from Disk and point to that.
     {
-        theRecipientNym.SetIdentifier(RECIPIENT_USER_ID);
+        theRecipientNym.SetIdentifier(RECIPIENT_NYM_ID);
 
         if (!theRecipientNym.LoadPublicKey()) {
-            String strNymID(RECIPIENT_USER_ID);
+            String strNymID(RECIPIENT_NYM_ID);
             otErr << "Failure loading Recipient Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -814,7 +813,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             pRecipientNym = &theRecipientNym; //  <=====
         }
         else {
-            String strNymID(RECIPIENT_USER_ID);
+            String strNymID(RECIPIENT_NYM_ID);
             otErr << "Failure loading or verifying Recipient Nym public key in "
                      "OTPaymentPlan::ProcessPayment: " << strNymID << "\n";
             FlagForRemoval(); // Remove it from future Cron processing, please.
@@ -858,7 +857,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     // I know for a fact they have both signed pOrigCronItem...
 
     std::unique_ptr<Account> pSourceAcct(
-        Account::LoadExistingAccount(SOURCE_ACCT_ID, SERVER_ID));
+        Account::LoadExistingAccount(SOURCE_ACCT_ID, NOTARY_ID));
 
     if (nullptr == pSourceAcct) {
         otOut << "ERROR verifying existence of source account during attempted "
@@ -868,7 +867,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     }
 
     std::unique_ptr<Account> pRecipientAcct(
-        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, SERVER_ID));
+        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, NOTARY_ID));
 
     if (nullptr == pRecipientAcct) {
         otOut << "ERROR verifying existence of recipient account during "
@@ -893,7 +892,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         // the accounts THEMSELVES have been loaded can we VERIFY this to be
         // true.
         otOut << "ERROR - attempted payment between accounts of different "
-                 "asset types in OTPaymentPlan::ProcessPayment\n";
+                 "instrument definitions in OTPaymentPlan::ProcessPayment\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return false;
     }
@@ -919,7 +918,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     }
 
     // By this point, I know I have both accounts loaded, and I know that they
-    // have the right asset types,
+    // have the right instrument definitions,
     // and I know they have the right owners and they were all signed by the
     // server.
     // I also know that their account IDs in their internal records matched the
@@ -931,8 +930,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        OTLedger theSenderInbox(SENDER_USER_ID, SOURCE_ACCT_ID, SERVER_ID),
-            theRecipientInbox(RECIPIENT_USER_ID, RECIPIENT_ACCT_ID, SERVER_ID);
+        OTLedger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
+            theRecipientInbox(RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -946,7 +945,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                 theSenderInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingSenderInbox = theSenderInbox.GenerateLedger(
-                SOURCE_ACCT_ID, SERVER_ID, OTLedger::inbox,
+                SOURCE_ACCT_ID, NOTARY_ID, OTLedger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingRecipientInbox)
@@ -954,7 +953,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                 theRecipientInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingRecipientInbox = theRecipientInbox.GenerateLedger(
-                RECIPIENT_ACCT_ID, SERVER_ID, OTLedger::inbox,
+                RECIPIENT_ACCT_ID, NOTARY_ID, OTLedger::inbox,
                 true); // bGenerateFile=true
 
         if ((false == bSuccessLoadingSenderInbox) ||
@@ -1024,8 +1023,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             //            pTransSend
             // ->SetReferenceToNum(GetTransactionNum());
             //            pTransRecip->SetReferenceToNum(GetTransactionNum());
-            pTransSend->SetReferenceToNum(GetOpeningNumber(SENDER_USER_ID));
-            pTransRecip->SetReferenceToNum(GetOpeningNumber(RECIPIENT_USER_ID));
+            pTransSend->SetReferenceToNum(GetOpeningNumber(SENDER_NYM_ID));
+            pTransRecip->SetReferenceToNum(GetOpeningNumber(RECIPIENT_NYM_ID));
 
             // The TRANSACTION (a receipt in my inbox) will be sent with "In
             // Reference To" information

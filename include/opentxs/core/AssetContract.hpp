@@ -164,7 +164,8 @@ public:
     {
         return m_bIsShares;
     }
-    // Some asset types keep a list of "simple" accounts (the complete set of
+    // Some instrument definitions keep a list of "simple" accounts (the
+    // complete set of
     // that type.)
     // This is called when the user creates a new asset account, in order to add
     // it to that list.

@@ -166,7 +166,8 @@ protected:
 
     // While calculating the ID of smart contracts (and presumably other
     // scriptables)
-    // we remove specifics such as asset types, asset accounts, Nym IDs,
+    // we remove specifics such as instrument definitions, asset accounts, Nym
+    // IDs,
     // stashes, etc.
     // We override OTContract::CalculateContractID(), where we set
     // m_bCalculatingID to
@@ -180,17 +181,21 @@ protected:
     //
     // HOWEVER, there may be more options than with baskets (which also use the
     // above
-    // trick. Should the smart contract specify a specific asset type, or should
+    // trick. Should the smart contract specify a specific instrument
+    // definition, or should
     // it leave
-    // the asset type blank?  Should it specify certain parties, or should it
+    // the instrument definition blank?  Should it specify certain parties, or
+    // should it
     // leave the
     // parties blank? I think the accounts should always be blank for
     // calculating ID.
     // And the agents should. And stashes which should be blank in new contracts
     // (always.)
-    // But for asset types and parties, shouldn't people be able to specify, for
+    // But for instrument definitions and parties, shouldn't people be able to
+    // specify, for
     // a smart
-    // contract template, whether the asset types are part of the contract or
+    // contract template, whether the instrument definitions are part of the
+    // contract or
     // whether they
     // are left blank?
     // Furthermore, doesn't this mean that variables need to ALWAYS store their
@@ -217,7 +222,8 @@ protected:
     //
     // Accounts, conversely, CAN exist on the contract while calculating its ID,
     // but the
-    // actual account IDs will be left blank and the asset type IDs will be left
+    // actual account IDs will be left blank and the instrument definition IDs
+    // will be left
     // blank
     // if m_bSpecifyInstrumentDefinitionID is false. (Just as Parties' Owner IDs
     // will be left

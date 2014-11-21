@@ -189,8 +189,8 @@ m_InstrumentDefinitionID; }
 INSTRUMENT_DEFINITION_ID)  {
 m_InstrumentDefinitionID    =
 INSTRUMENT_DEFINITION_ID; }
-     inline void SetNotaryID(const OTIdentifier& SERVER_ID) { m_NotaryID    =
-SERVER_ID; }
+     inline void SetNotaryID(const OTIdentifier& NOTARY_ID) { m_NotaryID    =
+NOTARY_ID; }
 
      bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
 / TO dates.
@@ -348,7 +348,7 @@ public:
                                                       // adding/loading offers.
     EXPORT OTOffer(); // The constructor contains the 3 variables needed to
                       // identify any market.
-    EXPORT OTOffer(const Identifier& SERVER_ID,
+    EXPORT OTOffer(const Identifier& NOTARY_ID,
                    const Identifier& INSTRUMENT_DEFINITION_ID,
                    const Identifier& CURRENCY_ID, const int64_t& MARKET_SCALE);
     EXPORT virtual ~OTOffer();

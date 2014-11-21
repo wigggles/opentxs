@@ -197,12 +197,13 @@ class OTPartyAccount
     //
     String m_strName;   // Name of the account (for use in scripts.)
     String m_strAcctID; // The Account ID itself.
-    String m_strInstrumentDefinitionID; // The asset type ID for the account.
+    String m_strInstrumentDefinitionID; // The instrument definition ID for the
+                                        // account.
                                         // Stored
     // because parties agree on this even before the
     // account ID is selected. Compare() uses this
     // even when the account ID is blank, and when
-    // acct ID *is* added, its asset type must match
+    // acct ID *is* added, its instrument definition must match
     // this.
     String m_strAgentName; // The name of the agent who has rights to this
                            // account.
@@ -244,7 +245,7 @@ public:
     const String& GetInstrumentDefinitionID() const
     {
         return m_strInstrumentDefinitionID;
-    } // asset type ID for the account.
+    } // instrument definition ID for the account.
 
     void SetAgentName(const String& strAgentName)
     {

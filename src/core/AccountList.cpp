@@ -270,7 +270,7 @@ void AccountList::Release()
     Release_AcctList();
 }
 
-std::shared_ptr<Account> AccountList::GetOrCreateAccount(
+std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
     Nym& serverNym, const Identifier& accountOwnerId,
     const Identifier& instrumentDefinitionID, const Identifier& notaryID,
     // this will be set to true if the acct is created here.
@@ -282,15 +282,15 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
 
     if (Account::stash == acctType_) {
         if (stashTransNum <= 0) {
-            otErr
-                << "AccountList::GetOrCreateAccount: Failed attempt to create "
-                   "stash account without cron item #.\n";
+            otErr << "AccountList::GetOrRegisterAccount: Failed attempt to "
+                     "create "
+                     "stash account without cron item #.\n";
             return account;
         }
     }
 
     // First, we'll see if there's already an account ID available for the
-    // requested asset type ID.
+    // requested instrument definition ID.
     std::string instrumentDefinitionIDString =
         String(instrumentDefinitionID).Get();
 
@@ -298,7 +298,7 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
     TranslateAccountTypeToString(acctType_, acctTypeString);
 
     auto acctIDsIt = mapAcctIDs_.find(instrumentDefinitionIDString);
-    // Account ID *IS* already there for this asset type
+    // Account ID *IS* already there for this instrument definition
     if (mapAcctIDs_.end() != acctIDsIt) {
         // grab account ID
         std::string accountIdString = acctIDsIt->second;
@@ -322,12 +322,11 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
                 // already somewhere, it's just a pointer sitting there, and
                 // we're not walking on each other's toes.
                 if (weakAccount) {
-                    otOut
-                        << "AccountList::GetOrCreateAccount: Warning: account ("
-                        << accountIdString
-                        << ") was already in memory so I gave you a "
-                           "pointer to the existing one. (But who else has a "
-                           "copy of it?) \n";
+                    otOut << "AccountList::GetOrRegisterAccount: Warning: "
+                             "account (" << accountIdString
+                          << ") was already in memory so I gave you a "
+                             "pointer to the existing one. (But who else has a "
+                             "copy of it?) \n";
                     return weakAccount;
                 }
             }
@@ -379,7 +378,8 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
         return account;
     }
 
-    // Not found. There's no account ID yet for that asset type ID. That means
+    // Not found. There's no account ID yet for that instrument definition ID.
+    // That means
     // we can create it.
     Message message;
     accountOwnerId.GetString(message.m_strNymID);
@@ -390,10 +390,9 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
         accountOwnerId, notaryID, serverNym, message, acctType_, stashTransNum);
 
     if (!createdAccount) {
-        otErr << " AccountList::GetOrCreateAccount: Failed trying to generate"
-              << acctTypeString
-              << " account with asset type ID: " << instrumentDefinitionIDString
-              << "\n";
+        otErr << " AccountList::GetOrRegisterAccount: Failed trying to generate"
+              << acctTypeString << " account with instrument definition ID: "
+              << instrumentDefinitionIDString << "\n";
     }
     else {
         String acctIDString;
@@ -409,7 +408,7 @@ std::shared_ptr<Account> AccountList::GetOrCreateAccount(
         // save a weak pointer to the acct, so we'll never load it twice,
         // but we'll also know if it's been deleted.
         mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<Account>(account);
-        // Save the new acct ID in a map, keyed by asset type ID.
+        // Save the new acct ID in a map, keyed by instrument definition ID.
         mapAcctIDs_[message.m_strInstrumentDefinitionID.Get()] =
             acctIDString.Get();
 

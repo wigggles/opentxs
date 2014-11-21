@@ -161,18 +161,21 @@ class OTStash
 {
     std::string m_str_stash_name;
 
-    mapOfStashItems m_mapStashItems; // map of stash items by asset type ID.
+    mapOfStashItems m_mapStashItems; // map of stash items by instrument
+                                     // definition ID.
                                      // owned.
 public:
     const std::string GetName() const
     {
         return m_str_stash_name;
     }
-    OTStashItem* GetStash(const std::string& str_asset_type_id);
+    OTStashItem* GetStash(const std::string& str_instrument_definition_id);
 
-    int64_t GetAmount(std::string str_asset_type_id);
-    bool CreditStash(std::string str_asset_type_id, const int64_t& lAmount);
-    bool DebitStash(std::string str_asset_type_id, const int64_t& lAmount);
+    int64_t GetAmount(std::string str_instrument_definition_id);
+    bool CreditStash(std::string str_instrument_definition_id,
+                     const int64_t& lAmount);
+    bool DebitStash(std::string str_instrument_definition_id,
+                    const int64_t& lAmount);
 
     void Serialize(String& strAppend) const;
     int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,

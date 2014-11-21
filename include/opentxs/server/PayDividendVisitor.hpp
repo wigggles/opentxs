@@ -148,7 +148,8 @@ class String;
 // Note: from OTAssetContract.h and .cpp.
 // This is a subclass of AccountVisitor, which is used whenever OTAssetContract
 // needs to
-// loop through all the accounts for a given asset type (its own.) This subclass
+// loop through all the accounts for a given instrument definition (its own.)
+// This subclass
 // needs to
 // call OTServer method to do its job, so it can't be defined in otlib, but must
 // be defined

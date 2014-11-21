@@ -624,7 +624,8 @@ bool OTRecordList::PerformAutoAccept()
                         const std::string* p_str_asset_type =
                             &OTRecordList::s_blank; // <========== ASSET TYPE
                         const std::string* p_str_asset_name =
-                            &OTRecordList::s_blank; // asset type display name.
+                            &OTRecordList::s_blank; // instrument definition
+                                                    // display name.
                         std::string str_type;       // Instrument type.
                         OTPayment* pPayment =
                             GetInstrument(*pNym, nIndex, *pInbox);
@@ -649,15 +650,16 @@ bool OTRecordList::PerformAutoAccept()
                                     theInstrumentDefinitionID)) {
                                 String strTemp(theInstrumentDefinitionID);
                                 const std::string str_inpmt_asset(
-                                    strTemp.Get()); // The asset type we found
+                                    strTemp.Get()); // The instrument definition
+                                                    // we found
                                                     // on the payment (if we
                                                     // found anything.)
                                 auto it_asset = m_assets.find(str_inpmt_asset);
                                 if (it_asset != m_assets.end()) // Found it on
                                                                 // the map of
-                                                                // asset types
-                                                                // we care
-                                                                // about.
+                                // instrument definitions
+                                // we care
+                                // about.
                                 {
                                     p_str_asset_type =
                                         &(it_asset->first); // Set the asset
@@ -668,7 +670,8 @@ bool OTRecordList::PerformAutoAccept()
                                                              // BTC, etc.
                                 }
                                 else {
-                                    // There was definitely an asset type on the
+                                    // There was definitely an instrument
+                                    // definition on the
                                     // instrument, and it definitely
                                     // did not match any of the assets that we
                                     // care about.
@@ -765,18 +768,20 @@ bool OTRecordList::PerformAutoAccept()
                         bool bGotAsset = pPayment->GetInstrumentDefinitionID(
                             paymentAssetType);
 
-                        std::string str_asset_type_id;
+                        std::string str_instrument_definition_id;
 
                         if (bGotAsset) {
                             const String strInstrumentDefinitionID(
                                 paymentAssetType);
-                            str_asset_type_id = strInstrumentDefinitionID.Get();
+                            str_instrument_definition_id =
+                                strInstrumentDefinitionID.Get();
                         }
-                        if (str_asset_type_id.empty()) {
-                            otErr << __FUNCTION__
-                                  << ": Error: Failed while trying to "
-                                     "get asset type ID from payment. "
-                                     "(Skipping.)\n";
+                        if (str_instrument_definition_id.empty()) {
+                            otErr
+                                << __FUNCTION__
+                                << ": Error: Failed while trying to "
+                                   "get instrument definition ID from payment. "
+                                   "(Skipping.)\n";
                             continue;
                         }
                         // pick an account to deposit the cheque into.
@@ -800,7 +805,7 @@ bool OTRecordList::PerformAutoAccept()
                             const String strAcctInstrumentDefinitionID(
                                 theAcctInstrumentDefinitionID);
                             // If the current account is owned by the Nym, AND
-                            // it has the same asset type ID
+                            // it has the same instrument definition ID
                             // as the cheque being deposited, then let's deposit
                             // the cheque into that account.
                             //
@@ -812,7 +817,7 @@ bool OTRecordList::PerformAutoAccept()
                                 (strAcctNotaryID.Compare(
                                     str_notary_id.c_str())) &&
                                 (strAcctInstrumentDefinitionID.Compare(
-                                    str_asset_type_id.c_str())) &&
+                                    str_instrument_definition_id.c_str())) &&
                                 (0 ==
                                  str_acct_type.compare("simple"))) // No issuer
                                                                    // accounts
@@ -886,7 +891,8 @@ bool OTRecordList::PerformAutoAccept()
             // accounts,
             // I wouldn't bother double-checking my "care about" lists for
             // servers, nyms,
-            // and asset types. But I still look up the appropriate string for
+            // and instrument definitions. But I still look up the appropriate
+            // string for
             // each, since
             // I have to pass a reference to it into the constructor for
             // OTRecord. (To a version
@@ -1150,8 +1156,9 @@ bool OTRecordList::Populate()
             const std::string* p_str_asset_type =
                 &OTRecordList::s_blank; // <========== ASSET TYPE
             const std::string* p_str_asset_name =
-                &OTRecordList::s_blank;   // asset type display name.
-            std::string str_outpmt_asset; // The asset type we found on the
+                &OTRecordList::s_blank;   // instrument definition display name.
+            std::string str_outpmt_asset; // The instrument definition we found
+                                          // on the
                                           // payment (if we found anything.)
 
             if (theOutPayment.GetInstrumentDefinitionID(
@@ -1163,31 +1170,32 @@ bool OTRecordList::Populate()
                                                 // types we care about.
                 {
                     p_str_asset_type =
-                        &(it_asset->first); // Set the asset type ID.
+                        &(it_asset->first); // Set the instrument definition ID.
                     p_str_asset_name = &(it_asset->second); // The CurrencyTLA.
                                                             // Examples: USD,
                                                             // BTC, etc.
                 }
                 else {
-                    // There was definitely an asset type on the instrument, and
+                    // There was definitely an instrument definition on the
+                    // instrument, and
                     // it definitely
                     // did not match any of the assets that we care about.
                     // Therefore, skip.
                     //
                     otOut << __FUNCTION__
                           << ": Skipping outpayment (we don't care "
-                             "about asset type " << str_outpmt_asset.c_str()
-                          << ")\n";
+                             "about instrument definition "
+                          << str_outpmt_asset.c_str() << ")\n";
                     continue;
                 }
             }
             // By this point, p_str_asset_type and p_str_asset_name are
             // definitely set.
             OT_ASSERT(nullptr != p_str_asset_type); // and it's either blank, or
-            // it's one of the asset types
+            // it's one of the instrument definitions
             // we care about.
             OT_ASSERT(nullptr != p_str_asset_name); // and it's either blank, or
-            // it's one of the asset types
+            // it's one of the instrument definitions
             // we care about.
             Identifier theAccountID;
             const std::string* p_str_account =
@@ -1246,7 +1254,7 @@ bool OTRecordList::Populate()
             // But is that server on our list of servers that we care about?
             // Let's see if that server is on m_servers (otherwise we can skip
             // it.)
-            // Also, let's do the same for asset types.
+            // Also, let's do the same for instrument definitions.
             //
             auto it_server = std::find(m_servers.begin(), m_servers.end(),
                                        str_outpmt_server);
@@ -1259,7 +1267,7 @@ bool OTRecordList::Populate()
                 // up ONCE when first adding the NymID. Add it to a map, instead
                 // of a list,
                 // and add the Nym's name as the second item in the map's pair.
-                // (Just like I already did with the asset type.)
+                // (Just like I already did with the instrument definition.)
                 //
                 String strName(m_pLookup->GetNymName(str_outpmt_recipientID,
                                                      &(*it_server))),
@@ -1374,7 +1382,7 @@ bool OTRecordList::Populate()
                 // up ONCE when first adding the NymID. Add it to a map, instead
                 // of a list,
                 // and add the Nym's name as the second item in the map's pair.
-                // (Just like I already did with the asset type.)
+                // (Just like I already did with the instrument definition.)
                 //
                 String strName(
                     m_pLookup->GetNymName(str_mail_senderID, &(*it_server))),
@@ -1391,7 +1399,8 @@ bool OTRecordList::Populate()
                 const std::string* p_str_asset_type =
                     &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string* p_str_asset_name =
-                    &OTRecordList::s_blank; // asset type display name.
+                    &OTRecordList::s_blank; // instrument definition display
+                                            // name.
                 const std::string* p_str_account =
                     &OTRecordList::s_blank; // <========== ACCOUNT
 
@@ -1471,7 +1480,7 @@ bool OTRecordList::Populate()
                 // up ONCE when first adding the NymID. Add it to a map, instead
                 // of a list,
                 // and add the Nym's name as the second item in the map's pair.
-                // (Just like I already did with the asset type.)
+                // (Just like I already did with the instrument definition.)
                 //
                 String strName(
                     m_pLookup->GetNymName(str_mail_recipientID, &(*it_server))),
@@ -1488,7 +1497,8 @@ bool OTRecordList::Populate()
                 const std::string* p_str_asset_type =
                     &OTRecordList::s_blank; // <========== ASSET TYPE
                 const std::string* p_str_asset_name =
-                    &OTRecordList::s_blank; // asset type display name.
+                    &OTRecordList::s_blank; // instrument definition display
+                                            // name.
                 const std::string* p_str_account =
                     &OTRecordList::s_blank; // <========== ACCOUNT
 
@@ -1621,7 +1631,8 @@ bool OTRecordList::Populate()
                     const std::string* p_str_asset_type =
                         &OTRecordList::s_blank; // <========== ASSET TYPE
                     const std::string* p_str_asset_name =
-                        &OTRecordList::s_blank; // asset type display name.
+                        &OTRecordList::s_blank; // instrument definition display
+                                                // name.
                     std::string str_amount;     // <========== AMOUNT
                     std::string str_type;       // Instrument type.
                     std::string str_memo;
@@ -1689,15 +1700,16 @@ bool OTRecordList::Populate()
                                     theInstrumentDefinitionID)) {
                                 String strTemp(theInstrumentDefinitionID);
                                 const std::string str_inpmt_asset(
-                                    strTemp.Get()); // The asset type we found
+                                    strTemp.Get()); // The instrument definition
+                                                    // we found
                                                     // on the payment (if we
                                                     // found anything.)
                                 auto it_asset = m_assets.find(str_inpmt_asset);
                                 if (it_asset != m_assets.end()) // Found it on
                                                                 // the map of
-                                                                // asset types
-                                                                // we care
-                                                                // about.
+                                // instrument definitions
+                                // we care
+                                // about.
                                 {
                                     p_str_asset_type =
                                         &(it_asset->first); // Set the asset
@@ -1708,7 +1720,8 @@ bool OTRecordList::Populate()
                                                              // BTC, etc.
                                 }
                                 else {
-                                    // There was definitely an asset type on the
+                                    // There was definitely an instrument
+                                    // definition on the
                                     // instrument, and it definitely
                                     // did not match any of the assets that we
                                     // care about.
@@ -1807,7 +1820,7 @@ bool OTRecordList::Populate()
             nIndex = (-1);
 
             // Also loop through its record box. For this record box, pass the
-            // USER_ID twice,
+            // NYM_ID twice,
             // since it's the recordbox for the Nym.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             OTLedger* pRecordbox =
@@ -1979,7 +1992,8 @@ bool OTRecordList::Populate()
                     const std::string* p_str_asset_type =
                         &OTRecordList::s_blank; // <========== ASSET TYPE
                     const std::string* p_str_asset_name =
-                        &OTRecordList::s_blank; // asset type display name.
+                        &OTRecordList::s_blank; // instrument definition display
+                                                // name.
                     const std::string* p_str_account =
                         &OTRecordList::s_blank; // <========== ACCOUNT
                     std::string str_amount;     // <========== AMOUNT
@@ -2123,15 +2137,16 @@ bool OTRecordList::Populate()
                                     theInstrumentDefinitionID)) {
                                 String strTemp(theInstrumentDefinitionID);
                                 const std::string str_inpmt_asset(
-                                    strTemp.Get()); // The asset type we found
+                                    strTemp.Get()); // The instrument definition
+                                                    // we found
                                                     // on the payment (if we
                                                     // found anything.)
                                 auto it_asset = m_assets.find(str_inpmt_asset);
                                 if (it_asset != m_assets.end()) // Found it on
                                                                 // the map of
-                                                                // asset types
-                                                                // we care
-                                                                // about.
+                                // instrument definitions
+                                // we care
+                                // about.
                                 {
                                     p_str_asset_type =
                                         &(it_asset->first); // Set the asset
@@ -2142,7 +2157,8 @@ bool OTRecordList::Populate()
                                                              // BTC, etc.
                                 }
                                 else {
-                                    // There was definitely an asset type on the
+                                    // There was definitely an instrument
+                                    // definition on the
                                     // instrument, and it definitely
                                     // did not match any of the assets that we
                                     // care about.
@@ -2150,7 +2166,8 @@ bool OTRecordList::Populate()
                                     //
                                     otErr << __FUNCTION__
                                           << ": Skipping: Payment record (we "
-                                             "don't care about asset type "
+                                             "don't care about instrument "
+                                             "definition "
                                           << str_inpmt_asset.c_str() << ")\n";
                                     continue;
                                 }
@@ -2411,7 +2428,8 @@ bool OTRecordList::Populate()
                     const std::string* p_str_asset_type =
                         &OTRecordList::s_blank; // <========== ASSET TYPE
                     const std::string* p_str_asset_name =
-                        &OTRecordList::s_blank; // asset type display name.
+                        &OTRecordList::s_blank; // instrument definition display
+                                                // name.
                     const std::string* p_str_account =
                         &OTRecordList::s_blank; // <========== ACCOUNT
                     std::string str_amount;     // <========== AMOUNT
@@ -2556,15 +2574,16 @@ bool OTRecordList::Populate()
                                     theInstrumentDefinitionID)) {
                                 String strTemp(theInstrumentDefinitionID);
                                 const std::string str_inpmt_asset(
-                                    strTemp.Get()); // The asset type we found
+                                    strTemp.Get()); // The instrument definition
+                                                    // we found
                                                     // on the payment (if we
                                                     // found anything.)
                                 auto it_asset = m_assets.find(str_inpmt_asset);
                                 if (it_asset != m_assets.end()) // Found it on
                                                                 // the map of
-                                                                // asset types
-                                                                // we care
-                                                                // about.
+                                // instrument definitions
+                                // we care
+                                // about.
                                 {
                                     p_str_asset_type =
                                         &(it_asset->first); // Set the asset
@@ -2575,7 +2594,8 @@ bool OTRecordList::Populate()
                                                              // BTC, etc.
                                 }
                                 else {
-                                    // There was definitely an asset type on the
+                                    // There was definitely an instrument
+                                    // definition on the
                                     // instrument, and it definitely
                                     // did not match any of the assets that we
                                     // care about.
@@ -2584,7 +2604,8 @@ bool OTRecordList::Populate()
                                     otErr
                                         << __FUNCTION__
                                         << ": Skipping: Expired payment record "
-                                           "(we don't care about asset type "
+                                           "(we don't care about instrument "
+                                           "definition "
                                         << str_inpmt_asset.c_str() << ")\n";
                                     continue;
                                 }
@@ -2711,7 +2732,8 @@ bool OTRecordList::Populate()
         // accounts,
         // I wouldn't bother double-checking my "care about" lists for servers,
         // nyms,
-        // and asset types. But I still look up the appropriate string for each,
+        // and instrument definitions. But I still look up the appropriate
+        // string for each,
         // since
         // I have to pass a reference to it into the constructor for OTRecord.
         // (To a version
@@ -2879,11 +2901,11 @@ bool OTRecordList::Populate()
                         if (pBoxTrans->GetRecipientUserIDForDisplay(
                                 theRecipientID)) {
                             const String strRecipientID(theRecipientID);
-                            const std::string str_recipient_user_id(
+                            const std::string str_recipient_nym_id(
                                 strRecipientID.Get());
 
                             String strName(m_pLookup->GetNymName(
-                                str_recipient_user_id, &(*it_server))),
+                                str_recipient_nym_id, &(*it_server))),
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -2892,10 +2914,10 @@ bool OTRecordList::Populate()
                             else
                                 strNameTemp.Format(
                                     OTRecordList::textTo(),
-                                    str_recipient_user_id.c_str());
+                                    str_recipient_nym_id.c_str());
 
                             str_name = strNameTemp.Get();
-                            str_other_nym_id = str_recipient_user_id;
+                            str_other_nym_id = str_recipient_nym_id;
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                     theRecipientAcctID)) {
                                 const String strRecipientAcctID(
@@ -3254,18 +3276,17 @@ bool OTRecordList::Populate()
                                     strRecipientAcctID.Get());
 
                                 String strRecipientUserID("");
-                                std::string str_recip_user_id("");
+                                std::string str_recip_nym_id("");
 
                                 if (bGotRecipientUserIDForDisplay) {
                                     theRecipientID.GetString(
                                         strRecipientUserID);
-                                    str_recip_user_id =
-                                        strRecipientUserID.Get();
+                                    str_recip_nym_id = strRecipientUserID.Get();
                                 }
                                 // NOTE: We check for cancelled here so we don't
                                 // accidentally
                                 // cause the address book to falsely believe
-                                // that str_recip_user_id
+                                // that str_recip_nym_id
                                 // is the owner of str_recip_acct_id. (If the
                                 // cheque/invoice is cancelled,
                                 // the recipient account will be the sender
@@ -3276,7 +3297,7 @@ bool OTRecordList::Populate()
                                     String strName(m_pLookup->GetAcctName(
                                         str_recip_acct_id,
                                         // NOTE: we CANNOT pass
-                                        // str_recip_user_id here with
+                                        // str_recip_nym_id here with
                                         // str_recip_acct_id
                                         // if it's a cancelled instrument, since
                                         // in that case, the SENDER ACCT
@@ -3289,7 +3310,7 @@ bool OTRecordList::Populate()
                                         // the recipient Nym is the owner of the
                                         // sender acct.)
                                         bGotRecipientUserIDForDisplay
-                                            ? &str_recip_user_id
+                                            ? &str_recip_nym_id
                                             : nullptr,  // nym ID if known
                                         pstr_notary_id, // server ID if known.
                                         pstr_instrument_definition_id)), // asset
@@ -3383,10 +3404,10 @@ bool OTRecordList::Populate()
                         if (pBoxTrans->GetRecipientUserIDForDisplay(
                                 theRecipientID)) {
                             const String strRecipientID(theRecipientID);
-                            const std::string str_recipient_user_id(
+                            const std::string str_recipient_nym_id(
                                 strRecipientID.Get());
 
-                            str_other_nym_id = str_recipient_user_id;
+                            str_other_nym_id = str_recipient_nym_id;
                         }
                         const String strRecipientAcctID(theRecipientAcctID);
                         const std::string str_recipient_acct_id(
@@ -3711,7 +3732,7 @@ void OTRecordList::AddSpecialMsg(
     // TODO OPTIMIZE: instead of looking up the Nym's name every time, look it
     // up ONCE when first adding the NymID. Add it to a map, instead of a list,
     // and add the Nym's name as the second item in the map's pair.
-    // (Just like I already did with the asset type.)
+    // (Just like I already did with the instrument definition.)
     //
     std::string str_other_name;
 
@@ -3731,7 +3752,7 @@ void OTRecordList::AddSpecialMsg(
     const std::string* p_str_asset_type =
         &OTRecordList::s_blank; // <========== ASSET TYPE
     const std::string* p_str_asset_name =
-        &OTRecordList::s_blank; // asset type display name.
+        &OTRecordList::s_blank; // instrument definition display name.
     const std::string* p_str_account =
         &OTRecordList::s_blank; // <========== ACCOUNT
 
@@ -3837,7 +3858,7 @@ OTRecordList::~OTRecordList()
     m_pLookup = nullptr;
 }
 
-// Clears m_contents (NOT nyms, accounts, servers, or asset types.)
+// Clears m_contents (NOT nyms, accounts, servers, or instrument definitions.)
 
 void OTRecordList::ClearContents()
 {

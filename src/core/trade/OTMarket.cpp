@@ -177,7 +177,7 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 xml->getAttributeValue("instrumentDefinitionID")),
             strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
 
-        m_SERVER_ID.SetString(strNotaryID);
+        m_NOTARY_ID.SetString(strNotaryID);
         m_INSTRUMENT_DEFINITION_ID.SetString(strInstrumentDefinitionID);
         m_CURRENCY_TYPE_ID.SetString(strCurrencyTypeID);
 
@@ -207,7 +207,7 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
         else {
             OTOffer* pOffer =
-                new OTOffer(m_SERVER_ID, m_INSTRUMENT_DEFINITION_ID,
+                new OTOffer(m_NOTARY_ID, m_INSTRUMENT_DEFINITION_ID,
                             m_CURRENCY_TYPE_ID, m_lScale);
 
             OT_ASSERT(nullptr != pOffer);
@@ -241,7 +241,7 @@ void OTMarket::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String SERVER_ID(m_SERVER_ID),
+    const String NOTARY_ID(m_NOTARY_ID),
         INSTRUMENT_DEFINITION_ID(m_INSTRUMENT_DEFINITION_ID),
         CURRENCY_TYPE_ID(m_CURRENCY_TYPE_ID);
 
@@ -253,7 +253,7 @@ void OTMarket::UpdateContents()
                               " lastSaleDate=\"%s\"\n"
                               " lastSalePrice=\"%" PRId64 "\""
                               " >\n\n",
-                              m_strVersion.Get(), SERVER_ID.Get(),
+                              m_strVersion.Get(), NOTARY_ID.Get(),
                               INSTRUMENT_DEFINITION_ID.Get(),
                               CURRENCY_TYPE_ID.Get(), m_lScale,
                               m_strLastSaleDate.c_str(), m_lLastSalePrice);
@@ -392,7 +392,7 @@ bool OTMarket::GetNym_OfferList(const Identifier& NYM_ID,
         pOfferData->date = to_string<time64_t>(tDateAddedToMarket);
 
         pOfferData->notary_id = strNotaryID.Get();
-        pOfferData->asset_type_id = strInstrumentDefinitionID.Get();
+        pOfferData->instrument_definition_id = strInstrumentDefinitionID.Get();
         pOfferData->asset_acct_id = strAssetAcctID.Get();
         pOfferData->currency_type_id = strCurrencyID.Get();
         pOfferData->currency_acct_id = strCurrencyAcctID.Get();
@@ -903,7 +903,8 @@ bool OTMarket::SaveMarket()
     return true;
 }
 
-// A Market's ID is based on the asset type, the currency type, and the scale.
+// A Market's ID is based on the instrument definition, the currency type, and
+// the scale.
 //
 void OTMarket::GetIdentifier(Identifier& theIdentifier) const
 {
@@ -1050,7 +1051,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                   "there is no Server Nym on the Cron "
                   "object authorizing the trades.");
 
-    const Identifier SERVER_ID(pCron->GetNotaryID());
+    const Identifier NOTARY_ID(pCron->GetNotaryID());
 
     if (pCron->GetTransactionCount() < 1) {
         otOut << "Failed to process trades: Out of transaction numbers!\n";
@@ -1086,11 +1087,13 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
 
         return;
     }
-    // No need to compare asset types, since those are already verified by the
+    // No need to compare instrument definitions, since those are already
+    // verified by the
     // time
     // we get here. BUT, when the accounts are actually loaded up, THEN should
     // compare
-    // the asset types to make sure they were what we expected them to be.
+    // the instrument definitions to make sure they were what we expected them
+    // to be.
 
     // -------------- Make sure have both nyms loaded and checked out.
     // --------------------------------------------------
@@ -1231,14 +1234,14 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     // (first nym's asset/currency, and other nym's asset/currency.)
 
     Account* pFirstAssetAcct =
-        Account::LoadExistingAccount(theTrade.GetSenderAcctID(), SERVER_ID);
+        Account::LoadExistingAccount(theTrade.GetSenderAcctID(), NOTARY_ID);
     Account* pFirstCurrencyAcct =
-        Account::LoadExistingAccount(theTrade.GetCurrencyAcctID(), SERVER_ID);
+        Account::LoadExistingAccount(theTrade.GetCurrencyAcctID(), NOTARY_ID);
 
     Account* pOtherAssetAcct =
-        Account::LoadExistingAccount(pOtherTrade->GetSenderAcctID(), SERVER_ID);
+        Account::LoadExistingAccount(pOtherTrade->GetSenderAcctID(), NOTARY_ID);
     Account* pOtherCurrencyAcct = Account::LoadExistingAccount(
-        pOtherTrade->GetCurrencyAcctID(), SERVER_ID);
+        pOtherTrade->GetCurrencyAcctID(), NOTARY_ID);
 
     if ((nullptr == pFirstAssetAcct) || (nullptr == pFirstCurrencyAcct)) {
         otOut << "ERROR verifying existence of one of the first trader's "
@@ -1258,21 +1261,22 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
         return;
     }
 
-    // Are the accounts of the first trader of the right asset types?
-    // We already know the asset types matched as far as the market, trades, and
+    // Are the accounts of the first trader of the right instrument definitions?
+    // We already know the instrument definitions matched as far as the market,
+    // trades, and
     // offers were concerned.
     // But only once the accounts themselves have been loaded can we VERIFY this
     // to be true.
     else if ((pFirstAssetAcct->GetInstrumentDefinitionID() !=
               GetInstrumentDefinitionID()) || // the trader's asset accts have
-                                              // same asset type
+                                              // same instrument definition
                                               // as the market.
              (pFirstCurrencyAcct->GetInstrumentDefinitionID() !=
               GetCurrencyID()) // the trader's currency accts have same asset
                                // type as the market.
              ) {
         otErr << "ERROR - First Trader has accounts of wrong "
-                 "asset types in OTMarket::" << __FUNCTION__ << "\n";
+                 "instrument definitions in OTMarket::" << __FUNCTION__ << "\n";
         cleanup_four_accounts(pFirstAssetAcct, pFirstCurrencyAcct,
                               pOtherAssetAcct, pOtherCurrencyAcct);
         theTrade.FlagForRemoval(); // Removes from Cron.
@@ -1287,7 +1291,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                                   // type as market.
     {
         otErr << "ERROR - Other Trader has accounts of wrong "
-                 "asset types in OTMarket::" << __FUNCTION__ << "\n";
+                 "instrument definitions in OTMarket::" << __FUNCTION__ << "\n";
         cleanup_four_accounts(pFirstAssetAcct, pFirstCurrencyAcct,
                               pOtherAssetAcct, pOtherCurrencyAcct);
         pOtherTrade->FlagForRemoval(); // Removes from Cron.
@@ -1323,7 +1327,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     }
 
     // By this point, I know I have all four accounts loaded, and I know that
-    // they have the right asset types,
+    // they have the right instrument definitions,
     // and I know they have the right owners and they were all signed by the
     // server.
     // I also know that their account IDs in their internal records matched the
@@ -1337,13 +1341,13 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
 
         // Load the inbox/outbox in case they already exist
         OTLedger theFirstAssetInbox(FIRST_NYM_ID, theTrade.GetSenderAcctID(),
-                                    SERVER_ID),
+                                    NOTARY_ID),
             theFirstCurrencyInbox(FIRST_NYM_ID, theTrade.GetCurrencyAcctID(),
-                                  SERVER_ID),
+                                  NOTARY_ID),
             theOtherAssetInbox(OTHER_NYM_ID, pOtherTrade->GetSenderAcctID(),
-                               SERVER_ID),
+                               NOTARY_ID),
             theOtherCurrencyInbox(OTHER_NYM_ID,
-                                  pOtherTrade->GetCurrencyAcctID(), SERVER_ID);
+                                  pOtherTrade->GetCurrencyAcctID(), NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -1359,7 +1363,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 theFirstAssetInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingFirstAsset = theFirstAssetInbox.GenerateLedger(
-                theTrade.GetSenderAcctID(), SERVER_ID, OTLedger::inbox,
+                theTrade.GetSenderAcctID(), NOTARY_ID, OTLedger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingFirstCurrency)
@@ -1367,7 +1371,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 theFirstCurrencyInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingFirstCurrency = theFirstCurrencyInbox.GenerateLedger(
-                theTrade.GetCurrencyAcctID(), SERVER_ID, OTLedger::inbox,
+                theTrade.GetCurrencyAcctID(), NOTARY_ID, OTLedger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherAsset)
@@ -1375,7 +1379,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 theOtherAssetInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingOtherAsset = theOtherAssetInbox.GenerateLedger(
-                pOtherTrade->GetSenderAcctID(), SERVER_ID, OTLedger::inbox,
+                pOtherTrade->GetSenderAcctID(), NOTARY_ID, OTLedger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherCurrency)
@@ -1383,7 +1387,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 theOtherCurrencyInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingOtherCurrency = theOtherCurrencyInbox.GenerateLedger(
-                pOtherTrade->GetCurrencyAcctID(), SERVER_ID, OTLedger::inbox,
+                pOtherTrade->GetCurrencyAcctID(), NOTARY_ID, OTLedger::inbox,
                 true); // bGenerateFile=true
 
         if ((false == bSuccessLoadingFirstAsset) ||
@@ -2664,7 +2668,8 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
     return true; // stay on the market for now.
 }
 
-// Make sure the offer is for the right asset type, the right currency, etc.
+// Make sure the offer is for the right instrument definition, the right
+// currency, etc.
 bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
 {
     bool bValidOffer = true;
@@ -2768,7 +2773,7 @@ OTMarket::OTMarket()
     InitMarket();
 }
 
-OTMarket::OTMarket(const Identifier& SERVER_ID,
+OTMarket::OTMarket(const Identifier& NOTARY_ID,
                    const Identifier& INSTRUMENT_DEFINITION_ID,
                    const Identifier& CURRENCY_TYPE_ID, const int64_t& lScale)
     : Contract()
@@ -2783,7 +2788,7 @@ OTMarket::OTMarket(const Identifier& SERVER_ID,
     m_INSTRUMENT_DEFINITION_ID = INSTRUMENT_DEFINITION_ID;
     m_CURRENCY_TYPE_ID = CURRENCY_TYPE_ID;
 
-    m_SERVER_ID = SERVER_ID;
+    m_NOTARY_ID = NOTARY_ID;
 
     SetScale(lScale);
 }
@@ -2805,7 +2810,7 @@ void OTMarket::Release_Market()
     m_INSTRUMENT_DEFINITION_ID.Release();
     m_CURRENCY_TYPE_ID.Release();
 
-    m_SERVER_ID.Release();
+    m_NOTARY_ID.Release();
 
     // Elements of this list are cleaned up automatically.
     if (nullptr != m_pTradeList) {
