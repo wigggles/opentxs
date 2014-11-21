@@ -165,7 +165,7 @@ int32_t CmdShowBasket::run(string index)
     }
 
     if (0 == items) {
-        otOut << "The asset type list is empty.\n";
+        otOut << "The instrument definition list is empty.\n";
         return 0;
     }
 
@@ -196,7 +196,8 @@ int32_t CmdShowBasket::run(string index)
 
     string assetType = OTAPI_Wrap::GetAssetType_ID(messageNr);
     if ("" == assetType) {
-        otOut << "Error: cannot load asset type " << messageNr << ".\n";
+        otOut << "Error: cannot load instrument definition " << messageNr
+              << ".\n";
         return -1;
     }
 

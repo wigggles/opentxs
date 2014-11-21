@@ -420,7 +420,8 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
         return nullptr;
     }
 
-    // This compares asset type ID, AND account ID on the actual loaded account,
+    // This compares instrument definition ID, AND account ID on the actual
+    // loaded account,
     // to what is expected.
     else if (!IsAccount(*pAccount)) // It also sets the internal pointer
                                     // m_pAccount... FYI.

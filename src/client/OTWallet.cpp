@@ -646,7 +646,8 @@ Account* OTWallet::GetAccountPartialMatch(std::string PARTIAL_ID) // works
 
 Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
 {
-    // loop through the accounts and find one with a specific asset type ID.
+    // loop through the accounts and find one with a specific instrument
+    // definition ID.
     // (And with the issuer type set.)
     //
     for (auto& it : m_mapAccounts) {

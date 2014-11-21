@@ -825,10 +825,12 @@ public:
     EXPORT bool AddBasketCreationItem(
         const Identifier& USER_ID,                  // for signature.
         Basket& theBasket,                          // created in above call.
-        const Identifier& INSTRUMENT_DEFINITION_ID, // Adding an asset type to
+        const Identifier& INSTRUMENT_DEFINITION_ID, // Adding an instrument
+                                                    // definition to
                                                     // the new
                                                     // basket.
-        int64_t MINIMUM_TRANSFER) const; // The amount of the asset type
+        int64_t MINIMUM_TRANSFER) const; // The amount of the instrument
+                                         // definition
                                          // that is
                                          // in the basket.
 
@@ -903,7 +905,7 @@ public:
                                                            // for pepsi
                                                            // shares,
         // then this is the pepsi shares
-        // asset type id.
+        // instrument definition id.
         const String& DIVIDEND_MEMO, // user-configurable note that's added to
                                      // the
                                      // payout request message.

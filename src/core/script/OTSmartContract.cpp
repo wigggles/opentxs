@@ -1551,7 +1551,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
 
     const Identifier PARTY_ACCT_ID(pFromAcct->GetAcctID());
 
-    // Load up the party's account and get the asset type.
+    // Load up the party's account and get the instrument definition.
     //
     Account* pPartyAssetAcct =
         Account::LoadExistingAccount(PARTY_ACCT_ID, NOTARY_ID);
@@ -2290,7 +2290,8 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     const Identifier NOTARY_ID(pCron->GetNotaryID());
     const Identifier SERVER_USER_ID(*pServerNym);
 
-    // Load up the party's account and get the asset type, so we know which
+    // Load up the party's account and get the instrument definition, so we know
+    // which
     // stash to get off the stash.
     //
     Account* pPartyAssetAcct =
@@ -2320,8 +2321,9 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     //
     // There could be many stashes, each with a name. (One was passed in
     // here...)
-    // And inside each one is a stash for each asset type. So let's get the one
-    // for the asset type matching the party's account.
+    // And inside each one is a stash for each instrument definition. So let's
+    // get the one
+    // for the instrument definition matching the party's account.
     //
     const String strInstrumentDefinitionID(
         pPartyAssetAcct->GetInstrumentDefinitionID());
@@ -5162,7 +5164,8 @@ void OTSmartContract::CleanupAccts(mapOfAccounts& theMap)
 // contract can be circulated BLANK and many different instances of it might be
 // used.
 //
-// (The party, at this stage, has a name, and accounts with asset types, but no
+// (The party, at this stage, has a name, and accounts with instrument
+// definitions, but no
 // actual Nym IDs
 // or account IDs.)
 // This way any Nym or Entity could later sign on as the "trustee" or as the
@@ -5537,7 +5540,7 @@ void OTSmartContract::UpdateContents()
         // These stashes are what the scripts interact with. They have names.
         // Whereas the stash accts (above) are the actual accountIDs
         for (auto& it : m_mapStashes) {
-            // where the actual funds are stored for each asset type.
+            // where the actual funds are stored for each instrument definition.
             OTStash* pStash = it.second;
             OT_ASSERT(nullptr != pStash);
             pStash->Serialize(m_xmlUnsigned);
@@ -5799,7 +5802,8 @@ bool OTSmartContract::MoveFunds(
                       // other examples...)
     }
     // When the accounts are actually loaded up, then we should also compare
-    // the asset types to make sure they were what we expected them to be.
+    // the instrument definitions to make sure they were what we expected them
+    // to be.
 
     // Need to load up the ORIGINAL VERSION OF THIS SMART CONTRACT
     // Will need to verify the parties' signatures, as well as attach a copy of
@@ -6192,7 +6196,7 @@ bool OTSmartContract::MoveFunds(
         // true.
         otOut << "OTCronItem::MoveFunds: ERROR - attempted payment between "
                  "accounts of different "
-                 "asset types.\n";
+                 "instrument definitions.\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return false;
     }
@@ -6216,7 +6220,7 @@ bool OTSmartContract::MoveFunds(
     }
 
     // By this point, I know I have both accounts loaded, and I know that they
-    // have the right asset types,
+    // have the right instrument definitions,
     // and I know they have the right owners and they were all signed by the
     // server.
     // I also know that their account IDs in their internal records matched the

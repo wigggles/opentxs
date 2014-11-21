@@ -763,7 +763,7 @@ std::string OT_ME::load_or_retrieve_mint(
 
 // QUERY ASSET TYPES
 //
-// See if some asset types are issued on the server.
+// See if some instrument definitions are issued on the server.
 //
 std::string OT_ME::query_asset_types(const std::string& NOTARY_ID,
                                      const std::string& NYM_ID,

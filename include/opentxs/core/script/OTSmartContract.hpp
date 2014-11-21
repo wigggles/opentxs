@@ -172,15 +172,17 @@ private:
     // A smart contract may have any number of "stashes" which are stored by
     // name. Each stash
     // can be queried for balance for ANY ASSET TYPE. So stash "alice" might
-    // have 5 asset types
-    // in it, AND stash "bob" might also have 5 asset types stored in it.
+    // have 5 instrument definitions
+    // in it, AND stash "bob" might also have 5 instrument definitions stored in
+    // it.
     AccountList m_StashAccts; // The actual accounts where stash funds are
                               // stored
                               // (so they will turn up properly on an audit.)
-    // Assuming that Alice and Bob both use the same asset types, there will be
+    // Assuming that Alice and Bob both use the same instrument definitions,
+    // there will be
     // 5 stash accounts here,
     // not 10.  That's because, even if you create a thousand stashes, if they
-    // use the same 2 asset types
+    // use the same 2 instrument definitions
     // then OT is smart enough here to only create 2 stash accounts. The rest of
     // the information is
     // stored in m_mapStashes, not in the accounts themselves, which are only

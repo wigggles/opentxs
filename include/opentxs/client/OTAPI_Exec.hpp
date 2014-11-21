@@ -762,7 +762,8 @@ public:
                                               // (simple,
                                               // issuer, etc)
     EXPORT std::string GetAccountWallet_InstrumentDefinitionID(
-        const std::string& ACCOUNT_ID) const; // returns asset type ID of the
+        const std::string& ACCOUNT_ID) const; // returns instrument definition
+                                              // ID of the
                                               // account
     EXPORT std::string GetAccountWallet_NotaryID(
         const std::string& ACCOUNT_ID) const; // returns Server ID of the
@@ -976,7 +977,7 @@ public:
     //
     // Try to remove the asset contract from the wallet.
     // This will not work if there are any accounts in the wallet for the same
-    asset type ID.
+    instrument definition ID.
     // returns OT_BOOL
     */
     EXPORT bool Wallet_RemoveAssetType(
@@ -1615,7 +1616,8 @@ public:
                // name.
     EXPORT std::string Party_GetAcctInstrumentDefinitionID(
         const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-        const std::string& ACCT_NAME) const; // returns asset type ID for a
+        const std::string& ACCT_NAME) const; // returns instrument definition ID
+                                             // for a
                                              // given acct
                                              // name.
     EXPORT std::string Party_GetAcctAgentName(
@@ -1818,7 +1820,8 @@ public:
     /** --------------------------------------------------------------
     // IS BASKET CURRENCY ?
     //
-    // Tells you whether or not a given asset type is actually a basket
+    // Tells you whether or not a given instrument definition is actually a
+    basket
     currency.
     */
     EXPORT bool IsBasketCurrency(const std::string& INSTRUMENT_DEFINITION_ID)
@@ -1826,9 +1829,9 @@ public:
                // OT_FALSE aka 1 or 0.)
 
     /** --------------------------------------------------------------------
-    // Get Basket Count (of backing asset types.)
+    // Get Basket Count (of backing instrument definitions.)
     //
-    // Returns the number of asset types that make up this basket.
+    // Returns the number of instrument definitions that make up this basket.
     // (Or zero.)
     */
     EXPORT int32_t Basket_GetMemberCount(
@@ -2930,10 +2933,11 @@ public:
                                         const std::string& USER_ID) const;
 
     /** --------------------------------------------------------------------
-    // ISSUE ASSET TYPE -- Ask the server to issue a new asset type.
+    // ISSUE ASSET TYPE -- Ask the server to issue a new instrument definition.
     //
     // THE_CONTRACT is actually a string containing the asset contract itself.
-    // (And the server will not issue the new asset type unless the key in the
+    // (And the server will not issue the new instrument definition unless the
+    key in the
     // contract matches YOUR UserID. Only the contract signer may issue it.)
     //
     // Returns int32_t:
@@ -2949,7 +2953,8 @@ public:
                                   const std::string& THE_CONTRACT) const;
 
     /** --------------------------------------------------------------------
-    // GET CONTRACT -- Get server's copy of any asset contract, by asset type
+    // GET CONTRACT -- Get server's copy of any asset contract, by instrument
+    definition
     ID.
     //
     // Returns int32_t:
@@ -2967,8 +2972,10 @@ public:
     /**
     --------------------------------------------------------------------------
     // Get server's copy of public Mint file (which contains the public minting
-    // keys for each asset type. Withdrawal requests will not work for any given
-    // asset type until you have downloaded the mint for that asset type.)
+    // keys for each instrument definition. Withdrawal requests will not work
+    for any given
+    // instrument definition until you have downloaded the mint for that
+    instrument definition.)
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
@@ -2984,7 +2991,8 @@ public:
 
     /**
     ---------------------------------------------------------------------------
-    // REGISTER ACCOUNT -- of any asset type, (just pass in the Asset Type
+    // REGISTER ACCOUNT -- of any instrument definition, (just pass in the Asset
+    Type
     ID.)
     //
     // Returns int32_t:
@@ -3031,7 +3039,8 @@ public:
     EXPORT std::string AddBasketCreationItem(
         const std::string& USER_ID,                  // for signature.
         const std::string& THE_BASKET,               // created in above call.
-        const std::string& INSTRUMENT_DEFINITION_ID, // Adding an asset type to
+        const std::string& INSTRUMENT_DEFINITION_ID, // Adding an instrument
+                                                     // definition to
                                                      // the new
                                                      // basket.
         const int64_t& MINIMUM_TRANSFER // If basket is 5=X,X,X then this is an
@@ -3042,7 +3051,8 @@ public:
     --------------------------------------------------------------------------
     // ISSUE BASKET CURRENCY
     //
-    // Issue a new asset type based on a BASKET of other asset types!
+    // Issue a new instrument definition based on a BASKET of other instrument
+    definitions!
     // You cannot call this function until you first set up the BASKET_INFO
     object.
     // I will provide functions for setting up that object, so that you can then
@@ -3123,9 +3133,11 @@ public:
     by
     // the server) basket accounts are identical to normal asset accounts --
     they
-    // are merely another asset type ID, and you can use them the same as you
+    // are merely another instrument definition ID, and you can use them the
+    same as you
     would
-    // use any other asset type (open accounts, write cheques, withdraw cash,
+    // use any other instrument definition (open accounts, write cheques,
+    withdraw cash,
     trade
     // on markets, etc.)
     //
@@ -3164,7 +3176,7 @@ public:
     //
     // If Open Transactions receives a purse in reply from the server, it
     // will automatically save the tokens in that purse into your purse
-    // file for that asset type. You can then reload the purse using
+    // file for that instrument definition. You can then reload the purse using
     // LoadPurse, if you want to see the updated contents.
     //
     // Returns int32_t:
@@ -3186,7 +3198,7 @@ public:
     //
     // Use LoadPurse to load a purse from storage, and then use this
     // function to actually deposit that cash into a server account. (The cash
-    // must, of course, be the same asset type as the account.)
+    // must, of course, be the same instrument definition as the account.)
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
@@ -3436,7 +3448,7 @@ public:
         const std::string& SHARES_INSTRUMENT_DEFINITION_ID, // if dollars paid
                                                             // for pepsi
         // shares, then this is the
-        // pepsi shares asset type id.
+        // pepsi shares instrument definition id.
         const std::string& DIVIDEND_MEMO, // user-configurable note that's added
                                           // to the payout request message.
         const int64_t& AMOUNT_PER_SHARE // number of dollars to be paid out PER
@@ -3450,7 +3462,8 @@ public:
     //
     // If someone gives you a cheque, you can use this function to message the
     // server asking it to deposit the cheque into one of your asset accounts.
-    // (Of course the account and the cheque must be the same asset type.)
+    // (Of course the account and the cheque must be the same instrument
+    definition.)
     //
     // Since a voucher is simply a cheque drawn on an int32_t server account,
     // you can deposit a voucher the same as any other cheque.
@@ -3791,7 +3804,7 @@ public:
     // QUERY ASSET TYPES (server message)
     //
     // This way you can ask the server to confirm whether various
-    // asset types are issued there.
+    // instrument definitions are issued there.
     //
     // Returns int32_t:
     // -1 means error; no message was sent.
@@ -3885,8 +3898,8 @@ public:
     /** -----------------------------------------------------------
     // GET NEW ASSET TYPE ID
     //
-    // If you just issued a new asset type, you'll want to read the
-    // server reply and get the new asset type ID out of it.
+    // If you just issued a new instrument definition, you'll want to read the
+    // server reply and get the new instrument definition ID out of it.
     // Otherwise how will you ever open accounts in that new type?
     */
     EXPORT std::string Message_GetNewInstrumentDefinitionID(
@@ -3895,7 +3908,7 @@ public:
     /** -----------------------------------------------------------
     // GET NEW ISSUER ACCOUNT ID
     //
-    // If you just issued a new asset type, you'll want to read the
+    // If you just issued a new instrument definition, you'll want to read the
     // server reply and get the new issuer acct ID out of it.
     // Otherwise how will you ever issue anything with it?
     */

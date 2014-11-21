@@ -324,7 +324,7 @@ public:
     EXPORT bool Populate();      // Populates m_contents from OT API. Calls
                                  // ClearContents().
     EXPORT void ClearContents(); // Clears m_contents (NOT nyms, accounts,
-                                 // servers, or asset types.)
+                                 // servers, or instrument definitions.)
     EXPORT void SortRecords(); // Populate already sorts. But if you have to add
                                // some external records after Populate, then you
                                // can sort again. P.S. sorting is performed

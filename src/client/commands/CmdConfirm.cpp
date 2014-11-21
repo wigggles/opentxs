@@ -751,7 +751,8 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
             }
 
             if (server == acctNotaryID && mynym == acctNymID) {
-                // If the smart contract doesn't specify the asset type ID of
+                // If the smart contract doesn't specify the instrument
+                // definition ID of
                 // the account, or if it DOES specify, AND they match, then
                 // it's a viable choice. Display it.
                 if (!foundTemplateInstrumentDefinitionID ||
@@ -804,7 +805,8 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
             OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(acct);
 
         if (server == acctNotaryID && mynym == acctNymID) {
-            // If the smart contract doesn't specify the asset type ID of the
+            // If the smart contract doesn't specify the instrument definition
+            // ID of the
             // account, or if it DOES specify, AND they match, then it's a
             // viable choice. Allow it.
             if (!foundTemplateInstrumentDefinitionID ||
@@ -962,7 +964,8 @@ bool CmdConfirm::showPartyAccounts(const string& contract, const string& name,
         if ("" != acctInstrumentDefinitionID) {
             cout << "-------------------\nAccount '" << acctName << "' (index "
                  << i << " on Party '" << name
-                 << "') has asset type: " << acctInstrumentDefinitionID << " ("
+                 << "') has instrument definition: "
+                 << acctInstrumentDefinitionID << " ("
                  << OTAPI_Wrap::GetAssetType_Name(acctInstrumentDefinitionID)
                  << ")\n";
         }

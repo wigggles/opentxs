@@ -2330,9 +2330,9 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
     //
     if (nullptr != pAssetContract) // it exists already.
     {
-        OTLog::vError(
-            "%s: Error: Attempt to issue asset type that already exists.\n",
-            szFunc);
+        OTLog::vError("%s: Error: Attempt to issue instrument definition that "
+                      "already exists.\n",
+                      szFunc);
     }
     else {
         // Pull the contract out of the message and verify it.
@@ -2446,7 +2446,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                         server_->mainFile_.SaveMainFile(); // So the main xml
                                                            // file knows
                                                            // to load
-                        // this asset type next time we run.
+                        // this instrument definition next time we run.
 
                         // Make sure the contracts/%s file is created for next
                         // time.
@@ -2804,7 +2804,8 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     // that returns the Basket ID, which can be included in the
                     // message to the target server, which uses the ID to look
                     // for its own basket issuer account for the same basket
-                    // asset type. This allows the target server to translate
+                    // instrument definition. This allows the target server to
+                    // translate
                     // the
                     // Instrument Definition ID to its own corresponding ID for
                     // the same
@@ -2864,7 +2865,8 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     // Once the new Asset Type is generated, from which the
                     // BasketID can be requested at will, next we need to create
                     // the issuer account for that new Asset Type.  (We have the
-                    // asset type ID and the contract file. Now let's create
+                    // instrument definition ID and the contract file. Now let's
+                    // create
                     // the issuer account the same as we would for any normal
                     // issuer account.)
                     //
@@ -2961,12 +2963,13 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
         if (nullptr == pContract) {
             const String strInstrumentDefinitionID(
                 pNewAccount->GetInstrumentDefinitionID());
-            OTLog::vError(
-                "%s: Error: Unable to get AssetContract for asset type: %s\n",
-                szFunc, strInstrumentDefinitionID.Get());
+            OTLog::vError("%s: Error: Unable to get AssetContract for "
+                          "instrument definition: %s\n",
+                          szFunc, strInstrumentDefinitionID.Get());
         }
         else if (pContract->IsShares()) {
-            // The asset type keeps a list of all accounts for that type.
+            // The instrument definition keeps a list of all accounts for that
+            // type.
             // (For shares, not for currencies.)
             //
             const bool bAdded = pContract->AddAccountRecord(*pNewAccount);
@@ -3325,7 +3328,7 @@ void UserCommandProcessor::UserCmdQueryAssetTypes(Nym&, Message& MsgIn,
 
             for (auto& it : theMap) {
                 const std::string& str1 =
-                    it.first; // Containing the asset type ID.
+                    it.first; // Containing the instrument definition ID.
                 const std::string& str2 =
                     it.second; // Containing the phrase "exists". (More are
                                // possible in the future.)
@@ -4075,11 +4078,12 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
                 const String strInstrumentDefinitionID(
                     pAccount->GetInstrumentDefinitionID());
                 OTLog::vError("%s: Error: Unable to get AssetContract for "
-                              "asset type: %s\n",
+                              "instrument definition: %s\n",
                               szFunc, strInstrumentDefinitionID.Get());
             }
             else if (pContract->IsShares()) {
-                // The asset type keeps a list of all accounts for that type.
+                // The instrument definition keeps a list of all accounts for
+                // that type.
                 // (For shares, not for currencies.)
                 //
                 const bool bErased = pContract->EraseAccountRecord(

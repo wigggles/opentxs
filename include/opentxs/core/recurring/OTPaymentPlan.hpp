@@ -190,7 +190,8 @@ namespace opentxs
 
  You could even have the server manage an issuer account, backed in payment plan
  revenue,
- that would form a new asset type that can then be traded on markets. (The same
+ that would form a new instrument definition that can then be traded on markets.
+ (The same
  as you can
  have the server manage the issuer account for a basket currency now, which is
  backed with

@@ -1799,7 +1799,8 @@ bool OTParty::Compare(const OTParty& rhs) const
     // The party might first be added WITHOUT filling out the Nym/Agent info.
     // As long as the party's name is right, and the accounts are all there with
     // the
-    // correct asset type IDs, then it should matter if LATER, when the party
+    // correct instrument definition IDs, then it should matter if LATER, when
+    // the party
     // CONFIRMS
     // the agreement, he supplies himself as an entity or a Nym, or whether he
     // supplies this

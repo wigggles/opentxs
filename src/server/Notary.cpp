@@ -329,9 +329,10 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                 strDestinationInstrumentDefinitionID(
                     pDestinationAcct->GetInstrumentDefinitionID());
             OTLog::vOutput(
-                0, "ERROR - user attempted to transfer between accounts of 2 "
-                   "different "
-                   "asset types in Notary::NotarizeTransfer:\n%s\n%s\n",
+                0,
+                "ERROR - user attempted to transfer between accounts of 2 "
+                "different "
+                "instrument definitions in Notary::NotarizeTransfer:\n%s\n%s\n",
                 strFromInstrumentDefinitionID.Get(),
                 strDestinationInstrumentDefinitionID.Get());
         }
@@ -802,7 +803,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                                          // pItem and its Owner Transaction.
 
         //        OTAccount * pVoucherReserveAcct    = nullptr;
-        // contains the server's funds to back vouchers of a specific asset type
+        // contains the server's funds to back vouchers of a specific instrument
+        // definition
         std::shared_ptr<Account> pVoucherReserveAcct;
         std::unique_ptr<OTLedger> pInbox(
             theAccount.LoadInbox(server_->m_nymServer));
@@ -828,7 +830,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
         }
         // The server will already have a special account for issuing vouchers.
         // Actually, a list of them --
-        // one for each asset type. Since this is the normal way of doing
+        // one for each instrument definition. Since this is the normal way of
+        // doing
         // business, transactor_.getVoucherAccount() will
         // just create it if it doesn't already exist, and then return the
         // pointer. Therefore, a failure here
@@ -876,15 +879,16 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                        theVoucherRequest.GetInstrumentDefinitionID()) {
                 const String strFoundInstrumentDefinitionID(
                     theVoucherRequest.GetInstrumentDefinitionID());
-                OTLog::vError(
-                    "Notary::%s: Failed verifying asset type ID (%s) on the "
-                    "withdraw voucher request (found: %s) "
-                    "for transaction %" PRId64 ", voucher %" PRId64
-                    ". User: %s\n",
-                    __FUNCTION__, strInstrumentDefinitionID.Get(),
-                    strFoundInstrumentDefinitionID.Get(),
-                    tranIn.GetTransactionNum(),
-                    theVoucherRequest.GetTransactionNum(), strUserID.Get());
+                OTLog::vError("Notary::%s: Failed verifying instrument "
+                              "definition ID (%s) on the "
+                              "withdraw voucher request (found: %s) "
+                              "for transaction %" PRId64 ", voucher %" PRId64
+                              ". User: %s\n",
+                              __FUNCTION__, strInstrumentDefinitionID.Get(),
+                              strFoundInstrumentDefinitionID.Get(),
+                              tranIn.GetTransactionNum(),
+                              theVoucherRequest.GetTransactionNum(),
+                              strUserID.Get());
             }
             else if (!(pBalanceItem->VerifyBalanceStatement(
                            theVoucherRequest.GetAmount() *
@@ -1117,7 +1121,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             // obviously trusts its own keys... There is nothing else to "open
             // and verify", since only the ID
             // itself is what gets blinded and verified.  The amount on the
-            // token (as well as the asset type)
+            // token (as well as the instrument definition)
             // is only there to help the bank to look up the right key, without
             // which the token will DEFINITELY
             // NOT verify. So it is in the user's interest to supply the correct
@@ -1278,7 +1282,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                                 bSuccess = true;
 
                                 // Credit the server's cash account for this
-                                // asset type in the same
+                                // instrument definition in the same
                                 // amount that was debited. When the token is
                                 // deposited again, Debit that same
                                 // server cash account and deposit in the
@@ -1453,7 +1457,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
 ///          using that example, and theAccount is a dollar account. But then
 /// how do we know
 ///          those dollars are being paid to _Pepsi_ shareholders? Because the
-/// asset type
+/// instrument definition
 ///          of the shares must be attached to the OTItem::payDividend within
 /// tranIn--and
 ///          also so must the "dividend payout amount, per share" be included,
@@ -1654,7 +1658,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             const String strSharesIssuerAcct(SHARES_ISSUER_ACCT_ID);
             // Get the asset contract for the shares type, stored in the voucher
             // request, inside pItem.
-            //       (Make sure it's NOT the same asset type as
+            //       (Make sure it's NOT the same instrument definition as
             // theSourceAccount.)
             //
             const Identifier SHARES_INSTRUMENT_DEFINITION_ID =
@@ -1674,7 +1678,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             if (nullptr == pSharesContract) {
                 const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
                 OTLog::vError("%s: ERROR unable to find shares contract based "
-                              "on asset type ID: %s\n",
+                              "on instrument definition ID: %s\n",
                               szFunc, strSharesType.Get());
             }
             else if (!pSharesContract->IsShares()) {
@@ -1700,12 +1704,13 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                                         // same
             {
                 const String strSharesType(PAYOUT_INSTRUMENT_DEFINITION_ID);
-                OTLog::vError("%s: ERROR dividend payout attempted, using "
-                              "shares asset type as payout type also. "
-                              "(It's logically impossible for it to payout to "
-                              "itself, using "
-                              "ITSELF as the asset type for the payout): %s\n",
-                              szFunc, strSharesType.Get());
+                OTLog::vError(
+                    "%s: ERROR dividend payout attempted, using "
+                    "shares instrument definition as payout type also. "
+                    "(It's logically impossible for it to payout to "
+                    "itself, using "
+                    "ITSELF as the instrument definition for the payout): %s\n",
+                    szFunc, strSharesType.Get());
             }
             else if (false ==
                        pSharesIssuerAccount->VerifyAccount(
@@ -1768,7 +1773,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                 std::unique_ptr<OTLedger> pOutbox(
                     theSourceAccount.LoadOutbox(server_->m_nymServer));
                 // contains the server's funds to back vouchers of a specific
-                // asset type.
+                // instrument definition.
                 std::shared_ptr<Account> pVoucherReserveAcct;
                 //              OTAccount    *       pVoucherReserveAcct    =
                 // nullptr;
@@ -1801,7 +1806,8 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                 }
                 // The server will already have a special account for issuing
                 // vouchers. Actually, a list of them --
-                // one for each asset type. Since this is the normal way of
+                // one for each instrument definition. Since this is the normal
+                // way of
                 // doing business, transactor_.getVoucherAccount() will
                 // just create it if it doesn't already exist, and then return
                 // the pointer. Therefore, a failure here
@@ -1985,7 +1991,8 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                     *server_, lAmountPerShare, &theAccounts);
 
                                 // Loops through all the accounts for a given
-                                // asset type (PAYOUT_INSTRUMENT_DEFINITION_ID),
+                                // instrument definition
+                                // (PAYOUT_INSTRUMENT_DEFINITION_ID),
                                 // and triggers
                                 // actionPayDividend for each one. This sends
                                 // the owner nym for each, a voucher drawn on
@@ -2215,8 +2222,9 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                                 "back to "
                                                 "the dividend payout "
                                                 "initiator.) WAS TRYING TO PAY "
-                                                "%" PRId64
-                                                " of asset type %s to Nym "
+                                                "%" PRId64 " of instrument "
+                                                "definition %s to "
+                                                "Nym "
                                                 "%s.\n",
                                                 szFunc, lLeftovers,
                                                 strPayoutInstrumentDefinitionID
@@ -3310,7 +3318,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         OTLog::vOutput(
                             0, "Notary::%s: ERROR - user attempted to "
                                "deposit cheque between accounts of different "
-                               "asset types. Source Acct: %s\nType: "
+                               "instrument definitions. Source Acct: %s\nType: "
                                "%s\nRecipient Acct: %s\nType: %s\n",
                             __FUNCTION__, strSourceAcctID.Get(),
                             strSourceInstrumentDefinitionID.Get(),
@@ -3857,12 +3865,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         else if (!(pToken->GetInstrumentDefinitionID() ==
                                      INSTRUMENT_DEFINITION_ID)) // or if failure
                                                                 // verifying
-                                                                // asset type
+                        // instrument definition
                         {
                             bSuccess = false;
                             OTLog::vOutput(0, "Notary::NotarizeDeposit: "
                                               "ERROR verifying token: Wrong "
-                                              "asset type. \n");
+                                              "instrument definition. \n");
                             break;
                         }
                         else if (!(pToken->GetNotaryID() ==
@@ -4563,7 +4571,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                 OTLog::vOutput(
                                     0, "%s: ERROR - user attempted to %s a "
                                        "payment plan between dissimilar "
-                                       "asset types:\n%s\n%s\n",
+                                       "instrument definitions:\n%s\n%s\n",
                                     __FUNCTION__,
                                     bCancelling ? "cancel" : "activate",
                                     strSourceInstrumentDefinitionID.Get(),
@@ -4582,7 +4590,8 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                             }
                             // This one is superfluous, but I'm leaving it.
                             // (pPlan and pRecip are both already
-                            // matches to a 3rd value: source acct asset type
+                            // matches to a 3rd value: source acct instrument
+                            // definition
                             // ID.)
                             else if (pRecipientAcct
                                          ->GetInstrumentDefinitionID() !=
@@ -5999,10 +6008,11 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                 // if not equal
                                 if (!(pBasketItem->SUB_CONTRACT_ID ==
                                       pRequestItem->SUB_CONTRACT_ID)) {
-                                    OTLog::Error("Error: expected asset type "
-                                                 "IDs to match in "
-                                                 "Notary::"
-                                                 "NotarizeExchangeBasket\n");
+                                    OTLog::Error(
+                                        "Error: expected instrument definition "
+                                        "IDs to match in "
+                                        "Notary::"
+                                        "NotarizeExchangeBasket\n");
                                     bSuccess = false;
                                     break;
                                 }
@@ -6104,7 +6114,8 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                             ->GetInstrumentDefinitionID() !=
                                         pBasketItem->SUB_CONTRACT_ID) {
                                         OTLog::Error(
-                                            "ERROR verifying asset type on a "
+                                            "ERROR verifying instrument "
+                                            "definition on a "
                                             "user's account in "
                                             "Notary::"
                                             "NotarizeExchangeBasket\n");
@@ -6835,7 +6846,8 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                         pCurrencyAcct->GetInstrumentDefinitionID());
                 OTLog::vOutput(
                     0, "ERROR - user attempted to trade between identical "
-                       "asset types in Notary::NotarizeMarketOffer:\n%s\n%s\n",
+                       "instrument definitions in "
+                       "Notary::NotarizeMarketOffer:\n%s\n%s\n",
                     strInstrumentDefinitionID.Get(), strCurrencyTypeID.Get());
             }
             // Does it verify?
@@ -7249,7 +7261,8 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // PAY DIVIDEND
             // Bob sends a signed request to the server asking it to pay all
             // shareholders
-            // of a given asset type at the rate of $X per share, where X and $
+            // of a given instrument definition at the rate of $X per share,
+            // where X and $
             // are both
             // configurable.
             case OTTransaction::payDividend:
@@ -7264,7 +7277,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // offer
             // on the market. He includes with his request a signed trade
             // listing
-            // the relevant information, asset types and account IDs.
+            // the relevant information, instrument definitions and account IDs.
             case OTTransaction::marketOffer:
                 OTLog::Output(0, "NotarizeTransaction type: Market Offer\n");
                 NotarizeMarketOffer(theNym, theFromAccount, tranIn, tranOut,

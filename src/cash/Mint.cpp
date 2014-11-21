@@ -911,7 +911,7 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
 
     // Normally asset accounts are created based on an incoming message,
     // so I'm just simulating that in order to make sure it gets its
-    // necessary input values, such as asset type, server ID, etc.
+    // necessary input values, such as instrument definition, server ID, etc.
     Message theMessage;
     SERVER_NYM_ID.GetString(theMessage.m_strNymID);
     theInstrumentDefinitionID.GetString(theMessage.m_strInstrumentDefinitionID);

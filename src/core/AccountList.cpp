@@ -290,7 +290,7 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
     }
 
     // First, we'll see if there's already an account ID available for the
-    // requested asset type ID.
+    // requested instrument definition ID.
     std::string instrumentDefinitionIDString =
         String(instrumentDefinitionID).Get();
 
@@ -298,7 +298,7 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
     TranslateAccountTypeToString(acctType_, acctTypeString);
 
     auto acctIDsIt = mapAcctIDs_.find(instrumentDefinitionIDString);
-    // Account ID *IS* already there for this asset type
+    // Account ID *IS* already there for this instrument definition
     if (mapAcctIDs_.end() != acctIDsIt) {
         // grab account ID
         std::string accountIdString = acctIDsIt->second;
@@ -378,7 +378,8 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
         return account;
     }
 
-    // Not found. There's no account ID yet for that asset type ID. That means
+    // Not found. There's no account ID yet for that instrument definition ID.
+    // That means
     // we can create it.
     Message message;
     accountOwnerId.GetString(message.m_strNymID);
@@ -390,9 +391,8 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
 
     if (!createdAccount) {
         otErr << " AccountList::GetOrRegisterAccount: Failed trying to generate"
-              << acctTypeString
-              << " account with asset type ID: " << instrumentDefinitionIDString
-              << "\n";
+              << acctTypeString << " account with instrument definition ID: "
+              << instrumentDefinitionIDString << "\n";
     }
     else {
         String acctIDString;
@@ -408,7 +408,7 @@ std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
         // save a weak pointer to the acct, so we'll never load it twice,
         // but we'll also know if it's been deleted.
         mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<Account>(account);
-        // Save the new acct ID in a map, keyed by asset type ID.
+        // Save the new acct ID in a map, keyed by instrument definition ID.
         mapAcctIDs_[message.m_strInstrumentDefinitionID.Get()] =
             acctIDString.Get();
 

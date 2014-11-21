@@ -405,9 +405,8 @@ OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
     string strInstrumentDefinitionID =
         OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(ACCOUNT_ID);
     if (!VerifyStringVal(strInstrumentDefinitionID)) {
-        otOut
-            << "\nstat_asset_account: Cannot cannot determine asset type for: "
-            << ACCOUNT_ID << "\n";
+        otOut << "\nstat_asset_account: Cannot cannot determine instrument "
+                 "definition for: " << ACCOUNT_ID << "\n";
         return "";
     }
 
@@ -872,7 +871,7 @@ OT_MADE_EASY_OT string
 
 // QUERY ASSET TYPES
 //
-// See if some asset types are issued on the server.
+// See if some instrument definitions are issued on the server.
 //
 OT_MADE_EASY_OT string MadeEasy::query_asset_types(const string& NOTARY_ID,
                                                    const string& NYM_ID,
@@ -2028,7 +2027,8 @@ OT_MADE_EASY_OT string
 
 /*
 
-DONE:  create nym, register nym, issue asset type, send transfer, accept entire
+DONE:  create nym, register nym, issue instrument definition, send transfer,
+accept entire
 inbox, write cheque.
 
 Next ones:  show purse, withdraw cash, deposit cash, withdraw voucher, deposit

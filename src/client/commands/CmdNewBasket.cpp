@@ -206,23 +206,25 @@ int32_t CmdNewBasket::run(string server, string mynym, string assets,
         otOut << "\nThis basket currency has " << assetCount
               << " subcurrencies.\n";
         otOut << "So far you have defined " << i << " of them.\n";
-        otOut << "Please PASTE the asset type ID for a subcurrency of this "
+        otOut << "Please PASTE the instrument definition ID for a subcurrency "
+                 "of this "
                  "basket: ";
 
         string assetType = inputLine();
         if ("" == assetType) {
-            otOut << "Error: empty asset type.\n";
+            otOut << "Error: empty instrument definition.\n";
             return -1;
         }
 
         string assetContract = OTAPI_Wrap::GetAssetType_Contract(assetType);
         if ("" == assetContract) {
-            otOut << "Error: invalid asset type.\n";
+            otOut << "Error: invalid instrument definition.\n";
             i--;
             continue;
         }
 
-        otOut << "Enter minimum transfer amount for that asset type [100]: ";
+        otOut << "Enter minimum transfer amount for that instrument definition "
+                 "[100]: ";
         minTransfer = 100;
         string minAmount = inputLine();
         if ("" != minAmount) {

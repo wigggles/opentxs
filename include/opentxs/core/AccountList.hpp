@@ -143,7 +143,8 @@ namespace opentxs
 
 class Nym;
 
-// The server needs to store a list of accounts, by asset type ID, to store the
+// The server needs to store a list of accounts, by instrument definition ID, to
+// store the
 // backing funds for vouchers. The below class is useful for that. It's also
 // useful for the same purpose for stashes, in smart contracts.
 // Eventually will add expiration dates, possibly, to this class. (To have

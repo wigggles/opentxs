@@ -698,7 +698,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                       // weeds this crap out before we even get here.
     }
     // When the accounts are actually loaded up, then we should also compare
-    // the asset types to make sure they were what we expected them to be.
+    // the instrument definitions to make sure they were what we expected them
+    // to be.
 
     // Need to load up the ORIGINAL PAYMENT PLAN (with BOTH users' original
     // SIGNATURES on it!)
@@ -893,7 +894,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         // the accounts THEMSELVES have been loaded can we VERIFY this to be
         // true.
         otOut << "ERROR - attempted payment between accounts of different "
-                 "asset types in OTPaymentPlan::ProcessPayment\n";
+                 "instrument definitions in OTPaymentPlan::ProcessPayment\n";
         FlagForRemoval(); // Remove it from future Cron processing, please.
         return false;
     }
@@ -919,7 +920,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     }
 
     // By this point, I know I have both accounts loaded, and I know that they
-    // have the right asset types,
+    // have the right instrument definitions,
     // and I know they have the right owners and they were all signed by the
     // server.
     // I also know that their account IDs in their internal records matched the

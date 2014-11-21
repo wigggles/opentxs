@@ -728,9 +728,10 @@ Purse::Purse(const Purse& thePurse)
     InitPurse();
 }
 
-// Don't use this unless you really don't have the asset type handy.
+// Don't use this unless you really don't have the instrument definition handy.
 // Perhaps you know you're about to read this purse from a string and you
-// know the asset type is in there anyway. So you use this constructor.
+// know the instrument definition is in there anyway. So you use this
+// constructor.
 Purse::Purse(const Identifier& NOTARY_ID)
     : Contract()
     , m_NotaryID(NOTARY_ID)
@@ -1460,8 +1461,8 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
             delete pToken;
             pToken = nullptr;
 
-            otErr << __FUNCTION__
-                  << ": ERROR: Cash token with wrong server or asset type.\n";
+            otErr << __FUNCTION__ << ": ERROR: Cash token with wrong server or "
+                                     "instrument definition.\n";
         }
         else {
             // CALLER is responsible to delete this token.
@@ -1643,7 +1644,7 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
         String strPurseAssetType(m_InstrumentDefinitionID),
             strTokenAssetType(theToken.GetInstrumentDefinitionID());
         otErr << __FUNCTION__ << ": ERROR: Tried to push token with wrong "
-                                 "asset type.\nPurse Asset Type:\n"
+                                 "instrument definition.\nPurse Asset Type:\n"
               << strPurseAssetType << "\n"
                                       "Token Asset Type:\n" << strTokenAssetType
               << "\n";

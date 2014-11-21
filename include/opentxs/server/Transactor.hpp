@@ -181,7 +181,8 @@ public:
     // contract.) This way the server has a directory with all the asset
     // contracts that it supports, saved by their ID.
     // As long as the IDs are in the server file, it can look them up.
-    // When a new asset type is added, a new Mint is added as well. It goes into
+    // When a new instrument definition is added, a new Mint is added as well.
+    // It goes into
     // the mints folder.
     bool addAssetContract(AssetContract& contract);
     AssetContract* getAssetContract(const Identifier& id);
@@ -199,7 +200,8 @@ public:
 
     // Whenever the server issues a voucher (like a cashier's cheque), it puts
     // the funds in one
-    // of these voucher accounts (one for each asset type ID). Then it issues
+    // of these voucher accounts (one for each instrument definition ID). Then
+    // it issues
     // the cheque from the
     // same account.
     // TODO: also should save the cheque itself to a folder, where the folder is
@@ -219,14 +221,17 @@ public:
 
 private:
     // Why does the map of mints use multimap instead of map?
-    // Because there might be multiple valid mints for the same asset type.
+    // Because there might be multiple valid mints for the same instrument
+    // definition.
     // Perhaps I am redeeming tokens from the previous series, which have not
     // yet expired.
     // Only tokens from the new series are being issued today, but tokens from
     // the previous series are still good until their own expiration date, which
     // is coming up soon.
-    // Therefore the server manages different mints for the same asset type, and
-    // since the asset type is the key in the multimap, we don't want to
+    // Therefore the server manages different mints for the same instrument
+    // definition, and
+    // since the instrument definition is the key in the multimap, we don't want
+    // to
     // accidentally remove one from the list every time another is added. Thus
     // multimap is employed.
     typedef std::multimap<std::string, Mint*> MintsMap;
@@ -236,7 +241,7 @@ private:
 private:
     // This stores the last VALID AND ISSUED transaction number.
     int64_t transactionNumber_;
-    // The asset types supported by this server.
+    // The instrument definitions supported by this server.
     ContractsMap contractsMap_;
     // maps basketId with basketAccountId
     BasketsMap idToBasketMap_;
@@ -246,7 +251,7 @@ private:
     BasketsMap contractIdToBasketAccountId_;
     // The list of voucher accounts (see GetVoucherAccount below for details)
     AccountList voucherAccounts_;
-    // The mints for each asset type.
+    // The mints for each instrument definition.
     MintsMap mintsMap_;
 
     OTServer* server_; // TODO: remove later when feasible

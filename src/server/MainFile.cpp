@@ -571,7 +571,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                 }
 
                 // Create an OTAssetContract and load them from file, (for each
-                // asset type),
+                // instrument definition),
                 // and add them to the internal map.
                 else if (strNodeName.Compare("assetType")) {
                     OTASCIIArmor ascAssetName = xml->getAttributeValue("name");

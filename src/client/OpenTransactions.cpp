@@ -3638,21 +3638,23 @@ bool OT_API::SmartContract_ConfirmAccount(
               << str_name << " \n";
         return false;
     }
-    // the actual asset type ID
+    // the actual instrument definition ID
 
     const Identifier theExpectedInstrumentDefinitionID(
-        pPartyAcct->GetInstrumentDefinitionID()); // The expected asset type ID,
+        pPartyAcct->GetInstrumentDefinitionID()); // The expected instrument
+                                                  // definition ID,
                                                   // converting
                                                   // from a string.
     const Identifier& theActualInstrumentDefinitionID =
-        pAccount->GetInstrumentDefinitionID(); // the actual asset type ID,
+        pAccount->GetInstrumentDefinitionID(); // the actual instrument
+                                               // definition ID,
                                                // already an
     // identifier, from the actual account.
 
     if (theExpectedInstrumentDefinitionID != theActualInstrumentDefinitionID) {
         const String strInstrumentDefinitionID(theActualInstrumentDefinitionID);
         otOut << __FUNCTION__
-              << ": Failed, since the asset type ID of the account ("
+              << ": Failed, since the instrument definition ID of the account ("
               << strInstrumentDefinitionID
               << ") does not match what was expected ("
               << pPartyAcct->GetInstrumentDefinitionID()
@@ -3722,7 +3724,8 @@ bool OT_API::SmartContract_ConfirmAccount(
         return false;
     }
     // BY THIS POINT, we know that the account is actually owned by the Nym,
-    // and we know that it's got the proper asset type ID that was expected
+    // and we know that it's got the proper instrument definition ID that was
+    // expected
     // according to the smart contract. We also know that the smart contract
     // has the same server ID as the account being confirmed.
     //
@@ -8289,7 +8292,8 @@ bool OT_API::HaveAlreadySeenReply(const Identifier& NOTARY_ID,
 
 // IS BASKET CURRENCY ?
 //
-// Tells you whether or not a given asset type is actually a basket currency.
+// Tells you whether or not a given instrument definition is actually a basket
+// currency.
 //
 bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
     const // returns true or false.
@@ -8317,7 +8321,7 @@ bool OT_API::IsBasketCurrency(const Identifier& BASKET_INSTRUMENT_DEFINITION_ID)
 
 // Get Basket Count (of member currency types.)
 //
-// Returns the number of asset types that make up this basket.
+// Returns the number of instrument definitions that make up this basket.
 // (Or zero.)
 //
 int32_t OT_API::GetBasketMemberCount(
@@ -8345,7 +8349,7 @@ int32_t OT_API::GetBasketMemberCount(
 
 // Get Basket Member Asset Type
 //
-// Returns one of the asset types that make up this basket,
+// Returns one of the instrument definitions that make up this basket,
 // by index, and true.
 // (Or false.)
 //
@@ -8386,7 +8390,8 @@ bool OT_API::GetBasketMemberType(
 
 // Get Basket Member Minimum Transfer Amount
 //
-// Returns the minimum transfer amount for one of the asset types that
+// Returns the minimum transfer amount for one of the instrument definitions
+// that
 // makes up this basket, by index.
 // (Or 0.)
 //
@@ -8525,7 +8530,8 @@ int32_t OT_API::issueBasket(const Identifier& NOTARY_ID,
 {
     // Create a basket account, which is like an issuer
     // account, but based on a basket of
-    // other asset types. This way, users can trade with what is apparently
+    // other instrument definitions. This way, users can trade with what is
+    // apparently
     // a single currency,
     // when in fact the issuence is delegated and distributed across
     // multiple issuers.
@@ -8619,9 +8625,10 @@ Basket* OT_API::GenerateBasketExchange(
         pAccount->GetInstrumentDefinitionID()) {
         const String strAcctID(BASKET_ASSET_ACCT_ID),
             strAcctTypeID(BASKET_INSTRUMENT_DEFINITION_ID);
-        otOut << "OT_API::GenerateBasketExchange: Wrong asset type ID "
-                 "on account " << strAcctID << " (expected type to be "
-              << strAcctTypeID << ")\n";
+        otOut
+            << "OT_API::GenerateBasketExchange: Wrong instrument definition ID "
+               "on account " << strAcctID << " (expected type to be "
+            << strAcctTypeID << ")\n";
         return nullptr;
     }
     // By this point, I know that everything checks out. Signature and Account
@@ -8714,9 +8721,11 @@ bool OT_API::AddBasketExchangeItem(const Identifier& NOTARY_ID,
     if (INSTRUMENT_DEFINITION_ID != pAccount->GetInstrumentDefinitionID()) {
         const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
             strAcctID(ASSET_ACCT_ID);
-        otOut << "OT_API::AddBasketExchangeItem: Wrong asset type ID "
-                 "on account " << strAcctID << " (expected to find asset type "
-              << strInstrumentDefinitionID << ")\n";
+        otOut
+            << "OT_API::AddBasketExchangeItem: Wrong instrument definition ID "
+               "on account " << strAcctID
+            << " (expected to find instrument definition "
+            << strInstrumentDefinitionID << ")\n";
         return false;
     }
     // By this point, I know that everything checks out. Signature and Account
@@ -9681,7 +9690,8 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
 // Let's pretend you are paying a dollar dividend for Pepsi shares...
 // Therefore ACCT_ID needs to be a dollar account, and
 // SHARES_INSTRUMENT_DEFINITION_ID needs
-// to be the Pepsi asset type ID. (NOT the dollar asset type ID...)
+// to be the Pepsi instrument definition ID. (NOT the dollar instrument
+// definition ID...)
 //
 int32_t OT_API::payDividend(
     const Identifier& NOTARY_ID,
@@ -9731,7 +9741,8 @@ int32_t OT_API::payDividend(
     if (nullptr == pSharesIssuerAcct) {
         otErr << __FUNCTION__
               << ": Failure: Unable to find issuer account for the "
-                 "shares asset type. Are you sure you're the issuer?\n";
+                 "shares instrument definition. Are you sure you're the "
+                 "issuer?\n";
         return (-1);
     }
     const Identifier SHARES_ISSUER_ACCT_ID(*pSharesIssuerAcct);
@@ -9753,9 +9764,9 @@ int32_t OT_API::payDividend(
                   "higher-than-zero balance.\n");
 
     if (0 == pSharesIssuerAcct->GetBalance()) {
-        otErr << __FUNCTION__
-              << ": Failure: There are no shares issued for that asset type. "
-                 "(Therefore you cannot pay any dividend...)\n";
+        otErr << __FUNCTION__ << ": Failure: There are no shares issued for "
+                                 "that instrument definition. "
+                                 "(Therefore you cannot pay any dividend...)\n";
         return (-1);
     }
     const int64_t lAmountPerShare = AMOUNT_PER_SHARE;
@@ -9803,7 +9814,8 @@ int32_t OT_API::payDividend(
         const time64_t VALID_TO = OTTimeAddTimeInterval(
             VALID_FROM, OTTimeGetSecondsFromTime(
                             OT_TIME_SIX_MONTHS_IN_SECONDS)); // 6 months.
-        // The server only uses the amount and asset type from this cheque when
+        // The server only uses the amount and instrument definition from this
+        // cheque when
         // it
         // constructs the actual voucher (to the dividend payee.) And remember
         // there
@@ -9828,7 +9840,8 @@ int32_t OT_API::payDividend(
          vehicle to send additional
          data to the server. For example, the server will need to know the asset
          type ID for the shares.
-         It gets that information from this voucher's asset type ID. It will
+         It gets that information from this voucher's instrument definition ID.
+         It will
          also need to know the amount-
          per-share, which is also on this voucher, as its amount. The voucher
          code already does a similar
@@ -9836,7 +9849,7 @@ int32_t OT_API::payDividend(
          similar, so we're just
          using the same mechanism here. It's consistent.
          On the server side, we'll also need to know the issuer account ID for
-         the shares asset type, so
+         the shares instrument definition, so
          we set that as the "from" account on the request voucher (again, just
          as a way of transmitting it.)
          */
@@ -10340,7 +10353,7 @@ bool OT_API::DiscardCheque(const Identifier& NOTARY_ID,
     } // bSuccess
     else
         otOut << __FUNCTION__
-              << ": Unable to verify cheque's server ID, asset type "
+              << ": Unable to verify cheque's server ID, instrument definition "
                  "ID, user ID, or acct ID. Sorry. "
                  "Cheque contents:\n\n" << THE_CHEQUE << "\n\n";
     return false;
@@ -10946,7 +10959,8 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
         //
         // (Let the server sort out the trouble of loading all the nyms, loading
         // all the accounts,
-        // verifying all the asset type IDs, verifying all the agent names,
+        // verifying all the instrument definition IDs, verifying all the agent
+        // names,
         // making sure there
         // are no stashes already created, ETC ETC.)
         //
@@ -11516,7 +11530,7 @@ int32_t OT_API::issueMarketOffer(
     if (INSTRUMENT_DEFINITION_ID == CURRENCY_TYPE_ID) {
         otOut << __FUNCTION__
               << ": The asset account and currency account cannot "
-                 "have the same asset type ID. (You can't, for "
+                 "have the same instrument definition ID. (You can't, for "
                  "example, trade dollars against other dollars. Why "
                  "bother trading them in the first place?)\n";
         return (-1);
@@ -12602,7 +12616,7 @@ int32_t OT_API::getContract(const Identifier& NOTARY_ID,
                             const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     // Grab the server's copy of any asset contract. Input is
-    // the asset type ID.
+    // the instrument definition ID.
 
     Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
@@ -12710,7 +12724,8 @@ int32_t OT_API::getMint(const Identifier& NOTARY_ID, const Identifier& USER_ID,
 // So you can tell for sure whether or not they are actually issued on that
 // server.
 //
-// Map input: key is asset type ID, and value is blank (server reply puts
+// Map input: key is instrument definition ID, and value is blank (server reply
+// puts
 // issuer's receipts
 // in that spot.)
 //
@@ -12851,7 +12866,7 @@ int32_t OT_API::registerAccount(
     // server.
     // Server also maintains its own copy. Users can create an unlimited
     // number of accounts
-    // for any asset type that they choose.
+    // for any instrument definition that they choose.
 
     Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);

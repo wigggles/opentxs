@@ -1196,7 +1196,7 @@ public:
     std::string valid_to;
 
     std::string notary_id;
-    std::string asset_type_id;    // the asset type on offer.
+    std::string asset_type_id;    // the instrument definition on offer.
     std::string asset_acct_id;    // the account where the asset is.
     std::string currency_type_id; // the currency being used to purchase the
                                   // asset.

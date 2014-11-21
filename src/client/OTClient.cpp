@@ -2732,7 +2732,8 @@ void OTClient::ProcessWithdrawalResponse(
                 // now we try to open a purse as a file on the client side,
                 // keyed by Instrument Definition Id.  (The client should
                 // already have one
-                // purse file for each asset type, if he already has cash.)
+                // purse file for each instrument definition, if he already has
+                // cash.)
                 //
                 // We don't want to just overwrite that file. So instead, we
                 // try to load that purse first, then add the token, then save
@@ -2783,7 +2784,7 @@ void OTClient::ProcessWithdrawalResponse(
                                 bSuccess = true;
 
                                 // add it to the existing client-side purse for
-                                // storing tokens of that asset type
+                                // storing tokens of that instrument definition
                                 theWalletPurse.Push(*pNym, *pToken);
                             }
                             else {
@@ -8129,7 +8130,7 @@ int32_t OTClient::ProcessUserCommand(
         // If no asset contract was passed in, then --mypurse was not specified.
         // Therefore,
         // we can get the purse from the user, and verify that it has the same
-        // asset type ID
+        // instrument definition ID
         // as pAccount does. (No need to ask for the type.)
         //
         // But if an asset contract WAS passed in, then we will assume (for now)
@@ -8140,7 +8141,8 @@ int32_t OTClient::ProcessUserCommand(
         if (nullptr == pMyAssetContract) {
             String strSourcePurse;
 
-            otOut << "Please enter a plaintext purse (of the same asset type "
+            otOut << "Please enter a plaintext purse (of the same instrument "
+                     "definition "
                      "as the account), \nand terminate with a ~ (tilde "
                      "character) on a new line:\n> ";
             char decode_buffer[200]; // Safe since we only read
@@ -8224,7 +8226,8 @@ int32_t OTClient::ProcessUserCommand(
 
         // By this point, I have theSourcePurse loaded, whether from local
         // storage or from
-        // the command-line, and I know that it has the same asset type as
+        // the command-line, and I know that it has the same instrument
+        // definition as
         // pAccount.
         //
 

@@ -404,7 +404,8 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
     }
     else if (GetInstrumentDefinitionID() !=
                offer.GetInstrumentDefinitionID()) {
-        otErr << "While verifying offer, failed matching asset type ID.\n";
+        otErr << "While verifying offer, failed matching instrument definition "
+                 "ID.\n";
         return false;
     }
     else if (GetCurrencyID() != offer.GetCurrencyID()) {

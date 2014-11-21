@@ -161,7 +161,8 @@
  "goldbucks" asset account and
  trade it like any other asset.  It doesn't even have to be a special account
  that the trader uses. It's just
- a normal account, but the asset type ID links to the special basket issuer
+ a normal account, but the instrument definition ID links to the special basket
+ issuer
  account maintained by the server.
 
  Meanwhile, behind the scenes, the server's "goldbucks" issuer account is not

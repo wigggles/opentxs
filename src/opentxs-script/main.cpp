@@ -1051,9 +1051,10 @@ int32_t main(int32_t argc, char* argv[])
             // download
             // any asset contract, if it can't find it in the wallet.
         }
-        // if no purse (asset type) ID was provided, but MyAccount WAS provided,
+        // if no purse (instrument definition) ID was provided, but MyAccount
+        // WAS provided,
         // then
-        // use the asset type for the account instead.
+        // use the instrument definition for the account instead.
         else if (nullptr != pMyAccount)
             thePurseInstrumentDefinitionID =
                 pMyAccount->GetInstrumentDefinitionID();
@@ -1091,7 +1092,7 @@ int32_t main(int32_t argc, char* argv[])
             }
         }
         // If no "HisPurse" was provided, but HisAcct WAS, then we use the
-        // asset type of HisAcct as HisPurse.
+        // instrument definition of HisAcct as HisPurse.
         else if (nullptr != pHisAccount)
             hisPurseInstrumentDefinitionID =
                 pHisAccount->GetInstrumentDefinitionID();

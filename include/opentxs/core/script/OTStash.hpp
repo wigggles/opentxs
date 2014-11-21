@@ -161,7 +161,8 @@ class OTStash
 {
     std::string m_str_stash_name;
 
-    mapOfStashItems m_mapStashItems; // map of stash items by asset type ID.
+    mapOfStashItems m_mapStashItems; // map of stash items by instrument
+                                     // definition ID.
                                      // owned.
 public:
     const std::string GetName() const

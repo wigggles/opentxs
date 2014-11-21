@@ -4110,7 +4110,7 @@ std::string OTAPI_Exec::GetAssetType_ID(const int32_t& nIndex) const
     return "";
 }
 
-// Returns asset type Name based on Instrument Definition ID
+// Returns instrument definition Name based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
 {
     if (THE_ID.empty()) {
@@ -4128,7 +4128,7 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
     return pBuf;
 }
 
-// Returns asset type TLA based on Instrument Definition ID
+// Returns instrument definition TLA based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
 {
     if (THE_ID.empty()) {
@@ -4804,8 +4804,8 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
     return pBuf;
 }
 
-// Returns an account's asset type ID.
-// (Which is a hash of the contract used to issue the asset type.)
+// Returns an account's instrument definition ID.
+// (Which is a hash of the contract used to issue the instrument definition.)
 std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     const std::string& THE_ID) const
 {
@@ -4821,7 +4821,7 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
 
     String strInstrumentDefinitionID(theInstrumentDefinitionID);
 
-    otWarn << __FUNCTION__ << ": Returning asset type "
+    otWarn << __FUNCTION__ << ": Returning instrument definition "
            << strInstrumentDefinitionID << " for account " << THE_ID << "\n";
 
     std::string pBuf = strInstrumentDefinitionID.Get();
@@ -7022,7 +7022,8 @@ std::string OTAPI_Exec::Party_GetAcctID(const std::string& THE_CONTRACT,
 
 std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
     const std::string& THE_CONTRACT, const std::string& PARTY_NAME,
-    const std::string& ACCT_NAME) const // returns the asset type ID based on
+    const std::string& ACCT_NAME) const // returns the instrument definition ID
+                                        // based on
                                         // the
                                         // account name.
 {
@@ -12944,7 +12945,8 @@ std::string OTAPI_Exec::Token_GetNotaryID(const std::string& THE_TOKEN) const
 
 // IS BASKET CURRENCY ?
 //
-// Tells you whether or not a given asset type is actually a basket currency.
+// Tells you whether or not a given instrument definition is actually a basket
+// currency.
 //
 // returns bool (true or false aka 1 or 0.)
 //
@@ -12965,9 +12967,9 @@ bool OTAPI_Exec::IsBasketCurrency(
         return false;
 }
 
-// Get Basket Count (of backing asset types.)
+// Get Basket Count (of backing instrument definitions.)
 //
-// Returns the number of asset types that make up this basket.
+// Returns the number of instrument definitions that make up this basket.
 // (Or zero.)
 //
 int32_t OTAPI_Exec::Basket_GetMemberCount(
@@ -13701,7 +13703,8 @@ std::string OTAPI_Exec::GenerateBasketCreation(
 std::string OTAPI_Exec::AddBasketCreationItem(
     const std::string& USER_ID,                  // for signature.
     const std::string& THE_BASKET,               // created in above call.
-    const std::string& INSTRUMENT_DEFINITION_ID, // Adding an asset type to the
+    const std::string& INSTRUMENT_DEFINITION_ID, // Adding an instrument
+                                                 // definition to the
                                                  // new basket.
     const int64_t& MINIMUM_TRANSFER) const
 {
@@ -13739,9 +13742,11 @@ std::string OTAPI_Exec::AddBasketCreationItem(
         bAdded = OTAPI()->AddBasketCreationItem(
             theUserID,                 // for signature.
             theBasket,                 // created in above call.
-            theInstrumentDefinitionID, // Adding an asset type to the new
+            theInstrumentDefinitionID, // Adding an instrument definition to the
+                                       // new
                                        // basket.
-            lMinimumTransfer); // The amount of the asset type that is in the
+            lMinimumTransfer); // The amount of the instrument definition that
+                               // is in the
                                // basket (per).
     }
 
@@ -13755,7 +13760,8 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 
 // ISSUE BASKET CURRENCY
 //
-// Issue a new asset type based on a BASKET of other asset types!
+// Issue a new instrument definition based on a BASKET of other instrument
+// definitions!
 // You cannot call this function until you first set up the BASKET_INFO object.
 // I will provide functions for setting up that object, so that you can then
 // call this function to actually message the server with your request.
@@ -13929,8 +13935,10 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 //
 // Other than this conversion process, (with the reserves stored internally by
 // the server) basket accounts are identical to normal asset accounts -- they
-// are merely another asset type ID, and you can use them the same as you would
-// use any other asset type (open accounts, write cheques, withdraw cash, trade
+// are merely another instrument definition ID, and you can use them the same as
+// you would
+// use any other instrument definition (open accounts, write cheques, withdraw
+// cash, trade
 // on markets, etc.)
 //
 // Returns int32_t:
@@ -14286,7 +14294,7 @@ int32_t OTAPI_Exec::payDividend(
     const std::string& SHARES_INSTRUMENT_DEFINITION_ID, // if dollars paid for
                                                         // pepsi
     // shares, then this is the pepsi
-    // shares asset type id.
+    // shares instrument definition id.
     const std::string& DIVIDEND_MEMO, // user-configurable note that's added to
                                       // the payout request message.
     const int64_t& AMOUNT_PER_SHARE) const // number of dollars to be paid out
@@ -15070,7 +15078,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
 // QUERY ASSET TYPES (server message)
 //
 // This way you can ask the server to confirm whether various
-// asset types are issued there. You must prepare the encoded
+// instrument definitions are issued there. You must prepare the encoded
 // StringMap in advance of calling this function.
 //
 
@@ -15210,8 +15218,8 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
 
 // GET NEW ASSET TYPE ID
 //
-// If you just issued a new asset type, you'll want to read the
-// server reply and get the new asset type ID out of it.
+// If you just issued a new instrument definition, you'll want to read the
+// server reply and get the new instrument definition ID out of it.
 // Otherwise how will you ever open accounts in that new type?
 //
 std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
@@ -15246,7 +15254,8 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     String strOutput(theMessage.m_strInstrumentDefinitionID);
 
     if (!strOutput.Exists()) {
-        otOut << __FUNCTION__ << ": No new asset type ID found on message.\n";
+        otOut << __FUNCTION__
+              << ": No new instrument definition ID found on message.\n";
         return "";
     }
 
@@ -15257,7 +15266,7 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
 
 // GET NEW ISSUER ACCOUNT ID
 //
-// If you just issued a new asset type, you'll want to read the
+// If you just issued a new instrument definition, you'll want to read the
 // server reply and get the new issuer acct ID out of it.
 // Otherwise how will you ever issue anything with it?
 //
@@ -15279,7 +15288,8 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
         return "";
     }
 
-    // It's not an issue asset type response, so the m_strAcctID wouldn't
+    // It's not an issue instrument definition response, so the m_strAcctID
+    // wouldn't
     // contain an issuer account ID. (Don't want to pass back whatever it DOES
     // contain
     // in that case, now do I?)

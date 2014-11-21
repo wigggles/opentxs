@@ -312,9 +312,9 @@ public:
                  const Identifier& INSTRUMENT_DEFINITION_ID); // similar thing
     EXPORT Purse(const Identifier& NOTARY_ID); // Don't use this unless you
                                                // really don't know the
-                                               // asset type
+                                               // instrument definition
     // (Like if you're about to read it out of a string.)
-    // Normally you really really want to set the asset type.
+    // Normally you really really want to set the instrument definition.
     EXPORT Purse(const Identifier& NOTARY_ID,
                  const Identifier& INSTRUMENT_DEFINITION_ID,
                  const Identifier& USER_ID); // UserID optional

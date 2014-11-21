@@ -276,10 +276,11 @@ int32_t CmdExchangeBasket::run(string myacct, string direction, string multiple)
         string memberTypeName = OTAPI_Wrap::GetAssetType_Name(memberType);
         otOut << "\nThere are " << (members - member)
               << " accounts remaining to be selected.\n\n";
-        otOut << "Currently we need to select an account with the asset type:\n"
-              << memberType << " (" << memberTypeName << ")\n";
+        otOut << "Currently we need to select an account with the instrument "
+                 "definition:\n" << memberType << " (" << memberTypeName
+              << ")\n";
         otOut << "Above are all the accounts in the wallet, for the relevant "
-                 "server and nym, of that asset type.\n";
+                 "server and nym, of that instrument definition.\n";
 
         if (bExchangingIn) {
             otOut << "\nKeep in mind, with a transfer multiple of "
@@ -299,12 +300,12 @@ int32_t CmdExchangeBasket::run(string myacct, string direction, string multiple)
         string subAssetType =
             OTAPI_Wrap::GetAccountWallet_InstrumentDefinitionID(account);
         if ("" == subAssetType) {
-            otOut << "Error: cannot load account asset type.\n";
+            otOut << "Error: cannot load account instrument definition.\n";
             return harvestTxNumbers(basket, mynym);
         }
 
         if (memberType != subAssetType) {
-            otOut << "Error: incorrect account asset type.\n";
+            otOut << "Error: incorrect account instrument definition.\n";
             return harvestTxNumbers(basket, mynym);
         }
 

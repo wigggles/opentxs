@@ -284,7 +284,7 @@ OTStashItem* OTStash::GetStash(const std::string& str_asset_type_id)
     auto it = m_mapStashItems.find(str_asset_type_id);
 
     if (m_mapStashItems.end() ==
-        it) // It's not already there for this asset type.
+        it) // It's not already there for this instrument definition.
     {
         const String strInstrumentDefinitionID(str_asset_type_id.c_str());
         OTStashItem* pStashItem = new OTStashItem(strInstrumentDefinitionID);

@@ -903,7 +903,8 @@ bool OTMarket::SaveMarket()
     return true;
 }
 
-// A Market's ID is based on the asset type, the currency type, and the scale.
+// A Market's ID is based on the instrument definition, the currency type, and
+// the scale.
 //
 void OTMarket::GetIdentifier(Identifier& theIdentifier) const
 {
@@ -1086,11 +1087,13 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
 
         return;
     }
-    // No need to compare asset types, since those are already verified by the
+    // No need to compare instrument definitions, since those are already
+    // verified by the
     // time
     // we get here. BUT, when the accounts are actually loaded up, THEN should
     // compare
-    // the asset types to make sure they were what we expected them to be.
+    // the instrument definitions to make sure they were what we expected them
+    // to be.
 
     // -------------- Make sure have both nyms loaded and checked out.
     // --------------------------------------------------
@@ -1258,21 +1261,22 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
         return;
     }
 
-    // Are the accounts of the first trader of the right asset types?
-    // We already know the asset types matched as far as the market, trades, and
+    // Are the accounts of the first trader of the right instrument definitions?
+    // We already know the instrument definitions matched as far as the market,
+    // trades, and
     // offers were concerned.
     // But only once the accounts themselves have been loaded can we VERIFY this
     // to be true.
     else if ((pFirstAssetAcct->GetInstrumentDefinitionID() !=
               GetInstrumentDefinitionID()) || // the trader's asset accts have
-                                              // same asset type
+                                              // same instrument definition
                                               // as the market.
              (pFirstCurrencyAcct->GetInstrumentDefinitionID() !=
               GetCurrencyID()) // the trader's currency accts have same asset
                                // type as the market.
              ) {
         otErr << "ERROR - First Trader has accounts of wrong "
-                 "asset types in OTMarket::" << __FUNCTION__ << "\n";
+                 "instrument definitions in OTMarket::" << __FUNCTION__ << "\n";
         cleanup_four_accounts(pFirstAssetAcct, pFirstCurrencyAcct,
                               pOtherAssetAcct, pOtherCurrencyAcct);
         theTrade.FlagForRemoval(); // Removes from Cron.
@@ -1287,7 +1291,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                                   // type as market.
     {
         otErr << "ERROR - Other Trader has accounts of wrong "
-                 "asset types in OTMarket::" << __FUNCTION__ << "\n";
+                 "instrument definitions in OTMarket::" << __FUNCTION__ << "\n";
         cleanup_four_accounts(pFirstAssetAcct, pFirstCurrencyAcct,
                               pOtherAssetAcct, pOtherCurrencyAcct);
         pOtherTrade->FlagForRemoval(); // Removes from Cron.
@@ -1323,7 +1327,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
     }
 
     // By this point, I know I have all four accounts loaded, and I know that
-    // they have the right asset types,
+    // they have the right instrument definitions,
     // and I know they have the right owners and they were all signed by the
     // server.
     // I also know that their account IDs in their internal records matched the
@@ -2664,7 +2668,8 @@ bool OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer)
     return true; // stay on the market for now.
 }
 
-// Make sure the offer is for the right asset type, the right currency, etc.
+// Make sure the offer is for the right instrument definition, the right
+// currency, etc.
 bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
 {
     bool bValidOffer = true;
