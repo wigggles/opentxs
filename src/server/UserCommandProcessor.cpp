@@ -1702,12 +1702,12 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
             MsgIn.m_strNymID.Get());
     }
     else {
-        Identifier USER_ID, NYMBOX_HASH;
-        theNym.GetIdentifier(USER_ID);
+        Identifier NYM_ID, NYMBOX_HASH;
+        theNym.GetIdentifier(NYM_ID);
 
         bool bSuccess = true;
         bool bSavedNymbox = false;
-        OTLedger theLedger(USER_ID, USER_ID, NOTARY_ID); // Nymbox
+        OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID); // Nymbox
 
         // We'll store the transaction numbers here immediately after they're
         // issued,
@@ -1939,11 +1939,11 @@ void UserCommandProcessor::UserCmdSendNymMessage(Nym& theNym, Message& MsgIn,
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
-    const Identifier SENDER_USER_ID(theNym),
-        RECIPIENT_USER_ID(MsgIn.m_strNymID2), NOTARY_ID(server_->m_strNotaryID);
+    const Identifier SENDER_NYM_ID(theNym), RECIPIENT_NYM_ID(MsgIn.m_strNymID2),
+        NOTARY_ID(server_->m_strNotaryID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
     const bool bSent =
-        SendMessageToNym(NOTARY_ID, SENDER_USER_ID, RECIPIENT_USER_ID,
+        SendMessageToNym(NOTARY_ID, SENDER_NYM_ID, RECIPIENT_NYM_ID,
                          &MsgIn); // pstrMessage=nullptr
 
     if (!bSent) {
@@ -1978,11 +1978,11 @@ void UserCommandProcessor::UserCmdSendNymInstrument(Nym& theNym, Message& MsgIn,
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
 
     const String strInMessage(MsgIn);
-    const Identifier SENDER_USER_ID(theNym),
-        RECIPIENT_USER_ID(MsgIn.m_strNymID2), NOTARY_ID(server_->m_strNotaryID);
+    const Identifier SENDER_NYM_ID(theNym), RECIPIENT_NYM_ID(MsgIn.m_strNymID2),
+        NOTARY_ID(server_->m_strNotaryID);
     msgOut.m_ascInReferenceTo.SetString(strInMessage);
     const bool bSent = server_->SendInstrumentToNym(
-        NOTARY_ID, SENDER_USER_ID, RECIPIENT_USER_ID,
+        NOTARY_ID, SENDER_NYM_ID, RECIPIENT_NYM_ID,
         &MsgIn); // pPayment=nullptr, szCommand=nullptr
 
     if (!bSent) {
@@ -2320,7 +2320,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                                            // of the asset
                                            // contract.
 
-    const Identifier USER_ID(theNym), NOTARY_ID(server_->m_strNotaryID),
+    const Identifier NYM_ID(theNym), NOTARY_ID(server_->m_strNotaryID),
         INSTRUMENT_DEFINITION_ID(MsgIn.m_strInstrumentDefinitionID);
 
     AssetContract* pAssetContract =
@@ -2344,7 +2344,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
             new AssetContract(MsgIn.m_strInstrumentDefinitionID, strFoldername,
                               strFilename, MsgIn.m_strInstrumentDefinitionID);
 
-        Identifier ASSET_USER_ID;
+        Identifier ASSET_NYM_ID;
         bool bSuccessCalculateDigest = false;
 
         if (nullptr == pAssetContract) {
@@ -2386,7 +2386,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                 else // success retrieving issuer Nym's public key from asset
                        // contract.
                 {
-                    pNym->GetIdentifier(ASSET_USER_ID);
+                    pNym->GetIdentifier(ASSET_NYM_ID);
 
                     bSuccessCalculateDigest = true;
                 }
@@ -2407,7 +2407,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
         // specified
         // transaction processor.  That way, users can double-check.
         if (bSuccessCalculateDigest) {
-            if ((ASSET_USER_ID == USER_ID))
+            if ((ASSET_NYM_ID == NYM_ID))
             // The ID of the user who signed the contract must be the ID of
             // the user
             // whose public key is associated with this user account. They
@@ -2418,7 +2418,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                     // it can go negative)
 
                     std::unique_ptr<Account> pNewAccount(
-                        Account::GenerateNewAccount(USER_ID, NOTARY_ID,
+                        Account::GenerateNewAccount(NYM_ID, NOTARY_ID,
                                                     server_->m_nymServer, MsgIn,
                                                     Account::issuer));
 
@@ -2458,8 +2458,8 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                             0,
                             "Generating inbox/outbox for new issuer acct. \n");
 
-                        OTLedger theOutbox(USER_ID, theNewAccountID, NOTARY_ID),
-                            theInbox(USER_ID, theNewAccountID, NOTARY_ID);
+                        OTLedger theOutbox(NYM_ID, theNewAccountID, NOTARY_ID),
+                            theInbox(NYM_ID, theNewAccountID, NOTARY_ID);
 
                         bool bSuccessLoadingInbox = theInbox.LoadInbox();
                         bool bSuccessLoadingOutbox = theOutbox.LoadOutbox();
@@ -2572,7 +2572,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
                         "UserCommandProcessor::UserCmdIssueAssetType.\n");
             }
             else {
-                String strAssetUserID(ASSET_USER_ID), strUserID;
+                String strAssetUserID(ASSET_NYM_ID), strUserID;
                 theNym.GetIdentifier(strUserID);
                 OTLog::vError(
                     "User ID on this user account (%s) does NOT match User ID "
@@ -2627,7 +2627,7 @@ void UserCommandProcessor::UserCmdIssueAssetType(Nym& theNym, Message& MsgIn,
         const String strReplyMessage(msgOut);
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
         // If it fails, it logs already.
-        DropReplyNoticeToNymbox(NOTARY_ID, USER_ID, strReplyMessage, lReqNum,
+        DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID, strReplyMessage, lReqNum,
                                 false, // trans success (not a transaction...)
                                 &theNym);
     }
@@ -2648,8 +2648,8 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
         msgOut.m_ascInReferenceTo.SetString(tempInMessage);
     }
 
-    const Identifier USER_ID(theNym), NOTARY_ID(server_->m_strNotaryID),
-        SERVER_USER_ID(server_->m_nymServer);
+    const Identifier NYM_ID(theNym), NOTARY_ID(server_->m_strNotaryID),
+        SERVER_NYM_ID(server_->m_nymServer);
 
     String strBasket(MsgIn.m_ascPayload);
     Basket theBasket;
@@ -2731,7 +2731,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                 // way in MsgIn so that GenerateNewAccount will create the
                 // sub-account with the server
                 // as the owner, instead of the user.
-                SERVER_USER_ID.GetString(MsgIn.m_strNymID);
+                SERVER_NYM_ID.GetString(MsgIn.m_strNymID);
 
                 // We need to actually create all the sub-accounts.
                 // This loop also sets the Account ID onto the basket items
@@ -2752,7 +2752,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                         MsgIn.m_strInstrumentDefinitionID);
 
                     pNewAccount = Account::GenerateNewAccount(
-                        SERVER_USER_ID, NOTARY_ID, server_->m_nymServer, MsgIn,
+                        SERVER_NYM_ID, NOTARY_ID, server_->m_nymServer, MsgIn,
                         Account::basketsub);
 
                     // If we successfully create the account, then bundle it
@@ -2771,7 +2771,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     else {
                         OTLog::vError("%s: Failed while calling: "
                                       "OTAccount::GenerateNewAccount(SERVER_"
-                                      "USER_ID, NOTARY_ID, m_nymServer, "
+                                      "NYM_ID, NOTARY_ID, m_nymServer, "
                                       "MsgIn, OTAccount::basketsub)\n",
                                       __FUNCTION__);
                         msgOut.m_bSuccess = false;
@@ -2883,7 +2883,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     MsgIn.m_strInstrumentDefinitionID = STR_BASKET_CONTRACT_ID;
 
                     pBasketAccount = Account::GenerateNewAccount(
-                        SERVER_USER_ID, NOTARY_ID, server_->m_nymServer, MsgIn,
+                        SERVER_NYM_ID, NOTARY_ID, server_->m_nymServer, MsgIn,
                         Account::basket);
 
                     if (nullptr != pBasketAccount) {
@@ -2948,10 +2948,10 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
     String tempInMessage(MsgIn);
     msgOut.m_ascInReferenceTo.SetString(tempInMessage);
 
-    const Identifier USER_ID(theNym), NOTARY_ID(server_->m_strNotaryID);
+    const Identifier NYM_ID(theNym), NOTARY_ID(server_->m_strNotaryID);
 
     std::unique_ptr<Account> pNewAccount(Account::GenerateNewAccount(
-        USER_ID, NOTARY_ID, server_->m_nymServer, MsgIn));
+        NYM_ID, NOTARY_ID, server_->m_nymServer, MsgIn));
 
     // If we successfully create the account, then bundle it in the message XML
     // payload
@@ -2985,8 +2985,8 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
         Identifier theNewAccountID;
         pNewAccount->GetIdentifier(theNewAccountID);
 
-        OTLedger theOutbox(USER_ID, theNewAccountID, NOTARY_ID),
-            theInbox(USER_ID, theNewAccountID, NOTARY_ID);
+        OTLedger theOutbox(NYM_ID, theNewAccountID, NOTARY_ID),
+            theInbox(NYM_ID, theNewAccountID, NOTARY_ID);
 
         bool bSuccessLoadingInbox = theInbox.LoadInbox();
         bool bSuccessLoadingOutbox = theOutbox.LoadOutbox();
@@ -3101,10 +3101,10 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
-            NOTARY_ID, USER_ID, strReplyMessage,
+            NOTARY_ID, NYM_ID, strReplyMessage,
             lReqNum, // No need to update the NymboxHash in this case.
             false);  // trans success (not a transaction)
-                     //      DropReplyNoticeToNymbox(NOTARY_ID, USER_ID,
+                     //      DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID,
                      // strReplyMessage, lReqNum, &theNym);
     }
 }
@@ -3117,7 +3117,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
-    const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+    const Identifier NYM_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         NOTARY_ID(MsgIn.m_strNotaryID);
 
     String strAccount, strInbox, strOutbox, strInboxHash, strOutboxHash;
@@ -3126,7 +3126,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
     bool bSuccessLoadingInbox = false;
     bool bSuccessLoadingOutbox = false;
     if (bSuccessLoadingAccount)
-        bSuccessLoadingAccount = (pAccount->GetUserID() == USER_ID);
+        bSuccessLoadingAccount = (pAccount->GetUserID() == NYM_ID);
     // Yup the account exists. Yup it has the same user ID.
     if (bSuccessLoadingAccount) {
         // extract the account in ascii-armored form on the outgoing message
@@ -3136,7 +3136,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
         // Get the Inbox.
         //
         {
-            OTLedger theInbox(USER_ID, ACCOUNT_ID, NOTARY_ID);
+            OTLedger theInbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
             bSuccessLoadingInbox = theInbox.LoadInbox();
 
@@ -3200,7 +3200,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
         if (bSuccessLoadingInbox) // (Which we don't bother to do unless the
                                   // inbox was already successful.)
         {
-            OTLedger theOutbox(USER_ID, ACCOUNT_ID, NOTARY_ID);
+            OTLedger theOutbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
             bSuccessLoadingOutbox = theOutbox.LoadOutbox();
 
@@ -3668,9 +3668,9 @@ void UserCommandProcessor::UserCmdDeleteUser(Nym& theNym, Message& MsgIn,
     msgOut.m_strCommand = "unregisterNymResponse"; // reply to unregisterNym
     msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
-    const Identifier USER_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID);
+    const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID);
 
-    OTLedger theLedger(USER_ID, USER_ID, NOTARY_ID);
+    OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
 
     std::set<int64_t>& theSetofCronItemIDs = theNym.GetSetOpenCronItems();
 
@@ -3794,7 +3794,7 @@ void UserCommandProcessor::UserCmdDeleteUser(Nym& theNym, Message& MsgIn,
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
-        DropReplyNoticeToNymbox(NOTARY_ID, USER_ID, strReplyMessage, lReqNum,
+        DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID, strReplyMessage, lReqNum,
                                 false, // trans success
                                 &theNym);
     }
@@ -3819,18 +3819,18 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
     msgOut.m_lDepth = MsgIn.m_lDepth;
     msgOut.m_bSuccess = false;
 
-    const Identifier USER_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID),
+    const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID),
         ACCOUNT_ID(MsgIn.m_strAcctID);
 
     std::unique_ptr<OTLedger> pLedger(
-        new OTLedger(USER_ID, ACCOUNT_ID, NOTARY_ID));
+        new OTLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID));
 
     bool bErrorCondition = false;
     bool bSuccessLoading = false;
 
     switch (MsgIn.m_lDepth) {
     case 0: // Nymbox
-        if (USER_ID == ACCOUNT_ID) {
+        if (NYM_ID == ACCOUNT_ID) {
             // It's verified using VerifyAccount() below this switch block.
             bSuccessLoading = pLedger->LoadNymbox();
         }
@@ -3846,7 +3846,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
         }
         break;
     case 1: // Inbox
-        if (USER_ID == ACCOUNT_ID) {
+        if (NYM_ID == ACCOUNT_ID) {
             OTLog::vError(
                 "UserCommandProcessor::UserCmdGetBoxReceipt: User requested "
                 "Inbox, but erroneously provided the "
@@ -3860,7 +3860,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
         }
         break;
     case 2: // Outbox
-        if (USER_ID == ACCOUNT_ID) {
+        if (NYM_ID == ACCOUNT_ID) {
             OTLog::vError(
                 "UserCommandProcessor::UserCmdGetBoxReceipt: User requested "
                 "Outbox, but erroneously provided the "
@@ -4020,7 +4020,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account being deleted.
 
-    const Identifier USER_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID),
+    const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID),
         ACCOUNT_ID(MsgIn.m_strAcctID);
 
     std::unique_ptr<Account> pAccount(
@@ -4150,7 +4150,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
-        DropReplyNoticeToNymbox(NOTARY_ID, USER_ID, strReplyMessage, lReqNum,
+        DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID, strReplyMessage, lReqNum,
                                 false, // trans success (not a transaction.)
                                 &theNym);
     }
@@ -4163,11 +4163,11 @@ void UserCommandProcessor::UserCmdGetNymbox(Nym& theNym, Message& MsgIn,
     msgOut.m_strCommand = "getNymboxResponse"; // reply to getNymbox
     msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
 
-    const Identifier USER_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID);
+    const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID);
     Identifier NYMBOX_HASH;
     bool bSavedNymbox = false;
 
-    OTLedger theLedger(USER_ID, USER_ID, NOTARY_ID);
+    OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
 
     msgOut.m_bSuccess = theLedger.LoadNymbox();
 
@@ -4281,15 +4281,15 @@ void UserCommandProcessor::UserCmdProcessNymbox(Nym& theNym, Message& MsgIn,
     msgOut.m_strCommand = "processNymboxResponse"; // reply to processNymbox
     msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
 
-    const Identifier USER_ID(msgOut.m_strNymID),
-        NOTARY_ID(server_->m_strNotaryID), SERVER_USER_ID(server_->m_nymServer);
+    const Identifier NYM_ID(msgOut.m_strNymID),
+        NOTARY_ID(server_->m_strNotaryID), SERVER_NYM_ID(server_->m_nymServer);
 
-    OTLedger theLedger(USER_ID, USER_ID, NOTARY_ID); // These are ledgers used
-                                                     // as messages. The one we
-                                                     // received
+    OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID); // These are ledgers used
+                                                   // as messages. The one we
+                                                   // received
     // and the one we're sending back.
     std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        SERVER_USER_ID, USER_ID, NOTARY_ID, OTLedger::message, false));
+        SERVER_NYM_ID, NYM_ID, NOTARY_ID, OTLedger::message, false));
 
     // Grab the string (containing the request ledger) out of ascii-armored
     // form.
@@ -4495,12 +4495,12 @@ send_message:
 
         // If it fails, it logs already.
         DropReplyNoticeToNymbox(
-            NOTARY_ID, USER_ID, strReplyMessage,
+            NOTARY_ID, NYM_ID, strReplyMessage,
             lReqNum, // (We don't want to update the NymboxHash on the Nym, here
                      // in processNymbox, at least, not at this current point
                      // AFTER the reply message has already been signed.)
             bTransSuccess);
-        //      DropReplyNoticeToNymbox(NOTARY_ID, USER_ID,
+        //      DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID,
         // strReplyMessage, lReqNum, bTransSuccess, &theNym); // Only pass
         // theNym if you want it to contain the LATEST hash. (Some messages
         // don't.)
@@ -4515,15 +4515,15 @@ void UserCommandProcessor::UserCmdProcessInbox(Nym& theNym, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID;       // The Account ID in question
 
-    const Identifier USER_ID(msgOut.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
-        NOTARY_ID(server_->m_strNotaryID), SERVER_USER_ID(server_->m_nymServer);
+    const Identifier NYM_ID(msgOut.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+        NOTARY_ID(server_->m_strNotaryID), SERVER_NYM_ID(server_->m_nymServer);
 
-    OTLedger theLedger(USER_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
-                                                        // used as messages. The
-                                                        // one we received,
+    OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
+                                                       // used as messages. The
+                                                       // one we received,
     // and the one we're sending back.
     std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        SERVER_USER_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
+        SERVER_NYM_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
     OT_ASSERT_MSG(nullptr != pResponseLedger, "UserCommandProcessor::"
                                               "UserCmdProcessInbox: ASSERT: "
                                               "nullptr != pResponseLedger");
@@ -4573,7 +4573,7 @@ void UserCommandProcessor::UserCmdProcessInbox(Nym& theNym, Message& MsgIn,
     // Let's see if we can load it from the string that came in the message...
     msgOut.m_bSuccess = theLedger.LoadContractFromString(strLedger);
     if (msgOut.m_bSuccess) {
-        Account theAccount(USER_ID, ACCOUNT_ID, NOTARY_ID);
+        Account theAccount(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         // Make sure the "from" account even exists...
         if (!theAccount.LoadContract()) {
@@ -4824,7 +4824,7 @@ send_message:
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
-        DropReplyNoticeToNymbox(NOTARY_ID, USER_ID, strReplyMessage,
+        DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID, strReplyMessage,
                                 lReqNum, // We don't want to update the
                                          // Nym's copy here in
                                 // processInbox (I don't think.)
@@ -4847,16 +4847,16 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(Nym& theNym,
     msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
-    const Identifier USER_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
-        NOTARY_ID(server_->m_strNotaryID), SERVER_USER_ID(server_->m_nymServer);
+    const Identifier NYM_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
+        NOTARY_ID(server_->m_strNotaryID), SERVER_NYM_ID(server_->m_nymServer);
 
-    OTLedger theLedger(USER_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
-                                                        // used as messages. The
-                                                        // one we received and
-                                                        // the one
+    OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
+                                                       // used as messages. The
+                                                       // one we received and
+                                                       // the one
     // that we're sending back in response.
     std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        SERVER_USER_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
+        SERVER_NYM_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
 
     bool bTransSuccess = false; // for the Nymbox notice.
     bool bCancelled = false;    // for "failed" transactions that were actually
@@ -5096,10 +5096,10 @@ send_message:
         const int64_t lReqNum = MsgIn.m_strRequestNum.ToLong();
 
         // If it fails, it logs already.
-        //      DropReplyNoticeToNymbox(NOTARY_ID, USER_ID,
+        //      DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID,
         // strReplyMessage, lReqNum, bTransSuccess, &theNym); // We don't want
         // to update the Nym in this case (I don't think.)
-        DropReplyNoticeToNymbox(NOTARY_ID, USER_ID, strReplyMessage, lReqNum,
+        DropReplyNoticeToNymbox(NOTARY_ID, NYM_ID, strReplyMessage, lReqNum,
                                 bTransSuccess); // trans success
     }
     if (bCancelled) {
@@ -5124,8 +5124,8 @@ send_message:
 // or pass pPayment instead: we will create our own msg here (with payment
 // inside) to be attached to the receipt.
 bool UserCommandProcessor::SendMessageToNym(
-    const Identifier& NOTARY_ID, const Identifier& SENDER_USER_ID,
-    const Identifier& RECIPIENT_USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& SENDER_NYM_ID,
+    const Identifier& RECIPIENT_NYM_ID,
     Message* pMsg,             // the request msg from payer, which is attached
                                // WHOLE to the Nymbox receipt. contains message
                                // already.
@@ -5135,7 +5135,7 @@ bool UserCommandProcessor::SendMessageToNym(
                                // the receipt.
 {
     return server_->DropMessageToNymbox(
-        NOTARY_ID, SENDER_USER_ID, RECIPIENT_USER_ID, OTTransaction::message,
+        NOTARY_ID, SENDER_NYM_ID, RECIPIENT_NYM_ID, OTTransaction::message,
         pMsg, pstrMessage); //, szCommand=nullptr
 }
 
@@ -5146,11 +5146,11 @@ bool UserCommandProcessor::SendMessageToNym(
 // never get out of sync.)  This is the function used for doing that.
 //
 void UserCommandProcessor::DropReplyNoticeToNymbox(
-    const Identifier& NOTARY_ID, const Identifier& USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const String& strMessage, const int64_t& lRequestNum,
     const bool bReplyTransSuccess, Nym* pActualNym)
 {
-    OTLedger theNymbox(USER_ID, USER_ID, NOTARY_ID);
+    OTLedger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
 
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
@@ -5160,7 +5160,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
              theNymbox.VerifySignature(server_->m_nymServer));
 
     if (!bSuccessLoadingNymbox) {
-        const String strNymID(USER_ID);
+        const String strNymID(NYM_ID);
         OTLog::vOutput(0, "OTServer::DropReplyNoticeToNymbox: Failed loading "
                           "or verifying Nymbox for user: %s\n",
                        strNymID.Get());
@@ -5230,14 +5230,14 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
 
             pReplyNotice->SaveBoxReceipt(theNymbox);
 
-            if ((nullptr != pActualNym) && pActualNym->CompareID(USER_ID)) {
+            if ((nullptr != pActualNym) && pActualNym->CompareID(NYM_ID)) {
                 pActualNym->SetNymboxHashServerSide(NYMBOX_HASH);
                 pActualNym->SaveSignedNymfile(server_->m_nymServer);
             }
             else if (nullptr != pActualNym)
                 OTLog::Error("OTServer::DropReplyNoticeToNymbox: ERROR: "
                              "pActualNym was not nullptr, but it didn't match "
-                             "USER_ID.\n");
+                             "NYM_ID.\n");
         }
     }
 }

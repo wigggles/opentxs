@@ -269,12 +269,12 @@ bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
                           const Identifier& NOTARY_ID,
                           const Identifier& ACCT_ID)
 {
-    Identifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
+    Identifier NYM_ID(THE_NYM), SERVER_NYM_ID(SERVER_NYM);
     String strNotaryID(NOTARY_ID), strReceiptID(ACCT_ID);
 
     // Load the last successful BALANCE STATEMENT...
 
-    OTTransaction tranOut(SERVER_USER_ID, ACCT_ID, NOTARY_ID);
+    OTTransaction tranOut(SERVER_NYM_ID, ACCT_ID, NOTARY_ID);
 
     String strFilename;
     strFilename.Format("%s.success", strReceiptID.Get());
@@ -3372,11 +3372,11 @@ bool OT_API::VerifyAndRetrieveXMLContents(const String& strContract,
 ///
 ///
 bool OT_API::VerifyAccountReceipt(const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID,
+                                  const Identifier& NYM_ID,
                                   const Identifier& ACCOUNT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -4369,7 +4369,7 @@ Nym* OT_API::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
 // true == no errors. false == errors.
 //
 bool OT_API::Msg_HarvestTransactionNumbers(
-    const Message& theMsg, const Identifier& USER_ID,
+    const Message& theMsg, const Identifier& NYM_ID,
     bool bHarvestingForRetry,          // false until positively asserted.
     bool bReplyWasSuccess,             // false until positively asserted.
     bool bReplyWasFailure,             // false until positively asserted.
@@ -4377,7 +4377,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     bool bTransactionWasFailure) const // false until positively asserted.
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -4616,10 +4616,10 @@ Account* OT_API::GetOrLoadAccount(const Identifier& NYM_ID,
 Cheque* OT_API::WriteCheque(
     const Identifier& NOTARY_ID, const int64_t& CHEQUE_AMOUNT,
     const time64_t& VALID_FROM, const time64_t& VALID_TO,
-    const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_USER_ID,
-    const String& CHEQUE_MEMO, const Identifier* pRECIPIENT_USER_ID) const
+    const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
+    const String& CHEQUE_MEMO, const Identifier* pRECIPIENT_NYM_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(SENDER_USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(SENDER_NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -4659,7 +4659,7 @@ Cheque* OT_API::WriteCheque(
     // have to delete, or return to the caller.
     bool bIssueCheque = pCheque->IssueCheque(
         CHEQUE_AMOUNT, lTransactionNumber, VALID_FROM, VALID_TO, SENDER_ACCT_ID,
-        SENDER_USER_ID, CHEQUE_MEMO, pRECIPIENT_USER_ID);
+        SENDER_NYM_ID, CHEQUE_MEMO, pRECIPIENT_NYM_ID);
     if (!bIssueCheque) {
         otErr << __FUNCTION__ << ": Failure calling OTCheque::IssueCheque().\n";
         delete pCheque;
@@ -4682,13 +4682,13 @@ Cheque* OT_API::WriteCheque(
     Message* pMessage = new Message;
     OT_ASSERT(nullptr != pMessage);
 
-    const String strNymID(SENDER_USER_ID);
+    const String strNymID(SENDER_NYM_ID);
 
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
 
-    if (nullptr != pRECIPIENT_USER_ID) {
-        const String strNymID2(*pRECIPIENT_USER_ID);
+    if (nullptr != pRECIPIENT_NYM_ID) {
+        const String strNymID2(*pRECIPIENT_NYM_ID);
         pMessage->m_strNymID2 = strNymID2;
     }
     pMessage->m_strNotaryID = strNotaryID;
@@ -4741,9 +4741,9 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     const time64_t& VALID_TO,   // Default (0) == no expiry / cancel anytime.
                                 // Otherwise this is a LENGTH and is ADDED to
                                 // VALID_FROM
-    const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_USER_ID,
+    const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
     const String& PLAN_CONSIDERATION, // Like a memo.
-    const Identifier& RECIPIENT_ACCT_ID, const Identifier& RECIPIENT_USER_ID,
+    const Identifier& RECIPIENT_ACCT_ID, const Identifier& RECIPIENT_NYM_ID,
     // ----------------------------------------  // If it's above zero, the
     // initial
     const int64_t& INITIAL_PAYMENT_AMOUNT, // amount will be processed after
@@ -4758,7 +4758,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     int32_t PAYMENT_PLAN_MAX_PAYMENTS // expires, or after the maximum
     ) const                           // number of payments. These last
 {                                     // two arguments are optional.
-    Nym* pNym = GetOrLoadPrivateNym(RECIPIENT_USER_ID, false,
+    Nym* pNym = GetOrLoadPrivateNym(RECIPIENT_NYM_ID, false,
                                     __FUNCTION__); // This logs, ASSERTs, etc.
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4770,7 +4770,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // to cleanup.)
     OTPaymentPlan* pPlan = new OTPaymentPlan(
         NOTARY_ID, pAccount->GetInstrumentDefinitionID(), SENDER_ACCT_ID,
-        SENDER_USER_ID, RECIPIENT_ACCT_ID, RECIPIENT_USER_ID);
+        SENDER_NYM_ID, RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
     OT_ASSERT_MSG(nullptr != pPlan,
                   "OT_API::ProposePaymentPlan: Error allocating "
                   "memory in the OT API for new "
@@ -4874,7 +4874,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     Message* pMessage = new Message;
     OT_ASSERT(nullptr != pMessage);
 
-    const String strNymID(RECIPIENT_USER_ID), strNymID2(SENDER_USER_ID);
+    const String strNymID(RECIPIENT_NYM_ID), strNymID2(SENDER_NYM_ID);
 
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
@@ -4908,12 +4908,12 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 //
 //
 bool OT_API::ConfirmPaymentPlan(const Identifier& NOTARY_ID,
-                                const Identifier& SENDER_USER_ID,
+                                const Identifier& SENDER_NYM_ID,
                                 const Identifier& SENDER_ACCT_ID,
-                                const Identifier& RECIPIENT_USER_ID,
+                                const Identifier& RECIPIENT_NYM_ID,
                                 OTPaymentPlan& thePlan) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(SENDER_USER_ID, false,
+    Nym* pNym = GetOrLoadPrivateNym(SENDER_NYM_ID, false,
                                     __FUNCTION__); // This logs, ASSERTs, etc.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -4924,12 +4924,12 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& NOTARY_ID,
     // By this point, pAccount is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     std::unique_ptr<Nym> pMerchantNym(
-        LoadPublicNym(RECIPIENT_USER_ID, __FUNCTION__));
+        LoadPublicNym(RECIPIENT_NYM_ID, __FUNCTION__));
 
     //  if (nullptr == pMerchantNym) // We don't have this Nym in our storage
     // already.
     //    {
-    //        const OTString strRecipNymID(RECIPIENT_USER_ID);
+    //        const OTString strRecipNymID(RECIPIENT_NYM_ID);
     //        otOut << __FUNCTION__ << ": There's no (Merchant) Nym with the
     // recipient's NymID in local storage: " << strRecipNymID << "\n";
     //        return false;
@@ -4939,7 +4939,7 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& NOTARY_ID,
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed =
-        thePlan.Confirm(*pNym, pMerchantNym.get(), &RECIPIENT_USER_ID);
+        thePlan.Confirm(*pNym, pMerchantNym.get(), &RECIPIENT_NYM_ID);
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from pNym!
     // If you don't end up actually USING this payment plan, then you need to
@@ -4971,7 +4971,7 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& NOTARY_ID,
     Message* pMessage = new Message;
     OT_ASSERT(nullptr != pMessage);
 
-    const String strNymID(SENDER_USER_ID), strNymID2(RECIPIENT_USER_ID);
+    const String strNymID(SENDER_NYM_ID), strNymID2(RECIPIENT_NYM_ID);
 
     pMessage->m_strCommand = "outpaymentsMessage";
     pMessage->m_strNymID = strNymID;
@@ -4997,7 +4997,7 @@ bool OT_API::ConfirmPaymentPlan(const Identifier& NOTARY_ID,
 //
 Purse* OT_API::LoadPurse(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID,
-                         const Identifier& USER_ID,
+                         const Identifier& NYM_ID,
                          const String* pstrDisplay) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
@@ -5006,13 +5006,13 @@ Purse* OT_API::LoadPurse(const Identifier& NOTARY_ID,
                                : pstrDisplay->Get());
     OTPasswordData thePWData(strReason);
     const String strNotaryID(NOTARY_ID);
-    const String strUserID(USER_ID);
+    const String strUserID(NYM_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     Nym* pNym =
-        GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__,
+        GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__,
                             &thePWData); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
-    Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, USER_ID);
+    Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID);
     OT_ASSERT_MSG(nullptr != pPurse,
                   "Error allocating memory in the OT API."); // responsible to
                                                              // delete or return
@@ -5039,7 +5039,7 @@ Purse* OT_API::LoadPurse(const Identifier& NOTARY_ID,
 
 bool OT_API::SavePurse(const Identifier& NOTARY_ID,
                        const Identifier& INSTRUMENT_DEFINITION_ID,
-                       const Identifier& USER_ID, Purse& THE_PURSE) const
+                       const Identifier& NYM_ID, Purse& THE_PURSE) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
     if (THE_PURSE.IsPasswordProtected()) {
@@ -5058,7 +5058,7 @@ bool OT_API::SavePurse(const Identifier& NOTARY_ID,
     else {
         const String strNotaryID(NOTARY_ID);
         const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-        const String strUserID(USER_ID);
+        const String strUserID(NYM_ID);
         if (THE_PURSE.SavePurse(strNotaryID.Get(), strUserID.Get(),
                                 strInstrumentDefinitionID.Get()))
             return true;
@@ -5201,13 +5201,13 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
         }
         else if (!bDoesOwnerIDExist && !thePurse.IsPasswordProtected())
             otErr << __FUNCTION__
-                  << ": Failed: The USER_ID was nullptr, which is only allowed "
+                  << ": Failed: The NYM_ID was nullptr, which is only allowed "
                      "for a password-protected purse. (And this purse is NOT "
-                     "password-protected.) Please provide a USER_ID.\n";
+                     "password-protected.) Please provide a NYM_ID.\n";
         // By this point, we know the purse loaded up properly, and the server
         // and instrument definition ids match
         // what we expected. We also know that if the purse included a NymID, it
-        // matches the USER_ID
+        // matches the NYM_ID
         // that was passed in. We also know that if a User ID was NOT passed in,
         // that the purse WAS
         // definitely a password-protected purse.
@@ -5250,8 +5250,8 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
             otErr << __FUNCTION__
                   << ": Failed: The purse is not password-protected, "
                      "but rather, is locked by a Nym. "
-                     "However, no USER_ID was passed in! Please supply a "
-                     "USER_ID in order "
+                     "However, no NYM_ID was passed in! Please supply a "
+                     "NYM_ID in order "
                      "to open this purse.\n";
         // (By this point, pOwner is all set up and ready to go.)
     }
@@ -5403,7 +5403,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
 /// Returns the TOKEN on top of the stock (LEAVING it on top of the stack,
 /// but giving you a decrypted copy of it.)
 ///
-/// USER_ID can be nullptr, **if** the purse is password-protected.
+/// NYM_ID can be nullptr, **if** the purse is password-protected.
 /// (It's just ignored in that case.) Otherwise MUST contain the NymID for
 /// the Purse owner (necessary to decrypt the token.)
 ///
@@ -5598,7 +5598,7 @@ Purse* OT_API::Purse_Empty(const Identifier& NOTARY_ID,
 /// NOTE: Caller must delete!
 /// NOTE: Caller must sign/save in order to effect the change.
 ///
-/// USER_ID can be nullptr, **if** the purse is password-protected.
+/// NYM_ID can be nullptr, **if** the purse is password-protected.
 /// (It's just ignored in that case.) Otherwise MUST contain the NymID for
 /// the Purse owner (necessary to encrypt the token.)
 ///
@@ -6111,14 +6111,14 @@ AssetContract* OT_API::LoadAssetContract(
 // See also: OT_API::GetOrLoadAccount()
 //
 Account* OT_API::LoadAssetAccount(const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID,
+                                  const Identifier& NYM_ID,
                                   const Identifier& ACCOUNT_ID) const
 {
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return nullptr;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6130,14 +6130,14 @@ Account* OT_API::LoadAssetAccount(const Identifier& NOTARY_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadNymbox(const Identifier& NOTARY_ID,
-                             const Identifier& USER_ID) const
+                             const Identifier& NYM_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     OTLedger* pLedger =
-        OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID, OTLedger::nymbox);
+        OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, OTLedger::nymbox);
     OT_ASSERT_MSG(nullptr != pLedger,
                   "OT_API::LoadNymbox: Error allocating memory in the OT API.");
     // Beyond this point, I know that pLedger will need to be deleted or
@@ -6145,7 +6145,7 @@ OTLedger* OT_API::LoadNymbox(const Identifier& NOTARY_ID,
     if (pLedger->LoadNymbox() && pLedger->VerifyAccount(*pNym))
         return pLedger;
     else {
-        String strUserID(USER_ID);
+        String strUserID(NYM_ID);
         otOut << "OT_API::LoadNymbox: Unable to load or verify nymbox: "
               << strUserID << "\n";
         delete pLedger;
@@ -6165,14 +6165,14 @@ OTLedger* OT_API::LoadNymbox(const Identifier& NOTARY_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadNymboxNoVerify(const Identifier& NOTARY_ID,
-                                     const Identifier& USER_ID) const
+                                     const Identifier& NYM_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     OTLedger* pLedger =
-        OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID, OTLedger::nymbox);
+        OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, OTLedger::nymbox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
         "OT_API::LoadNymboxNoVerify: Error allocating memory in the OT API.");
@@ -6181,7 +6181,7 @@ OTLedger* OT_API::LoadNymboxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadNymbox()) // The Verify would go here.
         return pLedger;
     else {
-        String strUserID(USER_ID);
+        String strUserID(NYM_ID);
         otOut << "OT_API::LoadNymboxNoVerify: Unable to load nymbox: "
               << strUserID << "\n";
         delete pLedger;
@@ -6195,14 +6195,14 @@ OTLedger* OT_API::LoadNymboxNoVerify(const Identifier& NOTARY_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadInbox(const Identifier& NOTARY_ID,
-                            const Identifier& USER_ID,
+                            const Identifier& NYM_ID,
                             const Identifier& ACCOUNT_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, ACCOUNT_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
                                                  OTLedger::inbox);
     OT_ASSERT_MSG(nullptr != pLedger,
                   "OT_API::LoadInbox: Error allocating memory in the OT API.");
@@ -6212,7 +6212,7 @@ OTLedger* OT_API::LoadInbox(const Identifier& NOTARY_ID,
     if (pLedger->LoadInbox() && pLedger->VerifyAccount(*pNym))
         return pLedger;
     else {
-        String strUserID(USER_ID), strAcctID(ACCOUNT_ID);
+        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
         otWarn << "OT_API::LoadInbox: Unable to load or verify inbox: "
                << strAcctID << "\n For user: " << strUserID << "\n";
         delete pLedger;
@@ -6233,14 +6233,14 @@ OTLedger* OT_API::LoadInbox(const Identifier& NOTARY_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadInboxNoVerify(const Identifier& NOTARY_ID,
-                                    const Identifier& USER_ID,
+                                    const Identifier& NYM_ID,
                                     const Identifier& ACCOUNT_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, ACCOUNT_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
                                                  OTLedger::inbox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
@@ -6251,7 +6251,7 @@ OTLedger* OT_API::LoadInboxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadInbox()) // The Verify would go here.
         return pLedger;
     else {
-        String strUserID(USER_ID), strAcctID(ACCOUNT_ID);
+        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
         otWarn << "OT_API::LoadInboxNoVerify: Unable to load inbox: "
                << strAcctID << "\n For user: " << strUserID << "\n";
         delete pLedger;
@@ -6265,14 +6265,14 @@ OTLedger* OT_API::LoadInboxNoVerify(const Identifier& NOTARY_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadOutbox(const Identifier& NOTARY_ID,
-                             const Identifier& USER_ID,
+                             const Identifier& NYM_ID,
                              const Identifier& ACCOUNT_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, ACCOUNT_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
                                                  OTLedger::outbox);
     OT_ASSERT_MSG(nullptr != pLedger,
                   "OT_API::LoadOutbox: Error allocating memory in the OT API.");
@@ -6283,7 +6283,7 @@ OTLedger* OT_API::LoadOutbox(const Identifier& NOTARY_ID,
     if (pLedger->LoadOutbox() && pLedger->VerifyAccount(*pNym))
         return pLedger;
     else {
-        String strUserID(USER_ID), strAcctID(ACCOUNT_ID);
+        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
 
         otWarn << "OT_API::LoadOutbox: Unable to load or verify "
                   "outbox: " << strAcctID << "\n For user: " << strUserID
@@ -6307,14 +6307,14 @@ OTLedger* OT_API::LoadOutbox(const Identifier& NOTARY_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadOutboxNoVerify(const Identifier& NOTARY_ID,
-                                     const Identifier& USER_ID,
+                                     const Identifier& NYM_ID,
                                      const Identifier& ACCOUNT_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, ACCOUNT_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
                                                  OTLedger::outbox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
@@ -6326,7 +6326,7 @@ OTLedger* OT_API::LoadOutboxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadOutbox()) // The Verify would go here.
         return pLedger;
     else {
-        String strUserID(USER_ID), strAcctID(ACCOUNT_ID);
+        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
         otWarn << "OT_API::LoadOutboxNoVerify: Unable to load outbox: "
                << strAcctID << "\n For user: " << strUserID << "\n";
 
@@ -6337,13 +6337,13 @@ OTLedger* OT_API::LoadOutboxNoVerify(const Identifier& NOTARY_ID,
 }
 
 OTLedger* OT_API::LoadPaymentInbox(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID) const
+                                   const Identifier& NYM_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
                                                  OTLedger::paymentInbox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
@@ -6353,7 +6353,7 @@ OTLedger* OT_API::LoadPaymentInbox(const Identifier& NOTARY_ID,
     if (pLedger->LoadPaymentInbox() && pLedger->VerifyAccount(*pNym))
         return pLedger;
     else {
-        String strUserID(USER_ID), strAcctID(USER_ID);
+        String strUserID(NYM_ID), strAcctID(NYM_ID);
         otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
                << " / " << strAcctID << "\n";
         delete pLedger;
@@ -6363,13 +6363,13 @@ OTLedger* OT_API::LoadPaymentInbox(const Identifier& NOTARY_ID,
 }
 
 OTLedger* OT_API::LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
-                                           const Identifier& USER_ID) const
+                                           const Identifier& NYM_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
                                                  OTLedger::paymentInbox);
     OT_ASSERT_MSG(nullptr != pLedger, "OT_API::LoadPaymentInboxNoVerify: Error "
                                       "allocating memory in the OT API.");
@@ -6378,7 +6378,7 @@ OTLedger* OT_API::LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadPaymentInbox()) // The Verify would have gone here.
         return pLedger;
     else {
-        String strUserID(USER_ID), strAcctID(USER_ID);
+        String strUserID(NYM_ID), strAcctID(NYM_ID);
         otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
                << " / " << strAcctID << "\n";
         delete pLedger;
@@ -6390,15 +6390,15 @@ OTLedger* OT_API::LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
 // Caller IS responsible to delete
 //
 OTLedger* OT_API::LoadRecordBox(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID,
+                                const Identifier& NYM_ID,
                                 const Identifier& ACCOUNT_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, ACCOUNT_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
                                                  OTLedger::recordBox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
@@ -6414,7 +6414,7 @@ OTLedger* OT_API::LoadRecordBox(const Identifier& NOTARY_ID,
     if (bLoaded && bVerified)
         return pLedger;
     else {
-        String strUserID(USER_ID), strAcctID(ACCOUNT_ID);
+        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
         otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
                << " / " << strAcctID << "\n";
         delete pLedger;
@@ -6424,14 +6424,14 @@ OTLedger* OT_API::LoadRecordBox(const Identifier& NOTARY_ID,
 }
 
 OTLedger* OT_API::LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
-                                        const Identifier& USER_ID,
+                                        const Identifier& NYM_ID,
                                         const Identifier& ACCOUNT_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, ACCOUNT_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
                                                  OTLedger::recordBox);
     OT_ASSERT_MSG(nullptr != pLedger, "OT_API::LoadRecordBoxNoVerify: Error "
                                       "allocating memory in the OT API.");
@@ -6440,7 +6440,7 @@ OTLedger* OT_API::LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadRecordBox()) // The Verify would have gone here.
         return pLedger;
     else {
-        String strUserID(USER_ID), strAcctID(ACCOUNT_ID);
+        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
         otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
                << " / " << strAcctID << "\n";
         delete pLedger;
@@ -6452,14 +6452,14 @@ OTLedger* OT_API::LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
 // Caller IS responsible to delete.
 
 OTLedger* OT_API::LoadExpiredBox(const Identifier& NOTARY_ID,
-                                 const Identifier& USER_ID) const
+                                 const Identifier& NYM_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
                                                  OTLedger::expiredBox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
@@ -6475,7 +6475,7 @@ OTLedger* OT_API::LoadExpiredBox(const Identifier& NOTARY_ID,
     if (bLoaded && bVerified)
         return pLedger;
     else {
-        String strUserID(USER_ID);
+        String strUserID(NYM_ID);
         otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
                << "\n";
         delete pLedger;
@@ -6485,13 +6485,13 @@ OTLedger* OT_API::LoadExpiredBox(const Identifier& NOTARY_ID,
 }
 
 OTLedger* OT_API::LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
-                                         const Identifier& USER_ID) const
+                                         const Identifier& NYM_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID,
+    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
                                                  OTLedger::expiredBox);
     OT_ASSERT_MSG(nullptr != pLedger, "OT_API::LoadExpiredBoxNoVerify: Error "
                                       "allocating memory in the OT API.");
@@ -6500,7 +6500,7 @@ OTLedger* OT_API::LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadExpiredBox()) // The Verify would have gone here.
         return pLedger;
     else {
-        String strUserID(USER_ID);
+        String strUserID(NYM_ID);
         otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
                << "\n";
         delete pLedger;
@@ -6509,18 +6509,18 @@ OTLedger* OT_API::LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
     return nullptr;
 }
 
-bool OT_API::ClearExpired(const Identifier& NOTARY_ID,
-                          const Identifier& USER_ID, const int32_t nIndex,
+bool OT_API::ClearExpired(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+                          const int32_t nIndex,
                           bool bClearAll) const // if true, nIndex is
                                                 // ignored.
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<OTLedger> pExpiredBox(LoadExpiredBox(NOTARY_ID, USER_ID));
+    std::unique_ptr<OTLedger> pExpiredBox(LoadExpiredBox(NOTARY_ID, NYM_ID));
     if (nullptr == pExpiredBox) {
-        pExpiredBox.reset(OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID,
+        pExpiredBox.reset(OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
                                                    OTLedger::expiredBox, true));
 
         if (nullptr == pExpiredBox) {
@@ -6781,13 +6781,13 @@ bool OT_API::ClearExpired(const Identifier& NOTARY_ID,
 // UPDATE: This should now also work for smart contracts and payment plans.
 //
 bool OT_API::RecordPayment(
-    const Identifier& NOTARY_ID, const Identifier& USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     bool bIsInbox,  // true == payments inbox. false == outpayments box.
     int32_t nIndex, // removes payment instrument (from payments inbox or
                     // outpayments box) and moves to record box.
     bool bSaveCopy) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -6798,12 +6798,12 @@ bool OT_API::RecordPayment(
     std::unique_ptr<OTLedger> theRecordBoxAngel;
     std::unique_ptr<OTLedger> theExpiredBoxAngel;
     if (bSaveCopy) {
-        pRecordBox = LoadRecordBox(NOTARY_ID, USER_ID, USER_ID);
-        pExpiredBox = LoadExpiredBox(NOTARY_ID, USER_ID);
+        pRecordBox = LoadRecordBox(NOTARY_ID, NYM_ID, NYM_ID);
+        pExpiredBox = LoadExpiredBox(NOTARY_ID, NYM_ID);
         theRecordBoxAngel.reset(pRecordBox);
         theExpiredBoxAngel.reset(pExpiredBox);
         if (nullptr == pRecordBox) {
-            pRecordBox = OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID,
+            pRecordBox = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
                                                   OTLedger::recordBox, true);
             if (nullptr == pRecordBox) {
                 otErr << __FUNCTION__
@@ -6814,7 +6814,7 @@ bool OT_API::RecordPayment(
             theRecordBoxAngel.reset(pRecordBox);
         }
         if (nullptr == pExpiredBox) {
-            pExpiredBox = OTLedger::GenerateLedger(USER_ID, USER_ID, NOTARY_ID,
+            pExpiredBox = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
                                                    OTLedger::expiredBox, true);
             if (nullptr == pExpiredBox) {
                 otErr << __FUNCTION__
@@ -6841,7 +6841,7 @@ bool OT_API::RecordPayment(
     bool bRemoved = false, bNeedToSaveTheNym = false;
 
     if (bIsInbox) {
-        pPaymentInbox = LoadPaymentInbox(NOTARY_ID, USER_ID);
+        pPaymentInbox = LoadPaymentInbox(NOTARY_ID, NYM_ID);
         thePaymentBoxAngel.reset(pPaymentInbox);
         if (nullptr == pPaymentInbox) {
             otErr << __FUNCTION__
@@ -6936,9 +6936,9 @@ bool OT_API::RecordPayment(
             int64_t lPaymentOpeningNum = 0;
             int64_t lPaymentTransNum = 0;
             if (thePayment.GetOpeningNum(lPaymentOpeningNum,
-                                         USER_ID)) // cheques, invoices,
-                                                   // vouchers, smart contracts,
-                                                   // payment plans.
+                                         NYM_ID)) // cheques, invoices,
+                                                  // vouchers, smart contracts,
+                                                  // payment plans.
             {
                 // We we-grab the transaction number at this time. That way if
                 // it's a transaction num that
@@ -7567,14 +7567,14 @@ bool OT_API::RecordPayment(
                             // (So we need to figure out which, and set the
                             // account accordingly.)
                             //
-                            if (USER_ID == pPlan->GetRecipientUserID())
+                            if (NYM_ID == pPlan->GetRecipientUserID())
                                 theSenderAcctID = pPlan->GetRecipientAcctID();
-                            else if (USER_ID == pPlan->GetSenderUserID())
+                            else if (NYM_ID == pPlan->GetSenderUserID())
                                 theSenderAcctID = pPlan->GetSenderAcctID();
                             else
                                 otErr << __FUNCTION__
                                       << ": ERROR: Should never happen: "
-                                         "USER_ID didn't match this "
+                                         "NYM_ID didn't match this "
                                          "payment plan for sender OR "
                                          "recipient. "
                                          "(Expected one or the other.)\n";
@@ -7621,7 +7621,7 @@ bool OT_API::RecordPayment(
                                                 strAcctID);
 
                                             OTLedger theSenderInbox(
-                                                USER_ID, theAcctID, NOTARY_ID);
+                                                NYM_ID, theAcctID, NOTARY_ID);
 
                                             const bool
                                                 bSuccessLoadingSenderInbox =
@@ -7665,7 +7665,7 @@ bool OT_API::RecordPayment(
                     else  // not a smart contract. (It's a payment plan or a
                           // cheque, most likely.)
                     {
-                        OTLedger theSenderInbox(USER_ID, theSenderAcctID,
+                        OTLedger theSenderInbox(NYM_ID, theSenderAcctID,
                                                 NOTARY_ID);
 
                         const bool bSuccessLoadingSenderInbox =
@@ -7849,7 +7849,7 @@ bool OT_API::RecordPayment(
                 }
                 else // should never happen
                 {
-                    const String strUserID(USER_ID);
+                    const String strUserID(NYM_ID);
                     otErr << __FUNCTION__
                           << ": Failed while trying to generate "
                              "transaction in order to "
@@ -7949,21 +7949,21 @@ bool OT_API::RecordPayment(
     return true;
 }
 
-bool OT_API::ClearRecord(const Identifier& NOTARY_ID, const Identifier& USER_ID,
-                         const Identifier& ACCOUNT_ID, // USER_ID can be passed
+bool OT_API::ClearRecord(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+                         const Identifier& ACCOUNT_ID, // NYM_ID can be passed
                                                        // here as well.
                          int32_t nIndex,
                          bool bClearAll) const // if true, nIndex is ignored.
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
     std::unique_ptr<OTLedger> pRecordBox(
-        LoadRecordBox(NOTARY_ID, USER_ID, ACCOUNT_ID));
+        LoadRecordBox(NOTARY_ID, NYM_ID, ACCOUNT_ID));
     if (nullptr == pRecordBox) {
-        pRecordBox.reset(OTLedger::GenerateLedger(
-            USER_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::recordBox, true));
+        pRecordBox.reset(OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
+                                                  OTLedger::recordBox, true));
 
         if (nullptr == pRecordBox) {
             otErr << __FUNCTION__
@@ -8066,14 +8066,14 @@ bool OT_API::ResyncNymWithServer(Nym& theNym, const OTLedger& theNymbox,
 //
 std::shared_ptr<Message> OT_API::PopMessageBuffer(
     const int64_t& lRequestNumber, const Identifier& NOTARY_ID,
-    const Identifier& USER_ID) const
+    const Identifier& NYM_ID) const
 {
     OT_ASSERT_MSG((m_bInitialized && (m_pClient != nullptr)),
                   "Not initialized; call OT_API::Init first.");
     OT_ASSERT_MSG(lRequestNumber > 0,
                   "OT_API::PopMessageBuffer: lRequestNumber is less than 1.");
 
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     return m_pClient->GetMessageBuffer().Pop(lRequestNumber, strNotaryID,
                                              strNymID); // deletes
@@ -8103,14 +8103,14 @@ void OT_API::FlushMessageBuffer()
 
 Message* OT_API::GetSentMessage(const int64_t& lRequestNumber,
                                 const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID) const
+                                const Identifier& NYM_ID) const
 {
     OT_ASSERT_MSG((m_bInitialized && (m_pClient != nullptr)),
                   "Not initialized; call OT_API::Init first.");
     OT_ASSERT_MSG(lRequestNumber > 0,
                   "OT_API::GetSentMessage: lRequestNumber is less than 1.");
 
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     return m_pClient->GetMessageOutbuffer().GetSentMessage(
         lRequestNumber, strNotaryID, strNymID); // doesn't delete.
@@ -8118,14 +8118,14 @@ Message* OT_API::GetSentMessage(const int64_t& lRequestNumber,
 
 bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
                                const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID) const
+                               const Identifier& NYM_ID) const
 {
     OT_ASSERT_MSG(m_bInitialized && (m_pClient != nullptr),
                   "Not initialized; call OT_API::Init first.");
     OT_ASSERT_MSG(lRequestNumber > 0,
                   "OT_API::RemoveSentMessage: lRequestNumber is less than 1.");
 
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     return m_pClient->GetMessageOutbuffer().RemoveSentMessage(
         lRequestNumber, strNotaryID, strNymID); // deletes.
@@ -8196,17 +8196,17 @@ bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
 //
 void OT_API::FlushSentMessages(bool bHarvestingForRetry,
                                const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID,
+                               const Identifier& NYM_ID,
                                const OTLedger& THE_NYMBOX) const
 {
     OT_ASSERT_MSG(m_bInitialized && (m_pClient != nullptr),
                   "Not initialized; call OT_API::Init first.");
-    Nym* pNym = GetNym(USER_ID, __FUNCTION__); // This logs and ASSERTs already.
+    Nym* pNym = GetNym(NYM_ID, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pNym) return;
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
-    if ((THE_NYMBOX.GetUserID() != USER_ID) ||
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
+    if ((THE_NYMBOX.GetUserID() != NYM_ID) ||
         (THE_NYMBOX.GetPurportedNotaryID() != NOTARY_ID)) {
         const String strLedger(THE_NYMBOX);
         otErr << __FUNCTION__ << ": Failure, Bad input data: UserID ("
@@ -8274,10 +8274,10 @@ void OT_API::FlushSentMessages(bool bHarvestingForRetry,
 }
 
 bool OT_API::HaveAlreadySeenReply(const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID,
+                                  const Identifier& NYM_ID,
                                   const int64_t& lRequestNumber) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8470,11 +8470,11 @@ int64_t OT_API::GetBasketMinimumTransferAmount(
 // (Caller is responsible to delete.)
 //
 Basket* OT_API::GenerateBasketCreation(
-    const Identifier& USER_ID,
+    const Identifier& NYM_ID,
     int64_t MINIMUM_TRANSFER) const // Must be above zero. If <= 0, defaults to
                                     // 10.
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8494,13 +8494,13 @@ Basket* OT_API::GenerateBasketCreation(
 // ADD BASKET CREATION ITEM
 //
 // Used for creating a request to generate a new basket currency.
-bool OT_API::AddBasketCreationItem(const Identifier& USER_ID, // for
-                                                              // signature.
+bool OT_API::AddBasketCreationItem(const Identifier& NYM_ID, // for
+                                                             // signature.
                                    Basket& theBasket,
                                    const Identifier& INSTRUMENT_DEFINITION_ID,
                                    int64_t MINIMUM_TRANSFER) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8525,7 +8525,7 @@ bool OT_API::AddBasketCreationItem(const Identifier& USER_ID, // for
 // ISSUE BASKET CREATION REQUEST (to server.)
 //
 int32_t OT_API::issueBasket(const Identifier& NOTARY_ID,
-                            const Identifier& USER_ID,
+                            const Identifier& NYM_ID,
                             const String& BASKET_INFO) const
 {
     // Create a basket account, which is like an issuer
@@ -8535,7 +8535,7 @@ int32_t OT_API::issueBasket(const Identifier& NOTARY_ID,
     // a single currency,
     // when in fact the issuence is delegated and distributed across
     // multiple issuers.
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8543,7 +8543,7 @@ int32_t OT_API::issueBasket(const Identifier& NOTARY_ID,
     if (nullptr == pServer) return (-1);
     // AT SOME POINT, BASKET_INFO has been populated with the relevant data.
     // (see test client for example.)
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     Message theMessage;
     int64_t lRequestNumber = 0;
@@ -8602,12 +8602,12 @@ int32_t OT_API::issueBasket(const Identifier& NOTARY_ID,
 // (Caller is responsible to delete.)
 //
 Basket* OT_API::GenerateBasketExchange(
-    const Identifier& NOTARY_ID, const Identifier& USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
     const Identifier& BASKET_ASSET_ACCT_ID, int32_t TRANSFER_MULTIPLE) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8694,12 +8694,12 @@ Basket* OT_API::GenerateBasketExchange(
 // ADD BASKET EXCHANGE ITEM
 //
 bool OT_API::AddBasketExchangeItem(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID, Basket& theBasket,
+                                   const Identifier& NYM_ID, Basket& theBasket,
                                    const Identifier& INSTRUMENT_DEFINITION_ID,
                                    const Identifier& ASSET_ACCT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8891,7 +8891,7 @@ bool OT_API::AddBasketExchangeItem(const Identifier& NOTARY_ID,
 // EXCHANGE (into or out of) BASKET (request to server.)
 //
 int32_t OT_API::exchangeBasket(
-    const Identifier& NOTARY_ID, const Identifier& USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
     const String& BASKET_INFO,
     bool bExchangeInOrOut // exchanging in == true, out == false.
@@ -8901,7 +8901,7 @@ int32_t OT_API::exchangeBasket(
     // currency.
 
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -8914,7 +8914,7 @@ int32_t OT_API::exchangeBasket(
     if (nullptr == pContract) return (-1);
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    const String strNotaryID(NOTARY_ID), strUserID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strUserID(NYM_ID);
 
     // Next load the Basket object out of that contract, and load the
     // RequestBasket object that was passed in.
@@ -8978,7 +8978,7 @@ int32_t OT_API::exchangeBasket(
                     // Create a transaction
                     OTTransaction* pTransaction =
                         OTTransaction::GenerateTransaction(
-                            USER_ID, BASKET_ASSET_ACCT_ID, NOTARY_ID,
+                            NYM_ID, BASKET_ASSET_ACCT_ID, NOTARY_ID,
                             OTTransaction::exchangeBasket,
                             lStoredTransactionNumber);
 
@@ -9054,8 +9054,7 @@ int32_t OT_API::exchangeBasket(
                     pTransaction->SaveContract();
 
                     // set up the ledger
-                    OTLedger theLedger(USER_ID, BASKET_ASSET_ACCT_ID,
-                                       NOTARY_ID);
+                    OTLedger theLedger(NYM_ID, BASKET_ASSET_ACCT_ID, NOTARY_ID);
                     theLedger.GenerateLedger(
                         BASKET_ASSET_ACCT_ID, NOTARY_ID,
                         OTLedger::message); // bGenerateLedger defaults to
@@ -9127,10 +9126,10 @@ int32_t OT_API::exchangeBasket(
 }
 
 int32_t OT_API::getTransactionNumber(const Identifier& NOTARY_ID,
-                                     const Identifier& USER_ID) const
+                                     const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -9173,7 +9172,7 @@ int32_t OT_API::getTransactionNumber(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID,
+                                   const Identifier& NYM_ID,
                                    const Identifier& ACCT_ID,
                                    const int64_t& AMOUNT) const
 {
@@ -9181,7 +9180,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return (-1);
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -9212,7 +9211,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
     const int64_t lTotalAmount = AMOUNT;
     int64_t lAmount = lTotalAmount;
 
-    String strNymID(USER_ID), strFromAcct(ACCT_ID);
+    String strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = false;
@@ -9238,7 +9237,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
 
     // Create a transaction
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-        USER_ID, ACCT_ID, NOTARY_ID, OTTransaction::withdrawal,
+        NYM_ID, ACCT_ID, NOTARY_ID, OTTransaction::withdrawal,
         lStoredTransactionNumber);
 
     // set up the transaction item (each transaction may have multiple items...)
@@ -9251,12 +9250,12 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
     pItem->SetNote(strNote);
     const Nym* pServerNym = pServer->GetContractPublicNym();
 
-    const Identifier SERVER_USER_ID(*pServerNym);
+    const Identifier SERVER_NYM_ID(*pServerNym);
     if ((nullptr != pServerNym) && pMint->LoadMint() &&
         pMint->VerifyMint(const_cast<Nym&>(*pServerNym))) {
         int64_t lRequestNumber = 0;
-        Purse* pPurse = new Purse(NOTARY_ID, CONTRACT_ID, SERVER_USER_ID);
-        Purse* pPurseMyCopy = new Purse(NOTARY_ID, CONTRACT_ID, USER_ID);
+        Purse* pPurse = new Purse(NOTARY_ID, CONTRACT_ID, SERVER_NYM_ID);
+        Purse* pPurseMyCopy = new Purse(NOTARY_ID, CONTRACT_ID, NYM_ID);
 
         // Create all the necessary tokens for the withdrawal amount.
         // Push copies of each token into a purse to be sent to the server,
@@ -9355,7 +9354,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(USER_ID, ACCT_ID, NOTARY_ID);
+        OTLedger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(ACCT_ID, NOTARY_ID,
                                  OTLedger::message); // bGenerateLedger defaults
                                                      // to false, which is
@@ -9421,7 +9420,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID,
+                                const Identifier& NYM_ID,
                                 const Identifier& ACCT_ID,
                                 const String& THE_PURSE) const
 {
@@ -9432,7 +9431,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
     OTPasswordData thePWDataWallet(
         "Depositing a cash purse. Enter master passphrase for wallet.");
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__,
+        NYM_ID, false, __FUNCTION__,
         &thePWDataWallet); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -9453,11 +9452,11 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
     CONTRACT_ID.GetString(strContractID);
     Message theMessage;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
     const Nym* pServerNym = pServer->GetContractPublicNym();
-    const Identifier SERVER_USER_ID(*pServerNym);
-    Purse thePurse(NOTARY_ID, CONTRACT_ID, SERVER_USER_ID);
+    const Identifier SERVER_NYM_ID(*pServerNym);
+    Purse thePurse(NOTARY_ID, CONTRACT_ID, SERVER_NYM_ID);
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = false;
@@ -9487,7 +9486,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
 
     // Create a transaction
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-        USER_ID, ACCT_ID, NOTARY_ID, OTTransaction::deposit,
+        NYM_ID, ACCT_ID, NOTARY_ID, OTTransaction::deposit,
         lStoredTransactionNumber);
     // set up the transaction item (each transaction may have multiple items...)
     OTItem* pItem =
@@ -9518,13 +9517,13 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
     std::unique_ptr<OTNym_or_SymmetricKey> pPurseOwner(
         LoadPurseAndOwnerForMerge(
             THE_PURSE, theSourcePurse, thePassword,
-            false,    // MUST be private, if a nym.
-            &USER_ID, // This can be nullptr, *IF* purse is password-protected.
-                      // (It's just ignored in that case.) Otherwise if it's
-                      // Nym-protected, the purse will have a NymID on it
-                      // already, which is what LoadPurseAndOwnerForMerge will
-                      // try first. If not (it's optional), then USER_ID is the
-                      // ID it will try next, before failing altogether.
+            false,   // MUST be private, if a nym.
+            &NYM_ID, // This can be nullptr, *IF* purse is password-protected.
+                     // (It's just ignored in that case.) Otherwise if it's
+                     // Nym-protected, the purse will have a NymID on it
+                     // already, which is what LoadPurseAndOwnerForMerge will
+                     // try first. If not (it's optional), then NYM_ID is the
+                     // ID it will try next, before failing altogether.
             &strPurseReason));
     if (nullptr != pPurseOwner) {
         OTNym_or_SymmetricKey theServerNymAsOwner(*pServerNym);
@@ -9618,7 +9617,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(USER_ID, ACCT_ID, NOTARY_ID);
+        OTLedger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(ACCT_ID, NOTARY_ID,
                                  OTLedger::message); // bGenerateLedger defaults
                                                      // to false, which is
@@ -9695,7 +9694,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
 //
 int32_t OT_API::payDividend(
     const Identifier& NOTARY_ID,
-    const Identifier& ISSUER_USER_ID,        // must be issuer of
+    const Identifier& ISSUER_NYM_ID,         // must be issuer of
                                              // SHARES_INSTRUMENT_DEFINITION_ID
     const Identifier& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
                                              // shares,
@@ -9713,7 +9712,7 @@ int32_t OT_API::payDividend(
 // shares issued.)
 {
     Nym* pNym =
-        GetOrLoadPrivateNym(ISSUER_USER_ID, false,
+        GetOrLoadPrivateNym(ISSUER_NYM_ID, false,
                             __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
@@ -9800,7 +9799,7 @@ int32_t OT_API::payDividend(
     }
     Message theMessage;
 
-    String strNotaryID(NOTARY_ID), strNymID(ISSUER_USER_ID),
+    String strNotaryID(NOTARY_ID), strNymID(ISSUER_NYM_ID),
         strFromAcct(DIVIDEND_FROM_ACCT_ID);
 
     int64_t lStoredTransactionNumber = 0;
@@ -9832,7 +9831,7 @@ int32_t OT_API::payDividend(
             lStoredTransactionNumber, // server actually ignores this and
                                       // supplies its own transaction number for
                                       // any vouchers.
-            VALID_FROM, VALID_TO, SHARES_ISSUER_ACCT_ID, ISSUER_USER_ID,
+            VALID_FROM, VALID_TO, SHARES_ISSUER_ACCT_ID, ISSUER_NYM_ID,
             DIVIDEND_MEMO);
 
         /*
@@ -9888,7 +9887,7 @@ int32_t OT_API::payDividend(
         else {
             // Create a transaction
             OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-                ISSUER_USER_ID, DIVIDEND_FROM_ACCT_ID, NOTARY_ID,
+                ISSUER_NYM_ID, DIVIDEND_FROM_ACCT_ID, NOTARY_ID,
                 OTTransaction::payDividend, lStoredTransactionNumber);
             // set up the transaction item (each transaction may have multiple
             // items...)
@@ -9960,8 +9959,7 @@ int32_t OT_API::payDividend(
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(ISSUER_USER_ID, DIVIDEND_FROM_ACCT_ID,
-                               NOTARY_ID);
+            OTLedger theLedger(ISSUER_NYM_ID, DIVIDEND_FROM_ACCT_ID, NOTARY_ID);
             theLedger.GenerateLedger(DIVIDEND_FROM_ACCT_ID, NOTARY_ID,
                                      OTLedger::message); // bGenerateLedger
                                                          // defaults to false,
@@ -10029,9 +10027,9 @@ int32_t OT_API::payDividend(
 }
 
 int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID,
+                                const Identifier& NYM_ID,
                                 const Identifier& ACCT_ID,
-                                const Identifier& RECIPIENT_USER_ID,
+                                const Identifier& RECIPIENT_NYM_ID,
                                 const String& CHEQUE_MEMO,
                                 const int64_t& AMOUNT) const
 {
@@ -10039,7 +10037,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
     // and issue a voucher (cashier's cheque)
 
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -10061,7 +10059,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
 
     const int64_t lAmount = AMOUNT;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strFromAcct(ACCT_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
     int64_t lWithdrawTransNum = 0, lVoucherTransNum = 0;
 
@@ -10085,7 +10083,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
         return (-1);
     }
     const String strChequeMemo(CHEQUE_MEMO);
-    const String strRecipientUserID(RECIPIENT_USER_ID);
+    const String strRecipientUserID(RECIPIENT_NYM_ID);
     // Expiration (ignored by server -- it sets its own for its vouchers.)
     const time64_t VALID_FROM =
         OTTimeGetCurrentTime(); // This time is set to TODAY NOW
@@ -10097,9 +10095,9 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
     // constructs the actual voucher.
     Cheque theRequestVoucher(NOTARY_ID, CONTRACT_ID);
     bool bIssueCheque = theRequestVoucher.IssueCheque(
-        lAmount, lVoucherTransNum, VALID_FROM, VALID_TO, ACCT_ID, USER_ID,
+        lAmount, lVoucherTransNum, VALID_FROM, VALID_TO, ACCT_ID, NYM_ID,
         strChequeMemo,
-        (strRecipientUserID.GetLength() > 2) ? &(RECIPIENT_USER_ID) : nullptr);
+        (strRecipientUserID.GetLength() > 2) ? &(RECIPIENT_NYM_ID) : nullptr);
     std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
     std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
 
@@ -10133,7 +10131,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
     else {
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            USER_ID, ACCT_ID, NOTARY_ID, OTTransaction::withdrawal,
+            NYM_ID, ACCT_ID, NOTARY_ID, OTTransaction::withdrawal,
             lWithdrawTransNum);
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -10173,7 +10171,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(USER_ID, ACCT_ID, NOTARY_ID);
+        OTLedger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(ACCT_ID, NOTARY_ID,
                                  OTLedger::message); // bGenerateLedger defaults
                                                      // to false, which is
@@ -10292,11 +10290,11 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
 // (Therefore we won't be retrofitting this function for vouchers.)
 //
 bool OT_API::DiscardCheque(const Identifier& NOTARY_ID,
-                           const Identifier& USER_ID, const Identifier& ACCT_ID,
+                           const Identifier& NYM_ID, const Identifier& ACCT_ID,
                            const String& THE_CHEQUE) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -10317,7 +10315,7 @@ bool OT_API::DiscardCheque(const Identifier& NOTARY_ID,
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)  pServer and pAccount are also good.
     //
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     Cheque theCheque(NOTARY_ID, CONTRACT_ID);
 
@@ -10328,7 +10326,7 @@ bool OT_API::DiscardCheque(const Identifier& NOTARY_ID,
     }
     else if ((theCheque.GetNotaryID() == NOTARY_ID) &&
                (theCheque.GetInstrumentDefinitionID() == CONTRACT_ID) &&
-               (theCheque.GetSenderUserID() == USER_ID) &&
+               (theCheque.GetSenderUserID() == NYM_ID) &&
                (theCheque.GetSenderAcctID() == ACCT_ID)) {
         if (pNym->VerifyIssuedNum(
                 strNotaryID, theCheque.GetTransactionNum())) // we only "add it
@@ -10367,12 +10365,12 @@ bool OT_API::DiscardCheque(const Identifier& NOTARY_ID,
 // cheque, to prevent the recipient from depositing it.
 
 int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
-                              const Identifier& USER_ID,
+                              const Identifier& NYM_ID,
                               const Identifier& ACCT_ID,
                               const String& THE_CHEQUE) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
+        NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -10392,7 +10390,7 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strDepositAcct(ACCT_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strDepositAcct(ACCT_ID);
 
     Cheque theCheque(NOTARY_ID, CONTRACT_ID);
 
@@ -10442,10 +10440,10 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
 
         if (theCheque.HasRemitter())
             bCancellingCheque = ((theCheque.GetRemitterAcctID() == ACCT_ID) &&
-                                 (theCheque.GetRemitterUserID() == USER_ID));
+                                 (theCheque.GetRemitterUserID() == NYM_ID));
         else {
             bCancellingCheque = ((theCheque.GetSenderAcctID() == ACCT_ID) &&
-                                 (theCheque.GetSenderUserID() == USER_ID));
+                                 (theCheque.GetSenderUserID() == NYM_ID));
             if (bCancellingCheque)
                 bCancellingCheque = theCheque.VerifySignature(*pNym);
         }
@@ -10523,7 +10521,7 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
         }                                  // cancelling cheque
         // Create a transaction
         std::unique_ptr<OTTransaction> pTransaction(
-            OTTransaction::GenerateTransaction(USER_ID, ACCT_ID, NOTARY_ID,
+            OTTransaction::GenerateTransaction(NYM_ID, ACCT_ID, NOTARY_ID,
                                                OTTransaction::deposit,
                                                lStoredTransactionNumber));
 
@@ -10584,7 +10582,7 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(USER_ID, ACCT_ID, NOTARY_ID);
+            OTLedger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
             theLedger.GenerateLedger(ACCT_ID, NOTARY_ID,
                                      OTLedger::message); // bGenerateLedger
                                                          // defaults to false,
@@ -10658,7 +10656,7 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
 // the sender), in a message to the server.
 //
 int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID,
+                                   const Identifier& NYM_ID,
                                    const String& THE_PAYMENT_PLAN) const
 {
     OTServerContract* pServer =
@@ -10666,18 +10664,18 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer.  (No need to cleanup.)
     OTPaymentPlan thePlan;
     Message theMessage;
 
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     if (thePlan.LoadContractFromString(THE_PAYMENT_PLAN) &&
         thePlan.VerifySignature(*pNym)) {
         int64_t lRequestNumber = 0;
-        const bool bCancelling = (thePlan.GetRecipientUserID() == USER_ID);
+        const bool bCancelling = (thePlan.GetRecipientUserID() == NYM_ID);
 
         if (bCancelling) {
             if (thePlan.IsCanceled()) {
@@ -10703,7 +10701,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
         // who activates the payment plan. BUT the recipient might ALSO activate
         // it as a way
         // of CANCELLING it. So we check to see if the recipient user is the
-        // same as USER_ID.
+        // same as NYM_ID.
         // If so, then we use the RECIPIENT account here (it's being cancelled.)
         // Otherwise,
         // we use the sender account ID here as normal (it's being activated.)
@@ -10730,10 +10728,10 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
         // and will thus
         // already have its own transaction number set on it.
         //
-        const int64_t lTransactionNum = thePlan.GetOpeningNumber(USER_ID);
+        const int64_t lTransactionNum = thePlan.GetOpeningNumber(NYM_ID);
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            USER_ID, DEPOSITOR_ACCT_ID, NOTARY_ID, OTTransaction::paymentPlan,
+            NYM_ID, DEPOSITOR_ACCT_ID, NOTARY_ID, OTTransaction::paymentPlan,
             lTransactionNum);
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -10773,7 +10771,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(USER_ID, DEPOSITOR_ACCT_ID, NOTARY_ID);
+        OTLedger theLedger(NYM_ID, DEPOSITOR_ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(DEPOSITOR_ACCT_ID, NOTARY_ID,
                                  OTLedger::message); // bGenerateLedger defaults
                                                      // to false, which is
@@ -10837,19 +10835,19 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
 }
 
 // If a smart contract is already running on a specific server, and the Nym in
-// question (USER_ID)
+// question (NYM_ID)
 // is an authorized agent for that smart contract, then he can trigger clauses.
 // All he needs is
 // the transaction ID for the smart contract, and the name of the clause.
 //
 int32_t OT_API::triggerClause(const Identifier& NOTARY_ID,
-                              const Identifier& USER_ID,
+                              const Identifier& NYM_ID,
                               const int64_t& lTransactionNum,
                               const String& strClauseName,
                               const String* pStrParam) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -10860,7 +10858,7 @@ int32_t OT_API::triggerClause(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -10908,11 +10906,11 @@ int32_t OT_API::triggerClause(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
-                                      const Identifier& USER_ID,
+                                      const Identifier& NYM_ID,
                                       const String& THE_SMART_CONTRACT) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -10922,7 +10920,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     OTSmartContract theContract(NOTARY_ID);
     Message theMessage;
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     if (theContract.LoadContractFromString(THE_SMART_CONTRACT)) {
         int64_t lRequestNumber = 0;
@@ -10931,7 +10929,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
             theContract.FindPartyBasedOnNymAsAuthAgent(*pNym, &pAgent);
         if (nullptr == pParty) {
             otOut << __FUNCTION__
-                  << ": Failure: USER_ID *IS* a valid Nym, but that "
+                  << ": Failure: NYM_ID *IS* a valid Nym, but that "
                      "Nym is not the authorizing agent for any "
                      "of the parties on this contract. Try calling "
                      "ConfirmParty() first.\n";
@@ -11170,7 +11168,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
         // on its party like all the others, but its numbers are also those used
         // for the cron item itself.)
         //
-        theContract.PrepareToActivate(lOpeningTransNo, lClosingTransNo, USER_ID,
+        theContract.PrepareToActivate(lOpeningTransNo, lClosingTransNo, NYM_ID,
                                       theAcctID);
         // This call changes the contract slightly, so it must be re-signed (in
         // order to save changes.)
@@ -11190,7 +11188,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
         // Create a transaction
         //
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            USER_ID, theAcctID, NOTARY_ID, OTTransaction::smartContract,
+            NYM_ID, theAcctID, NOTARY_ID, OTTransaction::smartContract,
             theContract.GetTransactionNum());
 
         // set up the transaction item (each transaction may have multiple
@@ -11226,7 +11224,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
         pTransaction->SignContract(*pNym);
         pTransaction->SaveContract();
         // set up the ledger
-        OTLedger theLedger(USER_ID, theAcctID, NOTARY_ID);
+        OTLedger theLedger(NYM_ID, theAcctID, NOTARY_ID);
 
         theLedger.GenerateLedger(theAcctID, NOTARY_ID,
                                  OTLedger::message); // bGenerateLedger defaults
@@ -11336,7 +11334,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
 /// By transaction number as key.
 ///
 int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID,
+                               const Identifier& NYM_ID,
                                const Identifier& ASSET_ACCT_ID,
                                const int64_t& lTransactionNum) const // so the
                                                                      // server
@@ -11344,7 +11342,7 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
 // offer in Cron.
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -11354,7 +11352,7 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
     // By this point, pServer is a good pointer.  (No need to cleanup.)
     Message theMessage;
 
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     if (pNym->GetTransactionNumCount(strNotaryID) < 1) {
         otOut << "OT_API::cancelCronItem: At least 1 Transaction Number is "
@@ -11377,7 +11375,7 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
 
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            USER_ID, ASSET_ACCT_ID, NOTARY_ID, OTTransaction::cancelCronItem,
+            NYM_ID, ASSET_ACCT_ID, NOTARY_ID, OTTransaction::cancelCronItem,
             lStoredTransactionNumber);
         // set up the transaction item (each transaction may have multiple
         // items...)
@@ -11419,7 +11417,7 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(USER_ID, ASSET_ACCT_ID, NOTARY_ID);
+        OTLedger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(ASSET_ACCT_ID, NOTARY_ID,
                                  OTLedger::message); // bGenerateLedger defaults
                                                      // to false, which is
@@ -11482,7 +11480,7 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
 //
 //
 int32_t OT_API::issueMarketOffer(
-    const Identifier& NOTARY_ID, const Identifier& USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const Identifier& ASSET_ACCT_ID, const Identifier& CURRENCY_ACCT_ID,
     const int64_t& MARKET_SCALE,      // Defaults to minimum of 1. Market
                                       // granularity.
@@ -11507,7 +11505,7 @@ int32_t OT_API::issueMarketOffer(
     // for processing and expiring it.)
 
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
@@ -11536,7 +11534,7 @@ int32_t OT_API::issueMarketOffer(
         return (-1);
     }
     Message theMessage;
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
     if (pNym->GetTransactionNumCount(strNotaryID) < 3) {
         otOut << __FUNCTION__
               << ": At least 3 Transaction Numbers are necessary to "
@@ -11640,7 +11638,7 @@ int32_t OT_API::issueMarketOffer(
         OTOffer theOffer(NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_TYPE_ID,
                          lMarketScale);
         OTTrade theTrade(NOTARY_ID, INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID,
-                         USER_ID, CURRENCY_TYPE_ID, CURRENCY_ACCT_ID);
+                         NYM_ID, CURRENCY_TYPE_ID, CURRENCY_ACCT_ID);
         // MAKE OFFER...
         //
         bool bCreateOffer = theOffer.MakeOffer(
@@ -11690,7 +11688,7 @@ int32_t OT_API::issueMarketOffer(
 
             // Create a transaction
             OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-                USER_ID, ASSET_ACCT_ID, NOTARY_ID, OTTransaction::marketOffer,
+                NYM_ID, ASSET_ACCT_ID, NOTARY_ID, OTTransaction::marketOffer,
                 lStoredTransactionNumber);
 
             // set up the transaction item (each transaction may have multiple
@@ -11746,7 +11744,7 @@ int32_t OT_API::issueMarketOffer(
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(USER_ID, ASSET_ACCT_ID, NOTARY_ID);
+            OTLedger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
             theLedger.GenerateLedger(ASSET_ACCT_ID, NOTARY_ID,
                                      OTLedger::message); // bGenerateLedger
                                                          // defaults to false,
@@ -11838,10 +11836,10 @@ int32_t OT_API::issueMarketOffer(
 /// convenience.)
 ///
 int32_t OT_API::getMarketList(const Identifier& NOTARY_ID,
-                              const Identifier& USER_ID) const
+                              const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -11861,7 +11859,7 @@ int32_t OT_API::getMarketList(const Identifier& NOTARY_ID,
                                                    // server request, I have to
                                                    // increment it
 
-    String strNymID(USER_ID);
+    String strNymID(NYM_ID);
 
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketList";
@@ -11890,12 +11888,12 @@ int32_t OT_API::getMarketList(const Identifier& NOTARY_ID,
 /// server Max)
 ///
 int32_t OT_API::getMarketOffers(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID,
+                                const Identifier& NYM_ID,
                                 const Identifier& MARKET_ID,
                                 const int64_t& lDepth) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -11916,7 +11914,7 @@ int32_t OT_API::getMarketOffers(const Identifier& NOTARY_ID,
                                                    // server request, I have to
                                                    // increment it
 
-    String strNymID(USER_ID);
+    String strNymID(NYM_ID);
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketOffers";
     theMessage.m_strNymID = strNymID;
@@ -11953,11 +11951,11 @@ int32_t OT_API::getMarketOffers(const Identifier& NOTARY_ID,
 /// (So this function is not here to usurp that purpose.)
 ///
 int32_t OT_API::getMarketRecentTrades(const Identifier& NOTARY_ID,
-                                      const Identifier& USER_ID,
+                                      const Identifier& NYM_ID,
                                       const Identifier& MARKET_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -11977,7 +11975,7 @@ int32_t OT_API::getMarketRecentTrades(const Identifier& NOTARY_ID,
                                                    // server request, I have to
                                                    // increment it
 
-    String strNymID(USER_ID);
+    String strNymID(NYM_ID);
     // (1) Set up member variables
     theMessage.m_strCommand = "getMarketRecentTrades";
     theMessage.m_strNymID = strNymID;
@@ -12008,10 +12006,10 @@ int32_t OT_API::getMarketRecentTrades(const Identifier& NOTARY_ID,
 /// and then I request them one-by-one after that...
 ///
 int32_t OT_API::getNym_MarketOffers(const Identifier& NOTARY_ID,
-                                    const Identifier& USER_ID) const
+                                    const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12032,7 +12030,7 @@ int32_t OT_API::getNym_MarketOffers(const Identifier& NOTARY_ID,
                                                    // server request, I have to
                                                    // increment it
 
-    String strNymID(USER_ID);
+    String strNymID(NYM_ID);
 
     // (1) Set up member variables
     theMessage.m_strCommand = "getNym_MarketOffers";
@@ -12056,7 +12054,7 @@ int32_t OT_API::getNym_MarketOffers(const Identifier& NOTARY_ID,
 // ===============================================================
 
 int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
-                                 const Identifier& USER_ID,
+                                 const Identifier& NYM_ID,
                                  const Identifier& ACCT_FROM,
                                  const Identifier& ACCT_TO,
                                  const int64_t& AMOUNT,
@@ -12065,7 +12063,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
     // Request the server to transfer from one account to
     // another.
 
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12081,7 +12079,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
 
     const int64_t lAmount = AMOUNT;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strFromAcct(ACCT_FROM),
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_FROM),
         strToAcct(ACCT_TO);
 
     int64_t lStoredTransactionNumber = 0;
@@ -12091,7 +12089,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
     if (bGotTransNum) {
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            USER_ID, ACCT_FROM, NOTARY_ID, OTTransaction::transfer,
+            NYM_ID, ACCT_FROM, NOTARY_ID, OTTransaction::transfer,
             lStoredTransactionNumber);
 
         // set up the transaction item (each transaction may have multiple
@@ -12188,7 +12186,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(USER_ID, ACCT_FROM, NOTARY_ID);
+            OTLedger theLedger(NYM_ID, ACCT_FROM, NOTARY_ID);
             theLedger.GenerateLedger(ACCT_FROM, NOTARY_ID,
                                      OTLedger::message); // bGenerateLedger
                                                          // defaults to false,
@@ -12260,12 +12258,12 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::getNymbox(const Identifier& NOTARY_ID,
-                          const Identifier& USER_ID) const
+                          const Identifier& NYM_ID) const
 {
     // Grab a copy of my nymbox (contains messages and new
     // transaction numbers)
 
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12276,7 +12274,7 @@ int32_t OT_API::getNymbox(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -12312,13 +12310,13 @@ int32_t OT_API::getNymbox(const Identifier& NOTARY_ID,
 //  UPDATE: This now returns the request number of the message sent, if success.
 //
 int32_t OT_API::processNymbox(const Identifier& NOTARY_ID,
-                              const Identifier& USER_ID) const
+                              const Identifier& NYM_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
-    const String strNymID(USER_ID);
+    const String strNymID(NYM_ID);
     OTServerContract* pServer =
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
@@ -12334,7 +12332,7 @@ int32_t OT_API::processNymbox(const Identifier& NOTARY_ID,
         OTServerContract& theServer = *pServer;
 
         // Load up the appropriate Nymbox...
-        OTLedger theNymbox(USER_ID, USER_ID, NOTARY_ID);
+        OTLedger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
 
         bool bLoadedNymbox = theNymbox.LoadNymbox();
         bool bVerifiedNymbox =
@@ -12412,11 +12410,11 @@ int32_t OT_API::processNymbox(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::processInbox(const Identifier& NOTARY_ID,
-                             const Identifier& USER_ID,
+                             const Identifier& NYM_ID,
                              const Identifier& ACCT_ID,
                              const String& ACCT_LEDGER) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12431,7 +12429,7 @@ int32_t OT_API::processInbox(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCT_ID);
 
     // Normally processInbox command is sent with a transaction ledger
     // in the payload, accepting or rejecting various transactions in
@@ -12489,7 +12487,7 @@ int32_t OT_API::processInbox(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::issueAssetType(const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID,
+                               const Identifier& NYM_ID,
                                const String& THE_CONTRACT) const
 {
 
@@ -12504,7 +12502,7 @@ int32_t OT_API::issueAssetType(const Identifier& NOTARY_ID,
 
     OTWallet* pWallet = GetWallet(__FUNCTION__);
     if (nullptr == pWallet) return (-1);
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12532,7 +12530,7 @@ int32_t OT_API::issueAssetType(const Identifier& NOTARY_ID,
         Message theMessage;
         int64_t lRequestNumber = 0;
 
-        String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+        String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -12612,13 +12610,13 @@ int32_t OT_API::issueAssetType(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::getContract(const Identifier& NOTARY_ID,
-                            const Identifier& USER_ID,
+                            const Identifier& NYM_ID,
                             const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     // Grab the server's copy of any asset contract. Input is
     // the instrument definition ID.
 
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12629,7 +12627,7 @@ int32_t OT_API::getContract(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID),
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -12661,14 +12659,14 @@ int32_t OT_API::getContract(const Identifier& NOTARY_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::getMint(const Identifier& NOTARY_ID, const Identifier& USER_ID,
+int32_t OT_API::getMint(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                         const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     // Grab the server's copy of any mint based on Instrument Definition Id.
     // (For
     // blinded tokens.)
 
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12684,7 +12682,7 @@ int32_t OT_API::getMint(const Identifier& NOTARY_ID, const Identifier& USER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID),
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -12730,7 +12728,7 @@ int32_t OT_API::getMint(const Identifier& NOTARY_ID, const Identifier& USER_ID,
 // in that spot.)
 //
 int32_t OT_API::queryAssetTypes(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID,
+                                const Identifier& NYM_ID,
                                 const OTASCIIArmor& ENCODED_MAP) const
 {
     /*
@@ -12812,7 +12810,7 @@ int32_t OT_API::queryAssetTypes(const Identifier& NOTARY_ID,
         }
 
      */
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12823,7 +12821,7 @@ int32_t OT_API::queryAssetTypes(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -12855,7 +12853,7 @@ int32_t OT_API::queryAssetTypes(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::registerAccount(
-    const Identifier& NOTARY_ID, const Identifier& USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     // Create an asset account for a certain notaryID,
@@ -12868,7 +12866,7 @@ int32_t OT_API::registerAccount(
     // number of accounts
     // for any instrument definition that they choose.
 
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12884,7 +12882,7 @@ int32_t OT_API::registerAccount(
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID),
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -12917,10 +12915,10 @@ int32_t OT_API::registerAccount(
 }
 
 int32_t OT_API::deleteAssetAccount(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID,
+                                   const Identifier& NYM_ID,
                                    const Identifier& ACCOUNT_ID) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12936,7 +12934,7 @@ int32_t OT_API::deleteAssetAccount(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strAcctID(ACCOUNT_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -12969,29 +12967,29 @@ int32_t OT_API::deleteAssetAccount(const Identifier& NOTARY_ID,
 
 bool OT_API::DoesBoxReceiptExist(
     const Identifier& NOTARY_ID,
-    const Identifier& USER_ID,    // Unused here for now, but still convention.
+    const Identifier& NYM_ID,     // Unused here for now, but still convention.
     const Identifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                  // USER_ID in this field also.
+                                  // NYM_ID in this field also.
     int32_t nBoxType,             // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum) const
 {
     // static
     return VerifyBoxReceiptExists(
-        NOTARY_ID, USER_ID, // Unused here for now, but still convention.
-        ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass USER_ID in this
+        NOTARY_ID, NYM_ID, // Unused here for now, but still convention.
+        ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass NYM_ID in this
                     // field also.
         nBoxType,   // 0/nymbox, 1/inbox, 2/outbox
         lTransactionNum);
 }
 
 int32_t OT_API::getBoxReceipt(
-    const Identifier& NOTARY_ID, const Identifier& USER_ID,
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                  // USER_ID in this field also.
+                                  // NYM_ID in this field also.
     int32_t nBoxType,             // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum) const
 {
-    Nym* pNym = GetOrLoadPrivateNym(USER_ID, false, __FUNCTION__);
+    Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -12999,8 +12997,8 @@ int32_t OT_API::getBoxReceipt(
         GetServer(NOTARY_ID, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pServer) return (-1);
     // By this point, pServer is a good pointer.  (No need to cleanup.)
-    if (USER_ID != ACCOUNT_ID) // inbox/outbox (if it were nymbox, the USER_ID
-                               // and ACCOUNT_ID would match)
+    if (NYM_ID != ACCOUNT_ID) // inbox/outbox (if it were nymbox, the NYM_ID
+                              // and ACCOUNT_ID would match)
     {
         Account* pAccount =
             GetOrLoadAccount(*pNym, ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
@@ -13017,7 +13015,7 @@ int32_t OT_API::getBoxReceipt(
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    const String strNotaryID(NOTARY_ID), strNymID(USER_ID),
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
         strAcctID(ACCOUNT_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
@@ -13052,11 +13050,11 @@ int32_t OT_API::getBoxReceipt(
 }
 
 int32_t OT_API::getAccountData(const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID,
+                               const Identifier& NYM_ID,
                                const Identifier& ACCT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -13072,7 +13070,7 @@ int32_t OT_API::getAccountData(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strAcctID(ACCT_ID);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strAcctID(ACCT_ID);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -13104,10 +13102,10 @@ int32_t OT_API::getAccountData(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::getRequestNumber(const Identifier& NOTARY_ID,
-                                 const Identifier& USER_ID) const
+                                 const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -13132,12 +13130,12 @@ int32_t OT_API::getRequestNumber(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::usageCredits(const Identifier& NOTARY_ID,
-                             const Identifier& USER_ID,
-                             const Identifier& USER_ID_CHECK,
+                             const Identifier& NYM_ID,
+                             const Identifier& NYM_ID_CHECK,
                              int64_t lAdjustment) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -13148,7 +13146,7 @@ int32_t OT_API::usageCredits(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strNymID2(USER_ID_CHECK);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strNymID2(NYM_ID_CHECK);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -13182,8 +13180,8 @@ int32_t OT_API::usageCredits(const Identifier& NOTARY_ID,
     return SendMessage(pServer, pNym, theMessage, lRequestNumber);
 }
 
-int32_t OT_API::checkNym(const Identifier& NOTARY_ID, const Identifier& USER_ID,
-                         const Identifier& USER_ID_CHECK) const
+int32_t OT_API::checkNym(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+                         const Identifier& NYM_ID_CHECK) const
 {
     // Request a user's public key based on User ID included with
     // the request.
@@ -13192,7 +13190,7 @@ int32_t OT_API::checkNym(const Identifier& NOTARY_ID, const Identifier& USER_ID,
     // of the tokens, etc, to the Nym of the recipient.)
 
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -13203,7 +13201,7 @@ int32_t OT_API::checkNym(const Identifier& NOTARY_ID, const Identifier& USER_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID), strNymID2(USER_ID_CHECK);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strNymID2(NYM_ID_CHECK);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -13234,8 +13232,8 @@ int32_t OT_API::checkNym(const Identifier& NOTARY_ID, const Identifier& USER_ID,
 }
 
 int32_t OT_API::sendNymMessage(const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID,
-                               const Identifier& USER_ID_RECIPIENT,
+                               const Identifier& NYM_ID,
+                               const Identifier& NYM_ID_RECIPIENT,
                                const String& RECIPIENT_PUBKEY, // unescaped
                                                                // and
                                                                // bookended.
@@ -13245,7 +13243,7 @@ int32_t OT_API::sendNymMessage(const Identifier& NOTARY_ID,
     // public key and dropped into his nymbox.
 
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -13256,8 +13254,8 @@ int32_t OT_API::sendNymMessage(const Identifier& NOTARY_ID,
     Message theMessage;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID),
-        strNymID2(USER_ID_RECIPIENT);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
+        strNymID2(NYM_ID_RECIPIENT);
 
     // (0) Set up the REQUEST NUMBER and then INCREMENT IT
     pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
@@ -13332,14 +13330,14 @@ int32_t OT_API::sendNymMessage(const Identifier& NOTARY_ID,
 // withdrawVoucher
 // is performed, you want to save a copy in your outbox since the transaction
 // number on it is
-// signed out to you.) So I'm updating this function so that if USER_ID and
-// USER_ID_RECIPIENT
+// signed out to you.) So I'm updating this function so that if NYM_ID and
+// NYM_ID_RECIPIENT
 // are the same, it puts a copy in your outpayment box, without sending anything
 // at all.
 //
 int32_t OT_API::sendNymInstrument(
-    const Identifier& NOTARY_ID, const Identifier& USER_ID,
-    const Identifier& USER_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+    const Identifier& NYM_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
     const OTPayment& THE_INSTRUMENT,
     const OTPayment* pINSTRUMENT_FOR_SENDER) const // This is only used for cash
                                                    // purses. It's a copy of the
@@ -13355,7 +13353,7 @@ int32_t OT_API::sendNymInstrument(
 // he needs to.
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -13367,8 +13365,8 @@ int32_t OT_API::sendNymInstrument(
     int32_t nReturnValue = -1;
     int64_t lRequestNumber = 0;
 
-    String strNotaryID(NOTARY_ID), strNymID(USER_ID),
-        strNymID2(USER_ID_RECIPIENT);
+    String strNotaryID(NOTARY_ID), strNymID(NYM_ID),
+        strNymID2(NYM_ID_RECIPIENT);
     String strInstrument, strInstrumentForSender;
     const bool bGotPaymentContents =
         THE_INSTRUMENT.GetPaymentContents(strInstrument);
@@ -13392,8 +13390,7 @@ int32_t OT_API::sendNymInstrument(
         // Solution: Let's just make sure there's not already one there...
         //
         int64_t lTempTransNum = 0;
-        bool bGotTransNum =
-            THE_INSTRUMENT.GetOpeningNum(lTempTransNum, USER_ID);
+        bool bGotTransNum = THE_INSTRUMENT.GetOpeningNum(lTempTransNum, NYM_ID);
         int32_t lOutpaymentsIndex =
             bGotTransNum ? GetOutpaymentsIndexByTransNum(*pNym, lTempTransNum)
                          : (-1);
@@ -13436,7 +13433,7 @@ int32_t OT_API::sendNymInstrument(
     // If they're the same, we only save a copy in the outbox.
     // (We only SEND if they are different.)
     //
-    if (USER_ID != USER_ID_RECIPIENT) {
+    if (NYM_ID != NYM_ID_RECIPIENT) {
         // (0) Set up the REQUEST NUMBER and then INCREMENT IT
         pNym->GetCurrentRequestNum(strNotaryID, lRequestNumber);
         theMessage.m_strRequestNum.Format(
@@ -13495,7 +13492,7 @@ int32_t OT_API::sendNymInstrument(
         else
             otOut << __FUNCTION__ << ": Failed sealing envelope.\n";
     }
-    else // (USER_ID == USER_ID_RECIPIENT)
+    else // (NYM_ID == NYM_ID_RECIPIENT)
     {
         // You may be wondering why this code seems to repeat?
         // The answer is because above, it needs to happen BEFORE
@@ -13558,10 +13555,10 @@ int32_t OT_API::sendNymInstrument(
 // Update: DONE.
 
 int32_t OT_API::registerNym(const Identifier& NOTARY_ID,
-                            const Identifier& USER_ID) const
+                            const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -13587,10 +13584,10 @@ int32_t OT_API::registerNym(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::unregisterNym(const Identifier& NOTARY_ID,
-                              const Identifier& USER_ID) const
+                              const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)
@@ -13615,10 +13612,10 @@ int32_t OT_API::unregisterNym(const Identifier& NOTARY_ID,
 }
 
 int32_t OT_API::pingNotary(const Identifier& NOTARY_ID,
-                           const Identifier& USER_ID) const
+                           const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
-        USER_ID, false, __FUNCTION__); // This ASSERTs and logs already.
+        NYM_ID, false, __FUNCTION__); // This ASSERTs and logs already.
     if (nullptr == pNym) return (-1);
     // By this point, pNym is a good pointer, and is on the wallet.
     //  (No need to cleanup.)

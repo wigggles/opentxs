@@ -567,30 +567,30 @@ bool OTAPI_Wrap::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID)
 }
 
 bool OTAPI_Wrap::DoesBoxReceiptExist(const std::string& NOTARY_ID,
-                                     const std::string& USER_ID,
+                                     const std::string& NYM_ID,
                                      const std::string& ACCOUNT_ID,
                                      const int32_t& nBoxType,
                                      const int64_t& TRANSACTION_NUMBER)
 {
-    return Exec()->DoesBoxReceiptExist(NOTARY_ID, USER_ID, ACCOUNT_ID, nBoxType,
+    return Exec()->DoesBoxReceiptExist(NOTARY_ID, NYM_ID, ACCOUNT_ID, nBoxType,
                                        TRANSACTION_NUMBER);
 }
 
 int32_t OTAPI_Wrap::getBoxReceipt(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID,
+                                  const std::string& NYM_ID,
                                   const std::string& ACCOUNT_ID,
                                   const int32_t& nBoxType,
                                   const int64_t& TRANSACTION_NUMBER)
 {
-    return Exec()->getBoxReceipt(NOTARY_ID, USER_ID, ACCOUNT_ID, nBoxType,
+    return Exec()->getBoxReceipt(NOTARY_ID, NYM_ID, ACCOUNT_ID, nBoxType,
                                  TRANSACTION_NUMBER);
 }
 
 int32_t OTAPI_Wrap::deleteAssetAccount(const std::string& NOTARY_ID,
-                                       const std::string& USER_ID,
+                                       const std::string& NYM_ID,
                                        const std::string& ACCOUNT_ID)
 {
-    return Exec()->deleteAssetAccount(NOTARY_ID, USER_ID, ACCOUNT_ID);
+    return Exec()->deleteAssetAccount(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string OTAPI_Wrap::Wallet_ExportNym(const std::string& NYM_ID)
@@ -1062,27 +1062,27 @@ std::string OTAPI_Wrap::GetAccountWallet_NymID(const std::string& THE_ID)
 std::string OTAPI_Wrap::WriteCheque(
     const std::string& NOTARY_ID, const int64_t& CHEQUE_AMOUNT,
     const time64_t& VALID_FROM, const time64_t& VALID_TO,
-    const std::string& SENDER_ACCT_ID, const std::string& SENDER_USER_ID,
-    const std::string& CHEQUE_MEMO, const std::string& RECIPIENT_USER_ID)
+    const std::string& SENDER_ACCT_ID, const std::string& SENDER_NYM_ID,
+    const std::string& CHEQUE_MEMO, const std::string& RECIPIENT_NYM_ID)
 {
     return Exec()->WriteCheque(NOTARY_ID, CHEQUE_AMOUNT, VALID_FROM, VALID_TO,
-                               SENDER_ACCT_ID, SENDER_USER_ID, CHEQUE_MEMO,
-                               RECIPIENT_USER_ID);
+                               SENDER_ACCT_ID, SENDER_NYM_ID, CHEQUE_MEMO,
+                               RECIPIENT_NYM_ID);
 }
 
 bool OTAPI_Wrap::DiscardCheque(const std::string& NOTARY_ID,
-                               const std::string& USER_ID,
+                               const std::string& NYM_ID,
                                const std::string& ACCT_ID,
                                const std::string& THE_CHEQUE)
 {
-    return Exec()->DiscardCheque(NOTARY_ID, USER_ID, ACCT_ID, THE_CHEQUE);
+    return Exec()->DiscardCheque(NOTARY_ID, NYM_ID, ACCT_ID, THE_CHEQUE);
 }
 
 std::string OTAPI_Wrap::ProposePaymentPlan(
     const std::string& NOTARY_ID, const time64_t& VALID_FROM,
     const time64_t& VALID_TO, const std::string& SENDER_ACCT_ID,
-    const std::string& SENDER_USER_ID, const std::string& PLAN_CONSIDERATION,
-    const std::string& RECIPIENT_ACCT_ID, const std::string& RECIPIENT_USER_ID,
+    const std::string& SENDER_NYM_ID, const std::string& PLAN_CONSIDERATION,
+    const std::string& RECIPIENT_ACCT_ID, const std::string& RECIPIENT_NYM_ID,
     const int64_t& INITIAL_PAYMENT_AMOUNT,
     const time64_t& INITIAL_PAYMENT_DELAY, const int64_t& PAYMENT_PLAN_AMOUNT,
     const time64_t& PAYMENT_PLAN_DELAY, const time64_t& PAYMENT_PLAN_PERIOD,
@@ -1090,8 +1090,8 @@ std::string OTAPI_Wrap::ProposePaymentPlan(
     const int32_t& PAYMENT_PLAN_MAX_PAYMENTS)
 {
     return Exec()->ProposePaymentPlan(
-        NOTARY_ID, VALID_FROM, VALID_TO, SENDER_ACCT_ID, SENDER_USER_ID,
-        PLAN_CONSIDERATION, RECIPIENT_ACCT_ID, RECIPIENT_USER_ID,
+        NOTARY_ID, VALID_FROM, VALID_TO, SENDER_ACCT_ID, SENDER_NYM_ID,
+        PLAN_CONSIDERATION, RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID,
         INITIAL_PAYMENT_AMOUNT, INITIAL_PAYMENT_DELAY, PAYMENT_PLAN_AMOUNT,
         PAYMENT_PLAN_DELAY, PAYMENT_PLAN_PERIOD, PAYMENT_PLAN_LENGTH,
         PAYMENT_PLAN_MAX_PAYMENTS);
@@ -1099,25 +1099,25 @@ std::string OTAPI_Wrap::ProposePaymentPlan(
 
 std::string OTAPI_Wrap::EasyProposePlan(
     const std::string& NOTARY_ID, const std::string& DATE_RANGE,
-    const std::string& SENDER_ACCT_ID, const std::string& SENDER_USER_ID,
+    const std::string& SENDER_ACCT_ID, const std::string& SENDER_NYM_ID,
     const std::string& PLAN_CONSIDERATION, const std::string& RECIPIENT_ACCT_ID,
-    const std::string& RECIPIENT_USER_ID, const std::string& INITIAL_PAYMENT,
+    const std::string& RECIPIENT_NYM_ID, const std::string& INITIAL_PAYMENT,
     const std::string& PAYMENT_PLAN, const std::string& PLAN_EXPIRY)
 {
     return Exec()->EasyProposePlan(NOTARY_ID, DATE_RANGE, SENDER_ACCT_ID,
-                                   SENDER_USER_ID, PLAN_CONSIDERATION,
-                                   RECIPIENT_ACCT_ID, RECIPIENT_USER_ID,
+                                   SENDER_NYM_ID, PLAN_CONSIDERATION,
+                                   RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID,
                                    INITIAL_PAYMENT, PAYMENT_PLAN, PLAN_EXPIRY);
 }
 
 std::string OTAPI_Wrap::ConfirmPaymentPlan(const std::string& NOTARY_ID,
-                                           const std::string& SENDER_USER_ID,
+                                           const std::string& SENDER_NYM_ID,
                                            const std::string& SENDER_ACCT_ID,
-                                           const std::string& RECIPIENT_USER_ID,
+                                           const std::string& RECIPIENT_NYM_ID,
                                            const std::string& PAYMENT_PLAN)
 {
-    return Exec()->ConfirmPaymentPlan(NOTARY_ID, SENDER_USER_ID, SENDER_ACCT_ID,
-                                      RECIPIENT_USER_ID, PAYMENT_PLAN);
+    return Exec()->ConfirmPaymentPlan(NOTARY_ID, SENDER_NYM_ID, SENDER_ACCT_ID,
+                                      RECIPIENT_NYM_ID, PAYMENT_PLAN);
 }
 
 std::string OTAPI_Wrap::Create_SmartContract(const std::string& SIGNER_NYM_ID,
@@ -1421,57 +1421,56 @@ std::string OTAPI_Wrap::Party_GetAgentID(const std::string& THE_CONTRACT,
 }
 
 int32_t OTAPI_Wrap::activateSmartContract(const std::string& NOTARY_ID,
-                                          const std::string& USER_ID,
+                                          const std::string& NYM_ID,
                                           const std::string& THE_SMART_CONTRACT)
 {
-    return Exec()->activateSmartContract(NOTARY_ID, USER_ID,
-                                         THE_SMART_CONTRACT);
+    return Exec()->activateSmartContract(NOTARY_ID, NYM_ID, THE_SMART_CONTRACT);
 }
 
 int32_t OTAPI_Wrap::triggerClause(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID,
+                                  const std::string& NYM_ID,
                                   const int64_t& TRANSACTION_NUMBER,
                                   const std::string& CLAUSE_NAME,
                                   const std::string& STR_PARAM)
 {
-    return Exec()->triggerClause(NOTARY_ID, USER_ID, TRANSACTION_NUMBER,
+    return Exec()->triggerClause(NOTARY_ID, NYM_ID, TRANSACTION_NUMBER,
                                  CLAUSE_NAME, STR_PARAM);
 }
 
 bool OTAPI_Wrap::Msg_HarvestTransactionNumbers(
-    const std::string& THE_MESSAGE, const std::string& USER_ID,
+    const std::string& THE_MESSAGE, const std::string& NYM_ID,
     const bool& bHarvestingForRetry, const bool& bReplyWasSuccess,
     const bool& bReplyWasFailure, const bool& bTransactionWasSuccess,
     const bool& bTransactionWasFailure)
 {
     return Exec()->Msg_HarvestTransactionNumbers(
-        THE_MESSAGE, USER_ID, bHarvestingForRetry, bReplyWasSuccess,
+        THE_MESSAGE, NYM_ID, bHarvestingForRetry, bReplyWasSuccess,
         bReplyWasFailure, bTransactionWasSuccess, bTransactionWasFailure);
 }
 
-std::string OTAPI_Wrap::LoadPubkey_Encryption(const std::string& USER_ID)
+std::string OTAPI_Wrap::LoadPubkey_Encryption(const std::string& NYM_ID)
 {
-    return Exec()->LoadPubkey_Encryption(USER_ID);
+    return Exec()->LoadPubkey_Encryption(NYM_ID);
 }
 
-std::string OTAPI_Wrap::LoadPubkey_Signing(const std::string& USER_ID)
+std::string OTAPI_Wrap::LoadPubkey_Signing(const std::string& NYM_ID)
 {
-    return Exec()->LoadPubkey_Signing(USER_ID);
+    return Exec()->LoadPubkey_Signing(NYM_ID);
 }
 
-std::string OTAPI_Wrap::LoadUserPubkey_Encryption(const std::string& USER_ID)
+std::string OTAPI_Wrap::LoadUserPubkey_Encryption(const std::string& NYM_ID)
 {
-    return Exec()->LoadUserPubkey_Encryption(USER_ID);
+    return Exec()->LoadUserPubkey_Encryption(NYM_ID);
 }
 
-std::string OTAPI_Wrap::LoadUserPubkey_Signing(const std::string& USER_ID)
+std::string OTAPI_Wrap::LoadUserPubkey_Signing(const std::string& NYM_ID)
 {
-    return Exec()->LoadUserPubkey_Signing(USER_ID);
+    return Exec()->LoadUserPubkey_Signing(NYM_ID);
 }
 
-bool OTAPI_Wrap::VerifyUserPrivateKey(const std::string& USER_ID)
+bool OTAPI_Wrap::VerifyUserPrivateKey(const std::string& NYM_ID)
 {
-    return Exec()->VerifyUserPrivateKey(USER_ID);
+    return Exec()->VerifyUserPrivateKey(NYM_ID);
 }
 
 bool OTAPI_Wrap::Mint_IsStillGood(const std::string& NOTARY_ID,
@@ -1498,348 +1497,348 @@ std::string OTAPI_Wrap::LoadServerContract(const std::string& NOTARY_ID)
 }
 
 std::string OTAPI_Wrap::LoadAssetAccount(const std::string& NOTARY_ID,
-                                         const std::string& USER_ID,
+                                         const std::string& NYM_ID,
                                          const std::string& ACCOUNT_ID)
 {
-    return Exec()->LoadAssetAccount(NOTARY_ID, USER_ID, ACCOUNT_ID);
+    return Exec()->LoadAssetAccount(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string OTAPI_Wrap::Nymbox_GetReplyNotice(const std::string& NOTARY_ID,
-                                              const std::string& USER_ID,
+                                              const std::string& NYM_ID,
                                               const int64_t& REQUEST_NUMBER)
 {
-    return Exec()->Nymbox_GetReplyNotice(NOTARY_ID, USER_ID, REQUEST_NUMBER);
+    return Exec()->Nymbox_GetReplyNotice(NOTARY_ID, NYM_ID, REQUEST_NUMBER);
 }
 
 bool OTAPI_Wrap::HaveAlreadySeenReply(const std::string& NOTARY_ID,
-                                      const std::string& USER_ID,
+                                      const std::string& NYM_ID,
                                       const int64_t& REQUEST_NUMBER)
 {
-    return Exec()->HaveAlreadySeenReply(NOTARY_ID, USER_ID, REQUEST_NUMBER);
+    return Exec()->HaveAlreadySeenReply(NOTARY_ID, NYM_ID, REQUEST_NUMBER);
 }
 
 std::string OTAPI_Wrap::LoadNymbox(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID)
+                                   const std::string& NYM_ID)
 {
-    return Exec()->LoadNymbox(NOTARY_ID, USER_ID);
+    return Exec()->LoadNymbox(NOTARY_ID, NYM_ID);
 }
 
 std::string OTAPI_Wrap::LoadNymboxNoVerify(const std::string& NOTARY_ID,
-                                           const std::string& USER_ID)
+                                           const std::string& NYM_ID)
 {
-    return Exec()->LoadNymboxNoVerify(NOTARY_ID, USER_ID);
+    return Exec()->LoadNymboxNoVerify(NOTARY_ID, NYM_ID);
 }
 
 std::string OTAPI_Wrap::LoadInbox(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID,
+                                  const std::string& NYM_ID,
                                   const std::string& ACCOUNT_ID)
 {
-    return Exec()->LoadInbox(NOTARY_ID, USER_ID, ACCOUNT_ID);
+    return Exec()->LoadInbox(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string OTAPI_Wrap::LoadInboxNoVerify(const std::string& NOTARY_ID,
-                                          const std::string& USER_ID,
+                                          const std::string& NYM_ID,
                                           const std::string& ACCOUNT_ID)
 {
-    return Exec()->LoadInboxNoVerify(NOTARY_ID, USER_ID, ACCOUNT_ID);
+    return Exec()->LoadInboxNoVerify(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string OTAPI_Wrap::LoadOutbox(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
+                                   const std::string& NYM_ID,
                                    const std::string& ACCOUNT_ID)
 {
-    return Exec()->LoadOutbox(NOTARY_ID, USER_ID, ACCOUNT_ID);
+    return Exec()->LoadOutbox(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string OTAPI_Wrap::LoadOutboxNoVerify(const std::string& NOTARY_ID,
-                                           const std::string& USER_ID,
+                                           const std::string& NYM_ID,
                                            const std::string& ACCOUNT_ID)
 {
-    return Exec()->LoadOutboxNoVerify(NOTARY_ID, USER_ID, ACCOUNT_ID);
+    return Exec()->LoadOutboxNoVerify(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string OTAPI_Wrap::LoadPaymentInbox(const std::string& NOTARY_ID,
-                                         const std::string& USER_ID)
+                                         const std::string& NYM_ID)
 {
-    return Exec()->LoadPaymentInbox(NOTARY_ID, USER_ID);
+    return Exec()->LoadPaymentInbox(NOTARY_ID, NYM_ID);
 }
 
 std::string OTAPI_Wrap::LoadPaymentInboxNoVerify(const std::string& NOTARY_ID,
-                                                 const std::string& USER_ID)
+                                                 const std::string& NYM_ID)
 {
-    return Exec()->LoadPaymentInboxNoVerify(NOTARY_ID, USER_ID);
+    return Exec()->LoadPaymentInboxNoVerify(NOTARY_ID, NYM_ID);
 }
 
 std::string OTAPI_Wrap::LoadRecordBox(const std::string& NOTARY_ID,
-                                      const std::string& USER_ID,
+                                      const std::string& NYM_ID,
                                       const std::string& ACCOUNT_ID)
 {
-    return Exec()->LoadRecordBox(NOTARY_ID, USER_ID, ACCOUNT_ID);
+    return Exec()->LoadRecordBox(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string OTAPI_Wrap::LoadRecordBoxNoVerify(const std::string& NOTARY_ID,
-                                              const std::string& USER_ID,
+                                              const std::string& NYM_ID,
                                               const std::string& ACCOUNT_ID)
 {
-    return Exec()->LoadRecordBoxNoVerify(NOTARY_ID, USER_ID, ACCOUNT_ID);
+    return Exec()->LoadRecordBoxNoVerify(NOTARY_ID, NYM_ID, ACCOUNT_ID);
 }
 
 std::string OTAPI_Wrap::LoadExpiredBox(const std::string& NOTARY_ID,
-                                       const std::string& USER_ID)
+                                       const std::string& NYM_ID)
 {
-    return Exec()->LoadExpiredBox(NOTARY_ID, USER_ID);
+    return Exec()->LoadExpiredBox(NOTARY_ID, NYM_ID);
 }
 
 std::string OTAPI_Wrap::LoadExpiredBoxNoVerify(const std::string& NOTARY_ID,
-                                               const std::string& USER_ID)
+                                               const std::string& NYM_ID)
 {
-    return Exec()->LoadExpiredBoxNoVerify(NOTARY_ID, USER_ID);
+    return Exec()->LoadExpiredBoxNoVerify(NOTARY_ID, NYM_ID);
 }
 
 bool OTAPI_Wrap::RecordPayment(const std::string& NOTARY_ID,
-                               const std::string& USER_ID, const bool& bIsInbox,
+                               const std::string& NYM_ID, const bool& bIsInbox,
                                const int32_t& nIndex, const bool& bSaveCopy)
 {
-    return Exec()->RecordPayment(NOTARY_ID, USER_ID, bIsInbox, nIndex,
+    return Exec()->RecordPayment(NOTARY_ID, NYM_ID, bIsInbox, nIndex,
                                  bSaveCopy);
 }
 
 bool OTAPI_Wrap::ClearRecord(const std::string& NOTARY_ID,
-                             const std::string& USER_ID,
+                             const std::string& NYM_ID,
                              const std::string& ACCOUNT_ID,
                              const int32_t& nIndex, const bool& bClearAll)
 {
-    return Exec()->ClearRecord(NOTARY_ID, USER_ID, ACCOUNT_ID, nIndex,
+    return Exec()->ClearRecord(NOTARY_ID, NYM_ID, ACCOUNT_ID, nIndex,
                                bClearAll);
 }
 
 bool OTAPI_Wrap::ClearExpired(const std::string& NOTARY_ID,
-                              const std::string& USER_ID, const int32_t& nIndex,
+                              const std::string& NYM_ID, const int32_t& nIndex,
                               const bool& bClearAll)
 {
-    return Exec()->ClearExpired(NOTARY_ID, USER_ID, nIndex, bClearAll);
+    return Exec()->ClearExpired(NOTARY_ID, NYM_ID, nIndex, bClearAll);
 }
 
 int32_t OTAPI_Wrap::Ledger_GetCount(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ACCOUNT_ID,
                                     const std::string& THE_LEDGER)
 {
-    return Exec()->Ledger_GetCount(NOTARY_ID, USER_ID, ACCOUNT_ID, THE_LEDGER);
+    return Exec()->Ledger_GetCount(NOTARY_ID, NYM_ID, ACCOUNT_ID, THE_LEDGER);
 }
 
 std::string OTAPI_Wrap::Ledger_CreateResponse(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& ORIGINAL_LEDGER)
 {
-    return Exec()->Ledger_CreateResponse(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Ledger_CreateResponse(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                          ORIGINAL_LEDGER);
 }
 
 std::string OTAPI_Wrap::Ledger_GetTransactionByIndex(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const int32_t& nIndex)
 {
-    return Exec()->Ledger_GetTransactionByIndex(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Ledger_GetTransactionByIndex(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                                 THE_LEDGER, nIndex);
 }
 
 std::string OTAPI_Wrap::Ledger_GetTransactionByID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const int64_t& TRANSACTION_NUMBER)
 {
-    return Exec()->Ledger_GetTransactionByID(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Ledger_GetTransactionByID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                              THE_LEDGER, TRANSACTION_NUMBER);
 }
 
 std::string OTAPI_Wrap::Ledger_GetInstrument(const std::string& NOTARY_ID,
-                                             const std::string& USER_ID,
+                                             const std::string& NYM_ID,
                                              const std::string& ACCOUNT_ID,
                                              const std::string& THE_LEDGER,
                                              const int32_t& nIndex)
 {
-    return Exec()->Ledger_GetInstrument(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Ledger_GetInstrument(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                         THE_LEDGER, nIndex);
 }
 
 int64_t OTAPI_Wrap::Ledger_GetTransactionIDByIndex(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const int32_t& nIndex)
 {
-    return Exec()->Ledger_GetTransactionIDByIndex(
-        NOTARY_ID, USER_ID, ACCOUNT_ID, THE_LEDGER, nIndex);
+    return Exec()->Ledger_GetTransactionIDByIndex(NOTARY_ID, NYM_ID, ACCOUNT_ID,
+                                                  THE_LEDGER, nIndex);
 }
 
 std::string OTAPI_Wrap::Ledger_AddTransaction(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const std::string& THE_TRANSACTION)
 {
-    return Exec()->Ledger_AddTransaction(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Ledger_AddTransaction(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                          THE_LEDGER, THE_TRANSACTION);
 }
 
 std::string OTAPI_Wrap::Transaction_CreateResponse(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const std::string& THE_TRANSACTION, const bool& BOOL_DO_I_ACCEPT)
 {
-    return Exec()->Transaction_CreateResponse(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_CreateResponse(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                               THE_LEDGER, THE_TRANSACTION,
                                               BOOL_DO_I_ACCEPT);
 }
 
 std::string OTAPI_Wrap::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
-                                                const std::string& USER_ID,
+                                                const std::string& NYM_ID,
                                                 const std::string& ACCOUNT_ID,
                                                 const std::string& THE_LEDGER)
 {
-    return Exec()->Ledger_FinalizeResponse(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Ledger_FinalizeResponse(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                            THE_LEDGER);
 }
 
 std::string OTAPI_Wrap::Transaction_GetVoucher(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetVoucher(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_GetVoucher(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                           THE_TRANSACTION);
 }
 
 std::string OTAPI_Wrap::Transaction_GetSenderUserID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetSenderUserID(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_GetSenderUserID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                                THE_TRANSACTION);
 }
 
 std::string OTAPI_Wrap::Transaction_GetRecipientUserID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetRecipientUserID(NOTARY_ID, USER_ID,
-                                                  ACCOUNT_ID, THE_TRANSACTION);
+    return Exec()->Transaction_GetRecipientUserID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
+                                                  THE_TRANSACTION);
 }
 
 std::string OTAPI_Wrap::Transaction_GetSenderAcctID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetSenderAcctID(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_GetSenderAcctID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                                THE_TRANSACTION);
 }
 
 std::string OTAPI_Wrap::Transaction_GetRecipientAcctID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetRecipientAcctID(NOTARY_ID, USER_ID,
-                                                  ACCOUNT_ID, THE_TRANSACTION);
+    return Exec()->Transaction_GetRecipientAcctID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
+                                                  THE_TRANSACTION);
 }
 
 std::string OTAPI_Wrap::Pending_GetNote(const std::string& NOTARY_ID,
-                                        const std::string& USER_ID,
+                                        const std::string& NYM_ID,
                                         const std::string& ACCOUNT_ID,
                                         const std::string& THE_TRANSACTION)
 {
-    return Exec()->Pending_GetNote(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Pending_GetNote(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                    THE_TRANSACTION);
 }
 
 int64_t OTAPI_Wrap::Transaction_GetAmount(const std::string& NOTARY_ID,
-                                          const std::string& USER_ID,
+                                          const std::string& NYM_ID,
                                           const std::string& ACCOUNT_ID,
                                           const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetAmount(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_GetAmount(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                          THE_TRANSACTION);
 }
 
 int64_t OTAPI_Wrap::Transaction_GetDisplayReferenceToNum(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
     return Exec()->Transaction_GetDisplayReferenceToNum(
-        NOTARY_ID, USER_ID, ACCOUNT_ID, THE_TRANSACTION);
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, THE_TRANSACTION);
 }
 
 std::string OTAPI_Wrap::Transaction_GetType(const std::string& NOTARY_ID,
-                                            const std::string& USER_ID,
+                                            const std::string& NYM_ID,
                                             const std::string& ACCOUNT_ID,
                                             const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetType(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_GetType(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                        THE_TRANSACTION);
 }
 
 int64_t OTAPI_Wrap::ReplyNotice_GetRequestNum(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_TRANSACTION)
 {
-    return Exec()->ReplyNotice_GetRequestNum(NOTARY_ID, USER_ID,
+    return Exec()->ReplyNotice_GetRequestNum(NOTARY_ID, NYM_ID,
                                              THE_TRANSACTION);
 }
 
 time64_t OTAPI_Wrap::Transaction_GetDateSigned(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetDateSigned(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_GetDateSigned(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                              THE_TRANSACTION);
 }
 
 OT_BOOL OTAPI_Wrap::Transaction_GetSuccess(const std::string& NOTARY_ID,
-                                           const std::string& USER_ID,
+                                           const std::string& NYM_ID,
                                            const std::string& ACCOUNT_ID,
                                            const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetSuccess(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_GetSuccess(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                           THE_TRANSACTION);
 }
 
 OT_BOOL OTAPI_Wrap::Transaction_IsCanceled(const std::string& NOTARY_ID,
-                                           const std::string& USER_ID,
+                                           const std::string& NYM_ID,
                                            const std::string& ACCOUNT_ID,
                                            const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_IsCanceled(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Transaction_IsCanceled(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                           THE_TRANSACTION);
 }
 
 OT_BOOL OTAPI_Wrap::Transaction_GetBalanceAgreementSuccess(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
     return Exec()->Transaction_GetBalanceAgreementSuccess(
-        NOTARY_ID, USER_ID, ACCOUNT_ID, THE_TRANSACTION);
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, THE_TRANSACTION);
 }
 
 OT_BOOL OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE)
 {
-    return Exec()->Message_GetBalanceAgreementSuccess(NOTARY_ID, USER_ID,
+    return Exec()->Message_GetBalanceAgreementSuccess(NOTARY_ID, NYM_ID,
                                                       ACCOUNT_ID, THE_MESSAGE);
 }
 
 bool OTAPI_Wrap::SavePurse(const std::string& NOTARY_ID,
                            const std::string& INSTRUMENT_DEFINITION_ID,
-                           const std::string& USER_ID,
+                           const std::string& NYM_ID,
                            const std::string& THE_PURSE)
 {
-    return Exec()->SavePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, USER_ID,
+    return Exec()->SavePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID,
                              THE_PURSE);
 }
 
 std::string OTAPI_Wrap::LoadPurse(const std::string& NOTARY_ID,
                                   const std::string& INSTRUMENT_DEFINITION_ID,
-                                  const std::string& USER_ID)
+                                  const std::string& NYM_ID)
 {
-    return Exec()->LoadPurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, USER_ID);
+    return Exec()->LoadPurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID);
 }
 
 int64_t OTAPI_Wrap::Purse_GetTotalValue(
@@ -1920,19 +1919,19 @@ std::string OTAPI_Wrap::Purse_Push(const std::string& NOTARY_ID,
 
 bool OTAPI_Wrap::Wallet_ImportPurse(const std::string& NOTARY_ID,
                                     const std::string& INSTRUMENT_DEFINITION_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& THE_PURSE)
 {
     return Exec()->Wallet_ImportPurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID,
-                                      USER_ID, THE_PURSE);
+                                      NYM_ID, THE_PURSE);
 }
 
 int32_t OTAPI_Wrap::exchangePurse(const std::string& NOTARY_ID,
                                   const std::string& INSTRUMENT_DEFINITION_ID,
-                                  const std::string& USER_ID,
+                                  const std::string& NYM_ID,
                                   const std::string& THE_PURSE)
 {
-    return Exec()->exchangePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, USER_ID,
+    return Exec()->exchangePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID,
                                  THE_PURSE);
 }
 
@@ -2029,21 +2028,21 @@ int64_t OTAPI_Wrap::Basket_GetMemberMinimumTransferAmount(
 }
 
 int32_t OTAPI_Wrap::pingNotary(const std::string& NOTARY_ID,
-                               const std::string& USER_ID)
+                               const std::string& NYM_ID)
 {
-    return Exec()->pingNotary(NOTARY_ID, USER_ID);
+    return Exec()->pingNotary(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::registerNym(const std::string& NOTARY_ID,
-                                const std::string& USER_ID)
+                                const std::string& NYM_ID)
 {
-    return Exec()->registerNym(NOTARY_ID, USER_ID);
+    return Exec()->registerNym(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::unregisterNym(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID)
+                                  const std::string& NYM_ID)
 {
-    return Exec()->unregisterNym(NOTARY_ID, USER_ID);
+    return Exec()->unregisterNym(NOTARY_ID, NYM_ID);
 }
 
 int64_t OTAPI_Wrap::Message_GetUsageCredits(const std::string& THE_MESSAGE)
@@ -2052,241 +2051,239 @@ int64_t OTAPI_Wrap::Message_GetUsageCredits(const std::string& THE_MESSAGE)
 }
 
 int32_t OTAPI_Wrap::usageCredits(const std::string& NOTARY_ID,
-                                 const std::string& USER_ID,
-                                 const std::string& USER_ID_CHECK,
+                                 const std::string& NYM_ID,
+                                 const std::string& NYM_ID_CHECK,
                                  const int64_t& ADJUSTMENT)
 {
-    return Exec()->usageCredits(NOTARY_ID, USER_ID, USER_ID_CHECK, ADJUSTMENT);
+    return Exec()->usageCredits(NOTARY_ID, NYM_ID, NYM_ID_CHECK, ADJUSTMENT);
 }
 
 int32_t OTAPI_Wrap::checkNym(const std::string& NOTARY_ID,
-                             const std::string& USER_ID,
-                             const std::string& USER_ID_CHECK)
+                             const std::string& NYM_ID,
+                             const std::string& NYM_ID_CHECK)
 {
-    return Exec()->checkNym(NOTARY_ID, USER_ID, USER_ID_CHECK);
+    return Exec()->checkNym(NOTARY_ID, NYM_ID, NYM_ID_CHECK);
 }
 
 int32_t OTAPI_Wrap::sendNymMessage(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
-                                   const std::string& USER_ID_RECIPIENT,
+                                   const std::string& NYM_ID,
+                                   const std::string& NYM_ID_RECIPIENT,
                                    const std::string& RECIPIENT_PUBKEY,
                                    const std::string& THE_MESSAGE)
 {
-    return Exec()->sendNymMessage(NOTARY_ID, USER_ID, USER_ID_RECIPIENT,
+    return Exec()->sendNymMessage(NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT,
                                   RECIPIENT_PUBKEY, THE_MESSAGE);
 }
 
 int32_t OTAPI_Wrap::sendNymInstrument(const std::string& NOTARY_ID,
-                                      const std::string& USER_ID,
-                                      const std::string& USER_ID_RECIPIENT,
+                                      const std::string& NYM_ID,
+                                      const std::string& NYM_ID_RECIPIENT,
                                       const std::string& RECIPIENT_PUBKEY,
                                       const std::string& THE_INSTRUMENT,
                                       const std::string& INSTRUMENT_FOR_SENDER)
 {
-    return Exec()->sendNymInstrument(NOTARY_ID, USER_ID, USER_ID_RECIPIENT,
+    return Exec()->sendNymInstrument(NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT,
                                      RECIPIENT_PUBKEY, THE_INSTRUMENT,
                                      INSTRUMENT_FOR_SENDER);
 }
 
 int32_t OTAPI_Wrap::getRequestNumber(const std::string& NOTARY_ID,
-                                     const std::string& USER_ID)
+                                     const std::string& NYM_ID)
 {
-    return Exec()->getRequestNumber(NOTARY_ID, USER_ID);
+    return Exec()->getRequestNumber(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::issueAssetType(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
+                                   const std::string& NYM_ID,
                                    const std::string& THE_CONTRACT)
 {
-    return Exec()->issueAssetType(NOTARY_ID, USER_ID, THE_CONTRACT);
+    return Exec()->issueAssetType(NOTARY_ID, NYM_ID, THE_CONTRACT);
 }
 
 int32_t OTAPI_Wrap::getContract(const std::string& NOTARY_ID,
-                                const std::string& USER_ID,
+                                const std::string& NYM_ID,
                                 const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->getContract(NOTARY_ID, USER_ID, INSTRUMENT_DEFINITION_ID);
+    return Exec()->getContract(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::getMint(const std::string& NOTARY_ID,
-                            const std::string& USER_ID,
+                            const std::string& NYM_ID,
                             const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->getMint(NOTARY_ID, USER_ID, INSTRUMENT_DEFINITION_ID);
+    return Exec()->getMint(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::registerAccount(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->registerAccount(NOTARY_ID, USER_ID,
-                                   INSTRUMENT_DEFINITION_ID);
+    return Exec()->registerAccount(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::getAccountData(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
+                                   const std::string& NYM_ID,
                                    const std::string& ACCT_ID)
 {
-    return Exec()->getAccountData(NOTARY_ID, USER_ID, ACCT_ID);
+    return Exec()->getAccountData(NOTARY_ID, NYM_ID, ACCT_ID);
 }
 
-std::string OTAPI_Wrap::GenerateBasketCreation(const std::string& USER_ID,
+std::string OTAPI_Wrap::GenerateBasketCreation(const std::string& NYM_ID,
                                                const int64_t& MINIMUM_TRANSFER)
 {
-    return Exec()->GenerateBasketCreation(USER_ID, MINIMUM_TRANSFER);
+    return Exec()->GenerateBasketCreation(NYM_ID, MINIMUM_TRANSFER);
 }
 
 std::string OTAPI_Wrap::AddBasketCreationItem(
-    const std::string& USER_ID, const std::string& THE_BASKET,
+    const std::string& NYM_ID, const std::string& THE_BASKET,
     const std::string& INSTRUMENT_DEFINITION_ID,
     const int64_t& MINIMUM_TRANSFER)
 {
     return Exec()->AddBasketCreationItem(
-        USER_ID, THE_BASKET, INSTRUMENT_DEFINITION_ID, MINIMUM_TRANSFER);
+        NYM_ID, THE_BASKET, INSTRUMENT_DEFINITION_ID, MINIMUM_TRANSFER);
 }
 
 int32_t OTAPI_Wrap::issueBasket(const std::string& NOTARY_ID,
-                                const std::string& USER_ID,
+                                const std::string& NYM_ID,
                                 const std::string& THE_BASKET)
 {
-    return Exec()->issueBasket(NOTARY_ID, USER_ID, THE_BASKET);
+    return Exec()->issueBasket(NOTARY_ID, NYM_ID, THE_BASKET);
 }
 
 std::string OTAPI_Wrap::GenerateBasketExchange(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& BASKET_ASSET_ACCT_ID, const int32_t& TRANSFER_MULTIPLE)
 {
     return Exec()->GenerateBasketExchange(
-        NOTARY_ID, USER_ID, BASKET_INSTRUMENT_DEFINITION_ID,
+        NOTARY_ID, NYM_ID, BASKET_INSTRUMENT_DEFINITION_ID,
         BASKET_ASSET_ACCT_ID, TRANSFER_MULTIPLE);
 }
 
 std::string OTAPI_Wrap::AddBasketExchangeItem(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_BASKET, const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& ASSET_ACCT_ID)
 {
-    return Exec()->AddBasketExchangeItem(NOTARY_ID, USER_ID, THE_BASKET,
-                                         INSTRUMENT_DEFINITION_ID,
-                                         ASSET_ACCT_ID);
+    return Exec()->AddBasketExchangeItem(
+        NOTARY_ID, NYM_ID, THE_BASKET, INSTRUMENT_DEFINITION_ID, ASSET_ACCT_ID);
 }
 
 int32_t OTAPI_Wrap::exchangeBasket(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& THE_BASKET, const bool& BOOL_EXCHANGE_IN_OR_OUT)
 {
-    return Exec()->exchangeBasket(NOTARY_ID, USER_ID,
+    return Exec()->exchangeBasket(NOTARY_ID, NYM_ID,
                                   BASKET_INSTRUMENT_DEFINITION_ID, THE_BASKET,
                                   BOOL_EXCHANGE_IN_OR_OUT);
 }
 
 int32_t OTAPI_Wrap::getTransactionNumber(const std::string& NOTARY_ID,
-                                         const std::string& USER_ID)
+                                         const std::string& NYM_ID)
 {
-    return Exec()->getTransactionNumber(NOTARY_ID, USER_ID);
+    return Exec()->getTransactionNumber(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::notarizeWithdrawal(const std::string& NOTARY_ID,
-                                       const std::string& USER_ID,
+                                       const std::string& NYM_ID,
                                        const std::string& ACCT_ID,
                                        const int64_t& AMOUNT)
 {
-    return Exec()->notarizeWithdrawal(NOTARY_ID, USER_ID, ACCT_ID, AMOUNT);
+    return Exec()->notarizeWithdrawal(NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
 }
 
 int32_t OTAPI_Wrap::notarizeDeposit(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ACCT_ID,
                                     const std::string& THE_PURSE)
 {
-    return Exec()->notarizeDeposit(NOTARY_ID, USER_ID, ACCT_ID, THE_PURSE);
+    return Exec()->notarizeDeposit(NOTARY_ID, NYM_ID, ACCT_ID, THE_PURSE);
 }
 
 int32_t OTAPI_Wrap::notarizeTransfer(const std::string& NOTARY_ID,
-                                     const std::string& USER_ID,
+                                     const std::string& NYM_ID,
                                      const std::string& ACCT_FROM,
                                      const std::string& ACCT_TO,
                                      const int64_t& AMOUNT,
                                      const std::string& NOTE)
 {
-    return Exec()->notarizeTransfer(NOTARY_ID, USER_ID, ACCT_FROM, ACCT_TO,
+    return Exec()->notarizeTransfer(NOTARY_ID, NYM_ID, ACCT_FROM, ACCT_TO,
                                     AMOUNT, NOTE);
 }
 
 int32_t OTAPI_Wrap::getNymbox(const std::string& NOTARY_ID,
-                              const std::string& USER_ID)
+                              const std::string& NYM_ID)
 {
-    return Exec()->getNymbox(NOTARY_ID, USER_ID);
+    return Exec()->getNymbox(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::processInbox(const std::string& NOTARY_ID,
-                                 const std::string& USER_ID,
+                                 const std::string& NYM_ID,
                                  const std::string& ACCT_ID,
                                  const std::string& ACCT_LEDGER)
 {
-    return Exec()->processInbox(NOTARY_ID, USER_ID, ACCT_ID, ACCT_LEDGER);
+    return Exec()->processInbox(NOTARY_ID, NYM_ID, ACCT_ID, ACCT_LEDGER);
 }
 
 int32_t OTAPI_Wrap::processNymbox(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID)
+                                  const std::string& NYM_ID)
 {
-    return Exec()->processNymbox(NOTARY_ID, USER_ID);
+    return Exec()->processNymbox(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::withdrawVoucher(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ACCT_ID,
-                                    const std::string& RECIPIENT_USER_ID,
+                                    const std::string& RECIPIENT_NYM_ID,
                                     const std::string& CHEQUE_MEMO,
                                     const int64_t& AMOUNT)
 {
-    return Exec()->withdrawVoucher(NOTARY_ID, USER_ID, ACCT_ID,
-                                   RECIPIENT_USER_ID, CHEQUE_MEMO, AMOUNT);
+    return Exec()->withdrawVoucher(NOTARY_ID, NYM_ID, ACCT_ID, RECIPIENT_NYM_ID,
+                                   CHEQUE_MEMO, AMOUNT);
 }
 
 int32_t OTAPI_Wrap::payDividend(
-    const std::string& NOTARY_ID, const std::string& ISSUER_USER_ID,
+    const std::string& NOTARY_ID, const std::string& ISSUER_NYM_ID,
     const std::string& DIVIDEND_FROM_ACCT_ID,
     const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
     const std::string& DIVIDEND_MEMO, const int64_t& AMOUNT_PER_SHARE)
 {
-    return Exec()->payDividend(NOTARY_ID, ISSUER_USER_ID, DIVIDEND_FROM_ACCT_ID,
+    return Exec()->payDividend(NOTARY_ID, ISSUER_NYM_ID, DIVIDEND_FROM_ACCT_ID,
                                SHARES_INSTRUMENT_DEFINITION_ID, DIVIDEND_MEMO,
                                AMOUNT_PER_SHARE);
 }
 
 int32_t OTAPI_Wrap::depositCheque(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID,
+                                  const std::string& NYM_ID,
                                   const std::string& ACCT_ID,
                                   const std::string& THE_CHEQUE)
 {
-    return Exec()->depositCheque(NOTARY_ID, USER_ID, ACCT_ID, THE_CHEQUE);
+    return Exec()->depositCheque(NOTARY_ID, NYM_ID, ACCT_ID, THE_CHEQUE);
 }
 
 int32_t OTAPI_Wrap::depositPaymentPlan(const std::string& NOTARY_ID,
-                                       const std::string& USER_ID,
+                                       const std::string& NYM_ID,
                                        const std::string& THE_PAYMENT_PLAN)
 {
-    return Exec()->depositPaymentPlan(NOTARY_ID, USER_ID, THE_PAYMENT_PLAN);
+    return Exec()->depositPaymentPlan(NOTARY_ID, NYM_ID, THE_PAYMENT_PLAN);
 }
 
 int32_t OTAPI_Wrap::killMarketOffer(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ASSET_ACCT_ID,
                                     const int64_t& TRANSACTION_NUMBER)
 {
-    return Exec()->killMarketOffer(NOTARY_ID, USER_ID, ASSET_ACCT_ID,
+    return Exec()->killMarketOffer(NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
                                    TRANSACTION_NUMBER);
 }
 
 int32_t OTAPI_Wrap::killPaymentPlan(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& FROM_ACCT_ID,
                                     const int64_t& TRANSACTION_NUMBER)
 {
-    return Exec()->killPaymentPlan(NOTARY_ID, USER_ID, FROM_ACCT_ID,
+    return Exec()->killPaymentPlan(NOTARY_ID, NYM_ID, FROM_ACCT_ID,
                                    TRANSACTION_NUMBER);
 }
 
@@ -2304,37 +2301,37 @@ int32_t OTAPI_Wrap::issueMarketOffer(
 }
 
 int32_t OTAPI_Wrap::getMarketList(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID)
+                                  const std::string& NYM_ID)
 {
-    return Exec()->getMarketList(NOTARY_ID, USER_ID);
+    return Exec()->getMarketList(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::getMarketOffers(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& MARKET_ID,
                                     const int64_t& MAX_DEPTH)
 {
-    return Exec()->getMarketOffers(NOTARY_ID, USER_ID, MARKET_ID, MAX_DEPTH);
+    return Exec()->getMarketOffers(NOTARY_ID, NYM_ID, MARKET_ID, MAX_DEPTH);
 }
 
 int32_t OTAPI_Wrap::getMarketRecentTrades(const std::string& NOTARY_ID,
-                                          const std::string& USER_ID,
+                                          const std::string& NYM_ID,
                                           const std::string& MARKET_ID)
 {
-    return Exec()->getMarketRecentTrades(NOTARY_ID, USER_ID, MARKET_ID);
+    return Exec()->getMarketRecentTrades(NOTARY_ID, NYM_ID, MARKET_ID);
 }
 
 int32_t OTAPI_Wrap::getNym_MarketOffers(const std::string& NOTARY_ID,
-                                        const std::string& USER_ID)
+                                        const std::string& NYM_ID)
 {
-    return Exec()->getNym_MarketOffers(NOTARY_ID, USER_ID);
+    return Exec()->getNym_MarketOffers(NOTARY_ID, NYM_ID);
 }
 
 std::string OTAPI_Wrap::PopMessageBuffer(const int64_t& REQUEST_NUMBER,
                                          const std::string& NOTARY_ID,
-                                         const std::string& USER_ID)
+                                         const std::string& NYM_ID)
 {
-    return Exec()->PopMessageBuffer(REQUEST_NUMBER, NOTARY_ID, USER_ID);
+    return Exec()->PopMessageBuffer(REQUEST_NUMBER, NOTARY_ID, NYM_ID);
 }
 
 void OTAPI_Wrap::FlushMessageBuffer(void)
@@ -2344,24 +2341,24 @@ void OTAPI_Wrap::FlushMessageBuffer(void)
 
 std::string OTAPI_Wrap::GetSentMessage(const int64_t& REQUEST_NUMBER,
                                        const std::string& NOTARY_ID,
-                                       const std::string& USER_ID)
+                                       const std::string& NYM_ID)
 {
-    return Exec()->GetSentMessage(REQUEST_NUMBER, NOTARY_ID, USER_ID);
+    return Exec()->GetSentMessage(REQUEST_NUMBER, NOTARY_ID, NYM_ID);
 }
 
 bool OTAPI_Wrap::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
                                    const std::string& NOTARY_ID,
-                                   const std::string& USER_ID)
+                                   const std::string& NYM_ID)
 {
-    return Exec()->RemoveSentMessage(REQUEST_NUMBER, NOTARY_ID, USER_ID);
+    return Exec()->RemoveSentMessage(REQUEST_NUMBER, NOTARY_ID, NYM_ID);
 }
 
 void OTAPI_Wrap::FlushSentMessages(const bool& bHarvestingForRetry,
                                    const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
+                                   const std::string& NYM_ID,
                                    const std::string& THE_NYMBOX)
 {
-    return Exec()->FlushSentMessages(bHarvestingForRetry, NOTARY_ID, USER_ID,
+    return Exec()->FlushSentMessages(bHarvestingForRetry, NOTARY_ID, NYM_ID,
                                      THE_NYMBOX);
 }
 
@@ -2371,17 +2368,17 @@ void OTAPI_Wrap::Sleep(const int64_t& MILLISECONDS)
 }
 
 bool OTAPI_Wrap::ResyncNymWithServer(const std::string& NOTARY_ID,
-                                     const std::string& USER_ID,
+                                     const std::string& NYM_ID,
                                      const std::string& THE_MESSAGE)
 {
-    return Exec()->ResyncNymWithServer(NOTARY_ID, USER_ID, THE_MESSAGE);
+    return Exec()->ResyncNymWithServer(NOTARY_ID, NYM_ID, THE_MESSAGE);
 }
 
 int32_t OTAPI_Wrap::queryAssetTypes(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ENCODED_MAP)
 {
-    return Exec()->queryAssetTypes(NOTARY_ID, USER_ID, ENCODED_MAP);
+    return Exec()->queryAssetTypes(NOTARY_ID, NYM_ID, ENCODED_MAP);
 }
 
 std::string OTAPI_Wrap::Message_GetPayload(const std::string& THE_MESSAGE)
@@ -2432,18 +2429,18 @@ int32_t OTAPI_Wrap::Message_GetDepth(const std::string& THE_MESSAGE)
 }
 
 OT_BOOL OTAPI_Wrap::Message_IsTransactionCanceled(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE)
 {
-    return Exec()->Message_IsTransactionCanceled(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Message_IsTransactionCanceled(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                                  THE_MESSAGE);
 }
 
 OT_BOOL OTAPI_Wrap::Message_GetTransactionSuccess(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE)
 {
-    return Exec()->Message_GetTransactionSuccess(NOTARY_ID, USER_ID, ACCOUNT_ID,
+    return Exec()->Message_GetTransactionSuccess(NOTARY_ID, NYM_ID, ACCOUNT_ID,
                                                  THE_MESSAGE);
 }
 

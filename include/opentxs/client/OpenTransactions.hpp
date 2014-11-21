@@ -469,7 +469,7 @@ public:
     /// Obviously this will fail for any new account that hasn't done any
     /// transactions yet, and thus has no receipts.
     EXPORT bool VerifyAccountReceipt(const Identifier& NOTARY_ID,
-                                     const Identifier& USER_ID,
+                                     const Identifier& NYM_ID,
                                      const Identifier& ACCOUNT_ID) const;
 
     // Returns an OTCheque pointer, or nullptr.
@@ -477,14 +477,14 @@ public:
     EXPORT Cheque* WriteCheque(
         const Identifier& NOTARY_ID, const int64_t& CHEQUE_AMOUNT,
         const time64_t& VALID_FROM, const time64_t& VALID_TO,
-        const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_USER_ID,
+        const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
         const String& CHEQUE_MEMO,
-        const Identifier* pRECIPIENT_USER_ID = nullptr) const;
+        const Identifier* pRECIPIENT_NYM_ID = nullptr) const;
 
     // DISCARD CHEQUE (recover the transaction number for re-use, so the
     // cheque itself can be discarded.)
     EXPORT bool DiscardCheque(const Identifier& NOTARY_ID,
-                              const Identifier& USER_ID,
+                              const Identifier& NYM_ID,
                               const Identifier& ACCT_ID,
                               const String& THE_CHEQUE) const;
 
@@ -507,10 +507,9 @@ public:
         const time64_t& VALID_TO,   // 0 defaults to "no expiry." Otherwise this
                                     // value is ADDED to VALID_FROM. (It's a
                                     // length.)
-        const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_USER_ID,
+        const Identifier& SENDER_ACCT_ID, const Identifier& SENDER_NYM_ID,
         const String& PLAN_CONSIDERATION, // like a memo.
-        const Identifier& RECIPIENT_ACCT_ID,
-        const Identifier& RECIPIENT_USER_ID,
+        const Identifier& RECIPIENT_ACCT_ID, const Identifier& RECIPIENT_NYM_ID,
         // ----------------------------------------  // If it's above zero, the
         // initial
         const int64_t& INITIAL_PAYMENT_AMOUNT, // amount will be processed after
@@ -529,17 +528,17 @@ public:
 
     // CONFIRM PAYMENT PLAN (called by Customer)
     EXPORT bool ConfirmPaymentPlan(const Identifier& NOTARY_ID,
-                                   const Identifier& SENDER_USER_ID,
+                                   const Identifier& SENDER_NYM_ID,
                                    const Identifier& SENDER_ACCT_ID,
-                                   const Identifier& RECIPIENT_USER_ID,
+                                   const Identifier& RECIPIENT_NYM_ID,
                                    OTPaymentPlan& thePlan) const;
     EXPORT Purse* LoadPurse(const Identifier& NOTARY_ID,
                             const Identifier& INSTRUMENT_DEFINITION_ID,
-                            const Identifier& USER_ID,
+                            const Identifier& NYM_ID,
                             const String* pstrDisplay = nullptr) const;
     EXPORT bool SavePurse(const Identifier& NOTARY_ID,
                           const Identifier& INSTRUMENT_DEFINITION_ID,
-                          const Identifier& USER_ID, Purse& THE_PURSE) const;
+                          const Identifier& NYM_ID, Purse& THE_PURSE) const;
     EXPORT Purse* CreatePurse(const Identifier& NOTARY_ID,
                               const Identifier& INSTRUMENT_DEFINITION_ID,
                               const Identifier& OWNER_ID) const;
@@ -648,65 +647,65 @@ public:
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         int32_t nIndex) const;
     EXPORT Account* LoadAssetAccount(const Identifier& NOTARY_ID,
-                                     const Identifier& USER_ID,
+                                     const Identifier& NYM_ID,
                                      const Identifier& ACCOUNT_ID) const;
     EXPORT OTLedger* LoadNymbox(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID) const;
+                                const Identifier& NYM_ID) const;
 
     EXPORT OTLedger* LoadNymboxNoVerify(const Identifier& NOTARY_ID,
-                                        const Identifier& USER_ID) const;
+                                        const Identifier& NYM_ID) const;
 
     EXPORT OTLedger* LoadInbox(const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID,
+                               const Identifier& NYM_ID,
                                const Identifier& ACCOUNT_ID) const;
 
     EXPORT OTLedger* LoadInboxNoVerify(const Identifier& NOTARY_ID,
-                                       const Identifier& USER_ID,
+                                       const Identifier& NYM_ID,
                                        const Identifier& ACCOUNT_ID) const;
 
     EXPORT OTLedger* LoadOutbox(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID,
+                                const Identifier& NYM_ID,
                                 const Identifier& ACCOUNT_ID) const;
 
     EXPORT OTLedger* LoadOutboxNoVerify(const Identifier& NOTARY_ID,
-                                        const Identifier& USER_ID,
+                                        const Identifier& NYM_ID,
                                         const Identifier& ACCOUNT_ID) const;
     EXPORT OTLedger* LoadPaymentInbox(const Identifier& NOTARY_ID,
-                                      const Identifier& USER_ID) const;
+                                      const Identifier& NYM_ID) const;
 
     EXPORT OTLedger* LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
-                                              const Identifier& USER_ID) const;
+                                              const Identifier& NYM_ID) const;
     // LoadRecordBox
     // Note: depending on the record type, the Account ID may contain the User
     // ID.
     EXPORT OTLedger* LoadRecordBox(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID,
+                                   const Identifier& NYM_ID,
                                    const Identifier& ACCOUNT_ID) const;
 
     EXPORT OTLedger* LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
-                                           const Identifier& USER_ID,
+                                           const Identifier& NYM_ID,
                                            const Identifier& ACCOUNT_ID) const;
 
     EXPORT bool ClearRecord(
-        const Identifier& NOTARY_ID, const Identifier& USER_ID,
-        const Identifier& ACCOUNT_ID, // USER_ID can be passed here as well.
+        const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+        const Identifier& ACCOUNT_ID, // NYM_ID can be passed here as well.
         int32_t nIndex, bool bClearAll = false // if true, nIndex is ignored.
         ) const;
     EXPORT OTLedger* LoadExpiredBox(const Identifier& NOTARY_ID,
-                                    const Identifier& USER_ID) const;
+                                    const Identifier& NYM_ID) const;
 
     EXPORT OTLedger* LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
-                                            const Identifier& USER_ID) const;
+                                            const Identifier& NYM_ID) const;
 
     EXPORT bool ClearExpired(const Identifier& NOTARY_ID,
-                             const Identifier& USER_ID, int32_t nIndex,
+                             const Identifier& NYM_ID, int32_t nIndex,
                              bool bClearAll = false // if true, nIndex is
                                                     // ignored.
                              ) const;
     // Note: if instrument is expired BEFORE being recorded, it will go into the
     // expired box instead of the record box.
     EXPORT bool RecordPayment(
-        const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        const Identifier& NOTARY_ID, const Identifier& NYM_ID,
         bool bIsInbox,  // true == payments inbox. false == payments outbox.
         int32_t nIndex, // removes payment instrument (from payments in or out
                         // box) and moves to record box.
@@ -716,31 +715,31 @@ public:
     // still needs to download.
     EXPORT bool DoesBoxReceiptExist(
         const Identifier& NOTARY_ID,
-        const Identifier& USER_ID,    // Unused here for now, but still
+        const Identifier& NYM_ID,     // Unused here for now, but still
                                       // convention.
         const Identifier& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then
-                                      // pass USER_ID in this field also.
+                                      // pass NYM_ID in this field also.
         int32_t nBoxType,             // 0/nymbox, 1/inbox, 2/outbox
         const int64_t& lTransactionNum) const;
     // Incoming
     EXPORT std::shared_ptr<Message> PopMessageBuffer(
         const int64_t& lRequestNumber, const Identifier& NOTARY_ID,
-        const Identifier& USER_ID) const;
+        const Identifier& NYM_ID) const;
     void FlushMessageBuffer();
     // Outgoing
     EXPORT Message* GetSentMessage(const int64_t& lRequestNumber,
                                    const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID) const;
+                                   const Identifier& NYM_ID) const;
     EXPORT bool RemoveSentMessage(const int64_t& lRequestNumber,
                                   const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID) const;
+                                  const Identifier& NYM_ID) const;
     EXPORT void FlushSentMessages(bool bHarvestingForRetry,
                                   const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID,
+                                  const Identifier& NYM_ID,
                                   const OTLedger& THE_NYMBOX) const;
 
     EXPORT bool HaveAlreadySeenReply(const Identifier& NOTARY_ID,
-                                     const Identifier& USER_ID,
+                                     const Identifier& NYM_ID,
                                      const int64_t& lRequestNumber) const;
 
     EXPORT bool ResyncNymWithServer(Nym& theNym, const OTLedger& theNymbox,
@@ -748,82 +747,82 @@ public:
 
     // These commands below send messages to the server:
 
-    EXPORT int32_t pingNotary(const Identifier& NOTARY_ID,
-                              const Identifier& USER_ID) const;
+    EXPORT int32_t
+        pingNotary(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
 
     EXPORT int32_t registerNym(const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID) const;
+                               const Identifier& NYM_ID) const;
 
     EXPORT int32_t unregisterNym(const Identifier& NOTARY_ID,
-                                 const Identifier& USER_ID) const;
+                                 const Identifier& NYM_ID) const;
 
     EXPORT int32_t checkNym(const Identifier& NOTARY_ID,
-                            const Identifier& USER_ID,
-                            const Identifier& USER_ID_CHECK) const;
+                            const Identifier& NYM_ID,
+                            const Identifier& NYM_ID_CHECK) const;
 
     EXPORT int32_t usageCredits(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID,
-                                const Identifier& USER_ID_CHECK,
+                                const Identifier& NYM_ID,
+                                const Identifier& NYM_ID_CHECK,
                                 int64_t lAdjustment = 0) const;
 
     EXPORT int32_t getRequestNumber(const Identifier& NOTARY_ID,
-                                    const Identifier& USER_ID) const;
+                                    const Identifier& NYM_ID) const;
 
     EXPORT int32_t sendNymMessage(const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID,
-                                  const Identifier& USER_ID_RECIPIENT,
+                                  const Identifier& NYM_ID,
+                                  const Identifier& NYM_ID_RECIPIENT,
                                   const String& RECIPIENT_PUBKEY,
                                   const String& THE_MESSAGE) const;
 
     EXPORT int32_t sendNymInstrument(
-        const Identifier& NOTARY_ID, const Identifier& USER_ID,
-        const Identifier& USER_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
+        const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+        const Identifier& NYM_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
         const OTPayment& THE_INSTRUMENT,
         const OTPayment* pINSTRUMENT_FOR_SENDER = nullptr) const;
 
     EXPORT int32_t issueAssetType(const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID,
+                                  const Identifier& NYM_ID,
                                   const String& THE_CONTRACT) const;
 
     EXPORT int32_t
-        getContract(const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        getContract(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                     const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int32_t getMint(const Identifier& NOTARY_ID,
-                           const Identifier& USER_ID,
+                           const Identifier& NYM_ID,
                            const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int32_t
-        getBoxReceipt(const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        getBoxReceipt(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                       const Identifier& ACCOUNT_ID, // If for Nymbox (vs
                                                     // inbox/outbox) then pass
-                      // USER_ID in this field also.
+                      // NYM_ID in this field also.
                       int32_t nBoxType, // 0/nymbox, 1/inbox, 2/outbox
                       const int64_t& lTransactionNum) const;
 
     EXPORT int32_t queryAssetTypes(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID,
+                                   const Identifier& NYM_ID,
                                    const OTASCIIArmor& ENCODED_MAP) const;
 
     EXPORT int32_t
-        registerAccount(const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        registerAccount(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                         const Identifier& INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT int32_t deleteAssetAccount(const Identifier& NOTARY_ID,
-                                      const Identifier& USER_ID,
+                                      const Identifier& NYM_ID,
                                       const Identifier& ACCOUNT_ID) const;
 
     EXPORT int32_t getAccountData(const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID,
+                                  const Identifier& NYM_ID,
                                   const Identifier& ACCT_ID) const;
 
     EXPORT Basket* GenerateBasketCreation(
-        const Identifier& USER_ID,
+        const Identifier& NYM_ID,
         int64_t MINIMUM_TRANSFER) const; // Must be above zero. If <= 0,
                                          // defaults to 10.
 
     EXPORT bool AddBasketCreationItem(
-        const Identifier& USER_ID,                  // for signature.
+        const Identifier& NYM_ID,                   // for signature.
         Basket& theBasket,                          // created in above call.
         const Identifier& INSTRUMENT_DEFINITION_ID, // Adding an instrument
                                                     // definition to
@@ -835,69 +834,69 @@ public:
                                          // in the basket.
 
     EXPORT int32_t issueBasket(const Identifier& NOTARY_ID,
-                               const Identifier& USER_ID,
+                               const Identifier& NYM_ID,
                                const String& BASKET_INFO) const;
 
     EXPORT Basket* GenerateBasketExchange(
-        const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        const Identifier& NOTARY_ID, const Identifier& NYM_ID,
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         const Identifier& BASKET_ASSET_ACCT_ID,
         int32_t TRANSFER_MULTIPLE) const; // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 
     EXPORT bool AddBasketExchangeItem(
-        const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        const Identifier& NOTARY_ID, const Identifier& NYM_ID,
         Basket& theBasket, const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& ASSET_ACCT_ID) const;
 
     EXPORT int32_t
-        exchangeBasket(const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        exchangeBasket(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
                        const String& BASKET_INFO, bool bExchangeInOrOut) const;
 
     EXPORT int32_t getTransactionNumber(const Identifier& NOTARY_ID,
-                                        const Identifier& USER_ID) const;
+                                        const Identifier& NYM_ID) const;
 
     EXPORT int32_t notarizeWithdrawal(const Identifier& NOTARY_ID,
-                                      const Identifier& USER_ID,
+                                      const Identifier& NYM_ID,
                                       const Identifier& ACCT_ID,
                                       const int64_t& AMOUNT) const;
 
     EXPORT int32_t notarizeDeposit(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID,
+                                   const Identifier& NYM_ID,
                                    const Identifier& ACCT_ID,
                                    const String& THE_PURSE) const;
 
     EXPORT int32_t
-        notarizeTransfer(const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        notarizeTransfer(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                          const Identifier& ACCT_FROM, const Identifier& ACCT_TO,
                          const int64_t& AMOUNT, const String& NOTE) const;
 
     EXPORT int32_t
-        getNymbox(const Identifier& NOTARY_ID, const Identifier& USER_ID) const;
+        getNymbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID) const;
 
     // Returns:
     // -1 if error.
     //  0 if Nymbox is empty.
     //  1 or more: Count of items in Nymbox before processing.
     EXPORT int32_t processNymbox(const Identifier& NOTARY_ID,
-                                 const Identifier& USER_ID) const;
+                                 const Identifier& NYM_ID) const;
 
     EXPORT int32_t processInbox(const Identifier& NOTARY_ID,
-                                const Identifier& USER_ID,
+                                const Identifier& NYM_ID,
                                 const Identifier& ACCT_ID,
                                 const String& ACCT_LEDGER) const;
 
     EXPORT int32_t
-        withdrawVoucher(const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        withdrawVoucher(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                         const Identifier& ACCT_ID,
-                        const Identifier& RECIPIENT_USER_ID,
+                        const Identifier& RECIPIENT_NYM_ID,
                         const String& CHEQUE_MEMO, const int64_t& AMOUNT) const;
 
     EXPORT int32_t payDividend(
         const Identifier& NOTARY_ID,
-        const Identifier& ISSUER_USER_ID, // must be issuer of
-                                          // SHARES_INSTRUMENT_DEFINITION_ID
+        const Identifier& ISSUER_NYM_ID, // must be issuer of
+                                         // SHARES_INSTRUMENT_DEFINITION_ID
         const Identifier& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
                                                  // shares, then this is the
                                                  // issuer's dollars account.
@@ -915,12 +914,12 @@ public:
     // number of shares issued.)
 
     EXPORT int32_t depositCheque(const Identifier& NOTARY_ID,
-                                 const Identifier& USER_ID,
+                                 const Identifier& NYM_ID,
                                  const Identifier& ACCT_ID,
                                  const String& THE_CHEQUE) const;
 
     EXPORT int32_t triggerClause(const Identifier& NOTARY_ID,
-                                 const Identifier& USER_ID,
+                                 const Identifier& NYM_ID,
                                  const int64_t& lTransactionNum,
                                  const String& strClauseName,
                                  const String* pStrParam = nullptr) const;
@@ -1059,7 +1058,7 @@ public:
                                     // that
                                     // party. (For now, until I code entities)
     EXPORT bool Msg_HarvestTransactionNumbers(
-        const Message& theMsg, const Identifier& USER_ID,
+        const Message& theMsg, const Identifier& NYM_ID,
         bool bHarvestingForRetry, bool bReplyWasSuccess, bool bReplyWasFailure,
         bool bTransactionWasSuccess, bool bTransactionWasFailure) const;
 
@@ -1072,14 +1071,14 @@ public:
                                   const String& THE_CRON_ITEM) const;
     EXPORT int32_t
         activateSmartContract(const Identifier& NOTARY_ID,
-                              const Identifier& USER_ID,
+                              const Identifier& NYM_ID,
                               const String& THE_SMART_CONTRACT) const;
 
     EXPORT int32_t depositPaymentPlan(const Identifier& NOTARY_ID,
-                                      const Identifier& USER_ID,
+                                      const Identifier& NYM_ID,
                                       const String& THE_PAYMENT_PLAN) const;
     EXPORT int32_t issueMarketOffer(
-        const Identifier& NOTARY_ID, const Identifier& USER_ID,
+        const Identifier& NOTARY_ID, const Identifier& NYM_ID,
         const Identifier& ASSET_ACCT_ID, const Identifier& CURRENCY_ACCT_ID,
         const int64_t& MARKET_SCALE,      // Defaults to minimum of 1. Market
                                           // granularity.
@@ -1096,19 +1095,19 @@ public:
         int64_t ACTIVATION_PRICE = 0) const; // For stop orders, set the
                                              // threshold price here.
     EXPORT int32_t getMarketList(const Identifier& NOTARY_ID,
-                                 const Identifier& USER_ID) const;
+                                 const Identifier& NYM_ID) const;
     EXPORT int32_t getMarketOffers(const Identifier& NOTARY_ID,
-                                   const Identifier& USER_ID,
+                                   const Identifier& NYM_ID,
                                    const Identifier& MARKET_ID,
                                    const int64_t& lDepth) const;
     EXPORT int32_t getMarketRecentTrades(const Identifier& NOTARY_ID,
-                                         const Identifier& USER_ID,
+                                         const Identifier& NYM_ID,
                                          const Identifier& MARKET_ID) const;
     EXPORT int32_t getNym_MarketOffers(const Identifier& NOTARY_ID,
-                                       const Identifier& USER_ID) const;
+                                       const Identifier& NYM_ID) const;
     // For cancelling market offers and payment plans.
     EXPORT int32_t cancelCronItem(const Identifier& NOTARY_ID,
-                                  const Identifier& USER_ID,
+                                  const Identifier& NYM_ID,
                                   const Identifier& ASSET_ACCT_ID,
                                   const int64_t& lTransactionNum) const;
 

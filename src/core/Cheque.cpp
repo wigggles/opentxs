@@ -150,9 +150,9 @@ void Cheque::UpdateContents()
 {
     String INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         NOTARY_ID(GetNotaryID()), SENDER_ACCT_ID(GetSenderAcctID()),
-        SENDER_USER_ID(GetSenderUserID()),
-        RECIPIENT_USER_ID(GetRecipientUserID()),
-        REMITTER_USER_ID(GetRemitterUserID()),
+        SENDER_NYM_ID(GetSenderUserID()),
+        RECIPIENT_NYM_ID(GetRecipientUserID()),
+        REMITTER_NYM_ID(GetRemitterUserID()),
         REMITTER_ACCT_ID(GetRemitterAcctID());
 
     int64_t lFrom = OTTimeGetSecondsFromTime(GetValidFrom());
@@ -181,10 +181,10 @@ void Cheque::UpdateContents()
         " >\n\n",
         m_strVersion.Get(), m_lAmount, INSTRUMENT_DEFINITION_ID.Get(),
         GetTransactionNum(), NOTARY_ID.Get(), SENDER_ACCT_ID.Get(),
-        SENDER_USER_ID.Get(), (m_bHasRecipient ? "true" : "false"),
-        (m_bHasRecipient ? RECIPIENT_USER_ID.Get() : ""),
+        SENDER_NYM_ID.Get(), (m_bHasRecipient ? "true" : "false"),
+        (m_bHasRecipient ? RECIPIENT_NYM_ID.Get() : ""),
         (m_bHasRemitter ? "true" : "false"),
-        (m_bHasRemitter ? REMITTER_USER_ID.Get() : ""),
+        (m_bHasRemitter ? REMITTER_NYM_ID.Get() : ""),
         (m_bHasRemitter ? REMITTER_ACCT_ID.Get() : ""), lFrom, lTo);
 
     if (m_strMemo.Exists() && m_strMemo.GetLength() > 2) {
@@ -241,26 +241,26 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
 
         Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
             NOTARY_ID(strNotaryID), SENDER_ACCT_ID(strSenderAcctID),
-            SENDER_USER_ID(strSenderUserID);
+            SENDER_NYM_ID(strSenderUserID);
 
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetNotaryID(NOTARY_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
-        SetSenderUserID(SENDER_USER_ID);
+        SetSenderUserID(SENDER_NYM_ID);
 
         // Recipient ID
         if (m_bHasRecipient)
-            m_RECIPIENT_USER_ID.SetString(strRecipientUserID);
+            m_RECIPIENT_NYM_ID.SetString(strRecipientUserID);
         else
-            m_RECIPIENT_USER_ID.Release();
+            m_RECIPIENT_NYM_ID.Release();
 
         // Remitter ID (for vouchers)
         if (m_bHasRemitter) {
-            m_REMITTER_USER_ID.SetString(strRemitterUserID);
+            m_REMITTER_NYM_ID.SetString(strRemitterUserID);
             m_REMITTER_ACCT_ID.SetString(strRemitterAcctID);
         }
         else {
-            m_REMITTER_USER_ID.Release();
+            m_REMITTER_NYM_ID.Release();
             m_REMITTER_ACCT_ID.Release();
         }
 
@@ -331,13 +331,13 @@ bool Cheque::IssueCheque(
                               // the cheque
     const Identifier& SENDER_ACCT_ID, // The asset account the cheque is drawn
                                       // on.
-    const Identifier& SENDER_USER_ID, // This ID must match the user ID on the
+    const Identifier& SENDER_NYM_ID,  // This ID must match the user ID on the
                                       // asset account,
     // AND must verify the cheque signature with that user's key.
-    const String& strMemo,                // Optional memo field.
-    const Identifier* pRECIPIENT_USER_ID) // Recipient optional.
-                                          // (Might be a blank
-                                          // cheque.)
+    const String& strMemo,               // Optional memo field.
+    const Identifier* pRECIPIENT_NYM_ID) // Recipient optional.
+                                         // (Might be a blank
+                                         // cheque.)
 {
     m_lAmount = lAmount;
     m_strMemo = strMemo;
@@ -348,15 +348,15 @@ bool Cheque::IssueCheque(
     SetTransactionNum(lTransactionNum);
 
     SetSenderAcctID(SENDER_ACCT_ID);
-    SetSenderUserID(SENDER_USER_ID);
+    SetSenderUserID(SENDER_NYM_ID);
 
-    if (nullptr == pRECIPIENT_USER_ID) {
+    if (nullptr == pRECIPIENT_NYM_ID) {
         m_bHasRecipient = false;
-        m_RECIPIENT_USER_ID.Release();
+        m_RECIPIENT_NYM_ID.Release();
     }
     else {
         m_bHasRecipient = true;
-        m_RECIPIENT_USER_ID = *pRECIPIENT_USER_ID;
+        m_RECIPIENT_NYM_ID = *pRECIPIENT_NYM_ID;
     }
 
     m_bHasRemitter = false; // OTCheque::SetAsVoucher() will set this to true.
@@ -404,8 +404,8 @@ void Cheque::Release_Cheque()
     m_strMemo.Release();
 
     //    m_SENDER_ACCT_ID.Release();     // in parent class now.
-    //    m_SENDER_USER_ID.Release();     // in parent class now.
-    m_RECIPIENT_USER_ID.Release();
+    //    m_SENDER_NYM_ID.Release();     // in parent class now.
+    m_RECIPIENT_NYM_ID.Release();
 
     ot_super::Release(); // since I've overridden the base class, I call it
                          // now...

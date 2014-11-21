@@ -1066,7 +1066,7 @@ OT_MADE_EASY_OT string
     OTAPI_Func ot_Msg;
 
     //  int32_t OTAPI_Wrap::triggerClause(const char* NOTARY_ID,
-    //                                    const char * USER_ID,
+    //                                    const char * NYM_ID,
     //                                    const char * TRANSACTION_NUMBER,
     //                                    const char * CLAUSE_NAME,
     //                                    const char * STR_PARAM);
@@ -1156,7 +1156,7 @@ OT_MADE_EASY_OT string
 }
 
 // int32_t OTAPI_Wrap::getMarketOffers(const char* NOTARY_ID,
-//                           const char * USER_ID,
+//                           const char * NYM_ID,
 //                           const char * MARKET_ID,
 //                           const char * MAX_DEPTH)
 

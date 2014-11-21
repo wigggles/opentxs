@@ -272,8 +272,8 @@ bool SetupPointersForWalletMyNymAndServerContract(
         }
         else {
             otOut << "==> Unable to find My Nym. Please use the option:   "
-                     "--mynym USER_ID\n"
-                     "(Where USER_ID is the Nym's ID. Partial matches are "
+                     "--mynym NYM_ID\n"
+                     "(Where NYM_ID is the Nym's ID. Partial matches are "
                      "accepted "
                      "if the nym is already in the wallet.)\n"
                      "Also, see default values located in "
@@ -987,8 +987,8 @@ int32_t main(int32_t argc, char* argv[])
                     // (ONLY the ones that use a nym.)
         {
             otOut << "Unable to find My Nym. Please use the option:   --mynym "
-                     "USER_ID\n"
-                     "(Where USER_ID is the Nym's ID. Partial matches and "
+                     "NYM_ID\n"
+                     "(Where NYM_ID is the Nym's ID. Partial matches and "
                      "names are "
                      "accepted.)\n";
             //          return 0;
@@ -1917,8 +1917,8 @@ int32_t main(int32_t argc, char* argv[])
         {
             otOut
                 << "Unable to find My Nym. Please restart and use the option:\n"
-                   "   --mynym USER_ID\n"
-                   "(Where USER_ID is the Nym's ID. Partial matches ARE "
+                   "   --mynym NYM_ID\n"
+                   "(Where NYM_ID is the Nym's ID. Partial matches ARE "
                    "accepted.)\n";
             continue;
         }

@@ -1157,9 +1157,9 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     Identifier NOTARY_ID;
     theConnection.GetNotaryID(NOTARY_ID);
     Nym* pNym = theConnection.GetNym();
-    Identifier USER_ID;
-    pNym->GetIdentifier(USER_ID);
-    const String strNymID(USER_ID);
+    Identifier NYM_ID;
+    pNym->GetIdentifier(NYM_ID);
+    const String strNymID(NYM_ID);
     String strNotaryID(NOTARY_ID),
         strReceiptID("ID_NOT_SET_YET"); // This will be user ID or acct ID
                                         // depending on whether trans statement
@@ -1173,7 +1173,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
     // WITHDRAWALS.  (Cause we want to get that money off of the response, not
     // lose it.)
     // So let's just check to see if it's a withdrawal...
-    OTLedger theLedger(USER_ID, ACCOUNT_ID, NOTARY_ID);
+    OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID);
     String strLedger(theReply.m_ascPayload);
 
     // The ledger we received from the server was generated there, so we don't
@@ -1701,10 +1701,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                             OTFolders::RecordBox().Get(),
                                             strNotaryID.Get(), strNymID.Get());
                                         OTLedger thePmntInbox(
-                                            USER_ID, USER_ID,
+                                            NYM_ID, NYM_ID,
                                             NOTARY_ID); // payment inbox
                                         OTLedger theRecordBox(
-                                            USER_ID, USER_ID,
+                                            NYM_ID, NYM_ID,
                                             NOTARY_ID); // record box
                                         bool bSuccessLoading1 =
                                             (bExists1 &&
@@ -1725,7 +1725,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                         else if (!bExists1)
                                             bSuccessLoading1 =
                                                 thePmntInbox.GenerateLedger(
-                                                    USER_ID, NOTARY_ID,
+                                                    NYM_ID, NOTARY_ID,
                                                     OTLedger::paymentInbox,
                                                     true); // bGenerateFile=true
                                         if (bExists2 && bSuccessLoading2)
@@ -1741,7 +1741,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                         else if (!bExists2)
                                             bSuccessLoading2 =
                                                 theRecordBox.GenerateLedger(
-                                                    USER_ID, NOTARY_ID,
+                                                    NYM_ID, NOTARY_ID,
                                                     OTLedger::recordBox,
                                                     true); // bGenerateFile=true
                                         // by this point, the boxes DEFINITELY
@@ -2353,8 +2353,8 @@ void OTClient::ProcessPayDividendResponse(
     Identifier NOTARY_ID;
     theConnection.GetNotaryID(NOTARY_ID);
     Nym* pNym = theConnection.GetNym();
-    Identifier USER_ID;
-    pNym->GetIdentifier(USER_ID);
+    Identifier NYM_ID;
+    pNym->GetIdentifier(NYM_ID);
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to pay dividend.
@@ -2387,8 +2387,8 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
     Identifier NOTARY_ID;
     theConnection.GetNotaryID(NOTARY_ID);
     Nym* pNym = theConnection.GetNym();
-    Identifier USER_ID;
-    pNym->GetIdentifier(USER_ID);
+    Identifier NYM_ID;
+    pNym->GetIdentifier(NYM_ID);
 
     // loop through the ALL items that make up this transaction and check to see
     // if a response to deposit.
@@ -2413,7 +2413,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                     // ==> move it to the record box.
                     //
                     std::unique_ptr<OTLedger> pLedger(OTLedger::GenerateLedger(
-                        USER_ID, USER_ID, NOTARY_ID, OTLedger::paymentInbox));
+                        NYM_ID, NYM_ID, NOTARY_ID, OTLedger::paymentInbox));
                     // Beyond this point, I know that pLedger will need to be
                     // deleted or returned.
                     if ((nullptr != pLedger) && pLedger->LoadPaymentInbox() &&
@@ -2548,14 +2548,14 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                         // Save a copy to the record box.
                                         //
                                         if (strPmntInboxTransaction.Exists()) {
-                                            const String strNymID(USER_ID);
+                                            const String strNymID(NYM_ID);
                                             const String strNotaryID(NOTARY_ID);
                                             const bool bExists = OTDB::Exists(
                                                 OTFolders::RecordBox().Get(),
                                                 strNotaryID.Get(),
                                                 strNymID.Get());
                                             OTLedger theRecordBox(
-                                                USER_ID, USER_ID,
+                                                NYM_ID, NYM_ID,
                                                 NOTARY_ID); // record box
                                             bool bSuccessLoading =
                                                 (bExists &&
@@ -2576,7 +2576,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                             else if (!bExists)
                                                 bSuccessLoading =
                                                     theRecordBox.GenerateLedger(
-                                                        USER_ID, NOTARY_ID,
+                                                        NYM_ID, NOTARY_ID,
                                                         OTLedger::recordBox,
                                                         true); // bGenerateFile=true
                                             // by this point, the nymbox
@@ -2585,8 +2585,8 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                             // verification.)
                                             //
                                             if (!bSuccessLoading) {
-                                                String strUserID(USER_ID),
-                                                    strAcctID(USER_ID);
+                                                String strUserID(NYM_ID),
+                                                    strAcctID(NYM_ID);
                                                 otOut
                                                     << __FUNCTION__
                                                     << ": WARNING: Unable to "
@@ -2623,7 +2623,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                                 // deposit.)
                                                 //
                                                 load_str_trans_add_to_ledger(
-                                                    USER_ID,
+                                                    NYM_ID,
                                                     strPmntInboxTransaction,
                                                     "recordBox",
                                                     lRemoveTransaction, *pNym,
@@ -2637,7 +2637,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                         } // if nullptr != pOriginalItem
                     }
                     else {
-                        String strUserID(USER_ID), strAcctID(USER_ID);
+                        String strUserID(NYM_ID), strAcctID(NYM_ID);
                         otWarn << __FUNCTION__ << ": Unable to load or verify "
                                                   "payments inbox: User "
                                << strUserID << " / Acct " << strAcctID << "\n";
@@ -2667,10 +2667,10 @@ void OTClient::ProcessWithdrawalResponse(
     String strNotaryID(NOTARY_ID);
 
     Nym* pNym = theConnection.GetNym();
-    Identifier USER_ID;
-    pNym->GetIdentifier(USER_ID);
+    Identifier NYM_ID;
+    pNym->GetIdentifier(NYM_ID);
 
-    const String strUserID(USER_ID);
+    const String strUserID(NYM_ID);
 
     OTWallet* pWallet = theConnection.GetWallet();
     Nym* pServerNym = const_cast<Nym*>(
@@ -2845,7 +2845,7 @@ struct OTClient::ProcessServerReplyArgs
 {
     Identifier ACCOUNT_ID, NOTARY_ID;
     Nym* pNym;
-    Identifier USER_ID;
+    Identifier NYM_ID;
     String strNotaryID, strNymID;
     Nym* pServerNym;
 };
@@ -3095,7 +3095,7 @@ bool OTClient::processServerReplyGetNymBox(const Message& theReply,
 {
     const auto& pNym = args.pNym;
     const auto& NOTARY_ID = args.NOTARY_ID;
-    const auto& USER_ID = args.USER_ID;
+    const auto& NYM_ID = args.NYM_ID;
 
     String strReply(theReply);
 
@@ -3117,7 +3117,7 @@ bool OTClient::processServerReplyGetNymBox(const Message& theReply,
                                       "replyNotice into the nymbox.");
 
     // Load the ledger object from that string.
-    OTLedger theNymbox(USER_ID, USER_ID, NOTARY_ID);
+    OTLedger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
 
     setRecentHash(theReply, args.strNotaryID, args.pNym, true);
 
@@ -3179,7 +3179,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
 {
     const auto& pNym = args.pNym;
     const auto& NOTARY_ID = args.NOTARY_ID;
-    const auto& USER_ID = args.USER_ID;
+    const auto& NYM_ID = args.NYM_ID;
     const auto& pServerNym = args.pServerNym;
     const auto& strNymID = args.strNymID;
     const auto& strNotaryID = args.strNotaryID;
@@ -3269,7 +3269,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                       << theReply.m_lTransactionNum << ").\n";
             // Note: Account ID and Server ID were already verified, in
             // VerifyAccount().
-            else if (pBoxReceipt->GetUserID() != USER_ID) {
+            else if (pBoxReceipt->GetUserID() != NYM_ID) {
                 const String strPurportedUserID(pBoxReceipt->GetUserID());
                 otErr
                     << __FUNCTION__
@@ -3312,7 +3312,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                     const bool bExists =
                         OTDB::Exists(OTFolders::PaymentInbox().Get(),
                                      strNotaryID.Get(), strNymID.Get());
-                    OTLedger thePmntInbox(USER_ID, USER_ID,
+                    OTLedger thePmntInbox(NYM_ID, NYM_ID,
                                           NOTARY_ID); // payment inbox
                     bool bSuccessLoading =
                         (bExists && thePmntInbox.LoadPaymentInbox());
@@ -3324,13 +3324,13 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                     // to load all the Box Receipts by using VerifyAccount)
                     else if (!bExists)
                         bSuccessLoading = thePmntInbox.GenerateLedger(
-                            USER_ID, NOTARY_ID, OTLedger::paymentInbox,
+                            NYM_ID, NOTARY_ID, OTLedger::paymentInbox,
                             true); // bGenerateFile=true
                     // by this point, the nymbox DEFINITELY exists -- or
                     // not. (generation might have failed, or verification.)
 
                     if (!bSuccessLoading) {
-                        String strUserID(USER_ID), strAcctID(USER_ID);
+                        String strUserID(NYM_ID), strAcctID(NYM_ID);
                         otOut << __FUNCTION__
                               << ": getBoxReceiptResponse: WARNING: Unable to "
                                  "load, verify, or generate paymentInbox, "
@@ -3395,10 +3395,10 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                         // (It will be moved to record box after the
                         // incoming payment is deposited or discarded.)
                         //
-                        load_str_trans_add_to_ledger(USER_ID, strTransType,
+                        load_str_trans_add_to_ledger(NYM_ID, strTransType,
                                                      "paymentInbox", lTransNum,
                                                      *pNym, thePmntInbox);
-                        //                          load_str_trans_add_to_ledger(USER_ID,
+                        //                          load_str_trans_add_to_ledger(NYM_ID,
                         // strTransType, "recordBox",    lTransNum, *pNym,
                         // theRecordBox); // No longer here. Moved to
                         // processDepositResponse
@@ -3469,7 +3469,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
     // overwritten?
     auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
-    const auto& USER_ID = args.USER_ID;
+    const auto& NYM_ID = args.NYM_ID;
     const auto& pServerNym = args.pServerNym;
     const auto& strNymID = args.strNymID;
 
@@ -3501,10 +3501,10 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
         // func.
         // with a flag so we do not have to compare again?
         if (theReply.m_strCommand.Compare("processNymboxResponse"))
-            ACCOUNT_ID = USER_ID; // For Nymbox, UserID *is* AcctID.
+            ACCOUNT_ID = NYM_ID; // For Nymbox, UserID *is* AcctID.
 
-        OTLedger theLedger(USER_ID, ACCOUNT_ID, NOTARY_ID),
-            theReplyLedger(USER_ID, ACCOUNT_ID, NOTARY_ID);
+        OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID),
+            theReplyLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         theOriginalMessage.m_ascPayload.GetString(strLedger);
         theReply.m_ascPayload.GetString(strReplyLedger);
@@ -3620,8 +3620,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                               true); // bool bSave=true
                     if (bIsSignedOut && (nullptr != pReplyTransaction)) {
                         // Load the inbox.
-                        OTLedger theInbox(USER_ID, ACCOUNT_ID, NOTARY_ID);
-                        OTLedger theRecordBox(USER_ID, ACCOUNT_ID, NOTARY_ID);
+                        OTLedger theInbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
+                        OTLedger theRecordBox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
                         bool bInbox = OTDB::Exists(OTFolders::Inbox().Get(),
                                                    strNotaryID.Get(),
@@ -4304,7 +4304,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                             to_string<int64_t>(lFinishedSoFar);
                                         // save to local storage...
                                         //
-                                        String strUserID(USER_ID);
+                                        String strUserID(NYM_ID);
 
                                         std::unique_ptr<OTDB::TradeListNym>
                                             pList;
@@ -4818,7 +4818,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     // TIME IS DONE.)
 
                     // Load the Nymbox.
-                    OTLedger theNymbox(USER_ID, USER_ID, NOTARY_ID);
+                    OTLedger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
                     bool bLoadedNymbox = false;
                     if (nullptr != pNymbox) // If a pointer was passed in, then
                                             // we'll just use it.
@@ -5599,11 +5599,11 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                         strNotaryID.Get(),
                                                         strNymID.Get());
                                                 OTLedger thePmntInbox(
-                                                    USER_ID, USER_ID,
+                                                    NYM_ID, NYM_ID,
                                                     NOTARY_ID); // payment
                                                                 // inbox
                                                 OTLedger theRecordBox(
-                                                    USER_ID, USER_ID,
+                                                    NYM_ID, NYM_ID,
                                                     NOTARY_ID); // record
                                                                 // box
                                                 bool bSuccessLoading1 =
@@ -5632,7 +5632,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                     bSuccessLoading1 =
                                                         thePmntInbox
                                                             .GenerateLedger(
-                                                                USER_ID,
+                                                                NYM_ID,
                                                                 NOTARY_ID,
                                                                 OTLedger::
                                                                     paymentInbox,
@@ -5655,7 +5655,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                     bSuccessLoading2 =
                                                         theRecordBox
                                                             .GenerateLedger(
-                                                                USER_ID,
+                                                                NYM_ID,
                                                                 NOTARY_ID,
                                                                 OTLedger::
                                                                     recordBox,
@@ -6688,7 +6688,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
 
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
-    const auto& USER_ID = args.USER_ID;
+    const auto& NYM_ID = args.NYM_ID;
     const auto& pServerNym = args.pServerNym;
     const auto& pNym = args.pNym;
 
@@ -6704,7 +6704,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
     if (strAccount.Exists()) {
         // Load the account object from that string.
         std::unique_ptr<Account> pAccount(
-            new Account(USER_ID, ACCOUNT_ID, NOTARY_ID));
+            new Account(NYM_ID, ACCOUNT_ID, NOTARY_ID));
 
         if (pAccount && pAccount->LoadContractFromString(strAccount) &&
             pAccount->VerifyAccount(*pServerNym)) {
@@ -6741,7 +6741,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
         const String strNotaryID(NOTARY_ID);
 
         // Load the ledger object from strInbox
-        OTLedger theInbox(USER_ID, ACCOUNT_ID, NOTARY_ID);
+        OTLedger theInbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         // I receive the inbox, verify the server's signature, then
         // RE-SIGN IT WITH MY OWN
@@ -6865,7 +6865,7 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
     }
     if (strOutbox.Exists()) {
         // Load the ledger object from strOutbox.
-        OTLedger theOutbox(USER_ID, ACCOUNT_ID, NOTARY_ID);
+        OTLedger theOutbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         // I receive the outbox, verify the server's signature, then
         // RE-SIGN IT WITH MY OWN
@@ -7391,7 +7391,7 @@ bool OTClient::processServerReplyIssueAssetType(const Message& theReply,
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
-    const auto& USER_ID = args.USER_ID;
+    const auto& NYM_ID = args.NYM_ID;
     const auto& pServerNym = args.pServerNym;
     const auto& pNym = args.pNym;
     if (theReply.m_ascPayload.GetLength()) {
@@ -7402,7 +7402,7 @@ bool OTClient::processServerReplyIssueAssetType(const Message& theReply,
         String strAcctContents(theReply.m_ascPayload);
 
         // TODO check return value
-        pAccount = new Account(USER_ID, ACCOUNT_ID, NOTARY_ID);
+        pAccount = new Account(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         if (pAccount->LoadContractFromString(strAcctContents) &&
             pAccount->VerifyAccount(*pServerNym)) {
@@ -7440,7 +7440,7 @@ bool OTClient::processServerReplyRegisterAccount(const Message& theReply,
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
     const auto& NOTARY_ID = args.NOTARY_ID;
-    const auto& USER_ID = args.USER_ID;
+    const auto& NYM_ID = args.NYM_ID;
     const auto& pServerNym = args.pServerNym;
     const auto& pNym = args.pNym;
     if (theReply.m_ascPayload.GetLength()) {
@@ -7450,7 +7450,7 @@ bool OTClient::processServerReplyRegisterAccount(const Message& theReply,
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
 
-        pAccount = new Account(USER_ID, ACCOUNT_ID, NOTARY_ID);
+        pAccount = new Account(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         if (pAccount && pAccount->LoadContractFromString(strAcctContents) &&
             pAccount->VerifyAccount(*pServerNym)) {
@@ -7530,9 +7530,9 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     args.ACCOUNT_ID = Identifier(theReply.m_strAcctID);
     theConnection.GetNotaryID(args.NOTARY_ID);
     args.pNym = theConnection.GetNym();
-    args.USER_ID = Identifier(*args.pNym);
+    args.NYM_ID = Identifier(*args.pNym);
     args.strNotaryID = args.NOTARY_ID;
-    args.strNymID = args.USER_ID;
+    args.strNymID = args.NYM_ID;
     args.pServerNym = const_cast<Nym*>(
         theConnection.GetServerContract()->GetContractPublicNym());
 
@@ -8117,7 +8117,7 @@ int32_t OTClient::ProcessUserCommand(
         }
 
         // "from acct" is the acct we are depositing this cash to. aka MyAcct.
-        const Identifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
+        const Identifier ACCT_FROM_ID(strFromAcct), NYM_ID(theNym);
 
         Purse thePurse(NOTARY_ID, CONTRACT_ID);
 
@@ -8268,7 +8268,7 @@ int32_t OTClient::ProcessUserCommand(
 
         // Create a transaction
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            USER_ID, ACCT_FROM_ID, NOTARY_ID, OTTransaction::deposit,
+            NYM_ID, ACCT_FROM_ID, NOTARY_ID, OTTransaction::deposit,
             lStoredTransactionNumber);
 
         // set up the transaction item (each transaction may have multiple
@@ -8377,7 +8377,7 @@ int32_t OTClient::ProcessUserCommand(
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(USER_ID, ACCT_FROM_ID, NOTARY_ID);
+            OTLedger theLedger(NYM_ID, ACCT_FROM_ID, NOTARY_ID);
             theLedger.GenerateLedger(ACCT_FROM_ID, NOTARY_ID,
                                      OTLedger::message); // bGenerateLedger
                                                          // defaults to false,
@@ -8494,7 +8494,7 @@ int32_t OTClient::ProcessUserCommand(
             return (-1);
         }
 
-        const Identifier ACCT_FROM_ID(strFromAcct), USER_ID(theNym);
+        const Identifier ACCT_FROM_ID(strFromAcct), NYM_ID(theNym);
 
         Cheque theCheque(NOTARY_ID, CONTRACT_ID);
 
@@ -8528,7 +8528,7 @@ int32_t OTClient::ProcessUserCommand(
         }
         else if (theCheque.LoadContractFromString(strCheque)) {
             if (theCheque.HasRecipient() &&
-                (theCheque.GetRecipientUserID() != USER_ID)) {
+                (theCheque.GetRecipientUserID() != NYM_ID)) {
                 const String strRecipientNym(theCheque.GetRecipientUserID());
                 otOut << "This cheque is made out to the Nym: "
                       << strRecipientNym
@@ -8545,8 +8545,8 @@ int32_t OTClient::ProcessUserCommand(
                 // Create a transaction
                 OTTransaction* pTransaction =
                     OTTransaction::GenerateTransaction(
-                        USER_ID, ACCT_FROM_ID, NOTARY_ID,
-                        OTTransaction::deposit, lStoredTransactionNumber);
+                        NYM_ID, ACCT_FROM_ID, NOTARY_ID, OTTransaction::deposit,
+                        lStoredTransactionNumber);
 
                 // set up the transaction item (each transaction may have
                 // multiple items...)
@@ -8618,7 +8618,7 @@ int32_t OTClient::ProcessUserCommand(
                     pTransaction->SaveContract();
 
                     // set up the ledger
-                    OTLedger theLedger(USER_ID, ACCT_FROM_ID, NOTARY_ID);
+                    OTLedger theLedger(NYM_ID, ACCT_FROM_ID, NOTARY_ID);
                     theLedger.GenerateLedger(
                         ACCT_FROM_ID, NOTARY_ID,
                         OTLedger::message); // bGenerateLedger defaults to
@@ -8898,7 +8898,7 @@ int32_t OTClient::ProcessUserCommand(
     } break;
     case OTClient::paymentPlan: // Activate a PAYMENT PLAN
     {
-        const Identifier USER_ID(theNym);
+        const Identifier NYM_ID(theNym);
 
         OTPaymentPlan thePlan;
 
@@ -8945,7 +8945,7 @@ int32_t OTClient::ProcessUserCommand(
                 // Create a transaction
                 OTTransaction* pTransaction =
                     OTTransaction::GenerateTransaction(
-                        USER_ID, ACCOUNT_ID, NOTARY_ID,
+                        NYM_ID, ACCOUNT_ID, NOTARY_ID,
                         OTTransaction::paymentPlan,
                         thePlan.GetTransactionNum());
 
@@ -8993,7 +8993,7 @@ int32_t OTClient::ProcessUserCommand(
                 pTransaction->SaveContract();
 
                 // set up the ledger
-                OTLedger theLedger(USER_ID, ACCOUNT_ID, NOTARY_ID);
+                OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID);
                 theLedger.GenerateLedger(ACCOUNT_ID, NOTARY_ID,
                                          OTLedger::message); // bGenerateLedger
                                                              // defaults to

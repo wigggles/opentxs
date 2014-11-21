@@ -164,18 +164,18 @@ public:
 
     EXPORT int32_t
         VerifyMsgBalanceAgrmntSuccess(const std::string& NOTARY_ID,
-                                      const std::string& USER_ID,
+                                      const std::string& NYM_ID,
                                       const std::string& ACCOUNT_ID,
                                       const std::string& str_Message) const;
 
     EXPORT int32_t VerifyMsgTrnxSuccess(const std::string& NOTARY_ID,
-                                        const std::string& USER_ID,
+                                        const std::string& NYM_ID,
                                         const std::string& ACCOUNT_ID,
                                         const std::string& str_Message) const;
 
     EXPORT int32_t
         InterpretTransactionMsgReply(const std::string& NOTARY_ID,
-                                     const std::string& USER_ID,
+                                     const std::string& NYM_ID,
                                      const std::string& ACCOUNT_ID,
                                      const std::string& str_Attempt,
                                      const std::string& str_Response) const;

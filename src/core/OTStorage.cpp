@@ -542,7 +542,7 @@ Storable* CreateObject(StoredObjectType eType)
 // bool bSuccess = Store(strInbox, "inbox", "lkjsdf908w345ljkvd");
 // bool bSuccess = Store(strMint,  "mints", NOTARY_ID,
 // INSTRUMENT_DEFINITION_ID);
-// bool bSuccess = Store(strPurse, "purse", NOTARY_ID, USER_ID,
+// bool bSuccess = Store(strPurse, "purse", NOTARY_ID, NYM_ID,
 // INSTRUMENT_DEFINITION_ID);
 
 // BELOW FUNCTIONS use the DEFAULT Storage context.

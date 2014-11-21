@@ -152,7 +152,7 @@ public:
                 const Identifier& INSTRUMENT_DEFINITION_ID);
     OTTrackable(const Identifier& NOTARY_ID,
                 const Identifier& INSTRUMENT_DEFINITION_ID,
-                const Identifier& ACCT_ID, const Identifier& USER_ID);
+                const Identifier& ACCT_ID, const Identifier& NYM_ID);
 
     virtual ~OTTrackable();
 
@@ -182,7 +182,7 @@ public:
 
     inline const Identifier& GetSenderUserID() const
     {
-        return m_SENDER_USER_ID;
+        return m_SENDER_NYM_ID;
     }
 
 protected:
@@ -191,9 +191,9 @@ protected:
         m_SENDER_ACCT_ID = ACCT_ID;
     }
 
-    inline void SetSenderUserID(const Identifier& USER_ID)
+    inline void SetSenderUserID(const Identifier& NYM_ID)
     {
-        m_SENDER_USER_ID = USER_ID;
+        m_SENDER_NYM_ID = NYM_ID;
     }
 
 protected:
@@ -202,7 +202,7 @@ protected:
     Identifier m_SENDER_ACCT_ID;
     // This ID must match the user ID on that asset account,
     // AND must verify the instrument's signature with that user's key.
-    Identifier m_SENDER_USER_ID;
+    Identifier m_SENDER_NYM_ID;
 };
 
 } // namespace opentxs

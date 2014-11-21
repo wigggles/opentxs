@@ -461,11 +461,11 @@ public:
      inline OTIdentifier&    GetRecipientAcctID()        { return
      m_RECIPIENT_ACCT_ID; }
      inline OTIdentifier&    GetRecipientUserID()        { return
-     m_RECIPIENT_USER_ID; }
+     m_RECIPIENT_NYM_ID; }
      inline void            SetRecipientAcctID(OTIdentifier& ACCT_ID)    {
      m_RECIPIENT_ACCT_ID = ACCT_ID; }
-     inline void            SetRecipientUserID(OTIdentifier& USER_ID)    {
-     m_RECIPIENT_USER_ID = USER_ID; }
+     inline void            SetRecipientUserID(OTIdentifier& NYM_ID)    {
+     m_RECIPIENT_NYM_ID = NYM_ID; }
 
      const OTString&  GetConsideration() const { return m_strConsideration; }
      */
@@ -494,11 +494,11 @@ public:
      inline const   OTIdentifier&    GetSenderAcctID()               { return
      m_SENDER_ACCT_ID; }
      inline const   OTIdentifier&    GetSenderUserID()               { return
-     m_SENDER_USER_ID; }
+     m_SENDER_NYM_ID; }
      inline void    SetSenderAcctID(const OTIdentifier& ACCT_ID)    {
      m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void    SetSenderUserID(const OTIdentifier& USER_ID)    {
-     m_SENDER_USER_ID = USER_ID; }
+     inline void    SetSenderUserID(const OTIdentifier& NYM_ID)    {
+     m_SENDER_NYM_ID = NYM_ID; }
      */
 
     // From OTInstrument (parent of OTTrackable, parent of OTCronItem, parent of
@@ -548,9 +548,9 @@ public:
     EXPORT OTPaymentPlan(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID,
                          const Identifier& SENDER_ACCT_ID,
-                         const Identifier& SENDER_USER_ID,
+                         const Identifier& SENDER_NYM_ID,
                          const Identifier& RECIPIENT_ACCT_ID,
-                         const Identifier& RECIPIENT_USER_ID);
+                         const Identifier& RECIPIENT_NYM_ID);
     EXPORT virtual ~OTPaymentPlan();
     void InitPaymentPlan();
     virtual void Release();

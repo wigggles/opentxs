@@ -1000,7 +1000,7 @@ int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const
 }
 
 int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& str_Message) const
 {
     if (str_Message.size() < 10) {
@@ -1010,7 +1010,7 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
     }
 
     int32_t nStatus = OTAPI_Wrap::Message_GetBalanceAgreementSuccess(
-        NOTARY_ID, USER_ID, ACCOUNT_ID, str_Message);
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, str_Message);
 
     switch (nStatus) {
     case (-1):
@@ -1038,7 +1038,7 @@ int32_t OT_ME::VerifyMsgBalanceAgrmntSuccess(
 }
 
 int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ACCOUNT_ID,
                                     const std::string& str_Message) const
 {
@@ -1049,7 +1049,7 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& NOTARY_ID,
     }
 
     int32_t nStatus = OTAPI_Wrap::Message_GetTransactionSuccess(
-        NOTARY_ID, USER_ID, ACCOUNT_ID, str_Message);
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, str_Message);
 
     switch (nStatus) {
     case (-1):
@@ -1081,7 +1081,7 @@ int32_t OT_ME::VerifyMsgTrnxSuccess(const std::string& NOTARY_ID,
 // It uses the above functions.
 //
 int32_t OT_ME::InterpretTransactionMsgReply(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& str_Attempt,
     const std::string& str_Response) const
 {
@@ -1098,7 +1098,7 @@ int32_t OT_ME::InterpretTransactionMsgReply(
     }
     // (else 1.)
     int32_t nBalanceSuccess = VerifyMsgBalanceAgrmntSuccess(
-        NOTARY_ID, USER_ID, ACCOUNT_ID, str_Response);
+        NOTARY_ID, NYM_ID, ACCOUNT_ID, str_Response);
 
     if ((-1) == nBalanceSuccess) {
         otOut << __FUNCTION__ << ": Balance agreement error: " << str_Attempt
@@ -1112,7 +1112,7 @@ int32_t OT_ME::InterpretTransactionMsgReply(
     }
     // (else 1.)
     int32_t nTransSuccess =
-        VerifyMsgTrnxSuccess(NOTARY_ID, USER_ID, ACCOUNT_ID, str_Response);
+        VerifyMsgTrnxSuccess(NOTARY_ID, NYM_ID, ACCOUNT_ID, str_Response);
 
     if ((-1) == nTransSuccess) {
         otOut << __FUNCTION__ << ": Transaction error: " << str_Attempt << "\n";

@@ -174,7 +174,7 @@ protected:
                const Identifier& INSTRUMENT_DEFINITION_ID);
     OTCronItem(const Identifier& NOTARY_ID,
                const Identifier& INSTRUMENT_DEFINITION_ID,
-               const Identifier& ACCT_ID, const Identifier& USER_ID);
+               const Identifier& ACCT_ID, const Identifier& NYM_ID);
 
     Identifier* m_pCancelerNymID;
 
@@ -207,14 +207,14 @@ protected:
 public:
     // To force the Nym to close out the closing number on the receipt.
     bool DropFinalReceiptToInbox(
-        const Identifier& USER_ID, const Identifier& ACCOUNT_ID,
+        const Identifier& NYM_ID, const Identifier& ACCOUNT_ID,
         const int64_t& lNewTransactionNumber, const int64_t& lClosingNumber,
         const String& strOrigCronItem, String* pstrNote = nullptr,
         String* pstrAttachment = nullptr, Account* pActualAcct = nullptr);
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.
-    bool DropFinalReceiptToNymbox(const Identifier& USER_ID,
+    bool DropFinalReceiptToNymbox(const Identifier& NYM_ID,
                                   const int64_t& lNewTransactionNumber,
                                   const String& strOrigCronItem,
                                   String* pstrNote = nullptr,

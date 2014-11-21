@@ -1936,9 +1936,9 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
 //
 bool OTAPI_Exec::DoesBoxReceiptExist(
     const std::string& NOTARY_ID,
-    const std::string& USER_ID,    // Unused here for now, but still convention.
+    const std::string& NYM_ID,     // Unused here for now, but still convention.
     const std::string& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                   // USER_ID in this field also.
+                                   // NYM_ID in this field also.
     const int32_t& nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& TRANSACTION_NUMBER) const
 {
@@ -1947,8 +1947,8 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
     if (ACCOUNT_ID.empty()) {
@@ -1964,7 +1964,7 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
         otErr << __FUNCTION__ << ": Negative: TRANSACTION_NUMBER passed in!\n";
         return false;
     }
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     switch (nBoxType) {
@@ -1974,13 +1974,13 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
         break;
     default:
         otErr << __FUNCTION__ << ": Error: bad nBoxType: " << nBoxType
-              << " for UserID: " << USER_ID << " AcctID: " << ACCOUNT_ID
+              << " for UserID: " << NYM_ID << " AcctID: " << ACCOUNT_ID
               << " (expected one of: 0/nymbox, 1/inbox, 2/outbox)\n";
         return false;
     }
     return OTAPI()->DoesBoxReceiptExist(
         theNotaryID, theUserID, theAccountID, // If for Nymbox (vs inbox/outbox)
-                                              // then pass USER_ID in this field
+                                              // then pass NYM_ID in this field
                                               // also.
         nBoxType,                             // 0/nymbox, 1/inbox, 2/outbox
         static_cast<int64_t>(lTransactionNum));
@@ -1995,9 +1995,9 @@ bool OTAPI_Exec::DoesBoxReceiptExist(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getBoxReceipt(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, // If for Nymbox (vs inbox/outbox) then pass
-                                   // USER_ID in this field also.
+                                   // NYM_ID in this field also.
     const int32_t& nBoxType,       // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& TRANSACTION_NUMBER) const
 {
@@ -2005,8 +2005,8 @@ int32_t OTAPI_Exec::getBoxReceipt(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -2022,7 +2022,7 @@ int32_t OTAPI_Exec::getBoxReceipt(
         otErr << __FUNCTION__ << ": Negative: TRANSACTION_NUMBER passed in!\n";
         return OT_ERROR;
     }
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     switch (nBoxType) {
@@ -2032,7 +2032,7 @@ int32_t OTAPI_Exec::getBoxReceipt(
         break;
     default:
         otErr << __FUNCTION__ << ": Error: bad nBoxType: " << nBoxType
-              << " for UserID: " << USER_ID << " AcctID: " << ACCOUNT_ID
+              << " for UserID: " << NYM_ID << " AcctID: " << ACCOUNT_ID
               << "(expected one of: 0/nymbox, 1/inbox, 2/outbox)\n";
         return OT_ERROR;
     }
@@ -2040,7 +2040,7 @@ int32_t OTAPI_Exec::getBoxReceipt(
     return OTAPI()->getBoxReceipt(theNotaryID, theUserID,
                                   theAccountID, // If for Nymbox (vs
                                                 // inbox/outbox) then pass
-                                                // USER_ID in this field also.
+                                                // NYM_ID in this field also.
                                   nBoxType,     // 0/nymbox, 1/inbox, 2/outbox
                                   static_cast<int64_t>(lTransactionNum));
 }
@@ -2054,15 +2054,15 @@ int32_t OTAPI_Exec::getBoxReceipt(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::deleteAssetAccount(const std::string& NOTARY_ID,
-                                       const std::string& USER_ID,
+                                       const std::string& NYM_ID,
                                        const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -2072,7 +2072,7 @@ int32_t OTAPI_Exec::deleteAssetAccount(const std::string& NOTARY_ID,
 
     if (!OTAPI_Exec::Wallet_CanRemoveAccount(ACCOUNT_ID)) return 0;
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     return OTAPI()->deleteAssetAccount(theNotaryID, theUserID, theAccountID);
@@ -4892,18 +4892,18 @@ lTransactionNumber,   // The API will supply this automatically, as long as
 
 VALID_FROM, VALID_TO, // Valid date range (in seconds since Jan 1970...)
 
-ACCOUNT_ID, USER_ID,  // User ID and Acct ID for SENDER.
+ACCOUNT_ID, NYM_ID,  // User ID and Acct ID for SENDER.
 
 CHEQUE_MEMO,  // The memo for the cheque.
 
-RECIPIENT_USER_ID); // Recipient User ID is optional. (You can use an
+RECIPIENT_NYM_ID); // Recipient User ID is optional. (You can use an
 // empty string here, to write a blank cheque.)
 */
 std::string OTAPI_Exec::WriteCheque(
     const std::string& NOTARY_ID, const int64_t& CHEQUE_AMOUNT,
     const time64_t& VALID_FROM, const time64_t& VALID_TO,
-    const std::string& SENDER_ACCT_ID, const std::string& SENDER_USER_ID,
-    const std::string& CHEQUE_MEMO, const std::string& RECIPIENT_USER_ID) const
+    const std::string& SENDER_ACCT_ID, const std::string& SENDER_NYM_ID,
+    const std::string& CHEQUE_MEMO, const std::string& RECIPIENT_NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -4925,15 +4925,15 @@ std::string OTAPI_Exec::WriteCheque(
         otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
         return "";
     }
-    if (SENDER_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SENDER_USER_ID passed in!\n";
+    if (SENDER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SENDER_NYM_ID passed in!\n";
         return "";
     }
     //    if (CHEQUE_MEMO.empty())        { otErr << __FUNCTION__ << ": Null:
     // CHEQUE_MEMO passed
     // in!\n"; OT_FAIL; } // optional
-    //    if (RECIPIENT_USER_ID.empty())    { otErr << __FUNCTION__ << ": Null:
-    // RECIPIENT_USER_ID passed
+    //    if (RECIPIENT_NYM_ID.empty())    { otErr << __FUNCTION__ << ": Null:
+    // RECIPIENT_NYM_ID passed
     // in!\n"; OT_FAIL; } // optional
 
     const int64_t lAmount = CHEQUE_AMOUNT;
@@ -4942,10 +4942,10 @@ std::string OTAPI_Exec::WriteCheque(
 
     const Identifier theNotaryID(NOTARY_ID);
     const Identifier theSenderAcctID(SENDER_ACCT_ID);
-    const Identifier theSenderUserID(SENDER_USER_ID);
+    const Identifier theSenderUserID(SENDER_NYM_ID);
     Identifier theRecipientUserID;
-    bool bHasRecipient = !RECIPIENT_USER_ID.empty();
-    if (bHasRecipient) theRecipientUserID.SetString(RECIPIENT_USER_ID);
+    bool bHasRecipient = !RECIPIENT_NYM_ID.empty();
+    if (bHasRecipient) theRecipientUserID.SetString(RECIPIENT_NYM_ID);
     String strMemo;
 
     if (!CHEQUE_MEMO.empty()) strMemo.Set(CHEQUE_MEMO);
@@ -4970,7 +4970,7 @@ std::string OTAPI_Exec::WriteCheque(
 }
 
 bool OTAPI_Exec::DiscardCheque(const std::string& NOTARY_ID,
-                               const std::string& USER_ID,
+                               const std::string& NYM_ID,
                                const std::string& ACCT_ID,
                                const std::string& THE_CHEQUE) const
 {
@@ -4978,8 +4978,8 @@ bool OTAPI_Exec::DiscardCheque(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
     if (ACCT_ID.empty()) {
@@ -4991,7 +4991,7 @@ bool OTAPI_Exec::DiscardCheque(const std::string& NOTARY_ID,
         return false;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID), theAcctID(ACCT_ID);
     String strCheque(THE_CHEQUE);
 
     return OTAPI()->DiscardCheque(theNotaryID, theUserID, theAcctID, strCheque);
@@ -5028,12 +5028,12 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     // anytime. Otherwise this is ADDED to VALID_FROM
     // (it's a length.)
     const std::string& SENDER_ACCT_ID, // Mandatory parameters.
-    const std::string& SENDER_USER_ID, // Both sender and recipient must sign
+    const std::string& SENDER_NYM_ID,  // Both sender and recipient must sign
                                        // before submitting.
     const std::string& PLAN_CONSIDERATION, // Like a memo.
     const std::string& RECIPIENT_ACCT_ID,  // NOT optional.
-    const std::string& RECIPIENT_USER_ID, // Both sender and recipient must sign
-                                          // before submitting.
+    const std::string& RECIPIENT_NYM_ID, // Both sender and recipient must sign
+                                         // before submitting.
     const int64_t& INITIAL_PAYMENT_AMOUNT, // zero or "" is no initial payment.
     const time64_t& INITIAL_PAYMENT_DELAY, // seconds from creation date.
                                            // Default is zero or "".
@@ -5064,8 +5064,8 @@ std::string OTAPI_Exec::ProposePaymentPlan(
         otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
         return "";
     }
-    if (SENDER_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SENDER_USER_ID passed in!\n";
+    if (SENDER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SENDER_NYM_ID passed in!\n";
         return "";
     }
     if (PLAN_CONSIDERATION.empty()) {
@@ -5076,8 +5076,8 @@ std::string OTAPI_Exec::ProposePaymentPlan(
         otErr << __FUNCTION__ << ": Null: RECIPIENT_ACCT_ID passed in!\n";
         return "";
     }
-    if (RECIPIENT_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: RECIPIENT_USER_ID passed in!\n";
+    if (RECIPIENT_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: RECIPIENT_NYM_ID passed in!\n";
         return "";
     }
     if (0 > INITIAL_PAYMENT_AMOUNT) {
@@ -5114,13 +5114,13 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     std::unique_ptr<OTPaymentPlan> pPlan(OTAPI()->ProposePaymentPlan(
         Identifier(NOTARY_ID), VALID_FROM, // Default (0) == NOW
         VALID_TO, // Default (0) == no expiry / cancel anytime
-        Identifier(SENDER_ACCT_ID), Identifier(SENDER_USER_ID),
+        Identifier(SENDER_ACCT_ID), Identifier(SENDER_NYM_ID),
         PLAN_CONSIDERATION.empty() ? "(Consideration for the agreement between "
                                      "the parties is meant to be recorded "
                                      "here.)"
                                    : PLAN_CONSIDERATION, // Like a memo.
         Identifier(RECIPIENT_ACCT_ID),
-        Identifier(RECIPIENT_USER_ID),
+        Identifier(RECIPIENT_NYM_ID),
         static_cast<int64_t>(INITIAL_PAYMENT_AMOUNT), INITIAL_PAYMENT_DELAY,
         static_cast<int64_t>(PAYMENT_PLAN_AMOUNT), PAYMENT_PLAN_DELAY,
         PAYMENT_PLAN_PERIOD, PAYMENT_PLAN_LENGTH,
@@ -5151,13 +5151,13 @@ std::string OTAPI_Exec::EasyProposePlan(
                                        // NOW, and default 'to' (0 or "") == no
                                        // expiry / cancel anytime
     const std::string& SENDER_ACCT_ID, // Mandatory parameters.
-    const std::string& SENDER_USER_ID, // Both sender and recipient must sign
+    const std::string& SENDER_NYM_ID,  // Both sender and recipient must sign
                                        // before submitting.
     const std::string& PLAN_CONSIDERATION, // Like a memo.
     const std::string& RECIPIENT_ACCT_ID,  // NOT optional.
-    const std::string& RECIPIENT_USER_ID, // Both sender and recipient must sign
-                                          // before submitting.
-    const std::string& INITIAL_PAYMENT,   // "amount,delay"  Default 'amount' (0
+    const std::string& RECIPIENT_NYM_ID, // Both sender and recipient must sign
+                                         // before submitting.
+    const std::string& INITIAL_PAYMENT,  // "amount,delay"  Default 'amount' (0
     // or "") == no initial payment. Default
     // 'delay' (0 or nullptr) is seconds from
     // creation date.
@@ -5178,8 +5178,8 @@ std::string OTAPI_Exec::EasyProposePlan(
         otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
         return "";
     }
-    if (SENDER_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SENDER_USER_ID passed in!\n";
+    if (SENDER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SENDER_NYM_ID passed in!\n";
         return "";
     }
     if (PLAN_CONSIDERATION.empty()) {
@@ -5190,8 +5190,8 @@ std::string OTAPI_Exec::EasyProposePlan(
         otErr << __FUNCTION__ << ": Null: RECIPIENT_ACCT_ID passed in!\n";
         return "";
     }
-    if (RECIPIENT_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: RECIPIENT_USER_ID passed in!\n";
+    if (RECIPIENT_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: RECIPIENT_NYM_ID passed in!\n";
         return "";
     }
     time64_t VALID_FROM = OT_TIME_ZERO;
@@ -5283,8 +5283,8 @@ std::string OTAPI_Exec::EasyProposePlan(
         }
     }
     return OTAPI_Exec::ProposePaymentPlan(
-        NOTARY_ID, VALID_FROM, VALID_TO, SENDER_ACCT_ID, SENDER_USER_ID,
-        PLAN_CONSIDERATION, RECIPIENT_ACCT_ID, RECIPIENT_USER_ID,
+        NOTARY_ID, VALID_FROM, VALID_TO, SENDER_ACCT_ID, SENDER_NYM_ID,
+        PLAN_CONSIDERATION, RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID,
         INITIAL_PAYMENT_AMOUNT, INITIAL_PAYMENT_DELAY, PAYMENT_PLAN_AMOUNT,
         PAYMENT_PLAN_DELAY, PAYMENT_PLAN_PERIOD, PAYMENT_PLAN_LENGTH,
         PAYMENT_PLAN_MAX_PAYMENTS);
@@ -5295,8 +5295,8 @@ std::string OTAPI_Exec::EasyProposePlan(
 // Customer should call OTAPI_Exec::depositPaymentPlan after this.
 //
 std::string OTAPI_Exec::ConfirmPaymentPlan(
-    const std::string& NOTARY_ID, const std::string& SENDER_USER_ID,
-    const std::string& SENDER_ACCT_ID, const std::string& RECIPIENT_USER_ID,
+    const std::string& NOTARY_ID, const std::string& SENDER_NYM_ID,
+    const std::string& SENDER_ACCT_ID, const std::string& RECIPIENT_NYM_ID,
     const std::string& PAYMENT_PLAN) const
 {
     if (NOTARY_ID.empty()) {
@@ -5307,12 +5307,12 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
         otErr << __FUNCTION__ << ": Null: SENDER_ACCT_ID passed in!\n";
         return "";
     }
-    if (SENDER_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: SENDER_USER_ID passed in!\n";
+    if (SENDER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: SENDER_NYM_ID passed in!\n";
         return "";
     }
-    if (RECIPIENT_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: RECIPIENT_USER_ID passed in!\n";
+    if (RECIPIENT_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: RECIPIENT_NYM_ID passed in!\n";
         return "";
     }
     if (PAYMENT_PLAN.empty()) {
@@ -5321,9 +5321,9 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theSenderUserID(SENDER_USER_ID);
+    const Identifier theSenderUserID(SENDER_NYM_ID);
     const Identifier theSenderAcctID(SENDER_ACCT_ID);
-    const Identifier theRecipientUserID(RECIPIENT_USER_ID);
+    const Identifier theRecipientUserID(RECIPIENT_NYM_ID);
 
     OTPaymentPlan thePlan;
     const String strPlan(PAYMENT_PLAN);
@@ -7251,15 +7251,15 @@ std::string OTAPI_Exec::Party_GetAgentID(const std::string& THE_CONTRACT,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::activateSmartContract(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_SMART_CONTRACT) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (THE_SMART_CONTRACT.empty()) {
@@ -7267,7 +7267,7 @@ int32_t OTAPI_Exec::activateSmartContract(
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     const String strContract(THE_SMART_CONTRACT);
 
     return OTAPI()->activateSmartContract(theNotaryID, theUserID, strContract);
@@ -7287,7 +7287,7 @@ int32_t OTAPI_Exec::activateSmartContract(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::triggerClause(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const int64_t& TRANSACTION_NUMBER, const std::string& CLAUSE_NAME,
     const std::string& STR_PARAM) const // optional param
 {
@@ -7295,8 +7295,8 @@ int32_t OTAPI_Exec::triggerClause(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (0 > TRANSACTION_NUMBER) {
@@ -7311,7 +7311,7 @@ int32_t OTAPI_Exec::triggerClause(
     // STR_PARAM passed
     // in!\n"; OT_FAIL; }  // optional
     // param
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     const String strClauseName(CLAUSE_NAME);
     const int64_t lTransactionNum = TRANSACTION_NUMBER;
     const String strParam((STR_PARAM.empty()) ? "" : STR_PARAM);
@@ -7381,7 +7381,7 @@ have been removed.
 */
 
 bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
-    const std::string& THE_MESSAGE, const std::string& USER_ID,
+    const std::string& THE_MESSAGE, const std::string& NYM_ID,
     const bool& bHarvestingForRetry, const bool& bReplyWasSuccess,
     const bool& bReplyWasFailure, const bool& bTransactionWasSuccess,
     const bool& bTransactionWasFailure) const
@@ -7396,11 +7396,11 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         otErr << __FUNCTION__ << ": Null: THE_MESSAGE passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     Message theMessage;
     const String strMsg(THE_MESSAGE);
     if (!strMsg.Exists()) {
@@ -7588,17 +7588,17 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 // to load those from time to time, especially to verify signatures, etc.
 //
 std::string OTAPI_Exec::LoadPubkey_Encryption(
-    const std::string& USER_ID) const // returns "", or a public key.
+    const std::string& NYM_ID) const // returns "", or a public key.
 {
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     String strPubkey; // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    Identifier NYM_ID(USER_ID);
+    Identifier nym_id(NYM_ID);
     Nym* pNym =
-        OTAPI()->GetOrLoadNym(NYM_ID, false, __FUNCTION__,
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__,
                               &thePWData); // This tries to get, then tries to
                                            // load as public, then tries to load
                                            // as private.
@@ -7607,7 +7607,7 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
         pNym->GetPublicEncrKey().GetPublicKey(
             strPubkey, false)) // bEscaped defaults to true. 6/13/12
     {
-        String strNymID(NYM_ID);
+        String strNymID(nym_id);
         otOut << __FUNCTION__
               << ": Failure retrieving encryption pubkey from Nym: " << strNymID
               << "\n";
@@ -7621,17 +7621,17 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
 }
 
 std::string OTAPI_Exec::LoadPubkey_Signing(
-    const std::string& USER_ID) const // returns "", or a public key.
+    const std::string& NYM_ID) const // returns "", or a public key.
 {
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     String strPubkey; // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
-    Identifier NYM_ID(USER_ID);
+    Identifier nym_id(NYM_ID);
     Nym* pNym =
-        OTAPI()->GetOrLoadNym(NYM_ID, false, __FUNCTION__,
+        OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__,
                               &thePWData); // This tries to get, then tries to
                                            // load as public, then tries to load
                                            // as private.
@@ -7640,7 +7640,7 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
         pNym->GetPublicSignKey().GetPublicKey(
             strPubkey, false)) // bEscaped defaults to true. 6/13/12
     {
-        String strNymID(NYM_ID);
+        String strNymID(nym_id);
         otOut << __FUNCTION__
               << ": Failure retrieving signing pubkey from Nym: " << strNymID
               << "\n";
@@ -7658,18 +7658,18 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
 // (return as STRING)
 //
 std::string OTAPI_Exec::LoadUserPubkey_Encryption(
-    const std::string& USER_ID) const // returns "", or a public key.
+    const std::string& NYM_ID) const // returns "", or a public key.
 {
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     String strPubkey; // For the output
-    Identifier NYM_ID(USER_ID);
-    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
+    Identifier nym_id(NYM_ID);
+    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(nym_id); // No need to cleanup.
     if (nullptr == pNym) return "";
     if (!pNym->GetPublicEncrKey().GetPublicKey(strPubkey)) {
-        String strNymID(NYM_ID);
+        String strNymID(nym_id);
         otOut << __FUNCTION__
               << ": Failure retrieving encryption pubkey from Nym: " << strNymID
               << "\n";
@@ -7683,18 +7683,18 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
 }
 
 std::string OTAPI_Exec::LoadUserPubkey_Signing(
-    const std::string& USER_ID) const // returns "", or a public key.
+    const std::string& NYM_ID) const // returns "", or a public key.
 {
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     String strPubkey; // For the output
-    Identifier NYM_ID(USER_ID);
+    Identifier nym_id(NYM_ID);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
     if (nullptr == pNym) return "";
     if (!pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
-        String strNymID(NYM_ID);
+        String strNymID(nym_id);
         otOut << __FUNCTION__
               << ": Failure retrieving signing pubkey from Nym: " << strNymID
               << "\n";
@@ -7708,21 +7708,21 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
 }
 
 //
-// Verify that USER_ID (including its Private Key) is an
+// Verify that NYM_ID (including its Private Key) is an
 // available and verified user in local storage.
 //
 // Loads the user's private key, verifies, then returns true or false.
 //
 bool OTAPI_Exec::VerifyUserPrivateKey(
-    const std::string& USER_ID) const // returns
-                                      // bool
+    const std::string& NYM_ID) const // returns
+                                     // bool
 {
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
-    Identifier NYM_ID(USER_ID);
-    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(NYM_ID); // No need to cleanup.
+    Nym* pNym =
+        OTAPI()->GetOrLoadPrivateNym(Identifier(NYM_ID)); // No need to cleanup.
     if (nullptr == pNym) return false;
     return true;
 }
@@ -7867,15 +7867,15 @@ std::string OTAPI_Exec::LoadServerContract(
 // and returns it as string (or returns "" if it couldn't load it.)
 //
 std::string OTAPI_Exec::LoadAssetAccount(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const // Returns "", or an account.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -7884,7 +7884,7 @@ std::string OTAPI_Exec::LoadAssetAccount(
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
@@ -7931,7 +7931,7 @@ std::string OTAPI_Exec::LoadAssetAccount(
 // won't be, once you process the box.)
 //
 std::string OTAPI_Exec::Nymbox_GetReplyNotice(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const int64_t& REQUEST_NUMBER) const // returns replyNotice transaction by
                                          // requestNumber.
 {
@@ -7939,8 +7939,8 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (0 > REQUEST_NUMBER) {
@@ -7949,7 +7949,7 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     const int64_t lRequestNumber = REQUEST_NUMBER;
     // There is an OT_ASSERT in here for memory failure,
@@ -8068,7 +8068,7 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
 // it has removed it from its list.
 //
 bool OTAPI_Exec::HaveAlreadySeenReply(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const int64_t& REQUEST_NUMBER) const // returns
                                          // bool
 {
@@ -8076,8 +8076,8 @@ bool OTAPI_Exec::HaveAlreadySeenReply(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
     if (0 > REQUEST_NUMBER) {
@@ -8086,7 +8086,7 @@ bool OTAPI_Exec::HaveAlreadySeenReply(
     }
 
     Identifier theNotaryID(NOTARY_ID);
-    Identifier theUserID(USER_ID);
+    Identifier theUserID(NYM_ID);
 
     const int64_t lRequestNumber = REQUEST_NUMBER;
 
@@ -8100,21 +8100,21 @@ bool OTAPI_Exec::HaveAlreadySeenReply(
 }
 
 std::string OTAPI_Exec::LoadNymbox(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID) const // Returns
-                                                                     // "", or
+                                   const std::string& NYM_ID) const // Returns
+                                                                    // "", or
 // an inbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8136,19 +8136,19 @@ std::string OTAPI_Exec::LoadNymbox(const std::string& NOTARY_ID,
 
 std::string OTAPI_Exec::LoadNymboxNoVerify(
     const std::string& NOTARY_ID,
-    const std::string& USER_ID) const // Returns "", or an inbox.
+    const std::string& NYM_ID) const // Returns "", or an inbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8170,7 +8170,7 @@ std::string OTAPI_Exec::LoadNymboxNoVerify(
 }
 
 std::string OTAPI_Exec::LoadInbox(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const // Returns "",
                                          // or an inbox.
 {
@@ -8178,8 +8178,8 @@ std::string OTAPI_Exec::LoadInbox(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8188,7 +8188,7 @@ std::string OTAPI_Exec::LoadInbox(
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
@@ -8212,15 +8212,15 @@ std::string OTAPI_Exec::LoadInbox(
 }
 
 std::string OTAPI_Exec::LoadInboxNoVerify(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const // Returns "", or an inbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8229,7 +8229,7 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
@@ -8253,15 +8253,15 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
 }
 
 std::string OTAPI_Exec::LoadOutbox(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
+                                   const std::string& NYM_ID,
                                    const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8270,7 +8270,7 @@ std::string OTAPI_Exec::LoadOutbox(const std::string& NOTARY_ID,
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
@@ -8294,15 +8294,15 @@ std::string OTAPI_Exec::LoadOutbox(const std::string& NOTARY_ID,
 }
 
 std::string OTAPI_Exec::LoadOutboxNoVerify(const std::string& NOTARY_ID,
-                                           const std::string& USER_ID,
+                                           const std::string& NYM_ID,
                                            const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8311,7 +8311,7 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(const std::string& NOTARY_ID,
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
@@ -8335,22 +8335,22 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(const std::string& NOTARY_ID,
 }
 
 std::string OTAPI_Exec::LoadPaymentInbox(
-    const std::string& NOTARY_ID, const std::string& USER_ID) const // Returns
-                                                                    // "", or
-                                                                    // an
-                                                                    // inbox.
+    const std::string& NOTARY_ID, const std::string& NYM_ID) const // Returns
+                                                                   // "", or
+                                                                   // an
+                                                                   // inbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8360,7 +8360,7 @@ std::string OTAPI_Exec::LoadPaymentInbox(
     if (nullptr == pLedger) {
         otWarn << __FUNCTION__
                << ": Failure calling OT_API::LoadPaymentInbox.\n User ID : "
-               << USER_ID << "\n";
+               << NYM_ID << "\n";
     }
     else // success
     {
@@ -8374,19 +8374,19 @@ std::string OTAPI_Exec::LoadPaymentInbox(
 
 std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
     const std::string& NOTARY_ID,
-    const std::string& USER_ID) const // Returns "", or a paymentInbox.
+    const std::string& NYM_ID) const // Returns "", or a paymentInbox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8397,7 +8397,7 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
         otWarn
             << __FUNCTION__
             << ": Failure calling OT_API::LoadPaymentInboxNoVerify.\nUser ID: "
-            << USER_ID << "\n";
+            << NYM_ID << "\n";
     }
     else // success
     {
@@ -8410,15 +8410,15 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
 }
 
 std::string OTAPI_Exec::LoadRecordBox(const std::string& NOTARY_ID,
-                                      const std::string& USER_ID,
+                                      const std::string& NYM_ID,
                                       const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8427,7 +8427,7 @@ std::string OTAPI_Exec::LoadRecordBox(const std::string& NOTARY_ID,
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
@@ -8448,15 +8448,15 @@ std::string OTAPI_Exec::LoadRecordBox(const std::string& NOTARY_ID,
 }
 
 std::string OTAPI_Exec::LoadRecordBoxNoVerify(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8465,7 +8465,7 @@ std::string OTAPI_Exec::LoadRecordBoxNoVerify(
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     const Identifier theAccountID(ACCOUNT_ID);
 
     // There is an OT_ASSERT in here for memory failure,
@@ -8487,19 +8487,19 @@ std::string OTAPI_Exec::LoadRecordBoxNoVerify(
 }
 
 std::string OTAPI_Exec::LoadExpiredBox(const std::string& NOTARY_ID,
-                                       const std::string& USER_ID) const
+                                       const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8520,19 +8520,19 @@ std::string OTAPI_Exec::LoadExpiredBox(const std::string& NOTARY_ID,
 
 std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
     const std::string& NOTARY_ID,
-    const std::string& USER_ID) const // Returns nullptr, or a ExpiredBox.
+    const std::string& NYM_ID) const // Returns nullptr, or a ExpiredBox.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -8553,7 +8553,7 @@ std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
 }
 
 bool OTAPI_Exec::RecordPayment(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const bool& bIsInbox,  // true == payments inbox. false == payments outbox.
     const int32_t& nIndex, // removes payment instrument (from payments in or
                            // out box) and moves to record box.
@@ -8565,21 +8565,21 @@ bool OTAPI_Exec::RecordPayment(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     return OTAPI()->RecordPayment(theNotaryID, theUserID, bIsInbox, nIndex,
                                   bSaveCopy);
 }
 
 bool OTAPI_Exec::ClearRecord(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
-    const std::string& ACCOUNT_ID, // USER_ID can be passed here as well.
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& ACCOUNT_ID, // NYM_ID can be passed here as well.
     const int32_t& nIndex,
     const bool& bClearAll) const // if true, nIndex is ignored.
 {
@@ -8588,8 +8588,8 @@ bool OTAPI_Exec::ClearRecord(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
     if (ACCOUNT_ID.empty()) {
@@ -8598,7 +8598,7 @@ bool OTAPI_Exec::ClearRecord(
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     const Identifier theAcctID(ACCOUNT_ID);
 
     return OTAPI()->ClearRecord(theNotaryID, theUserID, theAcctID, nIndex,
@@ -8606,7 +8606,7 @@ bool OTAPI_Exec::ClearRecord(
 }
 
 bool OTAPI_Exec::ClearExpired(const std::string& NOTARY_ID,
-                              const std::string& USER_ID, const int32_t& nIndex,
+                              const std::string& NYM_ID, const int32_t& nIndex,
                               const bool& bClearAll) const // if true, nIndex is
                                                            // ignored.
 {
@@ -8615,20 +8615,20 @@ bool OTAPI_Exec::ClearExpired(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
 
     const Identifier theNotaryID(NOTARY_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     return OTAPI()->ClearExpired(theNotaryID, theUserID, nIndex, bClearAll);
 }
 
 // Returns number of transactions within, or -1 for error.
 int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ACCOUNT_ID,
                                     const std::string& THE_LEDGER) const
 {
@@ -8636,8 +8636,8 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -8649,7 +8649,7 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -8675,15 +8675,15 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
 // ever create a "response" to, as part of your "process inbox" process.
 //
 std::string OTAPI_Exec::Ledger_CreateResponse(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& ORIGINAL_LEDGER) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8695,7 +8695,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(
         theUserID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -8754,7 +8754,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
 // on straight C, since all these functions are extern "C".)
 //
 std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const int32_t& nIndex) const // returns transaction by index (from ledger)
 {
@@ -8762,8 +8762,8 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8781,7 +8781,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -8872,7 +8872,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
 // are stored in separate files and downloaded separately as well.)
 //
 std::string OTAPI_Exec::Ledger_GetTransactionByID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const int64_t& TRANSACTION_NUMBER) const
 {
@@ -8880,8 +8880,8 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -8905,7 +8905,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -9045,7 +9045,7 @@ the payload on that message and returns the decrypted cleartext.
 // DONE: Finish writing OTClient::ProcessDepositResponse
 
 std::string OTAPI_Exec::Ledger_GetInstrument(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const int32_t& nIndex) const // returns financial instrument by index.
 {
@@ -9053,8 +9053,8 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -9066,7 +9066,7 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
     Nym* pNym = OTAPI()->GetNym(theUserID, __FUNCTION__);
     if (nullptr == pNym) return "";
@@ -9158,7 +9158,7 @@ OTAPI_Exec::GetNym_MailContentsByIndex");
 
 // Returns a transaction number, or -1 for error.
 int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const int32_t& nIndex) const // returns transaction number by index.
 {
@@ -9166,8 +9166,8 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return -1;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return -1;
     }
     if (ACCOUNT_ID.empty()) {
@@ -9185,7 +9185,7 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
         return -1;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -9236,7 +9236,7 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
 // (Returns the updated ledger.)
 //
 std::string OTAPI_Exec::Ledger_AddTransaction(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_LEDGER,
     const std::string& THE_TRANSACTION) const
 {
@@ -9244,8 +9244,8 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -9261,7 +9261,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -9351,7 +9351,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
 // until done.
 //
 std::string OTAPI_Exec::Transaction_CreateResponse(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
     const std::string& THE_LEDGER, // 'Response' ledger be sent to the server...
     const std::string& THE_TRANSACTION, // Responding to...?
@@ -9361,8 +9361,8 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -9378,7 +9378,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAcctID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
@@ -9691,7 +9691,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     //        otErr << __FUNCTION__ << ": Error: There's already a response item
     // in
     // reference to the same receipt! (In Ref: " <<
-    // static_cast<int64_t>(lReferenceTransactionNum) << " User: " << USER_ID <<
+    // static_cast<int64_t>(lReferenceTransactionNum) << " User: " << NYM_ID <<
     // " Account: " << ACCOUNT_ID << ")
     // Failure.\n\n";
     //
@@ -9741,7 +9741,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 // protect themselves against malicious servers.)
 //
 std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
-                                                const std::string& USER_ID,
+                                                const std::string& NYM_ID,
                                                 const std::string& ACCOUNT_ID,
                                                 const std::string& THE_LEDGER)
     const // 'Response' ledger be sent to the server...
@@ -9750,8 +9750,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -9763,7 +9763,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAcctID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER), strNotaryID(theNotaryID);
@@ -9902,7 +9902,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
 
             otWarn << __FUNCTION__
                    << ": Checking inbox for expected pending or receipt ("
-                   << pItem->GetReferenceToNum() << ") Nym: " << USER_ID
+                   << pItem->GetReferenceToNum() << ") Nym: " << NYM_ID
                    << "\n"; // temp remove
 
             if (nullptr == pServerTransaction) {
@@ -10459,15 +10459,15 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
 // retrieve the voucher cheque itself from the transaction.
 //
 std::string OTAPI_Exec::Transaction_GetVoucher(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -10479,7 +10479,7 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10553,15 +10553,15 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
 }
 
 std::string OTAPI_Exec::Transaction_GetSenderUserID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -10573,7 +10573,7 @@ std::string OTAPI_Exec::Transaction_GetSenderUserID(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10646,15 +10646,15 @@ std::string OTAPI_Exec::Transaction_GetSenderUserID(
 }
 
 std::string OTAPI_Exec::Transaction_GetRecipientUserID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -10666,7 +10666,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientUserID(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10758,15 +10758,15 @@ std::string OTAPI_Exec::Transaction_GetRecipientUserID(
 }
 
 std::string OTAPI_Exec::Transaction_GetSenderAcctID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -10778,7 +10778,7 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10852,15 +10852,15 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
 }
 
 std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -10872,7 +10872,7 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -10955,15 +10955,15 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 //
 
 std::string OTAPI_Exec::Pending_GetNote(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -10975,7 +10975,7 @@ std::string OTAPI_Exec::Pending_GetNote(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11069,15 +11069,15 @@ std::string OTAPI_Exec::Pending_GetNote(
 }
 
 int64_t OTAPI_Exec::Transaction_GetAmount(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return -1;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return -1;
     }
     if (ACCOUNT_ID.empty()) {
@@ -11089,7 +11089,7 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
         return -1;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11158,15 +11158,15 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
 // (Meant to be used on inbox items.)
 //
 int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return -1;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return -1;
     }
     if (ACCOUNT_ID.empty()) {
@@ -11178,7 +11178,7 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
         return -1;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11208,15 +11208,15 @@ int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
 // Get Transaction Type  (internally uses GetTransactionTypeString().)
 //
 std::string OTAPI_Exec::Transaction_GetType(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (ACCOUNT_ID.empty()) {
@@ -11228,7 +11228,7 @@ std::string OTAPI_Exec::Transaction_GetType(
         return "";
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11264,15 +11264,15 @@ std::string OTAPI_Exec::Transaction_GetType(
 // Returns -1 on Error.
 //
 int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return -1;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return -1;
     }
     if (THE_TRANSACTION.empty()) {
@@ -11280,9 +11280,9 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
         return -1;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
-        theAccountID(USER_ID); // account IS user, for Nymbox (the only box that
-                               // carries replyNotices...)
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
+        theAccountID(NYM_ID); // account IS user, for Nymbox (the only box that
+                              // carries replyNotices...)
 
     String strTransaction(THE_TRANSACTION);
 
@@ -11319,15 +11319,15 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
 // OTTransaction::GetDateSigned().)
 //
 time64_t OTAPI_Exec::Transaction_GetDateSigned(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OTTimeGetTimeFromSeconds(-1);
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OTTimeGetTimeFromSeconds(-1);
     }
     if (ACCOUNT_ID.empty()) {
@@ -11339,7 +11339,7 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
         return OTTimeGetTimeFromSeconds(-1);
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11374,15 +11374,15 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 // Returns OT_BOOL.
 //
 int32_t OTAPI_Exec::Transaction_GetSuccess(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -11394,7 +11394,7 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11463,15 +11463,15 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
 }
 
 int32_t OTAPI_Exec::Transaction_IsCanceled(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -11483,7 +11483,7 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11566,15 +11566,15 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
 // NEW: -1 (-1) for error
 //
 int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -11586,7 +11586,7 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
@@ -11666,15 +11666,15 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
 // New: returns -1 (-1) for error.
 //
 int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -11686,7 +11686,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strMessage(THE_MESSAGE);
@@ -11773,17 +11773,17 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
 /*
 std::string OTAPI_Exec::LoadPurse(const std::string& NOTARY_ID,
                                   std::string INSTRUMENT_DEFINITION_ID,
-                                  std::string USER_ID) // returns "", or a
+                                  std::string NYM_ID) // returns "", or a
 purse.
 {
     OT_ASSERT_MSG("" != NOTARY_ID, "Null NOTARY_ID passed in.");
     OT_ASSERT_MSG("" != INSTRUMENT_DEFINITION_ID, "Null INSTRUMENT_DEFINITION_ID
 passed in.");
-    OT_ASSERT_MSG("" != USER_ID, "Null USER_ID passed in.");
+    OT_ASSERT_MSG("" != NYM_ID, "Null NYM_ID passed in.");
 
     const OTIdentifier theNotaryID(NOTARY_ID);
     const OTIdentifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    const OTIdentifier theUserID(USER_ID);
+    const OTIdentifier theUserID(NYM_ID);
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
@@ -11823,7 +11823,7 @@ INSTRUMENT_DEFINITION_ID << "\n";
 // SAVE it again.
 bool OTAPI_Exec::SavePurse(const std::string& NOTARY_ID,
                            const std::string& INSTRUMENT_DEFINITION_ID,
-                           const std::string& USER_ID,
+                           const std::string& NYM_ID,
                            const std::string& THE_PURSE) const // returns bool
 {
     if (NOTARY_ID.empty()) {
@@ -11835,8 +11835,8 @@ bool OTAPI_Exec::SavePurse(const std::string& NOTARY_ID,
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
     if (THE_PURSE.empty()) {
@@ -11846,7 +11846,7 @@ bool OTAPI_Exec::SavePurse(const std::string& NOTARY_ID,
 
     std::string strFunc = __FUNCTION__;
     const Identifier theNotaryID(NOTARY_ID),
-        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID), theUserID(USER_ID);
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID), theUserID(NYM_ID);
     const String strPurse(THE_PURSE);
     bool bSuccess = false;
     Purse thePurse(theNotaryID, theInstrumentDefinitionID, theUserID);
@@ -11890,9 +11890,9 @@ bool OTAPI_Exec::SavePurse(const std::string& NOTARY_ID,
 //
 std::string OTAPI_Exec::LoadPurse(const std::string& NOTARY_ID,
                                   const std::string& INSTRUMENT_DEFINITION_ID,
-                                  const std::string& USER_ID) const // returns
-                                                                    // "", or
-                                                                    // a purse.
+                                  const std::string& NYM_ID) const // returns
+                                                                   // "", or
+                                                                   // a purse.
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -11903,13 +11903,13 @@ std::string OTAPI_Exec::LoadPurse(const std::string& NOTARY_ID,
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     const Identifier theNotaryID(NOTARY_ID);
     const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
 
@@ -12511,7 +12511,7 @@ std::string OTAPI_Exec::Purse_Push(
 //
 bool OTAPI_Exec::Wallet_ImportPurse(const std::string& NOTARY_ID,
                                     const std::string& INSTRUMENT_DEFINITION_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& THE_PURSE) const
 {
     if (NOTARY_ID.empty()) {
@@ -12523,8 +12523,8 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& NOTARY_ID,
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
     if (THE_PURSE.empty()) {
@@ -12535,7 +12535,7 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& NOTARY_ID,
     String strReason("Importing a cash purse into the wallet.");
     //  OTPasswordData thePWData(strReason);
     const Identifier theNotaryID(NOTARY_ID),
-        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID), theUserID(USER_ID);
+        theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID), theUserID(NYM_ID);
     const String strNewPurse(THE_PURSE);
     // THE_PURSE (the new purse) either is for a Nym, or a Symmetric Key.
     // If it's for a Nym, it either has a NymID, or the ID is left blank.
@@ -12579,7 +12579,7 @@ bool OTAPI_Exec::Wallet_ImportPurse(const std::string& NOTARY_ID,
 //
 int32_t OTAPI_Exec::exchangePurse(const std::string& NOTARY_ID,
                                   const std::string& INSTRUMENT_DEFINITION_ID,
-                                  const std::string& USER_ID,
+                                  const std::string& NYM_ID,
                                   const std::string& THE_PURSE) const
 {
     if (NOTARY_ID.empty()) {
@@ -12591,8 +12591,8 @@ int32_t OTAPI_Exec::exchangePurse(const std::string& NOTARY_ID,
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (THE_PURSE.empty()) {
@@ -12605,7 +12605,7 @@ int32_t OTAPI_Exec::exchangePurse(const std::string& NOTARY_ID,
           << ": TODO (NOT CODED YET) OTAPI_Exec::exchangePurse: NOTARY_ID: "
           << NOTARY_ID
           << "\n INSTRUMENT_DEFINITION_ID: " << INSTRUMENT_DEFINITION_ID
-          << "\n USER_ID: " << USER_ID << "\n ";
+          << "\n NYM_ID: " << NYM_ID << "\n ";
 
     return OT_ERROR;
 }
@@ -13113,18 +13113,18 @@ int64_t OTAPI_Exec::Basket_GetMemberMinimumTransferAmount(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::pingNotary(const std::string& NOTARY_ID,
-                               const std::string& USER_ID) const
+                               const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->pingNotary(theNotaryID, theUserID);
 }
@@ -13138,18 +13138,18 @@ int32_t OTAPI_Exec::pingNotary(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::registerNym(const std::string& NOTARY_ID,
-                                const std::string& USER_ID) const
+                                const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->registerNym(theNotaryID, theUserID);
 }
@@ -13163,18 +13163,18 @@ int32_t OTAPI_Exec::registerNym(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::unregisterNym(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID) const
+                                  const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->unregisterNym(theNotaryID, theUserID);
 }
@@ -13255,8 +13255,8 @@ int64_t OTAPI_Exec::Message_GetUsageCredits(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::usageCredits(const std::string& NOTARY_ID,
-                                 const std::string& USER_ID,
-                                 const std::string& USER_ID_CHECK,
+                                 const std::string& NYM_ID,
+                                 const std::string& NYM_ID_CHECK,
                                  const int64_t& ADJUSTMENT) const // can be "0",
                                                                   // or
 // "", if you just
@@ -13269,20 +13269,20 @@ int32_t OTAPI_Exec::usageCredits(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID_CHECK.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID_CHECK passed in!\n";
+    if (NYM_ID_CHECK.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID_CHECK passed in!\n";
         return OT_ERROR;
     }
 
     //    OT_ASSERT_MSG("" != ADJUSTMENT, "OTAPI_Exec::usageCredits: Null
     // ADJUSTMENT passed in."); // "" is allowed here.
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
-        theOtherUserID(USER_ID_CHECK);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
+        theOtherUserID(NYM_ID_CHECK);
 
     const int64_t lAdjustment = ADJUSTMENT; // "" resolves as 0.
 
@@ -13299,24 +13299,24 @@ int32_t OTAPI_Exec::usageCredits(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::checkNym(const std::string& NOTARY_ID,
-                             const std::string& USER_ID,
-                             const std::string& USER_ID_CHECK) const
+                             const std::string& NYM_ID,
+                             const std::string& NYM_ID_CHECK) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID_CHECK.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID_CHECK passed in!\n";
+    if (NYM_ID_CHECK.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID_CHECK passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
-        theOtherUserID(USER_ID_CHECK);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
+        theOtherUserID(NYM_ID_CHECK);
 
     return OTAPI()->checkNym(theNotaryID, theUserID, theOtherUserID);
 }
@@ -13330,8 +13330,8 @@ int32_t OTAPI_Exec::checkNym(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
-                                   const std::string& USER_ID_RECIPIENT,
+                                   const std::string& NYM_ID,
+                                   const std::string& NYM_ID_RECIPIENT,
                                    const std::string& RECIPIENT_PUBKEY,
                                    const std::string& THE_MESSAGE) const
 {
@@ -13339,12 +13339,12 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID_RECIPIENT.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID_RECIPIENT passed in!\n";
+    if (NYM_ID_RECIPIENT.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID_RECIPIENT passed in!\n";
         return OT_ERROR;
     }
     if (RECIPIENT_PUBKEY.empty()) {
@@ -13356,8 +13356,8 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
-        theOtherUserID(USER_ID_RECIPIENT);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
+        theOtherUserID(NYM_ID_RECIPIENT);
     String strRecipPubkey(RECIPIENT_PUBKEY);
     String strMessage(THE_MESSAGE);
 
@@ -13374,8 +13374,8 @@ int32_t OTAPI_Exec::sendNymMessage(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::sendNymInstrument(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
-    const std::string& USER_ID_RECIPIENT, const std::string& RECIPIENT_PUBKEY,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& NYM_ID_RECIPIENT, const std::string& RECIPIENT_PUBKEY,
     const std::string& THE_INSTRUMENT,
     const std::string& INSTRUMENT_FOR_SENDER) const // Can be empty. Special
                                                     // version
@@ -13392,12 +13392,12 @@ int32_t OTAPI_Exec::sendNymInstrument(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID_RECIPIENT.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID_RECIPIENT passed in!\n";
+    if (NYM_ID_RECIPIENT.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID_RECIPIENT passed in!\n";
         return OT_ERROR;
     }
     if (RECIPIENT_PUBKEY.empty()) {
@@ -13413,8 +13413,8 @@ int32_t OTAPI_Exec::sendNymInstrument(
     // passed in!\n"; OT_FAIL; }
     // (INSTRUMENT_FOR_SENDER is optional, so we allow it to be empty.)
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
-        theOtherUserID(USER_ID_RECIPIENT);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
+        theOtherUserID(NYM_ID_RECIPIENT);
     String strRecipPubkey(RECIPIENT_PUBKEY), strInstrument(THE_INSTRUMENT);
     // Note: this was removed and can be deleted from the code.
     //
@@ -13473,18 +13473,18 @@ int32_t OTAPI_Exec::sendNymInstrument(
 //  1 means the "getRequestNumber" message was successfully SENT.
 //
 int32_t OTAPI_Exec::getRequestNumber(const std::string& NOTARY_ID,
-                                     const std::string& USER_ID) const
+                                     const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->getRequestNumber(theNotaryID, theUserID);
 }
@@ -13498,15 +13498,15 @@ int32_t OTAPI_Exec::getRequestNumber(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::issueAssetType(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
+                                   const std::string& NYM_ID,
                                    const std::string& THE_CONTRACT) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (THE_CONTRACT.empty()) {
@@ -13514,7 +13514,7 @@ int32_t OTAPI_Exec::issueAssetType(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     String strContract(THE_CONTRACT);
 
@@ -13530,15 +13530,15 @@ int32_t OTAPI_Exec::issueAssetType(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getContract(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (INSTRUMENT_DEFINITION_ID.empty()) {
@@ -13547,7 +13547,7 @@ int32_t OTAPI_Exec::getContract(
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     return OTAPI()->getContract(theNotaryID, theUserID,
@@ -13563,15 +13563,15 @@ int32_t OTAPI_Exec::getContract(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getMint(const std::string& NOTARY_ID,
-                            const std::string& USER_ID,
+                            const std::string& NYM_ID,
                             const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (INSTRUMENT_DEFINITION_ID.empty()) {
@@ -13580,7 +13580,7 @@ int32_t OTAPI_Exec::getMint(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     return OTAPI()->getMint(theNotaryID, theUserID, theInstrumentDefinitionID);
@@ -13595,15 +13595,15 @@ int32_t OTAPI_Exec::getMint(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::registerAccount(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (INSTRUMENT_DEFINITION_ID.empty()) {
@@ -13612,7 +13612,7 @@ int32_t OTAPI_Exec::registerAccount(
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     return OTAPI()->registerAccount(theNotaryID, theUserID,
@@ -13629,15 +13629,15 @@ int32_t OTAPI_Exec::registerAccount(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getAccountData(const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
+                                   const std::string& NYM_ID,
                                    const std::string& ACCT_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCT_ID.empty()) {
@@ -13645,7 +13645,7 @@ int32_t OTAPI_Exec::getAccountData(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID), theAcctID(ACCT_ID);
 
     return OTAPI()->getAccountData(theNotaryID, theUserID, theAcctID);
 }
@@ -13659,10 +13659,10 @@ int32_t OTAPI_Exec::getAccountData(const std::string& NOTARY_ID,
 // OTAPI_Exec::issueBasket to send the request to the server.
 //
 std::string OTAPI_Exec::GenerateBasketCreation(
-    const std::string& USER_ID, const int64_t& MINIMUM_TRANSFER) const
+    const std::string& NYM_ID, const int64_t& MINIMUM_TRANSFER) const
 {
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (0 > MINIMUM_TRANSFER) {
@@ -13670,7 +13670,7 @@ std::string OTAPI_Exec::GenerateBasketCreation(
         return "";
     }
 
-    const Identifier theUserID(USER_ID);
+    const Identifier theUserID(NYM_ID);
 
     int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
 
@@ -13701,7 +13701,7 @@ std::string OTAPI_Exec::GenerateBasketCreation(
 // to send the request to the server.
 //
 std::string OTAPI_Exec::AddBasketCreationItem(
-    const std::string& USER_ID,                  // for signature.
+    const std::string& NYM_ID,                   // for signature.
     const std::string& THE_BASKET,               // created in above call.
     const std::string& INSTRUMENT_DEFINITION_ID, // Adding an instrument
                                                  // definition to the
@@ -13709,8 +13709,8 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     const int64_t& MINIMUM_TRANSFER) const
 {
 
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (THE_BASKET.empty()) {
@@ -13728,7 +13728,7 @@ std::string OTAPI_Exec::AddBasketCreationItem(
     }
 
     String strBasket(THE_BASKET);
-    const Identifier theUserID(USER_ID),
+    const Identifier theUserID(NYM_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     int64_t lMinimumTransfer = MINIMUM_TRANSFER == 0 ? 10 : MINIMUM_TRANSFER;
     Basket theBasket;
@@ -13781,15 +13781,15 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::issueBasket(const std::string& NOTARY_ID,
-                                const std::string& USER_ID,
+                                const std::string& NYM_ID,
                                 const std::string& THE_BASKET) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (THE_BASKET.empty()) {
@@ -13797,7 +13797,7 @@ int32_t OTAPI_Exec::issueBasket(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     String strBasketInfo(THE_BASKET);
 
@@ -13813,7 +13813,7 @@ int32_t OTAPI_Exec::issueBasket(const std::string& NOTARY_ID,
 // send the request to the server.
 //
 std::string OTAPI_Exec::GenerateBasketExchange(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& BASKET_ASSET_ACCT_ID,
     const int32_t& TRANSFER_MULTIPLE) const // 1            2             3
@@ -13823,8 +13823,8 @@ std::string OTAPI_Exec::GenerateBasketExchange(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (BASKET_INSTRUMENT_DEFINITION_ID.empty()) {
@@ -13837,7 +13837,7 @@ std::string OTAPI_Exec::GenerateBasketExchange(
         return "";
     }
 
-    const Identifier theUserID(USER_ID), theNotaryID(NOTARY_ID),
+    const Identifier theUserID(NYM_ID), theNotaryID(NOTARY_ID),
         theBasketInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID),
         theBasketAssetAcctID(BASKET_ASSET_ACCT_ID);
     int32_t nTransferMultiple = 1; // Just a default value.
@@ -13870,7 +13870,7 @@ std::string OTAPI_Exec::GenerateBasketExchange(
 // the request to the server.
 //
 std::string OTAPI_Exec::AddBasketExchangeItem(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_BASKET, const std::string& INSTRUMENT_DEFINITION_ID,
     const std::string& ASSET_ACCT_ID) const
 {
@@ -13878,8 +13878,8 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     if (THE_BASKET.empty()) {
@@ -13897,7 +13897,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     }
 
     String strBasket(THE_BASKET);
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
         theAssetAcctID(ASSET_ACCT_ID);
     Basket theBasket;
@@ -13951,7 +13951,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 //
 
 int32_t OTAPI_Exec::exchangeBasket(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
     const std::string& THE_BASKET,
     const bool& BOOL_EXCHANGE_IN_OR_OUT) const // exchanging in == true (1), out
@@ -13962,8 +13962,8 @@ int32_t OTAPI_Exec::exchangeBasket(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (BASKET_INSTRUMENT_DEFINITION_ID.empty()) {
@@ -13976,7 +13976,7 @@ int32_t OTAPI_Exec::exchangeBasket(
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theBasketInstrumentDefinitionID(BASKET_INSTRUMENT_DEFINITION_ID);
 
     String strBasketInfo(THE_BASKET);
@@ -13999,18 +13999,18 @@ int32_t OTAPI_Exec::exchangeBasket(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getTransactionNumber(const std::string& NOTARY_ID,
-                                         const std::string& USER_ID) const
+                                         const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->getTransactionNumber(theNotaryID, theUserID);
 }
@@ -14024,7 +14024,7 @@ int32_t OTAPI_Exec::getTransactionNumber(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& NOTARY_ID,
-                                       const std::string& USER_ID,
+                                       const std::string& NYM_ID,
                                        const std::string& ACCT_ID,
                                        const int64_t& AMOUNT) const
 {
@@ -14032,8 +14032,8 @@ int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCT_ID.empty()) {
@@ -14045,7 +14045,7 @@ int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID), theAcctID(ACCT_ID);
 
     return OTAPI()->notarizeWithdrawal(theNotaryID, theUserID, theAcctID,
                                        static_cast<int64_t>(AMOUNT));
@@ -14060,7 +14060,7 @@ int32_t OTAPI_Exec::notarizeWithdrawal(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::notarizeDeposit(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ACCT_ID,
                                     const std::string& THE_PURSE) const
 {
@@ -14068,8 +14068,8 @@ int32_t OTAPI_Exec::notarizeDeposit(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCT_ID.empty()) {
@@ -14081,7 +14081,7 @@ int32_t OTAPI_Exec::notarizeDeposit(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID), theAcctID(ACCT_ID);
     String strPurse(THE_PURSE);
 
     return OTAPI()->notarizeDeposit(theNotaryID, theUserID, theAcctID,
@@ -14097,7 +14097,7 @@ int32_t OTAPI_Exec::notarizeDeposit(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::notarizeTransfer(const std::string& NOTARY_ID,
-                                     const std::string& USER_ID,
+                                     const std::string& NYM_ID,
                                      const std::string& ACCT_FROM,
                                      const std::string& ACCT_TO,
                                      const int64_t& AMOUNT,
@@ -14107,8 +14107,8 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCT_FROM.empty()) {
@@ -14124,7 +14124,7 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     Identifier theFromAcct(ACCT_FROM), theToAcct(ACCT_TO);
 
     String strNote(NOTE.empty() ? "" : NOTE);
@@ -14144,18 +14144,18 @@ int32_t OTAPI_Exec::notarizeTransfer(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getNymbox(const std::string& NOTARY_ID,
-                              const std::string& USER_ID) const
+                              const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->getNymbox(theNotaryID, theUserID);
 }
@@ -14169,7 +14169,7 @@ int32_t OTAPI_Exec::getNymbox(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::processInbox(const std::string& NOTARY_ID,
-                                 const std::string& USER_ID,
+                                 const std::string& NYM_ID,
                                  const std::string& ACCT_ID,
                                  const std::string& ACCT_LEDGER) const
 {
@@ -14177,8 +14177,8 @@ int32_t OTAPI_Exec::processInbox(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCT_ID.empty()) {
@@ -14192,18 +14192,18 @@ int32_t OTAPI_Exec::processInbox(const std::string& NOTARY_ID,
 
     //    otOut << __FUNCTION__ << ": \n"
     //        "NOTARY_ID: " << NOTARY_ID << " \n"
-    //        "USER_ID: " << USER_ID << " \n"
+    //        "NYM_ID: " << NYM_ID << " \n"
     //        "ACCT_ID: " << ACCT_ID << " \n"
     //        "ACCT_LEDGER:\n" << ACCT_LEDGER << "\n\n";
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID), theAcctID(ACCT_ID);
     String strLedger(ACCT_LEDGER);
 
-    //    OTString temp1(NOTARY_ID), temp2(USER_ID), temp3(ACCT_ID),
+    //    OTString temp1(NOTARY_ID), temp2(NYM_ID), temp3(ACCT_ID),
     // temp4(ACCT_LEDGER);
     //    otOut << __FUNCTION__ << ": \n"
     //        "\n\nNOTARY_ID: " << temp1 << " \n"
-    //        "USER_ID: " << temp2 << " \n"
+    //        "NYM_ID: " << temp2 << " \n"
     //        "ACCT_ID: " << temp3 << " \n"
     //        "ACCT_LEDGER:\n" << temp4 << "\n\n";
 
@@ -14217,18 +14217,18 @@ int32_t OTAPI_Exec::processInbox(const std::string& NOTARY_ID,
 //  UPDATE: This now returns the request number of the message sent, if success.
 //
 int32_t OTAPI_Exec::processNymbox(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID) const
+                                  const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->processNymbox(theNotaryID, theUserID);
 }
@@ -14242,9 +14242,9 @@ int32_t OTAPI_Exec::processNymbox(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::withdrawVoucher(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ACCT_ID,
-                                    const std::string& RECIPIENT_USER_ID,
+                                    const std::string& RECIPIENT_NYM_ID,
                                     const std::string& CHEQUE_MEMO,
                                     const int64_t& AMOUNT) const
 {
@@ -14252,16 +14252,16 @@ int32_t OTAPI_Exec::withdrawVoucher(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCT_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: ACCT_ID passed in!\n";
         return OT_ERROR;
     }
-    if (RECIPIENT_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: RECIPIENT_USER_ID passed in!\n";
+    if (RECIPIENT_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: RECIPIENT_NYM_ID passed in!\n";
         return OT_ERROR;
     }
     //    if (CHEQUE_MEMO.empty())        { otErr << __FUNCTION__ << ": Null:
@@ -14272,8 +14272,8 @@ int32_t OTAPI_Exec::withdrawVoucher(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID), theAcctID(ACCT_ID),
-        theRecipientUserID(RECIPIENT_USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID), theAcctID(ACCT_ID),
+        theRecipientUserID(RECIPIENT_NYM_ID);
 
     String strMemo(CHEQUE_MEMO);
     int64_t lAmount = AMOUNT;
@@ -14286,7 +14286,7 @@ int32_t OTAPI_Exec::withdrawVoucher(const std::string& NOTARY_ID,
 //
 int32_t OTAPI_Exec::payDividend(
     const std::string& NOTARY_ID,
-    const std::string& ISSUER_USER_ID,        // must be issuer of
+    const std::string& ISSUER_NYM_ID,         // must be issuer of
                                               // SHARES_INSTRUMENT_DEFINITION_ID
     const std::string& DIVIDEND_FROM_ACCT_ID, // if dollars paid for pepsi
                                               // shares, then this is the
@@ -14306,8 +14306,8 @@ int32_t OTAPI_Exec::payDividend(
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (ISSUER_USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: ISSUER_USER_ID passed in!\n";
+    if (ISSUER_NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: ISSUER_NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (DIVIDEND_FROM_ACCT_ID.empty()) {
@@ -14327,7 +14327,7 @@ int32_t OTAPI_Exec::payDividend(
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theIssuerUserID(ISSUER_USER_ID),
+    Identifier theNotaryID(NOTARY_ID), theIssuerUserID(ISSUER_NYM_ID),
         theDividendFromAcctID(DIVIDEND_FROM_ACCT_ID),
         theSharesInstrumentDefinitionID(SHARES_INSTRUMENT_DEFINITION_ID);
 
@@ -14348,7 +14348,7 @@ int32_t OTAPI_Exec::payDividend(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::depositCheque(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID,
+                                  const std::string& NYM_ID,
                                   const std::string& ACCT_ID,
                                   const std::string& THE_CHEQUE) const
 {
@@ -14356,8 +14356,8 @@ int32_t OTAPI_Exec::depositCheque(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCT_ID.empty()) {
@@ -14369,7 +14369,7 @@ int32_t OTAPI_Exec::depositCheque(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID), theAcctID(ACCT_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID), theAcctID(ACCT_ID);
 
     String strCheque(THE_CHEQUE);
 
@@ -14389,15 +14389,15 @@ int32_t OTAPI_Exec::depositCheque(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::depositPaymentPlan(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_PAYMENT_PLAN) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (THE_PAYMENT_PLAN.empty()) {
@@ -14405,7 +14405,7 @@ int32_t OTAPI_Exec::depositPaymentPlan(
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     const String strPlan(THE_PAYMENT_PLAN);
 
     return OTAPI()->depositPaymentPlan(theNotaryID, theUserID, strPlan);
@@ -14424,7 +14424,7 @@ int32_t OTAPI_Exec::depositPaymentPlan(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::killMarketOffer(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ASSET_ACCT_ID,
                                     const int64_t& TRANSACTION_NUMBER) const
 {
@@ -14432,8 +14432,8 @@ int32_t OTAPI_Exec::killMarketOffer(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ASSET_ACCT_ID.empty()) {
@@ -14447,7 +14447,7 @@ int32_t OTAPI_Exec::killMarketOffer(const std::string& NOTARY_ID,
 
     const int64_t lTransactionNumber = TRANSACTION_NUMBER;
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAssetAcctID(ASSET_ACCT_ID);
 
     return OTAPI()->cancelCronItem(theNotaryID, theUserID, theAssetAcctID,
@@ -14466,7 +14466,7 @@ int32_t OTAPI_Exec::killMarketOffer(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::killPaymentPlan(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& FROM_ACCT_ID,
                                     const int64_t& TRANSACTION_NUMBER) const
 {
@@ -14474,8 +14474,8 @@ int32_t OTAPI_Exec::killPaymentPlan(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (FROM_ACCT_ID.empty()) {
@@ -14489,7 +14489,7 @@ int32_t OTAPI_Exec::killPaymentPlan(const std::string& NOTARY_ID,
 
     const int64_t lTransactionNumber = TRANSACTION_NUMBER;
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theFromAcctID(FROM_ACCT_ID);
 
     return OTAPI()->cancelCronItem(theNotaryID, theUserID, theFromAcctID,
@@ -14623,18 +14623,18 @@ int32_t OTAPI_Exec::issueMarketOffer(
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getMarketList(const std::string& NOTARY_ID,
-                                  const std::string& USER_ID) const
+                                  const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->getMarketList(theNotaryID, theUserID);
 }
@@ -14648,7 +14648,7 @@ int32_t OTAPI_Exec::getMarketList(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getMarketOffers(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& MARKET_ID,
                                     const int64_t& MAX_DEPTH) const
 {
@@ -14656,8 +14656,8 @@ int32_t OTAPI_Exec::getMarketOffers(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (0 > MAX_DEPTH) {
@@ -14665,7 +14665,7 @@ int32_t OTAPI_Exec::getMarketOffers(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theMarketID(MARKET_ID);
 
     const int64_t lDepth = MAX_DEPTH;
@@ -14688,15 +14688,15 @@ int32_t OTAPI_Exec::getMarketOffers(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getMarketRecentTrades(const std::string& NOTARY_ID,
-                                          const std::string& USER_ID,
+                                          const std::string& NYM_ID,
                                           const std::string& MARKET_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (MARKET_ID.empty()) {
@@ -14704,7 +14704,7 @@ int32_t OTAPI_Exec::getMarketRecentTrades(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theMarketID(MARKET_ID);
 
     return OTAPI()->getMarketRecentTrades(theNotaryID, theUserID, theMarketID);
@@ -14719,18 +14719,18 @@ int32_t OTAPI_Exec::getMarketRecentTrades(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::getNym_MarketOffers(const std::string& NOTARY_ID,
-                                        const std::string& USER_ID) const
+                                        const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
 
     return OTAPI()->getNym_MarketOffers(theNotaryID, theUserID);
 }
@@ -14762,7 +14762,7 @@ int32_t OTAPI_Exec::getNym_MarketOffers(const std::string& NOTARY_ID,
 //
 std::string OTAPI_Exec::PopMessageBuffer(const int64_t& REQUEST_NUMBER,
                                          const std::string& NOTARY_ID,
-                                         const std::string& USER_ID) const
+                                         const std::string& NYM_ID) const
 {
     if (0 > REQUEST_NUMBER) {
         otErr << __FUNCTION__ << ": Negative: REQUEST_NUMBER passed in!\n";
@@ -14772,13 +14772,13 @@ std::string OTAPI_Exec::PopMessageBuffer(const int64_t& REQUEST_NUMBER,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
 
     const int64_t lRequestNum = REQUEST_NUMBER;
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     std::shared_ptr<Message> pMsg(OTAPI()->PopMessageBuffer(
         static_cast<int64_t>(lRequestNum), theNotaryID,
         theUserID)); // caller responsible to delete.
@@ -14826,7 +14826,7 @@ removed. false == it wasn't found.
 //
 std::string OTAPI_Exec::GetSentMessage(const int64_t& REQUEST_NUMBER,
                                        const std::string& NOTARY_ID,
-                                       const std::string& USER_ID) const
+                                       const std::string& NYM_ID) const
 {
     if (0 > REQUEST_NUMBER) {
         otErr << __FUNCTION__ << ": Negative: REQUEST_NUMBER passed in!\n";
@@ -14836,12 +14836,12 @@ std::string OTAPI_Exec::GetSentMessage(const int64_t& REQUEST_NUMBER,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return "";
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return "";
     }
     const int64_t lRequestNum = REQUEST_NUMBER;
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     Message* pMsg = OTAPI()->GetSentMessage(static_cast<int64_t>(lRequestNum),
                                             theNotaryID, theUserID);
 
@@ -14869,7 +14869,7 @@ std::string OTAPI_Exec::GetSentMessage(const int64_t& REQUEST_NUMBER,
 //
 bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
                                    const std::string& NOTARY_ID,
-                                   const std::string& USER_ID) const
+                                   const std::string& NYM_ID) const
 {
     if (0 > REQUEST_NUMBER) {
         otErr << __FUNCTION__ << ": Negative: REQUEST_NUMBER passed in!\n";
@@ -14879,12 +14879,12 @@ bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
     const int64_t lRequestNum = REQUEST_NUMBER;
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     const bool& bSuccess = OTAPI()->RemoveSentMessage(
         static_cast<int64_t>(lRequestNum), theNotaryID, theUserID);
 
@@ -14921,15 +14921,15 @@ bool OTAPI_Exec::RemoveSentMessage(const int64_t& REQUEST_NUMBER,
 //
 void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
                                    const std::string& NOTARY_ID,
-                                   const std::string& USER_ID,
+                                   const std::string& NYM_ID,
                                    const std::string& THE_NYMBOX) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return;
     }
     if (THE_NYMBOX.empty()) {
@@ -14937,7 +14937,7 @@ void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
         return;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     const String strLedger(THE_NYMBOX);
     OTLedger theLedger(theUserID, theUserID, theNotaryID);
     if (strLedger.Exists() && theLedger.LoadContractFromString(strLedger))
@@ -14978,7 +14978,7 @@ void OTAPI_Exec::Sleep(const int64_t& MILLISECONDS) const
 // numbers.)
 //
 bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
-                                     const std::string& USER_ID,
+                                     const std::string& NYM_ID,
                                      const std::string& THE_MESSAGE) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
@@ -14992,8 +14992,8 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return false;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return false;
     }
     if (THE_MESSAGE.empty()) {
@@ -15001,7 +15001,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
         return false;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theNymID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
     const String strMessage(THE_MESSAGE), strNymID(theNymID);
 
     Nym* pNym = OTAPI()->GetOrLoadPrivateNym(theNymID, false);
@@ -15091,15 +15091,15 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
 int32_t OTAPI_Exec::queryAssetTypes(const std::string& NOTARY_ID,
-                                    const std::string& USER_ID,
+                                    const std::string& NYM_ID,
                                     const std::string& ENCODED_MAP) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ENCODED_MAP.empty()) {
@@ -15107,7 +15107,7 @@ int32_t OTAPI_Exec::queryAssetTypes(const std::string& NOTARY_ID,
         return OT_ERROR;
     }
 
-    Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID);
+    Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID);
     OTASCIIArmor theArmor(ENCODED_MAP);
 
     return OTAPI()->queryAssetTypes(theNotaryID, theUserID, theArmor);
@@ -15511,15 +15511,15 @@ int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
 //         also returns (-1) for Error
 //
 int32_t OTAPI_Exec::Message_IsTransactionCanceled(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -15531,7 +15531,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strMessage(THE_MESSAGE);
@@ -15608,15 +15608,15 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 //         also returns (-1) for Error
 //
 int32_t OTAPI_Exec::Message_GetTransactionSuccess(
-    const std::string& NOTARY_ID, const std::string& USER_ID,
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_MESSAGE) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         return OT_ERROR;
     }
-    if (USER_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: USER_ID passed in!\n";
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         return OT_ERROR;
     }
     if (ACCOUNT_ID.empty()) {
@@ -15628,7 +15628,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
         return OT_ERROR;
     }
 
-    const Identifier theNotaryID(NOTARY_ID), theUserID(USER_ID),
+    const Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theAccountID(ACCOUNT_ID);
 
     String strMessage(THE_MESSAGE);

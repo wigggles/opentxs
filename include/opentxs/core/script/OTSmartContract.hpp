@@ -163,7 +163,7 @@ private:
     // it is much cleaner.
     //
     //    OTIdentifier    m_RECIPIENT_ACCT_ID;
-    //    OTIdentifier    m_RECIPIENT_USER_ID;
+    //    OTIdentifier    m_RECIPIENT_NYM_ID;
     // This is where the scripts inside the smart contract can stash money,
     // after it starts operating.
     //
@@ -208,9 +208,9 @@ private:
     // it is also nearly identically copied in OTPaymentPlan.
     bool MoveFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                    const int64_t& lAmount, const Identifier& SOURCE_ACCT_ID,
-                   const Identifier& SENDER_USER_ID,
+                   const Identifier& SENDER_NYM_ID,
                    const Identifier& RECIPIENT_ACCT_ID,
-                   const Identifier& RECIPIENT_USER_ID);
+                   const Identifier& RECIPIENT_NYM_ID);
 
 protected:
     virtual void onActivate(); // called by OTCronItem::HookActivationOnCron().
@@ -465,7 +465,7 @@ public:
                                                    // UNstash. Positive means
                                                    // STASH.
                            const Identifier& PARTY_ACCT_ID,
-                           const Identifier& PARTY_USER_ID, OTStash& theStash);
+                           const Identifier& PARTY_NYM_ID, OTStash& theStash);
     EXPORT OTSmartContract();
     EXPORT OTSmartContract(const Identifier& NOTARY_ID);
 

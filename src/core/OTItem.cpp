@@ -591,14 +591,14 @@ bool OTItem::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
 
             int64_t lTempAmount = pSubItem->GetAmount();
 
-            OTIdentifier ACCOUNT_ID, NOTARY_ID, USER_ID;
+            OTIdentifier ACCOUNT_ID, NOTARY_ID, NYM_ID;
 
             ACCOUNT_ID = pSubItem->GetPurportedAccountID();
             NOTARY_ID  = pSubItem->GetPurportedNotaryID();
-            USER_ID    = pSubItem->GetUserID();
+            NYM_ID    = pSubItem->GetUserID();
 
             const OTString strAccountID(ACCOUNT_ID), strNotaryID(NOTARY_ID),
-            strUserID(USER_ID);
+            strUserID(NYM_ID);
 
 
             int64_t lTempNumOfOrigin = pSubItem->GetNumberOfOrigin();
@@ -1813,7 +1813,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strAcctFromID = xml->getAttributeValue("fromAccountID");
         strAcctToID = xml->getAttributeValue("toAccountID");
         strNotaryID = xml->getAttributeValue("notaryID");
-        strUserID = xml->getAttributeValue("userID");
+        strUserID = xml->getAttributeValue("nymID");
 
         strOutboxNewTransNum = xml->getAttributeValue("outboxNewTransNum");
 
@@ -1835,14 +1835,14 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         Identifier ACCOUNT_ID(strAcctFromID), NOTARY_ID(strNotaryID),
-            DESTINATION_ACCOUNT(strAcctToID), USER_ID(strUserID);
+            DESTINATION_ACCOUNT(strAcctToID), NYM_ID(strUserID);
 
         SetPurportedAccountID(ACCOUNT_ID); // OTTransactionType::m_AcctID  the
                                            // PURPORTED Account ID
         SetPurportedNotaryID(NOTARY_ID);   // OTTransactionType::m_AcctNotaryID
                                            // the PURPORTED Server ID
         SetDestinationAcctID(DESTINATION_ACCOUNT);
-        SetUserID(USER_ID);
+        SetUserID(NYM_ID);
 
         if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
@@ -1943,10 +1943,10 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             strAccountID = xml->getAttributeValue("accountID");
             strNotaryID = xml->getAttributeValue("notaryID");
-            strUserID = xml->getAttributeValue("userID");
+            strUserID = xml->getAttributeValue("nymID");
 
             Identifier ACCOUNT_ID(strAccountID), NOTARY_ID(strNotaryID),
-                USER_ID(strUserID);
+                NYM_ID(strUserID);
 
             pItem->SetPurportedAccountID(
                 ACCOUNT_ID); // OTTransactionType::m_AcctID  the PURPORTED
@@ -1954,7 +1954,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             pItem->SetPurportedNotaryID(
                 NOTARY_ID); // OTTransactionType::m_AcctNotaryID the PURPORTED
                             // Server ID
-            pItem->SetUserID(USER_ID);
+            pItem->SetUserID(NYM_ID);
 
             String strTemp;
 
@@ -2303,7 +2303,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
             " numberOfOrigin=\"%" PRId64 "\"\n"
             " transactionNum=\"%" PRId64 "\"\n"
             " notaryID=\"%s\"\n"
-            " userID=\"%s\"\n"
+            " nymID=\"%s\"\n"
             " fromAccountID=\"%s\"\n"
             " toAccountID=\"%s\"\n"
             " inReferenceTo=\"%" PRId64 "\"\n"
@@ -2319,7 +2319,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
             " numberOfOrigin=\"%" PRId64 "\"\n"
             " transactionNum=\"%" PRId64 "\"\n%s"
             " notaryID=\"%s\"\n"
-            " userID=\"%s\"\n"
+            " nymID=\"%s\"\n"
             " fromAccountID=\"%s\"\n"
             " toAccountID=\"%s\"\n"
             " inReferenceTo=\"%" PRId64 "\"\n"
@@ -2355,7 +2355,7 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
 
             String acctID(pItem->GetPurportedAccountID()),
                 notaryID(pItem->GetPurportedNotaryID()),
-                userID(pItem->GetUserID());
+                nymID(pItem->GetUserID());
 
             String receiptType;
             GetStringFromType(pItem->GetType(), receiptType);
@@ -2364,14 +2364,14 @@ void OTItem::UpdateContents() // Before transmission or serialization, this is
                 "<transactionReport type=\"%s\"\n"
                 " adjustment=\"%" PRId64 "\"\n"
                 " accountID=\"%s\"\n"
-                " userID=\"%s\"\n"
+                " nymID=\"%s\"\n"
                 " notaryID=\"%s\"\n"
                 " numberOfOrigin=\"%" PRId64 "\"\n"
                 " transactionNum=\"%" PRId64 "\"\n"
                 " closingTransactionNum=\"%" PRId64 "\"\n"
                 " inReferenceTo=\"%" PRId64 "\" />\n\n",
                 receiptType.Exists() ? receiptType.Get() : "error_state",
-                pItem->GetAmount(), acctID.Get(), userID.Get(), notaryID.Get(),
+                pItem->GetAmount(), acctID.Get(), nymID.Get(), notaryID.Get(),
                 pItem->GetRawNumberOfOrigin(), pItem->GetTransactionNum(),
                 pItem->GetClosingNum(), pItem->GetReferenceToNum());
         }

@@ -601,7 +601,7 @@ protected:
     //
     //
     //    Another example:
-    //    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealNotaryID());
+    //    OTAccount THE_ACCOUNT(NYM_ID, GetRealAccountID(), GetRealNotaryID());
     //
     // Notice I am loading the account based on the ID from the transaction. If
     // I used the "Purported Account ID"
@@ -658,7 +658,7 @@ protected:
     // ===> Whereas with Real IDs, that's what I use when I am actually DOING
     // SOMETHING with the instrument. For
     // example again:
-    //    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealNotaryID());
+    //    OTAccount THE_ACCOUNT(NYM_ID, GetRealAccountID(), GetRealNotaryID());
     // In that case, I am ACTUALLY LOADING AN ACCOUNT, and may move some money
     // from it. I do NOT want to load
     // ANY account whatsoever other than the actually-authorized account,
@@ -675,7 +675,7 @@ protected:
      this code segment, btw, completely illustrates that philsophy:
 
     // When actually doing something, we use the real IDs...
-    OTAccount THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealNotaryID());
+    OTAccount THE_ACCOUNT(NYM_ID, GetRealAccountID(), GetRealNotaryID());
 
     // When distrusting the instrument (immediately following in the actual
     code), we

@@ -174,13 +174,13 @@ char const* const __TypeStringsAccount[] = {
     "err_acct"};
 
 // Used for generating accounts, thus no accountID needed.
-Account::Account(const Identifier& userId, const Identifier& notaryID)
+Account::Account(const Identifier& nymID, const Identifier& notaryID)
     : OTTransactionType()
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
     InitAccount();
-    SetUserID(userId);
+    SetUserID(nymID);
     SetRealNotaryID(notaryID);
     SetPurportedNotaryID(notaryID);
 }
@@ -193,9 +193,9 @@ Account::Account()
     InitAccount();
 }
 
-Account::Account(const Identifier& userId, const Identifier& accountId,
+Account::Account(const Identifier& nymID, const Identifier& accountId,
                  const Identifier& notaryID, const String& name)
-    : OTTransactionType(userId, accountId, notaryID)
+    : OTTransactionType(nymID, accountId, notaryID)
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
@@ -203,9 +203,9 @@ Account::Account(const Identifier& userId, const Identifier& accountId,
     m_strName = name;
 }
 
-Account::Account(const Identifier& userId, const Identifier& accountId,
+Account::Account(const Identifier& nymID, const Identifier& accountId,
                  const Identifier& notaryID)
-    : OTTransactionType(userId, accountId, notaryID)
+    : OTTransactionType(nymID, accountId, notaryID)
     , stashTransNum_(0)
     , markForDeletion_(false)
 {
@@ -488,7 +488,7 @@ bool Account::VerifyOwnerByID(const Identifier& nymId) const
 
 // Let's say you don't have or know the UserID, and you just want to load the
 // damn thing up.
-// Then call this function. It will set userID and server ID for you.
+// Then call this function. It will set nymID and server ID for you.
 Account* Account::LoadExistingAccount(const Identifier& accountId,
                                       const Identifier& notaryID)
 {
@@ -540,14 +540,14 @@ Account* Account::LoadExistingAccount(const Identifier& accountId,
     return nullptr;
 }
 
-Account* Account::GenerateNewAccount(const Identifier& userId,
+Account* Account::GenerateNewAccount(const Identifier& nymID,
                                      const Identifier& notaryID,
                                      const Nym& serverNym,
                                      const Message& message,
                                      Account::AccountType acctType,
                                      int64_t stashTransNum)
 {
-    Account* account = new Account(userId, notaryID);
+    Account* account = new Account(nymID, notaryID);
 
     if (account) {
         // This is only for stash accounts.
@@ -693,7 +693,7 @@ bool Account::DisplayStatistics(String& contents) const
     contents.Concatenate(" Asset Account (%s) Name: %s\n"
                          " Last retrieved Balance: %s  on date: %s\n"
                          " accountID: %s\n"
-                         " userID: %s\n"
+                         " nymID: %s\n"
                          " notaryID: %s\n"
                          " instrumentDefinitionID: %s\n"
                          "\n",
@@ -725,7 +725,7 @@ bool Account::SaveContractWallet(String& contents) const
         "<!-- Last retrieved balance: %s on date: %s -->\n"
         "<!-- Account type: %s --><assetAccount name=\"%s\"\n"
         " accountID=\"%s\"\n"
-        " userID=\"%s\"\n"
+        " nymID=\"%s\"\n"
         " notaryID=\"%s\" />\n"
         "<!-- instrumentDefinitionID: %s -->\n\n",
         balanceAmount_.Get(), balanceDate_.Get(), acctType.Get(),
@@ -751,7 +751,7 @@ void Account::UpdateContents()
 
     String ACCOUNT_ID(GetPurportedAccountID());
     String NOTARY_ID(GetPurportedNotaryID());
-    String USER_ID(GetUserID());
+    String NYM_ID(GetUserID());
 
     String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
@@ -763,9 +763,9 @@ void Account::UpdateContents()
 
     m_xmlUnsigned.Concatenate(
         "<assetAccount\n version=\"%s\"\n type=\"%s\"\n "
-        "accountID=\"%s\"\n userID=\"%s\"\n"
+        "accountID=\"%s\"\n nymID=\"%s\"\n"
         " notaryID=\"%s\"\n instrumentDefinitionID=\"%s\" >\n\n",
-        m_strVersion.Get(), acctType.Get(), ACCOUNT_ID.Get(), USER_ID.Get(),
+        m_strVersion.Get(), acctType.Get(), ACCOUNT_ID.Get(), NYM_ID.Get(),
         NOTARY_ID.Get(), strAssetTYPEID.Get());
     if (IsStashAcct()) {
         m_xmlUnsigned.Concatenate(
@@ -840,15 +840,15 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         }
         String strAccountID(xml->getAttributeValue("accountID"));
         String strNotaryID(xml->getAttributeValue("notaryID"));
-        String strAcctUserID(xml->getAttributeValue("userID"));
+        String strAcctUserID(xml->getAttributeValue("nymID"));
 
         Identifier ACCOUNT_ID(strAccountID);
         Identifier NOTARY_ID(strNotaryID);
-        Identifier USER_ID(strAcctUserID);
+        Identifier NYM_ID(strAcctUserID);
 
         SetPurportedAccountID(ACCOUNT_ID);
         SetPurportedNotaryID(NOTARY_ID);
-        SetUserID(USER_ID);
+        SetUserID(NYM_ID);
 
         String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
         otLog3 << "\n\nAccount Type: " << acctType

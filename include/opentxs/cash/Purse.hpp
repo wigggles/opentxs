@@ -317,7 +317,7 @@ public:
     // Normally you really really want to set the instrument definition.
     EXPORT Purse(const Identifier& NOTARY_ID,
                  const Identifier& INSTRUMENT_DEFINITION_ID,
-                 const Identifier& USER_ID); // UserID optional
+                 const Identifier& NYM_ID); // UserID optional
     EXPORT virtual ~Purse();
     EXPORT bool LoadPurse(const char* szNotaryID = nullptr,
                           const char* szUserID = nullptr,

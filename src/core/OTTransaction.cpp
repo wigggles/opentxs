@@ -1466,13 +1466,13 @@ bool OTTransaction::VerifyBalanceReceipt(
         return false;
     }
 
-    Identifier USER_ID(THE_NYM), SERVER_USER_ID(SERVER_NYM);
+    Identifier NYM_ID(THE_NYM), SERVER_NYM_ID(SERVER_NYM);
 
-    const String strNotaryID(GetRealNotaryID()), strReceiptID(USER_ID);
+    const String strNotaryID(GetRealNotaryID()), strReceiptID(NYM_ID);
 
-    //    if (USER_ID != GetUserID())
+    //    if (NYM_ID != GetUserID())
     //    {
-    //        otErr << "*** OTIdentifier USER_ID(OTPseudonym THE_NYM) doesn't
+    //        otErr << "*** OTIdentifier NYM_ID(OTPseudonym THE_NYM) doesn't
     // match OTTransactionType::GetUserID() in
     // OTTransaction::VerifyBalanceReceipt\n";
     //        return false;
@@ -1486,7 +1486,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     const char* szFolder1name = OTFolders::Receipt().Get(); // receipts
     const char* szFolder2name = strNotaryID.Get(); // receipts/NOTARY_ID
     const char* szFilename =
-        strFilename.Get(); // receipts/NOTARY_ID/USER_ID.success
+        strFilename.Get(); // receipts/NOTARY_ID/NYM_ID.success
 
     if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otWarn << "Receipt file doesn't exist in "
@@ -1509,7 +1509,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     String strTransaction(strFileContents.c_str());
 
-    //    OTTransaction tranOut(SERVER_USER_ID, USER_ID, GetRealNotaryID());
+    //    OTTransaction tranOut(SERVER_NYM_ID, NYM_ID, GetRealNotaryID());
     std::unique_ptr<OTTransactionType> pContents(
         OTTransactionType::TransactionFactory(strTransaction));
 
@@ -1633,7 +1633,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // LOAD THE ACCOUNT
 
-    Account THE_ACCOUNT(USER_ID, GetRealAccountID(), GetRealNotaryID());
+    Account THE_ACCOUNT(NYM_ID, GetRealAccountID(), GetRealNotaryID());
 
     if (!THE_ACCOUNT.LoadContract() || !THE_ACCOUNT.VerifyAccount(THE_NYM)) {
         // error, return.
@@ -3401,7 +3401,7 @@ OTTransaction::OTTransaction(
     // actually used when
     // loading abbreviated receipts as you load their inbox/outbox/nymbox.
     // Abbreviated receipts are not like real transactions, which have notaryID,
-    // AcctID, userID,
+    // AcctID, nymID,
     // and signature attached, and the whole thing is base64-encoded and then
     // added to the ledger
     // as part of a list of contained objects. Rather, with abbreviated
@@ -4151,7 +4151,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const String strAcctID = xml->getAttributeValue("accountID");
         const String strNotaryID = xml->getAttributeValue("notaryID");
-        const String strUserID = xml->getAttributeValue("userID");
+        const String strUserID = xml->getAttributeValue("nymID");
 
         if (!strAcctID.Exists() || !strNotaryID.Exists() ||
             !strUserID.Exists()) {
@@ -4203,13 +4203,13 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         Identifier ACCOUNT_ID(strAcctID), NOTARY_ID(strNotaryID),
-            USER_ID(strUserID);
+            NYM_ID(strUserID);
 
         SetPurportedAccountID(
             ACCOUNT_ID); // GetPurportedAccountID() const { return m_AcctID; }
         SetPurportedNotaryID(NOTARY_ID); // GetPurportedNotaryID() const {
                                          // return m_AcctNotaryID; }
-        SetUserID(USER_ID);
+        SetUserID(NYM_ID);
 
         //  m_bLoadSecurely defaults to true.
         // Normally the RealAccountID and RealNotaryID are set from above,
@@ -4403,7 +4403,7 @@ void OTTransaction::UpdateContents()
     m_xmlUnsigned.Concatenate("<transaction type=\"%s\"\n%s"
                               " dateSigned=\"%" PRId64 "\"\n"
                               " accountID=\"%s\"\n"
-                              " userID=\"%s\"\n"
+                              " nymID=\"%s\"\n"
                               " notaryID=\"%s\"\n%s"
                               " numberOfOrigin=\"%" PRId64 "\"\n"
                               " transactionNum=\"%" PRId64 "\"\n%s"

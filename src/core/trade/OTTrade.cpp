@@ -220,20 +220,20 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             hasTradeActivated_ = false;
 
         const String notaryID(xml->getAttributeValue("notaryID")),
-            userID(xml->getAttributeValue("userID")),
+            nymID(xml->getAttributeValue("nymID")),
             instrumentDefinitionID(
                 xml->getAttributeValue("instrumentDefinitionID")),
             assetAcctID(xml->getAttributeValue("assetAcctID")),
             currencyTypeID(xml->getAttributeValue("currencyTypeID")),
             currencyAcctID(xml->getAttributeValue("currencyAcctID"));
 
-        const Identifier NOTARY_ID(notaryID), USER_ID(userID),
+        const Identifier NOTARY_ID(notaryID), NYM_ID(nymID),
             INSTRUMENT_DEFINITION_ID(instrumentDefinitionID),
             ASSET_ACCT_ID(assetAcctID), CURRENCY_TYPE_ID(currencyTypeID),
             CURRENCY_ACCT_ID(currencyAcctID);
 
         SetNotaryID(NOTARY_ID);
-        SetSenderUserID(USER_ID);
+        SetSenderUserID(NYM_ID);
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetSenderAcctID(ASSET_ACCT_ID);
         SetCurrencyID(CURRENCY_TYPE_ID);
@@ -248,7 +248,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " instrumentDefinitionID: " << instrumentDefinitionID
                << "\n assetAcctID: " << assetAcctID << "\n"
                                                        " NotaryID: " << notaryID
-               << "\n UserID: " << userID
+               << "\n UserID: " << nymID
                << "\n "
                   " currencyTypeID: " << currencyTypeID
                << "\n currencyAcctID: " << currencyAcctID << "\n ";
@@ -317,7 +317,7 @@ void OTTrade::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String NOTARY_ID(GetNotaryID()), USER_ID(GetSenderUserID()),
+    const String NOTARY_ID(GetNotaryID()), NYM_ID(GetSenderUserID()),
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         ASSET_ACCT_ID(GetSenderAcctID()), CURRENCY_TYPE_ID(GetCurrencyID()),
         CURRENCY_ACCT_ID(GetCurrencyAcctID());
@@ -330,7 +330,7 @@ void OTTrade::UpdateContents()
         " assetAcctID=\"%s\"\n"
         " currencyTypeID=\"%s\"\n"
         " currencyAcctID=\"%s\"\n"
-        " userID=\"%s\"\n"
+        " nymID=\"%s\"\n"
         " completedNoTrades=\"%d\"\n"
         " transactionNum=\"%" PRId64 "\"\n"
         " creationDate=\"%" PRId64 "\"\n"
@@ -339,7 +339,7 @@ void OTTrade::UpdateContents()
         " >\n\n",
         m_strVersion.Get(), (hasTradeActivated_ ? "true" : "false"),
         NOTARY_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(), ASSET_ACCT_ID.Get(),
-        CURRENCY_TYPE_ID.Get(), CURRENCY_ACCT_ID.Get(), USER_ID.Get(),
+        CURRENCY_TYPE_ID.Get(), CURRENCY_ACCT_ID.Get(), NYM_ID.Get(),
         tradesAlreadyDone_, m_lTransactionNum,
         OTTimeGetSecondsFromTime(GetCreationDate()),
         OTTimeGetSecondsFromTime(GetValidFrom()),
@@ -1340,9 +1340,9 @@ OTTrade::OTTrade()
 
 OTTrade::OTTrade(const Identifier& notaryID,
                  const Identifier& instrumentDefinitionID,
-                 const Identifier& assetAcctId, const Identifier& userId,
+                 const Identifier& assetAcctId, const Identifier& nymID,
                  const Identifier& currencyId, const Identifier& currencyAcctId)
-    : ot_super(notaryID, instrumentDefinitionID, assetAcctId, userId)
+    : ot_super(notaryID, instrumentDefinitionID, assetAcctId, nymID)
     , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)

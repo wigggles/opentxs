@@ -762,9 +762,9 @@ Purse::Purse(const Identifier& NOTARY_ID,
 
 Purse::Purse(const Identifier& NOTARY_ID,
              const Identifier& INSTRUMENT_DEFINITION_ID,
-             const Identifier& USER_ID)
+             const Identifier& NYM_ID)
     : Contract()
-    , m_UserID(USER_ID)
+    , m_UserID(NYM_ID)
     , m_NotaryID(NOTARY_ID)
     , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
     , m_lTotalValue(0)
@@ -862,10 +862,10 @@ bool Purse::LoadPurse(const char* szNotaryID, const char* szUserID,
 
     const char* szFolder1name = OTFolders::Purse().Get(); // purse
     const char* szFolder2name = strNotaryID.Get();        // purse/NOTARY_ID
-    const char* szFolder3name = strUserID.Get(); // purse/NOTARY_ID/USER_ID
+    const char* szFolder3name = strUserID.Get(); // purse/NOTARY_ID/NYM_ID
     const char* szFilename =
         strInstrumentDefinitionID
-            .Get(); // purse/NOTARY_ID/USER_ID/INSTRUMENT_DEFINITION_ID
+            .Get(); // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
     if (false ==
         OTDB::Exists(szFolder1name, szFolder2name, szFolder3name, szFilename)) {
@@ -922,10 +922,10 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szUserID,
 
     const char* szFolder1name = OTFolders::Purse().Get(); // purse
     const char* szFolder2name = strNotaryID.Get();        // purse/NOTARY_ID
-    const char* szFolder3name = strUserID.Get(); // purse/NOTARY_ID/USER_ID
+    const char* szFolder3name = strUserID.Get(); // purse/NOTARY_ID/NYM_ID
     const char* szFilename =
         strInstrumentDefinitionID
-            .Get(); // purse/NOTARY_ID/USER_ID/INSTRUMENT_DEFINITION_ID
+            .Get(); // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
     String strRawFile;
 
@@ -966,7 +966,7 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szUserID,
 void Purse::UpdateContents() // Before transmission or serialization, this is
                              // where the Purse saves its contents
 {
-    const String NOTARY_ID(m_NotaryID), USER_ID(m_UserID),
+    const String NOTARY_ID(m_NotaryID), NYM_ID(m_UserID),
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID);
 
     int64_t lValidFrom = OTTimeGetSecondsFromTime(m_tLatestValidFrom);
@@ -984,7 +984,7 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
         "\"\n" // Earliest "valid to" date of all tokens contained.
         " isPasswordProtected=\"%s\"\n"
         " isNymIDIncluded=\"%s\"\n"
-        " userID=\"%s\"\n"                 // UserID   is optional.
+        " nymID=\"%s\"\n"                  // UserID   is optional.
         " instrumentDefinitionID=\"%s\"\n" // instrumentDefinitionID required.
         " notaryID=\"%s\">\n\n",           // notaryID is required.
         m_strVersion.Get(),
@@ -992,7 +992,7 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
         m_bPasswordProtected ? "true" : "false",
         m_bIsNymIDIncluded ? "true" : "false",
 
-        // USER_ID / NYM_ID of purse owner.
+        // NYM_ID / NYM_ID of purse owner.
         // IF a real NymID (from the user's wallet) is listed in the purse
         // (which is
         // optional--user's choice) we attach that NymID here...
@@ -1000,7 +1000,7 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
         (m_bIsNymIDIncluded &&
          !m_UserID.IsEmpty()) // (Provided that the ID even exists, of course.)
             ?                 // =====>
-            USER_ID.Get()
+            NYM_ID.Get()
             : "", // Then print the ID (otherwise print an empty string.)
         (!m_InstrumentDefinitionID.IsEmpty())
             ? INSTRUMENT_DEFINITION_ID.Get()
@@ -1142,7 +1142,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         const String strUserID =
-            xml->getAttributeValue("userID"); // (May not exist.)
+            xml->getAttributeValue("nymID"); // (May not exist.)
         if (m_bIsNymIDIncluded) // Nym ID **is** included.  (It's optional. Even
                                 // if you use one, you don't have to list it.)
         {
@@ -1150,7 +1150,7 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 m_UserID.SetString(strUserID);
             else {
                 otErr << szFunc
-                      << ": Failed loading userID, when one was expected. "
+                      << ": Failed loading nymID, when one was expected. "
                          "(isNymIDIncluded was true.)\n";
                 m_UserID.Release();
                 return (-1);

@@ -1820,7 +1820,7 @@ bool OTRecordList::Populate()
             nIndex = (-1);
 
             // Also loop through its record box. For this record box, pass the
-            // USER_ID twice,
+            // NYM_ID twice,
             // since it's the recordbox for the Nym.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
             OTLedger* pRecordbox =
@@ -2901,11 +2901,11 @@ bool OTRecordList::Populate()
                         if (pBoxTrans->GetRecipientUserIDForDisplay(
                                 theRecipientID)) {
                             const String strRecipientID(theRecipientID);
-                            const std::string str_recipient_user_id(
+                            const std::string str_recipient_nym_id(
                                 strRecipientID.Get());
 
                             String strName(m_pLookup->GetNymName(
-                                str_recipient_user_id, &(*it_server))),
+                                str_recipient_nym_id, &(*it_server))),
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -2914,10 +2914,10 @@ bool OTRecordList::Populate()
                             else
                                 strNameTemp.Format(
                                     OTRecordList::textTo(),
-                                    str_recipient_user_id.c_str());
+                                    str_recipient_nym_id.c_str());
 
                             str_name = strNameTemp.Get();
-                            str_other_nym_id = str_recipient_user_id;
+                            str_other_nym_id = str_recipient_nym_id;
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                     theRecipientAcctID)) {
                                 const String strRecipientAcctID(
@@ -3276,18 +3276,17 @@ bool OTRecordList::Populate()
                                     strRecipientAcctID.Get());
 
                                 String strRecipientUserID("");
-                                std::string str_recip_user_id("");
+                                std::string str_recip_nym_id("");
 
                                 if (bGotRecipientUserIDForDisplay) {
                                     theRecipientID.GetString(
                                         strRecipientUserID);
-                                    str_recip_user_id =
-                                        strRecipientUserID.Get();
+                                    str_recip_nym_id = strRecipientUserID.Get();
                                 }
                                 // NOTE: We check for cancelled here so we don't
                                 // accidentally
                                 // cause the address book to falsely believe
-                                // that str_recip_user_id
+                                // that str_recip_nym_id
                                 // is the owner of str_recip_acct_id. (If the
                                 // cheque/invoice is cancelled,
                                 // the recipient account will be the sender
@@ -3298,7 +3297,7 @@ bool OTRecordList::Populate()
                                     String strName(m_pLookup->GetAcctName(
                                         str_recip_acct_id,
                                         // NOTE: we CANNOT pass
-                                        // str_recip_user_id here with
+                                        // str_recip_nym_id here with
                                         // str_recip_acct_id
                                         // if it's a cancelled instrument, since
                                         // in that case, the SENDER ACCT
@@ -3311,7 +3310,7 @@ bool OTRecordList::Populate()
                                         // the recipient Nym is the owner of the
                                         // sender acct.)
                                         bGotRecipientUserIDForDisplay
-                                            ? &str_recip_user_id
+                                            ? &str_recip_nym_id
                                             : nullptr,  // nym ID if known
                                         pstr_notary_id, // server ID if known.
                                         pstr_instrument_definition_id)), // asset
@@ -3405,10 +3404,10 @@ bool OTRecordList::Populate()
                         if (pBoxTrans->GetRecipientUserIDForDisplay(
                                 theRecipientID)) {
                             const String strRecipientID(theRecipientID);
-                            const std::string str_recipient_user_id(
+                            const std::string str_recipient_nym_id(
                                 strRecipientID.Get());
 
-                            str_other_nym_id = str_recipient_user_id;
+                            str_other_nym_id = str_recipient_nym_id;
                         }
                         const String strRecipientAcctID(theRecipientAcctID);
                         const std::string str_recipient_acct_id(

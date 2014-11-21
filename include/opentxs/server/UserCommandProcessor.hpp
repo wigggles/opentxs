@@ -160,7 +160,7 @@ private:
                           const String* messageString = nullptr);
 
     void DropReplyNoticeToNymbox(const Identifier& notaryID,
-                                 const Identifier& userId,
+                                 const Identifier& nymID,
                                  const String& messageString,
                                  const int64_t& requestNum,
                                  const bool replyTransSuccess,
