@@ -68,6 +68,18 @@ OpenTransactions uses the CMake build system. The basic steps are
     make
     make install
 
+More detailed instructions are listed below
+
+#### Docker
+
+You can get started with opentxs cli and build setup quickly. It is possible to build this in a docker container, once you have docker installed on your system, just run the following commands;
+
+        cd in your git dir
+        cd opentxs
+        docker build --rm=true .
+        docker run -i -t <image ID> /bin/bash
+
+Don't forget to "Detach" correctly or you will lose the state of the container. e.g Ctrl + P, I
 
 More detailed instructions are listed below
 
