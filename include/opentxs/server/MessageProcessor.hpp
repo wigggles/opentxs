@@ -155,7 +155,7 @@ private:
 
 private:
     OTServer* server_;
-    std::unique_ptr<OTSocket> socket_;
+    std::shared_ptr<OTSocket> socket_;
 };
 
 } // namespace opentxs
