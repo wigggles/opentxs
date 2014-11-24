@@ -149,8 +149,6 @@ public:
     EXPORT bool Listen(const std::string& bindingPath);
 
     EXPORT bool Send(const char* data, std::size_t length);
-    EXPORT bool Send(const char* data, std::size_t length,
-                     const std::string& connectPath);
     EXPORT bool Receive(std::string& serverReply);
 
 private:

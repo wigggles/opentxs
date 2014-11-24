@@ -201,14 +201,6 @@ bool OTSocket::Send(const char* data, std::size_t length)
     return true;
 }
 
-bool OTSocket::Send(const char* data, std::size_t length,
-                    const std::string& endpoint)
-{
-    if (endpoint_ != endpoint) Connect(endpoint);
-
-    return Send(data, length);
-}
-
 bool OTSocket::Receive(std::string& serverReply)
 {
     if (!m_bConnected && !m_bListening) return false;

@@ -158,18 +158,19 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/util/StringUtils.hpp>
 
-#include <cstdio>
 #include <memory>
+#include <cstdio>
 
 namespace opentxs
 {
 
 OTClient::OTClient(OTWallet* theWallet)
-    : m_pConnection(new OTServerConnection(theWallet, this))
+    : m_pConnection(nullptr)
     , m_pWallet(theWallet)
     , m_MessageBuffer()
     , m_MessageOutbuffer()
@@ -184,10 +185,16 @@ OTClient::~OTClient()
     }
 }
 
+bool OTClient::connect(const std::string& endpoint)
+{
+    m_pConnection = new OTServerConnection(m_pWallet, this, endpoint);
+    return true;
+}
+
 void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
                                  const Message& theMessage)
 {
-    const String strMessage(theMessage);
+    String strMessage(theMessage);
 
     // WHAT DOES THIS MEAN?
 
@@ -206,18 +213,24 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
     // later in the Nymbox, and then worst case, look it up in the Outbuffer and
     // get my fucking transaction numbers back again!
 
-    Message* pMsg = new Message;
-    OT_ASSERT(nullptr != pMsg);
-
+    std::unique_ptr<Message> pMsg(new Message());
     if (pMsg->LoadContractFromString(strMessage))
-        m_MessageOutbuffer.AddSentMessage(*pMsg);
-    else {
-        delete pMsg;
-        pMsg = nullptr;
+        m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
+
+    if (!m_pConnection) {
+        int32_t port = 0;
+        String hostname;
+
+        if (!pServerContract->GetConnectInfo(hostname, port)) {
+            otErr << ": Failed retrieving connection info from server "
+                     "contract.\n";
+            OT_FAIL;
+        }
+        String endpoint;
+        endpoint.Format("tcp://%s:%d", hostname.Get(), port);
+
+        connect(endpoint.Get());
     }
-    OT_ASSERT_MSG(
-        nullptr != m_pConnection,
-        "OTClient::ProcessMessageOut: ASSERT: nullptr != m_pConnection\n");
 
     m_pConnection->ProcessMessageOut(pServerContract, pNym, theMessage);
 }

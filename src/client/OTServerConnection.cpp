@@ -163,13 +163,16 @@ namespace opentxs
 // There might be MORE THAN ONE connection per wallet, or only one,
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
-OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient)
+OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
+                                       const std::string& endpoint)
     : m_pSocket(new OTSocket(true))
 {
     m_pNym = nullptr;
     m_pServerContract = nullptr;
     m_pWallet = theWallet;
     m_pClient = theClient;
+
+    m_pSocket->Connect(endpoint);
 }
 
 // When the server sends a reply back with our new request number, we
@@ -223,7 +226,7 @@ void OTServerConnection::ProcessMessageOut(OTServerContract* pServerContract,
 
     m_pServerContract = pServerContract;
     m_pNym = pNym;
-    send(*pServerContract, theEnvelope);
+    send(theEnvelope);
 
     otWarn << "<=====END Finished sending " << theMessage.m_strCommand
            << " message (and hopefully receiving "
@@ -231,25 +234,13 @@ void OTServerConnection::ProcessMessageOut(OTServerContract* pServerContract,
            << "\n\n";
 }
 
-bool OTServerConnection::send(const OTServerContract& theServerContract,
-                              const OTEnvelope& theEnvelope)
+bool OTServerConnection::send(const OTEnvelope& theEnvelope)
 {
-    int32_t nServerPort = 0;
-    String strServerHostname;
-
-    if (!theServerContract.GetConnectInfo(strServerHostname, nServerPort)) {
-        otErr << __FUNCTION__
-              << ": Failed retrieving connection info from server contract.\n";
-        return false;
-    }
-    String strConnectPath;
-    strConnectPath.Format("tcp://%s:%d", strServerHostname.Get(), nServerPort);
-
     OTASCIIArmor ascEnvelope(theEnvelope);
 
     if (ascEnvelope.Exists()) {
-        bool bSuccessSending = m_pSocket->Send(
-            ascEnvelope.Get(), ascEnvelope.GetLength(), strConnectPath.Get());
+        bool bSuccessSending =
+            m_pSocket->Send(ascEnvelope.Get(), ascEnvelope.GetLength());
 
         if (!bSuccessSending) {
             otErr << __FUNCTION__

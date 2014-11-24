@@ -136,6 +136,7 @@
 #include <opentxs/client/OTMessageBuffer.hpp>
 #include <opentxs/client/OTMessageOutbuffer.hpp>
 
+#include <string>
 #include <memory>
 
 namespace opentxs
@@ -218,6 +219,8 @@ public:
     explicit OTClient(OTWallet* theWallet);
     ~OTClient();
 
+    bool connect(const std::string& endpoint);
+
     inline OTMessageBuffer& GetMessageBuffer()
     {
         return m_MessageBuffer;
@@ -243,6 +246,12 @@ public:
 
     bool processServerReply(std::shared_ptr<Message> theReply,
                             Ledger* pNymbox = nullptr);
+
+    bool AcceptEntireNymbox(Ledger& theNymbox, const Identifier& theNotaryID,
+                            const OTServerContract& theServerContract,
+                            Nym& theNym, Message& theMessage);
+
+private:
     void ProcessIncomingTransactions(OTServerConnection& theConnection,
                                      const Message& theReply) const;
     void ProcessWithdrawalResponse(OTTransaction& theTransaction,
@@ -254,11 +263,7 @@ public:
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
                                     const OTServerConnection& theConnection,
                                     const Message& theReply) const;
-    bool AcceptEntireNymbox(Ledger& theNymbox, const Identifier& theNotaryID,
-                            const OTServerContract& theServerContract,
-                            Nym& theNym, Message& theMessage);
 
-private:
     void load_str_trans_add_to_ledger(const Identifier& the_nym_id,
                                       const String& str_trans,
                                       String str_box_type,
