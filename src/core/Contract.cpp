@@ -2208,51 +2208,14 @@ void Contract::CreateInnerContents()
                 // credentials
                 //
                 if (bHasCredentials) {
+                    String strCredList;
+                    String::Map credentials;
 
-                    // Create a new OTDB::StringMap object.
-                    //
-                    std::unique_ptr<OTDB::Storable> pStorable(
-                        OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
-                    OTDB::StringMap* pMap = nullptr;
+                    pNym->GetPublicCredentials(strCredList, &credentials);
 
-                    pMap =
-                        (nullptr == pStorable)
-                            ? nullptr
-                            : dynamic_cast<OTDB::StringMap*>(pStorable.get());
-
-                    if (nullptr == pMap)
-                        otErr << __FUNCTION__ << ": Error: failed trying to "
-                                                 "load or create a "
-                                                 "STORED_OBJ_STRING_MAP.\n";
-                    else // It instantiated.
-                    {
-                        String strCredList;
-                        String::Map& theMap = pMap->the_map;
-
-                        pNym->GetPublicCredentials(strCredList, &theMap);
-
-                        // Serialize the StringMap to a string...
-                        //
-                        if (strCredList.Exists() &&
-                            (!theMap.empty())) // Won't bother if there are
-                                               // zero credentials somehow.
-                        {
-                            std::string str_Encoded = OTDB::EncodeObject(*pMap);
-                            const bool bSuccessEncoding =
-                                (str_Encoded.size() > 0);
-                            if (bSuccessEncoding) {
-                                OTASCIIArmor armor1(strCredList), armor2;
-                                armor2.Set(str_Encoded.c_str());
-                                if (armor1.Exists())
-                                    strTemp.Concatenate("<credentialList>\n%s</"
-                                                        "credentialList>\n\n",
-                                                        armor1.Get());
-                                if (armor2.Exists())
-                                    strTemp.Concatenate(
-                                        "<credentials>\n%s</credentials>\n\n",
-                                        armor2.Get());
-                            }
-                        }
+                    if (strCredList.Exists() && !credentials.empty()) {
+                        OTASCIIArmor armor1(strCredList);
+                        saveCredentialsToXml(strTemp, armor1, credentials);
                     }
                 }
 
@@ -2362,8 +2325,6 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
                      "Expected nymID attribute on signer element.\n";
             return (-1); // error condition
         }
-        OTASCIIArmor ascArmor;  // For credential list.
-        OTASCIIArmor ascArmor2; // For credentials.
 
         const char* pElementExpected = "nymIDSource";
         otWarn << __FUNCTION__ << ": Loading " << pElementExpected << "...\n";
@@ -2376,6 +2337,9 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         }
         // TODO: hash the source right here and compare it to the NymID, just to
         // be safe.
+
+        String::Map credsMap;
+        OTASCIIArmor credListArmor;
 
         if (!bHasCredentials) {
             // If there are no credentials provided (which is proper) then we
@@ -2436,28 +2400,14 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         }
         else           // (bHasCredentials)
         {
-            pElementExpected = "credentialList";
-
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascArmor,
-                                                      pElementExpected)) {
-                otErr << "Error in " << __FUNCTION__ << ": "
-                                                        "Expected "
-                      << pElementExpected << " element with text field.\n";
-                return (-1); // error condition
-            }
-
-            pElementExpected = "credentials";
-
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascArmor2,
-                                                      pElementExpected)) {
-                otErr << "Error in " << __FUNCTION__ << ": "
-                                                        "Expected "
-                      << pElementExpected << " element with text field.\n";
-                return (-1); // error condition
+            if (!loadCredentialsFromXml(xml, credListArmor, credsMap)) {
+                otErr << "Error in " << __FUNCTION__
+                      << ": Failed to load credentials.\n";
+                return -1;
             }
         }
 
-        bHasCredentials = (ascArmor.Exists() && ascArmor2.Exists());
+        bHasCredentials = (credListArmor.Exists() && !credsMap.empty());
 
         // bHasCredentials might have gotten set to true in the block above the
         // above block,
@@ -2465,67 +2415,103 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         // the above block,
         // it was loaded from the contract itself.
         if (bHasCredentials) {
-            // credentialList
-            //
             String strCredentialList;
-            ascArmor.GetString(strCredentialList);
+            credListArmor.GetString(strCredentialList);
 
             if (strCredentialList.Exists()) {
-                std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
-                    OTDB::STORED_OBJ_STRING_MAP, ascArmor2.Get()));
-                OTDB::StringMap* pMap =
-                    (nullptr == pStorable)
-                        ? nullptr
-                        : dynamic_cast<OTDB::StringMap*>(pStorable.get());
+                std::unique_ptr<Nym> pNym(new Nym);
+                pNym->SetIdentifier(strSignerNymID);
 
-                if (nullptr == pMap)
-                    otOut << __FUNCTION__
-                          << ": Failed decoding StringMap object.\n";
-                else // IF the list saved, then we save the credentials
-                     // themselves...
-                {
-                    String::Map& theMap = pMap->the_map;
-
-                    std::unique_ptr<Nym> pNym(new Nym);
-                    pNym->SetIdentifier(strSignerNymID);
-
-                    if (false ==
-                        pNym->LoadFromString(strCredentialList, &theMap)) {
-                        otErr << __FUNCTION__ << ": Failure loading nym "
-                              << strSignerNymID << " from credential string.\n";
-                    }
-                    // Now that the Nym has been loaded up from the two strings,
-                    // including the list of credential IDs, and the map
-                    // containing the
-                    // credentials themselves, let's try to Verify the
-                    // pseudonym. If we
-                    // verify, then we're safe to add the Nym to the contract.
-                    //
-                    else if (!pNym->VerifyPseudonym()) {
-                        otErr << __FUNCTION__ << ": Loaded nym "
-                              << strSignerNymID
-                              << " from credentials, but then it failed "
-                                 "verifying.\n";
-                    }
-                    else // Okay, we loaded the Nym up from the credentials in
-                           // the contract, AND
-                    {      // verified the Nym (including the credentials.)
-                        // So let's add it to the contract...
-                        //
-
-                        m_mapNyms[strNodeName.Get() /*"signer"*/] =
-                            pNym.release();
-                        // Add pNym to the contract's internal list of nyms.
-
-                        return 1; // <==== Success!
-                    }
+                if (false ==
+                    pNym->LoadFromString(strCredentialList, &credsMap)) {
+                    otErr << __FUNCTION__ << ": Failure loading nym "
+                          << strSignerNymID << " from credential string.\n";
                 }
-            } // credential list exists, after base64-decoding.
+                // Now that the Nym has been loaded up from the two strings,
+                // including the list of credential IDs, and the map
+                // containing the
+                // credentials themselves, let's try to Verify the
+                // pseudonym. If we
+                // verify, then we're safe to add the Nym to the contract.
+                //
+                else if (!pNym->VerifyPseudonym()) {
+                    otErr << __FUNCTION__ << ": Loaded nym " << strSignerNymID
+                          << " from credentials, but then it failed "
+                             "verifying.\n";
+                }
+                else // Okay, we loaded the Nym up from the credentials in
+                       // the contract, AND
+                {      // verified the Nym (including the credentials.)
+                    // So let's add it to the contract...
+                    //
 
+                    m_mapNyms[strNodeName.Get() /*"signer"*/] = pNym.release();
+                    // Add pNym to the contract's internal list of nyms.
+
+                    return 1; // <==== Success!
+                }
+            }
         } // Has Credentials.
         return (-1);
     }
     return 0;
+}
+
+void Contract::saveCredentialsToXml(String& result,
+                                    const OTASCIIArmor& strCredList,
+                                    const String::Map& credentials)
+{
+    if (strCredList.Exists())
+        result.Concatenate("<credentialList>\n%s</credentialList>\n\n",
+                           strCredList.Get());
+
+    if (!credentials.empty()) {
+        result.Concatenate("<credentials>\n");
+        for (auto i : credentials) {
+            OTASCIIArmor armored(i.second);
+            result.Concatenate("<credential\nID=\"%s\">\n%s</credential>\n\n",
+                               i.first.c_str(), armored.Get());
+        }
+        result.Concatenate("</credentials>\n\n");
+    }
+}
+
+bool Contract::loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
+                                      OTASCIIArmor& credList,
+                                      String::Map& credentials)
+{
+    if (!Contract::LoadEncodedTextFieldByName(xml, credList,
+                                              "credentialList")) {
+        otErr << "Error in OTMessage::ProcessXMLNode: Expected credentialList "
+                 "element with text field.\n";
+        return false;
+    }
+
+    if (!Contract::SkipToElement(xml) ||
+        strcmp(xml->getNodeName(), "credentials") != 0) {
+        return false;
+    }
+
+    while (true) {
+        if (!Contract::SkipToElement(xml) ||
+            strcmp(xml->getNodeName(), "credential") != 0) {
+            break;
+        }
+
+        String masterId = xml->getAttributeValue("ID");
+        if (!masterId.Exists()) return false;
+
+        OTASCIIArmor armored;
+        if (!Contract::LoadEncodedTextFieldByName(xml, armored, "credential")) {
+            return false;
+        }
+        String dearmored(armored);
+
+        credentials.insert(std::pair<std::string, std::string>(
+            masterId.Get(), dearmored.Get()));
+    }
+
+    return true;
 }
 
 // If you have a Public Key or Cert that you would like to add as one of the

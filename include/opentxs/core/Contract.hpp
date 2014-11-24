@@ -533,6 +533,13 @@ public:
     // it, and that the contract hasn't been tampered with since
     // it was signed.
     EXPORT const Nym* GetContractPublicNym() const;
+
+    static void saveCredentialsToXml(String& result,
+                                     const OTASCIIArmor& strCredList,
+                                     const String::Map& credentials);
+    static bool loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
+                                       OTASCIIArmor& credList,
+                                       String::Map& credentials);
 };
 
 } // namespace opentxs

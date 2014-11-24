@@ -7850,72 +7850,51 @@ int32_t OTClient::ProcessUserCommand(
     } break;
 
     case (OTClient::registerNym): {
-        // Create a new OTDB::StringMap object.
-        //
-        std::unique_ptr<OTDB::Storable> pStorable(OTDB::CreateObject(
-            OTDB::STORED_OBJ_STRING_MAP)); // this asserts already, on failure.
-        OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
-        if (nullptr == pMap)
-            otErr << __FUNCTION__ << ": Error: failed trying to load or create "
-                                     "a STORED_OBJ_STRING_MAP.\n";
-        else // It instantiated.
+        String strCredList;
+        String::Map theMap;
+
+        // Credentials exist already.
+        if (theNym.GetMasterCredentialCount() > 0) {
+            theNym.GetPublicCredentials(strCredList, &theMap);
+        }
+        else // No credentials? Create them, then.
         {
-            String strCredList;
-            String::Map& theMap = pMap->the_map;
+            String strMasterCredID;
+            const bool bAddedMaster =
+                theNym.AddNewMasterCredential(strMasterCredID);
 
-            // Credentials exist already.
-            if (theNym.GetMasterCredentialCount() > 0) {
-                theNym.GetPublicCredentials(strCredList, &theMap);
-            }
-            else // No credentials? Create them, then.
-            {
-                String strMasterCredID;
-                const bool bAddedMaster =
-                    theNym.AddNewMasterCredential(strMasterCredID);
+            if (bAddedMaster && strMasterCredID.Exists() &&
+                (theNym.GetMasterCredentialCount() > 0)) {
+                otOut << __FUNCTION__
+                      << ": Adding new keyCredential to master credential: "
+                      << strMasterCredID << "\n";
 
-                if (bAddedMaster && strMasterCredID.Exists() &&
-                    (theNym.GetMasterCredentialCount() > 0)) {
-                    otOut << __FUNCTION__
-                          << ": Adding new keyCredential to master credential: "
-                          << strMasterCredID << "\n";
+                const Identifier theMasterCredID(strMasterCredID);
 
-                    const Identifier theMasterCredID(strMasterCredID);
+                const bool bAddedSubkey = theNym.AddNewSubkey(theMasterCredID);
 
-                    const bool bAddedSubkey =
-                        theNym.AddNewSubkey(theMasterCredID);
-
-                    if (bAddedSubkey) {
-                        theNym.SaveCredentialList();
-                        theNym.GetPublicCredentials(strCredList, &theMap);
-                    }
-                    else
-                        otErr << __FUNCTION__ << ": Failed trying to add new "
-                                                 "keyCredential to new Master "
-                                                 "credential.\n";
+                if (bAddedSubkey) {
+                    theNym.SaveCredentialList();
+                    theNym.GetPublicCredentials(strCredList, &theMap);
                 }
                 else
                     otErr << __FUNCTION__ << ": Failed trying to add new "
-                                             "master credential (for Nym who "
-                                             "doesn't have one yet.)\n";
+                                             "keyCredential to new Master "
+                                             "credential.\n";
             }
-            // Serialize the StringMap to a string...
+            else
+                otErr << __FUNCTION__ << ": Failed trying to add new "
+                                         "master credential (for Nym who "
+                                         "doesn't have one yet.)\n";
+        }
 
-            // Won't bother if there are zero credentials somehow.
-            if (strCredList.Exists() && (!theMap.empty())) {
-                std::string str_Encoded = OTDB::EncodeObject(*pMap);
-                const bool bSuccessEncoding = (str_Encoded.size() > 0);
-                if (bSuccessEncoding) {
-                    theMessage.m_ascPayload.SetString(
-                        strCredList); // <========== Success
-                    theMessage.m_ascPayload2.Set(
-                        str_Encoded.c_str()); // Payload contains credentials
-                                              // list, payload2 contains actual
-                                              // credentials.
-                }
-            }
+        // Won't bother if there are zero credentials somehow.
+        if (strCredList.Exists() && (!theMap.empty())) {
+            theMessage.m_ascPayload.SetString(strCredList);
+            theMessage.credentials.swap(theMap);
         }
         if (!theMessage.m_ascPayload.Exists() ||
-            !theMessage.m_ascPayload2.Exists()) {
+            theMessage.credentials.empty()) {
             otErr << __FUNCTION__ << ": Failed trying to assemble a "
                                      "registerNym message: This Nym has "
                                      "no credentials to use for registration. "
