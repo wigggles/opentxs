@@ -13530,7 +13530,7 @@ int32_t OTAPI_Exec::issueInstrumentDefinition(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getContract(
+int32_t OTAPI_Exec::getInstrumentDefinition(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
@@ -13551,8 +13551,8 @@ int32_t OTAPI_Exec::getContract(
     Identifier theNotaryID(NOTARY_ID), theUserID(NYM_ID),
         theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-    return OTAPI()->getContract(theNotaryID, theUserID,
-                                theInstrumentDefinitionID);
+    return OTAPI()->getInstrumentDefinition(theNotaryID, theUserID,
+                                            theInstrumentDefinitionID);
 }
 
 // Returns int32_t:

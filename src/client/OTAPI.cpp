@@ -2100,11 +2100,12 @@ int32_t OTAPI_Wrap::issueInstrumentDefinition(const std::string& NOTARY_ID,
     return Exec()->issueInstrumentDefinition(NOTARY_ID, NYM_ID, THE_CONTRACT);
 }
 
-int32_t OTAPI_Wrap::getContract(const std::string& NOTARY_ID,
-                                const std::string& NYM_ID,
-                                const std::string& INSTRUMENT_DEFINITION_ID)
+int32_t OTAPI_Wrap::getInstrumentDefinition(
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& INSTRUMENT_DEFINITION_ID)
 {
-    return Exec()->getContract(NOTARY_ID, NYM_ID, INSTRUMENT_DEFINITION_ID);
+    return Exec()->getInstrumentDefinition(NOTARY_ID, NYM_ID,
+                                           INSTRUMENT_DEFINITION_ID);
 }
 
 int32_t OTAPI_Wrap::getMint(const std::string& NOTARY_ID,

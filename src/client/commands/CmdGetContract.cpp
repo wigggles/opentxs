@@ -137,7 +137,7 @@
 using namespace opentxs;
 using namespace std;
 
-CmdGetContract::CmdGetContract()
+CmdGetInstrumentDefinition::CmdGetInstrumentDefinition()
 {
     command = "getcontract";
     args[0] = "--server <server>";
@@ -147,16 +147,17 @@ CmdGetContract::CmdGetContract()
     help = "Download an asset or server contract by its ID.";
 }
 
-CmdGetContract::~CmdGetContract()
+CmdGetInstrumentDefinition::~CmdGetInstrumentDefinition()
 {
 }
 
-int32_t CmdGetContract::runWithOptions()
+int32_t CmdGetInstrumentDefinition::runWithOptions()
 {
     return run(getOption("server"), getOption("mynym"), getOption("contract"));
 }
 
-int32_t CmdGetContract::run(string server, string mynym, string contract)
+int32_t CmdGetInstrumentDefinition::run(string server, string mynym,
+                                        string contract)
 {
     if (!checkServer("server", server)) {
         return -1;

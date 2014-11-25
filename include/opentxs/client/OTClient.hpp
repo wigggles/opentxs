@@ -289,8 +289,8 @@ private:
     bool processServerReplyGetAccountData(const Message& theReply,
                                           OTLedger* pNymbox,
                                           ProcessServerReplyArgs& args);
-    bool processServerReplyGetContract(const Message& theReply,
-                                       ProcessServerReplyArgs& args);
+    bool processServerReplyGetInstrumentDefinition(
+        const Message& theReply, ProcessServerReplyArgs& args);
     bool processServerReplyGetMint(const Message& theReply);
     bool processServerReplyGetMarketList(const Message& theReply);
     bool processServerReplyGetMarketOffers(const Message& theReply);

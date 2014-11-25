@@ -182,7 +182,7 @@ private:
     void UserCmdNotarizeTransaction(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetNymbox(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetAccountData(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdGetContract(Message& msgIn, Message& msgOut);
+    void UserCmdGetInstrumentDefinition(Message& msgIn, Message& msgOut);
     void UserCmdGetMint(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdProcessInbox(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdProcessNymbox(Nym& nym, Message& msgIn, Message& msgOut);

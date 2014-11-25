@@ -715,7 +715,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
         return OTAPI_Wrap::exchangeBasket(
             notaryID, nymID, instrumentDefinitionID, basket, bBool);
     case GET_CONTRACT:
-        return OTAPI_Wrap::getContract(notaryID, nymID, instrumentDefinitionID);
+        return OTAPI_Wrap::getInstrumentDefinition(notaryID, nymID,
+                                                   instrumentDefinitionID);
     case GET_MINT:
         return OTAPI_Wrap::getMint(notaryID, nymID, instrumentDefinitionID);
     case QUERY_ASSET_TYPES:

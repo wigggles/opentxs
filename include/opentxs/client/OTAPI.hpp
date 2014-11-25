@@ -2925,7 +2925,7 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
-    EXPORT static int32_t getContract(
+    EXPORT static int32_t getInstrumentDefinition(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
 

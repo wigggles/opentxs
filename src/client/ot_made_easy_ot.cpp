@@ -2114,7 +2114,8 @@ else if (funcType == EXCHANGE_BASKET)
 { OTAPI_Wrap::exchangeBasket(notaryID, nymID, instrumentDefinitionID, basket,
 bBool); }
 else if (funcType == GET_CONTRACT)
-{ OTAPI_Wrap::getContract(notaryID, nymID, instrumentDefinitionID); }
+{ OTAPI_Wrap::getInstrumentDefinition(notaryID, nymID, instrumentDefinitionID);
+}
 else if (funcType == ISSUE_ASSET_TYPE)
 { OTAPI_Wrap::issueInstrumentDefinition(notaryID, nymID, strData); }
 else if (funcType == ISSUE_BASKET)

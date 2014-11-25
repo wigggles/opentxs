@@ -3399,7 +3399,7 @@ public:
 RegisterStrategy StrategyGetAccountDataResponse::reg(
     "getAccountDataResponse", new StrategyGetAccountDataResponse());
 
-class StrategyGetContract : public OTMessageStrategy
+class StrategyGetInstrumentDefinition : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3438,10 +3438,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetContract::reg("getContract",
-                                          new StrategyGetContract());
+RegisterStrategy StrategyGetInstrumentDefinition::reg(
+    "getInstrumentDefinition", new StrategyGetInstrumentDefinition());
 
-class StrategyGetContractResponse : public OTMessageStrategy
+class StrategyGetInstrumentDefinitionResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -3519,8 +3519,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyGetContractResponse::reg(
-    "getContractResponse", new StrategyGetContractResponse());
+RegisterStrategy StrategyGetInstrumentDefinitionResponse::reg(
+    "getInstrumentDefinitionResponse",
+    new StrategyGetInstrumentDefinitionResponse());
 
 class StrategyGetMint : public OTMessageStrategy
 {

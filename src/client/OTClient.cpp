@@ -6921,8 +6921,8 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyGetContract(const Message& theReply,
-                                             ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyGetInstrumentDefinition(
+    const Message& theReply, ProcessServerReplyArgs& args)
 {
     // base64-Decode the server reply's payload into strContract
     String strContract(theReply.m_ascPayload);
@@ -7722,8 +7722,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     {
         return processServerReplyGetAccountData(theReply, pNymbox, args);
     }
-    if (theReply.m_strCommand.Compare("getContractResponse")) {
-        return processServerReplyGetContract(theReply, args);
+    if (theReply.m_strCommand.Compare("getInstrumentDefinitionResponse")) {
+        return processServerReplyGetInstrumentDefinition(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getMintResponse")) {
         return processServerReplyGetMint(theReply);
