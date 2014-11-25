@@ -175,6 +175,10 @@ public:
 
     EXPORT void ActivateCron();
     void ProcessCron();
+    int64_t computeTimeout()
+    {
+        return m_Cron.computeTimeout();
+    }
 
 private:
     bool SendInstrumentToNym(const Identifier& notaryID,

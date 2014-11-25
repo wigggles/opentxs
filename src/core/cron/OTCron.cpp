@@ -652,18 +652,22 @@ void OTCron::UpdateContents()
     m_xmlUnsigned.Concatenate("</cron>\n");
 }
 
+int64_t OTCron::computeTimeout()
+{
+    return OTCron::GetCronMsBetweenProcess() - tCron.getElapsedTimeInMilliSec();
+}
+
 // Make sure to call this regularly so the CronItems get a chance to process and
 // expire.
 void OTCron::ProcessCronItems()
 {
-
     if (!m_bIsActivated) {
         otErr << "OTCron::ProcessCronItems: Not activated yet. (Skipping.)\n";
         return;
     }
 
-    // CRON RUNS ON A TIMER...
-    if (tCron.getElapsedTimeInMilliSec() <= OTCron::GetCronMsBetweenProcess()) {
+    // check elapsed time since last items processing
+    if (computeTimeout() > 0) {
         return;
     }
     tCron.start();

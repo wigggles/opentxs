@@ -289,6 +289,8 @@ public:
     //
     EXPORT void ProcessCronItems();
 
+    int64_t computeTimeout();
+
     inline void SetNotaryID(const Identifier& NOTARY_ID)
     {
         m_NOTARY_ID = NOTARY_ID;
