@@ -12610,9 +12610,9 @@ int32_t OT_API::issueInstrumentDefinition(const Identifier& NOTARY_ID,
     return -1;
 }
 
-int32_t OT_API::getContract(const Identifier& NOTARY_ID,
-                            const Identifier& NYM_ID,
-                            const Identifier& INSTRUMENT_DEFINITION_ID) const
+int32_t OT_API::getInstrumentDefinition(
+    const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     // Grab the server's copy of any asset contract. Input is
     // the instrument definition ID.
@@ -12640,7 +12640,7 @@ int32_t OT_API::getContract(const Identifier& NOTARY_ID,
                                                    // increment it
 
     // (1) set up member variables
-    theMessage.m_strCommand = "getContract";
+    theMessage.m_strCommand = "getInstrumentDefinition";
     theMessage.m_strNymID = strNymID;
     theMessage.m_strNotaryID = strNotaryID;
     theMessage.SetAcknowledgments(*pNym); // Must be called AFTER

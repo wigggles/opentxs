@@ -1287,13 +1287,15 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("getContract")) {
-        OTLog::vOutput(0, "\n==> Received a getContract message. Nym: %s ...\n",
-                       strMsgNymID.Get());
+    else if (theMessage.m_strCommand.Compare("getInstrumentDefinition")) {
+        OTLog::vOutput(
+            0,
+            "\n==> Received a getInstrumentDefinition message. Nym: %s ...\n",
+            strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_contract);
 
-        UserCmdGetContract(theMessage, msgOut);
+        UserCmdGetInstrumentDefinition(theMessage, msgOut);
 
         return true;
     }
@@ -3360,11 +3362,13 @@ void UserCommandProcessor::UserCmdQueryInstrumentDefinitions(Nym&,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdGetContract(Message& MsgIn, Message& msgOut)
+void UserCommandProcessor::UserCmdGetInstrumentDefinition(Message& MsgIn,
+                                                          Message& msgOut)
 {
     // (1) set up member variables
-    msgOut.m_strCommand = "getContractResponse"; // reply to getContract
-    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
+    msgOut.m_strCommand =
+        "getInstrumentDefinitionResponse"; // reply to getInstrumentDefinition
+    msgOut.m_strNymID = MsgIn.m_strNymID;  // UserID
     msgOut.m_strInstrumentDefinitionID =
         MsgIn.m_strInstrumentDefinitionID; // The Instrument Definition ID in
                                            // question

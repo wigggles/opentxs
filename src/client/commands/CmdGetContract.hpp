@@ -138,11 +138,11 @@
 namespace opentxs
 {
 
-class CmdGetContract : public CmdBase
+class CmdGetInstrumentDefinition : public CmdBase
 {
 public:
-    EXPORT CmdGetContract();
-    virtual ~CmdGetContract();
+    EXPORT CmdGetInstrumentDefinition();
+    virtual ~CmdGetInstrumentDefinition();
 
     EXPORT int32_t
         run(std::string server, std::string mynym, std::string contract);
