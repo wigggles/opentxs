@@ -1970,8 +1970,9 @@ public:
                            m.m_strInstrumentDefinitionID.Get());
 
         if (m.m_ascPayload.GetLength())
-            result.Concatenate("<assetContract>\n%s</assetContract>\n\n",
-                               m.m_ascPayload.Get());
+            result.Concatenate(
+                "<instrumentDefinition>\n%s</instrumentDefinition>\n\n",
+                m.m_ascPayload.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -1986,7 +1987,7 @@ public:
             xml->getAttributeValue("instrumentDefinitionID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        const char* pElementExpected = "assetContract";
+        const char* pElementExpected = "instrumentDefinition";
         OTASCIIArmor& ascTextExpected = m.m_ascPayload;
 
         if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -3467,8 +3468,9 @@ public:
         // I would check if this was empty, but it should never be empty...
         // famous last words.
         if (m.m_bSuccess && m.m_ascPayload.GetLength())
-            result.Concatenate("<assetContract>\n%s</assetContract>\n\n",
-                               m.m_ascPayload.Get());
+            result.Concatenate(
+                "<instrumentDefinition>\n%s</instrumentDefinition>\n\n",
+                m.m_ascPayload.Get());
 
         result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
         return result;
@@ -3487,7 +3489,7 @@ public:
 
         const char* pElementExpected;
         if (m.m_bSuccess)
-            pElementExpected = "assetContract";
+            pElementExpected = "instrumentDefinition";
         else
             pElementExpected = "inReferenceTo";
 
