@@ -139,6 +139,7 @@
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/util/StringUtils.hpp>
 #include <opentxs/core/util/Assert.hpp>
+#include <opentxs/core/util/Timer.hpp>
 
 namespace opentxs
 {
@@ -191,6 +192,8 @@ private:
     static int32_t __cron_max_items_per_nym; // Int. The maximum number of cron
                                              // items any given Nym can have
                                              // active at the same time.
+
+    static Timer tCron;
 
 public:
     static int32_t GetCronMsBetweenProcess()

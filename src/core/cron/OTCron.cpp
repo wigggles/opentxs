@@ -136,7 +136,6 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
-#include <opentxs/core/util/Timer.hpp>
 
 #include <irrxml/irrXML.hpp>
 
@@ -158,6 +157,8 @@ int32_t OTCron::__cron_ms_between_process = 10000; // The number of milliseconds
 int32_t OTCron::__cron_max_items_per_nym = 10; // The maximum number of cron
                                                // items any given Nym can have
                                                // active at the same time.
+
+Timer OTCron::tCron(true);
 
 // Make sure Server Nym is set on this cron object before loading or saving,
 // since it's
@@ -662,7 +663,6 @@ void OTCron::ProcessCronItems()
     }
 
     // CRON RUNS ON A TIMER...
-    static Timer tCron(true);
     if (tCron.getElapsedTimeInMilliSec() <= OTCron::GetCronMsBetweenProcess()) {
         return;
     }
