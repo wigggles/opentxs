@@ -663,14 +663,10 @@ void OTCron::ProcessCronItems()
 
     // CRON RUNS ON A TIMER...
     static Timer tCron(true);
-    static double cron_tick1 = tCron.getElapsedTimeInMilliSec();
-    double cron_tick2 = tCron.getElapsedTimeInMilliSec();
-    const int64_t cron_elapsed = static_cast<int64_t>(cron_tick2 - cron_tick1);
-
-    if (cron_elapsed <= OTCron::GetCronMsBetweenProcess()) {
+    if (tCron.getElapsedTimeInMilliSec() <= OTCron::GetCronMsBetweenProcess()) {
         return;
     }
-    cron_tick1 = tCron.getElapsedTimeInMilliSec();
+    tCron.start();
 
     const int32_t nTwentyPercent = OTCron::GetCronRefillAmount() / 5;
     if (GetTransactionCount() <= nTwentyPercent) {
