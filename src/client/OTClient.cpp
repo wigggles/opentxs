@@ -294,12 +294,12 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
 
     // the message to the server will contain a ledger to be processed for a
     // specific acct. (in this case no acct, but user ID used twice instead.)
-    OTLedger processLedger(theNymbox.GetUserID(), theNymbox.GetUserID(),
+    OTLedger processLedger(theNymbox.GetNymID(), theNymbox.GetNymID(),
                            theNotaryID);
 
     // bGenerateFile defaults to false on GenerateLedger call, so I left out the
     // false.
-    processLedger.GenerateLedger(theNymbox.GetUserID(), theNotaryID,
+    processLedger.GenerateLedger(theNymbox.GetNymID(), theNotaryID,
                                  OTLedger::message); // Can't just use one of
                                                      // these. It either has to
                                                      // be read out of a file or
@@ -309,7 +309,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
     // it loaded securely. (No need to verify if you just generated it.)
 
     OTTransaction* pAcceptTransaction = OTTransaction::GenerateTransaction(
-        theNymbox.GetUserID(), theNymbox.GetUserID(), theNotaryID,
+        theNymbox.GetNymID(), theNymbox.GetNymID(), theNotaryID,
         OTTransaction::processNymbox, lStoredTransactionNumber);
 
     // This insures that the ledger will handle cleaning up the transaction, so
@@ -1062,7 +1062,7 @@ void OTClient::load_str_trans_add_to_ledger(
             if (nullptr ==
                 pCopy) // it's a transaction type but not a transaction.
             {
-                const String strUserID(the_nym_id), strAcctID(the_nym_id);
+                const String strNymID(the_nym_id), strAcctID(the_nym_id);
                 otOut
                     << __FUNCTION__
                     << ": it's a transaction type but not a transaction: (for "
@@ -1079,13 +1079,13 @@ void OTClient::load_str_trans_add_to_ledger(
                                                     // paymentInbox or recordBox
                                                     // ledger...
                 {
-                    String strUserID(the_nym_id), strAcctID(the_nym_id);
+                    String strNymID(the_nym_id), strAcctID(the_nym_id);
                     otOut << __FUNCTION__
                           << ": Unable to add the transaction to the "
-                          << str_box_type
-                          << " with user/acct IDs: " << strUserID << " / "
-                          << strAcctID << ", and loading from string:\n\n"
-                          << str_trans << "\n\n";
+                          << str_box_type << " with user/acct IDs: " << strNymID
+                          << " / " << strAcctID
+                          << ", and loading from string:\n\n" << str_trans
+                          << "\n\n";
                     delete pCopy;
                     pCopy = nullptr;
                 }
@@ -2585,14 +2585,14 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                                             // verification.)
                                             //
                                             if (!bSuccessLoading) {
-                                                String strUserID(NYM_ID),
+                                                String strNymID(NYM_ID),
                                                     strAcctID(NYM_ID);
                                                 otOut
                                                     << __FUNCTION__
                                                     << ": WARNING: Unable to "
                                                        "load, verify, or "
                                                        "generate recordBox, "
-                                                       "with IDs: " << strUserID
+                                                       "with IDs: " << strNymID
                                                     << " / " << strAcctID
                                                     << "\n";
                                             }
@@ -2637,10 +2637,10 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                         } // if nullptr != pOriginalItem
                     }
                     else {
-                        String strUserID(NYM_ID), strAcctID(NYM_ID);
+                        String strNymID(NYM_ID), strAcctID(NYM_ID);
                         otWarn << __FUNCTION__ << ": Unable to load or verify "
                                                   "payments inbox: User "
-                               << strUserID << " / Acct " << strAcctID << "\n";
+                               << strNymID << " / Acct " << strAcctID << "\n";
                     }
                 }
             }
@@ -2670,7 +2670,7 @@ void OTClient::ProcessWithdrawalResponse(
     Identifier NYM_ID;
     pNym->GetIdentifier(NYM_ID);
 
-    const String strUserID(NYM_ID);
+    const String strNymID(NYM_ID);
 
     OTWallet* pWallet = theConnection.GetWallet();
     Nym* pServerNym = const_cast<Nym*>(
@@ -2751,7 +2751,7 @@ void OTClient::ProcessWithdrawalResponse(
                 // shouldn't be a problem since they would be in the archive
                 // somewhere.
 
-                theWalletPurse.LoadPurse(strNotaryID.Get(), strUserID.Get(),
+                theWalletPurse.LoadPurse(strNotaryID.Get(), strNymID.Get(),
                                          strInstrumentDefinitionID.Get());
 
                 bool bSuccess = false;
@@ -2830,7 +2830,7 @@ void OTClient::ProcessWithdrawalResponse(
                                                         // has changed.
                     theWalletPurse.SignContract(*pNym);
                     theWalletPurse.SaveContract();
-                    theWalletPurse.SavePurse(strNotaryID.Get(), strUserID.Get(),
+                    theWalletPurse.SavePurse(strNotaryID.Get(), strNymID.Get(),
                                              strInstrumentDefinitionID.Get());
 
                     otOut << "SUCCESSFULLY UNBLINDED token, and added the cash "
@@ -3269,12 +3269,12 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                       << theReply.m_lTransactionNum << ").\n";
             // Note: Account ID and Server ID were already verified, in
             // VerifyAccount().
-            else if (pBoxReceipt->GetUserID() != NYM_ID) {
-                const String strPurportedUserID(pBoxReceipt->GetUserID());
+            else if (pBoxReceipt->GetNymID() != NYM_ID) {
+                const String strPurportedNymID(pBoxReceipt->GetNymID());
                 otErr
                     << __FUNCTION__
                     << ": getBoxReceiptResponse: Error: NymID doesn't match on "
-                       "the box receipt itself (" << strPurportedUserID
+                       "the box receipt itself (" << strPurportedNymID
                     << "), versus the one listed in the reply message ("
                     << theReply.m_strNymID << ").\n";
             }
@@ -3330,11 +3330,11 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                     // not. (generation might have failed, or verification.)
 
                     if (!bSuccessLoading) {
-                        String strUserID(NYM_ID), strAcctID(NYM_ID);
+                        String strNymID(NYM_ID), strAcctID(NYM_ID);
                         otOut << __FUNCTION__
                               << ": getBoxReceiptResponse: WARNING: Unable to "
                                  "load, verify, or generate paymentInbox, "
-                                 "with IDs: " << strUserID << " / " << strAcctID
+                                 "with IDs: " << strNymID << " / " << strAcctID
                               << "\n";
                     }
                     else // --- ELSE --- Success loading the payment inbox
@@ -3444,7 +3444,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
         otErr
             << __FUNCTION__
             << ": SHOULD NEVER HAPPEN: getBoxReceiptResponse: failure loading "
-               "box, or verifying it. UserID: " << theReply.m_strNymID
+               "box, or verifying it. NymID: " << theReply.m_strNymID
             << "  AcctID: " << theReply.m_strAcctID << " \n";
     }
 
@@ -3501,7 +3501,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
         // func.
         // with a flag so we do not have to compare again?
         if (theReply.m_strCommand.Compare("processNymboxResponse"))
-            ACCOUNT_ID = NYM_ID; // For Nymbox, UserID *is* AcctID.
+            ACCOUNT_ID = NYM_ID; // For Nymbox, NymID *is* AcctID.
 
         OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID),
             theReplyLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID);
@@ -4304,7 +4304,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                             to_string<int64_t>(lFinishedSoFar);
                                         // save to local storage...
                                         //
-                                        String strUserID(NYM_ID);
+                                        String strNymID(NYM_ID);
 
                                         std::unique_ptr<OTDB::TradeListNym>
                                             pList;
@@ -4313,7 +4313,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                          "trades", // todo stop
                                                          // hardcoding.
                                                          strNotaryID.Get(),
-                                                         strUserID.Get()))
+                                                         strNymID.Get()))
                                             pList.reset(dynamic_cast<
                                                 OTDB::TradeListNym*>(
                                                 OTDB::QueryObject(
@@ -4323,11 +4323,11 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                     "trades", // todo stop
                                                               // hardcoding.
                                                     strNotaryID.Get(),
-                                                    strUserID.Get())));
+                                                    strNymID.Get())));
                                         if (nullptr == pList) {
                                             otInfo << "Creating storage list "
                                                       "of trade receipts for "
-                                                      "Nym: " << strUserID
+                                                      "Nym: " << strNymID
                                                    << "\n";
                                             pList.reset(dynamic_cast<
                                                 OTDB::
@@ -4455,13 +4455,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                          "trades", // todo stop
                                                          // hardcoding.
                                                          strNotaryID.Get(),
-                                                         strUserID.Get()))
+                                                         strNymID.Get()))
                                             otErr
                                                 << "OTClient::" << __FUNCTION__
                                                 << ": Failed storing list "
                                                    "of trades for Nym. "
                                                    "Server ID: " << strNotaryID
-                                                << " Nym ID: " << strUserID
+                                                << " Nym ID: " << strNymID
                                                 << " \n";
                                     }
                                 }
@@ -8508,8 +8508,8 @@ int32_t OTClient::ProcessUserCommand(
         }
         else if (theCheque.LoadContractFromString(strCheque)) {
             if (theCheque.HasRecipient() &&
-                (theCheque.GetRecipientUserID() != NYM_ID)) {
-                const String strRecipientNym(theCheque.GetRecipientUserID());
+                (theCheque.GetRecipientNymID() != NYM_ID)) {
+                const String strRecipientNym(theCheque.GetRecipientNymID());
                 otOut << "This cheque is made out to the Nym: "
                       << strRecipientNym
                       << " (and that is NOT you, so you can't deposit it!)\n "

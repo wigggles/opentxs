@@ -210,7 +210,7 @@ bool OTLedger::VerifyAccount(const Nym& theNym)
         String strAccountID;
         GetIdentifier(strAccountID);
         otErr << "OTLedger::VerifyAccount: Failure: Bad ledger type: "
-              << nLedgerType << ", UserID: " << strNymID
+              << nLedgerType << ", NymID: " << strNymID
               << ", AcctID: " << strAccountID << "\n";
     }
         return false;
@@ -943,16 +943,16 @@ bool OTLedger::SaveExpiredBox()
 
 // static
 OTLedger* OTLedger::GenerateLedger(
-    const Identifier& theUserID,
+    const Identifier& theNymID,
     const Identifier& theAcctID, // AcctID should be "OwnerID" since could be
                                  // acct OR Nym (with nymbox)
     const Identifier& theNotaryID, ledgerType theType, bool bCreateFile)
 {
-    OTLedger* pLedger = new OTLedger(theUserID, theAcctID, theNotaryID);
+    OTLedger* pLedger = new OTLedger(theNymID, theAcctID, theNotaryID);
     OT_ASSERT(nullptr != pLedger);
 
     pLedger->GenerateLedger(theAcctID, theNotaryID, theType, bCreateFile);
-    pLedger->SetUserID(theUserID);
+    pLedger->SetNymID(theNymID);
 
     return pLedger;
 }
@@ -1048,13 +1048,13 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
     }
 
     if ((OTLedger::inbox == theType) || (OTLedger::outbox == theType)) {
-        // Have to look up the UserID here. No way around it. We need that ID.
+        // Have to look up the NymID here. No way around it. We need that ID.
         // Plus it helps verify things.
         std::unique_ptr<Account> pAccount(
             Account::LoadExistingAccount(theAcctID, theNotaryID));
 
         if (nullptr != pAccount)
-            SetUserID(pAccount->GetUserID());
+            SetNymID(pAccount->GetNymID());
         else {
             otErr << "OTLedger::GenerateLedger: Failed in "
                      "OTAccount::LoadExistingAccount().\n";
@@ -1069,12 +1069,12 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
             Account::LoadExistingAccount(theAcctID, theNotaryID));
 
         if (nullptr != pAccount) // Found it!
-            SetUserID(pAccount->GetUserID());
+            SetNymID(pAccount->GetNymID());
         else // Must be based on NymID, not AcctID (like Nymbox. But RecordBox
              // can go either way.)
         {
-            SetUserID(theAcctID); // In the case of nymbox, and sometimes with
-                                  // recordBox, the acct ID IS the user ID.
+            SetNymID(theAcctID); // In the case of nymbox, and sometimes with
+                                 // recordBox, the acct ID IS the user ID.
         }
     }
     else {
@@ -1082,7 +1082,7 @@ bool OTLedger::GenerateLedger(const Identifier& theAcctID,
         // the user ID.
         // (Should change it to "owner ID" to make it sound right either way.)
         //
-        SetUserID(theAcctID);
+        SetNymID(theAcctID);
     }
 
     // Notice I still don't actually create the file here.  The programmer still
@@ -1118,9 +1118,9 @@ void OTLedger::InitLedger()
 // Since a ledger is normally used as an inbox for a specific account, in a
 // specific file,
 // then I've decided to restrict ledgers to a single account.
-OTLedger::OTLedger(const Identifier& theUserID, const Identifier& theAccountID,
+OTLedger::OTLedger(const Identifier& theNymID, const Identifier& theAccountID,
                    const Identifier& theNotaryID)
-    : OTTransactionType(theUserID, theAccountID, theNotaryID)
+    : OTTransactionType(theNymID, theAccountID, theNotaryID)
     , m_Type(OTLedger::message)
     , m_bLoadedLegacyData(false)
 {
@@ -1128,12 +1128,12 @@ OTLedger::OTLedger(const Identifier& theUserID, const Identifier& theAccountID,
 }
 
 // ONLY call this if you need to load a ledger where you don't already know the
-// person's UserID
+// person's NymID
 // For example, if you need to load someone ELSE's inbox in order to send them a
 // transfer, then
 // you only know their account number, not their user ID. So you call this
 // function to get it
-// loaded up, and the UserID will hopefully be loaded up with the rest of it.
+// loaded up, and the NymID will hopefully be loaded up with the rest of it.
 OTLedger::OTLedger(const Identifier& theAccountID,
                    const Identifier& theNotaryID)
     : OTTransactionType()
@@ -1542,19 +1542,19 @@ OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
 
     if ((theAccount.GetPurportedAccountID() != GetPurportedAccountID()) ||
         (theAccount.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
-        (theAccount.GetUserID() != GetUserID())) {
+        (theAccount.GetNymID() != GetNymID())) {
         otErr << "Wrong Account passed in to "
                  "OTLedger::GenerateBalanceStatement.\n";
         return nullptr;
     }
     if ((theOutbox.GetPurportedAccountID() != GetPurportedAccountID()) ||
         (theOutbox.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
-        (theOutbox.GetUserID() != GetUserID())) {
+        (theOutbox.GetNymID() != GetNymID())) {
         otErr << "Wrong Outbox passed in to "
                  "OTLedger::GenerateBalanceStatement.\n";
         return nullptr;
     }
-    if ((theNymID != GetUserID())) {
+    if ((theNymID != GetNymID())) {
         otErr << "Wrong Nym passed in to OTLedger::GenerateBalanceStatement.\n";
         return nullptr;
     }
@@ -1821,7 +1821,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
     // write as well!
     //
     String strType(GetTypeString()), strLedgerAcctID(GetPurportedAccountID()),
-        strLedgerAcctNotaryID(GetPurportedNotaryID()), strUserID(GetUserID());
+        strLedgerAcctNotaryID(GetPurportedNotaryID()), strNymID(GetNymID());
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -1896,7 +1896,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
                               "notaryID=\"%s\" >\n\n",
                               m_strVersion.Get(), strType.Get(),
                               nPartialRecordCount, strLedgerAcctID.Get(),
-                              strUserID.Get(), strLedgerAcctNotaryID.Get());
+                              strNymID.Get(), strLedgerAcctNotaryID.Get());
 
     m_xmlUnsigned.Concatenate("%s", strLedgerContents.Get());
     m_xmlUnsigned.Concatenate("</accountLedger>\n");
@@ -1911,13 +1911,13 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     const String strNodeName = xml->getNodeName();
 
     if (strNodeName.Compare("accountLedger")) {
-        String strType,                      // ledger type
-            strLedgerAcctID,                 // purported
-            strLedgerAcctNotaryID,           // purported
-            strUserID, strNumPartialRecords; // Ledger contains either full
-                                             // receipts, or abbreviated
-                                             // receipts with hashes and partial
-                                             // data.
+        String strType,                     // ledger type
+            strLedgerAcctID,                // purported
+            strLedgerAcctNotaryID,          // purported
+            strNymID, strNumPartialRecords; // Ledger contains either full
+                                            // receipts, or abbreviated
+                                            // receipts with hashes and partial
+                                            // data.
 
         strType = xml->getAttributeValue("type");
         m_strVersion = xml->getAttributeValue("version");
@@ -1954,25 +1954,25 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         strLedgerAcctID = xml->getAttributeValue("accountID");
         strLedgerAcctNotaryID = xml->getAttributeValue("notaryID");
-        strUserID = xml->getAttributeValue("nymID");
+        strNymID = xml->getAttributeValue("nymID");
 
         if (!strLedgerAcctID.Exists() || !strLedgerAcctNotaryID.Exists() ||
-            !strUserID.Exists()) {
+            !strNymID.Exists()) {
             otOut << szFunc << ": Failure: missing strLedgerAcctID ("
                   << strLedgerAcctID << ") or "
                                         "strLedgerAcctNotaryID ("
-                  << strLedgerAcctNotaryID << ") or strUserID (" << strUserID
+                  << strLedgerAcctNotaryID << ") or strNymID (" << strNymID
                   << ") while loading transaction "
                      "from " << strType << " ledger. \n";
             return (-1);
         }
 
         Identifier ACCOUNT_ID(strLedgerAcctID),
-            NOTARY_ID(strLedgerAcctNotaryID), NYM_ID(strUserID);
+            NOTARY_ID(strLedgerAcctNotaryID), NYM_ID(strNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);
         SetPurportedNotaryID(NOTARY_ID);
-        SetUserID(NYM_ID);
+        SetNymID(NYM_ID);
 
         if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
@@ -2207,7 +2207,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\", version: " << m_strVersion << "\n";
         //                "accountID: %s\n nymID: %s\n notaryID:
         // %s\n----------\n",  szFunc,
-        //                strLedgerAcctID.Get(), strUserID.Get(),
+        //                strLedgerAcctID.Get(), strNymID.Get(),
         // strLedgerAcctNotaryID.Get()
 
         // Since we just loaded this stuff, let's verify it.
@@ -2303,10 +2303,10 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // back here to Purported values.
             //
             //            OTTransaction * pTransaction = new
-            // OTTransaction(GetUserID(), GetRealAccountID(),
+            // OTTransaction(GetNymID(), GetRealAccountID(),
             // GetRealNotaryID());
             OTTransaction* pTransaction = new OTTransaction(
-                GetUserID(), GetPurportedAccountID(), GetPurportedNotaryID());
+                GetNymID(), GetPurportedAccountID(), GetPurportedNotaryID());
             OT_ASSERT(nullptr != pTransaction);
 
             // Need this set before the LoadContractFromString().
@@ -2372,7 +2372,7 @@ int32_t OTLedger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     const bool bBoxReceiptAlreadyExists =
                         VerifyBoxReceiptExists(
                             pTransaction->GetRealNotaryID(),
-                            pTransaction->GetUserID(),
+                            pTransaction->GetNymID(),
                             pTransaction->GetRealAccountID(), // If Nymbox (vs
                                                               // inbox/outbox)
                                                               // the NYM_ID

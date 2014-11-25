@@ -154,8 +154,8 @@ public:
 
 private:
     bool SendMessageToNym(const Identifier& notaryID,
-                          const Identifier& senderUserId,
-                          const Identifier& recipientUserId,
+                          const Identifier& senderNymID,
+                          const Identifier& recipientNymID,
                           Message* msg = nullptr,
                           const String* messageString = nullptr);
 

@@ -2019,7 +2019,7 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
         OTAPI_Wrap::OTAPI()->GetAccount(i, accountID, strName);
         Account* pAccount =
             OTAPI_Wrap::OTAPI()->GetAccount(accountID, __FUNCTION__);
-        Identifier theNYM_ID(pAccount->GetUserID());
+        Identifier theNYM_ID(pAccount->GetNymID());
 
         if (theNYM_ID.IsEmpty()) {
             otErr << __FUNCTION__ << ": Bug in OT_API_Wallet_CanRemoveNym / "
@@ -2104,14 +2104,14 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     bool BOOL_RETURN_VALUE = false;
 
     const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
-    const Identifier& theUserID = pAccount->GetUserID();
+    const Identifier& theNymID = pAccount->GetNymID();
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return nullptr if various verification fails.
     std::unique_ptr<OTLedger> pInbox(
-        OTAPI_Wrap::OTAPI()->LoadInbox(theNotaryID, theUserID, ACCOUNT_ID));
+        OTAPI_Wrap::OTAPI()->LoadInbox(theNotaryID, theNymID, ACCOUNT_ID));
     std::unique_ptr<OTLedger> pOutbox(
-        OTAPI_Wrap::OTAPI()->LoadOutbox(theNotaryID, theUserID, ACCOUNT_ID));
+        OTAPI_Wrap::OTAPI()->LoadOutbox(theNotaryID, theNymID, ACCOUNT_ID));
 
     if (nullptr == pInbox) {
         otOut << __FUNCTION__
@@ -5006,7 +5006,7 @@ Purse* OT_API::LoadPurse(const Identifier& NOTARY_ID,
                                : pstrDisplay->Get());
     OTPasswordData thePWData(strReason);
     const String strNotaryID(NOTARY_ID);
-    const String strUserID(NYM_ID);
+    const String strNymID(NYM_ID);
     const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
     Nym* pNym =
         GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__,
@@ -5019,7 +5019,7 @@ Purse* OT_API::LoadPurse(const Identifier& NOTARY_ID,
                                                              // pPurse below
                                                              // this point.
 
-    if (pPurse->LoadPurse(strNotaryID.Get(), strUserID.Get(),
+    if (pPurse->LoadPurse(strNotaryID.Get(), strNymID.Get(),
                           strInstrumentDefinitionID.Get())) {
         if (pPurse->VerifySignature(*pNym) &&
             (NOTARY_ID == pPurse->GetNotaryID()) &&
@@ -5058,8 +5058,8 @@ bool OT_API::SavePurse(const Identifier& NOTARY_ID,
     else {
         const String strNotaryID(NOTARY_ID);
         const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-        const String strUserID(NYM_ID);
-        if (THE_PURSE.SavePurse(strNotaryID.Get(), strUserID.Get(),
+        const String strNymID(NYM_ID);
+        if (THE_PURSE.SavePurse(strNotaryID.Get(), strNymID.Get(),
                                 strInstrumentDefinitionID.Get()))
             return true;
     }
@@ -6145,9 +6145,9 @@ OTLedger* OT_API::LoadNymbox(const Identifier& NOTARY_ID,
     if (pLedger->LoadNymbox() && pLedger->VerifyAccount(*pNym))
         return pLedger;
     else {
-        String strUserID(NYM_ID);
+        String strNymID(NYM_ID);
         otOut << "OT_API::LoadNymbox: Unable to load or verify nymbox: "
-              << strUserID << "\n";
+              << strNymID << "\n";
         delete pLedger;
         pLedger = nullptr;
     }
@@ -6181,9 +6181,9 @@ OTLedger* OT_API::LoadNymboxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadNymbox()) // The Verify would go here.
         return pLedger;
     else {
-        String strUserID(NYM_ID);
+        String strNymID(NYM_ID);
         otOut << "OT_API::LoadNymboxNoVerify: Unable to load nymbox: "
-              << strUserID << "\n";
+              << strNymID << "\n";
         delete pLedger;
         pLedger = nullptr;
     }
@@ -6212,9 +6212,9 @@ OTLedger* OT_API::LoadInbox(const Identifier& NOTARY_ID,
     if (pLedger->LoadInbox() && pLedger->VerifyAccount(*pNym))
         return pLedger;
     else {
-        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
+        String strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
         otWarn << "OT_API::LoadInbox: Unable to load or verify inbox: "
-               << strAcctID << "\n For user: " << strUserID << "\n";
+               << strAcctID << "\n For user: " << strNymID << "\n";
         delete pLedger;
         pLedger = nullptr;
     }
@@ -6251,9 +6251,9 @@ OTLedger* OT_API::LoadInboxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadInbox()) // The Verify would go here.
         return pLedger;
     else {
-        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
+        String strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
         otWarn << "OT_API::LoadInboxNoVerify: Unable to load inbox: "
-               << strAcctID << "\n For user: " << strUserID << "\n";
+               << strAcctID << "\n For user: " << strNymID << "\n";
         delete pLedger;
         pLedger = nullptr;
     }
@@ -6283,10 +6283,10 @@ OTLedger* OT_API::LoadOutbox(const Identifier& NOTARY_ID,
     if (pLedger->LoadOutbox() && pLedger->VerifyAccount(*pNym))
         return pLedger;
     else {
-        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
+        String strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
 
         otWarn << "OT_API::LoadOutbox: Unable to load or verify "
-                  "outbox: " << strAcctID << "\n For user: " << strUserID
+                  "outbox: " << strAcctID << "\n For user: " << strNymID
                << "\n";
 
         delete pLedger;
@@ -6326,9 +6326,9 @@ OTLedger* OT_API::LoadOutboxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadOutbox()) // The Verify would go here.
         return pLedger;
     else {
-        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
+        String strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
         otWarn << "OT_API::LoadOutboxNoVerify: Unable to load outbox: "
-               << strAcctID << "\n For user: " << strUserID << "\n";
+               << strAcctID << "\n For user: " << strNymID << "\n";
 
         delete pLedger;
         pLedger = nullptr;
@@ -6353,8 +6353,8 @@ OTLedger* OT_API::LoadPaymentInbox(const Identifier& NOTARY_ID,
     if (pLedger->LoadPaymentInbox() && pLedger->VerifyAccount(*pNym))
         return pLedger;
     else {
-        String strUserID(NYM_ID), strAcctID(NYM_ID);
-        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
+        String strNymID(NYM_ID), strAcctID(NYM_ID);
+        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strNymID
                << " / " << strAcctID << "\n";
         delete pLedger;
         pLedger = nullptr;
@@ -6378,8 +6378,8 @@ OTLedger* OT_API::LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadPaymentInbox()) // The Verify would have gone here.
         return pLedger;
     else {
-        String strUserID(NYM_ID), strAcctID(NYM_ID);
-        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
+        String strNymID(NYM_ID), strAcctID(NYM_ID);
+        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strNymID
                << " / " << strAcctID << "\n";
         delete pLedger;
         pLedger = nullptr;
@@ -6414,8 +6414,8 @@ OTLedger* OT_API::LoadRecordBox(const Identifier& NOTARY_ID,
     if (bLoaded && bVerified)
         return pLedger;
     else {
-        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
-        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
+        String strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
+        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strNymID
                << " / " << strAcctID << "\n";
         delete pLedger;
         pLedger = nullptr;
@@ -6440,8 +6440,8 @@ OTLedger* OT_API::LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadRecordBox()) // The Verify would have gone here.
         return pLedger;
     else {
-        String strUserID(NYM_ID), strAcctID(ACCOUNT_ID);
-        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
+        String strNymID(NYM_ID), strAcctID(ACCOUNT_ID);
+        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strNymID
                << " / " << strAcctID << "\n";
         delete pLedger;
         pLedger = nullptr;
@@ -6475,8 +6475,8 @@ OTLedger* OT_API::LoadExpiredBox(const Identifier& NOTARY_ID,
     if (bLoaded && bVerified)
         return pLedger;
     else {
-        String strUserID(NYM_ID);
-        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
+        String strNymID(NYM_ID);
+        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strNymID
                << "\n";
         delete pLedger;
         pLedger = nullptr;
@@ -6500,8 +6500,8 @@ OTLedger* OT_API::LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
     if (pLedger->LoadExpiredBox()) // The Verify would have gone here.
         return pLedger;
     else {
-        String strUserID(NYM_ID);
-        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strUserID
+        String strNymID(NYM_ID);
+        otWarn << __FUNCTION__ << ": Unable to load or verify: " << strNymID
                << "\n";
         delete pLedger;
         pLedger = nullptr;
@@ -7016,21 +7016,21 @@ bool OT_API::RecordPayment(
 
                 bool bShouldHarvestPayment = false;
                 bool bNeedToLoadAssetAcctInbox = false;
-                Identifier theSenderUserID, theSenderAcctID;
+                Identifier theSenderNymID, theSenderAcctID;
 
                 bool bPaymentSenderIsNym = false;
                 bool bFromAcctIsAvailable = false;
                 if (thePayment.IsVoucher()) {
                     bPaymentSenderIsNym =
-                        (thePayment.GetRemitterUserID(theSenderUserID) &&
-                         pNym->CompareID(theSenderUserID));
+                        (thePayment.GetRemitterNymID(theSenderNymID) &&
+                         pNym->CompareID(theSenderNymID));
                     bFromAcctIsAvailable =
                         thePayment.GetRemitterAcctID(theSenderAcctID);
                 }
                 else {
                     bPaymentSenderIsNym =
-                        (thePayment.GetSenderUserID(theSenderUserID) &&
-                         pNym->CompareID(theSenderUserID));
+                        (thePayment.GetSenderNymID(theSenderNymID) &&
+                         pNym->CompareID(theSenderNymID));
                     bFromAcctIsAvailable =
                         thePayment.GetSenderAcctID(theSenderAcctID);
                 }
@@ -7289,7 +7289,7 @@ bool OT_API::RecordPayment(
                 // WHETHER OR NOT the final sent
                 // instrument actually includes the remitter's ID.
 
-                // If the SenderUserID on this instrument isn't Nym's ID (as in
+                // If the SenderNymID on this instrument isn't Nym's ID (as in
                 // the case of vouchers),
                 // or isn't even there (as in the case of cash) then why is it
                 // in Nym's payment outbox?
@@ -7567,9 +7567,9 @@ bool OT_API::RecordPayment(
                             // (So we need to figure out which, and set the
                             // account accordingly.)
                             //
-                            if (NYM_ID == pPlan->GetRecipientUserID())
+                            if (NYM_ID == pPlan->GetRecipientNymID())
                                 theSenderAcctID = pPlan->GetRecipientAcctID();
-                            else if (NYM_ID == pPlan->GetSenderUserID())
+                            else if (NYM_ID == pPlan->GetSenderNymID())
                                 theSenderAcctID = pPlan->GetSenderAcctID();
                             else
                                 otErr << __FUNCTION__
@@ -7849,13 +7849,13 @@ bool OT_API::RecordPayment(
                 }
                 else // should never happen
                 {
-                    const String strUserID(NYM_ID);
+                    const String strNymID(NYM_ID);
                     otErr << __FUNCTION__
                           << ": Failed while trying to generate "
                              "transaction in order to "
                              "add a new transaction (for a payment "
                              "instrument from the outpayments box) "
-                             "to Record Box: " << strUserID << "\n";
+                             "to Record Box: " << strNymID << "\n";
                 }
             }
         } // if (thePayment.IsValid() && thePayment.SetTempValues())
@@ -8036,8 +8036,8 @@ bool OT_API::ResyncNymWithServer(Nym& theNym, const OTLedger& theNymbox,
                  "but you passed in a " << theNymbox.GetTypeString() << ".\n";
         return false;
     }
-    if (!theNym.CompareID(theNymbox.GetUserID())) {
-        const String id1(theNym.GetConstID()), id2(theNymbox.GetUserID());
+    if (!theNym.CompareID(theNymbox.GetNymID())) {
+        const String id1(theNym.GetConstID()), id2(theNymbox.GetNymID());
         otErr << "OT_API::ResyncNymWithServer: Error: NymID of Nym (" << id1
               << ") "
                  "doesn't match NymID on (supposedly) his own Nymbox "
@@ -8206,10 +8206,10 @@ void OT_API::FlushSentMessages(bool bHarvestingForRetry,
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-    if ((THE_NYMBOX.GetUserID() != NYM_ID) ||
+    if ((THE_NYMBOX.GetNymID() != NYM_ID) ||
         (THE_NYMBOX.GetPurportedNotaryID() != NOTARY_ID)) {
         const String strLedger(THE_NYMBOX);
-        otErr << __FUNCTION__ << ": Failure, Bad input data: UserID ("
+        otErr << __FUNCTION__ << ": Failure, Bad input data: NymID ("
               << strNymID << ") or NotaryID "
                              "(" << strNotaryID
               << ") failed to match Nymbox:\n\n" << strLedger << "\n\n";
@@ -8914,7 +8914,7 @@ int32_t OT_API::exchangeBasket(
     if (nullptr == pContract) return (-1);
     // By this point, pContract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    const String strNotaryID(NOTARY_ID), strUserID(NYM_ID);
+    const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
 
     // Next load the Basket object out of that contract, and load the
     // RequestBasket object that was passed in.
@@ -9088,7 +9088,7 @@ int32_t OT_API::exchangeBasket(
 
                     // (1) Set up member variables
                     theMessage.m_strCommand = "notarizeTransaction";
-                    theMessage.m_strNymID = strUserID;
+                    theMessage.m_strNymID = strNymID;
                     theMessage.m_strNotaryID = strNotaryID;
                     theMessage.SetAcknowledgments(
                         *pNym); // Must be called AFTER theMessage.m_strNotaryID
@@ -10083,7 +10083,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
         return (-1);
     }
     const String strChequeMemo(CHEQUE_MEMO);
-    const String strRecipientUserID(RECIPIENT_NYM_ID);
+    const String strRecipientNymID(RECIPIENT_NYM_ID);
     // Expiration (ignored by server -- it sets its own for its vouchers.)
     const time64_t VALID_FROM =
         OTTimeGetCurrentTime(); // This time is set to TODAY NOW
@@ -10097,7 +10097,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
     bool bIssueCheque = theRequestVoucher.IssueCheque(
         lAmount, lVoucherTransNum, VALID_FROM, VALID_TO, ACCT_ID, NYM_ID,
         strChequeMemo,
-        (strRecipientUserID.GetLength() > 2) ? &(RECIPIENT_NYM_ID) : nullptr);
+        (strRecipientNymID.GetLength() > 2) ? &(RECIPIENT_NYM_ID) : nullptr);
     std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
     std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
 
@@ -10326,7 +10326,7 @@ bool OT_API::DiscardCheque(const Identifier& NOTARY_ID,
     }
     else if ((theCheque.GetNotaryID() == NOTARY_ID) &&
                (theCheque.GetInstrumentDefinitionID() == CONTRACT_ID) &&
-               (theCheque.GetSenderUserID() == NYM_ID) &&
+               (theCheque.GetSenderNymID() == NYM_ID) &&
                (theCheque.GetSenderAcctID() == ACCT_ID)) {
         if (pNym->VerifyIssuedNum(
                 strNotaryID, theCheque.GetTransactionNum())) // we only "add it
@@ -10440,10 +10440,10 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
 
         if (theCheque.HasRemitter())
             bCancellingCheque = ((theCheque.GetRemitterAcctID() == ACCT_ID) &&
-                                 (theCheque.GetRemitterUserID() == NYM_ID));
+                                 (theCheque.GetRemitterNymID() == NYM_ID));
         else {
             bCancellingCheque = ((theCheque.GetSenderAcctID() == ACCT_ID) &&
-                                 (theCheque.GetSenderUserID() == NYM_ID));
+                                 (theCheque.GetSenderNymID() == NYM_ID));
             if (bCancellingCheque)
                 bCancellingCheque = theCheque.VerifySignature(*pNym);
         }
@@ -10675,7 +10675,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
     if (thePlan.LoadContractFromString(THE_PAYMENT_PLAN) &&
         thePlan.VerifySignature(*pNym)) {
         int64_t lRequestNumber = 0;
-        const bool bCancelling = (thePlan.GetRecipientUserID() == NYM_ID);
+        const bool bCancelling = (thePlan.GetRecipientNymID() == NYM_ID);
 
         if (bCancelling) {
             if (thePlan.IsCanceled()) {
@@ -12858,7 +12858,7 @@ int32_t OT_API::registerAccount(
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     // Create an asset account for a certain notaryID,
-    // UserID, and Instrument Definition ID.
+    // NymID, and Instrument Definition ID.
     // These accounts are where users actually store their digital assets of
     // various
     // types. Account files are stored on user's computer, signed by notary

@@ -275,7 +275,7 @@ from string or file. They should match, and signature should verify.
 transaction, based on expected NotaryID.
  OTIdentifier    m_AcctNotaryID;    // Actual NotaryID within the signed
 portion. (Compare to m_NotaryID upon loading.)
- OTIdentifier    m_AcctUserID;        // NymID of the user who created this
+ OTIdentifier    m_AcctNymID;        // NymID of the user who created this
 item. (In the future, this item
  OTASCIIArmor    m_ascInReferenceTo;    // This item may be in reference to a
 different item
@@ -524,18 +524,18 @@ public:
 public:
     OTTransaction(const OTLedger& theOwner);
 
-    EXPORT OTTransaction(const Identifier& theUserID,
+    EXPORT OTTransaction(const Identifier& theNymID,
                          const Identifier& theAccountID,
                          const Identifier& theNotaryID);
 
-    OTTransaction(const Identifier& theUserID, const Identifier& theAccountID,
+    OTTransaction(const Identifier& theNymID, const Identifier& theAccountID,
                   const Identifier& theNotaryID, int64_t lTransactionNum);
 
     // THIS constructor only used when loading an abbreviated box receipt
     // (inbox, nymbox, or outbox receipt).
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
-    OTTransaction(const Identifier& theUserID, const Identifier& theAccountID,
+    OTTransaction(const Identifier& theNymID, const Identifier& theAccountID,
                   const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
                   const int64_t& lTransactionNum, const int64_t& lInRefTo,
                   const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
@@ -643,8 +643,8 @@ public:
                                                 /// you actually have to load up
                                                 /// the original cheque.)
 
-    EXPORT bool GetSenderUserIDForDisplay(Identifier& theReturnID);
-    EXPORT bool GetRecipientUserIDForDisplay(Identifier& theReturnID);
+    EXPORT bool GetSenderNymIDForDisplay(Identifier& theReturnID);
+    EXPORT bool GetRecipientNymIDForDisplay(Identifier& theReturnID);
 
     EXPORT bool GetSenderAcctIDForDisplay(Identifier& theReturnID);
     EXPORT bool GetRecipientAcctIDForDisplay(Identifier& theReturnID);
@@ -663,7 +663,7 @@ public:
                                        // it.
 
     EXPORT static OTTransaction* GenerateTransaction(
-        const Identifier& theUserID, const Identifier& theAccountID,
+        const Identifier& theNymID, const Identifier& theAccountID,
         const Identifier& theNotaryID, transactionType theType,
         int64_t lTransactionNum = 0);
 

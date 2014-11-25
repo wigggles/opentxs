@@ -1241,7 +1241,7 @@ public:
 
     OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
     pAccount->GetInstrumentDefinitionID(),
-    pAccount->GetRealAccountID(),    pAccount->GetUserID(),
+    pAccount->GetRealAccountID(),    pAccount->GetNymID(),
     RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
 
     ----------------------------------------------------------------------------------------
@@ -2235,7 +2235,7 @@ public:
         const std::string& ACCOUNT_ID,
         const std::string& THE_TRANSACTION) const;
 
-    EXPORT std::string Transaction_GetSenderUserID(
+    EXPORT std::string Transaction_GetSenderNymID(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
         const std::string& THE_TRANSACTION) const;
@@ -2245,7 +2245,7 @@ public:
         const std::string& ACCOUNT_ID,
         const std::string& THE_TRANSACTION) const;
 
-    EXPORT std::string Transaction_GetRecipientUserID(
+    EXPORT std::string Transaction_GetRecipientNymID(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
         const std::string& THE_TRANSACTION) const;
@@ -2569,15 +2569,15 @@ public:
         const std::string& THE_INSTRUMENT) const;
     EXPORT std::string Instrmnt_GetInstrumentDefinitionID(
         const std::string& THE_INSTRUMENT) const;
-    EXPORT std::string Instrmnt_GetSenderUserID(
+    EXPORT std::string Instrmnt_GetSenderNymID(
         const std::string& THE_INSTRUMENT) const;
     EXPORT std::string Instrmnt_GetSenderAcctID(
         const std::string& THE_INSTRUMENT) const;
-    EXPORT std::string Instrmnt_GetRemitterUserID(
+    EXPORT std::string Instrmnt_GetRemitterNymID(
         const std::string& THE_INSTRUMENT) const;
     EXPORT std::string Instrmnt_GetRemitterAcctID(
         const std::string& THE_INSTRUMENT) const;
-    EXPORT std::string Instrmnt_GetRecipientUserID(
+    EXPORT std::string Instrmnt_GetRecipientNymID(
         const std::string& THE_INSTRUMENT) const;
     EXPORT std::string Instrmnt_GetRecipientAcctID(
         const std::string& THE_INSTRUMENT) const;
@@ -2603,7 +2603,7 @@ public:
     read the message.
 
     Open Transactions will also use the User ID to lookup the public key
-    for that user. (The UserID, aka NymID, is a hash of the public key
+    for that user. (The NymID, aka NymID, is a hash of the public key
     itself.)
 
     This message is basically just a ping -- it verifies that the server
@@ -2705,7 +2705,7 @@ public:
                                       const std::string& ACCOUNT_ID) const;
 
     /**
-    USAGE CREDITS --- (Based on a UserID, retrieve or adjust the Usage Credits
+    USAGE CREDITS --- (Based on a NymID, retrieve or adjust the Usage Credits
     for that Nym.)
 
     NotaryID -- Must be included with every message.
@@ -2939,7 +2939,7 @@ public:
     // THE_CONTRACT is actually a string containing the asset contract itself.
     // (And the server will not issue the new instrument definition unless the
     key in the
-    // contract matches YOUR UserID. Only the contract signer may issue it.)
+    // contract matches YOUR NymID. Only the contract signer may issue it.)
     //
     // Returns int32_t:
     // -1 means error; no message was sent.

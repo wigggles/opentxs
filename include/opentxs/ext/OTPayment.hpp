@@ -252,17 +252,17 @@ protected:
                                          // once they happen to be loaded.
     Identifier m_NotaryID;     // These values are NOT serialized other than via
                                // the payment instrument itself
-    Identifier m_SenderUserID; // (where they are captured from, whenever it
+    Identifier m_SenderNymID;  // (where they are captured from, whenever it
                                // is instantiated.) Until m_bAreTempValuesSet
     Identifier m_SenderAcctID; // is set to true, these values can NOT be
                                // considered available. Use the accessing
                                // methods
-    Identifier m_RecipientUserID; // below. These values are not ALL always
+    Identifier m_RecipientNymID;  // below. These values are not ALL always
                                   // available, depending on the payment
                                   // instrument
     Identifier m_RecipientAcctID; // type. Different payment instruments
                                   // support different temp values.
-    Identifier m_RemitterUserID;  // A voucher (cashier's cheque) has the
+    Identifier m_RemitterNymID;   // A voucher (cashier's cheque) has the
                                   // "bank" as the sender. Whereas the Nym who
                                   // actually purchased the voucher is the
                                   // remitter.
@@ -360,13 +360,13 @@ public:
     EXPORT bool GetMemo(String& strOutput) const;
     EXPORT bool GetInstrumentDefinitionID(Identifier& theOutput) const;
     EXPORT bool GetNotaryID(Identifier& theOutput) const;
-    EXPORT bool GetSenderUserID(Identifier& theOutput) const;
+    EXPORT bool GetSenderNymID(Identifier& theOutput) const;
     EXPORT bool GetSenderAcctID(Identifier& theOutput) const;
-    EXPORT bool GetRecipientUserID(Identifier& theOutput) const;
+    EXPORT bool GetRecipientNymID(Identifier& theOutput) const;
     EXPORT bool GetRecipientAcctID(Identifier& theOutput) const;
-    EXPORT bool GetRemitterUserID(Identifier& theOutput) const;
+    EXPORT bool GetRemitterNymID(Identifier& theOutput) const;
     EXPORT bool GetRemitterAcctID(Identifier& theOutput) const;
-    EXPORT bool GetSenderUserIDForDisplay(Identifier& theOutput) const;
+    EXPORT bool GetSenderNymIDForDisplay(Identifier& theOutput) const;
     EXPORT bool GetSenderAcctIDForDisplay(Identifier& theOutput) const;
     EXPORT bool GetValidFrom(time64_t& tOutput) const;
     EXPORT bool GetValidTo(time64_t& tOutput) const;

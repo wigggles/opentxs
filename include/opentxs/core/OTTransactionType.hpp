@@ -737,8 +737,8 @@ protected:
     // "purported acct ID" and "purported server ID" here in the base class, to
     // manage it all centrally.
 
-    Identifier m_AcctUserID; // NymID of the user who created this item. (In
-                             // the future, this item
+    Identifier m_AcctNymID; // NymID of the user who created this item. (In
+                            // the future, this item
     // might be the only reference someone has. They'll want my NymID.)
     // I put this in protected because there are now Get/Set methods...so use
     // them!
@@ -827,16 +827,16 @@ public:
         m_bLoadSecurely = false;
     }
 
-    // Someday I'll add EntityID and RoleID here (in lieu of UserID,
+    // Someday I'll add EntityID and RoleID here (in lieu of NymID,
     // in cases when the account is owned by an Entity and not a Nym.)
     //
-    inline const Identifier& GetUserID() const
+    inline const Identifier& GetNymID() const
     {
-        return m_AcctUserID;
+        return m_AcctNymID;
     }
-    inline void SetUserID(const Identifier& theID)
+    inline void SetNymID(const Identifier& theID)
     {
-        m_AcctUserID = theID;
+        m_AcctNymID = theID;
     }
 
     // Used for: Load an account based on this ID
@@ -901,10 +901,10 @@ public:
     // Thus, while OTContract instituted a constructor with an ID,
     // OTTransactionType will require
     // both the Account ID and the NotaryID.
-    OTTransactionType(const Identifier& theUserID,
+    OTTransactionType(const Identifier& theNymID,
                       const Identifier& theAccountID,
                       const Identifier& theNotaryID);
-    OTTransactionType(const Identifier& theUserID,
+    OTTransactionType(const Identifier& theNymID,
                       const Identifier& theAccountID,
                       const Identifier& theNotaryID, int64_t lTransactionNum);
 

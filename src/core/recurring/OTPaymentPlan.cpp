@@ -267,9 +267,9 @@ void OTPaymentPlan::UpdateContents()
 
     const String NOTARY_ID(GetNotaryID()),
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
-        SENDER_ACCT_ID(GetSenderAcctID()), SENDER_NYM_ID(GetSenderUserID()),
+        SENDER_ACCT_ID(GetSenderAcctID()), SENDER_NYM_ID(GetSenderNymID()),
         RECIPIENT_ACCT_ID(GetRecipientAcctID()),
-        RECIPIENT_NYM_ID(GetRecipientUserID());
+        RECIPIENT_NYM_ID(GetRecipientNymID());
 
     OT_ASSERT(nullptr != m_pCancelerNymID);
 
@@ -283,11 +283,11 @@ void OTPaymentPlan::UpdateContents()
         " notaryID=\"%s\"\n"
         " instrumentDefinitionID=\"%s\"\n"
         " senderAcctID=\"%s\"\n"
-        " senderUserID=\"%s\"\n"
+        " senderNymID=\"%s\"\n"
         " recipientAcctID=\"%s\"\n"
-        " recipientUserID=\"%s\"\n"
+        " recipientNymID=\"%s\"\n"
         " canceled=\"%s\"\n"
-        " cancelerUserID=\"%s\"\n"
+        " cancelerNymID=\"%s\"\n"
         " transactionNum=\"%" PRId64 "\"\n"
         " creationDate=\"%" PRId64 "\"\n"
         " validFrom=\"%" PRId64 "\"\n"
@@ -677,12 +677,12 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     const Identifier SERVER_NYM_ID(*pServerNym);
 
     const Identifier& SOURCE_ACCT_ID = GetSenderAcctID();
-    const Identifier& SENDER_NYM_ID = GetSenderUserID();
+    const Identifier& SENDER_NYM_ID = GetSenderNymID();
 
     const Identifier& RECIPIENT_ACCT_ID = GetRecipientAcctID();
-    const Identifier& RECIPIENT_NYM_ID = GetRecipientUserID();
+    const Identifier& RECIPIENT_NYM_ID = GetRecipientNymID();
 
-    String strSenderUserID(SENDER_NYM_ID), strRecipientUserID(RECIPIENT_NYM_ID),
+    String strSenderNymID(SENDER_NYM_ID), strRecipientNymID(RECIPIENT_NYM_ID),
         strSourceAcctID(SOURCE_ACCT_ID), strRecipientAcctID(RECIPIENT_ACCT_ID);
 
     // Make sure they're not the same Account IDs ...

@@ -296,26 +296,26 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
         m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
         m_NotaryID = theInput.GetNotaryID();
 
-        m_SenderUserID = theInput.GetSenderUserID();
+        m_SenderNymID = theInput.GetSenderNymID();
         m_SenderAcctID = theInput.GetSenderAcctID();
 
         if (theInput.HasRecipient()) {
             m_bHasRecipient = true;
-            m_RecipientUserID = theInput.GetRecipientUserID();
+            m_RecipientNymID = theInput.GetRecipientNymID();
         }
         else {
             m_bHasRecipient = false;
-            m_RecipientUserID.Release();
+            m_RecipientNymID.Release();
         }
 
         if (theInput.HasRemitter()) {
             m_bHasRemitter = true;
-            m_RemitterUserID = theInput.GetRemitterUserID();
+            m_RemitterNymID = theInput.GetRemitterNymID();
             m_RemitterAcctID = theInput.GetRemitterAcctID();
         }
         else {
             m_bHasRemitter = false;
-            m_RemitterUserID.Release();
+            m_RemitterNymID.Release();
             m_RemitterAcctID.Release();
         }
 
@@ -364,13 +364,13 @@ bool OTPayment::SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput)
         m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
         m_NotaryID = theInput.GetNotaryID();
 
-        m_SenderUserID = theInput.GetSenderUserID();
+        m_SenderNymID = theInput.GetSenderNymID();
         m_SenderAcctID = theInput.GetSenderAcctID();
 
-        m_RecipientUserID = theInput.GetRecipientUserID();
+        m_RecipientNymID = theInput.GetRecipientNymID();
         m_RecipientAcctID = theInput.GetRecipientAcctID();
 
-        m_RemitterUserID.Release();
+        m_RemitterNymID.Release();
         m_RemitterAcctID.Release();
 
         m_VALID_FROM = theInput.GetValidFrom();
@@ -404,13 +404,13 @@ bool OTPayment::SetTempValuesFromSmartContract(const OTSmartContract& theInput)
         m_NotaryID = theInput.GetNotaryID();
         m_InstrumentDefinitionID.Release(); // not used here.
 
-        m_SenderUserID = theInput.GetSenderUserID();
+        m_SenderNymID = theInput.GetSenderNymID();
         m_SenderAcctID.Release();
 
-        m_RecipientUserID.Release(); // not used here.
+        m_RecipientNymID.Release();  // not used here.
         m_RecipientAcctID.Release(); // not used here.
 
-        m_RemitterUserID.Release();
+        m_RemitterNymID.Release();
         m_RemitterAcctID.Release();
 
         m_VALID_FROM = theInput.GetValidFrom();
@@ -440,17 +440,17 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
         m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
         m_NotaryID = theInput.GetNotaryID();
 
-        m_SenderUserID.Release();
+        m_SenderNymID.Release();
         m_SenderAcctID.Release();
 
-        if (!m_bHasRecipient || !theInput.GetNymID(m_RecipientUserID)) {
+        if (!m_bHasRecipient || !theInput.GetNymID(m_RecipientNymID)) {
             m_bHasRecipient = false;
-            m_RecipientUserID.Release();
+            m_RecipientNymID.Release();
         }
 
         m_RecipientAcctID.Release();
 
-        m_RemitterUserID.Release();
+        m_RemitterNymID.Release();
         m_RemitterAcctID.Release();
 
         m_VALID_FROM = theInput.GetLatestValidFrom();
@@ -791,7 +791,7 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
 
     case OTPayment::CHEQUE:
     case OTPayment::INVOICE:
-        if (theNymID == m_SenderUserID) {
+        if (theNymID == m_SenderNymID) {
             lOutput = m_lTransactionNum; // The "opening" number for a cheque is
                                          // the ONLY number it has.
             bSuccess = true;
@@ -803,7 +803,7 @@ bool OTPayment::GetOpeningNum(int64_t& lOutput,
         break;
 
     case OTPayment::VOUCHER:
-        if (theNymID == m_RemitterUserID) {
+        if (theNymID == m_RemitterNymID) {
             lOutput = m_lTransactionNum; // The "opening" number for a cheque is
                                          // the ONLY number it has.
             bSuccess = true;
@@ -1020,7 +1020,7 @@ bool OTPayment::GetNotaryID(Identifier& theOutput) const
 // With a voucher (cashier's cheque) the "bank" is the "sender",
 // whereas the actual Nym who purchased it is the "remitter."
 //
-bool OTPayment::GetRemitterUserID(Identifier& theOutput) const
+bool OTPayment::GetRemitterNymID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1030,12 +1030,12 @@ bool OTPayment::GetRemitterUserID(Identifier& theOutput) const
 
     switch (m_Type) {
     case OTPayment::VOUCHER:
-        theOutput = m_RemitterUserID;
+        theOutput = m_RemitterNymID;
         bSuccess = true;
         break;
 
     default:
-        otErr << "OTPayment::GetRemitterUserID: Bad payment type! Expected a "
+        otErr << "OTPayment::GetRemitterNymID: Bad payment type! Expected a "
                  "voucher cheque.\n";
         break;
     }
@@ -1070,11 +1070,11 @@ bool OTPayment::GetRemitterAcctID(Identifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetSenderUserIDForDisplay(Identifier& theOutput) const
+bool OTPayment::GetSenderNymIDForDisplay(Identifier& theOutput) const
 {
-    if (IsVoucher()) return GetRemitterUserID(theOutput);
+    if (IsVoucher()) return GetRemitterNymID(theOutput);
 
-    return GetSenderUserID(theOutput);
+    return GetSenderNymID(theOutput);
 }
 
 bool OTPayment::GetSenderAcctIDForDisplay(Identifier& theOutput) const
@@ -1084,7 +1084,7 @@ bool OTPayment::GetSenderAcctIDForDisplay(Identifier& theOutput) const
     return GetSenderAcctID(theOutput);
 }
 
-bool OTPayment::GetSenderUserID(Identifier& theOutput) const
+bool OTPayment::GetSenderNymID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1098,7 +1098,7 @@ bool OTPayment::GetSenderUserID(Identifier& theOutput) const
     case OTPayment::INVOICE:
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::SMART_CONTRACT:
-        theOutput = m_SenderUserID;
+        theOutput = m_SenderNymID;
         bSuccess = true;
         break;
 
@@ -1107,7 +1107,7 @@ bool OTPayment::GetSenderUserID(Identifier& theOutput) const
         break;
 
     default:
-        otErr << "OTPayment::GetSenderUserID: Bad payment type!\n";
+        otErr << "OTPayment::GetSenderNymID: Bad payment type!\n";
         break;
     }
 
@@ -1144,7 +1144,7 @@ bool OTPayment::GetSenderAcctID(Identifier& theOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetRecipientUserID(Identifier& theOutput) const
+bool OTPayment::GetRecipientNymID(Identifier& theOutput) const
 {
     theOutput.Release();
 
@@ -1159,7 +1159,7 @@ bool OTPayment::GetRecipientUserID(Identifier& theOutput) const
     case OTPayment::PAYMENT_PLAN:
     case OTPayment::PURSE:
         if (m_bHasRecipient) {
-            theOutput = m_RecipientUserID;
+            theOutput = m_RecipientNymID;
             bSuccess = true;
         }
         else
@@ -1172,7 +1172,7 @@ bool OTPayment::GetRecipientUserID(Identifier& theOutput) const
         break;
 
     default:
-        otErr << "OTPayment::GetRecipientUserID: Bad payment type!\n";
+        otErr << "OTPayment::GetRecipientNymID: Bad payment type!\n";
         break;
     }
 
@@ -1539,12 +1539,12 @@ void OTPayment::Release_Payment()
     m_InstrumentDefinitionID.Release();
     m_NotaryID.Release();
 
-    m_SenderUserID.Release();
+    m_SenderNymID.Release();
     m_SenderAcctID.Release();
-    m_RecipientUserID.Release();
+    m_RecipientNymID.Release();
     m_RecipientAcctID.Release();
 
-    m_RemitterUserID.Release();
+    m_RemitterNymID.Release();
     m_RemitterAcctID.Release();
 }
 

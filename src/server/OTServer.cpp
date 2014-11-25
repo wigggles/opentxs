@@ -829,17 +829,17 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
         }
         else // should never happen
         {
-            const String strRecipientUserID(RECIPIENT_NYM_ID);
+            const String strRecipientNymID(RECIPIENT_NYM_ID);
             OTLog::vError(
                 "%s: Failed while trying to generate transaction in order to "
                 "add a message to Nymbox: %s\n",
-                szFunc, strRecipientUserID.Get());
+                szFunc, strRecipientNymID.Get());
         }
     }
     else {
-        const String strRecipientUserID(RECIPIENT_NYM_ID);
+        const String strRecipientNymID(RECIPIENT_NYM_ID);
         OTLog::vError("%s: Failed while trying to load or verify Nymbox: %s\n",
-                      szFunc, strRecipientUserID.Get());
+                      szFunc, strRecipientNymID.Get());
     }
 
     return false;

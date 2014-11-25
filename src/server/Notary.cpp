@@ -196,7 +196,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
         ACCOUNT_ID(theFromAccount),
         INSTRUMENT_DEFINITION_ID(theFromAccount.GetInstrumentDefinitionID());
 
-    String strUserID(NYM_ID), strAccountID(ACCOUNT_ID);
+    String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
     pResponseBalanceItem =
         OTItem::CreateItemFromTransaction(tranOut, OTItem::atBalanceStatement);
     pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
@@ -210,11 +210,11 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                                      // cleanup the item. It "owns" it now.
 
     if (false ==
-        NYM_IS_ALLOWED(strUserID.Get(), ServerSettings::__transact_transfer)) {
+        NYM_IS_ALLOWED(strNymID.Get(), ServerSettings::__transact_transfer)) {
         OTLog::vOutput(0, "Notary::NotarizeTransfer: User %s cannot do this "
                           "transaction (All acct-to-acct transfers are "
                           "disallowed in server.cfg)\n",
-                       strUserID.Get());
+                       strNymID.Get());
     }
     else if (nullptr ==
                (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
@@ -244,7 +244,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
             0, "Notary::NotarizeTransfer: Failed attempt by user %s in "
                "trans# %" PRId64
                ", to transfer money \"To the From Acct\": \n\n%s\n\n",
-            strUserID.Get(), tranIn.GetTransactionNum(),
+            strNymID.Get(), tranIn.GetTransactionNum(),
             strTemp.Exists() ? strTemp.Get()
                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
@@ -689,7 +689,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
         ACCOUNT_ID(theAccount), SERVER_NYM_ID(server_->m_nymServer),
         INSTRUMENT_DEFINITION_ID(theAccount.GetInstrumentDefinitionID());
 
-    const String strUserID(NYM_ID), strAccountID(ACCOUNT_ID),
+    const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID),
         strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
     // Here we find out if we're withdrawing cash, or a voucher
@@ -734,32 +734,32 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
     // and that pItem points to the good one. Therefore next, let's verify
     // permissions:
     // This permission has to do with ALL withdrawals (cash or voucher)
-    else if (!NYM_IS_ALLOWED(strUserID.Get(),
+    else if (!NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_withdrawal)) {
         OTLog::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
                           "this transaction (All withdrawals are disallowed in "
                           "server.cfg)\n",
-                       strUserID.Get());
+                       strNymID.Get());
     }
     // This permission has to do with vouchers.
     else if ((nullptr != pItemVoucher) &&
              (false ==
-              NYM_IS_ALLOWED(strUserID.Get(),
+              NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_withdraw_voucher))) {
         OTLog::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
                           "this transaction (withdrawVoucher is disallowed in "
                           "server.cfg)\n",
-                       strUserID.Get());
+                       strNymID.Get());
     }
     // This permission has to do with cash.
     else if ((nullptr != pItemCash) &&
              (false ==
-              NYM_IS_ALLOWED(strUserID.Get(),
+              NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_withdraw_cash))) {
         OTLog::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
                           "this transaction (withdraw cash is disallowed in "
                           "server.cfg)\n",
-                       strUserID.Get());
+                       strNymID.Get());
     }
     // Check for a balance agreement...
     //
@@ -873,7 +873,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                     "voucher (%" PRId64 ") in withdrawal request %" PRId64
                     " for Nym: %s\n",
                     __FUNCTION__, theVoucherRequest.GetTransactionNum(),
-                    tranIn.GetTransactionNum(), strUserID.Get());
+                    tranIn.GetTransactionNum(), strNymID.Get());
             }
             else if (INSTRUMENT_DEFINITION_ID !=
                        theVoucherRequest.GetInstrumentDefinitionID()) {
@@ -888,7 +888,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                               strFoundInstrumentDefinitionID.Get(),
                               tranIn.GetTransactionNum(),
                               theVoucherRequest.GetTransactionNum(),
-                              strUserID.Get());
+                              strNymID.Get());
             }
             else if (!(pBalanceItem->VerifyBalanceStatement(
                            theVoucherRequest.GetAmount() *
@@ -935,11 +935,11 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                                                    // deposited, the server nym,
                                                    // as the owner of
                 const Identifier& RECIPIENT_ID =
-                    theVoucherRequest.GetRecipientUserID(); // the voucher
-                                                            // account, needs to
-                                                            // verify the
-                                                            // transaction # on
-                                                            // the
+                    theVoucherRequest.GetRecipientNymID(); // the voucher
+                                                           // account, needs to
+                                                           // verify the
+                                                           // transaction # on
+                                                           // the
                 // cheque (to prevent double-spending of cheques.)
                 bool bIssueVoucher = theVoucher.IssueCheque(
                     lAmount, // The amount of the cheque.
@@ -1516,7 +1516,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
     // (PAYOUT_INSTRUMENT_DEFINITION_ID
     // is Dollars.)
 
-    const String strUserID(NYM_ID), strAccountID(SOURCE_ACCT_ID),
+    const String strNymID(NYM_ID), strAccountID(SOURCE_ACCT_ID),
         strInstrumentDefinitionID(PAYOUT_INSTRUMENT_DEFINITION_ID);
     // Make sure the appropriate item is attached.
     //
@@ -1559,22 +1559,22 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
     //
     // This permission has to do with ALL withdrawals from an account
     // (cash / voucher / dividends)
-    else if (!NYM_IS_ALLOWED(strUserID.Get(),
+    else if (!NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_withdrawal)) {
         OTLog::vOutput(
             0, "%s: User %s cannot do this transaction (All withdrawals are "
                "disallowed in server.cfg, even for paying dividends with.)\n",
-            szFunc, strUserID.Get());
+            szFunc, strNymID.Get());
     }
     // This permission has to do with paying dividends.
     //
     else if ((nullptr != pItemPayDividend) &&
              (false ==
-              NYM_IS_ALLOWED(strUserID.Get(),
+              NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_pay_dividend))) {
         OTLog::vOutput(0, "%s: User %s cannot do this transaction "
                           "(payDividend is disallowed in server.cfg)\n",
-                       szFunc, strUserID.Get());
+                       szFunc, strNymID.Get());
     }
     // Check for a balance agreement...
     //
@@ -1692,7 +1692,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                 OTLog::vError("%s: ERROR unable to verify signature for Nym "
                               "(%s) on shares contract "
                               "with instrument definition id: %s\n",
-                              szFunc, strUserID.Get(), strSharesType.Get());
+                              szFunc, strNymID.Get(), strSharesType.Get());
             }
             else if (nullptr == pSharesIssuerAccount) {
                 OTLog::vError(
@@ -2215,7 +2215,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                             const String
                                                 strPayoutInstrumentDefinitionID(
                                                     PAYOUT_INSTRUMENT_DEFINITION_ID),
-                                                strSenderUserID(NYM_ID);
+                                                strSenderNymID(NYM_ID);
                                             OTLog::vError(
                                                 "%s: ERROR failed issuing "
                                                 "voucher (to return leftovers "
@@ -2229,7 +2229,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                                 szFunc, lLeftovers,
                                                 strPayoutInstrumentDefinitionID
                                                     .Get(),
-                                                strSenderUserID.Get());
+                                                strSenderNymID.Get());
                                         }  // if !bSent
                                     }
                                     else // !bGotNextTransNum
@@ -2237,7 +2237,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                         const String
                                             strPayoutInstrumentDefinitionID(
                                                 PAYOUT_INSTRUMENT_DEFINITION_ID),
-                                            strRecipientUserID(NYM_ID);
+                                            strRecipientNymID(NYM_ID);
                                         OTLog::vError(
                                             "%s: ERROR!! Failed issuing next "
                                             "transaction "
@@ -2250,7 +2250,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                             szFunc, lLeftovers,
                                             strPayoutInstrumentDefinitionID
                                                 .Get(),
-                                            strRecipientUserID.Get());
+                                            strRecipientNymID.Get());
                                     }
                                 }
                             } // else
@@ -2319,7 +2319,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
         ACCOUNT_ID(theAccount), SERVER_NYM_ID(server_->m_nymServer),
         INSTRUMENT_DEFINITION_ID(theAccount.GetInstrumentDefinitionID());
 
-    const String strUserID(NYM_ID), strAccountID(ACCOUNT_ID);
+    const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
 
     Mint* pMint = nullptr; // the Mint itself.
     Account* pMintCashReserveAcct =
@@ -2366,32 +2366,32 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
     // permissions:
 
     // This permission has to do with ALL deposits (cash or cheque)
-    else if (!NYM_IS_ALLOWED(strUserID.Get(),
+    else if (!NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_deposit)) {
         OTLog::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
                           "transaction (All deposits are disallowed in "
                           "server.cfg)\n",
-                       strUserID.Get());
+                       strNymID.Get());
     }
     // This permission has to do with vouchers.
     else if ((nullptr != pItemCheque) &&
              (false ==
-              NYM_IS_ALLOWED(strUserID.Get(),
+              NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_deposit_cheque))) {
         OTLog::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
                           "transaction (depositCheque is disallowed in "
                           "server.cfg)\n",
-                       strUserID.Get());
+                       strNymID.Get());
     }
     // This permission has to do with cash.
     else if ((nullptr != pItemCash) &&
              (false ==
-              NYM_IS_ALLOWED(strUserID.Get(),
+              NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_deposit_cash))) {
         OTLog::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
                           "transaction (deposit cash is disallowed in "
                           "server.cfg)\n",
-                       strUserID.Get());
+                       strNymID.Get());
     }
     // Check for a balance agreement...
     //
@@ -2489,24 +2489,24 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             // (the server running this code right now.)
             //
             else if (NOTARY_ID != theCheque.GetNotaryID()) {
-                const String strSenderUserID(theCheque.GetSenderUserID());
-                const String strRecipientUserID(theCheque.GetRecipientUserID());
+                const String strSenderNymID(theCheque.GetSenderNymID());
+                const String strRecipientNymID(theCheque.GetRecipientNymID());
                 OTLog::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
                                   "Incorrect Server ID on cheque. Sender User "
                                   "ID: %s\nRecipient User ID is: %s\n",
                                __FUNCTION__, theCheque.GetTransactionNum(),
-                               strSenderUserID.Get(), strRecipientUserID.Get());
+                               strSenderNymID.Get(), strRecipientNymID.Get());
             }
             // See if the cheque is already expired or otherwise not within it's
             // valid date range.
             else if (!theCheque.VerifyCurrentDate()) {
-                const String strSenderUserID(theCheque.GetSenderUserID());
-                const String strRecipientUserID(theCheque.GetRecipientUserID());
+                const String strSenderNymID(theCheque.GetSenderNymID());
+                const String strRecipientNymID(theCheque.GetRecipientNymID());
                 OTLog::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
                                   "Not within valid date range. Sender User "
                                   "ID: %s\nRecipient User ID: %s\n",
                                __FUNCTION__, theCheque.GetTransactionNum(),
-                               strSenderUserID.Get(), strRecipientUserID.Get());
+                               strSenderNymID.Get(), strRecipientNymID.Get());
             }
             // You can't deposit a cheque into the same account that it's drawn
             // on. (Otherwise, in loading
@@ -2535,9 +2535,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 // the original
                 // recipient manages to deposit it.
 
-                const String strSenderUserID(theCheque.GetSenderUserID());
-                const String strRecipientUserID(theCheque.GetRecipientUserID());
-                if (theCheque.GetSenderUserID() != NYM_ID) {
+                const String strSenderNymID(theCheque.GetSenderNymID());
+                const String strRecipientNymID(theCheque.GetRecipientNymID());
+                if (theCheque.GetSenderNymID() != NYM_ID) {
                     OTLog::vOutput(
                         0,
                         "%s: Failure verifying cheque: Strange: while the "
@@ -2545,7 +2545,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         "same ID as the cheque sender acct, somehow the user "
                         "IDs do not match. (Should never happen.)\n"
                         "Cheque Sender User ID: %s\n Depositor User ID: %s\n",
-                        __FUNCTION__, strSenderUserID.Get(), strUserID.Get());
+                        __FUNCTION__, strSenderNymID.Get(), strNymID.Get());
                 }
                 else if (theCheque.GetAmount() != 0) {
                     OTLog::vOutput(
@@ -2553,8 +2553,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                            "perform cancellation, "
                            "the cheque has a non-zero amount.\n"
                            "Sender User ID: %s\nRecipient User ID: %s\n",
-                        __FUNCTION__, strSenderUserID.Get(),
-                        strRecipientUserID.Get());
+                        __FUNCTION__, strSenderNymID.Get(),
+                        strRecipientNymID.Get());
                 }
                 // Make sure the transaction number on the cheque is still
                 // available and valid for use by theNym.
@@ -2566,8 +2566,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         0, "%s: Failure verifying cheque: Bad transaction "
                            "number.\n"
                            "Sender User ID: %s\nRecipient User ID: %s\n",
-                        __FUNCTION__, strSenderUserID.Get(),
-                        strRecipientUserID.Get());
+                        __FUNCTION__, strSenderNymID.Get(),
+                        strRecipientNymID.Get());
                 }
                 // Let's see if the sender's signature matches the one on the
                 // cheque...
@@ -2576,8 +2576,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                    "%s: Failure verifying cheque signature for "
                                    "sender ID: %s\nRecipient User ID: %s\n "
                                    "Cheque:\n\n%s\n\n",
-                                   __FUNCTION__, strSenderUserID.Get(),
-                                   strRecipientUserID.Get(), strCheque.Get());
+                                   __FUNCTION__, strSenderNymID.Get(),
+                                   strRecipientNymID.Get(), strCheque.Get());
                 }
                 else if (!(pBalanceItem->VerifyBalanceStatement(
                                theCheque.GetAmount(), // This amount is always
@@ -2736,13 +2736,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 const Identifier& SOURCE_ACCT_ID(
                     theCheque.GetSenderAcctID()); // relevant for both vouchers
                                                   // AND cheques.
-                const Identifier& SENDER_NYM_ID(theCheque.GetSenderUserID());
+                const Identifier& SENDER_NYM_ID(theCheque.GetSenderNymID());
 
                 const Identifier& REMITTER_ACCT_ID(
                     theCheque.GetRemitterAcctID()); // only relevant in case of
                                                     // vouchers.
-                const Identifier& REMITTER_NYM_ID(
-                    theCheque.GetRemitterUserID());
+                const Identifier& REMITTER_NYM_ID(theCheque.GetRemitterNymID());
 
                 // If the cheque has a remitter ...and the depositor IS the
                 // remitter...
@@ -2750,7 +2749,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 //
                 const bool bHasRemitter = theCheque.HasRemitter();
                 const bool bRemitterCancelling =
-                    (bHasRemitter && (NYM_ID == theCheque.GetRemitterUserID()));
+                    (bHasRemitter && (NYM_ID == theCheque.GetRemitterNymID()));
 
                 // The point of the logic here is to enable remitters to deposit
                 // vouchers. Basically allows
@@ -2758,15 +2757,15 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 //
                 const Identifier& RECIPIENT_NYM_ID(
                     bRemitterCancelling ? NYM_ID
-                                        : theCheque.GetRecipientUserID());
+                                        : theCheque.GetRecipientNymID());
 
                 // (Note that we allow the remitter of a voucher to deposit that
                 // voucher.)
 
-                const String strSenderUserID(SENDER_NYM_ID),
+                const String strSenderNymID(SENDER_NYM_ID),
                     strSourceAcctID(SOURCE_ACCT_ID),
-                    strRecipientUserID(RECIPIENT_NYM_ID),
-                    strRemitterUserID(REMITTER_NYM_ID),
+                    strRecipientNymID(RECIPIENT_NYM_ID),
+                    strRemitterNymID(REMITTER_NYM_ID),
                     strRemitterAcctID(REMITTER_ACCT_ID);
                 OTLedger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID,
                                         NOTARY_ID); // chequeReceipt goes here.
@@ -2821,7 +2820,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 // Here's the logic:
                 // -- theNym is the depositor (for sure.)
                 // -- m_nymServer is the server nym (for sure.)
-                // -- By the time we get here, IF the ServerUserID and UserID
+                // -- By the time we get here, IF the ServerNymID and NymID
                 // match,
                 //      then theNym IS ALREADY m_nymServer, literally a
                 // reference to it.
@@ -2986,7 +2985,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 if (bHasRemitter && !bSenderIsServer) {
                     OTLog::vOutput(0, "Notary::%s: Failure: Voucher has a "
                                       "'sender' who is not the server: %s\n",
-                                   __FUNCTION__, strSenderUserID.Get());
+                                   __FUNCTION__, strSenderNymID.Get());
                 }
 
                 // See if we can load the sender's public key (to verify cheque
@@ -3015,7 +3014,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                            "signer during "
                            "deposit: %s\nRecipient User ID: %s\n",
                         __FUNCTION__, (bHasRemitter) ? "cheque" : "voucher",
-                        strSenderUserID.Get(), strRecipientUserID.Get());
+                        strSenderNymID.Get(), strRecipientNymID.Get());
                 }
 
                 // See if the Nym ID (User ID) that we have matches the message
@@ -3026,7 +3025,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                            "Bad Sender User ID (fails hash check of pubkey)"
                            ": %s\nRecipient User ID: %s\n",
                         __FUNCTION__, (bHasRemitter) ? "cheque" : "voucher",
-                        strSenderUserID.Get(), strRecipientUserID.Get());
+                        strSenderNymID.Get(), strRecipientNymID.Get());
                 }
 
                 // See if we can load the sender's nym file (to verify the
@@ -3044,7 +3043,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                            "during deposit, user ID: %s\n"
                            "Recipient User ID: %s\n",
                         __FUNCTION__, (bHasRemitter) ? "cheque" : "voucher",
-                        strSenderUserID.Get(), strRecipientUserID.Get());
+                        strSenderNymID.Get(), strRecipientNymID.Get());
                 }
                 // See if we can load the remitter's public key (if it's a
                 // voucher.)
@@ -3071,8 +3070,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         0, "Notary::%s: Error loading public key for "
                            "remitter during "
                            "voucher deposit: %s\nRecipient User ID: %s\n",
-                        __FUNCTION__, strRemitterUserID.Get(),
-                        strRecipientUserID.Get());
+                        __FUNCTION__, strRemitterNymID.Get(),
+                        strRecipientNymID.Get());
                 }
 
                 // See if the Nym ID (User ID) that we have matches the message
@@ -3082,8 +3081,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         0, "Notary::%s: Failure verifying voucher: "
                            "Bad Remitter User ID (fails hash check of pubkey)"
                            ": %s\nRecipient User ID: %s\n",
-                        __FUNCTION__, strRemitterUserID.Get(),
-                        strRecipientUserID.Get());
+                        __FUNCTION__, strRemitterNymID.Get(),
+                        strRecipientNymID.Get());
                 }
 
                 // See if we can load the remitter's nym file (to verify the
@@ -3099,8 +3098,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     OTLog::vOutput(0, "Notary::%s: Error loading nymfile for "
                                       "remitter during voucher deposit: %s\n"
                                       "Recipient User ID: %s\n",
-                                   __FUNCTION__, strRemitterUserID.Get(),
-                                   strRecipientUserID.Get());
+                                   __FUNCTION__, strRemitterNymID.Get(),
+                                   strRecipientNymID.Get());
                 }
                 // Make sure they're not double-spending this cheque.
                 //
@@ -3113,7 +3112,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                       "Recipient User ID: %s\n",
                                    __FUNCTION__,
                                    (bHasRemitter) ? "cheque" : "voucher",
-                                   strRecipientUserID.Get());
+                                   strRecipientNymID.Get());
                 }
                 // Let's see if the sender's signature matches the one on the
                 // cheque...
@@ -3126,10 +3125,10 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         0, "Notary::%s: Failure verifying %s signature for "
                            "sender ID: %s Recipient User ID: %s",
                         __FUNCTION__, (bHasRemitter) ? "cheque" : "voucher",
-                        strSenderUserID.Get(), strRecipientUserID.Get());
+                        strSenderNymID.Get(), strRecipientNymID.Get());
                     if (bHasRemitter)
                         OTLog::vOutput(0, " Remitter User ID: %s\n",
-                                       strRemitterUserID.Get());
+                                       strRemitterNymID.Get());
                     else
                         OTLog::Output(0, "\n");
                 }
@@ -3144,7 +3143,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                       "Recipient User ID: %s\n",
                                    __FUNCTION__,
                                    (bHasRemitter) ? "cheque" : "voucher",
-                                   strUserID.Get(), strRecipientUserID.Get());
+                                   strNymID.Get(), strRecipientNymID.Get());
                 }
                 // Try to load the source account (that cheque is drawn on) up
                 // into memory.
@@ -3165,10 +3164,10 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                            "trying to load source acct, ID: %s Recipient User "
                            "ID: %s",
                         __FUNCTION__, (bHasRemitter) ? "Cheque" : "Voucher",
-                        strSourceAcctID.Get(), strRecipientUserID.Get());
+                        strSourceAcctID.Get(), strRecipientNymID.Get());
                     if (bHasRemitter)
                         OTLog::vOutput(0, " Remitter User ID: %s\n",
-                                       strRemitterUserID.Get());
+                                       strRemitterNymID.Get());
                     else
                         OTLog::Output(0, "\n");
                 }
@@ -3251,7 +3250,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                "trying to load remitter acct, ID: %s Recipient "
                                "User ID: %s Remitter User ID: %s\n",
                             __FUNCTION__, strRemitterAcctID.Get(),
-                            strRecipientUserID.Get(), strRemitterUserID.Get());
+                            strRecipientNymID.Get(), strRemitterNymID.Get());
                     }
                     // Does the remitter account verify?
                     // I call VerifySignature here since VerifyContractID was
@@ -4128,7 +4127,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
         DEPOSITOR_NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer),
         DEPOSITOR_ACCT_ID(theDepositorAccount), NYM_ID(theNym);
 
-    const String strUserID(NYM_ID);
+    const String strNymID(NYM_ID);
     pItem = tranIn.GetItem(OTItem::paymentPlan);
     pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
     pResponseItem =
@@ -4143,11 +4142,11 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                             // cleanup the item. It "owns" it
                                             // now.
     if ((nullptr != pItem) &&
-        (false == NYM_IS_ALLOWED(strUserID.Get(),
+        (false == NYM_IS_ALLOWED(strNymID.Get(),
                                  ServerSettings::__transact_payment_plan))) {
         OTLog::vOutput(0, "%s: User %s cannot do this transaction (All payment "
                           "plans are disallowed in server.cfg)\n",
-                       __FUNCTION__, strUserID.Get());
+                       __FUNCTION__, strNymID.Get());
     }
     // For now, there should only be one of these paymentPlan items inside the
     // transaction.
@@ -4248,8 +4247,8 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                     bCancelling ? 0 : pItem->GetTransactionNum();
                 const int64_t lFoundNum = pPlan->GetTransactionNum();
                 const Identifier& FOUND_NYM_ID =
-                    bCancelling ? pPlan->GetRecipientUserID()
-                                : pPlan->GetSenderUserID();
+                    bCancelling ? pPlan->GetRecipientNymID()
+                                : pPlan->GetSenderNymID();
                 const Identifier& FOUND_ACCT_ID =
                     bCancelling ? pPlan->GetRecipientAcctID()
                                 : pPlan->GetSenderAcctID();
@@ -4336,7 +4335,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                     // (When doing a transfer, normally 2nd acct is the Payee.)
                     const Identifier RECIPIENT_ACCT_ID(
                         pPlan->GetRecipientAcctID()),
-                        RECIPIENT_NYM_ID(pPlan->GetRecipientUserID());
+                        RECIPIENT_NYM_ID(pPlan->GetRecipientNymID());
 
                     bool bRecipientNymIsServerNym =
                         ((RECIPIENT_NYM_ID == SERVER_NYM_ID) ? true : false);
@@ -4880,7 +4879,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
     const Identifier NOTARY_ID(server_->m_strNotaryID),
         ACTIVATOR_NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer),
         ACTIVATOR_ACCT_ID(theActivatingAccount), NYM_ID(theNym);
-    const String strUserID(NYM_ID);
+    const String strNymID(NYM_ID);
     pItem = tranIn.GetItem(OTItem::smartContract);
     pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
     pResponseItem =
@@ -4895,11 +4894,11 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                                             // cleanup the item. It "owns" it
                                             // now.
     if ((nullptr != pItem) &&
-        (false == NYM_IS_ALLOWED(strUserID.Get(),
+        (false == NYM_IS_ALLOWED(strNymID.Get(),
                                  ServerSettings::__transact_smart_contract))) {
         OTLog::vOutput(0, "%s: User %s cannot do this transaction (All smart "
                           "contracts are disallowed in server.cfg)\n",
-                       __FUNCTION__, strUserID.Get());
+                       __FUNCTION__, strNymID.Get());
     }
     // For now, there should only be one of these smartContract items inside the
     // transaction.
@@ -4994,7 +4993,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                     lFoundOpeningNum = pContract->GetOpeningNum();
                     lFoundClosingNum = pContract->GetClosingNum();
 
-                    FOUND_NYM_ID = pContract->GetSenderUserID();
+                    FOUND_NYM_ID = pContract->GetSenderNymID();
                     FOUND_ACCT_ID = pContract->GetSenderAcctID();
                 }
                 else // CANCELING
@@ -5077,7 +5076,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                 // block could be commented out (or not.)  ALSO: If I'm going to
                 // enforce this, then I need to do it for ALL parties, not just
                 // the activator!
-                else if ((pContract->GetSenderUserID() == SERVER_NYM_ID) ||
+                else if ((pContract->GetSenderNymID() == SERVER_NYM_ID) ||
                          (nullptr !=
                           pContract->FindPartyBasedOnNymAsAgent(
                               server_->m_nymServer))) {
@@ -5612,7 +5611,7 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
     // here.
     const Identifier NOTARY_ID(server_->m_strNotaryID), NYM_ID(theNym);
 
-    const String strUserID(NYM_ID);
+    const String strNymID(NYM_ID);
 
     pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
     pResponseItem =
@@ -5627,12 +5626,12 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
-    if (!NYM_IS_ALLOWED(strUserID.Get(),
+    if (!NYM_IS_ALLOWED(strNymID.Get(),
                         ServerSettings::__transact_cancel_cron_item)) {
         OTLog::vOutput(
             0, "%s: User %s cannot do this transaction "
                "(CancelCronItem messages are disallowed in server.cfg)\n",
-            __FUNCTION__, strUserID.Get());
+            __FUNCTION__, strNymID.Get());
     }
     else if (nullptr == pBalanceItem) {
         String strTemp(tranIn);
@@ -5801,7 +5800,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
         BASKET_CONTRACT_ID(theAccount.GetInstrumentDefinitionID()),
         ACCOUNT_ID(theAccount);
 
-    const String strUserID(NYM_ID);
+    const String strNymID(NYM_ID);
 
     std::unique_ptr<OTLedger> pInbox(
         theAccount.LoadInbox(server_->m_nymServer));
@@ -5822,12 +5821,12 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                             // now.
     bool bSuccess = false;
 
-    if (!NYM_IS_ALLOWED(strUserID.Get(),
+    if (!NYM_IS_ALLOWED(strNymID.Get(),
                         ServerSettings::__transact_exchange_basket)) {
         OTLog::vOutput(0, "Notary::NotarizeExchangeBasket: User %s cannot do "
                           "this transaction (All basket exchanges are "
                           "disallowed in server.cfg)\n",
-                       strUserID.Get());
+                       strNymID.Get());
     }
     else if (nullptr == pItem) {
         OTLog::Output(0, "Notary::NotarizeExchangeBasket: No exchangeBasket "
@@ -6698,7 +6697,7 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const Identifier NOTARY_ID(server_->m_strNotaryID), NYM_ID(theNym);
-    const String strUserID(NYM_ID);
+    const String strNymID(NYM_ID);
 
     pItem = tranIn.GetItem(OTItem::marketOffer);
     pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
@@ -6714,13 +6713,13 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
-    if (!NYM_IS_ALLOWED(strUserID.Get(),
+    if (!NYM_IS_ALLOWED(strNymID.Get(),
                         ServerSettings::__transact_market_offer)) {
         OTLog::vOutput(
             0,
             "Notary::NotarizeMarketOffer: User %s cannot do this transaction "
             "(All market offers are disallowed in server.cfg)\n",
-            strUserID.Get());
+            strNymID.Get());
     }
     else if (nullptr == pBalanceItem) {
         String strTemp(tranIn);
@@ -6883,8 +6882,8 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                                   "Server ID (%s) on trade. Expected: %s\n",
                                strID1.Get(), strID2.Get());
             }
-            else if (pTrade->GetSenderUserID() != NYM_ID) {
-                const String strID1(pTrade->GetSenderUserID()), strID2(NYM_ID);
+            else if (pTrade->GetSenderNymID() != NYM_ID) {
+                const String strID1(pTrade->GetSenderNymID()), strID2(NYM_ID);
                 OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
                                   "Nym ID (%s) on trade. Expected: %s\n",
                                strID1.Get(), strID2.Get());
@@ -8175,7 +8174,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
     const Identifier NOTARY_ID(server_->m_strNotaryID), ACCOUNT_ID(theAccount),
         NYM_ID(theNym);
 
-    const String strUserID(NYM_ID);
+    const String strNymID(NYM_ID);
 
     Nym theTempNym, theTempClosingNumNym;
     std::unique_ptr<OTLedger> pInbox(
@@ -8189,12 +8188,12 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
-    if (!NYM_IS_ALLOWED(strUserID.Get(),
+    if (!NYM_IS_ALLOWED(strNymID.Get(),
                         ServerSettings::__transact_process_inbox)) {
         OTLog::vOutput(
             0, "%s: User %s cannot do this transaction (All \"process inbox\" "
                "transactions are disallowed in server.cfg)\n",
-            __FUNCTION__, strUserID.Get());
+            __FUNCTION__, strNymID.Get());
     }
     else if (nullptr == pBalanceItem) {
         OTLog::vOutput(
@@ -8299,8 +8298,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                 const String strAccountID(ACCOUNT_ID);
                 OTLog::vError("%s: Unable to find or process inbox transaction "
                               "being accepted by user: %s for account: %s\n",
-                              __FUNCTION__, strUserID.Get(),
-                              strAccountID.Get());
+                              __FUNCTION__, strNymID.Get(), strAccountID.Get());
                 bSuccessFindingAllTransactions = false;
                 break;
             }
@@ -8310,7 +8308,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                               " and %" PRId64 ". Nym: %s\n",
                               __FUNCTION__,
                               pServerTransaction->GetReceiptAmount(),
-                              pItem->GetAmount(), strUserID.Get());
+                              pItem->GetAmount(), strNymID.Get());
                 bSuccessFindingAllTransactions = false;
                 break;
             }
@@ -8432,7 +8430,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                "list of open cron items. (Maybe he didn't see "
                                "the notice in his Nymbox yet.)\n",
                             __FUNCTION__, pServerTransaction->GetClosingNum(),
-                            strUserID.Get());
+                            strNymID.Get());
                     // else error log.
                 }
 

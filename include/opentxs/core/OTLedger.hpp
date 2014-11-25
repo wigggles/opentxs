@@ -338,7 +338,7 @@ public:
                                            // lookup the total value of pending
                                            // transfers within.
     EXPORT const mapOfTransactions& GetTransactionMap() const;
-    EXPORT OTLedger(const Identifier& theUserID, const Identifier& theAccountID,
+    EXPORT OTLedger(const Identifier& theNymID, const Identifier& theAccountID,
                     const Identifier& theNotaryID);
     EXPORT virtual ~OTLedger();
 
@@ -347,17 +347,17 @@ public:
 
     EXPORT void ReleaseTransactions();
     // ONLY call this if you need to load a ledger where you don't already know
-    // the person's UserID
+    // the person's NymID
     // For example, if you need to load someone ELSE's inbox in order to send
     // them a transfer, then
     // you only know their account number, not their user ID. So you call this
     // function to get it
-    // loaded up, and the UserID will hopefully be loaded up with the rest of
+    // loaded up, and the NymID will hopefully be loaded up with the rest of
     // it.
     EXPORT OTLedger(const Identifier& theAccountID,
                     const Identifier& theNotaryID);
     EXPORT void InitLedger();
-    EXPORT static OTLedger* GenerateLedger(const Identifier& theUserID,
+    EXPORT static OTLedger* GenerateLedger(const Identifier& theNymID,
                                            const Identifier& theAcctID,
                                            const Identifier& theNotaryID,
                                            ledgerType theType,

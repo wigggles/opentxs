@@ -228,7 +228,7 @@ public:
     EXPORT bool GenerateNewAccount(const Nym& server, const Message& message,
                                    AccountType acctType = simple,
                                    int64_t stashTransNum = 0);
-    // Let's say you don't have or know the UserID, and you just want to load
+    // Let's say you don't have or know the NymID, and you just want to load
     // the damn thing up.
     // Then call this function. It will set nymID for you.
     EXPORT static Account* LoadExistingAccount(const Identifier& accountId,

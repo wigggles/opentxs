@@ -233,7 +233,7 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             CURRENCY_ACCT_ID(currencyAcctID);
 
         SetNotaryID(NOTARY_ID);
-        SetSenderUserID(NYM_ID);
+        SetSenderNymID(NYM_ID);
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetSenderAcctID(ASSET_ACCT_ID);
         SetCurrencyID(CURRENCY_TYPE_ID);
@@ -248,9 +248,8 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   " instrumentDefinitionID: " << instrumentDefinitionID
                << "\n assetAcctID: " << assetAcctID << "\n"
                                                        " NotaryID: " << notaryID
-               << "\n UserID: " << nymID
-               << "\n "
-                  " currencyTypeID: " << currencyTypeID
+               << "\n NymID: " << nymID << "\n "
+                                           " currencyTypeID: " << currencyTypeID
                << "\n currencyAcctID: " << currencyAcctID << "\n ";
 
         returnVal = 1;
@@ -317,7 +316,7 @@ void OTTrade::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    const String NOTARY_ID(GetNotaryID()), NYM_ID(GetSenderUserID()),
+    const String NOTARY_ID(GetNotaryID()), NYM_ID(GetSenderNymID()),
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         ASSET_ACCT_ID(GetSenderAcctID()), CURRENCY_TYPE_ID(GetCurrencyID()),
         CURRENCY_ACCT_ID(GetCurrencyAcctID());
@@ -382,7 +381,7 @@ void OTTrade::UpdateContents()
 // This function verifies that offer against the trade,
 // and also verifies the signature on the offer.
 //
-// The Nym's ID is compared to offer's SenderUserID, and then the Signature
+// The Nym's ID is compared to offer's SenderNymID, and then the Signature
 // is checked
 // on the offer.  It also compares the server ID, asset and currency IDs,
 // transaction #, etc
@@ -827,7 +826,7 @@ bool OTTrade::CanRemoveItemFromCron(Nym& nym)
     // related closing #s)
     // signed out to him on his last receipt...
     //
-    if (!nym.CompareID(GetSenderUserID())) {
+    if (!nym.CompareID(GetSenderNymID())) {
         otLog5 << "OTTrade::CanRemoveItem: nym is not the originator of "
                   "this CronItem. "
                   "(He could be a recipient though, so this is normal.)\n";
@@ -1004,7 +1003,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
                                                   // since multiple things
                                                   // have changed.
 
-        const Identifier& actualNymId = GetSenderUserID();
+        const Identifier& actualNymId = GetSenderNymID();
 
         Nym* actualNym = nullptr; // use this. DON'T use theActualNym.
         if ((serverNym != nullptr) && serverNym->CompareID(actualNymId))
@@ -1053,7 +1052,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
             }
         }
 
-        if (!DropFinalReceiptToNymbox(GetSenderUserID(), newTransactionNumber,
+        if (!DropFinalReceiptToNymbox(GetSenderNymID(), newTransactionNumber,
                                       strOrigCronItem, note, attachment,
                                       actualNym)) {
             otErr << szFunc << ": Failure dropping receipt into nymbox.\n";
@@ -1069,7 +1068,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     if ((closingAssetNumber > 0) &&
         originator.VerifyIssuedNum(notaryID, closingAssetNumber)) {
         DropFinalReceiptToInbox(
-            GetSenderUserID(), GetSenderAcctID(), newTransactionNumber,
+            GetSenderNymID(), GetSenderAcctID(), newTransactionNumber,
             closingAssetNumber, // The closing transaction number to put on the
                                 // receipt.
             strOrigCronItem, note, attachment);
@@ -1087,7 +1086,7 @@ void OTTrade::onFinalReceipt(OTCronItem& origCronItem,
     if ((closingCurrencyNumber > 0) &&
         originator.VerifyIssuedNum(notaryID, closingCurrencyNumber)) {
         DropFinalReceiptToInbox(
-            GetSenderUserID(), GetCurrencyAcctID(), newTransactionNumber,
+            GetSenderNymID(), GetCurrencyAcctID(), newTransactionNumber,
             closingCurrencyNumber, // closing transaction number for the
                                    // receipt.
             strOrigCronItem, note, attachment);

@@ -208,7 +208,7 @@ int32_t CmdImportCash::run(string mynym)
 
     string purseOwner = "";
     if (!OTAPI_Wrap::Purse_HasPassword(server, instrument)) {
-        purseOwner = OTAPI_Wrap::Instrmnt_GetRecipientUserID(instrument);
+        purseOwner = OTAPI_Wrap::Instrmnt_GetRecipientNymID(instrument);
     }
 
     // Whether the purse was password-protected (and thus had no Nym ID) or

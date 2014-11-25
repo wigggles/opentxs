@@ -284,7 +284,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
         return -1;
     }
 
-    string senderUser = OTAPI_Wrap::Instrmnt_GetSenderUserID(plan);
+    string senderUser = OTAPI_Wrap::Instrmnt_GetSenderNymID(plan);
     if ("" == senderUser) {
         otOut << "Error: cannot get sender user from instrument.\n";
         return -1;
@@ -296,7 +296,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
         return -1;
     }
 
-    string recipientUser = OTAPI_Wrap::Instrmnt_GetRecipientUserID(plan);
+    string recipientUser = OTAPI_Wrap::Instrmnt_GetRecipientNymID(plan);
     if ("" == recipientUser) {
         otOut << "Error: cannot get recipient user from instrument.\n";
         return -1;

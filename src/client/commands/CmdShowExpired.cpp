@@ -206,11 +206,11 @@ int32_t CmdShowExpired::run(string server, string mynym)
             OTAPI_Wrap::Transaction_GetAmount(server, mynym, mynym, tx);
         string type = OTAPI_Wrap::Transaction_GetType(server, mynym, mynym, tx);
         string senderUser =
-            OTAPI_Wrap::Transaction_GetSenderUserID(server, mynym, mynym, tx);
+            OTAPI_Wrap::Transaction_GetSenderNymID(server, mynym, mynym, tx);
         string senderAcct =
             OTAPI_Wrap::Transaction_GetSenderAcctID(server, mynym, mynym, tx);
-        string recipientUser = OTAPI_Wrap::Transaction_GetRecipientUserID(
-            server, mynym, mynym, tx);
+        string recipientUser =
+            OTAPI_Wrap::Transaction_GetRecipientNymID(server, mynym, mynym, tx);
         string recipientAcct = OTAPI_Wrap::Transaction_GetRecipientAcctID(
             server, mynym, mynym, tx);
 

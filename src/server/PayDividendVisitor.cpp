@@ -143,13 +143,13 @@ namespace opentxs
 {
 
 PayDividendVisitor::PayDividendVisitor(
-    const Identifier& theNotaryID, const Identifier& theUserID,
+    const Identifier& theNotaryID, const Identifier& theNymID,
     const Identifier& thePayoutInstrumentDefinitionID,
     const Identifier& theVoucherAcctID, const String& strMemo,
     OTServer& theServer, int64_t lPayoutPerShare,
     mapOfAccounts* pLoadedAccounts)
     : AccountVisitor(theNotaryID, pLoadedAccounts)
-    , m_pUserID(new Identifier(theUserID))
+    , m_pNymID(new Identifier(theNymID))
     , m_pPayoutInstrumentDefinitionID(
           new Identifier(thePayoutInstrumentDefinitionID))
     , m_pVoucherAcctID(new Identifier(theVoucherAcctID))
@@ -163,8 +163,8 @@ PayDividendVisitor::PayDividendVisitor(
 
 PayDividendVisitor::~PayDividendVisitor()
 {
-    if (nullptr != m_pUserID) delete m_pUserID;
-    m_pUserID = nullptr;
+    if (nullptr != m_pNymID) delete m_pNymID;
+    m_pNymID = nullptr;
     if (nullptr != m_pPayoutInstrumentDefinitionID)
         delete m_pPayoutInstrumentDefinitionID;
     m_pPayoutInstrumentDefinitionID = nullptr;
@@ -211,15 +211,15 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
     OTServer& theServer = *(GetServer());
     Nym& theServerNym = const_cast<Nym&>(theServer.GetServerNym());
     const Identifier theServerNymID(theServerNym);
-    const Identifier& RECIPIENT_ID = theSharesAccount.GetUserID();
-    OT_ASSERT(nullptr != GetUserID());
-    const Identifier& theSenderUserID = *(GetUserID());
+    const Identifier& RECIPIENT_ID = theSharesAccount.GetNymID();
+    OT_ASSERT(nullptr != GetNymID());
+    const Identifier& theSenderNymID = *(GetNymID());
     OT_ASSERT(nullptr != GetMemo());
     const String& strMemo = *(GetMemo());
-    // Note: theSenderUserID is the originator of the Dividend Payout.
+    // Note: theSenderNymID is the originator of the Dividend Payout.
     // However, all the actual vouchers will be from "the server Nym" and
-    // not from theSenderUserID. So then why is it even here? Because anytime
-    // there's an error, the server will send to theSenderUserID instead of
+    // not from theSenderNymID. So then why is it even here? Because anytime
+    // there's an error, the server will send to theSenderNymID instead of
     // RECIPIENT_ID (so the original sender can have his money back, instead of
     // just having it get lost in the ether.)
     bool bReturnValue = false;
@@ -308,14 +308,14 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
         else {
             const String strPayoutInstrumentDefinitionID(
                 thePayoutInstrumentDefinitionID),
-                strRecipientUserID(RECIPIENT_ID);
+                strRecipientNymID(RECIPIENT_ID);
             OTLog::vError("PayDividendVisitor::Trigger: ERROR failed "
                           "issuing voucher (to send to dividend payout "
                           "recipient.) "
                           "WAS TRYING TO PAY %" PRId64
                           " of instrument definition %s to Nym %s.\n",
                           lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
-                          strRecipientUserID.Get());
+                          strRecipientNymID.Get());
         }
         // If we didn't send it, then we need to return the funds to where they
         // came from.
@@ -337,8 +337,8 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                                   // server nym.)
                 strMemo, // Optional memo field. Includes item note and request
                          // memo.
-                &theSenderUserID); // We're returning the money to its original
-                                   // sender.
+                &theSenderNymID); // We're returning the money to its original
+                                  // sender.
             if (bIssueReturnVoucher) {
                 // All this does is set the voucher's internal contract string
                 // to
@@ -357,7 +357,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                 // calls DropMessageToNymbox
                 bSent = theServer.SendInstrumentToNym(
                     theNotaryID, theServerNymID, // sender nym
-                    theSenderUserID, // recipient nym (original sender.)
+                    theSenderNymID, // recipient nym (original sender.)
                     nullptr, &theReturnPayment,
                     "payDividend"); // todo: hardcoding.
                 if (bSent)
@@ -370,7 +370,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
             else {
                 const String strPayoutInstrumentDefinitionID(
                     thePayoutInstrumentDefinitionID),
-                    strSenderUserID(theSenderUserID);
+                    strSenderNymID(theSenderNymID);
                 OTLog::vError("PayDividendVisitor::Trigger: ERROR "
                               "failed issuing voucher (to return back to "
                               "the dividend payout initiator, after a failed "
@@ -380,7 +380,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                               "%s to Nym %s.\n",
                               lPayoutAmount,
                               strPayoutInstrumentDefinitionID.Get(),
-                              strSenderUserID.Get());
+                              strSenderNymID.Get());
             }
         }  // if !bSent
     }
@@ -388,7 +388,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
     {
         const String strPayoutInstrumentDefinitionID(
             thePayoutInstrumentDefinitionID),
-            strRecipientUserID(RECIPIENT_ID);
+            strRecipientNymID(RECIPIENT_ID);
         OTLog::vError(
             "PayDividendVisitor::Trigger: ERROR!! Failed issuing next "
             "transaction "
@@ -396,7 +396,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
             "WAS TRYING TO PAY %" PRId64
             " of instrument definition %s to Nym %s.\n",
             lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
-            strRecipientUserID.Get());
+            strRecipientNymID.Get());
     }
 
     return bReturnValue;

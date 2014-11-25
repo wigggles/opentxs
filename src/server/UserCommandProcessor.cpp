@@ -227,7 +227,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // overwrite each other.)
     //
     bool bNymIsServerNym =
-        server_->m_strServerUserID.Compare(theMessage.m_strNymID);
+        server_->m_strServerNymID.Compare(theMessage.m_strNymID);
 
     if (bNymIsServerNym) pNym = &server_->m_nymServer;
 
@@ -473,7 +473,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
                 // reply to registerNym
                 msgOut.m_strCommand = "registerNymResponse";
-                msgOut.m_strNymID = theMessage.m_strNymID; // UserID
+                msgOut.m_strNymID = theMessage.m_strNymID; // NymID
                 msgOut.m_strNotaryID =
                     server_->m_strNotaryID; // NotaryID, a hash of
                                             // the server
@@ -1409,7 +1409,7 @@ void UserCommandProcessor::UserCmdGetMarketList(Nym&, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getMarketListResponse"; // reply to getMarketList
-    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // NymID
     //    msgOut.m_strNotaryID    = m_strNotaryID;    // This is already set in
     // ProcessUserCommand.
 
@@ -1452,7 +1452,7 @@ void UserCommandProcessor::UserCmdGetMarketOffers(Nym&, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getMarketOffersResponse"; // reply to getMarketOffers
-    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // NymID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2;          // Market ID.
 
     int64_t lDepth = MsgIn.m_lDepth;
@@ -1505,7 +1505,7 @@ void UserCommandProcessor::UserCmdGetMarketRecentTrades(Nym&, Message& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand =
         "getMarketRecentTradesResponse";    // reply to getMarketRecentTrades
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // NymID
     msgOut.m_strNymID2 = MsgIn.m_strNymID2; // Market ID.
 
     const Identifier MARKET_ID(MsgIn.m_strNymID2);
@@ -1557,7 +1557,7 @@ void UserCommandProcessor::UserCmdGetNymMarketOffers(Nym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand =
         "getNymMarketOffersResponse";     // reply to getMarketOffers
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID; // NymID
 
     Identifier NYM_ID;
     theNym.GetIdentifier(NYM_ID);
@@ -1623,7 +1623,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand =
         "getTransactionNumbersResponse";  // reply to getTransactionNumbers
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID; // NymID
 
     const Identifier NOTARY_ID(server_->m_strNotaryID);
 
@@ -1843,7 +1843,7 @@ void UserCommandProcessor::UserCmdGetRequestNumber(Nym& theNym, Message& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand =
         "getRequestNumberResponse";       // reply to getRequestNumber
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID; // NymID
 
     msgOut.m_strRequestNum.Set(MsgIn.m_strRequestNum); // Outoing reply contains
                                                        // same request num
@@ -1902,8 +1902,8 @@ void UserCommandProcessor::UserCmdSendNymMessage(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "sendNymMessageResponse"; // reply to sendNymMessage
-    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
+    msgOut.m_strNymID = MsgIn.m_strNymID;           // NymID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2;         // NymID of recipient pubkey
 
     const String strInMessage(MsgIn);
     const Identifier SENDER_NYM_ID(theNym), RECIPIENT_NYM_ID(MsgIn.m_strNymID2),
@@ -1941,8 +1941,8 @@ void UserCommandProcessor::UserCmdSendNymInstrument(Nym& theNym, Message& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand =
         "sendNymInstrumentResponse";        // reply to sendNymInstrument
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2; // UserID of recipient pubkey
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // NymID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2; // NymID of recipient pubkey
 
     const String strInMessage(MsgIn);
     const Identifier SENDER_NYM_ID(theNym), RECIPIENT_NYM_ID(MsgIn.m_strNymID2),
@@ -1979,9 +1979,9 @@ void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "checkNymResponse"; // reply to checkNym
-    msgOut.m_strNymID = MsgIn.m_strNymID;     // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;     // NymID
     msgOut.m_strNymID2 =
-        MsgIn.m_strNymID2; // UserID of public key requested by user.
+        MsgIn.m_strNymID2; // NymID of public key requested by user.
 
     Nym nym2;
     nym2.SetIdentifier(MsgIn.m_strNymID2);
@@ -2075,8 +2075,8 @@ void UserCommandProcessor::UserCmdUsageCredits(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "usageCreditsResponse"; // reply to usageCredits
-    msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
-    msgOut.m_strNymID2 = MsgIn.m_strNymID2;       // UserID of user whose usage
+    msgOut.m_strNymID = MsgIn.m_strNymID;         // NymID
+    msgOut.m_strNymID2 = MsgIn.m_strNymID2;       // NymID of user whose usage
     // credits are being examined /
     // adjusted.
     const bool bIsPrivilegedNym =
@@ -2284,7 +2284,7 @@ void UserCommandProcessor::UserCmdIssueInstrumentDefinition(Nym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand = "issueInstrumentDefinitionResponse"; // reply to
     // issueInstrumentDefinition
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID; // NymID
     msgOut.m_strInstrumentDefinitionID =
         MsgIn.m_strInstrumentDefinitionID; // Instrument Definition ID, a hash
                                            // of the asset
@@ -2542,12 +2542,12 @@ void UserCommandProcessor::UserCmdIssueInstrumentDefinition(Nym& theNym,
                                  "UserCmdIssueInstrumentDefinition.\n");
             }
             else {
-                String strAssetUserID(ASSET_NYM_ID), strUserID;
-                theNym.GetIdentifier(strUserID);
+                String strAssetNymID(ASSET_NYM_ID), strNymID;
+                theNym.GetIdentifier(strNymID);
                 OTLog::vError(
                     "User ID on this user account (%s) does NOT match User ID "
                     "for public key used in asset contract: %s\n",
-                    strUserID.Get(), strAssetUserID.Get());
+                    strNymID.Get(), strAssetNymID.Get());
             }
         }
         else
@@ -2610,7 +2610,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "issueBasketResponse"; // reply to issueBasket
-    msgOut.m_strNymID = MsgIn.m_strNymID;        // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;        // NymID
 
     // Either way, we need to send the user's command back to him as well.
     {
@@ -2912,7 +2912,7 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "registerAccountResponse"; // reply to registerAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;            // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;            // NymID
 
     // Either way, we need to send the user's command back to him as well.
     String tempInMessage(MsgIn);
@@ -3084,7 +3084,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getAccountDataResponse"; // reply to getAccountData
-    msgOut.m_strNymID = MsgIn.m_strNymID;           // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;           // NymID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const Identifier NYM_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
@@ -3096,7 +3096,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
     bool bSuccessLoadingInbox = false;
     bool bSuccessLoadingOutbox = false;
     if (bSuccessLoadingAccount)
-        bSuccessLoadingAccount = (pAccount->GetUserID() == NYM_ID);
+        bSuccessLoadingAccount = (pAccount->GetNymID() == NYM_ID);
     // Yup the account exists. Yup it has the same user ID.
     if (bSuccessLoadingAccount) {
         // extract the account in ascii-armored form on the outgoing message
@@ -3275,7 +3275,7 @@ void UserCommandProcessor::UserCmdQueryInstrumentDefinitions(Nym&,
     // (1) set up member variables
     msgOut.m_strCommand = "queryInstrumentDefinitionsResponse"; // reply to
     // queryInstrumentDefinitions
-    msgOut.m_strNymID = MsgIn.m_strNymID; // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID; // NymID
     msgOut.m_bSuccess = false;
 
     // Send the user's command back to him whether success or failure.
@@ -3368,7 +3368,7 @@ void UserCommandProcessor::UserCmdGetInstrumentDefinition(Message& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand =
         "getInstrumentDefinitionResponse"; // reply to getInstrumentDefinition
-    msgOut.m_strNymID = MsgIn.m_strNymID;  // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;  // NymID
     msgOut.m_strInstrumentDefinitionID =
         MsgIn.m_strInstrumentDefinitionID; // The Instrument Definition ID in
                                            // question
@@ -3422,7 +3422,7 @@ void UserCommandProcessor::UserCmdTriggerClause(Nym& theNym, Message& MsgIn,
     msgOut.m_ascInReferenceTo.SetString(strInReferenceTo);
     // (1) set up member variables
     msgOut.m_strCommand = "triggerClauseResponse"; // reply to triggerClause
-    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // NymID
     msgOut.m_bSuccess = false;                     // Default value.
     const Identifier NOTARY_ID(server_->m_strNotaryID),
         theMsgNymboxHash(MsgIn.m_strNymboxHash); // theMsgNymboxHash is the hash
@@ -3570,7 +3570,7 @@ void UserCommandProcessor::UserCmdGetMint(Nym&, Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getMintResponse"; // reply to getMint
-    msgOut.m_strNymID = MsgIn.m_strNymID;    // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;    // NymID
     msgOut.m_strInstrumentDefinitionID =
         MsgIn.m_strInstrumentDefinitionID; // The Instrument Definition ID in
                                            // question
@@ -3640,7 +3640,7 @@ void UserCommandProcessor::UserCmdDeleteUser(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "unregisterNymResponse"; // reply to unregisterNym
-    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // NymID
 
     const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID);
 
@@ -3783,7 +3783,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getBoxReceiptResponse"; // reply to getBoxReceipt
-    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // NymID
     msgOut.m_strAcctID = MsgIn.m_strAcctID;        // the asset account ID
                                                    // (inbox/outbox), or Nym ID
                                                    // (nymbox)
@@ -3814,7 +3814,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
                 "UserCommandProcessor::UserCmdGetBoxReceipt: User requested "
                 "Nymbox, but "
                 "failed to provide the "
-                "UserID (%s) in the AccountID (%s) field as expected.\n",
+                "NymID (%s) in the AccountID (%s) field as expected.\n",
                 MsgIn.m_strNymID.Get(), MsgIn.m_strAcctID.Get());
             bErrorCondition = true;
         }
@@ -3824,7 +3824,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
             OTLog::vError(
                 "UserCommandProcessor::UserCmdGetBoxReceipt: User requested "
                 "Inbox, but erroneously provided the "
-                "UserID (%s) in the AccountID (%s) field.\n",
+                "NymID (%s) in the AccountID (%s) field.\n",
                 MsgIn.m_strNymID.Get(), MsgIn.m_strAcctID.Get());
             bErrorCondition = true;
         }
@@ -3838,7 +3838,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
             OTLog::vError(
                 "UserCommandProcessor::UserCmdGetBoxReceipt: User requested "
                 "Outbox, but erroneously provided the "
-                "UserID (%s) in the AccountID (%s) field.\n",
+                "NymID (%s) in the AccountID (%s) field.\n",
                 MsgIn.m_strNymID.Get(), MsgIn.m_strAcctID.Get());
             bErrorCondition = true;
         }
@@ -3873,7 +3873,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
             OTLog::vError(
                 "UserCommandProcessor::UserCmdGetBoxReceipt: User requested a "
                 "transaction number "
-                "(%" PRId64 ") that's not in the %s. UserID (%s) and "
+                "(%" PRId64 ") that's not in the %s. NymID (%s) and "
                 "AccountID (%s) FYI.\n",
                 MsgIn.m_lTransactionNum,
                 (MsgIn.m_lDepth == 0)
@@ -3915,11 +3915,10 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
                 msgOut.m_bSuccess = true;
 
                 OTLog::vOutput(
-                    3,
-                    "UserCommandProcessor::UserCmdGetBoxReceipt: Success: "
-                    "User is "
-                    "retrieving the box receipt for transaction number "
-                    "%" PRId64 " in the %s for UserID (%s) AccountID (%s).\n",
+                    3, "UserCommandProcessor::UserCmdGetBoxReceipt: Success: "
+                       "User is "
+                       "retrieving the box receipt for transaction number "
+                       "%" PRId64 " in the %s for NymID (%s) AccountID (%s).\n",
                     MsgIn.m_lTransactionNum,
                     (MsgIn.m_lDepth == 0)
                         ? "nymbox"
@@ -3935,7 +3934,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
                     "transaction number (%" PRId64 ") that's "
                     "failing to retrieve from the %s, AFTER calling "
                     "LoadBoxReceipt(). (Though it worked BEFORE calling it.) "
-                    "UserID (%s) and AccountID (%s) FYI. IsAbbreviated == %s\n",
+                    "NymID (%s) and AccountID (%s) FYI. IsAbbreviated == %s\n",
                     MsgIn.m_lTransactionNum,
                     (MsgIn.m_lDepth == 0)
                         ? "nymbox"
@@ -3953,7 +3952,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
         OTLog::vError(
             "UserCommandProcessor::UserCmdGetBoxReceipt: Failed loading or "
             "verifying %s. "
-            "Transaction (%" PRId64 "), UserID (%s) and AccountID (%s) FYI.\n",
+            "Transaction (%" PRId64 "), NymID (%s) and AccountID (%s) FYI.\n",
             (MsgIn.m_lDepth == 0)
                 ? "nymbox"
                 : ((MsgIn.m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
@@ -3991,7 +3990,7 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
     // (1) set up member variables
     msgOut.m_strCommand =
         "unregisterAccountResponse";        // reply to unregisterAccount
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // NymID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // the asset account being deleted.
 
     const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID),
@@ -4135,7 +4134,7 @@ void UserCommandProcessor::UserCmdGetNymbox(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "getNymboxResponse"; // reply to getNymbox
-    msgOut.m_strNymID = MsgIn.m_strNymID;      // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;      // NymID
 
     const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID);
     Identifier NYMBOX_HASH;
@@ -4253,7 +4252,7 @@ void UserCommandProcessor::UserCmdProcessNymbox(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "processNymboxResponse"; // reply to processNymbox
-    msgOut.m_strNymID = MsgIn.m_strNymID;          // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;          // NymID
 
     const Identifier NYM_ID(msgOut.m_strNymID),
         NOTARY_ID(server_->m_strNotaryID), SERVER_NYM_ID(server_->m_nymServer);
@@ -4486,7 +4485,7 @@ void UserCommandProcessor::UserCmdProcessInbox(Nym& theNym, Message& MsgIn,
 {
     // (1) set up member variables
     msgOut.m_strCommand = "processInboxResponse"; // reply to processInbox
-    msgOut.m_strNymID = MsgIn.m_strNymID;         // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;         // NymID
     msgOut.m_strAcctID = MsgIn.m_strAcctID;       // The Account ID in question
 
     const Identifier NYM_ID(msgOut.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
@@ -4818,7 +4817,7 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(Nym& theNym,
     // (1) set up member variables
     msgOut.m_strCommand =
         "notarizeTransactionResponse";      // reply to notarizeTransaction
-    msgOut.m_strNymID = MsgIn.m_strNymID;   // UserID
+    msgOut.m_strNymID = MsgIn.m_strNymID;   // NymID
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const Identifier NYM_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),

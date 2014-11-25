@@ -207,14 +207,14 @@ int32_t CmdBaseInstrument::sendPayment(const string& cheque, string sender,
     }
 
     if ("" == sender) {
-        sender = OTAPI_Wrap::Instrmnt_GetSenderUserID(cheque);
+        sender = OTAPI_Wrap::Instrmnt_GetSenderNymID(cheque);
         if ("" == sender) {
             otOut << "Error: cannot get sender.\n";
             return -1;
         }
     }
 
-    string recipient = OTAPI_Wrap::Instrmnt_GetRecipientUserID(cheque);
+    string recipient = OTAPI_Wrap::Instrmnt_GetRecipientNymID(cheque);
     if ("" == recipient) {
         otOut << "Error: cannot get recipient.\n";
         return -1;

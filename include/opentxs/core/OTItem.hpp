@@ -505,13 +505,13 @@ public:
     {
         GetStringFromType(GetType(), strType);
     }
-    OTItem(const Identifier& theUserID,
+    OTItem(const Identifier& theNymID,
            const OTItem& theOwner); // From owner we can get acct ID, server ID,
                                     // and transaction Num
-    OTItem(const Identifier& theUserID,
+    OTItem(const Identifier& theNymID,
            const OTTransaction& theOwner); // From owner we can get acct ID,
                                            // server ID, and transaction Num
-    OTItem(const Identifier& theUserID, const OTTransaction& theOwner,
+    OTItem(const Identifier& theNymID, const OTTransaction& theOwner,
            OTItem::itemType theType,
            const Identifier* pDestinationAcctID = nullptr);
 

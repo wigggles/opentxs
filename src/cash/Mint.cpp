@@ -863,7 +863,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
  // static method (call it without an instance, using notation:
  OTAccount::GenerateNewAccount)
- OTAccount * OTAccount::GenerateNewAccount(    const OTIdentifier & theUserID,
+ OTAccount * OTAccount::GenerateNewAccount(    const OTIdentifier & theNymID,
  const OTIdentifier & theNotaryID,
                                             const OTPseudonym & theServerNym,
  const OTMessage & theMessage,
@@ -918,7 +918,7 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     theNotaryID.GetString(theMessage.m_strNotaryID);
 
     /* OTAccount::
-     GenerateNewAccount(const OTIdentifier & theUserID, const OTIdentifier &
+     GenerateNewAccount(const OTIdentifier & theNymID, const OTIdentifier &
      theNotaryID,
                         const OTPseudonym & theServerNym, const OTMessage &
      theMessage,
