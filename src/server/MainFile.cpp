@@ -165,10 +165,10 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
         "<?xml version=\"1.0\"?>\n"
         "<notaryServer version=\"%s\"\n"
         " notaryID=\"%s\"\n"
-        " serverUserID=\"%s\"\n"
+        " serverNymID=\"%s\"\n"
         " transactionNum=\"%" PRId64 "\" >\n\n",
         OTCachedKey::It()->IsGenerated() ? "2.0" : version_.c_str(),
-        server_->m_strNotaryID.Get(), server_->m_strServerUserID.Get(),
+        server_->m_strNotaryID.Get(), server_->m_strServerNymID.Get(),
         server_->transactor_.transactionNumber());
 
     if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
@@ -298,7 +298,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
         "<?xml version=\"1.0\"?>\n"
         "<notaryServer version=\"2.0\"\n"
         " notaryID=\"%s\"\n"
-        " serverUserID=\"%s\"\n"
+        " serverNymID=\"%s\"\n"
         " transactionNum=\"%ld\" >\n"
         "\n"
         "<cachedKey>\n"
@@ -345,9 +345,9 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     // notaryServer.xml file
     // is saved. All we have left is the Nymfile, which we'll create.
 
-    const String strServerUserID(strNymID.c_str());
+    const String strServerNymID(strNymID.c_str());
 
-    server_->m_nymServer.SetIdentifier(strServerUserID);
+    server_->m_nymServer.SetIdentifier(strServerNymID);
 
     if (!server_->m_nymServer.Loadx509CertAndPrivateKey()) {
         OTLog::vOutput(0, "%s: Error loading server credentials, or "
@@ -440,8 +440,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                 if (strNodeName.Compare("notaryServer")) {
                     version_ = xml->getAttributeValue("version");
                     server_->m_strNotaryID = xml->getAttributeValue("notaryID");
-                    server_->m_strServerUserID =
-                        xml->getAttributeValue("serverUserID");
+                    server_->m_strServerNymID =
+                        xml->getAttributeValue("serverNymID");
 
                     String strTransactionNumber; // The server issues
                                                  // transaction numbers and
@@ -461,7 +461,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         version_.c_str(),
                         server_->transactor_.transactionNumber(),
                         server_->m_strNotaryID.Get(),
-                        server_->m_strServerUserID.Get());
+                        server_->m_strServerNymID.Get());
 
                     // This means this Nym has not been converted yet
                     // to master password.
@@ -660,9 +660,9 @@ bool MainFile::LoadServerUserAndContract()
     bool bSuccess = false;
     OT_ASSERT(!version_.empty());
     OT_ASSERT(server_->m_strNotaryID.Exists());
-    OT_ASSERT(server_->m_strServerUserID.Exists());
+    OT_ASSERT(server_->m_strServerNymID.Exists());
 
-    server_->m_nymServer.SetIdentifier(server_->m_strServerUserID);
+    server_->m_nymServer.SetIdentifier(server_->m_strServerNymID);
 
     if (!server_->m_nymServer.Loadx509CertAndPrivateKey(false)) {
         OTLog::vOutput(0, "%s: Error loading server certificate and keys.\n",

@@ -897,9 +897,9 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     OTAPI_Func ot_Msg;
 
     string strNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
-    string strUserID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
+    string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
 
-    OTAPI_Func theRequest(CREATE_MARKET_OFFER, strNotaryID, strUserID,
+    OTAPI_Func theRequest(CREATE_MARKET_OFFER, strNotaryID, strNymID,
                           ASSET_ACCT_ID, CURRENCY_ACCT_ID, scale, minIncrement,
                           quantity, price, bSelling);
 
@@ -2117,7 +2117,7 @@ else if (funcType == GET_CONTRACT)
 { OTAPI_Wrap::getInstrumentDefinition(notaryID, nymID, instrumentDefinitionID);
 }
 else if (funcType == ISSUE_ASSET_TYPE)
-{ OTAPI_Wrap::issueInstrumentDefinition(notaryID, nymID, strData); }
+{ OTAPI_Wrap::registerInstrumentDefinition(notaryID, nymID, strData); }
 else if (funcType == ISSUE_BASKET)
 { OTAPI_Wrap::issueBasket(notaryID, nymID, basket); }
 else if (funcType == EXCHANGE_CASH)

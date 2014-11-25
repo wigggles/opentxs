@@ -2172,12 +2172,12 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::Pending_GetNote),
                             "OT_API_Pending_GetNote");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::Transaction_GetSenderUserID),
-                            "OT_API_Transaction_GetSenderUserID");
+        theScript.chai->add(fun(&OTAPI_Wrap::Transaction_GetSenderNymID),
+                            "OT_API_Transaction_GetSenderNymID");
         theScript.chai->add(fun(&OTAPI_Wrap::Transaction_GetSenderAcctID),
                             "OT_API_Transaction_GetSenderAcctID");
-        theScript.chai->add(fun(&OTAPI_Wrap::Transaction_GetRecipientUserID),
-                            "OT_API_Transaction_GetRecipientUserID");
+        theScript.chai->add(fun(&OTAPI_Wrap::Transaction_GetRecipientNymID),
+                            "OT_API_Transaction_GetRecipientNymID");
         theScript.chai->add(fun(&OTAPI_Wrap::Transaction_GetRecipientAcctID),
                             "OT_API_Transaction_GetRecipientAcctID");
         theScript.chai->add(
@@ -2202,16 +2202,16 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
             fun(&OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID),
             "OT_API_Instrmnt_GetInstrumentDefinitionID");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetSenderUserID),
-                            "OT_API_Instrmnt_GetSenderUserID");
+        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetSenderNymID),
+                            "OT_API_Instrmnt_GetSenderNymID");
         theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetSenderAcctID),
                             "OT_API_Instrmnt_GetSenderAcctID");
-        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetRemitterUserID),
-                            "OT_API_Instrmnt_GetRemitterUserID");
+        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetRemitterNymID),
+                            "OT_API_Instrmnt_GetRemitterNymID");
         theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetRemitterAcctID),
                             "OT_API_Instrmnt_GetRemitterAcctID");
-        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetRecipientUserID),
-                            "OT_API_Instrmnt_GetRecipientUserID");
+        theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetRecipientNymID),
+                            "OT_API_Instrmnt_GetRecipientNymID");
         theScript.chai->add(fun(&OTAPI_Wrap::Instrmnt_GetRecipientAcctID),
                             "OT_API_Instrmnt_GetRecipientAcctID");
 
@@ -2272,8 +2272,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_getRequestNumber");
         theScript.chai->add(fun(&OTAPI_Wrap::getTransactionNumber),
                             "OT_API_getTransactionNumber");
-        theScript.chai->add(fun(&OTAPI_Wrap::issueInstrumentDefinition),
-                            "OT_API_issueInstrumentDefinition");
+        theScript.chai->add(fun(&OTAPI_Wrap::registerInstrumentDefinition),
+                            "OT_API_registerInstrumentDefinition");
         theScript.chai->add(fun(&OTAPI_Wrap::getInstrumentDefinition),
                             "OT_API_getInstrumentDefinition");
         theScript.chai->add(fun(&OTAPI_Wrap::getMint), "OT_API_getMint");

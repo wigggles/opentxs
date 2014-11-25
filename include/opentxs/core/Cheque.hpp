@@ -157,10 +157,10 @@ protected:
     bool m_bHasRemitter;
 
 public:
-    inline void SetAsVoucher(const Identifier& remitterUserID,
+    inline void SetAsVoucher(const Identifier& remitterNymID,
                              const Identifier& remitterAcctID)
     {
-        m_REMITTER_NYM_ID = remitterUserID;
+        m_REMITTER_NYM_ID = remitterNymID;
         m_REMITTER_ACCT_ID = remitterAcctID;
         m_bHasRemitter = true;
         m_strContractType = "VOUCHER";
@@ -173,7 +173,7 @@ public:
     {
         return m_lAmount;
     }
-    inline const Identifier& GetRecipientUserID() const
+    inline const Identifier& GetRecipientNymID() const
     {
         return m_RECIPIENT_NYM_ID;
     }
@@ -181,7 +181,7 @@ public:
     {
         return m_bHasRecipient;
     }
-    inline const Identifier& GetRemitterUserID() const
+    inline const Identifier& GetRemitterNymID() const
     {
         return m_REMITTER_NYM_ID;
     }
@@ -227,7 +227,7 @@ public:
      m_lTransactionNum; }
      inline const OTIdentifier&    GetSenderAcctID()           { return
      m_SENDER_ACCT_ID; }
-     inline const OTIdentifier&    GetSenderUserID()           { return
+     inline const OTIdentifier&    GetSenderNymID()           { return
      m_SENDER_NYM_ID; }
      */
 

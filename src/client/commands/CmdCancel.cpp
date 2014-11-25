@@ -374,8 +374,8 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
         }
 
         string nymID = isVoucher
-                           ? OTAPI_Wrap::Instrmnt_GetRemitterUserID(payment)
-                           : OTAPI_Wrap::Instrmnt_GetSenderUserID(payment);
+                           ? OTAPI_Wrap::Instrmnt_GetRemitterNymID(payment)
+                           : OTAPI_Wrap::Instrmnt_GetSenderNymID(payment);
         if ("" == nymID) {
             otOut << "Error: cannot retrieve sender nym.\n";
             retVal = -1;

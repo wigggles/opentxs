@@ -780,9 +780,10 @@ public:
         const OTPayment& THE_INSTRUMENT,
         const OTPayment* pINSTRUMENT_FOR_SENDER = nullptr) const;
 
-    EXPORT int32_t issueInstrumentDefinition(const Identifier& NOTARY_ID,
-                                             const Identifier& NYM_ID,
-                                             const String& THE_CONTRACT) const;
+    EXPORT int32_t
+        registerInstrumentDefinition(const Identifier& NOTARY_ID,
+                                     const Identifier& NYM_ID,
+                                     const String& THE_CONTRACT) const;
 
     EXPORT int32_t getInstrumentDefinition(
         const Identifier& NOTARY_ID, const Identifier& NYM_ID,

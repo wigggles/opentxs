@@ -242,10 +242,10 @@ int32_t CmdShowRecords::showRecords(const string& server, const string& mynym,
         string type =
             OTAPI_Wrap::Transaction_GetType(server, mynym, myacct, tx);
         string senderUser =
-            OTAPI_Wrap::Transaction_GetSenderUserID(server, mynym, myacct, tx);
+            OTAPI_Wrap::Transaction_GetSenderNymID(server, mynym, myacct, tx);
         string senderAcct =
             OTAPI_Wrap::Transaction_GetSenderAcctID(server, mynym, myacct, tx);
-        string recipientUser = OTAPI_Wrap::Transaction_GetRecipientUserID(
+        string recipientUser = OTAPI_Wrap::Transaction_GetRecipientNymID(
             server, mynym, myacct, tx);
         string recipientAcct = OTAPI_Wrap::Transaction_GetRecipientAcctID(
             server, mynym, myacct, tx);

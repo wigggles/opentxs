@@ -824,7 +824,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const OTTransaction& theTransaction)
 {
     const int64_t& lRequestNum = theTransaction.GetRequestNum();
     const String strNotaryID(theTransaction.GetPurportedNotaryID());
-    const String strNymID(theTransaction.GetUserID());
+    const String strNymID(theTransaction.GetNymID());
 
     return GetSentMessage(lRequestNum, strNotaryID, strNymID);
 }
@@ -835,7 +835,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction& theTransaction)
 {
     const int64_t& lRequestNum = theTransaction.GetRequestNum();
     const String strNotaryID(theTransaction.GetPurportedNotaryID());
-    const String strNymID(theTransaction.GetUserID());
+    const String strNymID(theTransaction.GetNymID());
 
     return RemoveSentMessage(lRequestNum, strNotaryID, strNymID);
 }

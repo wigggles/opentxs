@@ -705,7 +705,7 @@ bool OTCronItem::CanRemoveItemFromCron(Nym& theNym)
     // related closing number)
     // signed out to him on his last receipt...
     //
-    if (!theNym.CompareID(GetSenderUserID())) {
+    if (!theNym.CompareID(GetSenderNymID())) {
         otLog5 << "OTCronItem::CanRemoveItem: theNym is not the originator of "
                   "this CronItem. "
                   "(He could be a recipient though, so this is normal.)\n";
@@ -899,7 +899,7 @@ void OTCronItem::HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo)
         //
         Nym* pOriginator = nullptr;
 
-        if (pServerNym->CompareID(pOrigCronItem->GetSenderUserID())) {
+        if (pServerNym->CompareID(pOrigCronItem->GetSenderNymID())) {
             pOriginator = pServerNym; // Just in case the originator Nym is also
                                       // the server Nym.
         } // This MIGHT be unnecessary, since pRemover is(I think) already
@@ -912,7 +912,7 @@ void OTCronItem::HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo)
         //
         else if ((nullptr != pRemover) &&
                  (true ==
-                  pRemover->CompareID(pOrigCronItem->GetSenderUserID()))) {
+                  pRemover->CompareID(pOrigCronItem->GetSenderNymID()))) {
             pOriginator = pRemover; // <======== now both pointers are set (to
                                     // same Nym). DONE!
         }
@@ -929,12 +929,12 @@ void OTCronItem::HookRemovalFromCron(Nym* pRemover, int64_t newTransactionNo)
         // loaded, if it wasn't already...
         //
         if (nullptr == pOriginator) {
-            // GetSenderUserID() should be the same on THIS (updated version of
+            // GetSenderNymID() should be the same on THIS (updated version of
             // the same cron item)
             // but for whatever reason, I'm checking the nymID on the original
             // version. Sue me.
             //
-            const Identifier NYM_ID(pOrigCronItem->GetSenderUserID());
+            const Identifier NYM_ID(pOrigCronItem->GetSenderNymID());
 
             theOriginatorNym.SetIdentifier(NYM_ID);
 
@@ -1053,7 +1053,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         // remains ISSUED, until the final receipt itself is accepted during a
         // process inbox.
         //
-        const Identifier& ACTUAL_NYM_ID = GetSenderUserID();
+        const Identifier& ACTUAL_NYM_ID = GetSenderNymID();
         Nym* pActualNym = nullptr; // use this. DON'T use theActualNym.
 
         if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID))
@@ -1100,7 +1100,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
             }
         }
 
-        if (!DropFinalReceiptToNymbox(GetSenderUserID(), lNewTransactionNumber,
+        if (!DropFinalReceiptToNymbox(GetSenderNymID(), lNewTransactionNumber,
                                       strOrigCronItem, nullptr, // note
                                       pstrAttachment, pActualNym)) {
             otErr << __FUNCTION__
@@ -1118,7 +1118,7 @@ void OTCronItem::onFinalReceipt(OTCronItem& theOrigCronItem,
         // SENDER only. (CronItem has no recipient. That's in the subclass.)
         //
         if (!DropFinalReceiptToInbox(
-                GetSenderUserID(), GetSenderAcctID(), lNewTransactionNumber,
+                GetSenderNymID(), GetSenderAcctID(), lNewTransactionNumber,
                 lClosingNumber,           // The closing transaction number to
                                           // put on the receipt.
                 strOrigCronItem, nullptr, // note
@@ -1579,7 +1579,7 @@ bool OTCronItem::IsValidOpeningNumber(const int64_t& lOpeningNum) const
 
 int64_t OTCronItem::GetOpeningNumber(const Identifier& theNymID) const
 {
-    const Identifier& theSenderNymID = GetSenderUserID();
+    const Identifier& theSenderNymID = GetSenderNymID();
 
     if (theNymID == theSenderNymID) return GetOpeningNum();
 
@@ -1611,7 +1611,7 @@ void OTCronItem::HarvestOpeningNumber(Nym& theNym)
     // it here.
     // Subclasses will have to override this function for recipients, etc.
     //
-    if (theNym.CompareID(GetSenderUserID())) {
+    if (theNym.CompareID(GetSenderNymID())) {
         // This function will only "add it back" if it was really there in the
         // first place.
         // (Verifies it is on issued list first, before adding to available
@@ -1649,7 +1649,7 @@ void OTCronItem::HarvestClosingNumbers(Nym& theNym)
     // numbers from the "Closing" list, which is only for the sender's numbers.
     // Subclasses will have to override this function for recipients, etc.
     //
-    if (theNym.CompareID(GetSenderUserID())) {
+    if (theNym.CompareID(GetSenderNymID())) {
         for (int32_t i = 0; i < GetCountClosingNumbers(); i++) {
             // This function will only "add it back" if it was really there in
             // the first place.

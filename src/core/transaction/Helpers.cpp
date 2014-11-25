@@ -365,7 +365,7 @@ bool VerifyBoxReceiptExists(
     const String strNotaryID(NOTARY_ID),
         strUserOrAcctID(0 == lLedgerType ? NYM_ID : ACCOUNT_ID); // (For Nymbox
                                                                  // aka type 0,
-                                                                 // the UserID
+                                                                 // the NymID
                                                                  // will be
                                                                  // here.)
     // --------------------------------------------------------------------

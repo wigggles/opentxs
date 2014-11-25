@@ -247,7 +247,7 @@ public:
     // then set right when a MoveAcctFunds() or StashAcctFunds() is being
     // performed.
     //
-    const String& GetLastSenderUserID() const
+    const String& GetLastSenderNymID() const
     {
         return m_strLastSenderUser;
     }
@@ -255,7 +255,7 @@ public:
     {
         return m_strLastSenderAcct;
     }
-    const String& GetLastRecipientUserID() const
+    const String& GetLastRecipientNymID() const
     {
         return m_strLastRecipientUser;
     }
@@ -374,7 +374,7 @@ public:
     //
     EXPORT void PrepareToActivate(const int64_t& lOpeningTransNo,
                                   const int64_t& lClosingTransNo,
-                                  const Identifier& theUserID,
+                                  const Identifier& theNymID,
                                   const Identifier& theAcctID);
 
     //

@@ -178,8 +178,8 @@ public:
 
 private:
     bool SendInstrumentToNym(const Identifier& notaryID,
-                             const Identifier& senderUserId,
-                             const Identifier& recipientUserId,
+                             const Identifier& senderNymID,
+                             const Identifier& recipientNymID,
                              Message* msg = nullptr,
                              const OTPayment* payment = nullptr,
                              const char* command = nullptr);
@@ -187,8 +187,8 @@ private:
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
     bool DropMessageToNymbox(const Identifier& notaryID,
-                             const Identifier& senderUserId,
-                             const Identifier& recipientUserId,
+                             const Identifier& senderNymID,
+                             const Identifier& recipientNymID,
                              OTTransaction::transactionType transactionType,
                              Message* msg = nullptr,
                              const String* messageString = nullptr,
@@ -210,7 +210,7 @@ private:
     // A hash of the server contract
     String m_strNotaryID;
     // A hash of the public key that signed the server contract
-    String m_strServerUserID;
+    String m_strServerNymID;
     // This is the server's own contract, containing its public key and
     // connect info.
     std::unique_ptr<OTServerContract> m_pServerContract;

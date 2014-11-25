@@ -150,9 +150,8 @@ void Cheque::UpdateContents()
 {
     String INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         NOTARY_ID(GetNotaryID()), SENDER_ACCT_ID(GetSenderAcctID()),
-        SENDER_NYM_ID(GetSenderUserID()),
-        RECIPIENT_NYM_ID(GetRecipientUserID()),
-        REMITTER_NYM_ID(GetRemitterUserID()),
+        SENDER_NYM_ID(GetSenderNymID()), RECIPIENT_NYM_ID(GetRecipientNymID()),
+        REMITTER_NYM_ID(GetRemitterNymID()),
         REMITTER_ACCT_ID(GetRemitterAcctID());
 
     int64_t lFrom = OTTimeGetSecondsFromTime(GetValidFrom());
@@ -170,11 +169,11 @@ void Cheque::UpdateContents()
         " transactionNum=\"%" PRId64 "\"\n"
         " notaryID=\"%s\"\n"
         " senderAcctID=\"%s\"\n"
-        " senderUserID=\"%s\"\n"
+        " senderNymID=\"%s\"\n"
         " hasRecipient=\"%s\"\n"
-        " recipientUserID=\"%s\"\n"
+        " recipientNymID=\"%s\"\n"
         " hasRemitter=\"%s\"\n"
-        " remitterUserID=\"%s\"\n"
+        " remitterNymID=\"%s\"\n"
         " remitterAcctID=\"%s\"\n"
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
@@ -234,29 +233,29 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
             xml->getAttributeValue("instrumentDefinitionID")),
             strNotaryID(xml->getAttributeValue("notaryID")),
             strSenderAcctID(xml->getAttributeValue("senderAcctID")),
-            strSenderUserID(xml->getAttributeValue("senderUserID")),
-            strRecipientUserID(xml->getAttributeValue("recipientUserID")),
-            strRemitterUserID(xml->getAttributeValue("remitterUserID")),
+            strSenderNymID(xml->getAttributeValue("senderNymID")),
+            strRecipientNymID(xml->getAttributeValue("recipientNymID")),
+            strRemitterNymID(xml->getAttributeValue("remitterNymID")),
             strRemitterAcctID(xml->getAttributeValue("remitterAcctID"));
 
         Identifier INSTRUMENT_DEFINITION_ID(strInstrumentDefinitionID),
             NOTARY_ID(strNotaryID), SENDER_ACCT_ID(strSenderAcctID),
-            SENDER_NYM_ID(strSenderUserID);
+            SENDER_NYM_ID(strSenderNymID);
 
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetNotaryID(NOTARY_ID);
         SetSenderAcctID(SENDER_ACCT_ID);
-        SetSenderUserID(SENDER_NYM_ID);
+        SetSenderNymID(SENDER_NYM_ID);
 
         // Recipient ID
         if (m_bHasRecipient)
-            m_RECIPIENT_NYM_ID.SetString(strRecipientUserID);
+            m_RECIPIENT_NYM_ID.SetString(strRecipientNymID);
         else
             m_RECIPIENT_NYM_ID.Release();
 
         // Remitter ID (for vouchers)
         if (m_bHasRemitter) {
-            m_REMITTER_NYM_ID.SetString(strRemitterUserID);
+            m_REMITTER_NYM_ID.SetString(strRemitterNymID);
             m_REMITTER_ACCT_ID.SetString(strRemitterAcctID);
         }
         else {
@@ -272,13 +271,13 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
                << "\n NotaryID: " << strNotaryID
                << "\n"
                   " senderAcctID: " << strSenderAcctID
-               << "\n senderUserID: " << strSenderUserID << "\n "
-                                                            " Has Recipient? "
+               << "\n senderNymID: " << strSenderNymID << "\n "
+                                                          " Has Recipient? "
                << (m_bHasRecipient ? "Yes" : "No")
-               << ". If yes, UserID of Recipient: " << strRecipientUserID
+               << ". If yes, NymID of Recipient: " << strRecipientNymID
                << "\n"
                   " Has Remitter? " << (m_bHasRemitter ? "Yes" : "No")
-               << ". If yes, UserID/Acct of Remitter: " << strRemitterUserID
+               << ". If yes, NymID/Acct of Remitter: " << strRemitterNymID
                << " / " << strRemitterAcctID << "\n";
 
         nReturnVal = 1;
@@ -348,7 +347,7 @@ bool Cheque::IssueCheque(
     SetTransactionNum(lTransactionNum);
 
     SetSenderAcctID(SENDER_ACCT_ID);
-    SetSenderUserID(SENDER_NYM_ID);
+    SetSenderNymID(SENDER_NYM_ID);
 
     if (nullptr == pRECIPIENT_NYM_ID) {
         m_bHasRecipient = false;

@@ -180,7 +180,7 @@ Account::Account(const Identifier& nymID, const Identifier& notaryID)
     , markForDeletion_(false)
 {
     InitAccount();
-    SetUserID(nymID);
+    SetNymID(nymID);
     SetRealNotaryID(notaryID);
     SetPurportedNotaryID(notaryID);
 }
@@ -226,34 +226,32 @@ char const* Account::_GetTypeString(AccountType accountType)
 // Caller responsible to delete.
 OTLedger* Account::LoadInbox(Nym& nym) const
 {
-    auto* box =
-        new OTLedger(GetUserID(), GetRealAccountID(), GetRealNotaryID());
+    auto* box = new OTLedger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(box != nullptr);
 
     if (box->LoadInbox() && box->VerifyAccount(nym)) {
         return box;
     }
 
-    String strUserID(GetUserID()), strAcctID(GetRealAccountID());
+    String strNymID(GetNymID()), strAcctID(GetRealAccountID());
     otInfo << "Unable to load or verify inbox:\n" << strAcctID
-           << "\n For user:\n" << strUserID << "\n";
+           << "\n For user:\n" << strNymID << "\n";
     return nullptr;
 }
 
 // Caller responsible to delete.
 OTLedger* Account::LoadOutbox(Nym& nym) const
 {
-    auto* box =
-        new OTLedger(GetUserID(), GetRealAccountID(), GetRealNotaryID());
+    auto* box = new OTLedger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(nullptr != box);
 
     if (box->LoadOutbox() && box->VerifyAccount(nym)) {
         return box;
     }
 
-    String strUserID(GetUserID()), strAcctID(GetRealAccountID());
+    String strNymID(GetNymID()), strAcctID(GetRealAccountID());
     otInfo << "Unable to load or verify outbox:\n" << strAcctID
-           << "\n For user:\n" << strUserID << "\n";
+           << "\n For user:\n" << strNymID << "\n";
     return nullptr;
 }
 
@@ -324,9 +322,9 @@ bool Account::GetInboxHash(Identifier& output)
         output = inboxHash_;
         return true;
     }
-    else if (!GetUserID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
+    else if (!GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
                !GetRealNotaryID().IsEmpty()) {
-        OTLedger inbox(GetUserID(), GetRealAccountID(), GetRealNotaryID());
+        OTLedger inbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
             SetInboxHash(output);
@@ -350,9 +348,9 @@ bool Account::GetOutboxHash(Identifier& output)
         output = outboxHash_;
         return true;
     }
-    else if (!GetUserID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
+    else if (!GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
                !GetRealNotaryID().IsEmpty()) {
-        OTLedger outbox(GetUserID(), GetRealAccountID(), GetRealNotaryID());
+        OTLedger outbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
             SetOutboxHash(output);
@@ -477,16 +475,16 @@ bool Account::VerifyOwner(const Nym& candidate) const
     Identifier ID_CANDIDATE;
     // ID_CANDIDATE now contains the ID of the Nym we're testing.
     candidate.GetIdentifier(ID_CANDIDATE);
-    return m_AcctUserID == ID_CANDIDATE;
+    return m_AcctNymID == ID_CANDIDATE;
 }
 
 // TODO: when entities and roles are added, probably more will go here.
 bool Account::VerifyOwnerByID(const Identifier& nymId) const
 {
-    return nymId == m_AcctUserID;
+    return nymId == m_AcctNymID;
 }
 
-// Let's say you don't have or know the UserID, and you just want to load the
+// Let's say you don't have or know the NymID, and you just want to load the
 // damn thing up.
 // Then call this function. It will set nymID and server ID for you.
 Account* Account::LoadExistingAccount(const Identifier& accountId,
@@ -621,10 +619,10 @@ bool Account::GenerateNewAccount(const Nym& server, const Message& message,
     // basket, basketsub, mint, voucher, and stash
     // accounts are all "owned" by the server.
     if (IsInternalServerAcct()) {
-        server.GetIdentifier(m_AcctUserID);
+        server.GetIdentifier(m_AcctNymID);
     }
     else {
-        m_AcctUserID.SetString(message.m_strNymID);
+        m_AcctNymID.SetString(message.m_strNymID);
     }
 
     acctInstrumentDefinitionID_.SetString(message.m_strInstrumentDefinitionID);
@@ -684,7 +682,7 @@ bool Account::DisplayStatistics(String& contents) const
 {
     String strAccountID(GetPurportedAccountID());
     String strNotaryID(GetPurportedNotaryID());
-    String strUserID(GetUserID());
+    String strNymID(GetNymID());
     String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
 
     String acctType;
@@ -698,9 +696,8 @@ bool Account::DisplayStatistics(String& contents) const
                          " instrumentDefinitionID: %s\n"
                          "\n",
                          acctType.Get(), m_strName.Get(), balanceAmount_.Get(),
-                         balanceDate_.Get(), strAccountID.Get(),
-                         strUserID.Get(), strNotaryID.Get(),
-                         strInstrumentDefinitionID.Get());
+                         balanceDate_.Get(), strAccountID.Get(), strNymID.Get(),
+                         strNotaryID.Get(), strInstrumentDefinitionID.Get());
 
     return true;
 }
@@ -709,7 +706,7 @@ bool Account::SaveContractWallet(String& contents) const
 {
     String strAccountID(GetPurportedAccountID());
     String strNotaryID(GetPurportedNotaryID());
-    String strUserID(GetUserID());
+    String strNymID(GetNymID());
     String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
 
     String acctType;
@@ -730,7 +727,7 @@ bool Account::SaveContractWallet(String& contents) const
         "<!-- instrumentDefinitionID: %s -->\n\n",
         balanceAmount_.Get(), balanceDate_.Get(), acctType.Get(),
         m_strName.Exists() ? ascName.Get() : "", strAccountID.Get(),
-        strUserID.Get(), strNotaryID.Get(), strInstrumentDefinitionID.Get());
+        strNymID.Get(), strNotaryID.Get(), strInstrumentDefinitionID.Get());
     return true;
 }
 
@@ -751,7 +748,7 @@ void Account::UpdateContents()
 
     String ACCOUNT_ID(GetPurportedAccountID());
     String NOTARY_ID(GetPurportedNotaryID());
-    String NYM_ID(GetUserID());
+    String NYM_ID(GetNymID());
 
     String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
@@ -840,20 +837,19 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         }
         String strAccountID(xml->getAttributeValue("accountID"));
         String strNotaryID(xml->getAttributeValue("notaryID"));
-        String strAcctUserID(xml->getAttributeValue("nymID"));
+        String strAcctNymID(xml->getAttributeValue("nymID"));
 
         Identifier ACCOUNT_ID(strAccountID);
         Identifier NOTARY_ID(strNotaryID);
-        Identifier NYM_ID(strAcctUserID);
+        Identifier NYM_ID(strAcctNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);
         SetPurportedNotaryID(NOTARY_ID);
-        SetUserID(NYM_ID);
+        SetNymID(NYM_ID);
 
         String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
         otLog3 << "\n\nAccount Type: " << acctType
-               << "\nAccountID: " << strAccountID
-               << "\nUserID: " << strAcctUserID
+               << "\nAccountID: " << strAccountID << "\nNymID: " << strAcctNymID
                << "\n"
                   "InstrumentDefinitionID: " << strInstrumentDefinitionID
                << "\nNotaryID: " << strNotaryID << "\n";

@@ -216,11 +216,11 @@ int32_t CmdShowPayment::run(string server, string mynym, string index,
     int64_t amount = OTAPI_Wrap::Instrmnt_GetAmount(payment);
     string type = OTAPI_Wrap::Instrmnt_GetType(payment);
     string assetType = OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(payment);
-    string senderUser = OTAPI_Wrap::Instrmnt_GetSenderUserID(payment);
+    string senderUser = OTAPI_Wrap::Instrmnt_GetSenderNymID(payment);
     string senderAcct = OTAPI_Wrap::Instrmnt_GetSenderAcctID(payment);
-    string recipientUser = OTAPI_Wrap::Instrmnt_GetRecipientUserID(payment);
+    string recipientUser = OTAPI_Wrap::Instrmnt_GetRecipientNymID(payment);
     string recipientAcct = OTAPI_Wrap::Instrmnt_GetRecipientAcctID(payment);
-    string remitterUser = OTAPI_Wrap::Instrmnt_GetRemitterUserID(payment);
+    string remitterUser = OTAPI_Wrap::Instrmnt_GetRemitterNymID(payment);
     string remitterAcct = OTAPI_Wrap::Instrmnt_GetRemitterAcctID(payment);
 
     string memo = OTAPI_Wrap::Instrmnt_GetMemo(payment);

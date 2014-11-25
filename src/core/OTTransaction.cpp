@@ -599,7 +599,7 @@ bool OTTransaction::HarvestOpeningNumber(
 
             const Identifier theNymID(theNym);
 
-            // Assumption: if theNymID matches GetUserID(), then theNym
+            // Assumption: if theNymID matches GetNymID(), then theNym
             // must be the SENDER / PAYER!
             // Else, he must be RECIPIENT / PAYEE, instead!
             // This assumption is not for proving, since the harvest functions
@@ -608,7 +608,7 @@ bool OTTransaction::HarvestOpeningNumber(
             // logic to use about which harvest
             // functions to call.
             //
-            if (theNymID == GetUserID()) // theNym is SENDER / PAYER
+            if (theNymID == GetNymID()) // theNym is SENDER / PAYER
             {
                 // If the server reply message was unambiguously a FAIL, that
                 // means the opening number is STILL GOOD.
@@ -1470,10 +1470,10 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     const String strNotaryID(GetRealNotaryID()), strReceiptID(NYM_ID);
 
-    //    if (NYM_ID != GetUserID())
+    //    if (NYM_ID != GetNymID())
     //    {
     //        otErr << "*** OTIdentifier NYM_ID(OTPseudonym THE_NYM) doesn't
-    // match OTTransactionType::GetUserID() in
+    // match OTTransactionType::GetNymID() in
     // OTTransaction::VerifyBalanceReceipt\n";
     //        return false;
     //    }
@@ -3169,7 +3169,7 @@ bool OTTransaction::VerifyItems(Nym& theNym)
 {
     const Identifier NYM_ID(theNym);
 
-    if (NYM_ID != GetUserID()) {
+    if (NYM_ID != GetNymID()) {
         otErr << "Wrong owner passed to OTTransaction::VerifyItems\n";
         return false;
     }
@@ -3191,7 +3191,7 @@ bool OTTransaction::VerifyItems(Nym& theNym)
 
         if (GetTransactionNum() != pItem->GetTransactionNum()) return false;
 
-        if (NYM_ID != pItem->GetUserID()) return false;
+        if (NYM_ID != pItem->GetNymID()) return false;
 
         if (!pItem->VerifySignature(theNym)) // NO need to call
                                              // VerifyAccount since
@@ -3236,7 +3236,7 @@ OTTransaction::OTTransaction()
     InitTransaction();
 }
 
-// Let's say you never knew their UserID, you just loaded the inbox based on
+// Let's say you never knew their NymID, you just loaded the inbox based on
 // AccountID.
 // Now you want to add a transaction to that inbox. Just pass the inbox into the
 // transaction constructor (below) and it will get the rest of the info it needs
@@ -3244,7 +3244,7 @@ OTTransaction::OTTransaction()
 // the inbox itself (which you presumably just read from a file or socket.)
 //
 OTTransaction::OTTransaction(const OTLedger& theOwner)
-    : OTTransactionType(theOwner.GetUserID(), theOwner.GetPurportedAccountID(),
+    : OTTransactionType(theOwner.GetNymID(), theOwner.GetPurportedAccountID(),
                         theOwner.GetPurportedNotaryID())
     , m_pParent(&theOwner)
     , m_bIsAbbreviated(false)
@@ -3271,10 +3271,10 @@ OTTransaction::OTTransaction(const OTLedger& theOwner)
 // ledger is passed in.
 //      Then it can grab whatever it needs from those. I'm doing something
 // similar in OTItem
-OTTransaction::OTTransaction(const Identifier& theUserID,
+OTTransaction::OTTransaction(const Identifier& theNymID,
                              const Identifier& theAccountID,
                              const Identifier& theNotaryID)
-    : OTTransactionType(theUserID, theAccountID, theNotaryID)
+    : OTTransactionType(theNymID, theAccountID, theNotaryID)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3295,11 +3295,11 @@ OTTransaction::OTTransaction(const Identifier& theUserID,
     // as a WARNING to you!
 }
 
-OTTransaction::OTTransaction(const Identifier& theUserID,
+OTTransaction::OTTransaction(const Identifier& theNymID,
                              const Identifier& theAccountID,
                              const Identifier& theNotaryID,
                              int64_t lTransactionNum)
-    : OTTransactionType(theUserID, theAccountID, theNotaryID, lTransactionNum)
+    : OTTransactionType(theNymID, theAccountID, theNotaryID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -3343,14 +3343,14 @@ void OTTransaction::InitTransaction()
 // See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 //
 OTTransaction::OTTransaction(
-    const Identifier& theUserID, const Identifier& theAccountID,
+    const Identifier& theNymID, const Identifier& theAccountID,
     const Identifier& theNotaryID, const int64_t& lNumberOfOrigin,
     const int64_t& lTransactionNum, const int64_t& lInRefTo,
     const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
     transactionType theType, const String& strHash, const int64_t& lAdjustment,
     const int64_t& lDisplayValue, const int64_t& lClosingNum,
     const int64_t& lRequestNum, bool bReplyTransSuccess, OTNumList* pNumList)
-    : OTTransactionType(theUserID, theAccountID, theNotaryID, lTransactionNum)
+    : OTTransactionType(theNymID, theAccountID, theNotaryID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(true)
     , m_lAbbrevAmount(lAdjustment)
@@ -3431,7 +3431,7 @@ OTTransaction::OTTransaction(
     SetRealNotaryID(theNotaryID);
     SetPurportedNotaryID(theNotaryID);
 
-    SetUserID(theUserID);
+    SetNymID(theNymID);
 
     if (nullptr != pNumList) m_Numlist = *pNumList;
 }
@@ -3440,7 +3440,7 @@ OTTransaction::OTTransaction(
 // OTIdentifier& theNotaryID, int64_t lTransactionNum);
 //
 // static
-// OTTransaction * GenerateTransaction(const OTIdentifier& theUserID, const
+// OTTransaction * GenerateTransaction(const OTIdentifier& theNymID, const
 // OTIdentifier& theAccountID,
 //                                    const OTIdentifier& theNotaryID,
 // transactionType theType,
@@ -3455,7 +3455,7 @@ OTTransaction* OTTransaction::GenerateTransaction(const OTLedger& theOwner,
                                                   int64_t lTransactionNum)
 {
     OTTransaction* pTransaction = GenerateTransaction(
-        theOwner.GetUserID(), theOwner.GetPurportedAccountID(),
+        theOwner.GetNymID(), theOwner.GetPurportedAccountID(),
         theOwner.GetPurportedNotaryID(), theType, lTransactionNum);
     if (nullptr != pTransaction) pTransaction->SetParent(theOwner);
 
@@ -3464,12 +3464,12 @@ OTTransaction* OTTransaction::GenerateTransaction(const OTLedger& theOwner,
 
 // static
 OTTransaction* OTTransaction::GenerateTransaction(
-    const Identifier& theUserID, const Identifier& theAccountID,
+    const Identifier& theNymID, const Identifier& theAccountID,
     const Identifier& theNotaryID, transactionType theType,
     int64_t lTransactionNum)
 {
-    OTTransaction* pTransaction = new OTTransaction(
-        theUserID, theAccountID, theNotaryID, lTransactionNum);
+    OTTransaction* pTransaction =
+        new OTTransaction(theNymID, theAccountID, theNotaryID, lTransactionNum);
     OT_ASSERT(nullptr != pTransaction);
 
     pTransaction->m_Type = theType;
@@ -4151,14 +4151,14 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         const String strAcctID = xml->getAttributeValue("accountID");
         const String strNotaryID = xml->getAttributeValue("notaryID");
-        const String strUserID = xml->getAttributeValue("nymID");
+        const String strNymID = xml->getAttributeValue("nymID");
 
         if (!strAcctID.Exists() || !strNotaryID.Exists() ||
-            !strUserID.Exists()) {
+            !strNymID.Exists()) {
             otOut
                 << "OTTransaction::ProcessXMLNode: Failure: missing strAcctID ("
                 << strAcctID << ") or strNotaryID (" << strNotaryID
-                << ") or strUserID (" << strUserID << "). \n";
+                << ") or strNymID (" << strNymID << "). \n";
             return (-1);
         }
 
@@ -4203,13 +4203,13 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         Identifier ACCOUNT_ID(strAcctID), NOTARY_ID(strNotaryID),
-            NYM_ID(strUserID);
+            NYM_ID(strNymID);
 
         SetPurportedAccountID(
             ACCOUNT_ID); // GetPurportedAccountID() const { return m_AcctID; }
         SetPurportedNotaryID(NOTARY_ID); // GetPurportedNotaryID() const {
                                          // return m_AcctNotaryID; }
-        SetUserID(NYM_ID);
+        SetNymID(NYM_ID);
 
         //  m_bLoadSecurely defaults to true.
         // Normally the RealAccountID and RealNotaryID are set from above,
@@ -4296,7 +4296,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1); // error condition
         }
         else {
-            OTItem* pItem = new OTItem(GetUserID(), *this);
+            OTItem* pItem = new OTItem(GetNymID(), *this);
             OT_ASSERT(nullptr != pItem);
 
             if (!m_bLoadSecurely) pItem->SetLoadInsecure();
@@ -4391,7 +4391,7 @@ void OTTransaction::UpdateContents()
     const char* pTypeStr = GetTypeString(); // TYPE
     const String strType((nullptr != pTypeStr) ? pTypeStr : "error_state"),
         strAcctID(GetPurportedAccountID()), strNotaryID(GetPurportedNotaryID()),
-        strUserID(GetUserID());
+        strNymID(GetNymID());
 
     m_DATE_SIGNED = OTTimeGetCurrentTime(); // We store the timestamp of when
                                             // this transaction was signed.
@@ -4409,7 +4409,7 @@ void OTTransaction::UpdateContents()
                               " transactionNum=\"%" PRId64 "\"\n%s"
                               " inReferenceTo=\"%" PRId64 "\" >\n\n",
                               strType.Get(), strCancelled.Get(), lDateSigned,
-                              strAcctID.Get(), strUserID.Get(),
+                              strAcctID.Get(), strNymID.Get(),
                               strNotaryID.Get(), strRequestNum.Get(),
                               GetRawNumberOfOrigin(), GetTransactionNum(),
                               strListOfBlanks.Get(), GetReferenceToNum());
@@ -4758,7 +4758,7 @@ payments.
  */
 void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
 {
-    // Have some kind of check in here, whether the AcctID and UserID match.
+    // Have some kind of check in here, whether the AcctID and NymID match.
     // Some recordBoxes DO, and some DON'T (the different kinds store different
     // kinds of receipts. See above comment.)
 
@@ -6022,7 +6022,7 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
 // 4.       pItem1->SetAttachment(strOffer);
 //
 
-bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
+bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6059,15 +6059,15 @@ bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
 
             if (nullptr != pSmart) // if it's a smart contract...
             {
-                if (!pSmart->GetLastSenderUserID().Exists()) return false;
+                if (!pSmart->GetLastSenderNymID().Exists()) return false;
 
-                theReturnID.SetString(pSmart->GetLastSenderUserID());
+                theReturnID.SetString(pSmart->GetLastSenderNymID());
                 return true;
             }
             else if (nullptr != pCronItem) // else if it is any other kind of
                                              // cron item...
             {
-                theReturnID = pCronItem->GetSenderUserID();
+                theReturnID = pCronItem->GetSenderNymID();
                 return true;
             }
             else {
@@ -6149,7 +6149,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
     }
 
     if (nullptr == pOriginalItem) {
-        otErr << "OTTransaction::GetSenderUserIDForDisplay: original item not "
+        otErr << "OTTransaction::GetSenderNymIDForDisplay: original item not "
                  "found. Should never happen.\n";
         return false; // Should never happen, since we always expect one based
                       // on the transaction type.
@@ -6187,9 +6187,9 @@ bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
             }
             else {
                 if (OTTransaction::chequeReceipt == GetType())
-                    theReturnID = theCheque.GetSenderUserID();
+                    theReturnID = theCheque.GetSenderNymID();
                 else
-                    theReturnID = theCheque.GetRemitterUserID();
+                    theReturnID = theCheque.GetRemitterNymID();
 
                 bSuccess = true;
             }
@@ -6202,7 +6202,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
             otErr << "Wrong item type attached to pending transfer\n";
         }
         else {
-            theReturnID = pOriginalItem->GetUserID();
+            theReturnID = pOriginalItem->GetNymID();
             bSuccess = true;
         }
         break;
@@ -6213,7 +6213,7 @@ bool OTTransaction::GetSenderUserIDForDisplay(Identifier& theReturnID)
     return bSuccess;
 }
 
-bool OTTransaction::GetRecipientUserIDForDisplay(Identifier& theReturnID)
+bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6249,15 +6249,15 @@ bool OTTransaction::GetRecipientUserIDForDisplay(Identifier& theReturnID)
 
             if (nullptr != pSmart) // if it's a smart contract...
             {
-                if (!pSmart->GetLastRecipientUserID().Exists()) return false;
+                if (!pSmart->GetLastRecipientNymID().Exists()) return false;
 
-                theReturnID.SetString(pSmart->GetLastRecipientUserID());
+                theReturnID.SetString(pSmart->GetLastRecipientNymID());
                 return true;
             }
             else if (nullptr !=
                        pPlan) // else if it is any other kind of cron item...
             {
-                theReturnID = pPlan->GetRecipientUserID();
+                theReturnID = pPlan->GetRecipientNymID();
                 return true;
             }
             else {
@@ -6347,11 +6347,11 @@ bool OTTransaction::GetRecipientUserIDForDisplay(Identifier& theReturnID)
             return false;
         }
         else {
-            theReturnID = pOriginalItem->GetUserID(); // Even though a transfer
-                                                      // has no recipient user
-                                                      // (just a recipient acct)
-                                                      // I still get the User ID
-                                                      // when he accepts it!
+            theReturnID = pOriginalItem->GetNymID(); // Even though a transfer
+                                                     // has no recipient user
+                                                     // (just a recipient acct)
+                                                     // I still get the User ID
+                                                     // when he accepts it!
             bSuccess = true;
         }
     } break;
@@ -6386,15 +6386,15 @@ bool OTTransaction::GetRecipientUserIDForDisplay(Identifier& theReturnID)
                       << "\n";
             }
             else if (theCheque.HasRecipient()) {
-                theReturnID = theCheque.GetRecipientUserID();
+                theReturnID = theCheque.GetRecipientNymID();
                 bSuccess = true;
             }
             else {
                 theReturnID =
-                    pOriginalItem->GetUserID(); // Even though the cheque
-                                                // has no recipient, I
-                                                // still get the User ID
-                                                // when he deposits it!
+                    pOriginalItem->GetNymID(); // Even though the cheque
+                                               // has no recipient, I
+                                               // still get the User ID
+                                               // when he deposits it!
                 bSuccess = true;
             }
         }

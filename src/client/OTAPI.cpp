@@ -834,10 +834,10 @@ std::string OTAPI_Wrap::Instrmnt_GetInstrumentDefinitionID(
     return Exec()->Instrmnt_GetInstrumentDefinitionID(THE_INSTRUMENT);
 }
 
-std::string OTAPI_Wrap::Instrmnt_GetRemitterUserID(
+std::string OTAPI_Wrap::Instrmnt_GetRemitterNymID(
     const std::string& THE_INSTRUMENT)
 {
-    return Exec()->Instrmnt_GetRemitterUserID(THE_INSTRUMENT);
+    return Exec()->Instrmnt_GetRemitterNymID(THE_INSTRUMENT);
 }
 
 std::string OTAPI_Wrap::Instrmnt_GetRemitterAcctID(
@@ -846,10 +846,10 @@ std::string OTAPI_Wrap::Instrmnt_GetRemitterAcctID(
     return Exec()->Instrmnt_GetRemitterAcctID(THE_INSTRUMENT);
 }
 
-std::string OTAPI_Wrap::Instrmnt_GetSenderUserID(
+std::string OTAPI_Wrap::Instrmnt_GetSenderNymID(
     const std::string& THE_INSTRUMENT)
 {
-    return Exec()->Instrmnt_GetSenderUserID(THE_INSTRUMENT);
+    return Exec()->Instrmnt_GetSenderNymID(THE_INSTRUMENT);
 }
 
 std::string OTAPI_Wrap::Instrmnt_GetSenderAcctID(
@@ -858,10 +858,10 @@ std::string OTAPI_Wrap::Instrmnt_GetSenderAcctID(
     return Exec()->Instrmnt_GetSenderAcctID(THE_INSTRUMENT);
 }
 
-std::string OTAPI_Wrap::Instrmnt_GetRecipientUserID(
+std::string OTAPI_Wrap::Instrmnt_GetRecipientNymID(
     const std::string& THE_INSTRUMENT)
 {
-    return Exec()->Instrmnt_GetRecipientUserID(THE_INSTRUMENT);
+    return Exec()->Instrmnt_GetRecipientNymID(THE_INSTRUMENT);
 }
 
 std::string OTAPI_Wrap::Instrmnt_GetRecipientAcctID(
@@ -1708,20 +1708,20 @@ std::string OTAPI_Wrap::Transaction_GetVoucher(
                                           THE_TRANSACTION);
 }
 
-std::string OTAPI_Wrap::Transaction_GetSenderUserID(
+std::string OTAPI_Wrap::Transaction_GetSenderNymID(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetSenderUserID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
-                                               THE_TRANSACTION);
+    return Exec()->Transaction_GetSenderNymID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
+                                              THE_TRANSACTION);
 }
 
-std::string OTAPI_Wrap::Transaction_GetRecipientUserID(
+std::string OTAPI_Wrap::Transaction_GetRecipientNymID(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& ACCOUNT_ID, const std::string& THE_TRANSACTION)
 {
-    return Exec()->Transaction_GetRecipientUserID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
-                                                  THE_TRANSACTION);
+    return Exec()->Transaction_GetRecipientNymID(NOTARY_ID, NYM_ID, ACCOUNT_ID,
+                                                 THE_TRANSACTION);
 }
 
 std::string OTAPI_Wrap::Transaction_GetSenderAcctID(
@@ -2093,11 +2093,12 @@ int32_t OTAPI_Wrap::getRequestNumber(const std::string& NOTARY_ID,
     return Exec()->getRequestNumber(NOTARY_ID, NYM_ID);
 }
 
-int32_t OTAPI_Wrap::issueInstrumentDefinition(const std::string& NOTARY_ID,
-                                              const std::string& NYM_ID,
-                                              const std::string& THE_CONTRACT)
+int32_t OTAPI_Wrap::registerInstrumentDefinition(
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& THE_CONTRACT)
 {
-    return Exec()->issueInstrumentDefinition(NOTARY_ID, NYM_ID, THE_CONTRACT);
+    return Exec()->registerInstrumentDefinition(NOTARY_ID, NYM_ID,
+                                                THE_CONTRACT);
 }
 
 int32_t OTAPI_Wrap::getInstrumentDefinition(

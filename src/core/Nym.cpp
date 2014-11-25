@@ -1266,7 +1266,7 @@ void Nym::ClearOutpayments()
 //
 OTItem* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
 {
-    if ((theOwner.GetUserID() != m_nymID)) {
+    if ((theOwner.GetNymID() != m_nymID)) {
         otErr << "OTPseudonym::" << __FUNCTION__
               << ": Transaction has wrong owner (expected to match nym).\n";
         return nullptr;

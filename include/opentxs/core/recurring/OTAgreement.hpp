@@ -245,7 +245,7 @@ public:
      OTPaymentPlan * pPlan = new OTPaymentPlan(pAccount->GetRealNotaryID(),
                                     pAccount->GetInstrumentDefinitionID(),
                                     pAccount->GetRealAccountID(),
-                                    pAccount->GetUserID(),
+                                    pAccount->GetNymID(),
                                     RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
      THEN:  (Agreement)
 
@@ -279,7 +279,7 @@ public:
         new OTPaymentPlan(pAccount->GetRealNotaryID(),
             pAccount->GetInstrumentDefinitionID(),
             pAccount->GetRealAccountID(),
-            pAccount->GetUserID(),
+            pAccount->GetNymID(),
             RECIPIENT_ACCT_ID, RECIPIENT_NYM_ID);
 
     STILL, this is the MERCHANT. Step two is concerned with the specific terms
@@ -344,7 +344,7 @@ public:
     {
         return m_RECIPIENT_ACCT_ID;
     }
-    inline const Identifier& GetRecipientUserID() const
+    inline const Identifier& GetRecipientNymID() const
     {
         return m_RECIPIENT_NYM_ID;
     }
@@ -352,7 +352,7 @@ public:
     {
         m_RECIPIENT_ACCT_ID = ACCT_ID;
     }
-    inline void SetRecipientUserID(const Identifier& NYM_ID)
+    inline void SetRecipientNymID(const Identifier& NYM_ID)
     {
         m_RECIPIENT_NYM_ID = NYM_ID;
     }
@@ -408,11 +408,11 @@ public:
 
      inline const OTIdentifier&    GetSenderAcctID()        { return
      m_SENDER_ACCT_ID; }
-     inline const OTIdentifier&    GetSenderUserID()        { return
+     inline const OTIdentifier&    GetSenderNymID()        { return
      m_SENDER_NYM_ID; }
      inline void            SetSenderAcctID(const OTIdentifier& ACCT_ID)
      { m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void            SetSenderUserID(const OTIdentifier& NYM_ID)
+     inline void            SetSenderNymID(const OTIdentifier& NYM_ID)
      { m_SENDER_NYM_ID = NYM_ID; }
      */
 

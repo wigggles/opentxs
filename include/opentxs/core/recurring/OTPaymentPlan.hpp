@@ -460,11 +460,11 @@ public:
     /*
      inline OTIdentifier&    GetRecipientAcctID()        { return
      m_RECIPIENT_ACCT_ID; }
-     inline OTIdentifier&    GetRecipientUserID()        { return
+     inline OTIdentifier&    GetRecipientNymID()        { return
      m_RECIPIENT_NYM_ID; }
      inline void            SetRecipientAcctID(OTIdentifier& ACCT_ID)    {
      m_RECIPIENT_ACCT_ID = ACCT_ID; }
-     inline void            SetRecipientUserID(OTIdentifier& NYM_ID)    {
+     inline void            SetRecipientNymID(OTIdentifier& NYM_ID)    {
      m_RECIPIENT_NYM_ID = NYM_ID; }
 
      const OTString&  GetConsideration() const { return m_strConsideration; }
@@ -493,11 +493,11 @@ public:
 
      inline const   OTIdentifier&    GetSenderAcctID()               { return
      m_SENDER_ACCT_ID; }
-     inline const   OTIdentifier&    GetSenderUserID()               { return
+     inline const   OTIdentifier&    GetSenderNymID()               { return
      m_SENDER_NYM_ID; }
      inline void    SetSenderAcctID(const OTIdentifier& ACCT_ID)    {
      m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void    SetSenderUserID(const OTIdentifier& NYM_ID)    {
+     inline void    SetSenderNymID(const OTIdentifier& NYM_ID)    {
      m_SENDER_NYM_ID = NYM_ID; }
      */
 

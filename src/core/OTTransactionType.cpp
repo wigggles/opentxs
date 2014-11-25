@@ -264,12 +264,12 @@ OTTransactionType::OTTransactionType()
     //    InitTransactionType(); // Just in case.
 }
 
-OTTransactionType::OTTransactionType(const Identifier& theUserID,
+OTTransactionType::OTTransactionType(const Identifier& theNymID,
                                      const Identifier& theAccountID,
                                      const Identifier& theNotaryID)
     : Contract(theAccountID)
     , m_NotaryID(theNotaryID)
-    , m_AcctUserID(theUserID)
+    , m_AcctNymID(theNymID)
     , m_lTransactionNum(0)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
@@ -284,13 +284,13 @@ OTTransactionType::OTTransactionType(const Identifier& theUserID,
     // them or GENERATE them.
 }
 
-OTTransactionType::OTTransactionType(const Identifier& theUserID,
+OTTransactionType::OTTransactionType(const Identifier& theNymID,
                                      const Identifier& theAccountID,
                                      const Identifier& theNotaryID,
                                      int64_t lTransactionNum)
     : Contract(theAccountID)
     , m_NotaryID(theNotaryID)
-    , m_AcctUserID(theUserID)
+    , m_AcctNymID(theNymID)
     , m_lTransactionNum(lTransactionNum)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
@@ -336,7 +336,7 @@ void OTTransactionType::Release_TransactionType()
     m_AcctNotaryID.Release(); // Actual NotaryID within the signed portion.
                               // (Compare to m_NotaryID upon loading.)
 
-    //    m_AcctUserID.Release();
+    //    m_AcctNymID.Release();
 
     m_lTransactionNum = 0;
     m_lInReferenceToTransaction = 0;
@@ -371,7 +371,7 @@ void OTTransactionType::Release()
 //
 bool OTTransactionType::IsSameAccount(const OTTransactionType& rhs) const
 {
-    if ((GetUserID() != rhs.GetUserID()) ||
+    if ((GetNymID() != rhs.GetNymID()) ||
         (GetRealAccountID() != rhs.GetRealAccountID()) ||
         (GetRealNotaryID() != rhs.GetRealNotaryID()))
         return false;

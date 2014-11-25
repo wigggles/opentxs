@@ -792,7 +792,7 @@ bool OTRecordList::PerformAutoAccept()
                                 pWallet->GetAccount(theAccountID);
                             OT_ASSERT(nullptr != pAccount);
                             const Identifier& theAcctNymID =
-                                pAccount->GetUserID();
+                                pAccount->GetNymID();
                             const Identifier& theAcctNotaryID =
                                 pAccount->GetPurportedNotaryID();
                             const Identifier& theAcctInstrumentDefinitionID =
@@ -873,7 +873,7 @@ bool OTRecordList::PerformAutoAccept()
             const Identifier theAccountID(str_account_id);
             Account* pAccount = pWallet->GetAccount(theAccountID);
             OT_ASSERT(nullptr != pAccount);
-            const Identifier& theNymID = pAccount->GetUserID();
+            const Identifier& theNymID = pAccount->GetNymID();
             const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
             const Identifier& theInstrumentDefinitionID =
                 pAccount->GetInstrumentDefinitionID();
@@ -1590,7 +1590,7 @@ bool OTRecordList::Populate()
                     if (!pBoxTrans->IsAbbreviated()) {
                         Identifier theSenderID;
 
-                        if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
+                        if (pBoxTrans->GetSenderNymIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
                             str_sender_nym_id = strSenderID.Get();
 
@@ -1851,7 +1851,7 @@ bool OTRecordList::Populate()
                         Identifier theSenderID, theSenderAcctID;
                         Identifier theRecipientID, theRecipientAcctID;
 
-                        if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
+                        if (pBoxTrans->GetSenderNymIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
                             const std::string str_sender_id(strSenderID.Get());
 
@@ -1874,7 +1874,7 @@ bool OTRecordList::Populate()
                                 bOutgoing = true; // if Nym is the sender, then
                                                   // it must have been outgoing.
 
-                                if (pBoxTrans->GetRecipientUserIDForDisplay(
+                                if (pBoxTrans->GetRecipientNymIDForDisplay(
                                         theRecipientID)) {
                                     const String strRecipientID(theRecipientID);
                                     const std::string str_recipient_id(
@@ -1932,9 +1932,9 @@ bool OTRecordList::Populate()
                             }
                         }
                         // In this block below, we already KNOW
-                        // GetSenderUserIDForDisplay is EMPTY.
+                        // GetSenderNymIDForDisplay is EMPTY.
                         // (So it's "recipient or bust.")
-                        else if (pBoxTrans->GetRecipientUserIDForDisplay(
+                        else if (pBoxTrans->GetRecipientNymIDForDisplay(
                                      theRecipientID)) {
                             const String strRecipientID(theRecipientID);
                             const std::string str_recipient_id(
@@ -2287,7 +2287,7 @@ bool OTRecordList::Populate()
                         Identifier theSenderID, theSenderAcctID;
                         Identifier theRecipientID, theRecipientAcctID;
 
-                        if (pBoxTrans->GetSenderUserIDForDisplay(theSenderID)) {
+                        if (pBoxTrans->GetSenderNymIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
                             const std::string str_sender_id(strSenderID.Get());
 
@@ -2310,7 +2310,7 @@ bool OTRecordList::Populate()
                                 bOutgoing = true; // if Nym is the sender, then
                                                   // it must have been outgoing.
 
-                                if (pBoxTrans->GetRecipientUserIDForDisplay(
+                                if (pBoxTrans->GetRecipientNymIDForDisplay(
                                         theRecipientID)) {
                                     const String strRecipientID(theRecipientID);
                                     const std::string str_recipient_id(
@@ -2368,9 +2368,9 @@ bool OTRecordList::Populate()
                             }
                         }
                         // In this block below, we already KNOW
-                        // GetSenderUserIDForDisplay is EMPTY.
+                        // GetSenderNymIDForDisplay is EMPTY.
                         // (So it's "recipient or bust.")
-                        else if (pBoxTrans->GetRecipientUserIDForDisplay(
+                        else if (pBoxTrans->GetRecipientNymIDForDisplay(
                                      theRecipientID)) {
                             const String strRecipientID(theRecipientID);
                             const std::string str_recipient_id(
@@ -2709,7 +2709,7 @@ bool OTRecordList::Populate()
         const Identifier theAccountID(str_account_id);
         Account* pAccount = pWallet->GetAccount(theAccountID);
         OT_ASSERT(nullptr != pAccount);
-        const Identifier& theNymID = pAccount->GetUserID();
+        const Identifier& theNymID = pAccount->GetNymID();
         const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
         const Identifier& theInstrumentDefinitionID =
             pAccount->GetInstrumentDefinitionID();
@@ -2815,7 +2815,7 @@ bool OTRecordList::Populate()
                         if (pBoxTrans->GetSenderAcctIDForDisplay(
                                 theSenderAcctID)) // ACCOUNT name.
                         {
-                            if (pBoxTrans->GetSenderUserIDForDisplay(
+                            if (pBoxTrans->GetSenderNymIDForDisplay(
                                     theSenderID)) {
                                 const String strSenderID(theSenderID);
                                 str_other_nym_id = strSenderID.Get();
@@ -2861,7 +2861,7 @@ bool OTRecordList::Populate()
                                 str_name = strNameTemp.Get();
                             }
                         }
-                        else if (pBoxTrans->GetSenderUserIDForDisplay(
+                        else if (pBoxTrans->GetSenderNymIDForDisplay(
                                        theSenderID)) // NYM name.
                         {
                             const String strSenderID(theSenderID);
@@ -2898,7 +2898,7 @@ bool OTRecordList::Populate()
                     {
                         Identifier theRecipientID, theRecipientAcctID;
 
-                        if (pBoxTrans->GetRecipientUserIDForDisplay(
+                        if (pBoxTrans->GetRecipientNymIDForDisplay(
                                 theRecipientID)) {
                             const String strRecipientID(theRecipientID);
                             const std::string str_recipient_nym_id(
@@ -3066,7 +3066,7 @@ bool OTRecordList::Populate()
                 if (!pBoxTrans->IsAbbreviated()) {
                     Identifier theRecipientID, theRecipientAcctID;
 
-                    if (pBoxTrans->GetRecipientUserIDForDisplay(
+                    if (pBoxTrans->GetRecipientNymIDForDisplay(
                             theRecipientID)) {
                         const String strRecipientID(theRecipientID);
                         const std::string str_recipient_id(
@@ -3264,8 +3264,8 @@ bool OTRecordList::Populate()
                             bOutgoing = true; // if Nym is the sender, then it
                                               // must have been outgoing.
 
-                            const bool bGotRecipientUserIDForDisplay =
-                                pBoxTrans->GetRecipientUserIDForDisplay(
+                            const bool bGotRecipientNymIDForDisplay =
+                                pBoxTrans->GetRecipientNymIDForDisplay(
                                     theRecipientID);
 
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(
@@ -3275,13 +3275,12 @@ bool OTRecordList::Populate()
                                 const std::string str_recip_acct_id(
                                     strRecipientAcctID.Get());
 
-                                String strRecipientUserID("");
+                                String strRecipientNymID("");
                                 std::string str_recip_nym_id("");
 
-                                if (bGotRecipientUserIDForDisplay) {
-                                    theRecipientID.GetString(
-                                        strRecipientUserID);
-                                    str_recip_nym_id = strRecipientUserID.Get();
+                                if (bGotRecipientNymIDForDisplay) {
+                                    theRecipientID.GetString(strRecipientNymID);
+                                    str_recip_nym_id = strRecipientNymID.Get();
                                 }
                                 // NOTE: We check for cancelled here so we don't
                                 // accidentally
@@ -3309,7 +3308,7 @@ bool OTRecordList::Populate()
                                         // address book to falsely believe that
                                         // the recipient Nym is the owner of the
                                         // sender acct.)
-                                        bGotRecipientUserIDForDisplay
+                                        bGotRecipientNymIDForDisplay
                                             ? &str_recip_nym_id
                                             : nullptr,  // nym ID if known
                                         pstr_notary_id, // server ID if known.
@@ -3336,7 +3335,7 @@ bool OTRecordList::Populate()
                                 }
                                 str_other_acct_id = str_recip_acct_id;
                             }
-                            if (bGotRecipientUserIDForDisplay) {
+                            if (bGotRecipientNymIDForDisplay) {
                                 const String strRecipientID(theRecipientID);
                                 const std::string str_recipient_id(
                                     strRecipientID.Get());
@@ -3368,10 +3367,10 @@ bool OTRecordList::Populate()
                             // already
                             // false.)
 
-                            if (pBoxTrans->GetSenderUserIDForDisplay(
+                            if (pBoxTrans->GetSenderNymIDForDisplay(
                                     theSenderID)) {
-                                const String strSenderUserID(theSenderID);
-                                str_other_nym_id = strSenderUserID.Get();
+                                const String strSenderNymID(theSenderID);
+                                str_other_nym_id = strSenderNymID.Get();
                             }
                             String strName(m_pLookup->GetAcctName(
                                 str_sender_acct_id,
@@ -3401,7 +3400,7 @@ bool OTRecordList::Populate()
                     // (So it's "recipient or bust.")
                     else if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                  theRecipientAcctID)) {
-                        if (pBoxTrans->GetRecipientUserIDForDisplay(
+                        if (pBoxTrans->GetRecipientNymIDForDisplay(
                                 theRecipientID)) {
                             const String strRecipientID(theRecipientID);
                             const std::string str_recipient_nym_id(
@@ -3449,7 +3448,7 @@ bool OTRecordList::Populate()
                             str_other_acct_id = str_recipient_acct_id;
                         }
                     }
-                    else if (pBoxTrans->GetSenderUserIDForDisplay(
+                    else if (pBoxTrans->GetSenderNymIDForDisplay(
                                    theSenderID)) {
                         const String strSenderID(theSenderID);
                         const std::string str_sender_id(strSenderID.Get());
@@ -3473,7 +3472,7 @@ bool OTRecordList::Populate()
                             bOutgoing = true; // if Nym is the sender, then it
                                               // must have been outgoing.
 
-                            if (pBoxTrans->GetRecipientUserIDForDisplay(
+                            if (pBoxTrans->GetRecipientNymIDForDisplay(
                                     theRecipientID)) {
                                 const String strRecipientID(theRecipientID);
                                 const std::string str_recipient_id(
@@ -3530,9 +3529,9 @@ bool OTRecordList::Populate()
                         }
                     }
                     // In this block below, we already KNOW
-                    // GetSenderUserIDForDisplay is EMPTY.
+                    // GetSenderNymIDForDisplay is EMPTY.
                     // (So it's "recipient or bust.")
-                    else if (pBoxTrans->GetRecipientUserIDForDisplay(
+                    else if (pBoxTrans->GetRecipientNymIDForDisplay(
                                  theRecipientID)) {
                         const String strRecipientID(theRecipientID);
                         const std::string str_recipient_id(

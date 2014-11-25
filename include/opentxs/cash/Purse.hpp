@@ -153,7 +153,7 @@ class Token;
 // filename, and can have its
 // contents encrypted to the public key of a specific user.
 //
-// I will add an optional UserID field, so it's obvious whose public key to use
+// I will add an optional NymID field, so it's obvious whose public key to use
 // for opening the tokens.
 // This may seem odd, but the field is entirely optional because it's not
 // necessary for the actual operation.
@@ -180,11 +180,11 @@ protected:
 
     dequeOfTokens m_dequeTokens;
 
-    // Todo: Add a boolean value, so that the UserID is either for a real user,
+    // Todo: Add a boolean value, so that the NymID is either for a real user,
     // or is for a temp Nym
     // which must be ATTACHED to the purse, if that boolean is set to true.
 
-    Identifier m_UserID;                 // Optional
+    Identifier m_NymID;                  // Optional
     Identifier m_NotaryID;               // Mandatory
     Identifier m_InstrumentDefinitionID; // Mandatory
     int64_t m_lTotalValue;     // Push increments this by denomination, and Pop
@@ -317,13 +317,13 @@ public:
     // Normally you really really want to set the instrument definition.
     EXPORT Purse(const Identifier& NOTARY_ID,
                  const Identifier& INSTRUMENT_DEFINITION_ID,
-                 const Identifier& NYM_ID); // UserID optional
+                 const Identifier& NYM_ID); // NymID optional
     EXPORT virtual ~Purse();
     EXPORT bool LoadPurse(const char* szNotaryID = nullptr,
-                          const char* szUserID = nullptr,
+                          const char* szNymID = nullptr,
                           const char* szInstrumentDefinitionID = nullptr);
     EXPORT bool SavePurse(const char* szNotaryID = nullptr,
-                          const char* szUserID = nullptr,
+                          const char* szNymID = nullptr,
                           const char* szInstrumentDefinitionID = nullptr);
 
     virtual bool LoadContract();

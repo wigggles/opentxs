@@ -154,8 +154,8 @@ public:
 
 private:
     bool SendMessageToNym(const Identifier& notaryID,
-                          const Identifier& senderUserId,
-                          const Identifier& recipientUserId,
+                          const Identifier& senderNymID,
+                          const Identifier& recipientNymID,
                           Message* msg = nullptr,
                           const String* messageString = nullptr);
 
@@ -172,8 +172,8 @@ private:
     void UserCmdSendNymInstrument(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetRequestNumber(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetTransactionNum(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdIssueInstrumentDefinition(Nym& nym, Message& msgIn,
-                                          Message& msgOut);
+    void UserCmdRegisterInstrumentDefinition(Nym& nym, Message& msgIn,
+                                             Message& msgOut);
     void UserCmdIssueBasket(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetBoxReceipt(Message& msgIn, Message& msgOut);
     void UserCmdDeleteUser(Nym& nym, Message& msgIn, Message& msgOut);

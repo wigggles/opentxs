@@ -157,7 +157,7 @@ class String;
 //
 class PayDividendVisitor : public AccountVisitor
 {
-    Identifier* m_pUserID;
+    Identifier* m_pNymID;
     Identifier* m_pPayoutInstrumentDefinitionID;
     Identifier* m_pVoucherAcctID;
     String* m_pstrMemo;  // contains the original payDividend item from the
@@ -172,7 +172,7 @@ class PayDividendVisitor : public AccountVisitor
 
 public:
     PayDividendVisitor(const Identifier& theNotaryID,
-                       const Identifier& theUserID,
+                       const Identifier& theNymID,
                        const Identifier& thePayoutInstrumentDefinitionID,
                        const Identifier& theVoucherAcctID,
                        const String& strMemo, OTServer& theServer,
@@ -180,9 +180,9 @@ public:
                        mapOfAccounts* pLoadedAccounts = nullptr);
     virtual ~PayDividendVisitor();
 
-    Identifier* GetUserID()
+    Identifier* GetNymID()
     {
-        return m_pUserID;
+        return m_pNymID;
     }
     Identifier* GetPayoutInstrumentDefinitionID()
     {

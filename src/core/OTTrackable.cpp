@@ -161,7 +161,7 @@ OTTrackable::OTTrackable(const Identifier& NOTARY_ID,
     InitTrackable();
 
     SetSenderAcctID(ACCT_ID);
-    SetSenderUserID(NYM_ID);
+    SetSenderNymID(NYM_ID);
 }
 
 OTTrackable::~OTTrackable()

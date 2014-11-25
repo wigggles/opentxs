@@ -595,9 +595,8 @@ Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
 
     const char* szFoldername = OTFolders::Mint().Get();
     const char* szFilename = strMintFilename.Get();
-    pMint =
-        Mint::MintFactory(server_->m_strNotaryID, server_->m_strServerUserID,
-                          INSTRUMENT_DEFINITION_ID_STR);
+    pMint = Mint::MintFactory(server_->m_strNotaryID, server_->m_strServerNymID,
+                              INSTRUMENT_DEFINITION_ID_STR);
 
     // You cannot hash the Mint to get its ID. (The ID is a hash of the asset
     // contract.)

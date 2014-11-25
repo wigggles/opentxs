@@ -180,7 +180,7 @@ public:
         return m_SENDER_ACCT_ID;
     }
 
-    inline const Identifier& GetSenderUserID() const
+    inline const Identifier& GetSenderNymID() const
     {
         return m_SENDER_NYM_ID;
     }
@@ -191,7 +191,7 @@ protected:
         m_SENDER_ACCT_ID = ACCT_ID;
     }
 
-    inline void SetSenderUserID(const Identifier& NYM_ID)
+    inline void SetSenderNymID(const Identifier& NYM_ID)
     {
         m_SENDER_NYM_ID = NYM_ID;
     }

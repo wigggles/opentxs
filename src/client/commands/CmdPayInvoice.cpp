@@ -329,7 +329,7 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
     // one.) Because if it IS endorsed to a Nym, and mynym is NOT that nym,
     // then the transaction will fail. So let's check, before we bother
     // sending it...
-    string recipient = OTAPI_Wrap::Instrmnt_GetRecipientUserID(instrument);
+    string recipient = OTAPI_Wrap::Instrmnt_GetRecipientNymID(instrument);
 
     // Not all instruments have a specified recipient. But if they do, let's
     // make sure the Nym matches.
