@@ -13495,7 +13495,7 @@ int32_t OTAPI_Exec::getRequestNumber(const std::string& NOTARY_ID,
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::issueInstrumentDefinition(
+int32_t OTAPI_Exec::registerInstrumentDefinition(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_CONTRACT) const
 {
@@ -13516,8 +13516,8 @@ int32_t OTAPI_Exec::issueInstrumentDefinition(
 
     String strContract(THE_CONTRACT);
 
-    return OTAPI()->issueInstrumentDefinition(theNotaryID, theNymID,
-                                              strContract);
+    return OTAPI()->registerInstrumentDefinition(theNotaryID, theNymID,
+                                                 strContract);
 }
 
 // Returns int32_t:
@@ -15245,7 +15245,7 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     //
     if ((false ==
          theMessage.m_strCommand.Compare(
-             "issueInstrumentDefinitionResponse")) &&
+             "registerInstrumentDefinitionResponse")) &&
         (false == theMessage.m_strCommand.Compare("issueBasketResponse"))) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
@@ -15295,7 +15295,8 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     // contain
     // in that case, now do I?)
     //
-    if (!theMessage.m_strCommand.Compare("issueInstrumentDefinitionResponse")) {
+    if (!theMessage.m_strCommand.Compare(
+            "registerInstrumentDefinitionResponse")) {
         otOut << __FUNCTION__
               << ": Wrong message type: " << theMessage.m_strCommand << "\n";
         return "";

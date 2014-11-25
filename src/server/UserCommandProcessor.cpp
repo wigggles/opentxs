@@ -1179,14 +1179,15 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         return true;
     }
-    else if (theMessage.m_strCommand.Compare("issueInstrumentDefinition")) {
-        OTLog::vOutput(0, "\n==> Received an issueInstrumentDefinition "
+    else if (theMessage.m_strCommand.Compare(
+                   "registerInstrumentDefinition")) {
+        OTLog::vOutput(0, "\n==> Received an registerInstrumentDefinition "
                           "message. Nym: %s ...\n",
                        strMsgNymID.Get());
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
-        UserCmdIssueInstrumentDefinition(*pNym, theMessage, msgOut);
+        UserCmdRegisterInstrumentDefinition(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -2274,16 +2275,16 @@ void UserCommandProcessor::UserCmdUsageCredits(Nym& theNym, Message& MsgIn,
 }
 
 /// An existing user is issuing a new currency.
-void UserCommandProcessor::UserCmdIssueInstrumentDefinition(Nym& theNym,
-                                                            Message& MsgIn,
-                                                            Message& msgOut)
+void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
+                                                               Message& MsgIn,
+                                                               Message& msgOut)
 {
     const char* szFunc =
-        "UserCommandProcessor::UserCmdIssueInstrumentDefinition";
+        "UserCommandProcessor::UserCmdRegisterInstrumentDefinition";
 
     // (1) set up member variables
-    msgOut.m_strCommand = "issueInstrumentDefinitionResponse"; // reply to
-    // issueInstrumentDefinition
+    msgOut.m_strCommand = "registerInstrumentDefinitionResponse"; // reply to
+    // registerInstrumentDefinition
     msgOut.m_strNymID = MsgIn.m_strNymID; // NymID
     msgOut.m_strInstrumentDefinitionID =
         MsgIn.m_strInstrumentDefinitionID; // Instrument Definition ID, a hash
@@ -2492,20 +2493,22 @@ void UserCommandProcessor::UserCmdIssueInstrumentDefinition(Nym& theNym,
                         if (!bSuccessLoadingInbox) {
                             String strNewAcctID(theNewAccountID);
 
-                            OTLog::vError("ERROR generating inbox ledger in "
-                                          "UserCommandProcessor::"
-                                          "UserCmdIssueInstrumentDefinition:\n%"
-                                          "s\n",
-                                          strNewAcctID.Get());
+                            OTLog::vError(
+                                "ERROR generating inbox ledger in "
+                                "UserCommandProcessor::"
+                                "UserCmdRegisterInstrumentDefinition:\n%"
+                                "s\n",
+                                strNewAcctID.Get());
                         }
                         else if (!bSuccessLoadingOutbox) {
                             String strNewAcctID(theNewAccountID);
 
-                            OTLog::vError("ERROR generating outbox ledger in "
-                                          "UserCommandProcessor::"
-                                          "UserCmdIssueInstrumentDefinition:\n%"
-                                          "s\n",
-                                          strNewAcctID.Get());
+                            OTLog::vError(
+                                "ERROR generating outbox ledger in "
+                                "UserCommandProcessor::"
+                                "UserCmdRegisterInstrumentDefinition:\n%"
+                                "s\n",
+                                strNewAcctID.Get());
                         }
                         else {
                             msgOut.m_bSuccess = true; // <==== SUCCESS!!
@@ -2534,12 +2537,12 @@ void UserCommandProcessor::UserCmdIssueInstrumentDefinition(Nym& theNym,
                     else
                         OTLog::Error("Failure generating new issuer account in "
                                      "UserCommandProcessor::"
-                                     "UserCmdIssueInstrumentDefinition.\n");
+                                     "UserCmdRegisterInstrumentDefinition.\n");
                 }
                 else
                     OTLog::Error("Failure verifying asset contract in "
                                  "UserCommandProcessor::"
-                                 "UserCmdIssueInstrumentDefinition.\n");
+                                 "UserCmdRegisterInstrumentDefinition.\n");
             }
             else {
                 String strAssetNymID(ASSET_NYM_ID), strNymID;
@@ -2580,7 +2583,7 @@ void UserCommandProcessor::UserCmdIssueInstrumentDefinition(Nym& theNym,
     // its member, m_strRawFile
     msgOut.SaveContract();
 
-    // (You are in UserCmdIssueInstrumentDefinition.)
+    // (You are in UserCmdRegisterInstrumentDefinition.)
 
     // *************************************************************
     // REPLY NOTICE TO NYMBOX
@@ -2663,7 +2666,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
             // exists on this server. (For example, they couldn't use a basket
             // contract from some other
             // server, since it wouldn't be issued here...) Also note that
-            // issueInstrumentDefinition explicitly prevents
+            // registerInstrumentDefinition explicitly prevents
             // baskets from being issued -- you HAVE to use issueBasket for
             // creating any basket currency.
             // Taken in tandem, this insures that the only possible way to have

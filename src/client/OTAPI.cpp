@@ -2093,11 +2093,12 @@ int32_t OTAPI_Wrap::getRequestNumber(const std::string& NOTARY_ID,
     return Exec()->getRequestNumber(NOTARY_ID, NYM_ID);
 }
 
-int32_t OTAPI_Wrap::issueInstrumentDefinition(const std::string& NOTARY_ID,
-                                              const std::string& NYM_ID,
-                                              const std::string& THE_CONTRACT)
+int32_t OTAPI_Wrap::registerInstrumentDefinition(
+    const std::string& NOTARY_ID, const std::string& NYM_ID,
+    const std::string& THE_CONTRACT)
 {
-    return Exec()->issueInstrumentDefinition(NOTARY_ID, NYM_ID, THE_CONTRACT);
+    return Exec()->registerInstrumentDefinition(NOTARY_ID, NYM_ID,
+                                                THE_CONTRACT);
 }
 
 int32_t OTAPI_Wrap::getInstrumentDefinition(

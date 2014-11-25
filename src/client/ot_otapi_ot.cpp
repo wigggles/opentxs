@@ -722,7 +722,8 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
     case QUERY_ASSET_TYPES:
         return OTAPI_Wrap::queryInstrumentDefinitions(notaryID, nymID, strData);
     case ISSUE_ASSET_TYPE:
-        return OTAPI_Wrap::issueInstrumentDefinition(notaryID, nymID, strData);
+        return OTAPI_Wrap::registerInstrumentDefinition(notaryID, nymID,
+                                                        strData);
     case ISSUE_BASKET:
         return OTAPI_Wrap::issueBasket(notaryID, nymID, basket);
     case EXCHANGE_CASH:

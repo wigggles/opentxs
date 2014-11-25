@@ -7386,7 +7386,7 @@ bool OTClient::processServerReplyUnregisterAccount(const Message& theReply,
     return true;
 }
 
-bool OTClient::processServerReplyIssueInstrumentDefinition(
+bool OTClient::processServerReplyRegisterInstrumentDefinition(
     const Message& theReply, ProcessServerReplyArgs& args)
 {
     const auto& ACCOUNT_ID = args.ACCOUNT_ID;
@@ -7414,7 +7414,7 @@ bool OTClient::processServerReplyIssueInstrumentDefinition(
             pAccount->SaveAccount();
 
             // Need to consider other security considerations.
-            // What if I wasn't EXPECTING a issueInstrumentDefinitionResponse
+            // What if I wasn't EXPECTING a registerInstrumentDefinitionResponse
             // message?
             // Well actually, in that case, the server wouldn't have a
             // copy of my request to send back to me, would he? So I should
@@ -7746,8 +7746,8 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
     if (theReply.m_strCommand.Compare("unregisterAccountResponse")) {
         return processServerReplyUnregisterAccount(theReply, args);
     }
-    if (theReply.m_strCommand.Compare("issueInstrumentDefinitionResponse")) {
-        return processServerReplyIssueInstrumentDefinition(theReply, args);
+    if (theReply.m_strCommand.Compare("registerInstrumentDefinitionResponse")) {
+        return processServerReplyRegisterInstrumentDefinition(theReply, args);
     }
     if (theReply.m_strCommand.Compare("registerAccountResponse")) {
         return processServerReplyRegisterAccount(theReply, args);

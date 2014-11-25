@@ -2272,8 +2272,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_getRequestNumber");
         theScript.chai->add(fun(&OTAPI_Wrap::getTransactionNumber),
                             "OT_API_getTransactionNumber");
-        theScript.chai->add(fun(&OTAPI_Wrap::issueInstrumentDefinition),
-                            "OT_API_issueInstrumentDefinition");
+        theScript.chai->add(fun(&OTAPI_Wrap::registerInstrumentDefinition),
+                            "OT_API_registerInstrumentDefinition");
         theScript.chai->add(fun(&OTAPI_Wrap::getInstrumentDefinition),
                             "OT_API_getInstrumentDefinition");
         theScript.chai->add(fun(&OTAPI_Wrap::getMint), "OT_API_getMint");

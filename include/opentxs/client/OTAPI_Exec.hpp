@@ -2950,9 +2950,9 @@ public:
     // ===> In 99% of cases, this LAST option is what actually happens!!
     */
     EXPORT int32_t
-        issueInstrumentDefinition(const std::string& NOTARY_ID,
-                                  const std::string& NYM_ID,
-                                  const std::string& THE_CONTRACT) const;
+        registerInstrumentDefinition(const std::string& NOTARY_ID,
+                                     const std::string& NYM_ID,
+                                     const std::string& THE_CONTRACT) const;
 
     /** --------------------------------------------------------------------
     // GET CONTRACT -- Get server's copy of any asset contract, by instrument

@@ -1953,7 +1953,7 @@ public:
 RegisterStrategy StrategyGetRequestResponse::reg(
     "getRequestNumberResponse", new StrategyGetRequestResponse());
 
-class StrategyIssueInstrumentDefinition : public OTMessageStrategy
+class StrategyRegisterInstrumentDefinition : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2009,10 +2009,10 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyIssueInstrumentDefinition::reg(
-    "issueInstrumentDefinition", new StrategyIssueInstrumentDefinition());
+RegisterStrategy StrategyRegisterInstrumentDefinition::reg(
+    "registerInstrumentDefinition", new StrategyRegisterInstrumentDefinition());
 
-class StrategyIssueInstrumentDefinitionResponse : public OTMessageStrategy
+class StrategyRegisterInstrumentDefinitionResponse : public OTMessageStrategy
 {
 public:
     virtual String writeXml(Message& m)
@@ -2097,7 +2097,7 @@ public:
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected issuerAccount and/or inReferenceTo elements "
                      "with text fields in "
-                     "issueInstrumentDefinitionResponse reply\n";
+                     "registerInstrumentDefinitionResponse reply\n";
             return (-1); // error condition
         }
 
@@ -2118,9 +2118,9 @@ public:
     }
     static RegisterStrategy reg;
 };
-RegisterStrategy StrategyIssueInstrumentDefinitionResponse::reg(
-    "issueInstrumentDefinitionResponse",
-    new StrategyIssueInstrumentDefinitionResponse());
+RegisterStrategy StrategyRegisterInstrumentDefinitionResponse::reg(
+    "registerInstrumentDefinitionResponse",
+    new StrategyRegisterInstrumentDefinitionResponse());
 
 class StrategyQueryInstrumentDefinitions : public OTMessageStrategy
 {
