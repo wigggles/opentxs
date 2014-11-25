@@ -158,6 +158,7 @@ public:
 private:
     void init(int port);
     bool processMessage(const std::string& messageString, std::string& reply);
+    void processSocket();
 
 private:
     OTServer* server_;

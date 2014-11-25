@@ -174,36 +174,56 @@ void MessageProcessor::init(int port)
 void MessageProcessor::run()
 {
     for (;;) {
-        // std::string conversions taken from zhelpers.hpp
-
-        zmq::message_t requestMessage;
-
-        if (!zmqSocket_->recv(&requestMessage)) {
-            OTLog::Error("zeromq recv() failed\n");
+        int64_t timeout = server_->computeTimeout();
+        if (timeout <= 0) {
+            server_->ProcessCron();
             continue;
         }
 
-        std::string requestString(static_cast<char*>(requestMessage.data()),
-                                  requestMessage.size());
-
-        std::string responseString;
-
-        bool error = processMessage(requestString, responseString);
-
-        if (error) {
-            responseString = "";
+        zmq_pollitem_t items[1]{*zmqSocket_, -1, ZMQ_POLLIN, 0};
+        // wait for first event, for incoming message or for timeout
+        int rc = zmq_poll(items, 1, timeout);
+        if (items[0].revents & ZMQ_POLLIN) {
+            processSocket();
+            continue;
         }
-
-        zmq::message_t responseMsg(responseString.size());
-        memcpy(responseMsg.data(), responseString.data(),
-               responseString.size());
-
-        if (!zmqSocket_->send(responseMsg)) {
-            OTLog::vError("MessageProcessor: failed to send response\n"
-                          "request:\n%s\n\n"
-                          "response:\n%s\n\n",
-                          requestString.c_str(), responseString.c_str());
+        if (rc < 0 && errno != EINTR) {
+            otErr << __FUNCTION__ << ": zmq_poll error, errno=" << errno
+                  << "\n";
+            // we do not want busy loop if something goes wrong
+            OTLog::SleepMilliseconds(100);
         }
+    }
+}
+
+void MessageProcessor::processSocket()
+{
+    zmq::message_t requestMessage;
+
+    if (!zmqSocket_->recv(&requestMessage)) {
+        OTLog::Error("zeromq recv() failed\n");
+        return;
+    }
+
+    std::string requestString(static_cast<char*>(requestMessage.data()),
+                              requestMessage.size());
+
+    std::string responseString;
+
+    bool error = processMessage(requestString, responseString);
+
+    if (error) {
+        responseString = "";
+    }
+
+    zmq::message_t responseMsg(responseString.size());
+    memcpy(responseMsg.data(), responseString.data(), responseString.size());
+
+    if (!zmqSocket_->send(responseMsg)) {
+        OTLog::vError("MessageProcessor: failed to send response\n"
+                      "request:\n%s\n\n"
+                      "response:\n%s\n\n",
+                      requestString.c_str(), responseString.c_str());
     }
 }
 
