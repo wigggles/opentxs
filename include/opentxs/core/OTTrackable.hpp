@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CORE_OTTRACKABLE_HPP
 #define OPENTXS_CORE_OTTRACKABLE_HPP
 
-#include "OTInstrument.hpp"
+#include "Instrument.hpp"
 
 namespace opentxs
 {
