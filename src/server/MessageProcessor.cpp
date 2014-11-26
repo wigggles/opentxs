@@ -174,6 +174,7 @@ void MessageProcessor::init(int port)
 void MessageProcessor::run()
 {
     for (;;) {
+        // timeout is the time left until the next cron should execute.
         int64_t timeout = server_->computeTimeout();
         if (timeout <= 0) {
             server_->ProcessCron();
@@ -181,7 +182,8 @@ void MessageProcessor::run()
         }
 
         zmq_pollitem_t items[1]{*zmqSocket_, -1, ZMQ_POLLIN, 0};
-        // wait for first event, for incoming message or for timeout
+        // wait for incoming message or up to timeout, i.e. stop polling in time
+        // for the next cron execution.
         int rc = zmq_poll(items, 1, timeout);
         if (items[0].revents & ZMQ_POLLIN) {
             processSocket();
