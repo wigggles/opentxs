@@ -842,7 +842,7 @@ int32_t main(int32_t argc, char* argv[])
         OTServerContract* pServerContract = nullptr;
         Nym* pMyNym = nullptr;
 
-        // This does LoadWallet, andif Nym or Server IDs were provided, loads
+        // This does LoadWallet, andif Nym or Notary IDs were provided, loads
         // those
         // up as well.
         // (They may still be nullptr after this call, however.)
@@ -1972,7 +1972,7 @@ int32_t main(int32_t argc, char* argv[])
         // EXPECT THE SERVER TO PROCESS THEM.
         // (Handled inside ProcessUserCommand)
 
-        // Nym, Account, Server ID, Server Contract
+        // Nym, Account, Notary ID, Server Contract
 
         // deposit cheque
         else if (buf[0] == 'q') {

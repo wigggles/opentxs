@@ -212,7 +212,7 @@ bool Transactor::issueNextTransactionNumber(Nym& theNym,
                                             int64_t& lTransactionNumber,
                                             bool bStoreTheNumber)
 {
-    Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
+    Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
 
     // If theNym has the same ID as server_->m_nymServer, then we'll use
     // server_->m_nymServer
@@ -220,7 +220,7 @@ bool Transactor::issueNextTransactionNumber(Nym& theNym,
     // one we already loaded so any changes don't get overwritten later.)
     Nym* pNym = nullptr;
 
-    if (NYM_ID == SERVER_NYM_ID)
+    if (NYM_ID == NOTARY_NYM_ID)
         pNym = &server_->m_nymServer;
     else
         pNym = &theNym;
@@ -281,7 +281,7 @@ bool Transactor::verifyTransactionNumber(
                                                     // speed, but not a
                                                     // return value.
 {
-    Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
+    Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
 
     // If theNym has the same ID as server_->m_nymServer, then we'll use
     // server_->m_nymServer
@@ -289,7 +289,7 @@ bool Transactor::verifyTransactionNumber(
     // one we already loaded so any changes don't get overwritten later.)
     Nym* pNym = nullptr;
 
-    if (NYM_ID == SERVER_NYM_ID)
+    if (NYM_ID == NOTARY_NYM_ID)
         pNym = &server_->m_nymServer;
     else
         pNym = &theNym;
@@ -321,7 +321,7 @@ bool Transactor::removeTransactionNumber(Nym& theNym,
                                          const int64_t& lTransactionNumber,
                                          bool bSave)
 {
-    Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
+    Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
 
     // If theNym has the same ID as server_->m_nymServer, then we'll use
     // server_->m_nymServer
@@ -329,7 +329,7 @@ bool Transactor::removeTransactionNumber(Nym& theNym,
     // one we already loaded so any changes don't get overwritten later.)
     Nym* pNym = nullptr;
 
-    if (NYM_ID == SERVER_NYM_ID)
+    if (NYM_ID == NOTARY_NYM_ID)
         pNym = &server_->m_nymServer;
     else
         pNym = &theNym;
@@ -355,7 +355,7 @@ bool Transactor::removeIssuedNumber(Nym& theNym,
                                     const int64_t& lTransactionNumber,
                                     bool bSave)
 {
-    Identifier NYM_ID(theNym), SERVER_NYM_ID(server_->m_nymServer);
+    Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
 
     // If theNym has the same ID as server_->m_nymServer, then we'll use
     // server_->m_nymServer
@@ -363,7 +363,7 @@ bool Transactor::removeIssuedNumber(Nym& theNym,
     // one we already loaded so any changes don't get overwritten later.)
     Nym* pNym = nullptr;
 
-    if (NYM_ID == SERVER_NYM_ID)
+    if (NYM_ID == NOTARY_NYM_ID)
         pNym = &server_->m_nymServer;
     else
         pNym = &theNym;
@@ -540,11 +540,11 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
     const Identifier& INSTRUMENT_DEFINITION_ID)
 {
     std::shared_ptr<Account> pAccount;
-    const Identifier SERVER_NYM_ID(server_->m_nymServer),
+    const Identifier NOTARY_NYM_ID(server_->m_nymServer),
         NOTARY_ID(server_->m_strNotaryID);
     bool bWasAcctCreated = false;
     pAccount = voucherAccounts_.GetOrRegisterAccount(
-        server_->m_nymServer, SERVER_NYM_ID, INSTRUMENT_DEFINITION_ID,
+        server_->m_nymServer, NOTARY_NYM_ID, INSTRUMENT_DEFINITION_ID,
         NOTARY_ID, bWasAcctCreated);
     if (bWasAcctCreated) {
         String strAcctID;

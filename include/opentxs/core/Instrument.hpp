@@ -196,7 +196,7 @@ protected:
 protected:
     Identifier m_InstrumentDefinitionID; // Every cheque or cash note has an
                                          // Asset Type
-    Identifier m_NotaryID;               // ...As well as a Server ID...
+    Identifier m_NotaryID;               // ...As well as a Notary ID...
     // Expiration Date (valid from/to date)
     time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
                            // FROM.

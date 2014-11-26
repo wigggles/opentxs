@@ -256,7 +256,7 @@ bool Message::HarvestTransactionNumbers(
 // So the message can get the list of numbers from the Nym, before sending,
 // that should be listed as acknowledged that the server reply has already been
 // seen for those request numbers.
-// IMPORTANT NOTE: The Server ID is used to lookup the numbers from the Nym.
+// IMPORTANT NOTE: The Notary ID is used to lookup the numbers from the Nym.
 // Therefore,
 // make sure that OTMessage::m_strNotaryID is set BEFORE calling this function.
 // (It will

@@ -640,7 +640,7 @@ void Mint::UpdateContents()
 {
     OT_ASSERT(nullptr != m_pKeyPublic);
 
-    String NOTARY_ID(m_NotaryID), SERVER_NYM_ID(m_ServerNymID),
+    String NOTARY_ID(m_NotaryID), NOTARY_NYM_ID(m_ServerNymID),
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
         CASH_ACCOUNT_ID(m_CashAccountID);
 
@@ -664,7 +664,7 @@ void Mint::UpdateContents()
         " validFrom=\"%" PRId64 "\"\n"
         " validTo=\"%" PRId64 "\""
         " >\n\n",
-        m_strVersion.Get(), NOTARY_ID.Get(), SERVER_NYM_ID.Get(),
+        m_strVersion.Get(), NOTARY_ID.Get(), NOTARY_NYM_ID.Get(),
         INSTRUMENT_DEFINITION_ID.Get(), CASH_ACCOUNT_ID.Get(), m_nSeries,
         lExpiration, lFrom, lTo);
 
@@ -770,7 +770,7 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn <<
             //    "\n===> Loading XML for mint into memory structures..."
             "\n\nMint version: " << m_strVersion
-               << "\n Server ID: " << strNotaryID
+               << "\n Notary ID: " << strNotaryID
                << "\n Instrument Definition ID: " << strInstrumentDefinitionID
                << "\n Cash Acct ID: " << strCashAcctID << "\n"
                                                           ""
@@ -901,8 +901,8 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     m_InstrumentDefinitionID = theInstrumentDefinitionID;
     m_NotaryID = theNotaryID;
 
-    Identifier SERVER_NYM_ID(theNotary);
-    m_ServerNymID = SERVER_NYM_ID;
+    Identifier NOTARY_NYM_ID(theNotary);
+    m_ServerNymID = NOTARY_NYM_ID;
 
     m_nSeries = nSeries;
     m_VALID_FROM = VALID_FROM;
@@ -913,7 +913,7 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
     // so I'm just simulating that in order to make sure it gets its
     // necessary input values, such as instrument definition, server ID, etc.
     Message theMessage;
-    SERVER_NYM_ID.GetString(theMessage.m_strNymID);
+    NOTARY_NYM_ID.GetString(theMessage.m_strNymID);
     theInstrumentDefinitionID.GetString(theMessage.m_strInstrumentDefinitionID);
     theNotaryID.GetString(theMessage.m_strNotaryID);
 
@@ -925,7 +925,7 @@ void Mint::GenerateNewMint(int32_t nSeries, time64_t VALID_FROM,
                         const AccountType eAcctType=simple);
      */
     m_pReserveAcct = Account::GenerateNewAccount(
-        SERVER_NYM_ID, theNotaryID, theNotary, theMessage, Account::mint);
+        NOTARY_NYM_ID, theNotaryID, theNotary, theMessage, Account::mint);
 
     if (m_pReserveAcct) {
         m_pReserveAcct->GetIdentifier(m_CashAccountID);

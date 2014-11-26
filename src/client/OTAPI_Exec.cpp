@@ -4828,7 +4828,7 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     return pBuf;
 }
 
-// Returns an account's Server ID.
+// Returns an account's Notary ID.
 // (Which is a hash of the server contract.)
 std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     const std::string& THE_ID) const
@@ -7847,7 +7847,7 @@ std::string OTAPI_Exec::LoadServerContract(
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__
-              << ": Failure calling OT_API::LoadServerContract.\nServer ID: "
+              << ": Failure calling OT_API::LoadServerContract.\nNotary ID: "
               << NOTARY_ID << "\n";
     }
     else // success
@@ -8664,7 +8664,7 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
     return theLedger.GetTransactionCount();
 }
 
-// Creates a new 'response' ledger, set up with the right Server ID, etc, so you
+// Creates a new 'response' ledger, set up with the right Notary ID, etc, so you
 // can add the 'response' items to it, one by one. (Pass in the original ledger
 // that you are responding to, as it uses the data from it to set up the
 // response.)
@@ -14752,7 +14752,7 @@ int32_t OTAPI_Exec::getNymMarketOffers(const std::string& NOTARY_ID,
 // the incoming buffer anyway, so the client will have assumed the wrong
 // reply was flushed by now anyway.)
 //
-// However, if the Server ID and the User ID are wrong, this just means that
+// However, if the Notary ID and the User ID are wrong, this just means that
 // some other code is still expecting that reply, and hasn't even popped yet!
 // Therefore, we do NOT want to discard THOSE replies, but put them back if
 // necessary -- only discarding the ones where the IDs match.

@@ -1791,7 +1791,7 @@ bool Nym::IsRegisteredAtServer(const String& strNotaryID) const
     //
     // So let's loop through all the numbers I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then return TRUE.
+    // matches the Notary ID that was passed in, then return TRUE.
     for (auto& it : m_mapRequestNum) {
         if (strID == it.first) {
             // The call has succeeded
@@ -1820,7 +1820,7 @@ bool Nym::UnRegisterAtServer(const String& strNotaryID)
     //
     // So let's loop through all the numbers I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then delete that one.
+    // matches the Notary ID that was passed in, then delete that one.
     //
     for (auto it(m_mapRequestNum.begin()); it != m_mapRequestNum.end(); ++it) {
         if (strID == it->first) {
@@ -2163,11 +2163,11 @@ bool Nym::VerifyGenericNum(const mapOfTransNums& THE_MAP,
     std::string strID = strNotaryID.Get();
 
     // The Pseudonym has a deque of transaction numbers for each servers.
-    // These deques are mapped by Server ID.
+    // These deques are mapped by Notary ID.
     //
     // So let's loop through all the deques I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then find the transaction
+    // matches the Notary ID that was passed in, then find the transaction
     // number on
     // that list, and then return true. Else return false.
     //
@@ -2220,11 +2220,11 @@ bool Nym::RemoveGenericNum(mapOfTransNums& THE_MAP, const String& strNotaryID,
     std::string strID = strNotaryID.Get();
 
     // The Pseudonym has a deque of transaction numbers for each servers.
-    // These deques are mapped by Server ID.
+    // These deques are mapped by Notary ID.
     //
     // So let's loop through all the deques I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then find the transaction
+    // matches the Notary ID that was passed in, then find the transaction
     // number on
     // that list, and then remove it, and return true. Else return false.
     //
@@ -2263,11 +2263,11 @@ bool Nym::AddGenericNum(mapOfTransNums& THE_MAP, const String& strNotaryID,
     std::string strID = strNotaryID.Get();
 
     // The Pseudonym has a deque of transaction numbers for each server.
-    // These deques are mapped by Server ID.
+    // These deques are mapped by Notary ID.
     //
     // So let's loop through all the deques I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then add the transaction
+    // matches the Notary ID that was passed in, then add the transaction
     // number.
     //
     for (auto& it : THE_MAP) {
@@ -2318,11 +2318,11 @@ int32_t Nym::GetGenericNumCount(const mapOfTransNums& THE_MAP,
     dequeOfTransNums* pDeque = nullptr;
 
     // The Pseudonym has a deque of transaction numbers for each server.
-    // These deques are mapped by Server ID.
+    // These deques are mapped by Notary ID.
     //
     // So let's loop through all the deques I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then we found the right server.
+    // matches the Notary ID that was passed in, then we found the right server.
     for (auto& it : THE_MAP) {
         // if the NotaryID passed in matches the notaryID for the current deque
         if (strID == it.first) {
@@ -2352,10 +2352,10 @@ int64_t Nym::GetGenericNum(const mapOfTransNums& THE_MAP,
     std::string strID = strNotaryID.Get();
 
     // The Pseudonym has a deque of numbers for each server.
-    // These deques are mapped by Server ID.
+    // These deques are mapped by Notary ID.
     //
     // So let's loop through all the deques I have, and if the server ID on the
-    // maps matches the Server ID that was passed in, then find the number on
+    // maps matches the Notary ID that was passed in, then find the number on
     // that list, and then return it.
     //
     for (auto& it : THE_MAP) {
@@ -2580,11 +2580,11 @@ bool Nym::AddAcknowledgedNum(const String& strNotaryID,
     std::string strID = strNotaryID.Get();
 
     // The Pseudonym has a deque of transaction numbers for each server.
-    // These deques are mapped by Server ID.
+    // These deques are mapped by Notary ID.
     //
     // So let's loop through all the deques I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then we'll pop the size of the
+    // matches the Notary ID that was passed in, then we'll pop the size of the
     // deque
     // down to our max size (off the back) before then calling AddGenericNum
     // which will
@@ -2945,11 +2945,11 @@ bool Nym::GetNextTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,
     std::string strID = strNotaryID.Get();
 
     // The Pseudonym has a deque of transaction numbers for each server.
-    // These deques are mapped by Server ID.
+    // These deques are mapped by Notary ID.
     //
     // So let's loop through all the deques I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then send out the transaction
+    // matches the Notary ID that was passed in, then send out the transaction
     // number.
     //
     for (auto& it : m_mapTransNum) {
@@ -2995,7 +2995,7 @@ bool Nym::GetHighestNum(const String& strNotaryID, int64_t& lHighestNum) const
     //
     // So let's loop through all the numbers I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then send out the highest
+    // matches the Notary ID that was passed in, then send out the highest
     // number.
     //
     // Since the transaction number only ever gets bigger, this is a way of
@@ -3073,7 +3073,7 @@ int64_t Nym::UpdateHighestNum(Nym& SIGNER_NYM, const String& strNotaryID,
     //
     // So let's loop through all the numbers I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then update it there (then
+    // matches the Notary ID that was passed in, then update it there (then
     // break.)
     //
     // Make sure to save the Pseudonym afterwards, so the new numbers are saved.
@@ -3284,7 +3284,7 @@ bool Nym::GetCurrentRequestNum(const String& strNotaryID,
     //
     // So let's loop through all the numbers I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then send out the request
+    // matches the Notary ID that was passed in, then send out the request
     // number.
     for (auto& it : m_mapRequestNum) {
         if (strID == it.first) {
@@ -3318,7 +3318,7 @@ void Nym::IncrementRequestNum(Nym& SIGNER_NYM, const String& strNotaryID)
     //
     // So let's loop through all the numbers I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then send out the request
+    // matches the Notary ID that was passed in, then send out the request
     // number and
     // increment it so it will be ready for the next request.
     //
@@ -3377,7 +3377,7 @@ void Nym::OnUpdateRequestNum(Nym& SIGNER_NYM, const String& strNotaryID,
     //
     // So let's loop through all the numbers I have, and if the server ID on the
     // map
-    // matches the Server ID that was passed in, then send out the request
+    // matches the Notary ID that was passed in, then send out the request
     // number and
     // increment it so it will be ready for the next request.
     //

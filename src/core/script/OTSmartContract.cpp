@@ -1319,7 +1319,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
     const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier SERVER_NYM_ID(*pServerNym);
+    const Identifier NOTARY_NYM_ID(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
     const String strPartyID(str_party_id);
@@ -1545,7 +1545,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
     const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier SERVER_NYM_ID(*pServerNym);
+    const Identifier NOTARY_NYM_ID(*pServerNym);
 
     const std::string str_party_id = pFromParty->GetPartyID();
     const String strPartyID(str_party_id);
@@ -2291,7 +2291,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
     }
 
     const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier SERVER_NYM_ID(*pServerNym);
+    const Identifier NOTARY_NYM_ID(*pServerNym);
 
     // Load up the party's account and get the instrument definition, so we know
     // which
@@ -2389,7 +2389,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
                // and verifySignature on the account
                // internally.
     std::shared_ptr<Account> pStashAccount = m_StashAccts.GetOrRegisterAccount(
-        *pServerNym, SERVER_NYM_ID,
+        *pServerNym, NOTARY_NYM_ID,
         pPartyAssetAcct->GetInstrumentDefinitionID(), NOTARY_ID,
         bWasAcctCreated, GetTransactionNum());
 
@@ -2468,7 +2468,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         return false;
     }
 
-    if (!pStashAccount->VerifyOwnerByID(SERVER_NYM_ID)) {
+    if (!pStashAccount->VerifyOwnerByID(NOTARY_NYM_ID)) {
         otErr << "OTSmartContract::StashFunds: Error: Somehow the stash "
                  "account isn't server-nym owned.\n";
         FlagForRemoval(); // Remove from Cron
@@ -2480,7 +2480,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 
     String strPartyNymID(PARTY_NYM_ID), strStashNymID(STASH_NYM_ID),
         strPartyAcctID(PARTY_ACCT_ID), strStashAcctID(STASH_ACCT_ID),
-        strServerNymID(SERVER_NYM_ID);
+        strServerNymID(NOTARY_NYM_ID);
 
     // Need to load up the ORIGINAL VERSION OF THIS SMART CONTRACT
     // Will need to verify the party's signature, as well as attach a copy of it
@@ -2517,7 +2517,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
 
     // Find out if party Nym is actually also the server nym.
     const bool bPartyNymIsServerNym =
-        ((PARTY_NYM_ID == SERVER_NYM_ID) ? true : false);
+        ((PARTY_NYM_ID == NOTARY_NYM_ID) ? true : false);
 
     Nym* pPartyNym = nullptr;
     //    OTPseudonym * pStashNym            = pServerNym;
@@ -5784,11 +5784,11 @@ bool OTSmartContract::MoveFunds(
     bool bSuccess = false; // The return value.
 
     const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier SERVER_NYM_ID(*pServerNym);
+    const Identifier NOTARY_NYM_ID(*pServerNym);
 
     String strSenderNymID(SENDER_NYM_ID), strRecipientNymID(RECIPIENT_NYM_ID),
         strSourceAcctID(SOURCE_ACCT_ID), strRecipientAcctID(RECIPIENT_ACCT_ID),
-        strServerNymID(SERVER_NYM_ID);
+        strServerNymID(NOTARY_NYM_ID);
 
     // Make sure they're not the same Account IDs ...
     // Otherwise we would have to take care not to load them twice, like with
@@ -5858,9 +5858,9 @@ bool OTSmartContract::MoveFunds(
 
     // Find out if either Nym is actually also the server.
     bool bSenderNymIsServerNym =
-        ((SENDER_NYM_ID == SERVER_NYM_ID) ? true : false);
+        ((SENDER_NYM_ID == NOTARY_NYM_ID) ? true : false);
     bool bRecipientNymIsServerNym =
-        ((RECIPIENT_NYM_ID == SERVER_NYM_ID) ? true : false);
+        ((RECIPIENT_NYM_ID == NOTARY_NYM_ID) ? true : false);
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity.

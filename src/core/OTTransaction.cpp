@@ -1466,7 +1466,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         return false;
     }
 
-    Identifier NYM_ID(THE_NYM), SERVER_NYM_ID(SERVER_NYM);
+    Identifier NYM_ID(THE_NYM), NOTARY_NYM_ID(SERVER_NYM);
 
     const String strNotaryID(GetRealNotaryID()), strReceiptID(NYM_ID);
 
@@ -1509,7 +1509,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     String strTransaction(strFileContents.c_str());
 
-    //    OTTransaction tranOut(SERVER_NYM_ID, NYM_ID, GetRealNotaryID());
+    //    OTTransaction tranOut(NOTARY_NYM_ID, NYM_ID, GetRealNotaryID());
     std::unique_ptr<OTTransactionType> pContents(
         OTTransactionType::TransactionFactory(strTransaction));
 
@@ -1643,7 +1643,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     }
     else if (THE_ACCOUNT.GetPurportedNotaryID() !=
                GetPurportedNotaryID()) // the account, inbox, and outbox all
-                                       // have the same Server ID. But does it
+                                       // have the same Notary ID. But does it
                                        // match *this receipt?
     {
         // error, return.

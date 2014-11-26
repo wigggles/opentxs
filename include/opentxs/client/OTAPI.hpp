@@ -765,7 +765,7 @@ public:
         const std::string& ACCOUNT_ID); // returns instrument definition ID of
                                         // the account
     EXPORT static std::string GetAccountWallet_NotaryID(
-        const std::string& ACCOUNT_ID); // returns Server ID of the account
+        const std::string& ACCOUNT_ID); // returns Notary ID of the account
     EXPORT static std::string GetAccountWallet_NymID(
         const std::string& ACCOUNT_ID); // returns Nym ID of the account
 
@@ -1956,7 +1956,7 @@ public:
         const std::string& THE_LEDGER); // Returns number of transactions
                                         // within.
 
-    //! Creates a new 'response' ledger, set up with the right Server ID, etc,
+    //! Creates a new 'response' ledger, set up with the right Notary ID, etc,
     // so you can
     //! add the 'response' transactions to it, one by one. (Pass in the original
     // ledger
@@ -2547,10 +2547,10 @@ public:
     CHECK SERVER ID -- (This is used for "pinging" the server...)
 
     Notice, if you ever want to send a message, you have to include the
-    Server ID and the User ID.
+    Notary ID and the User ID.
 
-    The OTAPI will use the Server ID to look-up the server contract. (FYI,
-    the Server ID is a hash of the server contract itself, so it is impos-
+    The OTAPI will use the Notary ID to look-up the server contract. (FYI,
+    the Notary ID is a hash of the server contract itself, so it is impos-
     sible to change the contract, without also changing the ID.)
 
     Then it will connect to the server based on the connection information
@@ -3623,7 +3623,7 @@ public:
     // the incoming buffer anyway, so the client will have assumed the wrong
     // reply was flushed by now anyway.)
     //
-    // However, if the Server ID and the User ID are wrong, this just means that
+    // However, if the Notary ID and the User ID are wrong, this just means that
     // some other code is still expecting that reply, and hasn't even popped
     yet!
     // Therefore, we do NOT want to discard THOSE replies, but put them back if
