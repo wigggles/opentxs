@@ -712,13 +712,13 @@ public:
 
     // While processing a transaction, you may wish to query it for items of a
     // certain type.
-    EXPORT OTItem* GetItem(OTItem::itemType theType);
+    EXPORT Item* GetItem(Item::itemType theType);
 
-    EXPORT OTItem* GetItemInRefTo(int64_t lReference);
+    EXPORT Item* GetItemInRefTo(int64_t lReference);
 
-    EXPORT void AddItem(OTItem& theItem); // You have to allocate the item on
-                                          // the heap and then pass it in as a
-                                          // reference.
+    EXPORT void AddItem(Item& theItem); // You have to allocate the item on
+                                        // the heap and then pass it in as a
+                                        // reference.
     // OTTransaction will take care of it from there and will delete it in
     // destructor.
     // used for looping through the items in a few places.
@@ -736,8 +736,8 @@ public:
     void SaveAbbrevPaymentInboxRecord(String& strOutput);
     void SaveAbbrevRecordBoxRecord(String& strOutput);
     void SaveAbbrevExpiredBoxRecord(String& strOutput);
-    void ProduceInboxReportItem(OTItem& theBalanceItem);
-    void ProduceOutboxReportItem(OTItem& theBalanceItem);
+    void ProduceInboxReportItem(Item& theBalanceItem);
+    void ProduceOutboxReportItem(Item& theBalanceItem);
 
     static transactionType GetTypeFromString(const String& strType);
 

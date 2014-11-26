@@ -9525,41 +9525,41 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     // Next let's create a new item that responds to pTransaction, and add that
     // item to pResponse. Then we'll return the updated ledger.
 
-    OTItem::itemType theAcceptItemType = OTItem::error_state;
-    OTItem::itemType theRejectItemType = OTItem::error_state;
+    Item::itemType theAcceptItemType = Item::error_state;
+    Item::itemType theRejectItemType = Item::error_state;
 
     switch (pTransaction->GetType()) {
     case OTTransaction::pending:
-        theAcceptItemType = OTItem::acceptPending;
-        theRejectItemType = OTItem::rejectPending;
+        theAcceptItemType = Item::acceptPending;
+        theRejectItemType = Item::rejectPending;
         break;
 
     case OTTransaction::marketReceipt:
     case OTTransaction::paymentReceipt:
-        theAcceptItemType = OTItem::acceptCronReceipt;
-        theRejectItemType = OTItem::disputeCronReceipt;
+        theAcceptItemType = Item::acceptCronReceipt;
+        theRejectItemType = Item::disputeCronReceipt;
         break;
 
     case OTTransaction::chequeReceipt:
     case OTTransaction::voucherReceipt:
     case OTTransaction::transferReceipt:
-        theAcceptItemType = OTItem::acceptItemReceipt;
-        theRejectItemType = OTItem::disputeItemReceipt;
+        theAcceptItemType = Item::acceptItemReceipt;
+        theRejectItemType = Item::disputeItemReceipt;
         break;
 
     case OTTransaction::finalReceipt:
-        theAcceptItemType = OTItem::acceptFinalReceipt;
-        theRejectItemType = OTItem::disputeFinalReceipt;
+        theAcceptItemType = Item::acceptFinalReceipt;
+        theRejectItemType = Item::disputeFinalReceipt;
         break;
 
     case OTTransaction::basketReceipt:
-        theAcceptItemType = OTItem::acceptBasketReceipt;
-        theRejectItemType = OTItem::disputeBasketReceipt;
+        theAcceptItemType = Item::acceptBasketReceipt;
+        theRejectItemType = Item::disputeBasketReceipt;
         break;
 
     default:
-        theAcceptItemType = OTItem::error_state;
-        theRejectItemType = OTItem::error_state;
+        theAcceptItemType = Item::error_state;
+        theRejectItemType = Item::error_state;
         otErr << __FUNCTION__ << ": Unexpected transaction type in: "
               << pTransaction->GetTypeString() << "\n";
         return "";
@@ -9599,7 +9599,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
                       << ": No reference string found on transaction.\n";
                 return "";
             }
-            std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
+            std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
                 strReference, theNotaryID, pTransaction->GetReferenceToNum()));
 
             if (nullptr == pOriginalItem) {
@@ -9608,19 +9608,19 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
                 return "";
             }
             // pItem will be automatically cleaned up when it goes out of scope.
-            if ((OTItem::request != pOriginalItem->GetStatus()) ||
-                ((OTItem::acceptPending !=
+            if ((Item::request != pOriginalItem->GetStatus()) ||
+                ((Item::acceptPending !=
                   pOriginalItem->GetType()) && // I'm accepting a transfer
                                                // receipt
                                                // that was created by someone's
                  // acceptPending (from a transfer I
                  // sent.)
-                 (OTItem::transfer !=
+                 (Item::transfer !=
                   pOriginalItem->GetType()) && // I'm accepting a pending
                                                // transfer
                                                // that was created by someone's
                                                // transfer to me.
-                 (OTItem::depositCheque !=
+                 (Item::depositCheque !=
                   pOriginalItem->GetType()) // I'm accepting a cheque or voucher
                  // receipt that was created by someone's
                  // depositCheque (of a cheque I wrote or
@@ -9630,7 +9630,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
                                          "as reference on transaction.\n";
                 return "";
             }
-            if (OTItem::transfer == pOriginalItem->GetType())
+            if (Item::transfer == pOriginalItem->GetType())
                 pOriginalItem->GetNote(strNote);
             lNumberOfOrigin = pOriginalItem->GetNumberOfOrigin();
             lReferenceTransactionNum =
@@ -9652,7 +9652,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
               << pTransaction->GetTypeString() << "\n";
         return "";
     }
-    OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
+    Item* pAcceptItem = Item::CreateItemFromTransaction(
         *pResponse, (true == BOOL_DO_I_ACCEPT)
                         ? theAcceptItemType
                         : theRejectItemType); // set above.
@@ -9819,7 +9819,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
     // ready to go,
     // and that theLedger will handle any cleanup issues related to it.
     // If balance statement is already there, return.
-    if (nullptr != pTransaction->GetItem(OTItem::balanceStatement)) {
+    if (nullptr != pTransaction->GetItem(Item::balanceStatement)) {
         otErr << __FUNCTION__
               << ": this response has already been finalized.\n";
         return "";
@@ -9876,15 +9876,15 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
     Nym theTempNym;
 
     for (auto& it_bigloop : pTransaction->GetItemList()) {
-        OTItem* pItem = it_bigloop;
+        Item* pItem = it_bigloop;
         if (nullptr == pItem) {
             otErr << __FUNCTION__
                   << ": Pointer: pItem should not have been \"\".\n";
             return "";
         }
 
-        if ((pItem->GetType() == OTItem::acceptPending) ||
-            (pItem->GetType() == OTItem::acceptItemReceipt)) {
+        if ((pItem->GetType() == Item::acceptPending) ||
+            (pItem->GetType() == Item::acceptItemReceipt)) {
 
             //            if
             // (theInbox.GetTransactionCountInRefTo(pItem->GetReferenceToNum())
@@ -9924,13 +9924,13 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                 // from pNym, so we can verify the Balance
                 // Statement AS IF they were already removed. Add them
                 //
-                if (pItem->GetType() == OTItem::acceptPending) // acceptPending
+                if (pItem->GetType() == Item::acceptPending) // acceptPending
                     lTotalBeingAccepted +=
                         pServerTransaction
                             ->GetReceiptAmount(); // <============================
 
                 else if (pItem->GetType() ==
-                         OTItem::acceptItemReceipt) // acceptItemReceipt
+                         Item::acceptItemReceipt) // acceptItemReceipt
                 {
                     // What number do I remove here? the user is accepting a
                     // transfer receipt, which
@@ -9942,8 +9942,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                     String strOriginalItem;
                     pServerTransaction->GetReferenceString(strOriginalItem);
 
-                    std::unique_ptr<OTItem> pOriginalItem(
-                        OTItem::CreateItemFromString(
+                    std::unique_ptr<Item> pOriginalItem(
+                        Item::CreateItemFromString(
                             strOriginalItem, NOTARY_ID.c_str(),
                             pServerTransaction->GetReferenceToNum()));
 
@@ -9974,7 +9974,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                         // setting up dummy data in order to verify the balance
                         // agreement.) *sigh*
                         //
-                        if (OTItem::depositCheque ==
+                        if (Item::depositCheque ==
                             pOriginalItem->GetType()) // client is accepting a
                                                       // cheque receipt, which
                                                       // has a depositCheque
@@ -10022,7 +10022,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                         // acceptPending from the recipient
                         // as the original item within.
                         //
-                        else if (OTItem::acceptPending ==
+                        else if (Item::acceptPending ==
                                  pOriginalItem->GetType()) // (which is in
                                                            // reference to the
                                                            // client's outgoing
@@ -10081,9 +10081,9 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
 
             } // pServerTransaction != ""
         }     // if pItem type is accept pending or item receipt.
-        else if ((pItem->GetType() == OTItem::acceptCronReceipt) ||
-                 (pItem->GetType() == OTItem::acceptFinalReceipt) ||
-                 (pItem->GetType() == OTItem::acceptBasketReceipt)) {
+        else if ((pItem->GetType() == Item::acceptCronReceipt) ||
+                 (pItem->GetType() == Item::acceptFinalReceipt) ||
+                 (pItem->GetType() == Item::acceptBasketReceipt)) {
             OTTransaction* pServerTransaction =
                 theInbox.GetTransaction(pItem->GetReferenceToNum());
 
@@ -10103,7 +10103,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
 
                 switch (pItem->GetType()) {
 
-                case OTItem::acceptCronReceipt:
+                case Item::acceptCronReceipt:
                     // pServerTransaction is a marketReceipt or paymentReceipt
                     //
 
@@ -10125,7 +10125,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                     // of those things.)
                     break;
 
-                case OTItem::acceptFinalReceipt:
+                case Item::acceptFinalReceipt:
                     // pServerTransaction is a finalReceipt
 
                     // IN THIS CASE: If we're accepting a finalReceipt, that
@@ -10168,7 +10168,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
                         // the same # as pServerTransaction is.
                         //
                         for (auto& it : pTransaction->GetItemList()) {
-                            OTItem* pItemPointer = it;
+                            Item* pItemPointer = it;
                             if (nullptr == pItemPointer) {
                                 otErr << __FUNCTION__ << ": Pointer: "
                                                          "pItemPointer should "
@@ -10286,7 +10286,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
 
                 // ... (FALL THROUGH) ...
 
-                case OTItem::acceptBasketReceipt:
+                case Item::acceptBasketReceipt:
                     // pServerTransaction is a basketReceipt (or finalReceipt,
                     // since falling through from above.)
                     //
@@ -10381,7 +10381,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
     // The item is signed and saved within this call as well. No need to do that
     // again.
     //
-    OTItem* pBalanceItem = theInbox.GenerateBalanceStatement(
+    Item* pBalanceItem = theInbox.GenerateBalanceStatement(
         lTotalBeingAccepted, *pTransaction, *pNym, *pAccount, theOutbox);
     // Here I am adding these numbers back again, since I removed them to
     // generate the balance agreement.
@@ -10514,7 +10514,7 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
     // if pointer not null, and it's a withdrawal, and it's an acknowledgement
     // (not a rejection or error)
     for (auto& it : theTransaction.GetItemList()) {
-        OTItem* pItem = it;
+        Item* pItem = it;
         if (nullptr == pItem) {
             otErr << __FUNCTION__ << ": Pointer: "
                   << "pItem"
@@ -10522,8 +10522,8 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
             return "";
         }
 
-        if ((OTItem::atWithdrawVoucher == pItem->GetType()) &&
-            (OTItem::acknowledgement == pItem->GetStatus())) {
+        if ((Item::atWithdrawVoucher == pItem->GetType()) &&
+            (Item::acknowledgement == pItem->GetStatus())) {
             String strVoucher;
             pItem->GetAttachment(strVoucher);
 
@@ -11037,7 +11037,7 @@ std::string OTAPI_Exec::Pending_GetNote(
               << ": No reference string found on transaction.\n";
         return "";
     }
-    std::unique_ptr<OTItem> pItem(OTItem::CreateItemFromString(
+    std::unique_ptr<Item> pItem(Item::CreateItemFromString(
         strReference, theNotaryID, pTransaction->GetReferenceToNum()));
 
     if (nullptr == pItem) {
@@ -11047,8 +11047,8 @@ std::string OTAPI_Exec::Pending_GetNote(
     }
 
     // pItem will be automatically cleaned up when it goes out of scope.
-    if ((OTItem::transfer != pItem->GetType()) ||
-        (OTItem::request != pItem->GetStatus())) {
+    if ((Item::transfer != pItem->GetType()) ||
+        (Item::request != pItem->GetStatus())) {
         otErr << __FUNCTION__ << ": Wrong item type or status attached as "
                                  "reference on transaction.\n";
         return "";
@@ -11642,10 +11642,10 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
         pTransaction = &theTransaction;
     // At this point, I actually have the transaction pointer, so let's return
     // its success status
-    OTItem* pReplyItem = pTransaction->GetItem(OTItem::atBalanceStatement);
+    Item* pReplyItem = pTransaction->GetItem(Item::atBalanceStatement);
 
     if (nullptr == pReplyItem)
-        pReplyItem = pTransaction->GetItem(OTItem::atTransactionStatement);
+        pReplyItem = pTransaction->GetItem(Item::atTransactionStatement);
 
     if (nullptr == pReplyItem) {
         otErr << __FUNCTION__ << ": good transaction (could have been "
@@ -11654,8 +11654,8 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
         return OT_ERROR; // Weird.
     }
 
-    return (pReplyItem->GetStatus() == OTItem::acknowledgement) ? OT_TRUE
-                                                                : OT_FALSE;
+    return (pReplyItem->GetStatus() == Item::acknowledgement) ? OT_TRUE
+                                                              : OT_FALSE;
 }
 
 // GET BALANCE AGREEMENT SUCCESS (From a MESSAGE.)
@@ -11750,10 +11750,10 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
 
     // At this point, I actually have the transaction pointer, so let's return
     // its success status
-    OTItem* pReplyItem = pReplyTransaction->GetItem(OTItem::atBalanceStatement);
+    Item* pReplyItem = pReplyTransaction->GetItem(Item::atBalanceStatement);
 
     if (nullptr == pReplyItem)
-        pReplyItem = pReplyTransaction->GetItem(OTItem::atTransactionStatement);
+        pReplyItem = pReplyTransaction->GetItem(Item::atTransactionStatement);
 
     if (nullptr == pReplyItem) {
         otErr << __FUNCTION__
@@ -11761,7 +11761,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
         return OT_ERROR; // Weird.
     }
 
-    if (pReplyItem->GetStatus() == OTItem::acknowledgement) {
+    if (pReplyItem->GetStatus() == Item::acknowledgement) {
         return OT_TRUE;
     }
 

@@ -364,8 +364,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
         pTransaction->GetReferenceString(strRespTo);
 
         if ((OTTransaction::message == pTransaction->GetType())) {
-            OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
-                *pAcceptTransaction, OTItem::acceptMessage);
+            Item* pAcceptItem = Item::CreateItemFromTransaction(
+                *pAcceptTransaction, Item::acceptMessage);
 
             // The above already has OT_ASSERT so, no need to check the pointer
             // for nullptr.
@@ -421,8 +421,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
         // INSTRUMENT (From Another Nym)
         //
         if ((OTTransaction::instrumentNotice == pTransaction->GetType())) {
-            OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
-                *pAcceptTransaction, OTItem::acceptNotice);
+            Item* pAcceptItem = Item::CreateItemFromTransaction(
+                *pAcceptTransaction, Item::acceptNotice);
 
             // The above already has OT_ASSERT so, no need to check the pointer
             // for nullptr.
@@ -449,8 +449,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
         // SERVER NOTIFICATION
         //
         else if ((OTTransaction::notice == pTransaction->GetType())) {
-            OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
-                *pAcceptTransaction, OTItem::acceptNotice);
+            Item* pAcceptItem = Item::CreateItemFromTransaction(
+                *pAcceptTransaction, Item::acceptNotice);
 
             // The above already has OT_ASSERT so, no need to check the pointer
             // for nullptr.
@@ -526,8 +526,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                                                      // expecting, as tentative
                                                      // numbers,
             }
-            OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
-                *pAcceptTransaction, OTItem::acceptNotice);
+            Item* pAcceptItem = Item::CreateItemFromTransaction(
+                *pAcceptTransaction, Item::acceptNotice);
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
@@ -587,8 +587,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                  // lucky for us he dropped a copy into the Nymbox! Now we can
                  // process it!
             {
-                OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
-                    *pAcceptTransaction, OTItem::acceptNotice);
+                Item* pAcceptItem = Item::CreateItemFromTransaction(
+                    *pAcceptTransaction, Item::acceptNotice);
                 OT_ASSERT_MSG(nullptr != pAcceptItem,
                               "OTItem * pAcceptItem = "
                               "OTItem::CreateItemFromTransaction(*"
@@ -618,10 +618,10 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                 // The server's conscience is clear: he knows for SURE that I
                 // DID receive notice.
 
-                OTItem* pItem = pTransaction->GetItem(OTItem::replyNotice);
+                Item* pItem = pTransaction->GetItem(Item::replyNotice);
 
                 if ((nullptr != pItem) &&
-                    OTItem::acknowledgement == pItem->GetStatus()) {
+                    Item::acknowledgement == pItem->GetStatus()) {
                     String strOriginalReply;
                     pItem->GetAttachment(strOriginalReply);
 
@@ -763,8 +763,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
                     theBlankList.Add(lTransactionNumber);
                 }
             } // for-each
-            OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
-                *pAcceptTransaction, OTItem::acceptTransaction);
+            Item* pAcceptItem = Item::CreateItemFromTransaction(
+                *pAcceptTransaction, Item::acceptTransaction);
 
             pAcceptItem->AddBlankNumbersToItem(theBlankList);
 
@@ -857,8 +857,8 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             OTCronItem::EraseActiveCronReceipt(
                 pTransaction->GetReferenceToNum(), pNym->GetConstID(),
                 pTransaction->GetPurportedNotaryID());
-            OTItem* pAcceptItem = OTItem::CreateItemFromTransaction(
-                *pAcceptTransaction, OTItem::acceptFinalReceipt);
+            Item* pAcceptItem = Item::CreateItemFromTransaction(
+                *pAcceptTransaction, Item::acceptFinalReceipt);
 
             // the transaction will handle cleaning up the transaction item.
             pAcceptTransaction->AddItem(*pAcceptItem);
@@ -976,7 +976,7 @@ bool OTClient::AcceptEntireNymbox(OTLedger& theNymbox,
             // The item is signed and saved within this call as well. No need to
             // do that again.
             //
-            OTItem* pBalanceItem =
+            Item* pBalanceItem =
                 pNym->GenerateTransactionStatement(*pAcceptTransaction);
 
             // Here I am removing the new numbers again, now that the statement
@@ -1237,42 +1237,42 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             //
             // NOTE: not for all types! See the switch statements:
 
-            OTItem::itemType theItemType = OTItem::error_state;
+            Item::itemType theItemType = Item::error_state;
 
             switch (pTransaction->GetType()) {
             case OTTransaction::atDeposit:
-                theItemType = OTItem::atDeposit;
+                theItemType = Item::atDeposit;
                 break;
             case OTTransaction::atWithdrawal: {
-                OTItem* pItemCash = pTransaction->GetItem(OTItem::atWithdrawal);
-                OTItem* pItemVoucher =
-                    pTransaction->GetItem(OTItem::atWithdrawVoucher);
+                Item* pItemCash = pTransaction->GetItem(Item::atWithdrawal);
+                Item* pItemVoucher =
+                    pTransaction->GetItem(Item::atWithdrawVoucher);
 
                 if (nullptr != pItemCash)
-                    theItemType = OTItem::atWithdrawal;
+                    theItemType = Item::atWithdrawal;
                 else if (nullptr != pItemVoucher)
-                    theItemType = OTItem::atWithdrawVoucher;
+                    theItemType = Item::atWithdrawVoucher;
             } break;
             case OTTransaction::atPayDividend:
-                theItemType = OTItem::atPayDividend;
+                theItemType = Item::atPayDividend;
                 break;
             case OTTransaction::atTransfer:
-                theItemType = OTItem::atTransfer;
+                theItemType = Item::atTransfer;
                 break;
             case OTTransaction::atMarketOffer:
-                theItemType = OTItem::atMarketOffer;
+                theItemType = Item::atMarketOffer;
                 break;
             case OTTransaction::atPaymentPlan:
-                theItemType = OTItem::atPaymentPlan;
+                theItemType = Item::atPaymentPlan;
                 break;
             case OTTransaction::atSmartContract:
-                theItemType = OTItem::atSmartContract;
+                theItemType = Item::atSmartContract;
                 break;
             case OTTransaction::atCancelCronItem:
-                theItemType = OTItem::atCancelCronItem;
+                theItemType = Item::atCancelCronItem;
                 break;
             case OTTransaction::atExchangeBasket:
-                theItemType = OTItem::atExchangeBasket;
+                theItemType = Item::atExchangeBasket;
                 break;
             default:
             case OTTransaction::atProcessInbox: // not handled here...
@@ -1304,10 +1304,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 // that had been taken for the exchange (for all the
                 // basketReceipts.)
                 {
-                    OTItem* pItem = pTransaction->GetItem(theItemType);
+                    Item* pItem = pTransaction->GetItem(theItemType);
 
                     if ((nullptr != pItem) &&
-                        OTItem::rejection == pItem->GetStatus()) // REJECTION
+                        Item::rejection == pItem->GetStatus()) // REJECTION
                     {
                         String strOriginalItem;
                         pItem->GetReferenceString(strOriginalItem);
@@ -1318,10 +1318,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                       strOriginalItem)
                                 : nullptr;
 
-                        std::unique_ptr<OTItem> pOriginalItem(
+                        std::unique_ptr<Item> pOriginalItem(
                             (nullptr == pTempTransType)
                                 ? nullptr
-                                : dynamic_cast<OTItem*>(pTempTransType));
+                                : dynamic_cast<Item*>(pTempTransType));
 
                         if (nullptr != pOriginalItem) {
                             String strBasket;
@@ -1358,10 +1358,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 // Below, we remove the issued number that was ON that Cron Item
                 // (IF SUCCESS.)
                 {
-                    OTItem* pItem = pTransaction->GetItem(theItemType);
+                    Item* pItem = pTransaction->GetItem(theItemType);
 
                     if ((nullptr != pItem) &&
-                        OTItem::acknowledgement ==
+                        Item::acknowledgement ==
                             pItem->GetStatus()) { // If it was a success
                                                   // cancelling the cron item,
                                                   // then the final receipt has
@@ -1380,10 +1380,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                       strOriginalItem)
                                 : nullptr;
 
-                        std::unique_ptr<OTItem> pOriginalItem(
+                        std::unique_ptr<Item> pOriginalItem(
                             (nullptr == pTempTransType)
                                 ? nullptr
-                                : dynamic_cast<OTItem*>(pTempTransType));
+                                : dynamic_cast<Item*>(pTempTransType));
 
                         if (nullptr != pOriginalItem) {
                             if (false ==
@@ -1430,10 +1430,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 // But if success, the number stays in play until a later time.
                 // (So we leave it issued.)
                 {
-                    OTItem* pItem = pTransaction->GetItem(theItemType);
+                    Item* pItem = pTransaction->GetItem(theItemType);
 
                     if ((nullptr != pItem) &&
-                        OTItem::rejection == pItem->GetStatus()) {
+                        Item::rejection == pItem->GetStatus()) {
                         // Why do this? Oh I see, this number either gets burned
                         // from the attempt,
                         // or it stays open for a while if success. So here what
@@ -1467,7 +1467,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                 {
                     const int64_t lNymOpeningNumber =
                         pTransaction->GetTransactionNum();
-                    OTItem* pReplyItem = pTransaction->GetItem(theItemType);
+                    Item* pReplyItem = pTransaction->GetItem(theItemType);
                     if (nullptr != pReplyItem) {
                         String strOriginalItem;
                         pReplyItem->GetReferenceString(strOriginalItem);
@@ -1478,10 +1478,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                       strOriginalItem)
                                 : nullptr;
 
-                        std::unique_ptr<OTItem> pOriginalItem(
+                        std::unique_ptr<Item> pOriginalItem(
                             (nullptr == pTempTransType)
                                 ? nullptr
-                                : dynamic_cast<OTItem*>(pTempTransType));
+                                : dynamic_cast<Item*>(pTempTransType));
 
                         if (nullptr != pOriginalItem) {
                             String strCronItem;
@@ -1515,7 +1515,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                             // contract or payment plan
                             // object.
                             {
-                                if (OTItem::rejection ==
+                                if (Item::rejection ==
                                     pReplyItem->GetStatus()) // REJECTION (This
                                                              // is where we
                                                              // remove the
@@ -1594,7 +1594,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                     // If success, save a copy in my "active
                                     // cron items" folder.
                                     //
-                                    if (OTItem::acknowledgement ==
+                                    if (Item::acknowledgement ==
                                         pReplyItem->GetStatus()) {
                                         pCronItem->SaveActiveCronReceipt(
                                             pNym->GetConstID());
@@ -2270,10 +2270,10 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             const String strNotaryID(NOTARY_ID);
             String strReceiptFilename; // contains: strReceiptID .success,
                                        // fail, or error.
-            OTItem* pItem = pTransaction->GetItem(OTItem::atBalanceStatement);
+            Item* pItem = pTransaction->GetItem(Item::atBalanceStatement);
 
             if (nullptr == pItem) {
-                pItem = pTransaction->GetItem(OTItem::atTransactionStatement);
+                pItem = pTransaction->GetItem(Item::atTransactionStatement);
 
                 if (nullptr != pItem)
                     pNym->GetIdentifier(strReceiptID); // In this case, the
@@ -2360,14 +2360,14 @@ void OTClient::ProcessPayDividendResponse(
     // if a response to pay dividend.
 
     for (auto& it : theTransaction.GetItemList()) {
-        OTItem* pItem = it;
+        Item* pItem = it;
         OT_ASSERT(nullptr != pItem);
 
         // if pointer not null, and it's a dividend payout, and it's an
         // acknowledgement (not a rejection or error)
 
-        if (OTItem::atPayDividend == pItem->GetType()) {
-            if (OTItem::acknowledgement == pItem->GetStatus()) {
+        if (Item::atPayDividend == pItem->GetType()) {
+            if (Item::acknowledgement == pItem->GetStatus()) {
                 otOut << "TRANSACTION SUCCESS -- Server acknowledges dividend "
                          "payout.\n";
             }
@@ -2394,19 +2394,19 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
     // if a response to deposit.
 
     for (auto& it : theTransaction.GetItemList()) {
-        OTItem* pReplyItem = it;
+        Item* pReplyItem = it;
         OT_ASSERT(nullptr != pReplyItem);
 
         // if pointer not null, and it's a deposit, and it's an acknowledgement
         // (not a rejection or error)
 
-        if ((OTItem::atDeposit == pReplyItem->GetType()) ||
-            (OTItem::atDepositCheque == pReplyItem->GetType())) {
-            if (OTItem::acknowledgement == pReplyItem->GetStatus()) {
+        if ((Item::atDeposit == pReplyItem->GetType()) ||
+            (Item::atDepositCheque == pReplyItem->GetType())) {
+            if (Item::acknowledgement == pReplyItem->GetStatus()) {
                 otOut
                     << "TRANSACTION SUCCESS -- Server acknowledges deposit.\n";
 
-                if (OTItem::atDepositCheque == pReplyItem->GetType()) {
+                if (Item::atDepositCheque == pReplyItem->GetType()) {
                     // Inside OT, when processing a successful server reply to a
                     // depositCheque request,
                     // and if that cheque is found inside the Payments Inbox,
@@ -2427,7 +2427,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
                         // as reference string.
                         //
                         String strOriginalDepositItem;
-                        OTItem* pOriginalItem = nullptr;
+                        Item* pOriginalItem = nullptr;
                         pReplyItem->GetReferenceString(strOriginalDepositItem);
 
                         std::unique_ptr<OTTransactionType> pTransType(
@@ -2436,7 +2436,7 @@ void OTClient::ProcessDepositResponse(OTTransaction& theTransaction,
 
                         if (nullptr != pTransType) {
                             pOriginalItem =
-                                dynamic_cast<OTItem*>(pTransType.get());
+                                dynamic_cast<Item*>(pTransType.get());
                         }
                         if (nullptr != pOriginalItem) {
                             String strCheque;
@@ -2682,7 +2682,7 @@ void OTClient::ProcessWithdrawalResponse(
     // if pointer not null, and it's a withdrawal, and it's an acknowledgement
     // (not a rejection or error)
     for (auto& it : theTransaction.GetItemList()) {
-        OTItem* pItem = it;
+        Item* pItem = it;
         OT_ASSERT(nullptr != pItem);
         // VOUCHER WITHDRAWAL
         //
@@ -2690,8 +2690,8 @@ void OTClient::ProcessWithdrawalResponse(
         // voucher
         // on the screen (if the server sent us one...)
         //
-        if ((OTItem::atWithdrawVoucher == pItem->GetType()) &&
-            (OTItem::acknowledgement == pItem->GetStatus())) {
+        if ((Item::atWithdrawVoucher == pItem->GetType()) &&
+            (Item::acknowledgement == pItem->GetStatus())) {
             String strVoucher;
             Cheque theVoucher;
 
@@ -2708,8 +2708,8 @@ void OTClient::ProcessWithdrawalResponse(
         // coins into a purse
         // somewhere on the computer. That's cash! Gotta keep it safe.
         //
-        else if ((OTItem::atWithdrawal == pItem->GetType()) &&
-                 (OTItem::acknowledgement == pItem->GetStatus())) {
+        else if ((Item::atWithdrawal == pItem->GetType()) &&
+                 (Item::acknowledgement == pItem->GetStatus())) {
             String strPurse;
             pItem->GetAttachment(strPurse);
 
@@ -3653,7 +3653,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                         for (auto& it_bigloop :
                              pReplyTransaction->GetItemList()) {
-                            OTItem* pReplyItem = it_bigloop;
+                            Item* pReplyItem = it_bigloop;
                             OT_ASSERT_MSG(nullptr != pReplyItem,
                                           "OTClient::ProcessServerReply: "
                                           "Pointer should not have been "
@@ -3663,61 +3663,61 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // one presumably for each processInbox that I
                             // sent previously.\n";
 
-                            OTItem::itemType theItemType = OTItem::error_state;
+                            Item::itemType theItemType = Item::error_state;
 
                             switch (pReplyItem->GetType()) {
-                            case OTItem::atAcceptPending:
-                                theItemType = OTItem::acceptPending;
+                            case Item::atAcceptPending:
+                                theItemType = Item::acceptPending;
                                 break;
-                            case OTItem::atAcceptCronReceipt:
-                                theItemType = OTItem::acceptCronReceipt;
+                            case Item::atAcceptCronReceipt:
+                                theItemType = Item::acceptCronReceipt;
                                 break;
-                            case OTItem::atAcceptItemReceipt:
-                                theItemType = OTItem::acceptItemReceipt;
+                            case Item::atAcceptItemReceipt:
+                                theItemType = Item::acceptItemReceipt;
                                 break;
 
-                            case OTItem::atRejectPending: // turn down the
-                                                          // money!
-                                theItemType = OTItem::rejectPending;
-                                continue;                      // unused
-                            case OTItem::atDisputeCronReceipt: // dispute a
-                                                               // market
-                                                               // trade or
-                                                               // payment
-                                                               // for a
+                            case Item::atRejectPending: // turn down the
+                                                        // money!
+                                theItemType = Item::rejectPending;
+                                continue;                    // unused
+                            case Item::atDisputeCronReceipt: // dispute a
+                                                             // market
+                                                             // trade or
+                                                             // payment
+                                                             // for a
                                 // payment plan
-                                theItemType = OTItem::disputeCronReceipt;
-                                continue;                      // unused
-                            case OTItem::atDisputeItemReceipt: // dispute a
-                                                               // cheque
-                                                               // receipt or
-                                                               // transfer
-                                                               // receipt.
-                                theItemType = OTItem::disputeItemReceipt;
+                                theItemType = Item::disputeCronReceipt;
+                                continue;                    // unused
+                            case Item::atDisputeItemReceipt: // dispute a
+                                                             // cheque
+                                                             // receipt or
+                                                             // transfer
+                                                             // receipt.
+                                theItemType = Item::disputeItemReceipt;
                                 continue; // unused
 
-                            case OTItem::atAcceptFinalReceipt:
-                                theItemType = OTItem::acceptFinalReceipt;
+                            case Item::atAcceptFinalReceipt:
+                                theItemType = Item::acceptFinalReceipt;
                                 break;
 
-                            case OTItem::atAcceptBasketReceipt:
-                                theItemType = OTItem::acceptBasketReceipt;
+                            case Item::atAcceptBasketReceipt:
+                                theItemType = Item::acceptBasketReceipt;
                                 break;
 
-                            case OTItem::atDisputeFinalReceipt:
-                                theItemType = OTItem::disputeFinalReceipt;
+                            case Item::atDisputeFinalReceipt:
+                                theItemType = Item::disputeFinalReceipt;
                                 continue; // unused
-                            case OTItem::atDisputeBasketReceipt:
-                                theItemType = OTItem::disputeBasketReceipt;
+                            case Item::atDisputeBasketReceipt:
+                                theItemType = Item::disputeBasketReceipt;
                                 continue; // unused
 
                             // We don't care about these here.
                             //
-                            case OTItem::atBalanceStatement:
-                                theItemType = OTItem::balanceStatement;
+                            case Item::atBalanceStatement:
+                                theItemType = Item::balanceStatement;
                                 continue;
-                            case OTItem::atTransactionStatement:
-                                theItemType = OTItem::transactionStatement;
+                            case Item::atTransactionStatement:
+                                theItemType = Item::transactionStatement;
                                 continue;
 
                             // FYI, on server side, it does not bother to
@@ -3759,7 +3759,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             String strTempTypeString;
                             pReplyItem->GetTypeString(strTempTypeString);
 
-                            if (OTItem::acknowledgement !=
+                            if (Item::acknowledgement !=
                                 pReplyItem->GetStatus()) {
                                 otWarn << "processInboxResponse reply item "
                                        << strTempTypeString
@@ -3821,8 +3821,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             String strProcessInboxItem;
                             pReplyItem->GetReferenceString(strProcessInboxItem);
 
-                            std::unique_ptr<OTItem> pProcessInboxItem(
-                                OTItem::CreateItemFromString(
+                            std::unique_ptr<Item> pProcessInboxItem(
+                                Item::CreateItemFromString(
                                     strProcessInboxItem, NOTARY_ID,
                                     pReplyItem->GetReferenceToNum()));
 
@@ -3836,11 +3836,11 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // processInbox transaction, to accept some
                             // receipt from my inbox.
                             //
-                            OTItem* pItem = (pProcessInboxItem != nullptr)
-                                                ? pTransaction->GetItemInRefTo(
-                                                      pProcessInboxItem
-                                                          ->GetReferenceToNum())
-                                                : nullptr;
+                            Item* pItem = (pProcessInboxItem != nullptr)
+                                              ? pTransaction->GetItemInRefTo(
+                                                    pProcessInboxItem
+                                                        ->GetReferenceToNum())
+                                              : nullptr;
 
                             if (nullptr == pItem) {
                                 otErr << "Unable to find original item in "
@@ -3893,23 +3893,23 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 << "... \n"; // temp remove
 
                             switch (pReplyItem->GetType()) {
-                            case OTItem::atAcceptPending: // Server reply to
-                                                          // my acceptance
-                                                          // of
+                            case Item::atAcceptPending: // Server reply to
+                                                        // my acceptance
+                                                        // of
                             // pending transfer.
-                            case OTItem::atAcceptItemReceipt: // Server
-                                                              // reply to my
-                                                              // acceptance
-                                                              // of
+                            case Item::atAcceptItemReceipt: // Server
+                                                            // reply to my
+                                                            // acceptance
+                                                            // of
                                 // chequeReceipt, voucherReceipt or
                                 // transferReceipt.
 
                                 pServerTransaction = theInbox.GetTransaction(
                                     pItem->GetReferenceToNum());
                                 break;
-                            case OTItem::atAcceptCronReceipt:
-                            case OTItem::atAcceptFinalReceipt:
-                            case OTItem::atAcceptBasketReceipt:
+                            case Item::atAcceptCronReceipt:
+                            case Item::atAcceptFinalReceipt:
+                            case Item::atAcceptBasketReceipt:
                                 pServerTransaction = theInbox.GetTransaction(
                                     pItem->GetReferenceToNum());
                                 break;
@@ -3955,7 +3955,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                            // this switch.)
                             { // Some also need to remove an issued
                               // transaction number from pNym.
-                            case OTItem::atAcceptPending:
+                            case Item::atAcceptPending:
 
                                 break;
 
@@ -3968,7 +3968,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // (Basically closing out the original transfer
                             // I must have sent, or cheque I must have
                             // written.)
-                            case OTItem::
+                            case Item::
                                 atAcceptItemReceipt: // <==================================================
                             {
                                 // What number do I remove here? the user is
@@ -3984,8 +3984,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 pServerTransaction->GetReferenceString(
                                     strOriginalItem);
 
-                                std::unique_ptr<OTItem> pOriginalItem(
-                                    OTItem::CreateItemFromString(
+                                std::unique_ptr<Item> pOriginalItem(
+                                    Item::CreateItemFromString(
                                         strOriginalItem, NOTARY_ID,
                                         pServerTransaction
                                             ->GetReferenceToNum()));
@@ -4022,7 +4022,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                     // in order to get THAT number, to
                                     // remove it from my issued list.
                                     //
-                                    if (OTItem::depositCheque ==
+                                    if (Item::depositCheque ==
                                         pOriginalItem->GetType()) // I am
                                                                   // accepting a
                                     // CHEQUE RECEIPT,
@@ -4123,7 +4123,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                     // as the original item within, (which
                                     // is in reference to my outoing
                                     // original transfer.)
-                                    else if (OTItem::acceptPending ==
+                                    else if (Item::acceptPending ==
                                              pOriginalItem->GetType()) {
                                         pNym->RemoveIssuedNum(
                                             *pNym, strNotaryID,
@@ -4157,7 +4157,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // complete. (Many Cron receipts may breeze
                             // through here before that happens.)
                             //
-                            case OTItem::atAcceptCronReceipt: {
+                            case Item::atAcceptCronReceipt: {
                                 // If it's a CRON receipt, find out if it's
                                 // from a MARKET TRADE, and if so,
                                 // add it to my local list of Market Trades,
@@ -4170,14 +4170,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                 // keeping with the terms of the original
                                 // offer.
                                 //
-                                OTItem* pServerItem =
-                                    pServerTransaction->GetItem(
-                                        OTItem::marketReceipt); // paymentPlan
-                                                                // and
-                                                                // smartContract
-                                                                // are also
-                                                                // POSSIBLE
-                                                                // here.
+                                Item* pServerItem = pServerTransaction->GetItem(
+                                    Item::marketReceipt); // paymentPlan
+                                                          // and
+                                                          // smartContract
+                                                          // are also
+                                                          // POSSIBLE
+                                                          // here.
 
                                 if (nullptr != pServerItem) {
                                     String strOffer, strTrade;
@@ -4474,7 +4473,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             } // OTItem::atAcceptCronReceipt
                             break;
 
-                            case OTItem::atAcceptFinalReceipt: {
+                            case Item::atAcceptFinalReceipt: {
                                 otWarn << "OTClient::ProcessServerReply: "
                                           "Successfully removed finalReceipt "
                                           "with closing num: "
@@ -4528,7 +4527,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             } // OTItem::atAcceptFinalReceipt
                             break;
 
-                            case OTItem::atAcceptBasketReceipt: {
+                            case Item::atAcceptBasketReceipt: {
                                 otInfo << "OTClient::ProcessServerReply: "
                                           "Successfully removed basketReceipt "
                                           "with closing num: "
@@ -4748,8 +4747,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     (nullptr != pReplyTransaction)) {
                     // HARVEST TRANSACTION NUMBERS (Nymbox only)
                     //
-                    OTItem* pStatementItem =
-                        pTransaction->GetItem(OTItem::transactionStatement);
+                    Item* pStatementItem =
+                        pTransaction->GetItem(Item::transactionStatement);
 
                     // We found it!
                     if (nullptr == pStatementItem) {
@@ -4849,20 +4848,20 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     // above.)
                     //
                     for (auto& it : pReplyTransaction->GetItemList()) {
-                        OTItem* pReplyItem = it;
+                        Item* pReplyItem = it;
                         OT_ASSERT_MSG(nullptr != pReplyItem,
                                       "OTClient::ProcessServerReply: "
                                       "Pointer should not have been "
                                       "nullptr.");
 
-                        OTItem::itemType theItemType = OTItem::error_state;
+                        Item::itemType theItemType = Item::error_state;
 
                         switch (pReplyItem->GetType()) {
-                        case OTItem::atAcceptFinalReceipt: // for inbox this
-                                                           // is a closing
-                                                           // issued number
+                        case Item::atAcceptFinalReceipt: // for inbox this
+                                                         // is a closing
+                                                         // issued number
                             // being removed from your list.
-                            theItemType = OTItem::acceptFinalReceipt; // but for
+                            theItemType = Item::acceptFinalReceipt; // but for
                             // Nymbox, this
                             // is only a
                             // notification
@@ -4871,14 +4870,14 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             // happened
                             // previously.
                             break;
-                        case OTItem::atAcceptMessage:
-                            theItemType = OTItem::acceptMessage;
+                        case Item::atAcceptMessage:
+                            theItemType = Item::acceptMessage;
                             break;
-                        case OTItem::atAcceptNotice:
-                            theItemType = OTItem::acceptNotice;
+                        case Item::atAcceptNotice:
+                            theItemType = Item::acceptNotice;
                             break;
-                        case OTItem::atAcceptTransaction:
-                            theItemType = OTItem::acceptTransaction;
+                        case Item::atAcceptTransaction:
+                            theItemType = Item::acceptTransaction;
                             break;
                         // FYI, on server side, it does not bother to
                         // process an item,
@@ -4894,14 +4893,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         // There still might be some future application in
                         // doing something with these
                         // statements when they come in.
-                        case OTItem::atTransactionStatement:
-                            theItemType =
-                                OTItem::transactionStatement; // We just
-                                                              // continue;
-                                                              // when this
-                                                              // happens,
-                                                              // and skip
-                                                              // this one.
+                        case Item::atTransactionStatement:
+                            theItemType = Item::transactionStatement; // We just
+                            // continue;
+                            // when this
+                            // happens,
+                            // and skip
+                            // this one.
                             continue; // (The transaction statement itself
                                       // is already handled before this
                                       // "for" loop.)
@@ -4923,8 +4921,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         String strTempTypeString;
                         pReplyItem->GetTypeString(strTempTypeString);
 
-                        if (OTItem::acknowledgement !=
-                            pReplyItem->GetStatus()) {
+                        if (Item::acknowledgement != pReplyItem->GetStatus()) {
                             otWarn << "processNymboxResponse reply item "
                                    << strTempTypeString
                                    << ": status == FAILED\n";
@@ -4967,8 +4964,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         String strProcessNymboxItem;
                         pReplyItem->GetReferenceString(strProcessNymboxItem);
 
-                        std::unique_ptr<OTItem> pProcessNymboxItem(
-                            OTItem::CreateItemFromString(
+                        std::unique_ptr<Item> pProcessNymboxItem(
+                            Item::CreateItemFromString(
                                 strProcessNymboxItem, NOTARY_ID,
                                 0 /* 0 is the "transaction number"*/)); // todo
                         // stop
@@ -4981,7 +4978,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         // reference number that I need, in order to look up
                         // MY copy of the item.
                         //
-                        OTItem* pItem =
+                        Item* pItem =
                             (pProcessNymboxItem != nullptr)
                                 ? pTransaction->GetItemInRefTo(
                                       pProcessNymboxItem->GetReferenceToNum())
@@ -5036,10 +5033,10 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                << "... \n"; // temp remove
 
                         switch (pReplyItem->GetType()) {
-                        case OTItem::atAcceptNotice:
-                        case OTItem::atAcceptMessage:
-                        case OTItem::atAcceptTransaction:
-                        case OTItem::atAcceptFinalReceipt:
+                        case Item::atAcceptNotice:
+                        case Item::atAcceptMessage:
+                        case Item::atAcceptTransaction:
+                        case Item::atAcceptFinalReceipt:
                             pServerTransaction = pNymbox->GetTransaction(
                                 pItem->GetReferenceToNum());
                             break;
@@ -5080,7 +5077,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                          // transaction number
                                                          // from pNym.
 
-                        case OTItem::atAcceptNotice:
+                        case Item::atAcceptNotice:
 
                             // There are many different types of notices.
                             // We just indiscriminately accept them all from
@@ -5109,9 +5106,9 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                             if (OTTransaction::notice ==
                                 pServerTransaction->GetType()) {
 
-                                if ((OTItem::rejection ==
+                                if ((Item::rejection ==
                                      pReplyItem->GetStatus()) || // REJECTION
-                                    (OTItem::acknowledgement ==
+                                    (Item::acknowledgement ==
                                      pReplyItem->GetStatus())) // ACKNOWLEDGMENT
                                 {
                                     // NOTE: NORMALLY we do this sort of
@@ -5329,7 +5326,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                             // the
                                             // activator...
                                             ) {
-                                            if (OTItem::rejection ==
+                                            if (Item::rejection ==
                                                 pReplyItem
                                                     ->GetStatus()) // REJECTION
                                                                    // (This
@@ -6468,12 +6465,12 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                             break;
 
-                        case OTItem::atAcceptMessage:
-                        case OTItem::atAcceptTransaction:
+                        case Item::atAcceptMessage:
+                        case Item::atAcceptTransaction:
                             break;
                         // I don't think we need to do anything here...
 
-                        case OTItem::atAcceptFinalReceipt:
+                        case Item::atAcceptFinalReceipt:
                             otInfo << __FUNCTION__
                                    << ": Successfully removed finalReceipt "
                                       "from Nymbox with opening num: "
@@ -6593,12 +6590,12 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                 String strReceiptID("NOT_SET_YET");
 
-                OTItem* pReplyItem =
-                    pReplyTransaction->GetItem(OTItem::atBalanceStatement);
+                Item* pReplyItem =
+                    pReplyTransaction->GetItem(Item::atBalanceStatement);
 
                 if (nullptr == pReplyItem) {
                     pReplyItem = pReplyTransaction->GetItem(
-                        OTItem::atTransactionStatement);
+                        Item::atTransactionStatement);
 
                     if (nullptr != pReplyItem)
                         pNym->GetIdentifier(strReceiptID); // In this case,
@@ -8253,8 +8250,8 @@ int32_t OTClient::ProcessUserCommand(
 
         // set up the transaction item (each transaction may have multiple
         // items...)
-        OTItem* pItem =
-            OTItem::CreateItemFromTransaction(*pTransaction, OTItem::deposit);
+        Item* pItem =
+            Item::CreateItemFromTransaction(*pTransaction, Item::deposit);
 
         String strNote("Deposit this cash, please!");
         pItem->SetNote(strNote);
@@ -8340,7 +8337,7 @@ int32_t OTClient::ProcessUserCommand(
 
             // pBalanceItem is signed and saved within this call. No need to do
             // that again.
-            OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+            Item* pBalanceItem = pInbox->GenerateBalanceStatement(
                 pItem->GetAmount(), *pTransaction, theNym, *pAccount, *pOutbox);
 
             if (nullptr !=
@@ -8530,8 +8527,8 @@ int32_t OTClient::ProcessUserCommand(
 
                 // set up the transaction item (each transaction may have
                 // multiple items...)
-                OTItem* pItem = OTItem::CreateItemFromTransaction(
-                    *pTransaction, OTItem::depositCheque);
+                Item* pItem = Item::CreateItemFromTransaction(
+                    *pTransaction, Item::depositCheque);
 
                 String strNote("Deposit this cheque, please!");
                 pItem->SetNote(strNote);
@@ -8580,7 +8577,7 @@ int32_t OTClient::ProcessUserCommand(
 
                     // pBalanceItem is signed and saved within this call. No
                     // need to do that again.
-                    OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+                    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
                         theCheque.GetAmount(), *pTransaction, theNym, *pAccount,
                         *pOutbox);
 
@@ -8931,8 +8928,8 @@ int32_t OTClient::ProcessUserCommand(
 
                 // set up the transaction item (each transaction may have
                 // multiple items...)
-                OTItem* pItem = OTItem::CreateItemFromTransaction(
-                    *pTransaction, OTItem::paymentPlan);
+                Item* pItem = Item::CreateItemFromTransaction(
+                    *pTransaction, Item::paymentPlan);
 
                 strPlan.Release();
                 thePlan.SaveContractRaw(strPlan);
@@ -8956,7 +8953,7 @@ int32_t OTClient::ProcessUserCommand(
 
                 // pBalanceItem is signed and saved within this call. No need to
                 // do that again.
-                OTItem* pStatementItem =
+                Item* pStatementItem =
                     theNym.GenerateTransactionStatement(*pTransaction);
 
                 if (nullptr !=

@@ -8984,8 +8984,8 @@ int32_t OT_API::exchangeBasket(
 
                     // set up the transaction item (each transaction may have
                     // multiple items...)
-                    OTItem* pItem = OTItem::CreateItemFromTransaction(
-                        *pTransaction, OTItem::exchangeBasket);
+                    Item* pItem = Item::CreateItemFromTransaction(
+                        *pTransaction, Item::exchangeBasket);
 
                     // This pItem is where the Basket Info will be stored. (So
                     // it ends up on receipts...)
@@ -9033,7 +9033,7 @@ int32_t OT_API::exchangeBasket(
                     //
                     // pBalanceItem is signed and saved within this call. No
                     // need to do that again.
-                    OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+                    Item* pBalanceItem = pInbox->GenerateBalanceStatement(
                         0, // Change in balance is 0. (The accounts will all be
                            // changed,
                         *pTransaction, *pNym, *pAccount,
@@ -9241,8 +9241,8 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
         lStoredTransactionNumber);
 
     // set up the transaction item (each transaction may have multiple items...)
-    OTItem* pItem =
-        OTItem::CreateItemFromTransaction(*pTransaction, OTItem::withdrawal);
+    Item* pItem =
+        Item::CreateItemFromTransaction(*pTransaction, Item::withdrawal);
     pItem->SetAmount(lTotalAmount);
 
     String strNote("Gimme cash!"); // TODO: Note is unnecessary for cash
@@ -9340,7 +9340,7 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
 
         // pBalanceItem is signed and saved within this call. No need to do that
         // again.
-        OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+        Item* pBalanceItem = pInbox->GenerateBalanceStatement(
             lTotalAmount * (-1), *pTransaction, *pNym, *pAccount, *pOutbox);
 
         if (nullptr != pBalanceItem) // will never be nullptr. Will assert above
@@ -9489,8 +9489,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
         NYM_ID, ACCT_ID, NOTARY_ID, OTTransaction::deposit,
         lStoredTransactionNumber);
     // set up the transaction item (each transaction may have multiple items...)
-    OTItem* pItem =
-        OTItem::CreateItemFromTransaction(*pTransaction, OTItem::deposit);
+    Item* pItem = Item::CreateItemFromTransaction(*pTransaction, Item::deposit);
 
     // What's going on here?
     // A purse can be encrypted by a private key (controlled by a Nym) or by a
@@ -9603,7 +9602,7 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
         //
         // pBalanceItem is signed and saved within this call. No need to do that
         // again.
-        OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+        Item* pBalanceItem = pInbox->GenerateBalanceStatement(
             pItem->GetAmount(), *pTransaction, *pNym, *pAccount, *pOutbox);
 
         if (nullptr != pBalanceItem) // will never be nullptr. Will assert above
@@ -9891,8 +9890,8 @@ int32_t OT_API::payDividend(
                 OTTransaction::payDividend, lStoredTransactionNumber);
             // set up the transaction item (each transaction may have multiple
             // items...)
-            OTItem* pItem = OTItem::CreateItemFromTransaction(
-                *pTransaction, OTItem::payDividend);
+            Item* pItem = Item::CreateItemFromTransaction(*pTransaction,
+                                                          Item::payDividend);
             pItem->SetAmount(lTotalCostOfDividend); // <=== Notice, while the
                                                     // CHEQUE is for
                                                     // lAmountPerShare, the
@@ -9924,7 +9923,7 @@ int32_t OT_API::payDividend(
             //
             // The item is signed and saved within this call as well. No need to
             // do that again.
-            OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+            Item* pBalanceItem = pInbox->GenerateBalanceStatement(
                 lTotalCostOfDividend * (-1), *pTransaction, *pNym,
                 *pDividendSourceAccount, *pOutbox);
 
@@ -10135,8 +10134,8 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
             lWithdrawTransNum);
         // set up the transaction item (each transaction may have multiple
         // items...)
-        OTItem* pItem = OTItem::CreateItemFromTransaction(
-            *pTransaction, OTItem::withdrawVoucher);
+        Item* pItem = Item::CreateItemFromTransaction(*pTransaction,
+                                                      Item::withdrawVoucher);
         pItem->SetAmount(lAmount);
         String strNote(" ");
         pItem->SetNote(strNote);
@@ -10159,7 +10158,7 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
         //
         // The item is signed and saved within this call as well. No need to do
         // that again.
-        OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+        Item* pBalanceItem = pInbox->GenerateBalanceStatement(
             lAmount * (-1), *pTransaction, *pNym, *pAccount, *pOutbox);
 
         if (nullptr != pBalanceItem)
@@ -10527,8 +10526,8 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
 
         // set up the transaction item (each transaction may have multiple
         // items...)
-        OTItem* pItem = OTItem::CreateItemFromTransaction(
-            *pTransaction, OTItem::depositCheque);
+        Item* pItem =
+            Item::CreateItemFromTransaction(*pTransaction, Item::depositCheque);
 
         String strNote(bCancellingCheque
                            ? "Cancel this cheque, please!"
@@ -10564,7 +10563,7 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
             // pBalanceItem is signed and saved within this call. No need to do
             // that twice.
             //
-            OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+            Item* pBalanceItem = pInbox->GenerateBalanceStatement(
                 theCheque.GetAmount(), *pTransaction, *pNym, *pAccount,
                 *pOutbox);
 
@@ -10735,8 +10734,8 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
             lTransactionNum);
         // set up the transaction item (each transaction may have multiple
         // items...)
-        OTItem* pItem = OTItem::CreateItemFromTransaction(*pTransaction,
-                                                          OTItem::paymentPlan);
+        Item* pItem =
+            Item::CreateItemFromTransaction(*pTransaction, Item::paymentPlan);
 
         String strPlan(thePlan);
 
@@ -10757,7 +10756,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
 
         // pBalanceItem is signed and saved within this call. No need to do that
         // again.
-        OTItem* pStatementItem =
+        Item* pStatementItem =
             pNym->GenerateTransactionStatement(*pTransaction);
 
         if (nullptr !=
@@ -11193,8 +11192,8 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
 
         // set up the transaction item (each transaction may have multiple
         // items...)
-        OTItem* pItem = OTItem::CreateItemFromTransaction(
-            *pTransaction, OTItem::smartContract);
+        Item* pItem =
+            Item::CreateItemFromTransaction(*pTransaction, Item::smartContract);
 
         // Add the smart contract string as the attachment on the transaction
         // item.
@@ -11211,7 +11210,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
 
         // pStatementItem is signed and saved within this call. No need to do
         // that again.
-        OTItem* pStatementItem =
+        Item* pStatementItem =
             pNym->GenerateTransactionStatement(*pTransaction);
 
         if (nullptr !=
@@ -11379,8 +11378,8 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
             lStoredTransactionNumber);
         // set up the transaction item (each transaction may have multiple
         // items...)
-        OTItem* pItem = OTItem::CreateItemFromTransaction(
-            *pTransaction, OTItem::cancelCronItem);
+        Item* pItem = Item::CreateItemFromTransaction(*pTransaction,
+                                                      Item::cancelCronItem);
         OT_ASSERT_MSG(nullptr != pItem,
                       "Error allocating memory in the OT API");
 
@@ -11403,7 +11402,7 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
 
         // pBalanceItem is signed and saved within this call. No need to do that
         // again.
-        OTItem* pStatementItem =
+        Item* pStatementItem =
             pNym->GenerateTransactionStatement(*pTransaction);
 
         if (nullptr !=
@@ -11693,8 +11692,8 @@ int32_t OT_API::issueMarketOffer(
 
             // set up the transaction item (each transaction may have multiple
             // items...)
-            OTItem* pItem = OTItem::CreateItemFromTransaction(
-                *pTransaction, OTItem::marketOffer,
+            Item* pItem = Item::CreateItemFromTransaction(
+                *pTransaction, Item::marketOffer,
                 const_cast<Identifier*>((&CURRENCY_ACCT_ID)));
             // the "To" account (normally used for a TRANSFER transaction) is
             // used here
@@ -11728,7 +11727,7 @@ int32_t OT_API::issueMarketOffer(
 
             // pBalanceItem is signed and saved within this call. No need to do
             // that again.
-            OTItem* pStatementItem =
+            Item* pStatementItem =
                 pNym->GenerateTransactionStatement(*pTransaction);
 
             if (nullptr !=
@@ -12094,8 +12093,8 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
 
         // set up the transaction item (each transaction may have multiple
         // items...)
-        OTItem* pItem = OTItem::CreateItemFromTransaction(
-            *pTransaction, OTItem::transfer, &ACCT_TO);
+        Item* pItem = Item::CreateItemFromTransaction(*pTransaction,
+                                                      Item::transfer, &ACCT_TO);
         pItem->SetAmount(lAmount);
 
         // The user can include a note here for the recipient.
@@ -12170,7 +12169,7 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
             // pBalanceItem is signed and saved within this call. No need to do
             // that twice.
             //
-            OTItem* pBalanceItem = pInbox->GenerateBalanceStatement(
+            Item* pBalanceItem = pInbox->GenerateBalanceStatement(
                 lAmount * (-1), *pTransaction, *pNym, *pAccount, *pOutbox);
 
             if (nullptr !=

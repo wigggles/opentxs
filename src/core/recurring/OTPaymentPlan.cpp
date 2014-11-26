@@ -994,18 +994,18 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
-            OTItem* pItemSend = OTItem::CreateItemFromTransaction(
-                *pTransSend, OTItem::paymentReceipt);
-            OTItem* pItemRecip = OTItem::CreateItemFromTransaction(
-                *pTransRecip, OTItem::paymentReceipt);
+            Item* pItemSend = Item::CreateItemFromTransaction(
+                *pTransSend, Item::paymentReceipt);
+            Item* pItemRecip = Item::CreateItemFromTransaction(
+                *pTransRecip, Item::paymentReceipt);
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
             OT_ASSERT(nullptr != pItemSend);
             OT_ASSERT(nullptr != pItemRecip);
 
-            pItemSend->SetStatus(OTItem::rejection);  // the default.
-            pItemRecip->SetStatus(OTItem::rejection); // the default.
+            pItemSend->SetStatus(Item::rejection);  // the default.
+            pItemRecip->SetStatus(Item::rejection); // the default.
 
             // Here I make sure that each receipt (each inbox notice) references
             // the original
@@ -1088,9 +1088,8 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             {
                 // Both accounts involved need to get a receipt of this trade in
                 // their inboxes...
-                pItemSend->SetStatus(OTItem::acknowledgement); // pSourceAcct
-                pItemRecip->SetStatus(
-                    OTItem::acknowledgement); // pRecipientAcct
+                pItemSend->SetStatus(Item::acknowledgement);  // pSourceAcct
+                pItemRecip->SetStatus(Item::acknowledgement); // pRecipientAcct
 
                 pItemSend->SetAmount(lAmount * (-1)); // "paymentReceipt" is
                                                       // otherwise ambigious
@@ -1124,13 +1123,13 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
             }
             else // bSuccess = false.  The payment failed.
             {
-                pItemSend->SetStatus(OTItem::rejection); // pSourceAcct
-                                                         // // These are already
-                                                         // initialized to
-                                                         // false.
-                pItemRecip->SetStatus(OTItem::rejection); // pRecipientAcct
-                                                          // // (But just making
-                                                          // sure...)
+                pItemSend->SetStatus(Item::rejection);  // pSourceAcct
+                                                        // // These are already
+                                                        // initialized to
+                                                        // false.
+                pItemRecip->SetStatus(Item::rejection); // pRecipientAcct
+                                                        // // (But just making
+                                                        // sure...)
 
                 pItemSend->SetAmount(
                     0); // No money changed hands. Just being explicit.

@@ -1264,7 +1264,7 @@ void Nym::ClearOutpayments()
 // item to
 // the message directly.
 //
-OTItem* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
+Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
 {
     if ((theOwner.GetNymID() != m_nymID)) {
         otErr << "OTPseudonym::" << __FUNCTION__
@@ -1276,10 +1276,10 @@ OTItem* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
     // that triggered the need for this transaction statement.
     // since it uses up a transaction number, I will be sure to remove that one
     // from my list before signing the list.
-    OTItem* pBalanceItem = OTItem::CreateItemFromTransaction(
-        theOwner, OTItem::transactionStatement); // <=== transactionStatement
-                                                 // type, with user ID, server
-                                                 // ID, transaction ID.
+    Item* pBalanceItem = Item::CreateItemFromTransaction(
+        theOwner, Item::transactionStatement); // <=== transactionStatement
+                                               // type, with user ID, server
+                                               // ID, transaction ID.
 
     // The above has an ASSERT, so this this will never actually happen.
     if (nullptr == pBalanceItem) return nullptr;

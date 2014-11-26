@@ -146,7 +146,7 @@ namespace opentxs
 
 class OTAsymmetricKey;
 class OTCredential;
-class OTItem;
+class Item;
 class OTKeypair;
 class OTLedger;
 class Message;
@@ -513,7 +513,7 @@ public:
     // agreement."
     // That is, cases where only transactions change and not balances.
     //
-    EXPORT OTItem* GenerateTransactionStatement(
+    EXPORT Item* GenerateTransactionStatement(
         const OTTransaction& theOwner); // like balance agreement
                                         // SET PUBLIC KEY BASED ON INPUT STRING
 

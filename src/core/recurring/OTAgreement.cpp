@@ -308,15 +308,15 @@ bool OTAgreement::DropServerNoticeToNymbox(
         // Set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
         //
-        OTItem* pItem1 =
-            OTItem::CreateItemFromTransaction(*pTransaction, OTItem::notice);
+        Item* pItem1 =
+            Item::CreateItemFromTransaction(*pTransaction, Item::notice);
         OT_ASSERT(nullptr != pItem1); // This may be unnecessary, I'll have to
                                       // check CreateItemFromTransaction. I'll
                                       // leave it for now.
 
         pItem1->SetStatus(
-            bSuccessMsg ? OTItem::acknowledgement
-                        : OTItem::rejection); // ACKNOWLEDGMENT or REJECTION ?
+            bSuccessMsg ? Item::acknowledgement
+                        : Item::rejection); // ACKNOWLEDGMENT or REJECTION ?
 
         //
         // Here I make sure that the receipt (the nymbox notice) references the

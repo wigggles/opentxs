@@ -141,7 +141,7 @@ namespace opentxs
 class Account;
 class Cheque;
 class Identifier;
-class OTItem;
+class Item;
 class Nym;
 class String;
 
@@ -232,13 +232,13 @@ public:
     // balance
     // agreement.  We also store a list of issued transactions, the new balance,
     // and the outbox hash.
-    EXPORT OTItem* GenerateBalanceStatement(int64_t lAdjustment,
-                                            const OTTransaction& theOwner,
-                                            Nym& theNym,
-                                            const Account& theAccount,
-                                            OTLedger& theOutbox);
+    EXPORT Item* GenerateBalanceStatement(int64_t lAdjustment,
+                                          const OTTransaction& theOwner,
+                                          Nym& theNym,
+                                          const Account& theAccount,
+                                          OTLedger& theOutbox);
 
-    EXPORT void ProduceOutboxReport(OTItem& theBalanceItem);
+    EXPORT void ProduceOutboxReport(Item& theBalanceItem);
 
     EXPORT bool AddTransaction(OTTransaction& theTransaction);
     EXPORT bool RemoveTransaction(int64_t lTransactionNum,

@@ -2672,14 +2672,14 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
             // set up the transaction item (each transaction may have multiple
             // items... but not in this case.)
             //
-            OTItem* pItemParty = OTItem::CreateItemFromTransaction(
-                *pTransParty, OTItem::paymentReceipt);
+            Item* pItemParty = Item::CreateItemFromTransaction(
+                *pTransParty, Item::paymentReceipt);
             OT_ASSERT(nullptr !=
                       pItemParty); //  may be unnecessary, I'll have to
                                    // check CreateItemFromTransaction.
                                    // I'll leave for now.
 
-            pItemParty->SetStatus(OTItem::rejection); // the default.
+            pItemParty->SetStatus(Item::rejection); // the default.
 
             //            const int64_t lPartyTransRefNo    =
             // GetTransactionNum();
@@ -2879,8 +2879,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
             {
                 // The party needs to get a receipt in his inbox.
                 //
-                pItemParty->SetStatus(
-                    OTItem::acknowledgement); // pPartyAssetAcct
+                pItemParty->SetStatus(Item::acknowledgement); // pPartyAssetAcct
 
                 const int64_t lReceiptAmount = (lAmount * (-1));
 
@@ -2906,10 +2905,10 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
             }
             else // bSuccess = false.  The payment failed.
             {
-                pItemParty->SetStatus(OTItem::rejection); // pPartyAssetAcct
-                                                          // // These are
-                                                          // already initialized
-                                                          // to false.
+                pItemParty->SetStatus(Item::rejection); // pPartyAssetAcct
+                                                        // // These are
+                                                        // already initialized
+                                                        // to false.
                 pItemParty->SetAmount(
                     0); // No money changed hands. Just being explicit.
 
@@ -6305,18 +6304,18 @@ bool OTSmartContract::MoveFunds(
 
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
-            OTItem* pItemSend = OTItem::CreateItemFromTransaction(
-                *pTransSend, OTItem::paymentReceipt);
-            OTItem* pItemRecip = OTItem::CreateItemFromTransaction(
-                *pTransRecip, OTItem::paymentReceipt);
+            Item* pItemSend = Item::CreateItemFromTransaction(
+                *pTransSend, Item::paymentReceipt);
+            Item* pItemRecip = Item::CreateItemFromTransaction(
+                *pTransRecip, Item::paymentReceipt);
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
             OT_ASSERT(nullptr != pItemSend);
             OT_ASSERT(nullptr != pItemRecip);
 
-            pItemSend->SetStatus(OTItem::rejection);  // the default.
-            pItemRecip->SetStatus(OTItem::rejection); // the default.
+            pItemSend->SetStatus(Item::rejection);  // the default.
+            pItemRecip->SetStatus(Item::rejection); // the default.
 
             const int64_t lTransSendRefNo = GetOpeningNumber(SENDER_NYM_ID);
             const int64_t lTransRecipRefNo = GetOpeningNumber(RECIPIENT_NYM_ID);
@@ -6407,9 +6406,8 @@ bool OTSmartContract::MoveFunds(
             {
                 // Both accounts involved need to get a receipt of this trade in
                 // their inboxes...
-                pItemSend->SetStatus(OTItem::acknowledgement); // pSourceAcct
-                pItemRecip->SetStatus(
-                    OTItem::acknowledgement); // pRecipientAcct
+                pItemSend->SetStatus(Item::acknowledgement);  // pSourceAcct
+                pItemRecip->SetStatus(Item::acknowledgement); // pRecipientAcct
 
                 pItemSend->SetAmount(lAmount * (-1)); // "paymentReceipt" is
                                                       // otherwise ambigious
@@ -6429,13 +6427,13 @@ bool OTSmartContract::MoveFunds(
             }
             else // bSuccess = false.  The payment failed.
             {
-                pItemSend->SetStatus(OTItem::rejection); // pSourceAcct
-                                                         // // These are already
-                                                         // initialized to
-                                                         // false.
-                pItemRecip->SetStatus(OTItem::rejection); // pRecipientAcct
-                                                          // // (But just making
-                                                          // sure...)
+                pItemSend->SetStatus(Item::rejection);  // pSourceAcct
+                                                        // // These are already
+                                                        // initialized to
+                                                        // false.
+                pItemRecip->SetStatus(Item::rejection); // pRecipientAcct
+                                                        // // (But just making
+                                                        // sure...)
 
                 pItemSend->SetAmount(
                     0); // No money changed hands. Just being explicit.

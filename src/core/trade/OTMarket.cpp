@@ -1501,14 +1501,14 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
 
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
-            OTItem* pItem1 = OTItem::CreateItemFromTransaction(
-                *pTrans1, OTItem::marketReceipt);
-            OTItem* pItem2 = OTItem::CreateItemFromTransaction(
-                *pTrans2, OTItem::marketReceipt);
-            OTItem* pItem3 = OTItem::CreateItemFromTransaction(
-                *pTrans3, OTItem::marketReceipt);
-            OTItem* pItem4 = OTItem::CreateItemFromTransaction(
-                *pTrans4, OTItem::marketReceipt);
+            Item* pItem1 =
+                Item::CreateItemFromTransaction(*pTrans1, Item::marketReceipt);
+            Item* pItem2 =
+                Item::CreateItemFromTransaction(*pTrans2, Item::marketReceipt);
+            Item* pItem3 =
+                Item::CreateItemFromTransaction(*pTrans3, Item::marketReceipt);
+            Item* pItem4 =
+                Item::CreateItemFromTransaction(*pTrans4, Item::marketReceipt);
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
@@ -1517,10 +1517,10 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             OT_ASSERT(nullptr != pItem3);
             OT_ASSERT(nullptr != pItem4);
 
-            pItem1->SetStatus(OTItem::rejection); // the default.
-            pItem2->SetStatus(OTItem::rejection); // the default.
-            pItem3->SetStatus(OTItem::rejection); // the default.
-            pItem4->SetStatus(OTItem::rejection); // the default.
+            pItem1->SetStatus(Item::rejection); // the default.
+            pItem2->SetStatus(Item::rejection); // the default.
+            pItem3->SetStatus(Item::rejection); // the default.
+            pItem4->SetStatus(Item::rejection); // the default.
 
             // Calculate the amount and remove / add it to the relevant
             // accounts.
@@ -1825,12 +1825,10 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
             if (true == bSuccess) {
                 // ALL of the four accounts involved need to get a receipt of
                 // this trade in their inboxes...
-                pItem1->SetStatus(OTItem::acknowledgement); // pFirstAssetAcct
-                pItem2->SetStatus(
-                    OTItem::acknowledgement); // pFirstCurrencyAcct
-                pItem3->SetStatus(OTItem::acknowledgement); // pOtherAssetAcct
-                pItem4->SetStatus(
-                    OTItem::acknowledgement); // pOtherCurrencyAcct
+                pItem1->SetStatus(Item::acknowledgement); // pFirstAssetAcct
+                pItem2->SetStatus(Item::acknowledgement); // pFirstCurrencyAcct
+                pItem3->SetStatus(Item::acknowledgement); // pOtherAssetAcct
+                pItem4->SetStatus(Item::acknowledgement); // pOtherCurrencyAcct
 
                 // Everytime a trade processes, a receipt is put in each
                 // account's inbox.
@@ -2229,7 +2227,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 //
                 if (pAssetAccountToDebit->GetBalance() <
                     lMinIncrementPerRound) {
-                    OTItem* pTempItem = nullptr;
+                    Item* pTempItem = nullptr;
                     OTTransaction* pTempTransaction = nullptr;
                     OTLedger* pTempInbox = nullptr;
 
@@ -2257,7 +2255,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                         pTrans1 = nullptr;
                     }
 
-                    pTempItem->SetStatus(OTItem::rejection);
+                    pTempItem->SetStatus(Item::rejection);
                     pTempItem->SignContract(*pServerNym);
                     pTempItem->SaveContract();
 
@@ -2289,7 +2287,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 // currency accounts.
                 //
                 if (pCurrencyAccountToDebit->GetBalance() < lPrice) {
-                    OTItem* pTempItem = nullptr;
+                    Item* pTempItem = nullptr;
                     OTTransaction* pTempTransaction = nullptr;
                     OTLedger* pTempInbox = nullptr;
 
@@ -2317,7 +2315,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                         pTrans2 = nullptr;
                     }
 
-                    pTempItem->SetStatus(OTItem::rejection);
+                    pTempItem->SetStatus(Item::rejection);
                     pTempItem->SignContract(*pServerNym);
                     pTempItem->SaveContract();
 

@@ -1206,14 +1206,14 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
-        OTItem* pItem1 =
-            OTItem::CreateItemFromTransaction(*pTrans1, OTItem::finalReceipt);
+        Item* pItem1 =
+            Item::CreateItemFromTransaction(*pTrans1, Item::finalReceipt);
 
         // This may be unnecessary, I'll have to check
         // CreateItemFromTransaction. I'll leave it for now.
         OT_ASSERT(nullptr != pItem1);
 
-        pItem1->SetStatus(OTItem::acknowledgement);
+        pItem1->SetStatus(Item::acknowledgement);
 
         //
         // Here I make sure that the receipt (the inbox notice) references the
@@ -1390,14 +1390,14 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
 
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
-        OTItem* pItem1 = OTItem::CreateItemFromTransaction(
-            *pTransaction, OTItem::finalReceipt);
+        Item* pItem1 =
+            Item::CreateItemFromTransaction(*pTransaction, Item::finalReceipt);
 
         // This may be unnecessary, I'll have to check
         // CreateItemFromTransaction. I'll leave it for now.
         OT_ASSERT(nullptr != pItem1);
 
-        pItem1->SetStatus(OTItem::acknowledgement);
+        pItem1->SetStatus(Item::acknowledgement);
 
         const int64_t lOpeningNumber = GetOpeningNumber(NYM_ID);
 

@@ -139,12 +139,12 @@ namespace opentxs
 {
 
 class Account;
-class OTItem;
+class Item;
 class OTLedger;
 class Nym;
 class OTTransaction;
 
-typedef std::list<OTItem*> listOfItems;
+typedef std::list<Item*> listOfItems;
 
 // Item as in "Transaction Item"
 // An OTLedger contains a list of transactions (pending transactions, inbox or
@@ -157,7 +157,7 @@ typedef std::list<OTItem*> listOfItems;
 // come in packs. You normally would deal with the transaction as a single
 // entity,
 // not the item. A transaction contains a list of items.
-class OTItem : public OTTransactionType
+class Item : public OTTransactionType
 {
 private: // Private prevents erroneous use by other classes.
     typedef OTTransactionType ot_super;
@@ -342,8 +342,8 @@ protected:
     // would have these items:  transfer, serverfee, balance, and possibly
     // outboxhash.
 
-    OTItem(); // <============================= Here for now, if I can get away
-              // with it.
+    Item(); // <============================= Here for now, if I can get away
+            // with it.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
@@ -392,15 +392,15 @@ public:
     {
         return m_listItems;
     }
-    OTItem* GetItem(int32_t nIndex); // While processing an item, you may wish
-                                     // to query it for sub-items of a certain
-                                     // type.
-    OTItem* GetItemByTransactionNum(int64_t lTransactionNumber); // While
-                                                                 // processing
-                                                                 // an item, you
-                                                                 // may
+    Item* GetItem(int32_t nIndex); // While processing an item, you may wish
+                                   // to query it for sub-items of a certain
+                                   // type.
+    Item* GetItemByTransactionNum(int64_t lTransactionNumber); // While
+                                                               // processing
+                                                               // an item, you
+                                                               // may
     // wish to query it for sub-items
-    OTItem* GetFinalReceiptItemByReferenceNum(
+    Item* GetFinalReceiptItemByReferenceNum(
         int64_t lReferenceNumber); // The final receipt item MAY be
                                    // present, and co-relates to others
                                    // that share its "in reference to"
@@ -414,8 +414,8 @@ public:
     {
         return static_cast<int32_t>(m_listItems.size());
     }
-    void AddItem(OTItem& theItem); // You have to allocate the item on the heap
-                                   // and then pass it in as a reference.
+    void AddItem(Item& theItem); // You have to allocate the item on the heap
+                                 // and then pass it in as a reference.
     // OTItem will take care of it from there and will delete it in destructor.
     void ReleaseItems();
     void Release_Item();
@@ -456,19 +456,19 @@ public:
         bool bIsRealTransaction = true); // We use this when the
                                          // trans# is 0 (like when
                                          // processing Nymbox.)
-    inline OTItem::itemStatus GetStatus() const
+    inline Item::itemStatus GetStatus() const
     {
         return m_Status;
     }
-    inline void SetStatus(const OTItem::itemStatus& theVal)
+    inline void SetStatus(const Item::itemStatus& theVal)
     {
         m_Status = theVal;
     }
-    inline OTItem::itemType GetType() const
+    inline Item::itemType GetType() const
     {
         return m_Type;
     }
-    inline void SetType(OTItem::itemType theType)
+    inline void SetType(Item::itemType theType)
     {
         m_Type = theType;
     }
@@ -492,35 +492,35 @@ public:
     {
         m_AcctToID = theID;
     }
-    EXPORT static OTItem* CreateItemFromString(const String& strItem,
-                                               const Identifier& theNotaryID,
-                                               int64_t lTransactionNumber);
+    EXPORT static Item* CreateItemFromString(const String& strItem,
+                                             const Identifier& theNotaryID,
+                                             int64_t lTransactionNumber);
 
-    EXPORT static OTItem* CreateItemFromTransaction(
-        const OTTransaction& theOwner, OTItem::itemType theType,
+    EXPORT static Item* CreateItemFromTransaction(
+        const OTTransaction& theOwner, Item::itemType theType,
         const Identifier* pDestinationAcctID = nullptr);
-    EXPORT static void GetStringFromType(OTItem::itemType theType,
+    EXPORT static void GetStringFromType(Item::itemType theType,
                                          String& strType);
     inline void GetTypeString(String& strType) const
     {
         GetStringFromType(GetType(), strType);
     }
-    OTItem(const Identifier& theNymID,
-           const OTItem& theOwner); // From owner we can get acct ID, server ID,
-                                    // and transaction Num
-    OTItem(const Identifier& theNymID,
-           const OTTransaction& theOwner); // From owner we can get acct ID,
-                                           // server ID, and transaction Num
-    OTItem(const Identifier& theNymID, const OTTransaction& theOwner,
-           OTItem::itemType theType,
-           const Identifier* pDestinationAcctID = nullptr);
+    Item(const Identifier& theNymID,
+         const Item& theOwner); // From owner we can get acct ID, server ID,
+                                // and transaction Num
+    Item(const Identifier& theNymID,
+         const OTTransaction& theOwner); // From owner we can get acct ID,
+                                         // server ID, and transaction Num
+    Item(const Identifier& theNymID, const OTTransaction& theOwner,
+         Item::itemType theType,
+         const Identifier* pDestinationAcctID = nullptr);
 
-    virtual ~OTItem();
+    virtual ~Item();
     //    OTItem& operator=(const OTItem& rhs);
     void InitItem();
 
 private:
-    OTItem::itemType GetItemTypeFromString(const String& strType);
+    Item::itemType GetItemTypeFromString(const String& strType);
 };
 
 } // namespace opentxs
