@@ -251,7 +251,7 @@ void askInteractively(std::string& strContract, std::string& strNotaryID,
     OTLog::Output(0, szInstructions);
     OTLog::Output(0, "Enter the NotaryID for your server contract: ");
     strNotaryID = OT_CLI_ReadLine();
-    OTLog::Output(0, "Enter the Server User ID (the NymID of the Nym who "
+    OTLog::Output(0, "Enter the Server Nym ID (the NymID of the Nym who "
                      "signed the server contract): ");
     strNymID = OT_CLI_ReadLine();
     OTLog::Output(0, "Paste the cached key (ONLY the base64-encoded portion) "

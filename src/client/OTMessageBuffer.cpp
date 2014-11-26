@@ -168,7 +168,7 @@ void OTMessageBuffer::Push(std::shared_ptr<Message> theMessage)
 // the incoming buffer anyway, so the client will have assumed the wrong
 // reply was flushed by now anyway.)
 //
-// However, if the Notary ID and the User ID are wrong, this just means that
+// However, if the Notary ID and the Nym ID are wrong, this just means that
 // some other code is still expecting that reply, and hasn't even popped yet!
 // Therefore, we do NOT want to discard THOSE replies, but put them back if
 // necessary -- only discarding the ones where the IDs match.

@@ -260,7 +260,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
             VALID_TO, // Vouchers are automatically starting today and lasting 6
                       // months.
             theVoucherAcctID, // The asset account the cheque is drawn on.
-            theServerNymID,   // User ID of the sender (in this case the server
+            theServerNymID,   // Nym ID of the sender (in this case the server
                               // nym.)
             strMemo, // Optional memo field. Includes item note and request
                      // memo.
@@ -333,7 +333,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                 VALID_TO,   // Vouchers are automatically starting today and
                             // lasting 6 months.
                 theVoucherAcctID, // The asset account the cheque is drawn on.
-                theServerNymID,   // User ID of the sender (in this case the
+                theServerNymID,   // Nym ID of the sender (in this case the
                                   // server nym.)
                 strMemo, // Optional memo field. Includes item note and request
                          // memo.

@@ -2548,7 +2548,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                 String strAssetNymID(ASSET_NYM_ID), strNymID;
                 theNym.GetIdentifier(strNymID);
                 OTLog::vError(
-                    "User ID on this user account (%s) does NOT match User ID "
+                    "Nym ID on this user account (%s) does NOT match Nym ID "
                     "for public key used in asset contract: %s\n",
                     strNymID.Get(), strAssetNymID.Get());
             }

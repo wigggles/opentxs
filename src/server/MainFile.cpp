@@ -457,7 +457,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         "\nLoading Open Transactions server. File version: %s\n"
                         " Last Issued Transaction Number: %" PRId64
                         "\n Notary ID:     "
-                        " %s\n Server User ID: %s\n",
+                        " %s\n Server Nym ID: %s\n",
                         version_.c_str(),
                         server_->transactor_.transactionNumber(),
                         server_->m_strNotaryID.Get(),

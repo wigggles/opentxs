@@ -5208,7 +5208,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
         // and instrument definition ids match
         // what we expected. We also know that if the purse included a NymID, it
         // matches the NYM_ID
-        // that was passed in. We also know that if a User ID was NOT passed in,
+        // that was passed in. We also know that if a Nym ID was NOT passed in,
         // that the purse WAS
         // definitely a password-protected purse.
         //
@@ -13185,7 +13185,7 @@ int32_t OT_API::usageCredits(const Identifier& NOTARY_ID,
 int32_t OT_API::checkNym(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                          const Identifier& NYM_ID_CHECK) const
 {
-    // Request a user's public key based on User ID included with
+    // Request a user's public key based on Nym ID included with
     // the request.
     // (If you want to send him cash or a check, your wallet will encrypt
     // portions

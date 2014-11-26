@@ -491,7 +491,7 @@ public:
     // Creates a new Nym and adds it to the wallet.
     // (Including PUBLIC and PRIVATE KEYS.)
     //
-    // Returns a new User ID (with files already created)
+    // Returns a new Nym ID (with files already created)
     // or nullptr upon failure.
     //
     // Once it exists, use registerNym() to
@@ -1160,11 +1160,11 @@ public:
 
     VALID_FROM, VALID_TO, // Valid date range (in seconds since Jan 1970...)
 
-    ACCOUNT_ID, NYM_ID, // User ID and Acct ID for SENDER.
+    ACCOUNT_ID, NYM_ID, // Nym ID and Acct ID for SENDER.
 
     CHEQUE_MEMO, // The memo for the cheque. (Can be empty or be nullptr.)
 
-    RECIPIENT_NYM_ID); // Recipient User ID is optional. (You can use an
+    RECIPIENT_NYM_ID); // Recipient Nym ID is optional. (You can use an
     // empty string here, to write a blank cheque, or pass nullptr.)
     */
     EXPORT std::string WriteCheque(const std::string& NOTARY_ID,
@@ -2458,7 +2458,7 @@ public:
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& NYM_ID,   // you pass in the purse you're trying to
                                      // import
-        const std::string& THE_PURSE // It should either have your User ID on
+        const std::string& THE_PURSE // It should either have your Nym ID on
                                      // it, or the key should be inside so you
                                      // can import.
         ) const;
@@ -2588,7 +2588,7 @@ public:
     CHECK SERVER ID -- (This is used for "pinging" the server...)
 
     Notice, if you ever want to send a message, you have to include the
-    Notary ID and the User ID.
+    Notary ID and the Nym ID.
 
     The OTAPI will use the Notary ID to look-up the server contract. (FYI,
     the Notary ID is a hash of the server contract itself, so it is impos-
@@ -2602,7 +2602,7 @@ public:
     contract, so only the person who signed the contract will be able to
     read the message.
 
-    Open Transactions will also use the User ID to lookup the public key
+    Open Transactions will also use the Nym ID to lookup the public key
     for that user. (The NymID, aka NymID, is a hash of the public key
     itself.)
 
@@ -2768,7 +2768,7 @@ public:
         Message_GetUsageCredits(const std::string& THE_MESSAGE) const;
 
     /**
-    CHECK USER --- (Grab his public key based on his User ID.)
+    CHECK USER --- (Grab his public key based on his Nym ID.)
 
     NotaryID -- Must be included with every message.
     NYM_ID -- You must include your own nymID so the server can reply.
@@ -2780,7 +2780,7 @@ public:
     The server's response will contain the public key of the other
     user, so you can encrypt messages or cash to him. Your wallet can
     verify that the key is the right one, by hashing it and comparing
-    the result to the other user's ID. Since the User ID is a hash of
+    the result to the other user's ID. Since the Nym ID is a hash of
     the key, they should always match.
 
     */
@@ -3670,7 +3670,7 @@ public:
     // the incoming buffer anyway, so the client will have assumed the wrong
     // reply was flushed by now anyway.)
     //
-    // However, if the Notary ID and the User ID are wrong, this just means that
+    // However, if the Notary ID and the Nym ID are wrong, this just means that
     // some other code is still expecting that reply, and hasn't even popped
     yet!
     // Therefore, we do NOT want to discard THOSE replies, but put them back if

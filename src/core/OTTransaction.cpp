@@ -6350,7 +6350,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
             theReturnID = pOriginalItem->GetNymID(); // Even though a transfer
                                                      // has no recipient user
                                                      // (just a recipient acct)
-                                                     // I still get the User ID
+                                                     // I still get the Nym ID
                                                      // when he accepts it!
             bSuccess = true;
         }
@@ -6393,7 +6393,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 theReturnID =
                     pOriginalItem->GetNymID(); // Even though the cheque
                                                // has no recipient, I
-                                               // still get the User ID
+                                               // still get the Nym ID
                                                // when he deposits it!
                 bSuccess = true;
             }

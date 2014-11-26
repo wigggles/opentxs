@@ -2007,12 +2007,12 @@ bool OTSmartContract::StashAcctFunds(std::string from_acct_name,
     //
     ReleaseLastSenderRecipientIDs();
 
-    theFromAgentID.GetString(m_strLastSenderUser); // This is the last User ID
+    theFromAgentID.GetString(m_strLastSenderUser); // This is the last Nym ID
                                                    // of a party who SENT money.
     theFromAcctID.GetString(m_strLastSenderAcct); // This is the last Acct ID of
                                                   // a party who SENT money.
     //    theToAgentID.GetString(m_strLastRecipientUser);    // This is the last
-    // User ID of a party who RECEIVED money.
+    // Nym ID of a party who RECEIVED money.
     //    theToAcctID.GetString(m_strLastRecipientAcct);    // This is the last
     // Acct ID of a party who RECEIVED money.
     // Above: the ToAgent and ToAcct are commented out,
@@ -2237,7 +2237,7 @@ bool OTSmartContract::UnstashAcctFunds(std::string to_acct_name,
     //
     ReleaseLastSenderRecipientIDs();
 
-    theToAgentID.GetString(m_strLastRecipientUser); // This is the last User ID
+    theToAgentID.GetString(m_strLastRecipientUser); // This is the last Nym ID
                                                     // of a party who RECEIVED
                                                     // money.
     theToAcctID.GetString(m_strLastRecipientAcct);  // This is the last Acct ID
@@ -3333,11 +3333,11 @@ bool OTSmartContract::MoveAcctFundsStr(std::string from_acct_name,
     //
     ReleaseLastSenderRecipientIDs();
 
-    theFromAgentID.GetString(m_strLastSenderUser); // This is the last User ID
+    theFromAgentID.GetString(m_strLastSenderUser); // This is the last Nym ID
                                                    // of a party who SENT money.
     theFromAcctID.GetString(m_strLastSenderAcct); // This is the last Acct ID of
                                                   // a party who SENT money.
-    theToAgentID.GetString(m_strLastRecipientUser); // This is the last User ID
+    theToAgentID.GetString(m_strLastRecipientUser); // This is the last Nym ID
                                                     // of a party who RECEIVED
                                                     // money.
     theToAcctID.GetString(m_strLastRecipientAcct);  // This is the last Acct ID
@@ -5558,11 +5558,11 @@ void OTSmartContract::UpdateContents()
 // Used internally here.
 void OTSmartContract::ReleaseLastSenderRecipientIDs()
 {
-    m_strLastSenderUser.Release();    // This is the last User ID of a party who
+    m_strLastSenderUser.Release();    // This is the last Nym ID of a party who
                                       // SENT money.
     m_strLastSenderAcct.Release();    // This is the last Acct ID of a party who
                                       // SENT money.
-    m_strLastRecipientUser.Release(); // This is the last User ID of a party who
+    m_strLastRecipientUser.Release(); // This is the last Nym ID of a party who
                                       // RECEIVED money.
     m_strLastRecipientAcct.Release(); // This is the last Acct ID of a party who
                                       // RECEIVED money.
@@ -5687,11 +5687,11 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // means the source/destination was a STASH instead of an account. FYI.
         //
         m_strLastSenderUser = xml->getAttributeValue(
-            "lastSenderNymID"); // Last User ID of a party who SENT money.
+            "lastSenderNymID"); // Last Nym ID of a party who SENT money.
         m_strLastSenderAcct = xml->getAttributeValue(
             "lastSenderAcctID"); // Last Acct ID of a party who SENT money.
         m_strLastRecipientUser =
-            xml->getAttributeValue("lastRecipientNymID"); // Last User ID of a
+            xml->getAttributeValue("lastRecipientNymID"); // Last Nym ID of a
                                                           // party who RECEIVED
                                                           // money.
         m_strLastRecipientAcct =
