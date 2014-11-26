@@ -136,7 +136,6 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
-#include <opentxs/core/util/Timer.hpp>
 
 #include <irrxml/irrXML.hpp>
 
@@ -158,6 +157,8 @@ int32_t OTCron::__cron_ms_between_process = 10000; // The number of milliseconds
 int32_t OTCron::__cron_max_items_per_nym = 10; // The maximum number of cron
                                                // items any given Nym can have
                                                // active at the same time.
+
+Timer OTCron::tCron(true);
 
 // Make sure Server Nym is set on this cron object before loading or saving,
 // since it's
@@ -651,26 +652,25 @@ void OTCron::UpdateContents()
     m_xmlUnsigned.Concatenate("</cron>\n");
 }
 
+int64_t OTCron::computeTimeout()
+{
+    return OTCron::GetCronMsBetweenProcess() - tCron.getElapsedTimeInMilliSec();
+}
+
 // Make sure to call this regularly so the CronItems get a chance to process and
 // expire.
 void OTCron::ProcessCronItems()
 {
-
     if (!m_bIsActivated) {
         otErr << "OTCron::ProcessCronItems: Not activated yet. (Skipping.)\n";
         return;
     }
 
-    // CRON RUNS ON A TIMER...
-    static Timer tCron(true);
-    static double cron_tick1 = tCron.getElapsedTimeInMilliSec();
-    double cron_tick2 = tCron.getElapsedTimeInMilliSec();
-    const int64_t cron_elapsed = static_cast<int64_t>(cron_tick2 - cron_tick1);
-
-    if (cron_elapsed <= OTCron::GetCronMsBetweenProcess()) {
+    // check elapsed time since last items processing
+    if (computeTimeout() > 0) {
         return;
     }
-    cron_tick1 = tCron.getElapsedTimeInMilliSec();
+    tCron.start();
 
     const int32_t nTwentyPercent = OTCron::GetCronRefillAmount() / 5;
     if (GetTransactionCount() <= nTwentyPercent) {
