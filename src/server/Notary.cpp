@@ -152,7 +152,7 @@
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/OTItem.hpp>
+#include <opentxs/core/Item.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
