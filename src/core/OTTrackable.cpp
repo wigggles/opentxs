@@ -138,7 +138,7 @@ namespace opentxs
 {
 
 OTTrackable::OTTrackable()
-    : OTInstrument()
+    : Instrument()
     , m_lTransactionNum(0)
 {
     InitTrackable();
@@ -146,7 +146,7 @@ OTTrackable::OTTrackable()
 
 OTTrackable::OTTrackable(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID)
-    : OTInstrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
 {
     InitTrackable();
@@ -155,7 +155,7 @@ OTTrackable::OTTrackable(const Identifier& NOTARY_ID,
 OTTrackable::OTTrackable(const Identifier& NOTARY_ID,
                          const Identifier& INSTRUMENT_DEFINITION_ID,
                          const Identifier& ACCT_ID, const Identifier& NYM_ID)
-    : OTInstrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
 {
     InitTrackable();
@@ -195,7 +195,7 @@ void OTTrackable::Release_Trackable()
 void OTTrackable::Release()
 {
     Release_Trackable();
-    OTInstrument::Release();
+    Instrument::Release();
 
     // Then I call this to re-initialize everything for myself.
     InitTrackable();

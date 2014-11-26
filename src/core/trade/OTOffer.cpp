@@ -515,7 +515,7 @@ void OTOffer::SetDateAddedToMarket(time64_t tDate) // Used in OTCron when
 }
 
 OTOffer::OTOffer()
-    : ot_super()
+    : Instrument()
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)
     , // No need to free m_pTrade, not responsible. Only here for convenience.
@@ -535,7 +535,7 @@ OTOffer::OTOffer()
 OTOffer::OTOffer(const Identifier& NOTARY_ID,
                  const Identifier& INSTRUMENT_DEFINITION_ID,
                  const Identifier& CURRENCY_ID, const int64_t& lScale)
-    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_tDateAddedToMarket(OT_TIME_ZERO)
     , m_pTrade(nullptr)
     , // No need to free m_pTrade, not responsible. Only here for convenience.
@@ -572,8 +572,8 @@ void OTOffer::Release()
     // If there were any dynamically allocated objects, clean them up here.
     Release_Offer();
 
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
+    Instrument::Release(); // since I've overridden the base class, I call it
+                           // now...
 
     // Then I call this to re-initialize everything
     InitOffer();

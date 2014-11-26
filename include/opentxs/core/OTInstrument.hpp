@@ -138,13 +138,13 @@
 namespace opentxs
 {
 
-class OTInstrument : public OTScriptable
+class Instrument : public OTScriptable
 {
 public:
-    EXPORT OTInstrument();
-    EXPORT OTInstrument(const Identifier& NOTARY_ID,
-                        const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT virtual ~OTInstrument();
+    EXPORT Instrument();
+    EXPORT Instrument(const Identifier& NOTARY_ID,
+                      const Identifier& INSTRUMENT_DEFINITION_ID);
+    EXPORT virtual ~Instrument();
 
     EXPORT virtual void Release();
 

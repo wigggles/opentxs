@@ -145,7 +145,7 @@
 namespace opentxs
 {
 
-bool OTInstrument::IsExpired()
+bool Instrument::IsExpired()
 {
     const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
 
@@ -160,7 +160,7 @@ bool OTInstrument::IsExpired()
 }
 
 // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
-bool OTInstrument::VerifyCurrentDate()
+bool Instrument::VerifyCurrentDate()
 {
     const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
 
@@ -171,12 +171,12 @@ bool OTInstrument::VerifyCurrentDate()
         return false;
 }
 
-void OTInstrument::InitInstrument()
+void Instrument::InitInstrument()
 {
     m_strContractType.Set("INSTRUMENT");
 }
 
-OTInstrument::OTInstrument()
+Instrument::Instrument()
     : OTScriptable()
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
@@ -184,8 +184,8 @@ OTInstrument::OTInstrument()
     InitInstrument();
 }
 
-OTInstrument::OTInstrument(const Identifier& NOTARY_ID,
-                           const Identifier& INSTRUMENT_DEFINITION_ID)
+Instrument::Instrument(const Identifier& NOTARY_ID,
+                       const Identifier& INSTRUMENT_DEFINITION_ID)
     : OTScriptable()
     , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
     , m_NotaryID(NOTARY_ID)
@@ -195,7 +195,7 @@ OTInstrument::OTInstrument(const Identifier& NOTARY_ID,
     InitInstrument();
 }
 
-OTInstrument::~OTInstrument()
+Instrument::~Instrument()
 {
     Release_Instrument();
 
@@ -203,12 +203,12 @@ OTInstrument::~OTInstrument()
     m_VALID_TO = OT_TIME_ZERO;
 }
 
-void OTInstrument::Release_Instrument()
+void Instrument::Release_Instrument()
 {
     // Release any dynamically allocated instrument members here.
 }
 
-void OTInstrument::Release()
+void Instrument::Release()
 {
     Release_Instrument(); // My own cleanup is performed here.
     // Next give the base class a chance to do the same...
@@ -219,7 +219,7 @@ void OTInstrument::Release()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     //    otErr << "OTInstrument::ProcessXMLNode...\n";
     int32_t nReturnVal = 0;

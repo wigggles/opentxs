@@ -144,7 +144,7 @@ class OTNumList;
 // The difference is, it may have identifying info on it:
 // TRANSACTION NUMBER, SENDER USER ID (NYM ID), AND SENDER ACCOUNT ID.
 //
-class OTTrackable : public OTInstrument
+class OTTrackable : public Instrument
 {
 public:
     OTTrackable();

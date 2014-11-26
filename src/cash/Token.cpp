@@ -216,7 +216,7 @@ void Token::InitToken()
 }
 
 Token::Token()
-    : ot_super()
+    : Instrument()
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -238,7 +238,7 @@ Token::Token()
 
 Token::Token(const Identifier& NOTARY_ID,
              const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -255,7 +255,7 @@ Token::Token(const Identifier& NOTARY_ID,
 }
 
 Token::Token(const Purse& thePurse)
-    : ot_super()
+    : Instrument()
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -288,8 +288,8 @@ void Token::Release()
 {
     Release_Token();
 
-    ot_super::Release(); // since I've overridden the base class, I call it
-                         // now...
+    Instrument::Release(); // since I've overridden the base class, I call it
+                           // now...
 }
 
 Token::~Token()

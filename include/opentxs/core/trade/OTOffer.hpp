@@ -164,10 +164,10 @@ class OTTrade;
  for sale”, effectively becomes a FILL OR KILL order. MUST be 1 or greater.
  CANNOT be zero.)
 */
-class OTOffer : public OTInstrument
+class OTOffer : public Instrument
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTInstrument ot_super;
+    typedef Instrument ot_super;
 
     // From OTInstrument (parent class of this)
     /*

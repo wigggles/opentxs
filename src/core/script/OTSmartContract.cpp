@@ -5334,7 +5334,7 @@ OTSmartContract::OTSmartContract(const Identifier& NOTARY_ID)
     , m_StashAccts(Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
-    OTInstrument::SetNotaryID(NOTARY_ID);
+    Instrument::SetNotaryID(NOTARY_ID);
     InitSmartContract();
 }
 
