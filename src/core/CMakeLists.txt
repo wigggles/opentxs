@@ -34,7 +34,7 @@ set(cxx-sources
   OTData.cpp
   crypto/OTEnvelope.cpp
   Identifier.cpp
-  OTInstrument.cpp
+  Instrument.cpp
   OTItem.cpp
   crypto/OTKeyCredential.cpp
   crypto/OTKeypair.cpp

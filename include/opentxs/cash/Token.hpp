@@ -134,7 +134,7 @@
 #define OPENTXS_CASH_TOKEN_HPP
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/OTInstrument.hpp>
+#include <opentxs/core/Instrument.hpp>
 
 namespace opentxs
 {
@@ -193,10 +193,10 @@ key for that denomination will work.
 
 // This class implements the Lucre coins.
 //
-class Token : public OTInstrument
+class Token : public Instrument
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTInstrument ot_super;
+    typedef Instrument ot_super;
 
 public:
     enum tokenState {

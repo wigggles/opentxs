@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  OTInstrument.cpp
+ *  OTInstrument.hpp
  *
  */
 
@@ -130,138 +130,79 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#include <opentxs/core/stdafx.hpp>
+#ifndef OPENTXS_CORE_OTINSTRUMENT_HPP
+#define OPENTXS_CORE_OTINSTRUMENT_HPP
 
-#include <opentxs/core/OTInstrument.hpp>
-
-// Verify whether the CURRENT date is AFTER the the VALID TO date.
-// Notice, this will return false, if the instrument is NOT YET VALID.
-// You have to use VerifyCurrentDate() to make sure you're within the
-// valid date range to use this instrument. But sometimes you only want
-// to know if it's expired, regardless of whether it's valid yet. So this
-// function answers that for you.
-//
+#include "script/OTScriptable.hpp"
 
 namespace opentxs
 {
 
-bool OTInstrument::IsExpired()
+class Instrument : public OTScriptable
 {
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+public:
+    EXPORT Instrument();
+    EXPORT Instrument(const Identifier& NOTARY_ID,
+                      const Identifier& INSTRUMENT_DEFINITION_ID);
+    EXPORT virtual ~Instrument();
 
-    // If the current time is AFTER the valid-TO date,
-    // AND the valid_to is a nonzero number (0 means "doesn't expire")
-    // THEN return true (it's expired.)
-    //
-    if ((CURRENT_TIME >= m_VALID_TO) && (m_VALID_TO > OT_TIME_ZERO))
-        return true;
-    else
-        return false;
-}
+    EXPORT virtual void Release();
 
-// Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
-bool OTInstrument::VerifyCurrentDate()
-{
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
-
-    if ((CURRENT_TIME >= m_VALID_FROM) &&
-        ((CURRENT_TIME <= m_VALID_TO) || (OT_TIME_ZERO == m_VALID_TO)))
-        return true;
-    else
-        return false;
-}
-
-void OTInstrument::InitInstrument()
-{
-    m_strContractType.Set("INSTRUMENT");
-}
-
-OTInstrument::OTInstrument()
-    : OTScriptable()
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-{
-    InitInstrument();
-}
-
-OTInstrument::OTInstrument(const Identifier& NOTARY_ID,
-                           const Identifier& INSTRUMENT_DEFINITION_ID)
-    : OTScriptable()
-    , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
-    , m_NotaryID(NOTARY_ID)
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-{
-    InitInstrument();
-}
-
-OTInstrument::~OTInstrument()
-{
-    Release_Instrument();
-
-    m_VALID_FROM = OT_TIME_ZERO;
-    m_VALID_TO = OT_TIME_ZERO;
-}
-
-void OTInstrument::Release_Instrument()
-{
-    // Release any dynamically allocated instrument members here.
-}
-
-void OTInstrument::Release()
-{
-    Release_Instrument(); // My own cleanup is performed here.
-    // Next give the base class a chance to do the same...
-    // since I've overridden the base class, I call it now
-    OTScriptable::Release();
-    // Initialize everything back to 0
-    //    InitInstrument(); // unnecessary.
-}
-
-// return -1 if error, 0 if nothing, and 1 if the node was processed.
-int32_t OTInstrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
-{
-    //    otErr << "OTInstrument::ProcessXMLNode...\n";
-    int32_t nReturnVal = 0;
-
-    // Here we call the parent class first.
-    // If the node is found there, or there is some error,
-    // then we just return either way.  But if it comes back
-    // as '0', then nothing happened, and we'll continue executing.
-    //
-    // -- Note you can choose not to call the parent if
-    // you don't want to use any of those xml tags.
-    //
-
-    nReturnVal = OTScriptable::ProcessXMLNode(xml);
-
-    // -1 is error, and 1 is "found it". Either way, return.
-    if (nReturnVal != 0) {
-        return nReturnVal; // 0 means "nothing happened, keep going."
+    void Release_Instrument();
+    EXPORT bool VerifyCurrentDate(); // Verify whether the CURRENT date is
+                                     // WITHIN the VALID FROM / TO dates.
+    EXPORT bool IsExpired(); // Verify whether the CURRENT date is AFTER the the
+                             // "VALID TO" date.
+    inline time64_t GetValidFrom() const
+    {
+        return m_VALID_FROM;
     }
-    // This is from OTCronItem. It's only here as sample code.
-    //
-    //  if (!strcmp("closingTransactionNumber", xml->getNodeName()))
-    //    {
-    //        OTString strClosingNumber = xml->getAttributeValue("value");
-    //
-    //        if (strClosingNumber.Exists())
-    //        {
-    //            const int64_t lClosingNumber = atol(strClosingNumber.Get());
-    //
-    //            AddClosingTransactionNo(lClosingNumber);
-    //        }
-    //        else
-    //        {
-    //            otErr << "Error in OTCronItem::ProcessXMLNode:
-    // closingTransactionNumber field without value.\n";
-    //            return (-1); // error condition
-    //        }
-    //
-    //        nReturnVal = 1;
-    //    }
+    inline time64_t GetValidTo() const
+    {
+        return m_VALID_TO;
+    }
 
-    return nReturnVal;
-}
+    inline const Identifier& GetInstrumentDefinitionID() const
+    {
+        return m_InstrumentDefinitionID;
+    }
+    inline const Identifier& GetNotaryID() const
+    {
+        return m_NotaryID;
+    }
+    void InitInstrument();
+
+protected:
+    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
+    inline void SetValidFrom(time64_t TIME_FROM)
+    {
+        m_VALID_FROM = TIME_FROM;
+    }
+    inline void SetValidTo(time64_t TIME_TO)
+    {
+        m_VALID_TO = TIME_TO;
+    }
+    inline void SetInstrumentDefinitionID(
+        const Identifier& INSTRUMENT_DEFINITION_ID)
+    {
+        m_InstrumentDefinitionID = INSTRUMENT_DEFINITION_ID;
+    }
+    inline void SetNotaryID(const Identifier& NOTARY_ID)
+    {
+        m_NotaryID = NOTARY_ID;
+    }
+
+protected:
+    Identifier m_InstrumentDefinitionID; // Every cheque or cash note has an
+                                         // Asset Type
+    Identifier m_NotaryID;               // ...As well as a Server ID...
+    // Expiration Date (valid from/to date)
+    time64_t m_VALID_FROM; // The date, in seconds, when the instrument is valid
+                           // FROM.
+    time64_t m_VALID_TO;   // The date, in seconds, when the instrument expires.
+};
 
 } // namespace opentxs
+
+#endif // OPENTXS_CORE_OTINSTRUMENT_HPP
