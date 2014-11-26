@@ -271,7 +271,7 @@ actual box receipt.
 (parent class). Here we use it for the REAL ACCOUNT ID (set before loading.)
  OTIdentifier    m_AcctID;        // Compare m_AcctID to m_ID after loading it
 from string or file. They should match, and signature should verify.
- OTIdentifier    m_NotaryID;        // Server ID as used to instantiate the
+ OTIdentifier    m_NotaryID;        // Notary ID as used to instantiate the
 transaction, based on expected NotaryID.
  OTIdentifier    m_AcctNotaryID;    // Actual NotaryID within the signed
 portion. (Compare to m_NotaryID upon loading.)

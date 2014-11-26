@@ -267,7 +267,7 @@ bool Account::SaveInbox(OTLedger& box, Identifier* hash)
         otErr << "OTAccount::SaveInbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
                  "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
-              << "\n Server ID: " << strNotaryID
+              << "\n Notary ID: " << strNotaryID
               << "\n Other ID: " << strBoxSvrID << "\n";
         return false;
     }
@@ -294,7 +294,7 @@ bool Account::SaveOutbox(OTLedger& box, Identifier* hash)
         otErr << "OTAccount::SaveOutbox: ERROR: The ledger passed in, isn't "
                  "even for this account!\n"
                  "   Acct ID: " << strAcctID << "\n  Other ID: " << strBoxAcctID
-              << "\n Server ID: " << strNotaryID
+              << "\n Notary ID: " << strNotaryID
               << "\n Other ID: " << strBoxSvrID << "\n";
         return false;
     }

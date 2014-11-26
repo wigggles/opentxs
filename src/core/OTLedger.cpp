@@ -1813,7 +1813,7 @@ void OTLedger::UpdateContents() // Before transmission or serialization, this is
     }
 
     //
-    // Notice I use the PURPORTED Account ID and Server ID to create the output.
+    // Notice I use the PURPORTED Account ID and Notary ID to create the output.
     // That's because
     // I don't want to inadvertantly substitute the real ID for a bad one and
     // then sign it.

@@ -164,7 +164,7 @@ protected:
     mapOfArmor m_mapPublic; // An Ascii-armored string of the mint Public
                             // information. Base64-encoded only.
 
-    Identifier m_NotaryID;    // The Server ID, (a hash of the server contract
+    Identifier m_NotaryID;    // The Notary ID, (a hash of the server contract
                               // whose public key is m_keyPublic)
     Identifier m_ServerNymID; // The Nym ID of the Server, whose public key is
                               // m_keyPublic

@@ -674,7 +674,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
     bool bSuccess = false; // The return value.
 
     const Identifier NOTARY_ID(pCron->GetNotaryID());
-    const Identifier SERVER_NYM_ID(*pServerNym);
+    const Identifier NOTARY_NYM_ID(*pServerNym);
 
     const Identifier& SOURCE_ACCT_ID = GetSenderAcctID();
     const Identifier& SENDER_NYM_ID = GetSenderNymID();
@@ -738,9 +738,9 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
 
     // Find out if either Nym is actually also the server.
     bool bSenderNymIsServerNym =
-        ((SENDER_NYM_ID == SERVER_NYM_ID) ? true : false);
+        ((SENDER_NYM_ID == NOTARY_NYM_ID) ? true : false);
     bool bRecipientNymIsServerNym =
-        ((RECIPIENT_NYM_ID == SERVER_NYM_ID) ? true : false);
+        ((RECIPIENT_NYM_ID == NOTARY_NYM_ID) ? true : false);
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity.

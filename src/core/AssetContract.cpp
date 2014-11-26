@@ -503,7 +503,7 @@ bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
     if (nullptr != pMap) {
         Identifier* pNotaryID = visitor.GetNotaryID();
         OT_ASSERT_MSG(nullptr != pNotaryID,
-                      "Assert: nullptr Server ID on functor. "
+                      "Assert: nullptr Notary ID on functor. "
                       "(How did you even construct the "
                       "thing?)");
 

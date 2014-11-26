@@ -484,7 +484,7 @@ protected:
     // persist in an old copy of the XML. The best way to insure that, is to
     // actually write those data objects freshly to the
     // XML as part of the signing process, just before the signing itself. At
-    // this time, I do not want to write any Server ID
+    // this time, I do not want to write any Notary ID
     // other than the right one -- the one it is supposed to be (the one I am
     // expecting) but simultaneously, I cannot just
     // force my own
@@ -523,7 +523,7 @@ protected:
     //
     // The "Real" server ID is set when the item is first generated. SINCE it
     // was first generated, we go ahead at that one
-    // time and set the Purported Server ID to match. Ever thereafter, they are
+    // time and set the Purported Notary ID to match. Ever thereafter, they are
     // separated in a way, with the "real" ID being
     // only set as an "expected to load number" and the "purported" ID being
     // "the one we actually loaded" number.
@@ -688,7 +688,7 @@ protected:
     OTTransaction::VerifyBalanceReceipt.\n";
         return false;
     }
-    // the account, inbox, and outbox all have the same Server ID. But does it
+    // the account, inbox, and outbox all have the same Notary ID. But does it
     match *this receipt?
     else if (THE_ACCOUNT.GetPurportedNotaryID() != GetPurportedNotaryID())
     {
@@ -709,7 +709,7 @@ protected:
      */
     //
     //
-    // So therefore I just need to add the Server ID, and I have both.
+    // So therefore I just need to add the Notary ID, and I have both.
     // Then all child classes should ALSO implement their own copy of both, and
     // compare the
     // two whenever loading something, so that we know we're safe, as well as
@@ -727,7 +727,7 @@ protected:
                          // string or file. They should match, and signature
                          // should verify.
 
-    Identifier m_NotaryID;     // Server ID as used to instantiate the
+    Identifier m_NotaryID;     // Notary ID as used to instantiate the
                                // transaction, based on expected NotaryID.
     Identifier m_AcctNotaryID; // Actual NotaryID within the signed portion.
                                // (Compare to m_NotaryID upon loading.)

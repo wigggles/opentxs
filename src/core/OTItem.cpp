@@ -1840,7 +1840,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetPurportedAccountID(ACCOUNT_ID); // OTTransactionType::m_AcctID  the
                                            // PURPORTED Account ID
         SetPurportedNotaryID(NOTARY_ID);   // OTTransactionType::m_AcctNotaryID
-                                           // the PURPORTED Server ID
+                                           // the PURPORTED Notary ID
         SetDestinationAcctID(DESTINATION_ACCOUNT);
         SetNymID(NYM_ID);
 
@@ -1953,7 +1953,7 @@ int32_t OTItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                              // Account ID
             pItem->SetPurportedNotaryID(
                 NOTARY_ID); // OTTransactionType::m_AcctNotaryID the PURPORTED
-                            // Server ID
+                            // Notary ID
             pItem->SetNymID(NYM_ID);
 
             String strTemp;

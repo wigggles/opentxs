@@ -809,7 +809,7 @@ OT_MADE_EASY_OT string
     string response = check_nym(NOTARY_ID, NYM_ID, NYM_ID);
     if (1 != VerifyMessageSuccess(response)) {
         otOut << "OT_ME_load_or_retrieve_mint: Cannot verify nym for IDs: \n";
-        otOut << "  Server ID: " << NOTARY_ID << "\n";
+        otOut << "  Notary ID: " << NOTARY_ID << "\n";
         otOut << "     Nym ID: " << NYM_ID << "\n";
         otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
               << "\n";
@@ -832,7 +832,7 @@ OT_MADE_EASY_OT string
         if (1 != VerifyMessageSuccess(response)) {
             otOut << "OT_ME_load_or_retrieve_mint: Unable to "
                      "retrieve mint for IDs: \n";
-            otOut << "  Server ID: " << NOTARY_ID << "\n";
+            otOut << "  Notary ID: " << NOTARY_ID << "\n";
             otOut << "     Nym ID: " << NYM_ID << "\n";
             otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
                   << "\n";
@@ -843,7 +843,7 @@ OT_MADE_EASY_OT string
                                           INSTRUMENT_DEFINITION_ID)) {
             otOut << "OT_ME_load_or_retrieve_mint: Retrieved "
                      "mint, but still 'not good' for IDs: \n";
-            otOut << "  Server ID: " << NOTARY_ID << "\n";
+            otOut << "  Notary ID: " << NOTARY_ID << "\n";
             otOut << "     Nym ID: " << NYM_ID << "\n";
             otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
                   << "\n";
@@ -860,7 +860,7 @@ OT_MADE_EASY_OT string
     string strMint = OTAPI_Wrap::LoadMint(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     if (!VerifyStringVal(strMint)) {
         otOut << "OT_ME_load_or_retrieve_mint: Unable to load mint for IDs: \n";
-        otOut << "  Server ID: " << NOTARY_ID << "\n";
+        otOut << "  Notary ID: " << NOTARY_ID << "\n";
         otOut << "     Nym ID: " << NYM_ID << "\n";
         otOut << "   Instrument Definition Id: " << INSTRUMENT_DEFINITION_ID
               << "\n";

@@ -398,7 +398,7 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
         return false;
     }
     else if (GetNotaryID() != offer.GetNotaryID()) {
-        otErr << "While verifying offer, failed matching Server ID.\n";
+        otErr << "While verifying offer, failed matching Notary ID.\n";
         return false;
     }
     else if (GetInstrumentDefinitionID() !=
@@ -1290,7 +1290,7 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, int64_t stopPrice)
     SetCreationDate(
         OTTimeGetCurrentTime()); // This time is set to TODAY NOW  (OTCronItem)
 
-    // Validate the Server ID, Instrument Definition ID, Currency Type ID, and
+    // Validate the Notary ID, Instrument Definition ID, Currency Type ID, and
     // Date Range.
     if ((GetNotaryID() != offer.GetNotaryID()) ||
         (GetCurrencyID() != offer.GetCurrencyID()) ||

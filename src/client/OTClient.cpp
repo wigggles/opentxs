@@ -3267,7 +3267,7 @@ bool OTClient::processServerReplyGetBoxReceipt(const Message& theReply,
                       << pBoxReceipt->GetTransactionNum()
                       << "), versus the one listed in the reply message ("
                       << theReply.m_lTransactionNum << ").\n";
-            // Note: Account ID and Server ID were already verified, in
+            // Note: Account ID and Notary ID were already verified, in
             // VerifyAccount().
             else if (pBoxReceipt->GetNymID() != NYM_ID) {
                 const String strPurportedNymID(pBoxReceipt->GetNymID());
@@ -4460,7 +4460,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 << "OTClient::" << __FUNCTION__
                                                 << ": Failed storing list "
                                                    "of trades for Nym. "
-                                                   "Server ID: " << strNotaryID
+                                                   "Notary ID: " << strNotaryID
                                                 << " Nym ID: " << strNymID
                                                 << " \n";
                                     }

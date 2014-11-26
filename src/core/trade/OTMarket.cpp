@@ -1111,16 +1111,16 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                                                      // that was already on the
                                                      // market. (Could be same
                                                      // Nym.)
-        SERVER_NYM_ID(
+        NOTARY_NYM_ID(
             *pServerNym); // The Server Nym (could be one or both of the above.)
 
     Nym theNym, theOtherNym; // We MIGHT use ONE, OR BOTH, of these, or none.
 
     // Find out if either Nym is actually also the server.
     bool bFirstNymIsServerNym =
-        ((FIRST_NYM_ID == SERVER_NYM_ID) ? true : false);
+        ((FIRST_NYM_ID == NOTARY_NYM_ID) ? true : false);
     bool bOtherNymIsServerNym =
-        ((OTHER_NYM_ID == SERVER_NYM_ID) ? true : false);
+        ((OTHER_NYM_ID == NOTARY_NYM_ID) ? true : false);
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity. We'll want to know that later.
@@ -2678,7 +2678,7 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
     if (GetNotaryID() != theOffer.GetNotaryID()) {
         bValidOffer = false;
         const String strID(GetNotaryID()), strOtherID(theOffer.GetNotaryID());
-        strReason.Format("Wrong Server ID on offer. Expected %s, but found %s",
+        strReason.Format("Wrong Notary ID on offer. Expected %s, but found %s",
                          strID.Get(), strOtherID.Get());
     }
     else if (GetInstrumentDefinitionID() !=

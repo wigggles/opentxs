@@ -146,7 +146,7 @@ class OTPassword;
 class Nym;
 class Token;
 
-// A token has no User ID, or Account ID, or even a traceable TokenID (the
+// A token has no Nym ID, or Account ID, or even a traceable TokenID (the
 // tokenID only becomes relevant
 // after it is spent.)
 // But a purse can be stuffed full of tokens, and can be saved by accountID as

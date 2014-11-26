@@ -196,7 +196,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         return false;
     }
     else {
-        OTLog::Output(4, "Received valid Server ID with command request.\n");
+        OTLog::Output(4, "Received valid Notary ID with command request.\n");
     }
 
     // NYM WAS PASSED IN
@@ -866,7 +866,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // If you made it down this far, that means the Pseudonym verifies! The
     // message is legit.
     //
-    // (Server ID was good, NymID is a valid hash of User's public key, and the
+    // (Notary ID was good, NymID is a valid hash of User's public key, and the
     // Signature on
     // the message was signed by the user's private key.)
     //
@@ -2548,7 +2548,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                 String strAssetNymID(ASSET_NYM_ID), strNymID;
                 theNym.GetIdentifier(strNymID);
                 OTLog::vError(
-                    "User ID on this user account (%s) does NOT match User ID "
+                    "Nym ID on this user account (%s) does NOT match Nym ID "
                     "for public key used in asset contract: %s\n",
                     strNymID.Get(), strAssetNymID.Get());
             }
@@ -2622,7 +2622,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
     }
 
     const Identifier NYM_ID(theNym), NOTARY_ID(server_->m_strNotaryID),
-        SERVER_NYM_ID(server_->m_nymServer);
+        NOTARY_NYM_ID(server_->m_nymServer);
 
     String strBasket(MsgIn.m_ascPayload);
     Basket theBasket;
@@ -2704,7 +2704,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                 // way in MsgIn so that GenerateNewAccount will create the
                 // sub-account with the server
                 // as the owner, instead of the user.
-                SERVER_NYM_ID.GetString(MsgIn.m_strNymID);
+                NOTARY_NYM_ID.GetString(MsgIn.m_strNymID);
 
                 // We need to actually create all the sub-accounts.
                 // This loop also sets the Account ID onto the basket items
@@ -2725,7 +2725,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                         MsgIn.m_strInstrumentDefinitionID);
 
                     pNewAccount = Account::GenerateNewAccount(
-                        SERVER_NYM_ID, NOTARY_ID, server_->m_nymServer, MsgIn,
+                        NOTARY_NYM_ID, NOTARY_ID, server_->m_nymServer, MsgIn,
                         Account::basketsub);
 
                     // If we successfully create the account, then bundle it
@@ -2856,7 +2856,7 @@ void UserCommandProcessor::UserCmdIssueBasket(Nym& theNym, Message& MsgIn,
                     MsgIn.m_strInstrumentDefinitionID = STR_BASKET_CONTRACT_ID;
 
                     pBasketAccount = Account::GenerateNewAccount(
-                        SERVER_NYM_ID, NOTARY_ID, server_->m_nymServer, MsgIn,
+                        NOTARY_NYM_ID, NOTARY_ID, server_->m_nymServer, MsgIn,
                         Account::basket);
 
                     if (nullptr != pBasketAccount) {
@@ -4258,14 +4258,14 @@ void UserCommandProcessor::UserCmdProcessNymbox(Nym& theNym, Message& MsgIn,
     msgOut.m_strNymID = MsgIn.m_strNymID;          // NymID
 
     const Identifier NYM_ID(msgOut.m_strNymID),
-        NOTARY_ID(server_->m_strNotaryID), SERVER_NYM_ID(server_->m_nymServer);
+        NOTARY_ID(server_->m_strNotaryID), NOTARY_NYM_ID(server_->m_nymServer);
 
     OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID); // These are ledgers used
                                                    // as messages. The one we
                                                    // received
     // and the one we're sending back.
     std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        SERVER_NYM_ID, NYM_ID, NOTARY_ID, OTLedger::message, false));
+        NOTARY_NYM_ID, NYM_ID, NOTARY_ID, OTLedger::message, false));
 
     // Grab the string (containing the request ledger) out of ascii-armored
     // form.
@@ -4492,14 +4492,14 @@ void UserCommandProcessor::UserCmdProcessInbox(Nym& theNym, Message& MsgIn,
     msgOut.m_strAcctID = MsgIn.m_strAcctID;       // The Account ID in question
 
     const Identifier NYM_ID(msgOut.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
-        NOTARY_ID(server_->m_strNotaryID), SERVER_NYM_ID(server_->m_nymServer);
+        NOTARY_ID(server_->m_strNotaryID), NOTARY_NYM_ID(server_->m_nymServer);
 
     OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
                                                        // used as messages. The
                                                        // one we received,
     // and the one we're sending back.
     std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        SERVER_NYM_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
+        NOTARY_NYM_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
     OT_ASSERT_MSG(nullptr != pResponseLedger, "UserCommandProcessor::"
                                               "UserCmdProcessInbox: ASSERT: "
                                               "nullptr != pResponseLedger");
@@ -4824,7 +4824,7 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(Nym& theNym,
     msgOut.m_strAcctID = MsgIn.m_strAcctID; // The Account ID in question
 
     const Identifier NYM_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
-        NOTARY_ID(server_->m_strNotaryID), SERVER_NYM_ID(server_->m_nymServer);
+        NOTARY_ID(server_->m_strNotaryID), NOTARY_NYM_ID(server_->m_nymServer);
 
     OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
                                                        // used as messages. The
@@ -4832,7 +4832,7 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(Nym& theNym,
                                                        // the one
     // that we're sending back in response.
     std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        SERVER_NYM_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
+        NOTARY_NYM_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
 
     bool bTransSuccess = false; // for the Nymbox notice.
     bool bCancelled = false;    // for "failed" transactions that were actually

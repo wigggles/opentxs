@@ -184,7 +184,7 @@ public:
         // the private
         // key that matches the public key from the contract.
         registerNym,      // register user account on a specific server, with
-                          // public key. User ID will be hash of said public
+                          // public key. Nym ID will be hash of said public
                           // key.
         unregisterNym,    // Delete user account from a specific server.
         getRequestNumber, // Get the next request number from the server (for

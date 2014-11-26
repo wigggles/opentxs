@@ -663,7 +663,7 @@ Account* OTWallet::GetIssuerAccount(const Identifier& theInstrumentDefinitionID)
     return nullptr;
 }
 
-// Pass in the Server ID and get the pointer back.
+// Pass in the Notary ID and get the pointer back.
 OTServerContract* OTWallet::GetServerContract(const Identifier& NOTARY_ID)
 {
     for (auto& it : m_mapServers) {
@@ -785,7 +785,7 @@ bool OTWallet::VerifyAssetAccount(const Nym& theNym, Account& theAcct,
     if (NOTARY_ID != theAcct.GetRealNotaryID()) {
         const String s1(NOTARY_ID), s2(theAcct.GetRealNotaryID());
         otOut << "OTWallet::VerifyAssetAccount " << szFunc
-              << ": Server ID passed in (" << s1 << ") didn't match the one "
+              << ": Notary ID passed in (" << s1 << ") didn't match the one "
                                                     "on the account (" << s2
               << "). Acct ID: " << strAcctID << "\n";
         return false;
@@ -1941,7 +1941,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                     otInfo << "\n\n\n****Server Contract**** (wallet "
                               "listing):\n Server Name: " << ServerName
-                           << "\n   Server ID: " << NotaryID << "\n";
+                           << "\n   Notary ID: " << NotaryID << "\n";
 
                     String strContractPath(OTFolders::Contract().Get());
 
@@ -1999,7 +1999,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                               "****Account**** (wallet listing)\n"
                               " Account Name: " << AcctName
                            << "\n   Account ID: " << AcctID
-                           << "\n    Server ID: " << NotaryID << "\n";
+                           << "\n    Notary ID: " << NotaryID << "\n";
 
                     const Identifier ACCOUNT_ID(AcctID), NOTARY_ID(NotaryID);
 

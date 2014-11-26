@@ -269,12 +269,12 @@ bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
                           const Identifier& NOTARY_ID,
                           const Identifier& ACCT_ID)
 {
-    Identifier NYM_ID(THE_NYM), SERVER_NYM_ID(SERVER_NYM);
+    Identifier NYM_ID(THE_NYM), NOTARY_NYM_ID(SERVER_NYM);
     String strNotaryID(NOTARY_ID), strReceiptID(ACCT_ID);
 
     // Load the last successful BALANCE STATEMENT...
 
-    OTTransaction tranOut(SERVER_NYM_ID, ACCT_ID, NOTARY_ID);
+    OTTransaction tranOut(NOTARY_NYM_ID, ACCT_ID, NOTARY_ID);
 
     String strFilename;
     strFilename.Format("%s.success", strReceiptID.Get());
@@ -5208,7 +5208,7 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
         // and instrument definition ids match
         // what we expected. We also know that if the purse included a NymID, it
         // matches the NYM_ID
-        // that was passed in. We also know that if a User ID was NOT passed in,
+        // that was passed in. We also know that if a Nym ID was NOT passed in,
         // that the purse WAS
         // definitely a password-protected purse.
         //
@@ -6053,7 +6053,7 @@ OTServerContract* OT_API::LoadServerContract(const Identifier& NOTARY_ID) const
     else
         otOut << "OT_API::LoadServerContract: Unable to load or "
                  "verify server contract. (Maybe it's just not there, "
-                 "and needs to be downloaded.) Server ID: " << strNotaryID
+                 "and needs to be downloaded.) Notary ID: " << strNotaryID
               << "\n";
     delete pContract;
     pContract = nullptr;
@@ -9250,11 +9250,11 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
     pItem->SetNote(strNote);
     const Nym* pServerNym = pServer->GetContractPublicNym();
 
-    const Identifier SERVER_NYM_ID(*pServerNym);
+    const Identifier NOTARY_NYM_ID(*pServerNym);
     if ((nullptr != pServerNym) && pMint->LoadMint() &&
         pMint->VerifyMint(const_cast<Nym&>(*pServerNym))) {
         int64_t lRequestNumber = 0;
-        Purse* pPurse = new Purse(NOTARY_ID, CONTRACT_ID, SERVER_NYM_ID);
+        Purse* pPurse = new Purse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
         Purse* pPurseMyCopy = new Purse(NOTARY_ID, CONTRACT_ID, NYM_ID);
 
         // Create all the necessary tokens for the withdrawal amount.
@@ -9455,8 +9455,8 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
     String strNotaryID(NOTARY_ID), strNymID(NYM_ID), strFromAcct(ACCT_ID);
 
     const Nym* pServerNym = pServer->GetContractPublicNym();
-    const Identifier SERVER_NYM_ID(*pServerNym);
-    Purse thePurse(NOTARY_ID, CONTRACT_ID, SERVER_NYM_ID);
+    const Identifier NOTARY_NYM_ID(*pServerNym);
+    Purse thePurse(NOTARY_ID, CONTRACT_ID, NOTARY_NYM_ID);
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = false;
@@ -10714,7 +10714,7 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
             GetOrLoadAccount(*pNym, DEPOSITOR_ACCT_ID, NOTARY_ID, __FUNCTION__);
         if (nullptr == pAccount) return (-1);
         // By this point, pAccount is a good pointer and in the wallet.
-        // (No need to cleanup.) I also know it has the right Server ID
+        // (No need to cleanup.) I also know it has the right Notary ID
         // and that the Nym owns it, and has signed it, etc.
         // If the depositor is the recipient, then it's not properly confirmed
         // yet, and he's
@@ -10965,7 +10965,7 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
         // ONE THING I should verify, is that all of the parties are confirmed.
         // I mean, it's not
         // even worth the bother to send the damn thing until then, right? And
-        // the Server ID.
+        // the Notary ID.
         //
 
         if (false ==
@@ -13185,7 +13185,7 @@ int32_t OT_API::usageCredits(const Identifier& NOTARY_ID,
 int32_t OT_API::checkNym(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
                          const Identifier& NYM_ID_CHECK) const
 {
-    // Request a user's public key based on User ID included with
+    // Request a user's public key based on Nym ID included with
     // the request.
     // (If you want to send him cash or a check, your wallet will encrypt
     // portions

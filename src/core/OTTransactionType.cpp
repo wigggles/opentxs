@@ -201,7 +201,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
         // The object is still expected to be internally consistent with its
         // sub-items, regarding those IDs,
         // but the big difference is that it will SET the Real Acct and Real
-        // Server IDs based on the purported
+        // Notary IDs based on the purported
         // values. This way you can load a transaction without knowing the
         // account in advance.
         //
@@ -331,7 +331,7 @@ void OTTransactionType::Release_TransactionType()
                         // or file. They should match, and signature should
                         // verify.
 
-    //    m_NotaryID.Release();       // Server ID as used to instantiate the
+    //    m_NotaryID.Release();       // Notary ID as used to instantiate the
     // transaction, based on expected NotaryID.
     m_AcctNotaryID.Release(); // Actual NotaryID within the signed portion.
                               // (Compare to m_NotaryID upon loading.)
@@ -445,7 +445,7 @@ bool OTTransactionType::VerifyContractID() const
     }
     else {
         //        OTString str1(m_AcctID), str2(m_AcctNotaryID);
-        //        otErr << "Expected Account ID and Server ID both *SUCCESSFUL*
+        //        otErr << "Expected Account ID and Notary ID both *SUCCESSFUL*
         // match to "
         //                "IDs in the xml:\n Account ID:\n%s\n NotaryID:\n%s\n"
         //                "-----------------------------------------------------------------------------\n",

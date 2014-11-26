@@ -566,7 +566,7 @@ int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
 // Creates a new Nym and adds it to the wallet.
 // (Including PUBLIC and PRIVATE KEYS.)
 //
-// Returns a new User ID (with files already created)
+// Returns a new Nym ID (with files already created)
 // or "" upon failure.
 //
 // Once it exists, use OTAPI_Exec::registerNym() to
@@ -4828,7 +4828,7 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     return pBuf;
 }
 
-// Returns an account's Server ID.
+// Returns an account's Notary ID.
 // (Which is a hash of the server contract.)
 std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     const std::string& THE_ID) const
@@ -4891,11 +4891,11 @@ lTransactionNumber,   // The API will supply this automatically, as long as
 
 VALID_FROM, VALID_TO, // Valid date range (in seconds since Jan 1970...)
 
-ACCOUNT_ID, NYM_ID,  // User ID and Acct ID for SENDER.
+ACCOUNT_ID, NYM_ID,  // Nym ID and Acct ID for SENDER.
 
 CHEQUE_MEMO,  // The memo for the cheque.
 
-RECIPIENT_NYM_ID); // Recipient User ID is optional. (You can use an
+RECIPIENT_NYM_ID); // Recipient Nym ID is optional. (You can use an
 // empty string here, to write a blank cheque.)
 */
 std::string OTAPI_Exec::WriteCheque(
@@ -7847,7 +7847,7 @@ std::string OTAPI_Exec::LoadServerContract(
 
     if (nullptr == pContract) {
         otOut << __FUNCTION__
-              << ": Failure calling OT_API::LoadServerContract.\nServer ID: "
+              << ": Failure calling OT_API::LoadServerContract.\nNotary ID: "
               << NOTARY_ID << "\n";
     }
     else // success
@@ -8357,7 +8357,7 @@ std::string OTAPI_Exec::LoadPaymentInbox(
 
     if (nullptr == pLedger) {
         otWarn << __FUNCTION__
-               << ": Failure calling OT_API::LoadPaymentInbox.\n User ID : "
+               << ": Failure calling OT_API::LoadPaymentInbox.\n Nym ID : "
                << NYM_ID << "\n";
     }
     else // success
@@ -8394,7 +8394,7 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
     if (nullptr == pLedger) {
         otWarn
             << __FUNCTION__
-            << ": Failure calling OT_API::LoadPaymentInboxNoVerify.\nUser ID: "
+            << ": Failure calling OT_API::LoadPaymentInboxNoVerify.\nNym ID: "
             << NYM_ID << "\n";
     }
     else // success
@@ -8664,7 +8664,7 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
     return theLedger.GetTransactionCount();
 }
 
-// Creates a new 'response' ledger, set up with the right Server ID, etc, so you
+// Creates a new 'response' ledger, set up with the right Notary ID, etc, so you
 // can add the 'response' items to it, one by one. (Pass in the original ledger
 // that you are responding to, as it uses the data from it to set up the
 // response.)
@@ -11293,8 +11293,8 @@ int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strNymID(theNymID);
         otErr << __FUNCTION__
-              << ": Error loading transaction from string. User ID: "
-              << strNymID << "\n";
+              << ": Error loading transaction from string. Nym ID: " << strNymID
+              << "\n";
         return -1;
     }
 
@@ -14752,7 +14752,7 @@ int32_t OTAPI_Exec::getNymMarketOffers(const std::string& NOTARY_ID,
 // the incoming buffer anyway, so the client will have assumed the wrong
 // reply was flushed by now anyway.)
 //
-// However, if the Server ID and the User ID are wrong, this just means that
+// However, if the Notary ID and the Nym ID are wrong, this just means that
 // some other code is still expecting that reply, and hasn't even popped yet!
 // Therefore, we do NOT want to discard THOSE replies, but put them back if
 // necessary -- only discarding the ones where the IDs match.
