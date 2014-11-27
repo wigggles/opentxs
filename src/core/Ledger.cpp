@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>

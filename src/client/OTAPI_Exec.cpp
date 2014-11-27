@@ -155,7 +155,7 @@
 #include <opentxs/core/script/OTClause.hpp>
 #include <opentxs/core/crypto/OTCredential.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/script/OTParty.hpp>

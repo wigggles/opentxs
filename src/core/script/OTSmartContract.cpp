@@ -599,7 +599,7 @@ various sequence numbers. Hm.
 #include <opentxs/core/script/OTClause.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>

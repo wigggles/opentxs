@@ -134,7 +134,7 @@
 
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>

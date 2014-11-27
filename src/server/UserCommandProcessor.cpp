@@ -148,7 +148,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/cash/Mint.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 

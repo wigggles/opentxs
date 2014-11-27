@@ -146,7 +146,7 @@
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTTransaction.hpp>
