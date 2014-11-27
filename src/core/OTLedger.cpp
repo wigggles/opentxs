@@ -1334,12 +1334,12 @@ OTTransaction* OTLedger::GetTransferReceipt(int64_t lNumberOfOrigin)
             String strReference;
             pTransaction->GetReferenceString(strReference);
 
-            std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
+            std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
                 strReference, pTransaction->GetPurportedNotaryID(),
                 pTransaction->GetReferenceToNum()));
             OT_ASSERT(nullptr != pOriginalItem);
 
-            if (pOriginalItem->GetType() != OTItem::acceptPending) {
+            if (pOriginalItem->GetType() != Item::acceptPending) {
                 otErr << "OTLedger::" << __FUNCTION__
                       << ": Wrong item type attached to transferReceipt!\n";
                 return nullptr;
@@ -1413,7 +1413,7 @@ OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
         String strDepositChequeMsg;
         pCurrentReceipt->GetReferenceString(strDepositChequeMsg);
 
-        std::unique_ptr<OTItem> pOriginalItem(OTItem::CreateItemFromString(
+        std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
             strDepositChequeMsg, GetPurportedNotaryID(),
             pCurrentReceipt->GetReferenceToNum()));
 
@@ -1423,7 +1423,7 @@ OTTransaction* OTLedger::GetChequeReceipt(int64_t lChequeNum,
                      "inside the chequeReceipt "
                      "(but failed to load it...)\n";
         }
-        else if (OTItem::depositCheque != pOriginalItem->GetType()) {
+        else if (Item::depositCheque != pOriginalItem->GetType()) {
             String strItemType;
             pOriginalItem->GetTypeString(strItemType);
             otErr << __FUNCTION__
@@ -1527,11 +1527,10 @@ OTTransaction* OTLedger::GetFinalReceipt(int64_t lReferenceNum)
 ///
 /// returns a new balance statement item containing the inbox report
 /// CALLER IS RESPONSIBLE TO DELETE.
-OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
-                                           const OTTransaction& theOwner,
-                                           Nym& theNym,
-                                           const Account& theAccount,
-                                           OTLedger& theOutbox)
+Item* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
+                                         const OTTransaction& theOwner,
+                                         Nym& theNym, const Account& theAccount,
+                                         OTLedger& theOutbox)
 {
     if (OTLedger::inbox != GetType()) {
         otErr << "OTLedger::GenerateBalanceStatement: Wrong ledger type.\n";
@@ -1562,10 +1561,10 @@ OTItem* OTLedger::GenerateBalanceStatement(int64_t lAdjustment,
     // theOwner is the withdrawal, or deposit, or whatever, that wants to change
     // the account balance, and thus that needs a new balance agreement signed.
     //
-    OTItem* pBalanceItem = OTItem::CreateItemFromTransaction(
-        theOwner, OTItem::balanceStatement); // <=== balanceStatement type, with
-                                             // user ID, server ID, account ID,
-                                             // transaction ID.
+    Item* pBalanceItem = Item::CreateItemFromTransaction(
+        theOwner, Item::balanceStatement); // <=== balanceStatement type, with
+                                           // user ID, server ID, account ID,
+                                           // transaction ID.
 
     // The above has an ASSERT, so this this will never actually happen.
     if (nullptr == pBalanceItem) return nullptr;
@@ -1718,7 +1717,7 @@ int64_t OTLedger::GetTotalPendingValue()
 // This ledger is an outbox, and it is creating a report of itself,
 // adding each report item to this balance item.
 // DO NOT call this, it's meant to be used only by above function.
-void OTLedger::ProduceOutboxReport(OTItem& theBalanceItem)
+void OTLedger::ProduceOutboxReport(Item& theBalanceItem)
 {
     if (OTLedger::outbox != GetType()) {
         otErr << __FUNCTION__ << ": Wrong ledger type.\n";

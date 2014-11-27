@@ -152,7 +152,7 @@
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/OTItem.hpp>
+#include <opentxs/core/Item.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTLog.hpp>
@@ -179,10 +179,10 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
     // transfer request"
     tranOut.SetType(OTTransaction::atTransfer);
 
-    OTItem* pItem = nullptr;
-    OTItem* pBalanceItem = nullptr;
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pBalanceItem = nullptr;
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
@@ -198,14 +198,13 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
 
     String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
     pResponseBalanceItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atBalanceStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
-    pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atTransfer);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+    pResponseItem = Item::CreateItemFromTransaction(tranOut, Item::atTransfer);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
 
@@ -217,7 +216,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                        strNymID.Get());
     }
     else if (nullptr ==
-               (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
+               (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
         String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeTransfer: Expected "
@@ -229,7 +228,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
     // For now, there should only be one of these transfer items inside the
     // transaction.
     // So we treat it that way... I either get it successfully or not.
-    else if (nullptr == (pItem = tranIn.GetItem(OTItem::transfer))) {
+    else if (nullptr == (pItem = tranIn.GetItem(Item::transfer))) {
         String strTemp(tranIn);
         OTLog::vOutput(0, "Notary::NotarizeTransfer: Expected "
                           "OTItem::transfer in trans# %" PRId64 ": \n\n%s\n\n",
@@ -535,8 +534,8 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                 }
                 else {
                     pResponseBalanceItem->SetStatus(
-                        OTItem::acknowledgement); // the balance agreement (just
-                                                  // above) was successful.
+                        Item::acknowledgement); // the balance agreement (just
+                                                // above) was successful.
                     pResponseBalanceItem->SetNewOutboxTransNum(
                         lNewTransactionNumber); // So the receipt will show that
                                                 // the client's "1" in the
@@ -604,7 +603,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                         // it.
                         // Otherwise you get no items and no signature. Just a
                         // rejection item in the response transaction.
-                        pResponseItem->SetStatus(OTItem::acknowledgement);
+                        pResponseItem->SetStatus(Item::acknowledgement);
 
                         bOutSuccess = true; // The transfer was successful.
 
@@ -670,12 +669,12 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
     // withdrawal request"
     tranOut.SetType(OTTransaction::atWithdrawal);
 
-    OTItem* pItem = nullptr;
-    OTItem* pItemCash = nullptr;
-    OTItem* pItemVoucher = nullptr;
-    OTItem* pBalanceItem = nullptr;
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pItemCash = nullptr;
+    Item* pItemVoucher = nullptr;
+    Item* pBalanceItem = nullptr;
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
@@ -695,28 +694,27 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
     // Here we find out if we're withdrawing cash, or a voucher
     // (A voucher is a cashier's cheque aka banker's cheque).
     //
-    OTItem::itemType theReplyItemType = OTItem::error_state;
+    Item::itemType theReplyItemType = Item::error_state;
 
-    pItemVoucher = tranIn.GetItem(OTItem::withdrawVoucher);
+    pItemVoucher = tranIn.GetItem(Item::withdrawVoucher);
 
     if (nullptr == pItemVoucher) {
-        pItemCash = tranIn.GetItem(OTItem::withdrawal);
+        pItemCash = tranIn.GetItem(Item::withdrawal);
         pItem = pItemCash;
-        if (nullptr != pItem) theReplyItemType = OTItem::atWithdrawal;
+        if (nullptr != pItem) theReplyItemType = Item::atWithdrawal;
     }
     else {
         pItem = pItemVoucher;
-        theReplyItemType = OTItem::atWithdrawVoucher;
+        theReplyItemType = Item::atWithdrawVoucher;
     }
-    pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, theReplyItemType);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+    pResponseItem = Item::CreateItemFromTransaction(tranOut, theReplyItemType);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
 
     pResponseBalanceItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atBalanceStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -764,7 +762,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
     // Check for a balance agreement...
     //
     else if (nullptr ==
-             (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
+             (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
         String strTemp(tranIn);
         OTLog::vOutput(0, "Notary::NotarizeWithdrawal: Expected "
                           "OTItem::balanceStatement, but not found in trans # "
@@ -774,7 +772,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                            ? strTemp.Get()
                            : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
-    else if (pItem->GetType() == OTItem::withdrawVoucher) {
+    else if (pItem->GetType() == Item::withdrawVoucher) {
         // The response item will contain a copy of the request item. So I save
         // it into a string
         // here so they can all grab a copy of it into their "in reference to"
@@ -903,8 +901,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             else // successfully loaded the voucher request from the string...
             {
                 pResponseBalanceItem->SetStatus(
-                    OTItem::acknowledgement); // the transaction agreement was
-                                              // successful.
+                    Item::acknowledgement); // the transaction agreement was
+                                            // successful.
                 String strChequeMemo;
                 strChequeMemo.Format("%s%s", strItemNote.Get(),
                                      theVoucherRequest.GetMemo().Get());
@@ -995,7 +993,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                         theVoucher.SaveContractRaw(strVoucher);
 
                         pResponseItem->SetAttachment(strVoucher);
-                        pResponseItem->SetStatus(OTItem::acknowledgement);
+                        pResponseItem->SetStatus(Item::acknowledgement);
 
                         bOutSuccess =
                             true; // The withdrawal of a voucher was successful.
@@ -1041,7 +1039,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
     // transaction.
     // So we treat it that way... I either get it successfully or not.
     //
-    else if (pItem->GetType() == OTItem::withdrawal) {
+    else if (pItem->GetType() == Item::withdrawal) {
         // The response item will contain a copy of the request item. So I save
         // it into a string
         // here so they can all grab a copy of it into their "in reference to"
@@ -1163,8 +1161,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             else // successfully loaded the purse from the string...
             {
                 pResponseBalanceItem->SetStatus(
-                    OTItem::acknowledgement); // the transaction agreement was
-                                              // successful.
+                    Item::acknowledgement); // the transaction agreement was
+                                            // successful.
 
                 // Pull the token(s) out of the purse that was received from the
                 // client.
@@ -1353,7 +1351,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
 
                     // Add the digital cash token to the response message
                     pResponseItem->SetAttachment(strPurse);
-                    pResponseItem->SetStatus(OTItem::acknowledgement);
+                    pResponseItem->SetStatus(Item::acknowledgement);
 
                     bOutSuccess = true; // The cash withdrawal was successful.
 
@@ -1486,17 +1484,15 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
     // 'pay dividend' request"
     tranOut.SetType(OTTransaction::atPayDividend);
 
-    OTItem* pItem =
+    Item* pItem =
         nullptr; // This pointer and the following one, are 2 pointers,
                  // as a vestige
-    OTItem* pItemPayDividend =
-        nullptr;                    // from the withdrawal code, which has two
-                                    // forms: voucher and cash.
-    OTItem* pBalanceItem = nullptr; // The balance agreement item, which must be
-                                    // on any transaction.
-    OTItem* pResponseItem = nullptr; // Server's response to pItem.
-    OTItem* pResponseBalanceItem =
-        nullptr; // Server's response to pBalanceItem.
+    Item* pItemPayDividend = nullptr; // from the withdrawal code, which has two
+                                      // forms: voucher and cash.
+    Item* pBalanceItem = nullptr;  // The balance agreement item, which must be
+                                   // on any transaction.
+    Item* pResponseItem = nullptr; // Server's response to pItem.
+    Item* pResponseBalanceItem = nullptr; // Server's response to pBalanceItem.
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
@@ -1520,27 +1516,26 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
         strInstrumentDefinitionID(PAYOUT_INSTRUMENT_DEFINITION_ID);
     // Make sure the appropriate item is attached.
     //
-    OTItem::itemType theReplyItemType = OTItem::error_state;
+    Item::itemType theReplyItemType = Item::error_state;
 
-    pItemPayDividend = tranIn.GetItem(OTItem::payDividend);
+    pItemPayDividend = tranIn.GetItem(Item::payDividend);
 
     if (nullptr != pItemPayDividend) // found it.
     {
         pItem = pItemPayDividend;
-        theReplyItemType = OTItem::atPayDividend;
+        theReplyItemType = Item::atPayDividend;
     }
     // Server response item being added to server response transaction (tranOut)
     // (They're getting SOME sort of response item.)
     //
-    pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, theReplyItemType);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+    pResponseItem = Item::CreateItemFromTransaction(tranOut, theReplyItemType);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
 
     pResponseBalanceItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atBalanceStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -1579,7 +1574,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
     // Check for a balance agreement...
     //
     else if (nullptr ==
-             (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
+             (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
         String strTemp(tranIn);
         OTLog::vOutput(0, "%s: Expected OTItem::balanceStatement, but not "
                           "found in trans # %" PRId64 ": \n\n%s\n\n",
@@ -1588,9 +1583,9 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                            ? strTemp.Get()
                            : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
     }
-    else if (pItem->GetType() == OTItem::payDividend) // Superfluous by this
-                                                        // point. Artifact of
-                                                        // withdrawal code.
+    else if (pItem->GetType() == Item::payDividend) // Superfluous by this
+                                                      // point. Artifact of
+                                                      // withdrawal code.
     {
         // The response item will contain a copy of the request item. So I save
         // it into a string
@@ -1859,9 +1854,9 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                     else // successfully verified the balance agreement.
                     {
                         pResponseBalanceItem->SetStatus(
-                            OTItem::acknowledgement); // the transaction
-                                                      // agreement was
-                                                      // successful.
+                            Item::acknowledgement); // the transaction
+                                                    // agreement was
+                                                    // successful.
                         // IF we successfully created the voucher, AND the
                         // voucher amount is greater than 0,
                         // AND debited the user's account,
@@ -1917,8 +1912,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
 
                                 // todo: determine whether I need to attach
                                 // anything here at all...
-                                pResponseItem->SetStatus(
-                                    OTItem::acknowledgement);
+                                pResponseItem->SetStatus(Item::acknowledgement);
 
                                 bOutSuccess = true; // The paying of the
                                                     // dividends was successful.
@@ -2300,12 +2294,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
     // deposit request"
     tranOut.SetType(OTTransaction::atDeposit);
 
-    OTItem* pItem = nullptr;
-    OTItem* pItemCheque = nullptr;
-    OTItem* pItemCash = nullptr;
-    OTItem* pBalanceItem = nullptr;
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pItemCheque = nullptr;
+    Item* pItemCash = nullptr;
+    Item* pBalanceItem = nullptr;
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
@@ -2326,28 +2320,27 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
         nullptr; // the Mint's funds for cash withdrawals.
     // Here we find out if we're depositing cash, or a cheque
     //
-    OTItem::itemType theReplyItemType = OTItem::error_state;
+    Item::itemType theReplyItemType = Item::error_state;
 
-    pItemCheque = tranIn.GetItem(OTItem::depositCheque);
+    pItemCheque = tranIn.GetItem(Item::depositCheque);
 
     if (nullptr == pItemCheque) {
-        pItemCash = tranIn.GetItem(OTItem::deposit);
+        pItemCash = tranIn.GetItem(Item::deposit);
         pItem = pItemCash;
-        theReplyItemType = OTItem::atDeposit;
+        theReplyItemType = Item::atDeposit;
     }
     else {
         pItem = pItemCheque;
-        theReplyItemType = OTItem::atDepositCheque;
+        theReplyItemType = Item::atDepositCheque;
     }
-    pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, theReplyItemType);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+    pResponseItem = Item::CreateItemFromTransaction(tranOut, theReplyItemType);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
 
     pResponseBalanceItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atBalanceStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -2396,7 +2389,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
     // Check for a balance agreement...
     //
     else if (nullptr ==
-             (pBalanceItem = tranIn.GetItem(OTItem::balanceStatement))) {
+             (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
         String strTemp(tranIn);
         OTLog::vOutput(
             0, "Notary::NotarizeDeposit: Expected OTItem::balanceStatement, "
@@ -2407,7 +2400,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
     }
     // DEPOSIT CHEQUE  (Deposit Cash is the bottom half of the function, deposit
     // cheque is the top half.)
-    else if (pItem->GetType() == OTItem::depositCheque) {
+    else if (pItem->GetType() == Item::depositCheque) {
         // The response item, as well as the sender's inbox, will soon contain a
         // copy
         // of the request item. So I save it into a string here so they can grab
@@ -2594,8 +2587,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 }
                 else {
                     pResponseBalanceItem->SetStatus(
-                        OTItem::acknowledgement); // the transaction agreement
-                                                  // was successful.
+                        Item::acknowledgement); // the transaction agreement
+                                                // was successful.
 
                     if ( // Clear the transaction number. Sender Nym was
                         // responsible for it (and still is, until
@@ -2700,7 +2693,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         // Otherwise you get no items and no signature. Just a
                         // rejection item in the response transaction.
                         //
-                        pResponseItem->SetStatus(OTItem::acknowledgement);
+                        pResponseItem->SetStatus(Item::acknowledgement);
 
                         bOutSuccess =
                             true; // The cheque cancellation was successful.
@@ -3385,9 +3378,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     //
                     else {
                         pResponseBalanceItem->SetStatus(
-                            OTItem::acknowledgement); // the transaction
-                                                      // agreement was
-                                                      // successful.
+                            Item::acknowledgement); // the transaction
+                                                    // agreement was
+                                                    // successful.
 
                         // Deduct the amount from the source account, and add it
                         // to the recipient account...
@@ -3694,7 +3687,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                             // Otherwise you get no items and no signature. Just
                             // a rejection item in the response transaction.
                             //
-                            pResponseItem->SetStatus(OTItem::acknowledgement);
+                            pResponseItem->SetStatus(Item::acknowledgement);
 
                             bOutSuccess =
                                 true; // The cheque deposit was successful.
@@ -3743,7 +3736,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
     //
     // Deposit (the transaction) now supports deposit (the item) and
     // depositCheque (the item)
-    else if (pItem->GetType() == OTItem::deposit) {
+    else if (pItem->GetType() == Item::deposit) {
         // The response item, as well as the inbox and outbox items, will
         // contain a copy
         // of the request item. So I save it into a string here so they can all
@@ -3822,8 +3815,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             else // the purse loaded successfully from the string
             {
                 pResponseBalanceItem->SetStatus(
-                    OTItem::acknowledgement); // the transaction agreement was
-                                              // successful.
+                    Item::acknowledgement); // the transaction agreement was
+                                            // successful.
 
                 bool bSuccess = false;
 
@@ -4039,7 +4032,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     pMintCashReserveAcct->SaveContract();
                     pMintCashReserveAcct->SaveAccount();
 
-                    pResponseItem->SetStatus(OTItem::acknowledgement);
+                    pResponseItem->SetStatus(Item::acknowledgement);
 
                     bOutSuccess = true; // The cash deposit was successful.
 
@@ -4110,10 +4103,10 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
     // paymentPlan request"
     tranOut.SetType(OTTransaction::atPaymentPlan);
 
-    OTItem* pItem = nullptr;
-    OTItem* pBalanceItem = nullptr;
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pBalanceItem = nullptr;
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
@@ -4128,16 +4121,16 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
         DEPOSITOR_ACCT_ID(theDepositorAccount), NYM_ID(theNym);
 
     const String strNymID(NYM_ID);
-    pItem = tranIn.GetItem(OTItem::paymentPlan);
-    pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
+    pItem = tranIn.GetItem(Item::paymentPlan);
+    pBalanceItem = tranIn.GetItem(Item::transactionStatement);
     pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atPaymentPlan);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atPaymentPlan);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
-    pResponseBalanceItem = OTItem::CreateItemFromTransaction(
-        tranOut, OTItem::atTransactionStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+    pResponseBalanceItem =
+        Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -4172,8 +4165,8 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
         }
         else {
             pResponseBalanceItem->SetStatus(
-                OTItem::acknowledgement); // the transaction agreement was
-                                          // successful.
+                Item::acknowledgement); // the transaction agreement was
+                                        // successful.
 
             // The response item will contain a copy of the request item. So I
             // save it into a string
@@ -4644,7 +4637,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                     // acknowledgement instead of the default
                                     // (rejection)
                                     pResponseItem->SetStatus(
-                                        OTItem::acknowledgement);
+                                        Item::acknowledgement);
 
                                     bOutSuccess = true; // The payment plan
                                                         // activation was
@@ -4835,7 +4828,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
             // delete it here, since Cron owns it now, and will deal with
             // cleaning it up at the right time.
             if ((nullptr != pPlan) &&
-                (pResponseItem->GetStatus() != OTItem::acknowledgement)) {
+                (pResponseItem->GetStatus() != Item::acknowledgement)) {
                 delete pPlan;
                 pPlan = nullptr;
             }
@@ -4863,10 +4856,10 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
     // the smartContract request"
     tranOut.SetType(OTTransaction::atSmartContract);
 
-    OTItem* pItem = nullptr;
-    OTItem* pBalanceItem = nullptr;
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pBalanceItem = nullptr;
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
@@ -4880,16 +4873,16 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
         ACTIVATOR_NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer),
         ACTIVATOR_ACCT_ID(theActivatingAccount), NYM_ID(theNym);
     const String strNymID(NYM_ID);
-    pItem = tranIn.GetItem(OTItem::smartContract);
-    pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
+    pItem = tranIn.GetItem(Item::smartContract);
+    pBalanceItem = tranIn.GetItem(Item::transactionStatement);
     pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atSmartContract);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atSmartContract);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
-    pResponseBalanceItem = OTItem::CreateItemFromTransaction(
-        tranOut, OTItem::atTransactionStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+    pResponseBalanceItem =
+        Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -4922,8 +4915,8 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
         }
         else {
             pResponseBalanceItem->SetStatus(
-                OTItem::acknowledgement); // the transaction agreement was
-                                          // successful.
+                Item::acknowledgement); // the transaction agreement was
+                                        // successful.
 
             // The response item will contain a copy of the request item. So I
             // save it into a string
@@ -5529,7 +5522,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
 
                         // Now we can set the response item as an
                         // acknowledgement instead of rejection (the default)
-                        pResponseItem->SetStatus(OTItem::acknowledgement);
+                        pResponseItem->SetStatus(Item::acknowledgement);
                         bOutSuccess = true; // The smart contract activation was
                                             // successful.
                         OTLog::vOutput(0, "%s: Successfully added smart "
@@ -5548,7 +5541,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
             // delete it here, since Cron owns it now, and will deal with
             // cleaning it up at the right time.
             if ((nullptr != pContract) &&
-                (pResponseItem->GetStatus() != OTItem::acknowledgement)) {
+                (pResponseItem->GetStatus() != Item::acknowledgement)) {
                 delete pContract;
                 pContract = nullptr;
             }
@@ -5596,10 +5589,10 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
     // the cancelCronItem request"
     tranOut.SetType(OTTransaction::atCancelCronItem);
 
-    OTItem* pItem = nullptr;
-    OTItem* pBalanceItem = nullptr;
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pBalanceItem = nullptr;
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
@@ -5613,16 +5606,16 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
 
     const String strNymID(NYM_ID);
 
-    pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
+    pBalanceItem = tranIn.GetItem(Item::transactionStatement);
     pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atCancelCronItem);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atCancelCronItem);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
 
-    pResponseBalanceItem = OTItem::CreateItemFromTransaction(
-        tranOut, OTItem::atTransactionStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+    pResponseBalanceItem =
+        Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -5645,7 +5638,7 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
     // For now, there should only be one of these cancelCronItem items inside
     // the transaction.
     // So we treat it that way... I either get it successfully or not.
-    else if (nullptr != (pItem = tranIn.GetItem(OTItem::cancelCronItem))) {
+    else if (nullptr != (pItem = tranIn.GetItem(Item::cancelCronItem))) {
         // The response item will contain a copy of the request item. So I save
         // it into a string
         // here so it can be saved into the "in reference to" field.
@@ -5684,8 +5677,8 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
         }
         else {
             pResponseBalanceItem->SetStatus(
-                OTItem::acknowledgement); // the transaction agreement was
-                                          // successful.
+                Item::acknowledgement); // the transaction agreement was
+                                        // successful.
 
             const int64_t lReferenceToNum = pItem->GetReferenceToNum();
 
@@ -5730,7 +5723,7 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
                 if (bSuccess) {
                     // Now we can set the response item as an acknowledgement
                     // instead of the default (rejection)
-                    pResponseItem->SetStatus(OTItem::acknowledgement);
+                    pResponseItem->SetStatus(Item::acknowledgement);
 
                     bOutSuccess =
                         true; // The "cancel cron item" was successful.
@@ -5785,10 +5778,10 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
     // the exchange basket request"
     tranOut.SetType(OTTransaction::atExchangeBasket);
 
-    OTItem* pItem = tranIn.GetItem(OTItem::exchangeBasket);
-    OTItem* pBalanceItem = tranIn.GetItem(OTItem::balanceStatement);
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = tranIn.GetItem(Item::exchangeBasket);
+    Item* pBalanceItem = tranIn.GetItem(Item::balanceStatement);
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
@@ -5808,14 +5801,14 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
         theAccount.LoadOutbox(server_->m_nymServer));
 
     pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atExchangeBasket);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atExchangeBasket);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
 
     pResponseBalanceItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atBalanceStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -5877,8 +5870,8 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
         else // BALANCE AGREEMENT WAS SUCCESSFUL.......
         {
             pResponseBalanceItem->SetStatus(
-                OTItem::acknowledgement); // the balance agreement was
-                                          // successful.
+                Item::acknowledgement); // the balance agreement was
+                                        // successful.
 
             // Set up some account pointer lists for later...
             listOfAccounts listUserAccounts, listServerAccounts;
@@ -6270,10 +6263,10 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                             basketReceipt,
                                                         lNewTransactionNumber);
 
-                                            OTItem* pItemInbox = OTItem::
-                                                CreateItemFromTransaction(
+                                            Item* pItemInbox =
+                                                Item::CreateItemFromTransaction(
                                                     *pInboxTransaction,
-                                                    OTItem::basketReceipt);
+                                                    Item::basketReceipt);
 
                                             // these may be unnecessary, I'll
                                             // have to check
@@ -6282,7 +6275,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                             OT_ASSERT(nullptr != pItemInbox);
 
                                             pItemInbox->SetStatus(
-                                                OTItem::acknowledgement);
+                                                Item::acknowledgement);
                                             pItemInbox->SetAmount(
                                                 theRequestBasket
                                                         .GetExchangingIn()
@@ -6465,10 +6458,10 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                             OTTransaction::basketReceipt,
                                             lNewTransactionNumber);
 
-                                    OTItem* pItemInbox =
-                                        OTItem::CreateItemFromTransaction(
+                                    Item* pItemInbox =
+                                        Item::CreateItemFromTransaction(
                                             *pInboxTransaction,
-                                            OTItem::basketReceipt);
+                                            Item::basketReceipt);
 
                                     // these may be unnecessary, I'll have to
                                     // check CreateItemFromTransaction. I'll
@@ -6476,8 +6469,8 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     OT_ASSERT(nullptr != pItemInbox);
 
                                     pItemInbox->SetStatus(
-                                        OTItem::acknowledgement); // the
-                                                                  // default.
+                                        Item::acknowledgement); // the
+                                                                // default.
                                     pItemInbox->SetAmount(
                                         theRequestBasket.GetExchangingIn()
                                             ? lTransferAmount
@@ -6642,9 +6635,9 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     theNym, theRequestBasket.GetClosingNum(),
                                     true);
                                 pResponseItem->SetStatus(
-                                    OTItem::acknowledgement); // the
-                                                              // exchangeBasket
-                                                              // was successful.
+                                    Item::acknowledgement); // the
+                                                            // exchangeBasket
+                                                            // was successful.
 
                                 bOutSuccess =
                                     true; // The exchangeBasket was successful.
@@ -6683,10 +6676,10 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
     // marketOffer request"
     tranOut.SetType(OTTransaction::atMarketOffer);
 
-    OTItem* pItem = nullptr;
-    OTItem* pBalanceItem = nullptr;
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pBalanceItem = nullptr;
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
@@ -6699,17 +6692,17 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
     const Identifier NOTARY_ID(server_->m_strNotaryID), NYM_ID(theNym);
     const String strNymID(NYM_ID);
 
-    pItem = tranIn.GetItem(OTItem::marketOffer);
-    pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
+    pItem = tranIn.GetItem(Item::marketOffer);
+    pBalanceItem = tranIn.GetItem(Item::transactionStatement);
     pResponseItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atMarketOffer);
-    pResponseItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atMarketOffer);
+    pResponseItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseItem); // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
 
-    pResponseBalanceItem = OTItem::CreateItemFromTransaction(
-        tranOut, OTItem::atTransactionStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+    pResponseBalanceItem =
+        Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -6783,8 +6776,8 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
         }
         else {
             pResponseBalanceItem->SetStatus(
-                OTItem::acknowledgement); // the transaction agreement was
-                                          // successful.
+                Item::acknowledgement); // the transaction agreement was
+                                        // successful.
 
             // Load up the currency account and validate it.
             std::unique_ptr<Account> pCurrencyAcct(
@@ -7006,7 +6999,7 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
 
                     // Now we can set the response item as an acknowledgement
                     // instead of the default (rejection)
-                    pResponseItem->SetStatus(OTItem::acknowledgement);
+                    pResponseItem->SetStatus(Item::acknowledgement);
 
                     bOutSuccess = true; // The offer was successfully placed on
                                         // the market.
@@ -7059,7 +7052,7 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
             // cleaning
             // it up at the right time.
             if ((nullptr != pTrade) &&
-                pResponseItem->GetStatus() != OTItem::acknowledgement) {
+                pResponseItem->GetStatus() != Item::acknowledgement) {
                 delete pTrade;
                 pTrade = nullptr;
             }
@@ -7189,7 +7182,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                          "from user nym in Notary::NotarizeTransaction\n");
         }
         else {
-            OTItem::itemType theReplyItemType = OTItem::error_state;
+            Item::itemType theReplyItemType = Item::error_state;
 
             switch (tranIn.GetType()) {
             // TRANSFER (account to account)
@@ -7200,7 +7193,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 OTLog::Output(0, "NotarizeTransaction type: Transfer\n");
                 NotarizeTransfer(theNym, theFromAccount, tranIn, tranOut,
                                  bOutSuccess);
-                theReplyItemType = OTItem::atTransfer;
+                theReplyItemType = Item::atTransfer;
                 break;
 
             // PROCESS INBOX (currently, all incoming transfers must be
@@ -7225,16 +7218,16 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // Nym ID, or made out to a blank recipient, just like a blank
             // cheque.)
             case OTTransaction::withdrawal: {
-                OTItem* pItemVoucher = tranIn.GetItem(OTItem::withdrawVoucher);
-                OTItem* pItemCash = tranIn.GetItem(OTItem::withdrawal);
+                Item* pItemVoucher = tranIn.GetItem(Item::withdrawVoucher);
+                Item* pItemCash = tranIn.GetItem(Item::withdrawal);
 
                 if (nullptr != pItemCash) {
-                    theReplyItemType = OTItem::atWithdrawal;
+                    theReplyItemType = Item::atWithdrawal;
                     OTLog::Output(
                         0, "NotarizeTransaction type: Withdrawal (cash)\n");
                 }
                 else if (nullptr != pItemVoucher) {
-                    theReplyItemType = OTItem::atWithdrawVoucher;
+                    theReplyItemType = Item::atWithdrawVoucher;
                     OTLog::Output(
                         0, "NotarizeTransaction type: Withdrawal (voucher)\n");
                 }
@@ -7252,7 +7245,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 OTLog::Output(0, "NotarizeTransaction type: Deposit\n");
                 NotarizeDeposit(theNym, theFromAccount, tranIn, tranOut,
                                 bOutSuccess);
-                theReplyItemType = OTItem::atDeposit;
+                theReplyItemType = Item::atDeposit;
                 break;
 
             // PAY DIVIDEND
@@ -7266,7 +7259,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 OTLog::Output(0, "NotarizeTransaction type: Pay Dividend\n");
                 NotarizePayDividend(theNym, theFromAccount, tranIn, tranOut,
                                     bOutSuccess);
-                theReplyItemType = OTItem::atPayDividend;
+                theReplyItemType = Item::atPayDividend;
                 break;
 
             // MARKET OFFER
@@ -7279,7 +7272,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 OTLog::Output(0, "NotarizeTransaction type: Market Offer\n");
                 NotarizeMarketOffer(theNym, theFromAccount, tranIn, tranOut,
                                     bOutSuccess);
-                theReplyItemType = OTItem::atMarketOffer;
+                theReplyItemType = Item::atMarketOffer;
                 break;
 
             // PAYMENT PLAN
@@ -7291,7 +7284,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 OTLog::Output(0, "NotarizeTransaction type: Payment Plan\n");
                 NotarizePaymentPlan(theNym, theFromAccount, tranIn, tranOut,
                                     bOutSuccess);
-                theReplyItemType = OTItem::atPaymentPlan;
+                theReplyItemType = Item::atPaymentPlan;
                 break;
 
             // SMART CONTRACT
@@ -7312,7 +7305,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 theIDSet.insert(lTransactionNumber);
                 NotarizeSmartContract(theNym, theFromAccount, tranIn, tranOut,
                                       bOutSuccess);
-                theReplyItemType = OTItem::atSmartContract;
+                theReplyItemType = Item::atSmartContract;
             } break;
 
             // CANCEL CRON ITEM
@@ -7323,7 +7316,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 OTLog::Output(0, "NotarizeTransaction type: cancelCronItem\n");
                 NotarizeCancelCronItem(theNym, theFromAccount, tranIn, tranOut,
                                        bOutSuccess);
-                theReplyItemType = OTItem::atCancelCronItem;
+                theReplyItemType = Item::atCancelCronItem;
                 break;
 
             // EXCHANGE BASKET
@@ -7336,7 +7329,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 OTLog::Output(0, "NotarizeTransaction type: Exchange Basket\n");
                 NotarizeExchangeBasket(theNym, theFromAccount, tranIn, tranOut,
                                        bOutSuccess);
-                theReplyItemType = OTItem::atExchangeBasket;
+                theReplyItemType = Item::atExchangeBasket;
                 break;
 
             default:
@@ -7372,10 +7365,10 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                 // (It already can't be used again, and there's no receipt to
                 // clear later, thus no reason to save it...)
                 {
-                    OTItem* pItem = tranOut.GetItem(theReplyItemType);
+                    Item* pItem = tranOut.GetItem(theReplyItemType);
 
                     if ((nullptr != pItem)) {
-                        if (OTItem::rejection == pItem->GetStatus()) {
+                        if (Item::rejection == pItem->GetStatus()) {
                             // If this is a cron item, then we need to remove it
                             // from the
                             // list of open cron items as well.
@@ -7471,10 +7464,10 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
     // The outgoing transaction is an "atProcessNymbox", that is, "a reply to
     // the process nymbox request"
     tranOut.SetType(OTTransaction::atProcessNymbox);
-    OTItem* pItem = nullptr;
-    OTItem* pBalanceItem = tranIn.GetItem(OTItem::transactionStatement);
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pBalanceItem = tranIn.GetItem(Item::transactionStatement);
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -7489,9 +7482,9 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
     if (true == bSuccessLoadingNymbox)
         bSuccessLoadingNymbox = theNymbox.VerifyAccount(
             server_->m_nymServer); // make sure it's all good.
-    pResponseBalanceItem = OTItem::CreateItemFromTransaction(
-        tranOut, OTItem::atTransactionStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+    pResponseBalanceItem =
+        Item::CreateItemFromTransaction(tranOut, Item::atTransactionStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -7553,7 +7546,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
             OT_ASSERT_MSG(nullptr != pItem,
                           "Pointer should not have been nullptr.");
 
-            if (pItem->GetType() == OTItem::acceptTransaction) {
+            if (pItem->GetType() == Item::acceptTransaction) {
                 OTTransaction* pTransaction =
                     theNymbox.GetTransaction(pItem->GetReferenceToNum());
 
@@ -7683,8 +7676,8 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
             }
 
             pResponseBalanceItem->SetStatus(
-                OTItem::acknowledgement); // the transaction statement was
-                                          // successful.
+                Item::acknowledgement); // the transaction statement was
+                                        // successful.
 
             // THE ABOVE LOOP WAS JUST A TEST RUN
             //
@@ -7705,20 +7698,20 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                 // We already handled this one (if we're even in this block in
                 // the first place.)
                 //
-                if (OTItem::transactionStatement == pItem->GetType()) {
+                if (Item::transactionStatement == pItem->GetType()) {
                     continue;
                 }
 
                 // If the client sent an accept item then let's process it.
-                if ((OTItem::request == pItem->GetStatus()) &&
-                    ((OTItem::acceptFinalReceipt ==
+                if ((Item::request == pItem->GetStatus()) &&
+                    ((Item::acceptFinalReceipt ==
                       pItem->GetType()) || // Clearing out a finalReceipt
                                            // notice.
-                     (OTItem::acceptTransaction ==
+                     (Item::acceptTransaction ==
                       pItem->GetType()) || // Accepting new transaction number.
-                     (OTItem::acceptMessage ==
+                     (Item::acceptMessage ==
                       pItem->GetType()) || // Accepted message.
-                     (OTItem::acceptNotice ==
+                     (Item::acceptNotice ==
                       pItem->GetType()) // Accepted server notification.
                      )) {
                     String strInReferenceTo;
@@ -7729,25 +7722,25 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                     // later.
                     pItem->SaveContractRaw(strInReferenceTo);
 
-                    OTItem::itemType theReplyItemType;
+                    Item::itemType theReplyItemType;
                     switch (pItem->GetType()) {
-                    case OTItem::acceptFinalReceipt:
-                        theReplyItemType = OTItem::atAcceptFinalReceipt;
+                    case Item::acceptFinalReceipt:
+                        theReplyItemType = Item::atAcceptFinalReceipt;
                         break;
-                    case OTItem::acceptTransaction:
-                        theReplyItemType = OTItem::atAcceptTransaction;
+                    case Item::acceptTransaction:
+                        theReplyItemType = Item::atAcceptTransaction;
                         break;
-                    case OTItem::acceptMessage:
-                        theReplyItemType = OTItem::atAcceptMessage;
+                    case Item::acceptMessage:
+                        theReplyItemType = Item::atAcceptMessage;
                         break;
-                    case OTItem::acceptNotice:
-                        theReplyItemType = OTItem::atAcceptNotice;
+                    case Item::acceptNotice:
+                        theReplyItemType = Item::atAcceptNotice;
                         break;
                     default:
                         OTLog::Error("Should never happen.\n");
                         theReplyItemType =
-                            OTItem::error_state; // should never happen based on
-                                                 // above 'if' statement.
+                            Item::error_state; // should never happen based on
+                                               // above 'if' statement.
                         continue; // saving this anyway just cause it's cleaner.
                     }
 
@@ -7755,9 +7748,9 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                     // transaction (tranOut)
                     // They're getting SOME sort of response item.
 
-                    pResponseItem = OTItem::CreateItemFromTransaction(
+                    pResponseItem = Item::CreateItemFromTransaction(
                         tranOut, theReplyItemType);
-                    pResponseItem->SetStatus(OTItem::rejection); // the default.
+                    pResponseItem->SetStatus(Item::rejection); // the default.
                     pResponseItem->SetReferenceString(
                         strInReferenceTo); // the response item carries a copy
                                            // of what it's responding to.
@@ -7844,7 +7837,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                         //
 
                         // The below block only executes for ACCEPTING a MESSAGE
-                        if ((OTItem::acceptMessage == pItem->GetType()) &&
+                        if ((Item::acceptMessage == pItem->GetType()) &&
                             (OTTransaction::message ==
                              pServerTransaction->GetType())) {
                             // pItem contains the current user's attempt to
@@ -7865,11 +7858,11 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                             // Now we can set the response item as an
                             // acknowledgement instead of the default
                             // (rejection)
-                            pResponseItem->SetStatus(OTItem::acknowledgement);
+                            pResponseItem->SetStatus(Item::acknowledgement);
                         } // its type is OTItem::aacceptMessage
 
                         // The below block only executes for ACCEPTING a NOTICE
-                        else if ((OTItem::acceptNotice == pItem->GetType()) &&
+                        else if ((Item::acceptNotice == pItem->GetType()) &&
                                  ((OTTransaction::notice ==
                                    pServerTransaction->GetType()) ||
                                   (OTTransaction::replyNotice ==
@@ -7899,7 +7892,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                             // Now we can set the response item as an
                             // acknowledgement instead of the default
                             // (rejection)
-                            pResponseItem->SetStatus(OTItem::acknowledgement);
+                            pResponseItem->SetStatus(Item::acknowledgement);
 
                         } // its type is OTItem::acceptNotice
 
@@ -7910,7 +7903,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                         // (We'll make SURE the client got the notice! Probably
                         // should do this
                         // for cash withdrawals as well...)
-                        else if ((OTItem::acceptTransaction ==
+                        else if ((Item::acceptTransaction ==
                                   pItem->GetType()) &&
                                  (OTTransaction::blank ==
                                   pServerTransaction->GetType())) {
@@ -8019,7 +8012,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                             // Now we can set the response item as an
                             // acknowledgement instead of the default
                             // (rejection)
-                            pResponseItem->SetStatus(OTItem::acknowledgement);
+                            pResponseItem->SetStatus(Item::acknowledgement);
                         }
 
                         // The below block only executes for CLEARING a
@@ -8029,7 +8022,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                         // a notice that that had occurred. The client has seen
                         // the notice and is
                         // now clearing it from the box.
-                        else if ((OTItem::acceptFinalReceipt ==
+                        else if ((Item::acceptFinalReceipt ==
                                   pItem->GetType()) &&
                                  (OTTransaction::finalReceipt ==
                                   pServerTransaction->GetType())) {
@@ -8054,7 +8047,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                             // Now we can set the response item as an
                             // acknowledgement instead of the default
                             // (rejection)
-                            pResponseItem->SetStatus(OTItem::acknowledgement);
+                            pResponseItem->SetStatus(Item::acknowledgement);
                         }
                     }
                     else {
@@ -8120,7 +8113,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
     // is there?
 
     if ((nullptr != pResponseBalanceItem) &&
-        (OTItem::acknowledgement == pResponseBalanceItem->GetStatus())) {
+        (Item::acknowledgement == pResponseBalanceItem->GetStatus())) {
         if (tranOut.GetSuccess()) {
             // Transaction agreement was a success, AND process nymbox was a
             // success.
@@ -8158,10 +8151,10 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
     // process inbox request"
     tranOut.SetType(OTTransaction::atProcessInbox);
 
-    OTItem* pItem = nullptr;
-    OTItem* pBalanceItem = tranIn.GetItem(OTItem::balanceStatement);
-    OTItem* pResponseItem = nullptr;
-    OTItem* pResponseBalanceItem = nullptr;
+    Item* pItem = nullptr;
+    Item* pBalanceItem = tranIn.GetItem(Item::balanceStatement);
+    Item* pResponseItem = nullptr;
+    Item* pResponseBalanceItem = nullptr;
 
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
@@ -8183,8 +8176,8 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
         theAccount.LoadOutbox(server_->m_nymServer));
 
     pResponseBalanceItem =
-        OTItem::CreateItemFromTransaction(tranOut, OTItem::atBalanceStatement);
-    pResponseBalanceItem->SetStatus(OTItem::rejection); // the default.
+        Item::CreateItemFromTransaction(tranOut, Item::atBalanceStatement);
+    pResponseBalanceItem->SetStatus(Item::rejection); // the default.
     tranOut.AddItem(*pResponseBalanceItem); // the Transaction's destructor will
                                             // cleanup the item. It "owns" it
                                             // now.
@@ -8255,27 +8248,27 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
             OTTransaction* pServerTransaction = nullptr;
 
             switch (pItem->GetType()) {
-            case OTItem::balanceStatement:
+            case Item::balanceStatement:
                 pServerTransaction = nullptr;
                 continue;
 
-            case OTItem::acceptCronReceipt:
-            case OTItem::acceptFinalReceipt:
-            case OTItem::acceptBasketReceipt:
-            case OTItem::disputeCronReceipt:
-            case OTItem::disputeFinalReceipt:
-            case OTItem::disputeBasketReceipt:
+            case Item::acceptCronReceipt:
+            case Item::acceptFinalReceipt:
+            case Item::acceptBasketReceipt:
+            case Item::disputeCronReceipt:
+            case Item::disputeFinalReceipt:
+            case Item::disputeBasketReceipt:
                 pServerTransaction =
                     pInbox->GetTransaction(pItem->GetReferenceToNum());
                 break;
 
-            case OTItem::acceptPending:     // Accept an incoming (pending)
-                                            // transfer.
-            case OTItem::acceptItemReceipt: // Accept a chequeReceipt,
-                                            // voucherReceipt, or
-                                            // transferReceipt.
-            case OTItem::rejectPending:
-            case OTItem::disputeItemReceipt:
+            case Item::acceptPending:     // Accept an incoming (pending)
+                                          // transfer.
+            case Item::acceptItemReceipt: // Accept a chequeReceipt,
+                                          // voucherReceipt, or
+                                          // transferReceipt.
+            case Item::rejectPending:
+            case Item::disputeItemReceipt:
                 pServerTransaction =
                     pInbox->GetTransaction(pItem->GetReferenceToNum());
                 break;
@@ -8317,10 +8310,10 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
             // validated.)
 
             switch (pItem->GetType()) {
-            case OTItem::acceptCronReceipt:
+            case Item::acceptCronReceipt:
                 bSuccessFindingAllTransactions = true;
                 break;
-            case OTItem::acceptFinalReceipt:
+            case Item::acceptFinalReceipt:
                 bSuccessFindingAllTransactions = true;
 
                 // Need to ERROR OUT here, if the number of cron receipts
@@ -8367,7 +8360,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                                        // repeats.)
 
                     for (auto& it : tranIn.GetItemList()) {
-                        OTItem* pItemPointer = it;
+                        Item* pItemPointer = it;
                         OT_ASSERT_MSG(nullptr != pItemPointer,
                                       "Pointer should not have been nullptr.");
 
@@ -8437,7 +8430,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
             // ---- COUNT is correct and closing num is on list of open cron
             // items. (FINAL RECEIPT FALLS THROUGH HERE!!! no break)
 
-            case OTItem::acceptBasketReceipt:
+            case Item::acceptBasketReceipt:
                 // IF it's actually there on theNym, then schedule it for
                 // removal.
                 // (Otherwise we'd end up improperly re-adding it.)
@@ -8460,14 +8453,14 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                 }
 
                 break;
-            case OTItem::acceptPending:
+            case Item::acceptPending:
                 // IF I'm accepting a pending transfer, then add the amount to
                 // my counter of total amount being accepted.
                 //
                 lTotalBeingAccepted += pServerTransaction->GetReceiptAmount();
                 bSuccessFindingAllTransactions = true;
                 break;
-            case OTItem::acceptItemReceipt:
+            case Item::acceptItemReceipt:
                 bSuccessFindingAllTransactions = true;
                 {
                     // If I'm accepting an item receipt (which will remove my
@@ -8488,8 +8481,8 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                     String strOriginalItem;
                     pServerTransaction->GetReferenceString(strOriginalItem);
 
-                    std::unique_ptr<OTItem> pOriginalItem(
-                        OTItem::CreateItemFromString(
+                    std::unique_ptr<Item> pOriginalItem(
+                        Item::CreateItemFromString(
                             strOriginalItem, NOTARY_ID,
                             pServerTransaction->GetReferenceToNum()));
 
@@ -8520,7 +8513,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         // setting up dummy data in order to verify the balance
                         // agreement.) *sigh*
                         //
-                        if (OTItem::depositCheque ==
+                        if (Item::depositCheque ==
                             pOriginalItem->GetType()) // client is accepting a
                                                       // cheque receipt, which
                                                       // has a depositCheque
@@ -8578,7 +8571,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         // client is accepting a transfer receipt, which has an
                         // acceptPending from the recipient as the original item
                         // within,
-                        else if (OTItem::acceptPending ==
+                        else if (Item::acceptPending ==
                                  pOriginalItem->GetType()) // (which is in
                                                            // reference to the
                                                            // client's outoing
@@ -8734,8 +8727,8 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
             else // BALANCE AGREEMENT WAS SUCCESSFUL.......
             {
                 pResponseBalanceItem->SetStatus(
-                    OTItem::acknowledgement); // the transaction agreement was
-                                              // successful.
+                    Item::acknowledgement); // the transaction agreement was
+                                            // successful.
 
                 // THE ABOVE LOOP WAS JUST A TEST RUN
                 //
@@ -8752,27 +8745,27 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                     // We already handled this one (if we're even in this block
                     // in the first place.)
                     //
-                    if (OTItem::balanceStatement == pItem->GetType()) {
+                    if (Item::balanceStatement == pItem->GetType()) {
                         continue;
                     }
 
                     // If the client sent an accept item, (or reject/dispute)
                     // then let's process it.
-                    if ((OTItem::request == pItem->GetStatus()) &&
-                        ((OTItem::acceptCronReceipt ==
+                    if ((Item::request == pItem->GetStatus()) &&
+                        ((Item::acceptCronReceipt ==
                           pItem->GetType()) || // Accepting notice of market
                                                // trade or payment processing.
                                                // (Original in Cron Receipt.)
                          //                       (OTItem::disputeCronReceipt
-                         (OTItem::acceptItemReceipt ==
+                         (Item::acceptItemReceipt ==
                           pItem->GetType()) || // Accepted item receipt (cheque,
                                                // transfer)
-                         (OTItem::acceptPending ==
+                         (Item::acceptPending ==
                           pItem->GetType()) || // Accepting notice of pending
                                                // transfer
-                         (OTItem::acceptFinalReceipt ==
+                         (Item::acceptFinalReceipt ==
                           pItem->GetType()) || // Accepting finalReceipt
-                         (OTItem::acceptBasketReceipt ==
+                         (Item::acceptBasketReceipt ==
                           pItem->GetType()) // Accepting basketReceipt
                          )) {
                         // The response item will contain a copy of the "accept"
@@ -8782,44 +8775,44 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         strInReferenceTo.Release();
                         pItem->SaveContractRaw(strInReferenceTo);
 
-                        OTItem::itemType theReplyItemType;
+                        Item::itemType theReplyItemType;
                         switch (pItem->GetType()) {
-                        case OTItem::acceptPending:
-                            theReplyItemType = OTItem::atAcceptPending;
+                        case Item::acceptPending:
+                            theReplyItemType = Item::atAcceptPending;
                             break;
-                        case OTItem::rejectPending:
-                            theReplyItemType = OTItem::atRejectPending;
+                        case Item::rejectPending:
+                            theReplyItemType = Item::atRejectPending;
                             break;
-                        case OTItem::acceptCronReceipt:
-                            theReplyItemType = OTItem::atAcceptCronReceipt;
+                        case Item::acceptCronReceipt:
+                            theReplyItemType = Item::atAcceptCronReceipt;
                             break;
-                        case OTItem::disputeCronReceipt:
-                            theReplyItemType = OTItem::atDisputeCronReceipt;
+                        case Item::disputeCronReceipt:
+                            theReplyItemType = Item::atDisputeCronReceipt;
                             break;
-                        case OTItem::acceptItemReceipt:
-                            theReplyItemType = OTItem::atAcceptItemReceipt;
+                        case Item::acceptItemReceipt:
+                            theReplyItemType = Item::atAcceptItemReceipt;
                             break;
-                        case OTItem::disputeItemReceipt:
-                            theReplyItemType = OTItem::atDisputeItemReceipt;
+                        case Item::disputeItemReceipt:
+                            theReplyItemType = Item::atDisputeItemReceipt;
                             break;
-                        case OTItem::acceptFinalReceipt:
-                            theReplyItemType = OTItem::atAcceptFinalReceipt;
+                        case Item::acceptFinalReceipt:
+                            theReplyItemType = Item::atAcceptFinalReceipt;
                             break;
-                        case OTItem::disputeFinalReceipt:
-                            theReplyItemType = OTItem::atDisputeFinalReceipt;
+                        case Item::disputeFinalReceipt:
+                            theReplyItemType = Item::atDisputeFinalReceipt;
                             break;
-                        case OTItem::acceptBasketReceipt:
-                            theReplyItemType = OTItem::atAcceptBasketReceipt;
+                        case Item::acceptBasketReceipt:
+                            theReplyItemType = Item::atAcceptBasketReceipt;
                             break;
-                        case OTItem::disputeBasketReceipt:
-                            theReplyItemType = OTItem::atDisputeBasketReceipt;
+                        case Item::disputeBasketReceipt:
+                            theReplyItemType = Item::atDisputeBasketReceipt;
                             break;
                         default:
                             OTLog::Error("Should never happen.\n");
                             theReplyItemType =
-                                OTItem::error_state; // should never happen
-                                                     // based on above 'if'
-                                                     // statement.
+                                Item::error_state; // should never happen
+                                                   // based on above 'if'
+                                                   // statement.
                             break; // saving this anyway just cause it's
                                    // cleaner.
                         }
@@ -8828,10 +8821,10 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         // transaction (tranOut)
                         // They're getting SOME sort of response item.
 
-                        pResponseItem = OTItem::CreateItemFromTransaction(
+                        pResponseItem = Item::CreateItemFromTransaction(
                             tranOut, theReplyItemType);
                         pResponseItem->SetStatus(
-                            OTItem::rejection); // the default.
+                            Item::rejection); // the default.
                         pResponseItem->SetReferenceString(
                             strInReferenceTo); // the response item carries a
                                                // copy of what it's responding
@@ -8879,7 +8872,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         // a smartcontract inside, instead of a payment plan! I
                         // handle these cases first, here:
                         else if ( // MARKET RECEIPT, or PAYMENT RECEIPT.....
-                            ((OTItem::acceptCronReceipt ==
+                            ((Item::acceptCronReceipt ==
                               pItem->GetType()) // This is checked
                                                 // above, but just
                                                 // keeping this safe.
@@ -8916,10 +8909,10 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                             // Now we can set the response item as an
                             // acknowledgement instead of the default
                             // (rejection)
-                            pResponseItem->SetStatus(OTItem::acknowledgement);
+                            pResponseItem->SetStatus(Item::acknowledgement);
                         }
                         else if ( // FINAL RECEIPT
-                            ((OTItem::acceptFinalReceipt ==
+                            ((Item::acceptFinalReceipt ==
                               pItem->GetType()) // This is checked
                                                 // above, but just
                                                 // keeping this safe.
@@ -8954,10 +8947,10 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                             // Now we can set the response item as an
                             // acknowledgement instead of the default
                             // (rejection)
-                            pResponseItem->SetStatus(OTItem::acknowledgement);
+                            pResponseItem->SetStatus(Item::acknowledgement);
                         }
                         else if ( // BASKET RECEIPT
-                            ((OTItem::acceptBasketReceipt ==
+                            ((Item::acceptBasketReceipt ==
                               pItem->GetType()) // This is checked
                                                 // above, but just
                                                 // keeping this safe.
@@ -8992,7 +8985,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                             // Now we can set the response item as an
                             // acknowledgement instead of the default
                             // (rejection)
-                            pResponseItem->SetStatus(OTItem::acknowledgement);
+                            pResponseItem->SetStatus(Item::acknowledgement);
                         }
 
                         // Careful here.  I'm looking up the original
@@ -9010,12 +9003,12 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         // item REFERS to. That process, necessary
                         // for pending transactions and cheque receipts, is NOT
                         // the case above, with receipts from cron.
-                        else if (((OTItem::acceptItemReceipt ==
+                        else if (((Item::acceptItemReceipt ==
                                    pItem->GetType()) // acceptItemReceipt
                                                      // includes checkReceipt
                                                      // and transferReceipts.
                                   ||
-                                  (OTItem::acceptPending ==
+                                  (Item::acceptPending ==
                                    pItem->GetType()) // acceptPending includes
                                                      // checkReceipts. Because
                                                      // they are
@@ -9062,8 +9055,8 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                             pServerTransaction->GetReferenceString(
                                 strOriginalItem);
 
-                            std::unique_ptr<OTItem> pOriginalItem(
-                                OTItem::CreateItemFromString(
+                            std::unique_ptr<Item> pOriginalItem(
+                                Item::CreateItemFromString(
                                     strOriginalItem, NOTARY_ID,
                                     pServerTransaction->GetReferenceToNum()));
 
@@ -9126,17 +9119,17 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                 // inbox. So that's the simplest case, and it's
                                 // handled by THIS block of code:
                                 //
-                                if ((OTItem::acceptItemReceipt ==
+                                if ((Item::acceptItemReceipt ==
                                      pItem->GetType()) &&
                                     (((OTTransaction::transferReceipt ==
                                        pServerTransaction->GetType()) &&
-                                      (OTItem::acceptPending ==
+                                      (Item::acceptPending ==
                                        pOriginalItem->GetType())) ||
                                      (((OTTransaction::chequeReceipt ==
                                         pServerTransaction->GetType()) ||
                                        (OTTransaction::voucherReceipt ==
                                         pServerTransaction->GetType())) &&
-                                      (OTItem::depositCheque ==
+                                      (Item::depositCheque ==
                                        pOriginalItem->GetType())))) { // (The
                                                                       // funds
                                                                       // are
@@ -9169,7 +9162,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                     // acknowledgement instead of the default
                                     // (rejection)
                                     pResponseItem->SetStatus(
-                                        OTItem::acknowledgement);
+                                        Item::acknowledgement);
 
                                     // Don't I need to remove from
                                     // responsibility list?
@@ -9187,7 +9180,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                 // TRANSFER
                                 else if ((OTTransaction::pending ==
                                           pServerTransaction->GetType()) &&
-                                         (OTItem::transfer ==
+                                         (Item::transfer ==
                                           pOriginalItem->GetType())) {
                                     // pItem contains the current user's attempt
                                     // to accept the transfer located in
@@ -9470,7 +9463,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                             // signature. Just a rejection item
                                             // in the response transaction.
                                             pResponseItem->SetStatus(
-                                                OTItem::acknowledgement);
+                                                Item::acknowledgement);
 
                                             // This goes with the call above to
                                             // theFromInbox.AddTransaction().

@@ -166,7 +166,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
                                                                    // 39 chars
                                                                    // long.
         {
-            pContract = new OTItem();
+            pContract = new Item();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(

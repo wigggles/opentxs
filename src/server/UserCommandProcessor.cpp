@@ -5156,15 +5156,15 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
             OTTransaction* pReplyNotice = OTTransaction::GenerateTransaction(
                 theNymbox, OTTransaction::replyNotice, lReplyNoticeTransNum);
             OT_ASSERT(nullptr != pReplyNotice);
-            OTItem* pReplyNoticeItem = OTItem::CreateItemFromTransaction(
-                *pReplyNotice, OTItem::replyNotice);
+            Item* pReplyNoticeItem = Item::CreateItemFromTransaction(
+                *pReplyNotice, Item::replyNotice);
             OT_ASSERT(nullptr != pReplyNoticeItem);
             pReplyNoticeItem->SetStatus(
-                OTItem::acknowledgement); // Nymbox notice is always a success.
-                                          // It's just a notice. (The message
-                                          // inside it will have success/failure
-                                          // also, and any transaction inside
-                                          // that will also.)
+                Item::acknowledgement); // Nymbox notice is always a success.
+                                        // It's just a notice. (The message
+                                        // inside it will have success/failure
+                                        // also, and any transaction inside
+                                        // that will also.)
             pReplyNoticeItem->SetAttachment(
                 strMessage); // Purpose of this notice is to carry a copy of
                              // server's reply message (to certain requests,
