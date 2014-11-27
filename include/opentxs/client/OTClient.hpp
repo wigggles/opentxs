@@ -276,8 +276,8 @@ private:
                                     ProcessServerReplyArgs& args);
     bool processServerReplyNotarizeTransaction(const Message& theReply,
                                                ProcessServerReplyArgs& args);
-    bool processServerReplyGetTransactionNum(const Message& theReply,
-                                             ProcessServerReplyArgs& args);
+    bool processServerReplyGetTransactionNumbers(const Message& theReply,
+                                                 ProcessServerReplyArgs& args);
     bool processServerReplyGetNymBox(const Message& theReply, Ledger* pNymbox,
                                      ProcessServerReplyArgs& args);
     bool processServerReplyGetBoxReceipt(const Message& theReply,

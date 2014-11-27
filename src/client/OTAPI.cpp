@@ -2181,10 +2181,10 @@ int32_t OTAPI_Wrap::exchangeBasket(
                                   BOOL_EXCHANGE_IN_OR_OUT);
 }
 
-int32_t OTAPI_Wrap::getTransactionNumber(const std::string& NOTARY_ID,
-                                         const std::string& NYM_ID)
+int32_t OTAPI_Wrap::getTransactionNumbers(const std::string& NOTARY_ID,
+                                          const std::string& NYM_ID)
 {
-    return Exec()->getTransactionNumber(NOTARY_ID, NYM_ID);
+    return Exec()->getTransactionNumbers(NOTARY_ID, NYM_ID);
 }
 
 int32_t OTAPI_Wrap::notarizeWithdrawal(const std::string& NOTARY_ID,

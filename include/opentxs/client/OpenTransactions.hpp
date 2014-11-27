@@ -856,8 +856,8 @@ public:
                        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
                        const String& BASKET_INFO, bool bExchangeInOrOut) const;
 
-    EXPORT int32_t getTransactionNumber(const Identifier& NOTARY_ID,
-                                        const Identifier& NYM_ID) const;
+    EXPORT int32_t getTransactionNumbers(const Identifier& NOTARY_ID,
+                                         const Identifier& NYM_ID) const;
 
     EXPORT int32_t notarizeWithdrawal(const Identifier& NOTARY_ID,
                                       const Identifier& NYM_ID,

@@ -9123,8 +9123,8 @@ int32_t OT_API::exchangeBasket(
     return (-1);
 }
 
-int32_t OT_API::getTransactionNumber(const Identifier& NOTARY_ID,
-                                     const Identifier& NYM_ID) const
+int32_t OT_API::getTransactionNumbers(const Identifier& NOTARY_ID,
+                                      const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(
         NYM_ID, false, __FUNCTION__); // These copiously log, and ASSERT.
@@ -9141,7 +9141,7 @@ int32_t OT_API::getTransactionNumber(const Identifier& NOTARY_ID,
                                   // allowed out at a single time.)
 
     if (nCount > nMaxCount) {
-        otOut << "OT_API::getTransactionNumber: Failure: That Nym already has "
+        otOut << "OT_API::getTransactionNumbers: Failure: That Nym already has "
                  "more than " << nMaxCount
               << " transaction numbers signed out. (Use those first.)\n";
         return 0; // Java code needs to know that no msg went out, BUT it's
@@ -9162,7 +9162,7 @@ int32_t OT_API::getTransactionNumber(const Identifier& NOTARY_ID,
         return nReturnValue;
     }
     else
-        otErr << "OT_API::getTransactionNumber: Error processing "
+        otErr << "OT_API::getTransactionNumbers: Error processing "
                  "getTransactionNumber command. Return value: " << nReturnValue
               << "\n";
 
