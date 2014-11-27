@@ -154,9 +154,9 @@ namespace opentxs
         const char* pActionNameStr = theMessage.m_strCommand.Get();            \
                                                                                \
         if (false == NYM_IS_ALLOWED(pNymAllowedIDStr, BOOL_VAR_NAME)) {        \
-            OTLog::vOutput(0, "Nym %s attempted an action (%s), but based on " \
-                              "server configuration, he's not allowed.\n",     \
-                           pNymAllowedIDStr, pActionNameStr);                  \
+            Log::vOutput(0, "Nym %s attempted an action (%s), but based on "   \
+                            "server configuration, he's not allowed.\n",       \
+                         pNymAllowedIDStr, pActionNameStr);                    \
             return false;                                                      \
         }                                                                      \
     }

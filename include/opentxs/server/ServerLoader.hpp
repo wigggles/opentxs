@@ -202,7 +202,7 @@ public:
 
     ~ServerLoader()
     {
-        OTLog::vOutput(0, "\n\n Shutting down and cleaning up.\n");
+        Log::vOutput(0, "\n\n Shutting down and cleaning up.\n");
 
         if (server_) {
             delete server_;

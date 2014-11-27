@@ -882,7 +882,7 @@ bool OTMarket::SaveMarket()
     if (!SignContract(*(GetCron()->GetServerNym())) || !SaveContract() ||
         !SaveContract(szFoldername, szFilename)) {
         otErr << "Error saving Market:\n" << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -896,8 +896,8 @@ bool OTMarket::SaveMarket()
                                szSubFolder,                 // markets/recent
                                szFilename)) // markets/recent/Market_ID
             otErr << "Error saving recent trades for Market:\n" << szFoldername
-                  << OTLog::PathSeparator() << szSubFolder
-                  << OTLog::PathSeparator() << szFilename << "\n";
+                  << Log::PathSeparator() << szSubFolder << Log::PathSeparator()
+                  << szFilename << "\n";
     }
 
     return true;

@@ -317,7 +317,7 @@ void OTAPI_Exec::Output(const int32_t& nLogLevel,
 {
     const String otstrOutput(!strOutput.empty() ? strOutput : "\n");
 
-    OTLog::Output(nLogLevel, otstrOutput.Get());
+    Log::Output(nLogLevel, otstrOutput.Get());
 }
 
 bool OTAPI_Exec::SetWallet(const std::string& strWalletFilename) const
@@ -365,32 +365,32 @@ bool OTAPI_Exec::SwitchWallet() const
 
 int32_t OTAPI_Exec::GetMemlogSize() const
 {
-    return OTLog::GetMemlogSize();
+    return Log::GetMemlogSize();
 }
 
 std::string OTAPI_Exec::GetMemlogAtIndex(const int32_t& nIndex) const
 {
-    return OTLog::GetMemlogAtIndex(nIndex).Get();
+    return Log::GetMemlogAtIndex(nIndex).Get();
 }
 
 std::string OTAPI_Exec::PeekMemlogFront() const
 {
-    return OTLog::PeekMemlogFront().Get();
+    return Log::PeekMemlogFront().Get();
 }
 
 std::string OTAPI_Exec::PeekMemlogBack() const
 {
-    return OTLog::PeekMemlogBack().Get();
+    return Log::PeekMemlogBack().Get();
 }
 
 bool OTAPI_Exec::PopMemlogFront() const
 {
-    return OTLog::PopMemlogFront();
+    return Log::PopMemlogFront();
 }
 
 bool OTAPI_Exec::PopMemlogBack() const
 {
-    return OTLog::PopMemlogBack();
+    return Log::PopMemlogBack();
 }
 
 // OpenTransactions.h
@@ -14964,7 +14964,7 @@ void OTAPI_Exec::Sleep(const int64_t& MILLISECONDS) const
 
     const int64_t lMilliseconds = MILLISECONDS;
 
-    OTLog::SleepMilliseconds(static_cast<int64_t>(lMilliseconds));
+    Log::SleepMilliseconds(static_cast<int64_t>(lMilliseconds));
 }
 
 // Make sure you download your Nymbox (getNymbox) before calling this,

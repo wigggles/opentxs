@@ -226,10 +226,10 @@ struct sigcontext
 namespace opentxs
 {
 
-OTLog* OTLog::pLogger = nullptr;
+Log* Log::pLogger = nullptr;
 
-const String OTLog::m_strVersion = OPENTXS_VERSION_STRING;
-const String OTLog::m_strPathSeparator = "/";
+const String Log::m_strVersion = OPENTXS_VERSION_STRING;
+const String Log::m_strPathSeparator = "/";
 
 OTLOG_IMPORT OTLogStream otErr(-1); // logs using otErr << )
 OTLOG_IMPORT OTLogStream otInfo(2); // logs using OTLog::vOutput(2)
@@ -264,21 +264,21 @@ int OTLogStream::overflow(int c)
     next = 0;
 
     if (logLevel < 0) {
-        OTLog::Error(pBuffer);
+        Log::Error(pBuffer);
         return 0;
     }
 
-    OTLog::Output(logLevel, pBuffer);
+    Log::Output(logLevel, pBuffer);
     return 0;
 }
 
 //  OTLog Init, must run this before using any OTLog function.
 
 // static
-bool OTLog::Init(const String& strThreadContext, const int32_t& nLogLevel)
+bool Log::Init(const String& strThreadContext, const int32_t& nLogLevel)
 {
     if (nullptr == pLogger) {
-        pLogger = new OTLog();
+        pLogger = new Log();
         pLogger->m_bInitialized = false;
     }
 
@@ -333,7 +333,7 @@ bool OTLog::Init(const String& strThreadContext, const int32_t& nLogLevel)
         pLogger->m_bInitialized = true;
 
         // Set the new log-assert function pointer.
-        Assert* pLogAssert = new Assert(OTLog::logAssert);
+        Assert* pLogAssert = new Assert(Log::logAssert);
         std::swap(pLogAssert, Assert::s_pAssert);
         delete pLogAssert;
         pLogAssert = nullptr;
@@ -346,13 +346,13 @@ bool OTLog::Init(const String& strThreadContext, const int32_t& nLogLevel)
 }
 
 // static
-bool OTLog::IsInitialized()
+bool Log::IsInitialized()
 {
     return nullptr != pLogger && pLogger->m_bInitialized;
 }
 
 // static
-bool OTLog::Cleanup()
+bool Log::Cleanup()
 {
     if (nullptr != pLogger) {
         delete pLogger;
@@ -363,7 +363,7 @@ bool OTLog::Cleanup()
 }
 
 // static
-bool OTLog::CheckLogger(OTLog* pLogger)
+bool Log::CheckLogger(Log* pLogger)
 {
     if (nullptr != pLogger && pLogger->m_bInitialized) return true;
 
@@ -374,42 +374,42 @@ bool OTLog::CheckLogger(OTLog* pLogger)
 
 // Compiled into OTLog:
 
-const char* OTLog::Version()
+const char* Log::Version()
 {
-    return OTLog::GetVersion().Get();
+    return Log::GetVersion().Get();
 }
-const String& OTLog::GetVersion()
+const String& Log::GetVersion()
 {
     return m_strVersion;
 }
 
-const char* OTLog::PathSeparator()
+const char* Log::PathSeparator()
 {
-    return OTLog::GetPathSeparator().Get();
+    return Log::GetPathSeparator().Get();
 }
-const String& OTLog::GetPathSeparator()
+const String& Log::GetPathSeparator()
 {
     return m_strPathSeparator;
 }
 
 // Set in constructor:
 
-const String& OTLog::GetThreadContext()
+const String& Log::GetThreadContext()
 {
     return pLogger->m_strThreadContext;
 }
 
-const char* OTLog::LogFilePath()
+const char* Log::LogFilePath()
 {
-    return OTLog::GetLogFilePath().Get();
+    return Log::GetLogFilePath().Get();
 }
-const String& OTLog::GetLogFilePath()
+const String& Log::GetLogFilePath()
 {
     return pLogger->m_strLogFilePath;
 }
 
 // static
-int32_t OTLog::LogLevel()
+int32_t Log::LogLevel()
 {
     if (nullptr != pLogger)
         return pLogger->m_nLogLevel;
@@ -418,7 +418,7 @@ int32_t OTLog::LogLevel()
 }
 
 // static
-bool OTLog::SetLogLevel(const int32_t& nLogLevel)
+bool Log::SetLogLevel(const int32_t& nLogLevel)
 {
     if (nullptr == pLogger) {
         OT_FAIL;
@@ -437,7 +437,7 @@ bool OTLog::SetLogLevel(const int32_t& nLogLevel)
 // if I was actually writing to stdout.)
 //
 // static
-bool OTLog::LogToFile(const String& strOutput)
+bool Log::LogToFile(const String& strOutput)
 {
     // We now do this either way.
     {
@@ -452,16 +452,15 @@ bool OTLog::LogToFile(const String& strOutput)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
-    if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    if (bHaveLogger) CheckLogger(Log::pLogger);
 
     bool bSuccess = false;
 
     if (bHaveLogger) {
         // Append to logfile
-        if ((strOutput.Exists()) &&
-            (OTLog::pLogger->m_strLogFilePath.Exists())) {
+        if ((strOutput.Exists()) && (Log::pLogger->m_strLogFilePath.Exists())) {
             std::ofstream logfile;
-            logfile.open(OTLog::LogFilePath(), std::ios::app);
+            logfile.open(Log::LogFilePath(), std::ios::app);
 
             if (!logfile.fail()) {
                 logfile << strOutput;
@@ -474,24 +473,24 @@ bool OTLog::LogToFile(const String& strOutput)
     return bSuccess;
 }
 
-String OTLog::GetMemlogAtIndex(int32_t nIndex)
+String Log::GetMemlogAtIndex(int32_t nIndex)
 {
     // lets check if we are Initialized in this context
-    CheckLogger(OTLog::pLogger);
+    CheckLogger(Log::pLogger);
 
     uint32_t uIndex = static_cast<uint32_t>(nIndex);
 
-    if ((nIndex < 0) || (uIndex >= OTLog::pLogger->logDeque.size())) {
+    if ((nIndex < 0) || (uIndex >= Log::pLogger->logDeque.size())) {
         otErr << __FUNCTION__ << ": index out of bounds: " << nIndex << "\n";
         return "";
     }
 
-    if (nullptr != OTLog::pLogger->logDeque.at(uIndex))
+    if (nullptr != Log::pLogger->logDeque.at(uIndex))
         ; // check for null
     else
         OT_FAIL;
 
-    const String strLogEntry = *OTLog::pLogger->logDeque.at(uIndex);
+    const String strLogEntry = *Log::pLogger->logDeque.at(uIndex);
 
     if (strLogEntry.Exists())
         return strLogEntry;
@@ -501,27 +500,27 @@ String OTLog::GetMemlogAtIndex(int32_t nIndex)
 
 // We keep 1024 logs in memory, to make them available via the API.
 
-int32_t OTLog::GetMemlogSize()
+int32_t Log::GetMemlogSize()
 {
     // lets check if we are Initialized in this context
-    CheckLogger(OTLog::pLogger);
+    CheckLogger(Log::pLogger);
 
-    return static_cast<int32_t>(OTLog::pLogger->logDeque.size());
+    return static_cast<int32_t>(Log::pLogger->logDeque.size());
 }
 
-String OTLog::PeekMemlogFront()
+String Log::PeekMemlogFront()
 {
     // lets check if we are Initialized in this context
-    CheckLogger(OTLog::pLogger);
+    CheckLogger(Log::pLogger);
 
-    if (OTLog::pLogger->logDeque.size() <= 0) return nullptr;
+    if (Log::pLogger->logDeque.size() <= 0) return nullptr;
 
-    if (nullptr != OTLog::pLogger->logDeque.front())
+    if (nullptr != Log::pLogger->logDeque.front())
         ; // check for null
     else
         OT_FAIL;
 
-    const String strLogEntry = *OTLog::pLogger->logDeque.front();
+    const String strLogEntry = *Log::pLogger->logDeque.front();
 
     if (strLogEntry.Exists())
         return strLogEntry;
@@ -529,19 +528,19 @@ String OTLog::PeekMemlogFront()
         return "";
 }
 
-String OTLog::PeekMemlogBack()
+String Log::PeekMemlogBack()
 {
     // lets check if we are Initialized in this context
-    CheckLogger(OTLog::pLogger);
+    CheckLogger(Log::pLogger);
 
-    if (OTLog::pLogger->logDeque.size() <= 0) return nullptr;
+    if (Log::pLogger->logDeque.size() <= 0) return nullptr;
 
-    if (nullptr != OTLog::pLogger->logDeque.back())
+    if (nullptr != Log::pLogger->logDeque.back())
         ; // check for null
     else
         OT_FAIL;
 
-    const String strLogEntry = *OTLog::pLogger->logDeque.back();
+    const String strLogEntry = *Log::pLogger->logDeque.back();
 
     if (strLogEntry.Exists())
         return strLogEntry;
@@ -550,59 +549,59 @@ String OTLog::PeekMemlogBack()
 }
 
 // static
-bool OTLog::PopMemlogFront()
+bool Log::PopMemlogFront()
 {
     // lets check if we are Initialized in this context
-    CheckLogger(OTLog::pLogger);
+    CheckLogger(Log::pLogger);
 
-    if (OTLog::pLogger->logDeque.size() <= 0) return false;
+    if (Log::pLogger->logDeque.size() <= 0) return false;
 
-    String* strLogFront = OTLog::pLogger->logDeque.front();
+    String* strLogFront = Log::pLogger->logDeque.front();
     if (nullptr != strLogFront) delete strLogFront;
     strLogFront = nullptr;
 
-    OTLog::pLogger->logDeque.pop_front();
+    Log::pLogger->logDeque.pop_front();
 
     return true;
 }
 
 // static
-bool OTLog::PopMemlogBack()
+bool Log::PopMemlogBack()
 {
     // lets check if we are Initialized in this context
-    CheckLogger(OTLog::pLogger);
+    CheckLogger(Log::pLogger);
 
-    if (OTLog::pLogger->logDeque.size() <= 0) return false;
+    if (Log::pLogger->logDeque.size() <= 0) return false;
 
-    String* strLogBack = OTLog::pLogger->logDeque.back();
+    String* strLogBack = Log::pLogger->logDeque.back();
     if (nullptr != strLogBack) delete strLogBack;
     strLogBack = nullptr;
 
-    OTLog::pLogger->logDeque.pop_back();
+    Log::pLogger->logDeque.pop_back();
 
     return true;
 }
 
 // static
-bool OTLog::PushMemlogFront(const String& strLog)
+bool Log::PushMemlogFront(const String& strLog)
 {
     // lets check if we are Initialized in this context
-    CheckLogger(OTLog::pLogger);
+    CheckLogger(Log::pLogger);
 
     OT_ASSERT(strLog.Exists());
 
-    OTLog::pLogger->logDeque.push_front(new String(strLog));
+    Log::pLogger->logDeque.push_front(new String(strLog));
 
-    if (OTLog::pLogger->logDeque.size() > LOG_DEQUE_SIZE) {
-        OTLog::PopMemlogBack(); // We start removing from the back when it
-                                // reaches this size.
+    if (Log::pLogger->logDeque.size() > LOG_DEQUE_SIZE) {
+        Log::PopMemlogBack(); // We start removing from the back when it
+                              // reaches this size.
     }
 
     return true;
 }
 
 // static
-bool OTLog::SleepMilliseconds(int64_t lMilliseconds)
+bool Log::SleepMilliseconds(int64_t lMilliseconds)
 {
 #ifdef _WIN32
     Sleep(static_cast<DWORD>(lMilliseconds));
@@ -616,8 +615,8 @@ bool OTLog::SleepMilliseconds(int64_t lMilliseconds)
 // In fact you should never even call it -- use the OT_ASSERT() macro instead.
 // This Function is now only for logging, you
 // static private
-size_t OTLog::logAssert(const char* szFilename, size_t nLinenumber,
-                        const char* szMessage)
+size_t Log::logAssert(const char* szFilename, size_t nLinenumber,
+                      const char* szMessage)
 {
     if (nullptr != szMessage) {
 #ifndef ANDROID // if NOT android
@@ -661,14 +660,14 @@ size_t OTLog::logAssert(const char* szFilename, size_t nLinenumber,
 // For normal output. The higher the verbosity, the less important the message.
 // (Verbose level 0 ALWAYS logs.) Currently goes to stdout.
 
-void OTLog::Output(int32_t nVerbosity, const char* szOutput)
+void Log::Output(int32_t nVerbosity, const char* szOutput)
 {
     bool bHaveLogger(false);
     if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
-    if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    if (bHaveLogger) CheckLogger(Log::pLogger);
 
     // If log level is 0, and verbosity of this message is 2, don't bother
     // logging it.
@@ -678,7 +677,7 @@ void OTLog::Output(int32_t nVerbosity, const char* szOutput)
         return;
 
     // We store the last 1024 logs so programmers can access them via the API.
-    if (bHaveLogger) OTLog::PushMemlogFront(szOutput);
+    if (bHaveLogger) Log::PushMemlogFront(szOutput);
 
 #ifndef ANDROID // if NOT android
 
@@ -719,14 +718,14 @@ void OTLog::Output(int32_t nVerbosity, const char* szOutput)
 }
 
 // the vOutput is to avoid name conflicts.
-void OTLog::vOutput(int32_t nVerbosity, const char* szOutput, ...)
+void Log::vOutput(int32_t nVerbosity, const char* szOutput, ...)
 {
     bool bHaveLogger(false);
     if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
-    if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    if (bHaveLogger) CheckLogger(Log::pLogger);
 
     // If log level is 0, and verbosity of this message is 2, don't bother
     // logging it.
@@ -744,21 +743,21 @@ void OTLog::vOutput(int32_t nVerbosity, const char* szOutput, ...)
     va_end(args);
 
     if (bFormatted)
-        OTLog::Output(nVerbosity, strOutput.c_str());
+        Log::Output(nVerbosity, strOutput.c_str());
     else
         OT_FAIL;
     return;
 }
 
 // the vError name is to avoid name conflicts
-void OTLog::vError(const char* szError, ...)
+void Log::vError(const char* szError, ...)
 {
     bool bHaveLogger(false);
     if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
-    if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    if (bHaveLogger) CheckLogger(Log::pLogger);
 
     if ((nullptr == szError)) return;
 
@@ -772,7 +771,7 @@ void OTLog::vError(const char* szError, ...)
     va_end(args);
 
     if (bFormatted)
-        OTLog::Error(strOutput.c_str());
+        Log::Error(strOutput.c_str());
     else
         OT_FAIL;
 }
@@ -782,19 +781,19 @@ void OTLog::vError(const char* szError, ...)
 // So use this one instead.  This ALWAYS logs and currently it all goes to
 // stderr.
 
-void OTLog::Error(const char* szError)
+void Log::Error(const char* szError)
 {
     bool bHaveLogger(false);
     if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
-    if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    if (bHaveLogger) CheckLogger(Log::pLogger);
 
     if ((nullptr == szError)) return;
 
     // We store the last 1024 logs so programmers can access them via the API.
-    if (bHaveLogger) OTLog::PushMemlogFront(szError);
+    if (bHaveLogger) Log::PushMemlogFront(szError);
 
 #ifndef ANDROID // if NOT android
 
@@ -810,14 +809,14 @@ void OTLog::Error(const char* szError)
 // of this function, replacing with a message about the unavailability of errno.
 //
 // static
-void OTLog::Errno(const char* szLocation) // stderr
+void Log::Errno(const char* szLocation) // stderr
 {
     bool bHaveLogger(false);
     if (nullptr != pLogger)
         if (pLogger->IsInitialized()) bHaveLogger = true;
 
     // lets check if we are Initialized in this context
-    if (bHaveLogger) CheckLogger(OTLog::pLogger);
+    if (bHaveLogger) CheckLogger(Log::pLogger);
 
     const int32_t errnum = errno;
     char buf[128];
@@ -853,8 +852,8 @@ void OTLog::Errno(const char* szLocation) // stderr
 
 // String Helpers
 
-bool OTLog::StringFill(String& out_strString, const char* szString,
-                       int32_t iLength, const char* szAppend)
+bool Log::StringFill(String& out_strString, const char* szString,
+                     int32_t iLength, const char* szAppend)
 {
     std::string strString(szString);
 
@@ -1272,7 +1271,7 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
 #endif
 
 // static
-void OTLog::SetupSignalHandler()
+void Log::SetupSignalHandler()
 {
     static int32_t nCount = 0;
 

@@ -235,7 +235,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
     if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return nullptr;
     }
 
@@ -245,7 +245,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(const int64_t& lTransactionNum)
     if (strFileContents.GetLength() < 2) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error reading file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return nullptr;
     }
     else
@@ -272,7 +272,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     if (!OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
+              << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
               << szFilename << "\n";
         return nullptr;
     }
@@ -284,7 +284,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     if (strFileContents.GetLength() < 2) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error reading file: " << szFoldername
-              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
+              << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
               << szFilename << "\n";
         return nullptr;
     }
@@ -391,8 +391,8 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
                                        strListFilename.Get())) {
                 otOut << "OTCronItem::" << __FUNCTION__
                       << ": FYI, failure erasing recurring IDs file: "
-                      << szFoldername << OTLog::PathSeparator() << strNotaryID
-                      << OTLog::PathSeparator() << strListFilename << "\n";
+                      << szFoldername << Log::PathSeparator() << strNotaryID
+                      << Log::PathSeparator() << strListFilename << "\n";
             }
         }
         else {
@@ -408,8 +408,8 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
                 otErr << "OTCronItem::" << __FUNCTION__
                       << ": Error re-saving recurring IDs (failed writing "
                          "armored string): " << szFoldername
-                      << OTLog::PathSeparator() << strNotaryID
-                      << OTLog::PathSeparator() << strListFilename << "\n";
+                      << Log::PathSeparator() << strNotaryID
+                      << Log::PathSeparator() << strListFilename << "\n";
                 return false;
             }
             else {
@@ -420,8 +420,8 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
                 if (!bSaved) {
                     otErr << "OTCronItem::" << __FUNCTION__
                           << ": Error re-saving recurring IDs: " << szFoldername
-                          << OTLog::PathSeparator() << strNotaryID
-                          << OTLog::PathSeparator() << strListFilename << "\n";
+                          << Log::PathSeparator() << strNotaryID
+                          << Log::PathSeparator() << strListFilename << "\n";
                     return false;
                 }
             }
@@ -434,7 +434,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
     if (!OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
+              << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
               << szFilename << "\n";
         return false;
     }
@@ -442,7 +442,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
     if (!OTDB::EraseValueByKey(szFoldername, strNotaryID.Get(), szFilename)) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error erasing file: " << szFoldername
-              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
+              << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
               << szFilename << "\n";
         return false;
     }
@@ -465,9 +465,9 @@ bool OTCronItem::SaveActiveCronReceipt(
         otInfo << "OTCronItem::" << __FUNCTION__
                << ": Cron Record already exists for transaction "
                << GetTransactionNum() << " " << szFoldername
-               << OTLog::PathSeparator() << strNotaryID
-               << OTLog::PathSeparator() << szFilename << ", "
-                                                          "overwriting.\n";
+               << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
+               << szFilename << ", "
+                                "overwriting.\n";
         // NOTE: We could just return here. But what if the record we have is
         // corrupted somehow?
         // Might as well just write it there again, so I let this continue
@@ -516,9 +516,9 @@ bool OTCronItem::SaveActiveCronReceipt(
             {
                 otErr << "OTCronItem::" << __FUNCTION__
                       << ": Error saving recurring IDs (failed writing armored "
-                         "string): " << szFoldername << OTLog::PathSeparator()
-                      << strNotaryID << OTLog::PathSeparator()
-                      << strListFilename << "\n";
+                         "string): " << szFoldername << Log::PathSeparator()
+                      << strNotaryID << Log::PathSeparator() << strListFilename
+                      << "\n";
                 return false;
             }
 
@@ -529,8 +529,8 @@ bool OTCronItem::SaveActiveCronReceipt(
             if (!bSaved) {
                 otErr << "OTCronItem::" << __FUNCTION__
                       << ": Error saving recurring IDs: " << szFoldername
-                      << OTLog::PathSeparator() << strNotaryID
-                      << OTLog::PathSeparator() << strListFilename << "\n";
+                      << Log::PathSeparator() << strNotaryID
+                      << Log::PathSeparator() << strListFilename << "\n";
                 return false;
             }
         }
@@ -543,8 +543,8 @@ bool OTCronItem::SaveActiveCronReceipt(
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
-              << szFoldername << OTLog::PathSeparator() << strNotaryID
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << szFoldername << Log::PathSeparator() << strNotaryID
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -553,9 +553,8 @@ bool OTCronItem::SaveActiveCronReceipt(
 
     if (!bSaved) {
         otErr << "OTCronItem::" << __FUNCTION__
-              << ": Error saving file: " << szFoldername
-              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
-              << szFilename << "\n";
+              << ": Error saving file: " << szFoldername << Log::PathSeparator()
+              << strNotaryID << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -586,7 +585,7 @@ bool OTCronItem::SaveCronReceipt()
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Cron Record already exists for transaction "
               << GetTransactionNum() << " " << szFoldername
-              << OTLog::PathSeparator() << szFilename
+              << Log::PathSeparator() << szFilename
               << ",\n"
                  "yet inexplicably attempted to record it again.\n";
         return false;
@@ -599,7 +598,7 @@ bool OTCronItem::SaveCronReceipt()
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
-              << szFoldername << OTLog::PathSeparator() << szFilename << "\n";
+              << szFoldername << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -608,8 +607,8 @@ bool OTCronItem::SaveCronReceipt()
 
     if (!bSaved) {
         otErr << "OTCronItem::" << __FUNCTION__
-              << ": Error saving file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << ": Error saving file: " << szFoldername << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 

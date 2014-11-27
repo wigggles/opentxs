@@ -210,15 +210,15 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
 
     if (false ==
         NYM_IS_ALLOWED(strNymID.Get(), ServerSettings::__transact_transfer)) {
-        OTLog::vOutput(0, "Notary::NotarizeTransfer: User %s cannot do this "
-                          "transaction (All acct-to-acct transfers are "
-                          "disallowed in server.cfg)\n",
-                       strNymID.Get());
+        Log::vOutput(0, "Notary::NotarizeTransfer: User %s cannot do this "
+                        "transaction (All acct-to-acct transfers are "
+                        "disallowed in server.cfg)\n",
+                     strNymID.Get());
     }
     else if (nullptr ==
                (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
         String strTemp(tranIn);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "Notary::NotarizeTransfer: Expected "
                "OTItem::balanceStatement in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
@@ -230,16 +230,16 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
     // So we treat it that way... I either get it successfully or not.
     else if (nullptr == (pItem = tranIn.GetItem(Item::transfer))) {
         String strTemp(tranIn);
-        OTLog::vOutput(0, "Notary::NotarizeTransfer: Expected "
-                          "OTItem::transfer in trans# %" PRId64 ": \n\n%s\n\n",
-                       tranIn.GetTransactionNum(),
-                       strTemp.Exists()
-                           ? strTemp.Get()
-                           : " (ERROR LOADING TRANSACTION INTO STRING) ");
+        Log::vOutput(0, "Notary::NotarizeTransfer: Expected "
+                        "OTItem::transfer in trans# %" PRId64 ": \n\n%s\n\n",
+                     tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     else if (ACCOUNT_ID == pItem->GetDestinationAcctID()) {
         String strTemp(tranIn);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "Notary::NotarizeTransfer: Failed attempt by user %s in "
                "trans# %" PRId64
                ", to transfer money \"To the From Acct\": \n\n%s\n\n",
@@ -292,22 +292,22 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
 
         // Only accept transfers with positive amounts.
         if (0 > pItem->GetAmount()) {
-            OTLog::Output(0, "Notary::NotarizeTransfer: Failure: Attempt to "
-                             "transfer negative balance.\n");
+            Log::Output(0, "Notary::NotarizeTransfer: Failure: Attempt to "
+                           "transfer negative balance.\n");
         }
 
         // I'm using the operator== because it exists.
         // If the ID on the "from" account that was passed in,
         // does not match the "Acct From" ID on this transaction item
         else if (!(IDFromAccount == pItem->GetPurportedAccountID())) {
-            OTLog::Output(0, "Notary::NotarizeTransfer: Error: 'From' "
-                             "account ID on the transaction does not match "
-                             "'from' account ID on the transaction item.\n");
+            Log::Output(0, "Notary::NotarizeTransfer: Error: 'From' "
+                           "account ID on the transaction does not match "
+                           "'from' account ID on the transaction item.\n");
         }
         // ok so the IDs match. Does the destination account exist?
         else if (nullptr == pDestinationAcct) {
-            OTLog::Output(0, "Notary::NotarizeTransfer: ERROR verifying "
-                             "existence of the 'to' account.\n");
+            Log::Output(0, "Notary::NotarizeTransfer: ERROR verifying "
+                           "existence of the 'to' account.\n");
         }
         // Is the destination a legitimate other user's acct, or is it just an
         // internal server account?
@@ -316,9 +316,9 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
         // and may not be recipients to user transfers...)
         //
         else if (pDestinationAcct->IsInternalServerAcct()) {
-            OTLog::Output(0, "Notary::NotarizeTransfer: Failure: Destination "
-                             "account is used internally by the server, and is "
-                             "not a valid recipient for this transaction.\n");
+            Log::Output(0, "Notary::NotarizeTransfer: Failure: Destination "
+                           "account is used internally by the server, and is "
+                           "not a valid recipient for this transaction.\n");
         }
         // Are both of the accounts of the same Asset Type?
         else if (!(theFromAccount.GetInstrumentDefinitionID() ==
@@ -327,7 +327,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                 theFromAccount.GetInstrumentDefinitionID()),
                 strDestinationInstrumentDefinitionID(
                     pDestinationAcct->GetInstrumentDefinitionID());
-            OTLog::vOutput(
+            Log::vOutput(
                 0,
                 "ERROR - user attempted to transfer between accounts of 2 "
                 "different "
@@ -339,8 +339,8 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
         // I call VerifySignature here since VerifyContractID was already called
         // in LoadExistingAccount().
         else if (!pDestinationAcct->VerifySignature(server_->m_nymServer)) {
-            OTLog::Output(0, "ERROR verifying signature on, the 'to' account "
-                             "in Notary::NotarizeTransfer\n");
+            Log::Output(0, "ERROR verifying signature on, the 'to' account "
+                           "in Notary::NotarizeTransfer\n");
         }
 
         // This entire function can be divided into the top and bottom halves.
@@ -391,15 +391,15 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                 bSuccessLoadingInbox =
                     theToInbox.VerifyAccount(server_->m_nymServer);
             else
-                OTLog::Error(
+                Log::Error(
                     "Notary::NotarizeTransfer: Error loading 'to' inbox.\n");
 
             if (true == bSuccessLoadingOutbox)
                 bSuccessLoadingOutbox =
                     theFromOutbox.VerifyAccount(server_->m_nymServer);
             else
-                OTLog::Error("Notary::NotarizeTransfer: Error loading 'from' "
-                             "outbox.\n");
+                Log::Error("Notary::NotarizeTransfer: Error loading 'from' "
+                           "outbox.\n");
 
             std::unique_ptr<Ledger> pInbox(
                 theFromAccount.LoadInbox(server_->m_nymServer));
@@ -407,14 +407,14 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                 theFromAccount.LoadOutbox(server_->m_nymServer));
 
             if (nullptr == pInbox) {
-                OTLog::Error("Error loading or verifying inbox.\n");
+                Log::Error("Error loading or verifying inbox.\n");
             }
             else if (nullptr == pOutbox) {
-                OTLog::Error("Error loading or verifying outbox.\n");
+                Log::Error("Error loading or verifying outbox.\n");
             }
             else if (!bSuccessLoadingInbox ||
                        false == bSuccessLoadingOutbox) {
-                OTLog::Error(
+                Log::Error(
                     "ERROR generating ledger in Notary::NotarizeTransfer.\n");
             }
             else {
@@ -528,9 +528,9 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                                                    // this transfer.
                         theNym, *pInbox, *pOutbox, theFromAccount, tranIn,
                         lNewTransactionNumber))) {
-                    OTLog::vOutput(0, "ERROR verifying balance statement while "
-                                      "performing transfer. Acct ID:\n%s\n",
-                                   strAccountID.Get());
+                    Log::vOutput(0, "ERROR verifying balance statement while "
+                                    "performing transfer. Acct ID:\n%s\n",
+                                 strAccountID.Get());
                 }
                 else {
                     pResponseBalanceItem->SetStatus(
@@ -626,10 +626,10 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                         pOutboxTransaction = nullptr;
                         delete pInboxTransaction;
                         pInboxTransaction = nullptr;
-                        OTLog::vOutput(0, "%s: Unable to debit account %s in "
-                                          "the amount of: %" PRId64 "\n",
-                                       __FUNCTION__, strAccountID.Get(),
-                                       pItem->GetAmount());
+                        Log::vOutput(0, "%s: Unable to debit account %s in "
+                                        "the amount of: %" PRId64 "\n",
+                                     __FUNCTION__, strAccountID.Get(),
+                                     pItem->GetAmount());
                     }
                 }
             } // both boxes were successfully loaded or generated.
@@ -720,7 +720,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                                             // now.
     if (nullptr == pItem) {
         String strTemp(tranIn);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "Notary::NotarizeWithdrawal: Expected OTItem::withdrawal or "
                "OTItem::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
@@ -734,43 +734,43 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
     // This permission has to do with ALL withdrawals (cash or voucher)
     else if (!NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_withdrawal)) {
-        OTLog::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
-                          "this transaction (All withdrawals are disallowed in "
-                          "server.cfg)\n",
-                       strNymID.Get());
+        Log::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
+                        "this transaction (All withdrawals are disallowed in "
+                        "server.cfg)\n",
+                     strNymID.Get());
     }
     // This permission has to do with vouchers.
     else if ((nullptr != pItemVoucher) &&
              (false ==
               NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_withdraw_voucher))) {
-        OTLog::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
-                          "this transaction (withdrawVoucher is disallowed in "
-                          "server.cfg)\n",
-                       strNymID.Get());
+        Log::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
+                        "this transaction (withdrawVoucher is disallowed in "
+                        "server.cfg)\n",
+                     strNymID.Get());
     }
     // This permission has to do with cash.
     else if ((nullptr != pItemCash) &&
              (false ==
               NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_withdraw_cash))) {
-        OTLog::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
-                          "this transaction (withdraw cash is disallowed in "
-                          "server.cfg)\n",
-                       strNymID.Get());
+        Log::vOutput(0, "Notary::NotarizeWithdrawal: User %s cannot do "
+                        "this transaction (withdraw cash is disallowed in "
+                        "server.cfg)\n",
+                     strNymID.Get());
     }
     // Check for a balance agreement...
     //
     else if (nullptr ==
              (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
         String strTemp(tranIn);
-        OTLog::vOutput(0, "Notary::NotarizeWithdrawal: Expected "
-                          "OTItem::balanceStatement, but not found in trans # "
-                          "%" PRId64 ": \n\n%s\n\n",
-                       tranIn.GetTransactionNum(),
-                       strTemp.Exists()
-                           ? strTemp.Get()
-                           : " (ERROR LOADING TRANSACTION INTO STRING) ");
+        Log::vOutput(0, "Notary::NotarizeWithdrawal: Expected "
+                        "OTItem::balanceStatement, but not found in trans # "
+                        "%" PRId64 ": \n\n%s\n\n",
+                     tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     else if (pItem->GetType() == Item::withdrawVoucher) {
         // The response item will contain a copy of the request item. So I save
@@ -817,14 +817,14 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
               pItem->GetPurportedAccountID())) { // TODO see if this is already
                                                  // verified by the caller
                                                  // function and if so, remove.
-            OTLog::Output(0, "Error: Account ID does not match account ID on "
-                             "the withdrawal item.\n");
+            Log::Output(0, "Error: Account ID does not match account ID on "
+                           "the withdrawal item.\n");
         }
         else if (nullptr == pInbox) {
-            OTLog::Error("Error loading or verifying inbox.\n");
+            Log::Error("Error loading or verifying inbox.\n");
         }
         else if (nullptr == pOutbox) {
-            OTLog::Error("Error loading or verifying outbox.\n");
+            Log::Error("Error loading or verifying outbox.\n");
         }
         // The server will already have a special account for issuing vouchers.
         // Actually, a list of them --
@@ -860,13 +860,13 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                 theVoucherRequest.LoadContractFromString(strVoucherRequest);
 
             if (!bLoadContractFromString) {
-                OTLog::vError("Notary::%s: ERROR loading voucher request "
-                              "from string:\n%s\n",
-                              __FUNCTION__, strVoucherRequest.Get());
+                Log::vError("Notary::%s: ERROR loading voucher request "
+                            "from string:\n%s\n",
+                            __FUNCTION__, strVoucherRequest.Get());
             }
             else if (!server_->transactor_.verifyTransactionNumber(
                            theNym, theVoucherRequest.GetTransactionNum())) {
-                OTLog::vError(
+                Log::vError(
                     "Notary::%s: Failed verifying transaction number on the "
                     "voucher (%" PRId64 ") in withdrawal request %" PRId64
                     " for Nym: %s\n",
@@ -877,16 +877,16 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                        theVoucherRequest.GetInstrumentDefinitionID()) {
                 const String strFoundInstrumentDefinitionID(
                     theVoucherRequest.GetInstrumentDefinitionID());
-                OTLog::vError("Notary::%s: Failed verifying instrument "
-                              "definition ID (%s) on the "
-                              "withdraw voucher request (found: %s) "
-                              "for transaction %" PRId64 ", voucher %" PRId64
-                              ". User: %s\n",
-                              __FUNCTION__, strInstrumentDefinitionID.Get(),
-                              strFoundInstrumentDefinitionID.Get(),
-                              tranIn.GetTransactionNum(),
-                              theVoucherRequest.GetTransactionNum(),
-                              strNymID.Get());
+                Log::vError("Notary::%s: Failed verifying instrument "
+                            "definition ID (%s) on the "
+                            "withdraw voucher request (found: %s) "
+                            "for transaction %" PRId64 ", voucher %" PRId64
+                            ". User: %s\n",
+                            __FUNCTION__, strInstrumentDefinitionID.Get(),
+                            strFoundInstrumentDefinitionID.Get(),
+                            tranIn.GetTransactionNum(),
+                            theVoucherRequest.GetTransactionNum(),
+                            strNymID.Get());
             }
             else if (!(pBalanceItem->VerifyBalanceStatement(
                            theVoucherRequest.GetAmount() *
@@ -894,9 +894,9 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                                      // this much.
                            theNym,
                            *pInbox, *pOutbox, theAccount, tranIn))) {
-                OTLog::vOutput(0, "ERROR verifying balance statement while "
-                                  "issuing voucher. Acct ID:\n%s\n",
-                               strAccountID.Get());
+                Log::vOutput(0, "ERROR verifying balance statement while "
+                                "issuing voucher. Acct ID:\n%s\n",
+                             strAccountID.Get());
             }
             else // successfully loaded the voucher request from the string...
             {
@@ -971,14 +971,14 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                     if (false ==
                         pVoucherReserveAcct->Credit(
                             theVoucherRequest.GetAmount())) {
-                        OTLog::Error("Notary::NotarizeWithdrawal: Failed "
-                                     "crediting voucher reserve account.\n");
+                        Log::Error("Notary::NotarizeWithdrawal: Failed "
+                                   "crediting voucher reserve account.\n");
 
                         if (false ==
                             theAccount.Credit(theVoucherRequest.GetAmount()))
-                            OTLog::Error("Notary::NotarizeWithdrawal "
-                                         "(voucher): Failed crediting user "
-                                         "account.\n");
+                            Log::Error("Notary::NotarizeWithdrawal "
+                                       "(voucher): Failed crediting user "
+                                       "account.\n");
                     }
                     else {
                         String strVoucher;
@@ -1026,7 +1026,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
             } // voucher request loaded successfully from string
         }     // transactor_.getVoucherAccount()
         else {
-            OTLog::vError(
+            Log::vError(
                 "transactor_.getVoucherAccount() failed in NotarizeWithdrawal. "
                 "Asset Type:\n%s\n",
                 strInstrumentDefinitionID.Get());
@@ -1076,21 +1076,21 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
         Account* pMintCashReserveAcct = nullptr;
 
         if (0 > pItem->GetAmount()) {
-            OTLog::Output(0, "Attempt to withdraw a negative amount.\n");
+            Log::Output(0, "Attempt to withdraw a negative amount.\n");
         }
         // If the ID on the "from" account that was passed in,
         // does not match the "Acct From" ID on this transaction item
         //
         else if (ACCOUNT_ID != pItem->GetPurportedAccountID()) {
-            OTLog::Output(0, "Error: 'From' account ID on the transaction does "
-                             "not match 'from' account ID on the withdrawal "
-                             "item.\n");
+            Log::Output(0, "Error: 'From' account ID on the transaction does "
+                           "not match 'from' account ID on the withdrawal "
+                           "item.\n");
         }
         else if (nullptr == pInbox) {
-            OTLog::Error("Error loading or verifying inbox.\n");
+            Log::Error("Error loading or verifying inbox.\n");
         }
         else if (nullptr == pOutbox) {
-            OTLog::Error("Error loading or verifying outbox.\n");
+            Log::Error("Error loading or verifying outbox.\n");
         }
         else {
             // The COIN REQUEST (including the prototokens) comes from the
@@ -1145,18 +1145,18 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                 thePurse.LoadContractFromString(strPurse);
 
             if (!bLoadContractFromString) {
-                OTLog::vError("ERROR loading purse from string in "
-                              "Notary::NotarizeWithdrawal:\n%s\n",
-                              strPurse.Get());
+                Log::vError("ERROR loading purse from string in "
+                            "Notary::NotarizeWithdrawal:\n%s\n",
+                            strPurse.Get());
             }
             else if (!(pBalanceItem->VerifyBalanceStatement(
                            thePurse.GetTotalValue() * (-1), // This amount will
                                                             // be subtracted
                                                             // from my acct.
                            theNym, *pInbox, *pOutbox, theAccount, tranIn))) {
-                OTLog::vOutput(0, "ERROR verifying balance statement while "
-                                  "withdrawing cash. Acct ID: %s\n",
-                               strAccountID.Get());
+                Log::vOutput(0, "ERROR verifying balance statement while "
+                                "withdrawing cash. Acct ID: %s\n",
+                             strAccountID.Get());
             }
             else // successfully loaded the purse from the string...
             {
@@ -1176,17 +1176,17 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
                     if (nullptr == pMint) {
-                        OTLog::vError("Notary::NotarizeWithdrawal: Unable to "
-                                      "find Mint (series %d): %s\n",
-                                      pToken->GetSeries(),
-                                      strInstrumentDefinitionID.Get());
+                        Log::vError("Notary::NotarizeWithdrawal: Unable to "
+                                    "find Mint (series %d): %s\n",
+                                    pToken->GetSeries(),
+                                    strInstrumentDefinitionID.Get());
                         bSuccess = false;
                         break; // Once there's a failure, we ditch the loop.
                     }
                     else if (nullptr ==
                                (pMintCashReserveAcct =
                                     pMint->GetCashReserveAccount())) {
-                        OTLog::vError(
+                        Log::vError(
                             "Notary::NotarizeWithdrawal: Unable to find cash "
                             "reserve account for Mint (series %d): %s\n",
                             pToken->GetSeries(),
@@ -1204,7 +1204,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                     // tokens until June.
                     //
                     else if (pMint->Expired()) {
-                        OTLog::vError(
+                        Log::vError(
                             "Notary::NotarizeWithdrawal: User attempting "
                             "withdrawal with an expired mint (series %d): %s\n",
                             pToken->GetSeries(),
@@ -1221,11 +1221,11 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                                 pToken->GetInstrumentDefinitionID()),
                                 str2(INSTRUMENT_DEFINITION_ID);
                             bSuccess = false;
-                            OTLog::vError("%s: ERROR while signing token: "
-                                          "Expected instrument definition id "
-                                          "%s but found %s "
-                                          "instead. (Failure.)\n",
-                                          __FUNCTION__, str2.Get(), str1.Get());
+                            Log::vError("%s: ERROR while signing token: "
+                                        "Expected instrument definition id "
+                                        "%s but found %s "
+                                        "instead. (Failure.)\n",
+                                        __FUNCTION__, str2.Get(), str1.Get());
                             break;
                         }
                         // TokenIndex is for cash systems that send multiple
@@ -1240,7 +1240,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                         // ******************************************
                         {
                             bSuccess = false;
-                            OTLog::vError(
+                            Log::vError(
                                 "%s: Failure in call: "
                                 "pMint->SignToken(server_->m_nymServer, "
                                 "*pToken, theStringReturnVal, 0). "
@@ -1298,17 +1298,17 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                                 // of being lost.
                                 if (!pMintCashReserveAcct->Credit(
                                         pToken->GetDenomination())) {
-                                    OTLog::Error("Error crediting mint cash "
-                                                 "reserve account...\n");
+                                    Log::Error("Error crediting mint cash "
+                                               "reserve account...\n");
 
                                     // Reverse the account debit (even though
                                     // we're not going to save it anyway.)
                                     if (false ==
                                         theAccount.Credit(
                                             pToken->GetDenomination()))
-                                        OTLog::vError("%s: Failed crediting "
-                                                      "user account back.\n",
-                                                      __FUNCTION__);
+                                        Log::vError("%s: Failed crediting "
+                                                    "user account back.\n",
+                                                    __FUNCTION__);
 
                                     bSuccess = false;
                                     break;
@@ -1316,11 +1316,11 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                             }
                             else {
                                 bSuccess = false;
-                                OTLog::vOutput(
-                                    0, "%s: Unable to debit account "
-                                       "%s in the amount of: %" PRId64 "\n",
-                                    __FUNCTION__, strAccountID.Get(),
-                                    pToken->GetDenomination());
+                                Log::vOutput(0, "%s: Unable to debit account "
+                                                "%s in the amount of: %" PRId64
+                                                "\n",
+                                             __FUNCTION__, strAccountID.Get(),
+                                             pToken->GetDenomination());
                                 break; // Once there's a failure, we ditch the
                                        // loop.
                             }
@@ -1423,7 +1423,7 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
     }
     else {
         String strTemp(tranIn);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "Notary::NotarizeWithdrawal: Expected OTItem::withdrawal or "
                "OTItem::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
@@ -1541,12 +1541,12 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                             // now.
     if (nullptr == pItem) {
         String strTemp(tranIn);
-        OTLog::vOutput(0, "%s: Expected OTItem::payDividend in trans# %" PRId64
-                          ": \n\n%s\n\n",
-                       szFunc, tranIn.GetTransactionNum(),
-                       strTemp.Exists()
-                           ? strTemp.Get()
-                           : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
+        Log::vOutput(0, "%s: Expected OTItem::payDividend in trans# %" PRId64
+                        ": \n\n%s\n\n",
+                     szFunc, tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
     }
     // Below this point, we know that pItem is good, and that pItemPayDividend
     // is good,
@@ -1556,7 +1556,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
     // (cash / voucher / dividends)
     else if (!NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_withdrawal)) {
-        OTLog::vOutput(
+        Log::vOutput(
             0, "%s: User %s cannot do this transaction (All withdrawals are "
                "disallowed in server.cfg, even for paying dividends with.)\n",
             szFunc, strNymID.Get());
@@ -1567,21 +1567,21 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
              (false ==
               NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_pay_dividend))) {
-        OTLog::vOutput(0, "%s: User %s cannot do this transaction "
-                          "(payDividend is disallowed in server.cfg)\n",
-                       szFunc, strNymID.Get());
+        Log::vOutput(0, "%s: User %s cannot do this transaction "
+                        "(payDividend is disallowed in server.cfg)\n",
+                     szFunc, strNymID.Get());
     }
     // Check for a balance agreement...
     //
     else if (nullptr ==
              (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
         String strTemp(tranIn);
-        OTLog::vOutput(0, "%s: Expected OTItem::balanceStatement, but not "
-                          "found in trans # %" PRId64 ": \n\n%s\n\n",
-                       szFunc, tranIn.GetTransactionNum(),
-                       strTemp.Exists()
-                           ? strTemp.Get()
-                           : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
+        Log::vOutput(0, "%s: Expected OTItem::balanceStatement, but not "
+                        "found in trans # %" PRId64 ": \n\n%s\n\n",
+                     szFunc, tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
     }
     else if (pItem->GetType() == Item::payDividend) // Superfluous by this
                                                       // point. Artifact of
@@ -1629,14 +1629,14 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             theVoucherRequest.LoadContractFromString(strVoucherRequest);
 
         if (!bLoadContractFromString) {
-            OTLog::vError("%s: ERROR loading dividend payout's voucher request "
-                          "from string:\n%s\n",
-                          szFunc, strVoucherRequest.Get());
+            Log::vError("%s: ERROR loading dividend payout's voucher request "
+                        "from string:\n%s\n",
+                        szFunc, strVoucherRequest.Get());
         }
         else if (theVoucherRequest.GetAmount() <= 0) {
-            OTLog::vError("%s: ERROR expected >0 'payout per share' as "
-                          "'amount' on request voucher:\n%s\n",
-                          szFunc, strVoucherRequest.Get());
+            Log::vError("%s: ERROR expected >0 'payout per share' as "
+                        "'amount' on request voucher:\n%s\n",
+                        szFunc, strVoucherRequest.Get());
         }
         else {
             // the request voucher (sent from client) contains the payout amount
@@ -1672,25 +1672,25 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
 
             if (nullptr == pSharesContract) {
                 const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
-                OTLog::vError("%s: ERROR unable to find shares contract based "
-                              "on instrument definition ID: %s\n",
-                              szFunc, strSharesType.Get());
+                Log::vError("%s: ERROR unable to find shares contract based "
+                            "on instrument definition ID: %s\n",
+                            szFunc, strSharesType.Get());
             }
             else if (!pSharesContract->IsShares()) {
                 const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
-                OTLog::vError("%s: FAILURE: Asset contract is not "
-                              "shares-based. Asset type ID: %s\n",
-                              szFunc, strSharesType.Get());
+                Log::vError("%s: FAILURE: Asset contract is not "
+                            "shares-based. Asset type ID: %s\n",
+                            szFunc, strSharesType.Get());
             }
             else if (!pSharesContract->VerifySignature(theNym)) {
                 const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
-                OTLog::vError("%s: ERROR unable to verify signature for Nym "
-                              "(%s) on shares contract "
-                              "with instrument definition id: %s\n",
-                              szFunc, strNymID.Get(), strSharesType.Get());
+                Log::vError("%s: ERROR unable to verify signature for Nym "
+                            "(%s) on shares contract "
+                            "with instrument definition id: %s\n",
+                            szFunc, strNymID.Get(), strSharesType.Get());
             }
             else if (nullptr == pSharesIssuerAccount) {
-                OTLog::vError(
+                Log::vError(
                     "%s: ERROR unable to find issuer account for shares: %s\n",
                     szFunc, strSharesIssuerAcct.Get());
             }
@@ -1699,7 +1699,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                                         // same
             {
                 const String strSharesType(PAYOUT_INSTRUMENT_DEFINITION_ID);
-                OTLog::vError(
+                Log::vError(
                     "%s: ERROR dividend payout attempted, using "
                     "shares instrument definition as payout type also. "
                     "(It's logically impossible for it to payout to "
@@ -1711,13 +1711,13 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                        pSharesIssuerAccount->VerifyAccount(
                            server_->m_nymServer)) {
                 const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
-                OTLog::vError(
+                Log::vError(
                     "%s: ERROR failed trying to verify issuer account: %s\n",
                     szFunc, strIssuerAcctID.Get());
             }
             else if (!pSharesIssuerAccount->VerifyOwner(theNym)) {
                 const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
-                OTLog::vOutput(
+                Log::vOutput(
                     0, "%s: ERROR verifying signer's ownership of shares "
                        "issuer account (%s), "
                        "while trying to pay dividend from source account: %s\n",
@@ -1733,22 +1733,22 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
             else if ((pSharesIssuerAccount->GetBalance() * (-1) *
                       lAmountPerShare) != lTotalCostOfDividend) {
                 const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
-                OTLog::vOutput(0, "%s: ERROR: total payout of dividend as "
-                                  "calculated (%" PRId64
-                                  ") doesn't match client's "
-                                  "request (%" PRId64 ") for source acct: %s\n",
-                               szFunc, (pSharesIssuerAccount->GetBalance() *
-                                        (-1) * lAmountPerShare),
-                               lTotalCostOfDividend, strAccountID.Get());
+                Log::vOutput(0,
+                             "%s: ERROR: total payout of dividend as "
+                             "calculated (%" PRId64 ") doesn't match client's "
+                             "request (%" PRId64 ") for source acct: %s\n",
+                             szFunc, (pSharesIssuerAccount->GetBalance() *
+                                      (-1) * lAmountPerShare),
+                             lTotalCostOfDividend, strAccountID.Get());
             }
             else if (theSourceAccount.GetBalance() < lTotalCostOfDividend) {
                 const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
-                OTLog::vOutput(0,
-                               "%s: FAILURE: not enough funds (%" PRId64 ") to "
-                               "cover total dividend payout (%" PRId64 ") for "
-                               "source acct: %s\n",
-                               szFunc, theSourceAccount.GetBalance(),
-                               lTotalCostOfDividend, strAccountID.Get());
+                Log::vOutput(0,
+                             "%s: FAILURE: not enough funds (%" PRId64 ") to "
+                             "cover total dividend payout (%" PRId64 ") for "
+                             "source acct: %s\n",
+                             szFunc, theSourceAccount.GetBalance(),
+                             lTotalCostOfDividend, strAccountID.Get());
             }
             else {
                 // Remove all the funds at once (so the balance agreement
@@ -1786,18 +1786,18 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                     // other IDs, hadn't matched up with the transaction when we
                     // loaded it.)
                     //
-                    OTLog::vOutput(0, "%s: Error: Account ID does not match "
-                                      "account ID on the 'pay dividend' "
-                                      "item.\n",
-                                   szFunc);
+                    Log::vOutput(0, "%s: Error: Account ID does not match "
+                                    "account ID on the 'pay dividend' "
+                                    "item.\n",
+                                 szFunc);
                 }
                 else if (nullptr == pInbox) {
-                    OTLog::vError("%s: Error loading or verifying inbox.\n",
-                                  szFunc);
+                    Log::vError("%s: Error loading or verifying inbox.\n",
+                                szFunc);
                 }
                 else if (nullptr == pOutbox) {
-                    OTLog::vError("%s: Error loading or verifying outbox.\n",
-                                  szFunc);
+                    Log::vError("%s: Error loading or verifying outbox.\n",
+                                szFunc);
                 }
                 // The server will already have a special account for issuing
                 // vouchers. Actually, a list of them --
@@ -1846,10 +1846,10 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                                          // down by this much.
                             theNym, *pInbox, *pOutbox, theSourceAccount,
                             tranIn))) {
-                        OTLog::vOutput(0, "%s: ERROR verifying balance "
-                                          "statement while trying to pay "
-                                          "dividend. Source Acct ID: %s\n",
-                                       szFunc, strAccountID.Get());
+                        Log::vOutput(0, "%s: ERROR verifying balance "
+                                        "statement while trying to pay "
+                                        "dividend. Source Acct ID: %s\n",
+                                     szFunc, strAccountID.Get());
                     }
                     else // successfully verified the balance agreement.
                     {
@@ -1880,12 +1880,12 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                 pVoucherReserveAcct->Credit(
                                     lTotalCostOfDividend)) // theVoucherRequest.GetAmount()))
                             {
-                                OTLog::vError("%s: Failed crediting %" PRId64
-                                              " units "
-                                              "to voucher reserve account: "
-                                              "%s\n",
-                                              szFunc, lTotalCostOfDividend,
-                                              strVoucherAcctID.Get());
+                                Log::vError("%s: Failed crediting %" PRId64
+                                            " units "
+                                            "to voucher reserve account: "
+                                            "%s\n",
+                                            szFunc, lTotalCostOfDividend,
+                                            strVoucherAcctID.Get());
 
                                 // Since pVoucherReserveAcct->Credit failed, we
                                 // have to return
@@ -1895,7 +1895,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                 if (false ==
                                     theSourceAccount.Credit(
                                         lTotalCostOfDividend))
-                                    OTLog::vError(
+                                    Log::vError(
                                         "%s: Failed crediting back the user "
                                         "account, after taking his funds "
                                         "and failing to credit them to the "
@@ -2040,7 +2040,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                 if (!bForEachAcct) // todo failsafe. Handle this
                                                    // better.
                                 {
-                                    OTLog::vError(
+                                    Log::vError(
                                         "%s: ERROR: After moving funds for "
                                         "dividend payment, there was some "
                                         "error when sending out the vouchers "
@@ -2063,7 +2063,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                     // it back
                                     // to the sender himself, now.
                                     //
-                                    OTLog::vOutput(
+                                    Log::vOutput(
                                         0,
                                         "%s: After dividend payout, with "
                                         "%" PRId64 " units removed initially, "
@@ -2210,7 +2210,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                                 strPayoutInstrumentDefinitionID(
                                                     PAYOUT_INSTRUMENT_DEFINITION_ID),
                                                 strSenderNymID(NYM_ID);
-                                            OTLog::vError(
+                                            Log::vError(
                                                 "%s: ERROR failed issuing "
                                                 "voucher (to return leftovers "
                                                 "back to "
@@ -2232,7 +2232,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                             strPayoutInstrumentDefinitionID(
                                                 PAYOUT_INSTRUMENT_DEFINITION_ID),
                                             strRecipientNymID(NYM_ID);
-                                        OTLog::vError(
+                                        Log::vError(
                                             "%s: ERROR!! Failed issuing next "
                                             "transaction "
                                             "number while trying to send a "
@@ -2255,7 +2255,7 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                     } // voucher request loaded successfully from string
                 }     // server_->transactor_.getVoucherAccount()
                 else {
-                    OTLog::vError(
+                    Log::vError(
                         "%s: server_->transactor_.getVoucherAccount() failed. "
                         "Asset Type:\n%s\n",
                         szFunc, strInstrumentDefinitionID.Get());
@@ -2265,12 +2265,12 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
     }
     else {
         String strTemp(tranIn);
-        OTLog::vOutput(0, "%s: Expected OTItem::payDividend in trans# %" PRId64
-                          ": \n\n%s\n\n",
-                       szFunc, tranIn.GetTransactionNum(),
-                       strTemp.Exists()
-                           ? strTemp.Get()
-                           : " (ERROR LOADING TRANSACTION INTO STRING) ");
+        Log::vOutput(0, "%s: Expected OTItem::payDividend in trans# %" PRId64
+                        ": \n\n%s\n\n",
+                     szFunc, tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -2346,7 +2346,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                             // now.
     if (nullptr == pItem) {
         String strTemp(tranIn);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "Notary::NotarizeDeposit: Expected OTItem::deposit "
                "or OTItem::depositCheque in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
@@ -2361,37 +2361,37 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
     // This permission has to do with ALL deposits (cash or cheque)
     else if (!NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_deposit)) {
-        OTLog::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
-                          "transaction (All deposits are disallowed in "
-                          "server.cfg)\n",
-                       strNymID.Get());
+        Log::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
+                        "transaction (All deposits are disallowed in "
+                        "server.cfg)\n",
+                     strNymID.Get());
     }
     // This permission has to do with vouchers.
     else if ((nullptr != pItemCheque) &&
              (false ==
               NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_deposit_cheque))) {
-        OTLog::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
-                          "transaction (depositCheque is disallowed in "
-                          "server.cfg)\n",
-                       strNymID.Get());
+        Log::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
+                        "transaction (depositCheque is disallowed in "
+                        "server.cfg)\n",
+                     strNymID.Get());
     }
     // This permission has to do with cash.
     else if ((nullptr != pItemCash) &&
              (false ==
               NYM_IS_ALLOWED(strNymID.Get(),
                              ServerSettings::__transact_deposit_cash))) {
-        OTLog::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
-                          "transaction (deposit cash is disallowed in "
-                          "server.cfg)\n",
-                       strNymID.Get());
+        Log::vOutput(0, "Notary::NotarizeDeposit: User %s cannot do this "
+                        "transaction (deposit cash is disallowed in "
+                        "server.cfg)\n",
+                     strNymID.Get());
     }
     // Check for a balance agreement...
     //
     else if (nullptr ==
              (pBalanceItem = tranIn.GetItem(Item::balanceStatement))) {
         String strTemp(tranIn);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "Notary::NotarizeDeposit: Expected OTItem::balanceStatement, "
                "but not found in trans # %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
@@ -2437,15 +2437,15 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             pInbox) // || !pInbox->VerifyAccount(server_->m_nymServer)) Verified
                     // in OTAccount::Load
         {
-            OTLog::Error("Notary::NotarizeDeposit: Error loading or "
-                         "verifying inbox for depositor account.\n");
+            Log::Error("Notary::NotarizeDeposit: Error loading or "
+                       "verifying inbox for depositor account.\n");
         }
         else if (nullptr ==
                    pOutbox) // || !pOutbox->VerifyAccount(server_->m_nymServer))
                             // Verified in OTAccount::Load
         {
-            OTLog::Error("Notary::NotarizeDeposit: Error loading or "
-                         "verifying outbox for depositor account.\n");
+            Log::Error("Notary::NotarizeDeposit: Error loading or "
+                       "verifying outbox for depositor account.\n");
         }
         // NOTE: Below this point, pInbox and pOutbox are both available, AND
         // will be properly
@@ -2459,9 +2459,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             // itself was
             // verified, before this function was even called. I think this is
             // just an oversight.)
-            OTLog::Output(0, "Notary::NotarizeDeposit: Error: account ID "
-                             "does not match account ID on the deposit "
-                             "item.\n");
+            Log::Output(0, "Notary::NotarizeDeposit: Error: account ID "
+                           "does not match account ID on the deposit "
+                           "item.\n");
         }
         else {
             // Get the cheque from the Item and load it up into a Cheque object.
@@ -2474,8 +2474,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 theCheque.LoadContractFromString(strCheque);
 
             if (!bLoadContractFromString) {
-                OTLog::vError("%s: ERROR loading cheque from string:\n%s\n",
-                              __FUNCTION__, strCheque.Get());
+                Log::vError("%s: ERROR loading cheque from string:\n%s\n",
+                            __FUNCTION__, strCheque.Get());
             }
             // See if the cheque is drawn on the same server as the deposit
             // account
@@ -2484,22 +2484,22 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
             else if (NOTARY_ID != theCheque.GetNotaryID()) {
                 const String strSenderNymID(theCheque.GetSenderNymID());
                 const String strRecipientNymID(theCheque.GetRecipientNymID());
-                OTLog::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
-                                  "Incorrect Notary ID on cheque. Sender User "
-                                  "ID: %s\nRecipient Nym ID is: %s\n",
-                               __FUNCTION__, theCheque.GetTransactionNum(),
-                               strSenderNymID.Get(), strRecipientNymID.Get());
+                Log::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
+                                "Incorrect Notary ID on cheque. Sender User "
+                                "ID: %s\nRecipient Nym ID is: %s\n",
+                             __FUNCTION__, theCheque.GetTransactionNum(),
+                             strSenderNymID.Get(), strRecipientNymID.Get());
             }
             // See if the cheque is already expired or otherwise not within it's
             // valid date range.
             else if (!theCheque.VerifyCurrentDate()) {
                 const String strSenderNymID(theCheque.GetSenderNymID());
                 const String strRecipientNymID(theCheque.GetRecipientNymID());
-                OTLog::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
-                                  "Not within valid date range. Sender User "
-                                  "ID: %s\nRecipient Nym ID: %s\n",
-                               __FUNCTION__, theCheque.GetTransactionNum(),
-                               strSenderNymID.Get(), strRecipientNymID.Get());
+                Log::vOutput(0, "%s: Cheque rejected (%" PRId64 "): "
+                                "Not within valid date range. Sender User "
+                                "ID: %s\nRecipient Nym ID: %s\n",
+                             __FUNCTION__, theCheque.GetTransactionNum(),
+                             strSenderNymID.Get(), strRecipientNymID.Get());
             }
             // You can't deposit a cheque into the same account that it's drawn
             // on. (Otherwise, in loading
@@ -2531,7 +2531,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 const String strSenderNymID(theCheque.GetSenderNymID());
                 const String strRecipientNymID(theCheque.GetRecipientNymID());
                 if (theCheque.GetSenderNymID() != NYM_ID) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0,
                         "%s: Failure verifying cheque: Strange: while the "
                         "depositing account has the "
@@ -2541,7 +2541,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         __FUNCTION__, strSenderNymID.Get(), strNymID.Get());
                 }
                 else if (theCheque.GetAmount() != 0) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "%s: Failure verifying cheque: While attempting to "
                            "perform cancellation, "
                            "the cheque has a non-zero amount.\n"
@@ -2555,7 +2555,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 else if (false ==
                          server_->transactor_.verifyTransactionNumber(
                              theNym, theCheque.GetTransactionNum())) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "%s: Failure verifying cheque: Bad transaction "
                            "number.\n"
                            "Sender Nym ID: %s\nRecipient Nym ID: %s\n",
@@ -2565,12 +2565,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 // Let's see if the sender's signature matches the one on the
                 // cheque...
                 else if (!theCheque.VerifySignature(theNym)) {
-                    OTLog::vOutput(0,
-                                   "%s: Failure verifying cheque signature for "
-                                   "sender ID: %s\nRecipient Nym ID: %s\n "
-                                   "Cheque:\n\n%s\n\n",
-                                   __FUNCTION__, strSenderNymID.Get(),
-                                   strRecipientNymID.Get(), strCheque.Get());
+                    Log::vOutput(0,
+                                 "%s: Failure verifying cheque signature for "
+                                 "sender ID: %s\nRecipient Nym ID: %s\n "
+                                 "Cheque:\n\n%s\n\n",
+                                 __FUNCTION__, strSenderNymID.Get(),
+                                 strRecipientNymID.Get(), strCheque.Get());
                 }
                 else if (!(pBalanceItem->VerifyBalanceStatement(
                                theCheque.GetAmount(), // This amount is always
@@ -2578,12 +2578,11 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                                       // cheque cancellation.
                                theNym, *pInbox, *pOutbox, theAccount,
                                tranIn))) {
-                    OTLog::vOutput(0,
-                                   "%s: ERROR verifying balance statement "
-                                   "while cancelling cheque %" PRId64 ". Acct "
-                                   "ID:\n%s\n",
-                                   __FUNCTION__, theCheque.GetTransactionNum(),
-                                   strAccountID.Get());
+                    Log::vOutput(0, "%s: ERROR verifying balance statement "
+                                    "while cancelling cheque %" PRId64 ". Acct "
+                                    "ID:\n%s\n",
+                                 __FUNCTION__, theCheque.GetTransactionNum(),
+                                 strAccountID.Get());
                 }
                 else {
                     pResponseBalanceItem->SetStatus(
@@ -2603,10 +2602,10 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                              theNym, theCheque.GetTransactionNum(),
                              true)) // bSave=true
                         ) {
-                        OTLog::vError("%s: Failed marking the transaction "
-                                      "number as in use. (Should never "
-                                      "happen.)\n",
-                                      __FUNCTION__);
+                        Log::vError("%s: Failed marking the transaction "
+                                    "number as in use. (Should never "
+                                    "happen.)\n",
+                                    __FUNCTION__);
                     }
                     else {
                         // Generate new transaction number (for putting the
@@ -2698,12 +2697,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         bOutSuccess =
                             true; // The cheque cancellation was successful.
 
-                        OTLog::vOutput(
-                            0, "%s: SUCCESS cancelling cheque %" PRId64
-                               ", which had "
-                               "been drawn from account: %s\n",
-                            __FUNCTION__, theCheque.GetTransactionNum(),
-                            strAccountID.Get());
+                        Log::vOutput(0, "%s: SUCCESS cancelling cheque %" PRId64
+                                        ", which had "
+                                        "been drawn from account: %s\n",
+                                     __FUNCTION__,
+                                     theCheque.GetTransactionNum(),
+                                     strAccountID.Get());
 
                         tranOut.SetAsCancelled();
 
@@ -2938,10 +2937,10 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         bSuccessLoadSenderInbox =
                             pSenderInbox->VerifyAccount(server_->m_nymServer);
                     else
-                        OTLog::vOutput(0, "Notary::%s: Failed loading inbox "
-                                          "for %s source account.\n",
-                                       __FUNCTION__,
-                                       (bHasRemitter) ? "cheque" : "voucher");
+                        Log::vOutput(0, "Notary::%s: Failed loading inbox "
+                                        "for %s source account.\n",
+                                     __FUNCTION__,
+                                     (bHasRemitter) ? "cheque" : "voucher");
                     //                  else
                     //                      bSuccessLoadSenderInbox =
                     // pSenderInbox->GenerateLedger(SOURCE_ACCT_ID, NOTARY_ID,
@@ -2975,9 +2974,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 // suspicious.)
                 //
                 if (bHasRemitter && !bSenderIsServer) {
-                    OTLog::vOutput(0, "Notary::%s: Failure: Voucher has a "
-                                      "'sender' who is not the server: %s\n",
-                                   __FUNCTION__, strSenderNymID.Get());
+                    Log::vOutput(0, "Notary::%s: Failure: Voucher has a "
+                                    "'sender' who is not the server: %s\n",
+                                 __FUNCTION__, strSenderNymID.Get());
                 }
 
                 // See if we can load the sender's public key (to verify cheque
@@ -3001,7 +3000,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                                         // LoadPublicKey is
                                                         // removed for good.
                          ) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "Notary::%s: Error loading public key for %s "
                            "signer during "
                            "deposit: %s\nRecipient Nym ID: %s\n",
@@ -3012,7 +3011,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 // See if the Nym ID (Nym ID) that we have matches the message
                 // digest of his public key.
                 else if (!pSenderNym->VerifyPseudonym()) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "Notary::%s: Failure verifying %s: "
                            "Bad Sender Nym ID (fails hash check of pubkey)"
                            ": %s\nRecipient Nym ID: %s\n",
@@ -3030,7 +3029,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                          (false ==
                           theSenderNym.LoadSignedNymfile(
                               server_->m_nymServer))) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "Notary::%s: Error loading nymfile for %s signer "
                            "during deposit, user ID: %s\n"
                            "Recipient Nym ID: %s\n",
@@ -3058,18 +3057,18 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                                           // LoadPublicKey is
                                                           // removed for good.
                          ) {
-                    OTLog::vOutput(
-                        0, "Notary::%s: Error loading public key for "
-                           "remitter during "
-                           "voucher deposit: %s\nRecipient Nym ID: %s\n",
-                        __FUNCTION__, strRemitterNymID.Get(),
-                        strRecipientNymID.Get());
+                    Log::vOutput(0,
+                                 "Notary::%s: Error loading public key for "
+                                 "remitter during "
+                                 "voucher deposit: %s\nRecipient Nym ID: %s\n",
+                                 __FUNCTION__, strRemitterNymID.Get(),
+                                 strRecipientNymID.Get());
                 }
 
                 // See if the Nym ID (Nym ID) that we have matches the message
                 // digest of his public key.
                 else if (bHasRemitter && !pRemitterNym->VerifyPseudonym()) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "Notary::%s: Failure verifying voucher: "
                            "Bad Remitter Nym ID (fails hash check of pubkey)"
                            ": %s\nRecipient Nym ID: %s\n",
@@ -3087,11 +3086,11 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                          (false ==
                           theRemitterNym.LoadSignedNymfile(
                               server_->m_nymServer))) {
-                    OTLog::vOutput(0, "Notary::%s: Error loading nymfile for "
-                                      "remitter during voucher deposit: %s\n"
-                                      "Recipient Nym ID: %s\n",
-                                   __FUNCTION__, strRemitterNymID.Get(),
-                                   strRecipientNymID.Get());
+                    Log::vOutput(0, "Notary::%s: Error loading nymfile for "
+                                    "remitter during voucher deposit: %s\n"
+                                    "Recipient Nym ID: %s\n",
+                                 __FUNCTION__, strRemitterNymID.Get(),
+                                 strRecipientNymID.Get());
                 }
                 // Make sure they're not double-spending this cheque.
                 //
@@ -3099,12 +3098,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                          server_->transactor_.verifyTransactionNumber(
                              *(bHasRemitter ? pRemitterNym : pSenderNym),
                              theCheque.GetTransactionNum())) {
-                    OTLog::vOutput(0, "Notary::%s: Failure verifying %s: Bad "
-                                      "transaction number.\n"
-                                      "Recipient Nym ID: %s\n",
-                                   __FUNCTION__,
-                                   (bHasRemitter) ? "cheque" : "voucher",
-                                   strRecipientNymID.Get());
+                    Log::vOutput(0, "Notary::%s: Failure verifying %s: Bad "
+                                    "transaction number.\n"
+                                    "Recipient Nym ID: %s\n",
+                                 __FUNCTION__,
+                                 (bHasRemitter) ? "cheque" : "voucher",
+                                 strRecipientNymID.Get());
                 }
                 // Let's see if the sender's signature matches the one on the
                 // cheque...
@@ -3113,16 +3112,16 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                                                  // for cheques
                 // and vouchers.
                 {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "Notary::%s: Failure verifying %s signature for "
                            "sender ID: %s Recipient Nym ID: %s",
                         __FUNCTION__, (bHasRemitter) ? "cheque" : "voucher",
                         strSenderNymID.Get(), strRecipientNymID.Get());
                     if (bHasRemitter)
-                        OTLog::vOutput(0, " Remitter Nym ID: %s\n",
-                                       strRemitterNymID.Get());
+                        Log::vOutput(0, " Remitter Nym ID: %s\n",
+                                     strRemitterNymID.Get());
                     else
-                        OTLog::Output(0, "\n");
+                        Log::Output(0, "\n");
                 }
                 // If there is a recipient user ID on the check, it must match
                 // the user depositing the cheque.
@@ -3130,12 +3129,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 // cheque and ANYONE can deposit it.)
                 else if (theCheque.HasRecipient() &&
                          !(NYM_ID == RECIPIENT_NYM_ID)) {
-                    OTLog::vOutput(0, "%s: Failure matching %s recipient to "
-                                      "depositor. Depositor Nym ID: %s "
-                                      "Recipient Nym ID: %s\n",
-                                   __FUNCTION__,
-                                   (bHasRemitter) ? "cheque" : "voucher",
-                                   strNymID.Get(), strRecipientNymID.Get());
+                    Log::vOutput(0, "%s: Failure matching %s recipient to "
+                                    "depositor. Depositor Nym ID: %s "
+                                    "Recipient Nym ID: %s\n",
+                                 __FUNCTION__,
+                                 (bHasRemitter) ? "cheque" : "voucher",
+                                 strNymID.Get(), strRecipientNymID.Get());
                 }
                 // Try to load the source account (that cheque is drawn on) up
                 // into memory.
@@ -3151,17 +3150,17 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                            )) // Also, SetCleanup() is safe even if pointer is
                               // nullptr.
                          ) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "%s: %s deposit failure, "
                            "trying to load source acct, ID: %s Recipient User "
                            "ID: %s",
                         __FUNCTION__, (bHasRemitter) ? "Cheque" : "Voucher",
                         strSourceAcctID.Get(), strRecipientNymID.Get());
                     if (bHasRemitter)
-                        OTLog::vOutput(0, " Remitter Nym ID: %s\n",
-                                       strRemitterNymID.Get());
+                        Log::vOutput(0, " Remitter Nym ID: %s\n",
+                                     strRemitterNymID.Get());
                     else
-                        OTLog::Output(0, "\n");
+                        Log::Output(0, "\n");
                 }
                 // If the cheque is a voucher (drawn on an internal server
                 // account) then there is no need to
@@ -3173,9 +3172,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 //
                 else if (!bSuccessLoadSenderInbox &&
                          !pSourceAcct->IsInternalServerAcct()) {
-                    OTLog::vError("%s: ERROR verifying inbox ledger for source "
-                                  "acct ID: %s\n",
-                                  __FUNCTION__, strSourceAcctID.Get());
+                    Log::vError("%s: ERROR verifying inbox ledger for source "
+                                "acct ID: %s\n",
+                                __FUNCTION__, strSourceAcctID.Get());
                 }
                 // Does the source account verify?
                 // I call VerifySignature here since VerifyContractID was
@@ -3189,7 +3188,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 // such as right here:
                 //
                 else if (!pSourceAcct->VerifySignature(server_->m_nymServer)) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "%s: ERROR verifying signature on source account "
                            "while depositing %s. Acct ID: %s\n",
                         __FUNCTION__, (bHasRemitter) ? "cheque" : "voucher",
@@ -3198,12 +3197,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 // Need to make sure the signer is the owner of the source
                 // account...
                 else if (!pSourceAcct->VerifyOwner(*pSenderNym)) {
-                    OTLog::vOutput(0, "Notary::%s: ERROR verifying signer's "
-                                      "ownership of source account while "
-                                      "depositing %s. Source Acct ID: %s\n",
-                                   __FUNCTION__,
-                                   (bHasRemitter) ? "cheque" : "voucher",
-                                   strAccountID.Get());
+                    Log::vOutput(0, "Notary::%s: ERROR verifying signer's "
+                                    "ownership of source account while "
+                                    "depositing %s. Source Acct ID: %s\n",
+                                 __FUNCTION__,
+                                 (bHasRemitter) ? "cheque" : "voucher",
+                                 strAccountID.Get());
                 }
                 else {
                     if (bSourceAcctIsRemitter) {
@@ -3237,7 +3236,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                           )     // Also, SetCleanup() is safe even if pointer is
                                 // nullptr.
                          )) {
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "%s: Voucher deposit, failure "
                                "trying to load remitter acct, ID: %s Recipient "
                                "Nym ID: %s Remitter Nym ID: %s\n",
@@ -3253,17 +3252,17 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     else if (bHasRemitter &&
                              !pRemitterAcct->VerifySignature(
                                  server_->m_nymServer)) {
-                        OTLog::vOutput(0, "%s: ERROR verifying signature on "
-                                          "remitter account while depositing "
-                                          "voucher. "
-                                          "Remitter Acct ID: %s\n",
-                                       __FUNCTION__, strRemitterAcctID.Get());
+                        Log::vOutput(0, "%s: ERROR verifying signature on "
+                                        "remitter account while depositing "
+                                        "voucher. "
+                                        "Remitter Acct ID: %s\n",
+                                     __FUNCTION__, strRemitterAcctID.Get());
                     }
                     // Need to make sure the remitter is the owner of the
                     // remitter account...
                     else if (bHasRemitter &&
                              !pRemitterAcct->VerifyOwner(*pRemitterNym)) {
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "Notary::%s: ERROR verifying remitter's "
                                "ownership of remitter account while "
                                "depositing voucher. Remitter Acct ID: %s\n",
@@ -3288,9 +3287,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                     server_->m_nymServer))) // Then load and
                                                             // verify it.
                     {
-                        OTLog::vError("%s: ERROR loading or verifying inbox "
-                                      "ledger for remitter acct ID: %s\n",
-                                      __FUNCTION__, strRemitterAcctID.Get());
+                        Log::vError("%s: ERROR loading or verifying inbox "
+                                    "ledger for remitter acct ID: %s\n",
+                                    __FUNCTION__, strRemitterAcctID.Get());
                     }
                     // Are all of the accounts, AND the cheque, all of the same
                     // Asset Type?
@@ -3305,7 +3304,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                             pSourceAcct->GetInstrumentDefinitionID()),
                             strRecipientInstrumentDefinitionID(
                                 theAccount.GetInstrumentDefinitionID());
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "Notary::%s: ERROR - user attempted to "
                                "deposit cheque between accounts of different "
                                "instrument definitions. Source Acct: %s\nType: "
@@ -3318,7 +3317,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         if (bHasRemitter) {
                             String strRemitterInstrumentDefinitionID(
                                 pRemitterAcct->GetInstrumentDefinitionID());
-                            OTLog::vOutput(
+                            Log::vOutput(
                                 0, "Remitter Acct: %s\nType: %s\n",
                                 strRemitterAcctID.Get(),
                                 strRemitterInstrumentDefinitionID.Get());
@@ -3363,10 +3362,10 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     else if (!(pBalanceItem->VerifyBalanceStatement(
                                  theCheque.GetAmount(), theNym, *pInbox,
                                  *pOutbox, theAccount, tranIn))) {
-                        OTLog::vOutput(0, "Notary::%s: ERROR verifying "
-                                          "balance statement while depositing "
-                                          "cheque. Acct ID:\n%s\n",
-                                       __FUNCTION__, strAccountID.Get());
+                        Log::vOutput(0, "Notary::%s: ERROR verifying "
+                                        "balance statement while depositing "
+                                        "cheque. Acct ID:\n%s\n",
+                                     __FUNCTION__, strAccountID.Get());
                     }
 
                     // Debit Source account, Credit Recipient Account, add to
@@ -3385,21 +3384,21 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         // to the recipient account...
                         if (false ==
                             pSourceAcct->Debit(theCheque.GetAmount())) {
-                            OTLog::vError("Notary::%s: Failed debiting "
-                                          "source account.\n",
-                                          __FUNCTION__);
+                            Log::vError("Notary::%s: Failed debiting "
+                                        "source account.\n",
+                                        __FUNCTION__);
                         }
                         else if (false ==
                                    theAccount.Credit(theCheque.GetAmount())) {
-                            OTLog::vError("Notary::%s: Failed crediting "
-                                          "destination account.\n",
-                                          __FUNCTION__);
+                            Log::vError("Notary::%s: Failed crediting "
+                                        "destination account.\n",
+                                        __FUNCTION__);
 
                             if (false ==
                                 pSourceAcct->Credit(theCheque.GetAmount()))
-                                OTLog::vError("Notary::%s: Failed crediting "
-                                              "back source account.\n",
-                                              __FUNCTION__);
+                                Log::vError("Notary::%s: Failed crediting "
+                                            "back source account.\n",
+                                            __FUNCTION__);
                         }
                         else if ( // Clear the transaction number. Sender Nym
                             // was responsible for it (and still is,
@@ -3421,24 +3420,24 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                 theCheque.GetTransactionNum(),
                                 true) // bSave=true
                             ) {
-                            OTLog::vError("%s: Strange: Failed removing "
-                                          "transaction number from sender or "
-                                          "remitter, even though "
-                                          "it verified just earlier...\n",
-                                          __FUNCTION__);
+                            Log::vError("%s: Strange: Failed removing "
+                                        "transaction number from sender or "
+                                        "remitter, even though "
+                                        "it verified just earlier...\n",
+                                        __FUNCTION__);
                             if (false ==
                                 pSourceAcct->Credit(theCheque.GetAmount()))
-                                OTLog::vError("Notary::%s: Failed "
-                                              "crediting-back source "
-                                              "account.\n",
-                                              __FUNCTION__);
+                                Log::vError("Notary::%s: Failed "
+                                            "crediting-back source "
+                                            "account.\n",
+                                            __FUNCTION__);
 
                             if (false ==
                                 theAccount.Debit(theCheque.GetAmount()))
-                                OTLog::vError("Notary::%s: Failed "
-                                              "debiting-back destination "
-                                              "account.\n",
-                                              __FUNCTION__);
+                                Log::vError("Notary::%s: Failed "
+                                            "debiting-back destination "
+                                            "account.\n",
+                                            __FUNCTION__);
                         }
                         else { // need to be able to "roll back" if anything
                                  // inside this block fails.
@@ -3486,7 +3485,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                                               // dividends.)
                             {
                                 if (!bHasRemitter || !bRemitterIsServer)
-                                    OTLog::vError(
+                                    Log::vError(
                                         "%s: Error: Apparently this is a "
                                         "voucher remitted directly by the "
                                         "server (such as a dividend payment) "
@@ -3535,7 +3534,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                                  *pRemitterNym,
                                                  theCheque.GetTransactionNum(),
                                                  true)) // bSave=true
-                                        OTLog::vError(
+                                        Log::vError(
                                             "%s: Strange: Failed removing "
                                             "issued number from remitter (the "
                                             "server nym, in this case), "
@@ -3693,17 +3692,17 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
 
                             if (bRemitterCancelling) {
                                 tranOut.SetAsCancelled();
-                                OTLog::vOutput(1, "Notary::%s: SUCCESS "
-                                                  "crediting remitter account "
-                                                  "from voucher "
-                                                  "cancellation.\n",
-                                               __FUNCTION__);
+                                Log::vOutput(1, "Notary::%s: SUCCESS "
+                                                "crediting remitter account "
+                                                "from voucher "
+                                                "cancellation.\n",
+                                             __FUNCTION__);
                             }
                             else
-                                OTLog::vOutput(1, "Notary::%s: SUCCESS "
-                                                  "crediting account from "
-                                                  "cheque deposit.\n",
-                                               __FUNCTION__);
+                                Log::vOutput(1, "Notary::%s: SUCCESS "
+                                                "crediting account from "
+                                                "cheque deposit.\n",
+                                             __FUNCTION__);
 
                             // TODO: Our code that actually saves the new
                             // balance statement receipt should go here
@@ -3767,9 +3766,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
         // If the ID on the "from" account that was passed in,
         // does not match the "Acct From" ID on this transaction item
         if (ACCOUNT_ID != pItem->GetPurportedAccountID()) {
-            OTLog::vOutput(0, "Notary::NotarizeDeposit: Error: 'From' "
-                              "account ID on the transaction does not match "
-                              "'from' account ID on the deposit item.\n");
+            Log::vOutput(0, "Notary::NotarizeDeposit: Error: 'From' "
+                            "account ID on the transaction does not match "
+                            "'from' account ID on the deposit item.\n");
         }
         else {
             std::unique_ptr<Ledger> pInbox(
@@ -3778,13 +3777,13 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 theAccount.LoadOutbox(server_->m_nymServer));
 
             if (nullptr == pInbox) {
-                OTLog::Error("Notary::NotarizeDeposit: Error loading or "
-                             "verifying inbox.\n");
+                Log::Error("Notary::NotarizeDeposit: Error loading or "
+                           "verifying inbox.\n");
                 OT_FAIL;
             }
             else if (nullptr == pOutbox) {
-                OTLog::Error("Notary::NotarizeDeposit: Error loading or "
-                             "verifying outbox.\n");
+                Log::Error("Notary::NotarizeDeposit: Error loading or "
+                           "verifying outbox.\n");
                 OT_FAIL;
             }
             String strPurse;
@@ -3796,17 +3795,17 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                 thePurse.LoadContractFromString(strPurse);
 
             if (!bLoadContractFromString) {
-                OTLog::vError("Notary::NotarizeDeposit: ERROR loading purse "
-                              "from string:\n%s\n",
-                              strPurse.Get());
+                Log::vError("Notary::NotarizeDeposit: ERROR loading purse "
+                            "from string:\n%s\n",
+                            strPurse.Get());
             }
             else if (!(pBalanceItem->VerifyBalanceStatement(
                            thePurse.GetTotalValue(), theNym, *pInbox, *pOutbox,
                            theAccount, tranIn))) {
-                OTLog::vOutput(0, "Notary::NotarizeDeposit: ERROR verifying "
-                                  "balance statement while depositing cash. "
-                                  "Acct ID:\n%s\n",
-                               strAccountID.Get());
+                Log::vOutput(0, "Notary::NotarizeDeposit: ERROR verifying "
+                                "balance statement while depositing cash. "
+                                "Acct ID:\n%s\n",
+                             strAccountID.Get());
             }
 
             // TODO: double-check all verification stuff all around on the purse
@@ -3832,8 +3831,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
                     if (nullptr == pMint) {
-                        OTLog::Error("Notary::NotarizeDeposit: Unable to get "
-                                     "or load Mint.\n");
+                        Log::Error("Notary::NotarizeDeposit: Unable to get "
+                                   "or load Mint.\n");
                         break;
                     }
                     else if ((pMintCashReserveAcct =
@@ -3847,9 +3846,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                      // data from the token object
                         {
                             bSuccess = false;
-                            OTLog::vOutput(0, "Notary::NotarizeDeposit: "
-                                              "ERROR verifying token: Failure "
-                                              "retrieving token data. \n");
+                            Log::vOutput(0, "Notary::NotarizeDeposit: "
+                                            "ERROR verifying token: Failure "
+                                            "retrieving token data. \n");
                             break;
                         }
                         else if (!(pToken->GetInstrumentDefinitionID() ==
@@ -3858,9 +3857,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         // instrument definition
                         {
                             bSuccess = false;
-                            OTLog::vOutput(0, "Notary::NotarizeDeposit: "
-                                              "ERROR verifying token: Wrong "
-                                              "instrument definition. \n");
+                            Log::vOutput(0, "Notary::NotarizeDeposit: "
+                                            "ERROR verifying token: Wrong "
+                                            "instrument definition. \n");
                             break;
                         }
                         else if (!(pToken->GetNotaryID() ==
@@ -3868,9 +3867,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                                  // server ID
                         {
                             bSuccess = false;
-                            OTLog::vOutput(0, "Notary::NotarizeDeposit: "
-                                              "ERROR verifying token: Wrong "
-                                              "server ID. \n");
+                            Log::vOutput(0, "Notary::NotarizeDeposit: "
+                                            "ERROR verifying token: Wrong "
+                                            "server ID. \n");
                             break;
                         }
                         // This call to VerifyToken verifies the token's Series
@@ -3888,9 +3887,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                      server_->m_nymServer, strSpendableToken,
                                      pToken->GetDenomination()))) {
                             bSuccess = false;
-                            OTLog::vOutput(0, "Notary::NotarizeDeposit: "
-                                              "ERROR verifying token: Token "
-                                              "verification failed. \n");
+                            Log::vOutput(0, "Notary::NotarizeDeposit: "
+                                            "ERROR verifying token: Token "
+                                            "verification failed. \n");
                             break;
                         }
                         // Lookup the token in the SPENT TOKEN DATABASE, and
@@ -3909,15 +3908,15 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                             //          a token as spent (successfully), versus
                             // some error state with the storage.
                             bSuccess = false;
-                            OTLog::vOutput(0, "Notary::NotarizeDeposit: "
-                                              "ERROR verifying token: Token "
-                                              "was already spent. \n");
+                            Log::vOutput(0, "Notary::NotarizeDeposit: "
+                                            "ERROR verifying token: Token "
+                                            "was already spent. \n");
                             break;
                         }
                         else {
-                            OTLog::Output(3, "Notary::NotarizeDeposit: "
-                                             "SUCCESS verifying token...    "
-                                             "\n");
+                            Log::Output(3, "Notary::NotarizeDeposit: "
+                                           "SUCCESS verifying token...    "
+                                           "\n");
 
                             // need to be able to "roll back" if anything inside
                             // this block fails.
@@ -3931,10 +3930,10 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                             if (false ==
                                 pMintCashReserveAcct->Debit(
                                     pToken->GetDenomination())) {
-                                OTLog::Error("Notary::NotarizeDeposit: Error "
-                                             "debiting the mint cash reserve "
-                                             "account. "
-                                             "SHOULD NEVER HAPPEN...\n");
+                                Log::Error("Notary::NotarizeDeposit: Error "
+                                           "debiting the mint cash reserve "
+                                           "account. "
+                                           "SHOULD NEVER HAPPEN...\n");
                                 bSuccess = false;
                                 break;
                             }
@@ -3942,17 +3941,17 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                             else if (false ==
                                      theAccount.Credit(
                                          pToken->GetDenomination())) {
-                                OTLog::Error("Notary::NotarizeDeposit: Error "
-                                             "crediting the user's asset "
-                                             "account...\n");
+                                Log::Error("Notary::NotarizeDeposit: Error "
+                                           "crediting the user's asset "
+                                           "account...\n");
 
                                 if (false ==
                                     pMintCashReserveAcct->Credit(
                                         pToken->GetDenomination()))
-                                    OTLog::Error("Notary::NotarizeDeposit: "
-                                                 "Failure crediting-back "
-                                                 "mint's cash reserve account "
-                                                 "while depositing cash.\n");
+                                    Log::Error("Notary::NotarizeDeposit: "
+                                               "Failure crediting-back "
+                                               "mint's cash reserve account "
+                                               "while depositing cash.\n");
                                 bSuccess = false;
                                 break;
                             }
@@ -3962,33 +3961,33 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                             else if (false ==
                                      pToken->RecordTokenAsSpent(
                                          strSpendableToken)) {
-                                OTLog::Error("Notary::NotarizeDeposit: "
-                                             "Failed recording token as "
-                                             "spent...\n");
+                                Log::Error("Notary::NotarizeDeposit: "
+                                           "Failed recording token as "
+                                           "spent...\n");
 
                                 if (false ==
                                     pMintCashReserveAcct->Credit(
                                         pToken->GetDenomination()))
-                                    OTLog::Error("Notary::NotarizeDeposit: "
-                                                 "Failure crediting-back "
-                                                 "mint's cash reserve account "
-                                                 "while depositing cash.\n");
+                                    Log::Error("Notary::NotarizeDeposit: "
+                                               "Failure crediting-back "
+                                               "mint's cash reserve account "
+                                               "while depositing cash.\n");
 
                                 if (false ==
                                     theAccount.Debit(pToken->GetDenomination()))
-                                    OTLog::Error("Notary::NotarizeDeposit: "
-                                                 "Failure debiting-back user's "
-                                                 "asset account while "
-                                                 "depositing cash.\n");
+                                    Log::Error("Notary::NotarizeDeposit: "
+                                               "Failure debiting-back user's "
+                                               "asset account while "
+                                               "depositing cash.\n");
 
                                 bSuccess = false;
                                 break;
                             }
                             else // SUCCESS!!! (this iteration)
                             {
-                                OTLog::vOutput(2, "Notary::NotarizeDeposit: "
-                                                  "SUCCESS crediting account "
-                                                  "with cash token...\n");
+                                Log::vOutput(2, "Notary::NotarizeDeposit: "
+                                                "SUCCESS crediting account "
+                                                "with cash token...\n");
                                 bSuccess = true;
 
                                 // No break here -- we allow the loop to carry
@@ -3997,8 +3996,8 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         }
                     }
                     else {
-                        OTLog::Error("Notary::NotarizeDeposit: Unable to get "
-                                     "cash reserve account for Mint.\n");
+                        Log::Error("Notary::NotarizeDeposit: Unable to get "
+                                   "cash reserve account for Mint.\n");
                         bSuccess = false;
                         break;
                     }
@@ -4035,9 +4034,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
 
                     bOutSuccess = true; // The cash deposit was successful.
 
-                    OTLog::Output(1, "Notary::NotarizeDeposit: .....SUCCESS "
-                                     "-- crediting account from cash "
-                                     "deposit.\n");
+                    Log::Output(1, "Notary::NotarizeDeposit: .....SUCCESS "
+                                   "-- crediting account from cash "
+                                   "deposit.\n");
 
                     // TODO:  Right here, again, I need to save the receipt from
                     // the new balance agreement, since we have
@@ -4053,7 +4052,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
     }
     else {
         String strTemp(tranIn);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "%s: Expected OTItem::deposit or "
                "OTItem::depositCheque on trans# %" PRId64 ": \n\n%s\n\n",
             __FUNCTION__, tranIn.GetTransactionNum(),
@@ -4136,31 +4135,31 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
     if ((nullptr != pItem) &&
         (false == NYM_IS_ALLOWED(strNymID.Get(),
                                  ServerSettings::__transact_payment_plan))) {
-        OTLog::vOutput(0, "%s: User %s cannot do this transaction (All payment "
-                          "plans are disallowed in server.cfg)\n",
-                       __FUNCTION__, strNymID.Get());
+        Log::vOutput(0, "%s: User %s cannot do this transaction (All payment "
+                        "plans are disallowed in server.cfg)\n",
+                     __FUNCTION__, strNymID.Get());
     }
     // For now, there should only be one of these paymentPlan items inside the
     // transaction.
     // So we treat it that way... I either get it successfully or not.
     else if ((nullptr == pItem) || (nullptr == pBalanceItem)) {
-        OTLog::vError("%s: Error, expected OTItem::paymentPlan and "
-                      "OTItem::transactionStatement.\n",
-                      __FUNCTION__);
+        Log::vError("%s: Error, expected OTItem::paymentPlan and "
+                    "OTItem::transactionStatement.\n",
+                    __FUNCTION__);
     }
     else {
         if (DEPOSITOR_ACCT_ID != pItem->GetPurportedAccountID()) {
-            OTLog::vOutput(0, "%s: Error: Source account ID on the transaction "
-                              "does not match sender's account ID on the "
-                              "transaction item.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: Error: Source account ID on the transaction "
+                            "does not match sender's account ID on the "
+                            "transaction item.\n",
+                         __FUNCTION__);
         }
         else if (false ==
                    pBalanceItem->VerifyTransactionStatement(
                        theNym, tranIn)) // bIsRealTransaction=true
         {
-            OTLog::vOutput(0, "%s: Failed verifying transaction statement.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: Failed verifying transaction statement.\n",
+                         __FUNCTION__);
         }
         else {
             pResponseBalanceItem->SetStatus(
@@ -4201,13 +4200,12 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
 
             // If we failed to load the plan...
             if ((false == pPlan->LoadContractFromString(strPaymentPlan))) {
-                OTLog::vError(
-                    "%s: ERROR loading payment plan from string:\n%s\n",
-                    __FUNCTION__, strPaymentPlan.Get());
+                Log::vError("%s: ERROR loading payment plan from string:\n%s\n",
+                            __FUNCTION__, strPaymentPlan.Get());
             }
             else if (pPlan->GetNotaryID() != NOTARY_ID) {
-                OTLog::vOutput(0, "%s: ERROR bad server ID on payment plan.\n",
-                               __FUNCTION__);
+                Log::vOutput(0, "%s: ERROR bad server ID on payment plan.\n",
+                             __FUNCTION__);
             }
             else if (pPlan->GetInstrumentDefinitionID() !=
                        theDepositorAccount.GetInstrumentDefinitionID()) {
@@ -4215,11 +4213,11 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                     pPlan->GetInstrumentDefinitionID()),
                     strInstrumentDefinitionID2(
                         theDepositorAccount.GetInstrumentDefinitionID());
-                OTLog::vOutput(
-                    0, "%s: ERROR wrong Instrument Definition ID (%s) on "
-                       "payment plan. Expected: %s\n",
-                    __FUNCTION__, strInstrumentDefinitionID1.Get(),
-                    strInstrumentDefinitionID2.Get());
+                Log::vOutput(0,
+                             "%s: ERROR wrong Instrument Definition ID (%s) on "
+                             "payment plan. Expected: %s\n",
+                             __FUNCTION__, strInstrumentDefinitionID1.Get(),
+                             strInstrumentDefinitionID2.Get());
             }
             else {
                 // CANCELLING? OR ACTIVATING?
@@ -4249,7 +4247,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                 const int64_t lFoundClosingNum =
                     pPlan->GetClosingNumber(FOUND_ACCT_ID);
                 if (lFoundNum != lExpectedNum) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "%s: ERROR bad main transaction number "
                            "while %s payment plan (%" PRId64 "). Expected "
                            "based on transaction: %" PRId64 "\n",
@@ -4257,7 +4255,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                         lFoundNum, lExpectedNum);
                 }
                 if (lFoundOpeningNum != pItem->GetTransactionNum()) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "%s: ERROR bad transaction number while %s payment "
                            "plan (%" PRId64
                            "). Expected based on transaction: %" PRId64 "\n",
@@ -4267,7 +4265,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                 else if (FOUND_NYM_ID != DEPOSITOR_NYM_ID) {
                     const String strIDExpected(FOUND_NYM_ID),
                         strIDDepositor(DEPOSITOR_NYM_ID);
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "%s: ERROR wrong user ID while %s payment plan. "
                            "Depositor: %s  Found on plan: %s\n",
                         __FUNCTION__, bCancelling ? "cancelling" : "activating",
@@ -4277,20 +4275,20 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                            (DEPOSITOR_NYM_ID != theCancelerNymID)) {
                     const String strIDExpected(DEPOSITOR_NYM_ID),
                         strIDDepositor(theCancelerNymID);
-                    OTLog::vOutput(0, "%s: ERROR wrong canceler Nym ID while "
-                                      "canceling payment plan. Depositor: %s  "
-                                      "Canceler: %s\n",
-                                   __FUNCTION__, strIDExpected.Get(),
-                                   strIDDepositor.Get());
+                    Log::vOutput(0, "%s: ERROR wrong canceler Nym ID while "
+                                    "canceling payment plan. Depositor: %s  "
+                                    "Canceler: %s\n",
+                                 __FUNCTION__, strIDExpected.Get(),
+                                 strIDDepositor.Get());
                 }
                 else if (FOUND_ACCT_ID != DEPOSITOR_ACCT_ID) {
                     const String strAcctID1(FOUND_ACCT_ID),
                         strAcctID2(DEPOSITOR_ACCT_ID);
-                    OTLog::vOutput(0, "%s: ERROR wrong Acct ID (%s) while %s "
-                                      "payment plan. Expected: %s\n",
-                                   __FUNCTION__, strAcctID1.Get(),
-                                   bCancelling ? "cancelling" : "activating",
-                                   strAcctID2.Get());
+                    Log::vOutput(0, "%s: ERROR wrong Acct ID (%s) while %s "
+                                    "payment plan. Expected: %s\n",
+                                 __FUNCTION__, strAcctID1.Get(),
+                                 bCancelling ? "cancelling" : "activating",
+                                 strAcctID2.Get());
                 }
                 // If we're activating the plan (versus cancelling) then the
                 // transaction number opens
@@ -4306,20 +4304,19 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                                           // on theNym.
                 { // We don't check opening number here, since
                     // NotarizeTransaction already did.
-                    OTLog::vOutput(0,
-                                   "%s: ERROR: the Closing number %" PRId64 " "
-                                   "wasn't available for use while "
-                                   "activating a payment plan.\n",
-                                   __FUNCTION__, lFoundClosingNum);
+                    Log::vOutput(0, "%s: ERROR: the Closing number %" PRId64 " "
+                                    "wasn't available for use while "
+                                    "activating a payment plan.\n",
+                                 __FUNCTION__, lFoundClosingNum);
                 }
                 else if (bCancelling && // If cancelling and:
                            ((pPlan->GetRecipientCountClosingNumbers() < 2) ||
                             !server_->transactor_.verifyTransactionNumber(
                                 theNym, lFoundClosingNum))) {
-                    OTLog::vOutput(0, "%s: ERROR: the Closing number wasn't "
-                                      "available for use while cancelling a "
-                                      "payment plan.\n",
-                                   __FUNCTION__);
+                    Log::vOutput(0, "%s: ERROR: the Closing number wasn't "
+                                    "available for use while cancelling a "
+                                    "payment plan.\n",
+                                 __FUNCTION__);
                 }
                 else // The plan is good (so far.)
                 {
@@ -4390,18 +4387,18 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
 
                         if (!bLoadedNym) {
                             String strNymID(RECIPIENT_NYM_ID);
-                            OTLog::vError("%s: Failure loading Recipient Nym "
-                                          "public key: %s\n",
-                                          __FUNCTION__, strNymID.Get());
+                            Log::vError("%s: Failure loading Recipient Nym "
+                                        "public key: %s\n",
+                                        __FUNCTION__, strNymID.Get());
                             bFoundRecipientNym = false;
                         }
                         else if (!theRecipientNym.VerifyPseudonym() ||
                                    !theRecipientNym.LoadSignedNymfile(
                                        server_->m_nymServer)) {
                             String strNymID(RECIPIENT_NYM_ID);
-                            OTLog::vError("%s: Failure loading or verifying "
-                                          "Recipient Nym public key: %s\n",
-                                          __FUNCTION__, strNymID.Get());
+                            Log::vError("%s: Failure loading or verifying "
+                                        "Recipient Nym public key: %s\n",
+                                        __FUNCTION__, strNymID.Get());
                             bFoundRecipientNym = false;
                         }
                         else {
@@ -4431,7 +4428,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                     else if (!bCancelling && (DEPOSITOR_ACCT_ID ==
                                               RECIPIENT_ACCT_ID)) // ACTIVATING
                     {
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "%s: Error: Source account ID matches Recipient "
                                "account ID "
                                "on attempted Payment Plan notarization.\n",
@@ -4441,7 +4438,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                     else if (bCancelling && (DEPOSITOR_ACCT_ID !=
                                              RECIPIENT_ACCT_ID)) // CANCELLING
                     {
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "%s: Error: Source account ID doesn't match "
                                "Recipient account ID "
                                "on attempted Payment Plan cancellation.\n",
@@ -4451,7 +4448,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                !pPlan->VerifyAgreement(*pRecipientNym,
                                                        theNym)) // ACTIVATING
                     {
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "%s: ERROR verifying Sender and Recipient on "
                                "Payment Plan "
                                "(against merchant and customer copies.)\n",
@@ -4464,8 +4461,8 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                     // CANCELING
                     else if (bCancelling &&
                              !pPlan->VerifySignature(*pRecipientNym)) {
-                        OTLog::Output(0, "ERROR verifying Recipient's "
-                                         "signature on Payment Plan.\n");
+                        Log::Output(0, "ERROR verifying Recipient's "
+                                       "signature on Payment Plan.\n");
                     }
                     else {
                         // Verify that BOTH of the Recipient's transaction
@@ -4482,32 +4479,32 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                         //
                         if (!bCancelling &&
                             pPlan->GetRecipientCountClosingNumbers() < 2) {
-                            OTLog::vOutput(0, "%s: ERROR verifying Recipient's "
-                                              "Opening and Closing number on a "
-                                              "Payment Plan "
-                                              "(he should have two numbers, "
-                                              "but he doesn't.)\n",
-                                           __FUNCTION__);
+                            Log::vOutput(0, "%s: ERROR verifying Recipient's "
+                                            "Opening and Closing number on a "
+                                            "Payment Plan "
+                                            "(he should have two numbers, "
+                                            "but he doesn't.)\n",
+                                         __FUNCTION__);
                         }
                         else if (!bCancelling &&
                                    !server_->transactor_
                                         .verifyTransactionNumber(
                                             *pRecipientNym,
                                             pPlan->GetRecipientOpeningNum())) {
-                            OTLog::vOutput(0, "%s: ERROR verifying Recipient's "
-                                              "opening transaction number on a "
-                                              "payment plan.\n",
-                                           __FUNCTION__);
+                            Log::vOutput(0, "%s: ERROR verifying Recipient's "
+                                            "opening transaction number on a "
+                                            "payment plan.\n",
+                                         __FUNCTION__);
                         }
                         else if (!bCancelling &&
                                    !server_->transactor_
                                         .verifyTransactionNumber(
                                             *pRecipientNym,
                                             pPlan->GetRecipientClosingNum())) {
-                            OTLog::vOutput(0, "%s: ERROR verifying Recipient's "
-                                              "Closing transaction number on a "
-                                              "Payment Plan.\n",
-                                           __FUNCTION__);
+                            Log::vOutput(0, "%s: ERROR verifying Recipient's "
+                                            "Closing transaction number on a "
+                                            "Payment Plan.\n",
+                                         __FUNCTION__);
                         }
                         else {
                             // Load up the recipient ACCOUNT and validate it.
@@ -4526,19 +4523,19 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                             }
                             //
                             if (nullptr == pRecipientAcct) {
-                                OTLog::vOutput(
+                                Log::vOutput(
                                     0, "%s: ERROR loading Recipient account.\n",
                                     __FUNCTION__);
                             }
                             else if (!pRecipientAcct->VerifyOwner(
                                            *pRecipientNym)) {
-                                OTLog::vOutput(0, "%s: ERROR verifying "
-                                                  "ownership of the recipient "
-                                                  "account.\n",
-                                               __FUNCTION__);
+                                Log::vOutput(0, "%s: ERROR verifying "
+                                                "ownership of the recipient "
+                                                "account.\n",
+                                             __FUNCTION__);
                             }
                             else if (pRecipientAcct->IsInternalServerAcct()) {
-                                OTLog::vOutput(
+                                Log::vOutput(
                                     0,
                                     "%s: Failed: recipient account is an "
                                     "internal "
@@ -4557,7 +4554,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                     strRecipInstrumentDefinitionID(
                                         pRecipientAcct
                                             ->GetInstrumentDefinitionID());
-                                OTLog::vOutput(
+                                Log::vOutput(
                                     0, "%s: ERROR - user attempted to %s a "
                                        "payment plan between dissimilar "
                                        "instrument definitions:\n%s\n%s\n",
@@ -4572,10 +4569,10 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                             // LoadExistingAccount().
                             else if (!pRecipientAcct->VerifySignature(
                                          server_->m_nymServer)) {
-                                OTLog::vOutput(0, "%s: ERROR verifying "
-                                                  "signature on the Recipient "
-                                                  "account.\n",
-                                               __FUNCTION__);
+                                Log::vOutput(0, "%s: ERROR verifying "
+                                                "signature on the Recipient "
+                                                "account.\n",
+                                             __FUNCTION__);
                             }
                             // This one is superfluous, but I'm leaving it.
                             // (pPlan and pRecip are both already
@@ -4590,13 +4587,12 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                     strInstrumentDefinitionID2(
                                         pRecipientAcct
                                             ->GetInstrumentDefinitionID());
-                                OTLog::vOutput(
-                                    0, "%s: ERROR wrong Asset Type "
-                                       "ID (%s) on Recipient Acct. "
-                                       "Expected per Plan: %s\n",
-                                    __FUNCTION__,
-                                    strInstrumentDefinitionID2.Get(),
-                                    strInstrumentDefinitionID1.Get());
+                                Log::vOutput(0, "%s: ERROR wrong Asset Type "
+                                                "ID (%s) on Recipient Acct. "
+                                                "Expected per Plan: %s\n",
+                                             __FUNCTION__,
+                                             strInstrumentDefinitionID2.Get(),
+                                             strInstrumentDefinitionID1.Get());
                             }
                             // At this point I feel pretty confident that the
                             // Payment Plan is a valid request from both
@@ -4642,10 +4638,10 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                                         // activation was
                                                         // successful.
 
-                                    OTLog::vOutput(2, "%s: Successfully added "
-                                                      "payment plan to Cron "
-                                                      "object.\n",
-                                                   __FUNCTION__);
+                                    Log::vOutput(2, "%s: Successfully added "
+                                                    "payment plan to Cron "
+                                                    "object.\n",
+                                                 __FUNCTION__);
 
                                     // Server side, the Nym stores a list of all
                                     // open cron item numbers.
@@ -4738,7 +4734,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                             // number. Handled internally.
                                             strPaymentPlan, nullptr, nullptr,
                                             &theNym)) {
-                                        OTLog::vOutput(
+                                        Log::vOutput(
                                             0, "%s: Failed notifying parties "
                                                "while trying to activate "
                                                "payment plan: %" PRId64 ".\n",
@@ -4750,14 +4746,14 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                     if (bCancelling) {
                                         tranOut.SetAsCancelled();
 
-                                        OTLog::vOutput(
+                                        Log::vOutput(
                                             0, "%s: Canceling a payment plan "
                                                "before it was ever activated. "
                                                "(At user's request.)\n",
                                             __FUNCTION__);
                                     }
                                     else
-                                        OTLog::vOutput(
+                                        Log::vOutput(
                                             0, "%s: Unable to add payment plan "
                                                "to Cron. (Failed activating "
                                                "payment plan.)\n",
@@ -4888,29 +4884,29 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
     if ((nullptr != pItem) &&
         (false == NYM_IS_ALLOWED(strNymID.Get(),
                                  ServerSettings::__transact_smart_contract))) {
-        OTLog::vOutput(0, "%s: User %s cannot do this transaction (All smart "
-                          "contracts are disallowed in server.cfg)\n",
-                       __FUNCTION__, strNymID.Get());
+        Log::vOutput(0, "%s: User %s cannot do this transaction (All smart "
+                        "contracts are disallowed in server.cfg)\n",
+                     __FUNCTION__, strNymID.Get());
     }
     // For now, there should only be one of these smartContract items inside the
     // transaction.
     // So we treat it that way... I either get it successfully or not.
     else if ((nullptr == pItem) || (nullptr == pBalanceItem)) {
-        OTLog::vError("%s: Error, expected OTItem::smartContract and "
-                      "OTItem::transactionStatement.\n",
-                      __FUNCTION__);
+        Log::vError("%s: Error, expected OTItem::smartContract and "
+                    "OTItem::transactionStatement.\n",
+                    __FUNCTION__);
     }
     else {
         if (ACTIVATOR_ACCT_ID != pItem->GetPurportedAccountID()) {
-            OTLog::vOutput(0, "%s: Error: Source account ID on the transaction "
-                              "does not match activator's account ID on the "
-                              "transaction item.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: Error: Source account ID on the transaction "
+                            "does not match activator's account ID on the "
+                            "transaction item.\n",
+                         __FUNCTION__);
         }
         else if (false ==
                    pBalanceItem->VerifyTransactionStatement(theNym, tranIn)) {
-            OTLog::vOutput(0, "%s: Failed verifying transaction statement.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: Failed verifying transaction statement.\n",
+                         __FUNCTION__);
         }
         else {
             pResponseBalanceItem->SetStatus(
@@ -4951,16 +4947,16 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
 
             // If we failed to load the smart contract...
             if ((false == pContract->LoadContractFromString(strContract))) {
-                OTLog::vError(
+                Log::vError(
                     "%s: ERROR loading smart contract from string:\n\n%s\n\n",
                     __FUNCTION__, strContract.Get());
             }
             else if (pContract->GetNotaryID() != NOTARY_ID) {
                 const String strWrongID(pContract->GetNotaryID());
-                OTLog::vOutput(0, "%s: ERROR bad server ID (%s) on smart "
-                                  "contract. Expected %s\n",
-                               __FUNCTION__, strWrongID.Get(),
-                               server_->m_strNotaryID.Get());
+                Log::vOutput(0, "%s: ERROR bad server ID (%s) on smart "
+                                "contract. Expected %s\n",
+                             __FUNCTION__, strWrongID.Get(),
+                             server_->m_strNotaryID.Get());
             }
             else {
                 // CANCELING, or ACTIVATING?
@@ -4979,8 +4975,8 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
 
                 if (!bCancelling) // ACTIVATING
                 {
-                    OTLog::vOutput(
-                        0, "Attempting to activate smart contract...\n");
+                    Log::vOutput(0,
+                                 "Attempting to activate smart contract...\n");
 
                     lFoundOpeningNum = pContract->GetOpeningNum();
                     lFoundClosingNum = pContract->GetClosingNum();
@@ -4990,8 +4986,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                 }
                 else // CANCELING
                 {
-                    OTLog::vOutput(0,
-                                   "Attempting to cancel smart contract...\n");
+                    Log::vOutput(0, "Attempting to cancel smart contract...\n");
 
                     lFoundOpeningNum = pContract->GetOpeningNumber(
                         theCancelerNymID); // See if there's an opening number
@@ -5005,7 +5000,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                 }
 
                 if (lFoundNum != lExpectedNum) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0, "%s: ERROR bad main opening transaction number on "
                            "smart contract. Found: %" PRId64
                            "  Expected: %" PRId64 "\n"
@@ -5014,7 +5009,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                         pItem->GetTransactionNum());
                 }
                 else if (lFoundOpeningNum != lExpectedNum) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0,
                         "%s: ERROR bad opening transaction number on smart "
                         "contract. Found: %" PRId64 "  Expected: %" PRId64 "\n",
@@ -5023,22 +5018,22 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                 else if (FOUND_NYM_ID != ACTIVATOR_NYM_ID) {
                     const String strWrongID(ACTIVATOR_NYM_ID);
                     const String strRightID(FOUND_NYM_ID);
-                    OTLog::vOutput(0, "%s: ERROR wrong user ID (%s) used while "
-                                      "%s smart contract. Expected from "
-                                      "contract: %s\n",
-                                   __FUNCTION__, strWrongID.Get(),
-                                   bCancelling ? "canceling" : "activating",
-                                   strRightID.Get());
+                    Log::vOutput(0, "%s: ERROR wrong user ID (%s) used while "
+                                    "%s smart contract. Expected from "
+                                    "contract: %s\n",
+                                 __FUNCTION__, strWrongID.Get(),
+                                 bCancelling ? "canceling" : "activating",
+                                 strRightID.Get());
                 }
                 else if (FOUND_ACCT_ID != ACTIVATOR_ACCT_ID) {
                     const String strSenderAcctID(FOUND_ACCT_ID),
                         strActivatorAcctID(ACTIVATOR_ACCT_ID);
-                    OTLog::vOutput(0, "%s: ERROR wrong asset Acct ID used (%s) "
-                                      "to %s smart contract. Expected from "
-                                      "contract: %s\n",
-                                   __FUNCTION__, strActivatorAcctID.Get(),
-                                   bCancelling ? "cancel" : "activate",
-                                   strSenderAcctID.Get());
+                    Log::vOutput(0, "%s: ERROR wrong asset Acct ID used (%s) "
+                                    "to %s smart contract. Expected from "
+                                    "contract: %s\n",
+                                 __FUNCTION__, strActivatorAcctID.Get(),
+                                 bCancelling ? "cancel" : "activate",
+                                 strSenderAcctID.Get());
                 }
                 // The transaction number opens the smart contract, but there
                 // must also be a closing number for closing it.
@@ -5052,12 +5047,11 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                                                         // closed... that's
                                                         // VerifyIssuedNum())
                 {
-                    OTLog::vOutput(0,
-                                   "%s: ERROR: the Closing number %" PRId64 " "
-                                   "wasn't available for use while %s a "
-                                   "smart contract.\n",
-                                   __FUNCTION__, lFoundClosingNum,
-                                   bCancelling ? "canceling" : "activating");
+                    Log::vOutput(0, "%s: ERROR: the Closing number %" PRId64 " "
+                                    "wasn't available for use while %s a "
+                                    "smart contract.\n",
+                                 __FUNCTION__, lFoundClosingNum,
+                                 bCancelling ? "canceling" : "activating");
                 }
                 // NOTE: since theNym has ALREADY been substituted for the
                 // Server's Nym by this point, if indeed they are the same Nym,
@@ -5072,7 +5066,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                          (nullptr !=
                           pContract->FindPartyBasedOnNymAsAgent(
                               server_->m_nymServer))) {
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0,
                         "%s: ** SORRY ** but the server itself is NOT ALLOWED "
                         "to be a party "
@@ -5136,9 +5130,9 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                   agent lording over it.
                 */
                 else if (bCancelling && !pContract->VerifySignature(theNym)) {
-                    OTLog::vOutput(0, "%s: Failed verifying canceler signature "
-                                      "while canceling smart contract.\n",
-                                   __FUNCTION__);
+                    Log::vOutput(0, "%s: Failed verifying canceler signature "
+                                    "while canceling smart contract.\n",
+                                 __FUNCTION__);
                 }
 
                 // We let it run through the verifier here, even if we are
@@ -5156,13 +5150,13 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                     if (bCancelling) {
                         tranOut.SetAsCancelled();
 
-                        OTLog::vOutput(0, "%s: Canceling a smart contract "
-                                          "before it was ever even activated "
-                                          "(at user's request.)\n",
-                                       __FUNCTION__);
+                        Log::vOutput(0, "%s: Canceling a smart contract "
+                                        "before it was ever even activated "
+                                        "(at user's request.)\n",
+                                     __FUNCTION__);
                     }
                     else
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0,
                             "%s: This smart contract has FAILED to verify.\n",
                             __FUNCTION__);
@@ -5494,7 +5488,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                             // // Each party has its own opening number. Handled
                             // internally.
                             strContract, nullptr, nullptr, &theNym)) {
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "%s: Failed notifying parties while trying to "
                                "activate smart contract: %" PRId64 ".\n",
                             __FUNCTION__, pContract->GetTransactionNum());
@@ -5524,14 +5518,14 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                         pResponseItem->SetStatus(Item::acknowledgement);
                         bOutSuccess = true; // The smart contract activation was
                                             // successful.
-                        OTLog::vOutput(0, "%s: Successfully added smart "
-                                          "contract to Cron object.\n",
-                                       __FUNCTION__);
+                        Log::vOutput(0, "%s: Successfully added smart "
+                                        "contract to Cron object.\n",
+                                     __FUNCTION__);
                     } // If smart contract verified.
                     else {
-                        OTLog::vOutput(0, "%s: Unable to add smart contract to "
-                                          "Cron object.\n",
-                                       __FUNCTION__);
+                        Log::vOutput(0, "%s: Unable to add smart contract to "
+                                        "Cron object.\n",
+                                     __FUNCTION__);
                     }
                 } // contract verifies, activate it.
             }     // else
@@ -5620,19 +5614,19 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
                                             // now.
     if (!NYM_IS_ALLOWED(strNymID.Get(),
                         ServerSettings::__transact_cancel_cron_item)) {
-        OTLog::vOutput(
-            0, "%s: User %s cannot do this transaction "
-               "(CancelCronItem messages are disallowed in server.cfg)\n",
-            __FUNCTION__, strNymID.Get());
+        Log::vOutput(0,
+                     "%s: User %s cannot do this transaction "
+                     "(CancelCronItem messages are disallowed in server.cfg)\n",
+                     __FUNCTION__, strNymID.Get());
     }
     else if (nullptr == pBalanceItem) {
         String strTemp(tranIn);
-        OTLog::vOutput(
-            0, "%s: Expected transaction statement in trans# %" PRId64
-               ": \n\n%s\n\n",
-            __FUNCTION__, tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+        Log::vOutput(0, "%s: Expected transaction statement in trans# %" PRId64
+                        ": \n\n%s\n\n",
+                     __FUNCTION__, tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     // For now, there should only be one of these cancelCronItem items inside
     // the transaction.
@@ -5671,8 +5665,8 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
         if (!(pBalanceItem->VerifyTransactionStatement(
                 theNym, tranIn))) // isRealTransaction=true
         {
-            OTLog::vOutput(0, "ERROR verifying transaction statement in "
-                              "NotarizeCancelCronItem.\n");
+            Log::vOutput(0, "ERROR verifying transaction statement in "
+                            "NotarizeCancelCronItem.\n");
         }
         else {
             pResponseBalanceItem->SetStatus(
@@ -5686,9 +5680,9 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
             // If the ID on the "from" account that was passed in,
             // does not match the "Acct From" ID on this transaction item
             if (!(ASSET_ACCT_ID == pItem->GetPurportedAccountID())) {
-                OTLog::Output(0, "Error: Asset account ID on the transaction "
-                                 "does not match asset account "
-                                 "ID on the transaction item.\n");
+                Log::Output(0, "Error: Asset account ID on the transaction "
+                               "does not match asset account "
+                               "ID on the transaction item.\n");
             }
             else // LET'S SEE IF WE CAN REMOVE IT THEN...
             {
@@ -5727,32 +5721,32 @@ void Notary::NotarizeCancelCronItem(Nym& theNym, Account& theAssetAccount,
                     bOutSuccess =
                         true; // The "cancel cron item" was successful.
 
-                    OTLog::vOutput(2, "Successfully removed Cron Item from "
-                                      "Cron object, based on ID: %" PRId64 "\n",
-                                   (nullptr != pCronItem)
-                                       ? pCronItem->GetTransactionNum()
-                                       : lReferenceToNum);
+                    Log::vOutput(2, "Successfully removed Cron Item from "
+                                    "Cron object, based on ID: %" PRId64 "\n",
+                                 (nullptr != pCronItem)
+                                     ? pCronItem->GetTransactionNum()
+                                     : lReferenceToNum);
 
                     // Any transaction numbers that need to be cleared, happens
                     // inside RemoveCronItem().
                 }
                 else {
-                    OTLog::Output(0, "Unable to remove Cron Item from Cron "
-                                     "object "
-                                     "Notary::NotarizeCancelCronItem\n");
+                    Log::Output(0, "Unable to remove Cron Item from Cron "
+                                   "object "
+                                   "Notary::NotarizeCancelCronItem\n");
                 }
             }
         } // transaction statement verified.
     }
     else {
         String strTemp(tranIn);
-        OTLog::vOutput(
-            0, "Error, expected OTItem::cancelCronItem "
-               "in Notary::NotarizeCancelCronItem for trans# %" PRId64
-               ":\n\n%s\n\n",
-            tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION FROM STRING) ");
+        Log::vOutput(0, "Error, expected OTItem::cancelCronItem "
+                        "in Notary::NotarizeCancelCronItem for trans# %" PRId64
+                        ":\n\n%s\n\n",
+                     tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR LOADING TRANSACTION FROM STRING) ");
     }
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -5814,24 +5808,24 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
 
     if (!NYM_IS_ALLOWED(strNymID.Get(),
                         ServerSettings::__transact_exchange_basket)) {
-        OTLog::vOutput(0, "Notary::NotarizeExchangeBasket: User %s cannot do "
-                          "this transaction (All basket exchanges are "
-                          "disallowed in server.cfg)\n",
-                       strNymID.Get());
+        Log::vOutput(0, "Notary::NotarizeExchangeBasket: User %s cannot do "
+                        "this transaction (All basket exchanges are "
+                        "disallowed in server.cfg)\n",
+                     strNymID.Get());
     }
     else if (nullptr == pItem) {
-        OTLog::Output(0, "Notary::NotarizeExchangeBasket: No exchangeBasket "
-                         "item found on this transaction.\n");
+        Log::Output(0, "Notary::NotarizeExchangeBasket: No exchangeBasket "
+                       "item found on this transaction.\n");
     }
     else if (nullptr == pBalanceItem) {
-        OTLog::Output(0, "Notary::NotarizeExchangeBasket: No Balance "
-                         "Agreement item found on this transaction.\n");
+        Log::Output(0, "Notary::NotarizeExchangeBasket: No Balance "
+                       "Agreement item found on this transaction.\n");
     }
     else if ((nullptr == pInbox)) {
-        OTLog::Error("Error loading or verifying inbox.\n");
+        Log::Error("Error loading or verifying inbox.\n");
     }
     else if ((nullptr == pOutbox)) {
-        OTLog::Error("Error loading or verifying outbox.\n");
+        Log::Error("Error loading or verifying outbox.\n");
     }
     else {
         pItem->SaveContractRaw(strInReferenceTo);
@@ -5861,8 +5855,8 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                 theNym,  // Could have been a transaction agreement.
                 *pInbox, // Still could be, in fact....
                 *pOutbox, theAccount, tranIn)) {
-            OTLog::vOutput(0, "Notary::NotarizeExchangeBasket: ERROR "
-                              "verifying balance statement.\n");
+            Log::vOutput(0, "Notary::NotarizeExchangeBasket: ERROR "
+                            "verifying balance statement.\n");
 
         }
         else // BALANCE AGREEMENT WAS SUCCESSFUL.......
@@ -5895,28 +5889,28 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                 server_->transactor_.lookupBasketAccountIDByContractID(
                     BASKET_CONTRACT_ID, BASKET_ACCOUNT_ID);
             if (!bLookup) {
-                OTLog::Error("Notary::NotarizeExchangeBasket: Asset type is "
-                             "not a basket currency.\n");
+                Log::Error("Notary::NotarizeExchangeBasket: Asset type is "
+                           "not a basket currency.\n");
             }
             else if (!strBasket.Exists() ||
                        !theRequestBasket.LoadContractFromString(strBasket) ||
                        !theRequestBasket.VerifySignature(theNym)) {
-                OTLog::Error("Notary::NotarizeExchangeBasket: Expected "
-                             "verifiable basket object to be attached to "
-                             "exchangeBasket item.\n");
+                Log::Error("Notary::NotarizeExchangeBasket: Expected "
+                           "verifiable basket object to be attached to "
+                           "exchangeBasket item.\n");
             }
             else if (theRequestBasket.GetRequestAccountID() !=
                        theAccount.GetPurportedAccountID()) {
-                OTLog::Error("Notary::NotarizeExchangeBasket: User's main "
-                             "account ID according to request basket doesn't "
-                             "match theAccount.\n");
+                Log::Error("Notary::NotarizeExchangeBasket: User's main "
+                           "account ID according to request basket doesn't "
+                           "match theAccount.\n");
             }
             else if (false ==
                        server_->transactor_.verifyTransactionNumber(
                            theNym, theRequestBasket.GetClosingNum())) {
-                OTLog::Error("Notary::NotarizeExchangeBasket: Closing number "
-                             "used for User's main account receipt was not "
-                             "available for use...\n");
+                Log::Error("Notary::NotarizeExchangeBasket: Closing number "
+                           "used for User's main account receipt was not "
+                           "available for use...\n");
             }
             else { // Load the basket account and make sure it exists.
                 pBasketAcct =
@@ -5928,16 +5922,16 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                 theBasketAcctGuardian.reset(pBasketAcct);
 
                 if (nullptr == pBasketAcct) {
-                    OTLog::Error("ERROR loading the basket account in "
-                                 "Notary::NotarizeExchangeBasket\n");
+                    Log::Error("ERROR loading the basket account in "
+                               "Notary::NotarizeExchangeBasket\n");
                 }
                 // Does it verify?
                 // I call VerifySignature here since VerifyContractID was
                 // already called in LoadExistingAccount().
                 else if (!pBasketAcct->VerifySignature(server_->m_nymServer)) {
-                    OTLog::Error("ERROR verifying signature on the basket "
-                                 "account in "
-                                 "Notary::NotarizeExchangeBasket\n");
+                    Log::Error("ERROR verifying signature on the basket "
+                               "account in "
+                               "Notary::NotarizeExchangeBasket\n");
                 }
                 else {
                     // Now we get a pointer to its asset contract...
@@ -5973,10 +5967,10 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                 it_account) // The account appears twice!!
                             {
                                 const String strSubID(item->SUB_ACCOUNT_ID);
-                                OTLog::vError("%s: Failed: Sub-account ID "
-                                              "found TWICE on same basket "
-                                              "exchange request: %s\n",
-                                              __FUNCTION__, strSubID.Get());
+                                Log::vError("%s: Failed: Sub-account ID "
+                                            "found TWICE on same basket "
+                                            "exchange request: %s\n",
+                                            __FUNCTION__, strSubID.Get());
                                 bFoundSameAcctTwice = true;
                                 break;
                             }
@@ -5996,7 +5990,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                 // if not equal
                                 if (!(pBasketItem->SUB_CONTRACT_ID ==
                                       pRequestItem->SUB_CONTRACT_ID)) {
-                                    OTLog::Error(
+                                    Log::Error(
                                         "Error: expected instrument definition "
                                         "IDs to match in "
                                         "Notary::"
@@ -6013,10 +6007,10 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                 //
                                 else if (pBasketItem->SUB_ACCOUNT_ID ==
                                          pRequestItem->SUB_ACCOUNT_ID) {
-                                    OTLog::Error("Error: VERY strange to have "
-                                                 "these account ID's match. "
-                                                 "Notary::"
-                                                 "NotarizeExchangeBasket.\n");
+                                    Log::Error("Error: VERY strange to have "
+                                               "these account ID's match. "
+                                               "Notary::"
+                                               "NotarizeExchangeBasket.\n");
                                     bSuccess = false;
                                     break;
                                 }
@@ -6026,7 +6020,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                    theNym,
                                                    pRequestItem
                                                        ->lClosingTransactionNo)) {
-                                    OTLog::Error(
+                                    Log::Error(
                                         "Error: Basket sub-currency closing "
                                         "number didn't verify . "
                                         "Notary::NotarizeExchangeBasket.\n");
@@ -6045,11 +6039,11 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                             NOTARY_ID);
 
                                     if (nullptr == pUserAcct) {
-                                        OTLog::Error("ERROR loading a user's "
-                                                     "asset account in "
-                                                     "Notary::"
-                                                     "NotarizeExchangeBasket"
-                                                     "\n");
+                                        Log::Error("ERROR loading a user's "
+                                                   "asset account in "
+                                                   "Notary::"
+                                                   "NotarizeExchangeBasket"
+                                                   "\n");
                                         bSuccess = false;
                                         break;
                                     }
@@ -6059,11 +6053,11 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                             NOTARY_ID);
 
                                     if (nullptr == pServerAcct) {
-                                        OTLog::Error("ERROR loading a basket "
-                                                     "sub-account in "
-                                                     "Notary::"
-                                                     "NotarizeExchangeBasket"
-                                                     "\n");
+                                        Log::Error("ERROR loading a basket "
+                                                   "sub-account in "
+                                                   "Notary::"
+                                                   "NotarizeExchangeBasket"
+                                                   "\n");
                                         bSuccess = false;
                                         break;
                                     }
@@ -6074,11 +6068,11 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                         server_->m_nymServer);
 
                                     if (nullptr == pSubInbox) {
-                                        OTLog::Error("Error loading or "
-                                                     "verifying sub-inbox in "
-                                                     "Notary::"
-                                                     "NotarizeExchangeBasket."
-                                                     "\n");
+                                        Log::Error("Error loading or "
+                                                   "verifying sub-inbox in "
+                                                   "Notary::"
+                                                   "NotarizeExchangeBasket."
+                                                   "\n");
                                         bSuccess = false;
                                         break;
                                     }
@@ -6101,18 +6095,17 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     if (pUserAcct
                                             ->GetInstrumentDefinitionID() !=
                                         pBasketItem->SUB_CONTRACT_ID) {
-                                        OTLog::Error(
-                                            "ERROR verifying instrument "
-                                            "definition on a "
-                                            "user's account in "
-                                            "Notary::"
-                                            "NotarizeExchangeBasket\n");
+                                        Log::Error("ERROR verifying instrument "
+                                                   "definition on a "
+                                                   "user's account in "
+                                                   "Notary::"
+                                                   "NotarizeExchangeBasket\n");
                                         bSuccess = false;
                                         break;
                                     }
                                     else if (!pUserAcct->VerifySignature(
                                                    server_->m_nymServer)) {
-                                        OTLog::Error(
+                                        Log::Error(
                                             "ERROR verifying signature on a "
                                             "user's asset account in "
                                             "Notary::"
@@ -6122,7 +6115,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     }
                                     else if (!pServerAcct->VerifySignature(
                                                    server_->m_nymServer)) {
-                                        OTLog::Error(
+                                        Log::Error(
                                             "ERROR verifying signature on a "
                                             "basket sub-account in "
                                             "Notary::"
@@ -6152,7 +6145,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                     bSuccess = true;
                                                 else { // the server credit
                                                        // failed.
-                                                    OTLog::Error(
+                                                    Log::Error(
                                                         " Notary::"
                                                         "NotarizeExchangeBasket"
                                                         ": Failure crediting "
@@ -6164,7 +6157,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                     if (false ==
                                                         pUserAcct->Credit(
                                                             lTransferAmount))
-                                                        OTLog::Error(
+                                                        Log::Error(
                                                             " Notary::"
                                                             "NotarizeExchangeBa"
                                                             "sket: Failure "
@@ -6176,7 +6169,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                 }
                                             }
                                             else {
-                                                OTLog::Output(
+                                                Log::Output(
                                                     0, "Notary::"
                                                        "NotarizeExchangeBasket:"
                                                        " Unable to Debit user "
@@ -6194,7 +6187,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                     bSuccess = true;
                                                 else { // the user credit
                                                        // failed.
-                                                    OTLog::Error(
+                                                    Log::Error(
                                                         " Notary::"
                                                         "NotarizeExchangeBasket"
                                                         ": Failure crediting "
@@ -6206,7 +6199,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                     if (false ==
                                                         pServerAcct->Credit(
                                                             lTransferAmount))
-                                                        OTLog::Error(
+                                                        Log::Error(
                                                             " Notary::"
                                                             "NotarizeExchangeBa"
                                                             "sket: Failure "
@@ -6218,7 +6211,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                 }
                                             }
                                             else {
-                                                OTLog::Output(
+                                                Log::Output(
                                                     0, " Notary::"
                                                        "NotarizeExchangeBasket:"
                                                        " Unable to Debit "
@@ -6363,16 +6356,16 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                         if (theAccount.Credit(lTransferAmount))
                                             bSuccess = true;
                                         else {
-                                            OTLog::Error("Notary::"
-                                                         "NotarizeExchangeBaske"
-                                                         "t: Failed crediting "
-                                                         "user basket "
-                                                         "account.\n");
+                                            Log::Error("Notary::"
+                                                       "NotarizeExchangeBaske"
+                                                       "t: Failed crediting "
+                                                       "user basket "
+                                                       "account.\n");
 
                                             if (false ==
                                                 pBasketAcct->Credit(
                                                     lTransferAmount))
-                                                OTLog::Error(
+                                                Log::Error(
                                                     "Notary::"
                                                     "NotarizeExchangeBasket: "
                                                     "Failed crediting back "
@@ -6383,7 +6376,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     }
                                     else {
                                         bSuccess = false;
-                                        OTLog::Output(
+                                        Log::Output(
                                             0, "Unable to Debit basket issuer "
                                                "account, in "
                                                "Notary::"
@@ -6397,16 +6390,16 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                                 lTransferAmount))
                                             bSuccess = true;
                                         else {
-                                            OTLog::Error("Notary::"
-                                                         "NotarizeExchangeBaske"
-                                                         "t: Failed crediting "
-                                                         "basket issuer "
-                                                         "account.\n");
+                                            Log::Error("Notary::"
+                                                       "NotarizeExchangeBaske"
+                                                       "t: Failed crediting "
+                                                       "basket issuer "
+                                                       "account.\n");
 
                                             if (false ==
                                                 theAccount.Credit(
                                                     lTransferAmount))
-                                                OTLog::Error(
+                                                Log::Error(
                                                     "Notary::"
                                                     "NotarizeExchangeBasket: "
                                                     "Failed crediting back "
@@ -6417,11 +6410,11 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     }
                                     else {
                                         bSuccess = false;
-                                        OTLog::Output(0, "Unable to Debit user "
-                                                         "basket account in "
-                                                         "Notary::"
-                                                         "NotarizeExchangeBaske"
-                                                         "t\n");
+                                        Log::Output(0, "Unable to Debit user "
+                                                       "basket account in "
+                                                       "Notary::"
+                                                       "NotarizeExchangeBaske"
+                                                       "t\n");
                                     }
                                 }
 
@@ -6523,10 +6516,10 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                 }
                             }
                             else {
-                                OTLog::Error("Error loading or verifying "
-                                             "user's main basket account in "
-                                             "Notary::"
-                                             "NotarizeExchangeBasket\n");
+                                Log::Error("Error loading or verifying "
+                                           "user's main basket account in "
+                                           "Notary::"
+                                           "NotarizeExchangeBasket\n");
                                 bSuccess = false;
                             }
 
@@ -6643,7 +6636,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                         } // Let's do it!
                     }
                     else {
-                        OTLog::Error(
+                        Log::Error(
                             "Error finding asset contract for basket, or "
                             "loading the basket from it, or verifying\n"
                             "the signature on that basket, or the request "
@@ -6706,7 +6699,7 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                                             // now.
     if (!NYM_IS_ALLOWED(strNymID.Get(),
                         ServerSettings::__transact_market_offer)) {
-        OTLog::vOutput(
+        Log::vOutput(
             0,
             "Notary::NotarizeMarketOffer: User %s cannot do this transaction "
             "(All market offers are disallowed in server.cfg)\n",
@@ -6714,21 +6707,21 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
     }
     else if (nullptr == pBalanceItem) {
         String strTemp(tranIn);
-        OTLog::vOutput(0, "Notary::NotarizeMarketOffer: Expected transaction "
-                          "statement in trans # %" PRId64 ": \n\n%s\n\n",
-                       tranIn.GetTransactionNum(),
-                       strTemp.Exists()
-                           ? strTemp.Get()
-                           : " (ERROR LOADING TRANSACTION INTO STRING) ");
+        Log::vOutput(0, "Notary::NotarizeMarketOffer: Expected transaction "
+                        "statement in trans # %" PRId64 ": \n\n%s\n\n",
+                     tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     else if (nullptr == pItem) {
         String strTemp(tranIn);
-        OTLog::vOutput(
-            0, "Notary::NotarizeMarketOffer: Expected "
-               "OTItem::marketOffer in trans# %" PRId64 ":\n\n%s\n\n",
-            tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+        Log::vOutput(0, "Notary::NotarizeMarketOffer: Expected "
+                        "OTItem::marketOffer in trans# %" PRId64 ":\n\n%s\n\n",
+                     tranIn.GetTransactionNum(),
+                     strTemp.Exists()
+                         ? strTemp.Get()
+                         : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     // For now, there should only be one of these marketOffer items inside the
     // transaction.
@@ -6769,8 +6762,8 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
         if (!(pBalanceItem->VerifyTransactionStatement(
                 theNym, tranIn))) // bIsRealTransaction = true;
         {
-            OTLog::vOutput(0, "ERROR verifying transaction statement in "
-                              "NotarizeMarketOffer.\n");
+            Log::vOutput(0, "ERROR verifying transaction statement in "
+                            "NotarizeMarketOffer.\n");
         }
         else {
             pResponseBalanceItem->SetStatus(
@@ -6799,31 +6792,31 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
 
             // If failed to load the trade...
             if (!bLoadContractFromString) {
-                OTLog::vError("ERROR loading trade from string in "
-                              "Notary::NotarizeMarketOffer:\n%s\n",
-                              strTrade.Get());
+                Log::vError("ERROR loading trade from string in "
+                            "Notary::NotarizeMarketOffer:\n%s\n",
+                            strTrade.Get());
             }
             // I'm using the operator== because it exists. (Although now I
             // believe != exists also)
             // If the ID on the "from" account that was passed in,
             // does not match the "Acct From" ID on this transaction item
             else if (!(ASSET_ACCT_ID == pItem->GetPurportedAccountID())) {
-                OTLog::Output(0, "Error: Asset account ID on the transaction "
-                                 "does not match asset account ID on the "
-                                 "transaction item.\n");
+                Log::Output(0, "Error: Asset account ID on the transaction "
+                               "does not match asset account ID on the "
+                               "transaction item.\n");
             }
             // ok so the IDs match. Does the currency account exist?
             else if (nullptr == pCurrencyAcct) {
-                OTLog::Output(0, "ERROR verifying existence of the currency "
-                                 "account in Notary::NotarizeMarketOffer\n");
+                Log::Output(0, "ERROR verifying existence of the currency "
+                               "account in Notary::NotarizeMarketOffer\n");
             }
             else if (!pCurrencyAcct->VerifyContractID()) {
-                OTLog::Output(0, "ERROR verifying Contract ID on the currency "
-                                 "account in Notary::NotarizeMarketOffer\n");
+                Log::Output(0, "ERROR verifying Contract ID on the currency "
+                               "account in Notary::NotarizeMarketOffer\n");
             }
             else if (!pCurrencyAcct->VerifyOwner(theNym)) {
-                OTLog::Output(0, "ERROR verifying ownership of the currency "
-                                 "account in Notary::NotarizeMarketOffer\n");
+                Log::Output(0, "ERROR verifying ownership of the currency "
+                               "account in Notary::NotarizeMarketOffer\n");
             }
             // Are both of the accounts of the same Asset Type?
             else if (theAssetAccount.GetInstrumentDefinitionID() ==
@@ -6832,7 +6825,7 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                     theAssetAccount.GetInstrumentDefinitionID()),
                     strCurrencyTypeID(
                         pCurrencyAcct->GetInstrumentDefinitionID());
-                OTLog::vOutput(
+                Log::vOutput(
                     0, "ERROR - user attempted to trade between identical "
                        "instrument definitions in "
                        "Notary::NotarizeMarketOffer:\n%s\n%s\n",
@@ -6842,17 +6835,17 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
             // I call VerifySignature here since VerifyContractID was already
             // called in LoadExistingAccount().
             else if (!pCurrencyAcct->VerifySignature(server_->m_nymServer)) {
-                OTLog::Output(0, "ERROR verifying signature on the Currency "
-                                 "account in Notary::NotarizeMarketOffer\n");
+                Log::Output(0, "ERROR verifying signature on the Currency "
+                               "account in Notary::NotarizeMarketOffer\n");
             }
             else if (!pTrade->VerifySignature(theNym)) {
-                OTLog::Output(0, "ERROR verifying signature on the Trade in "
-                                 "Notary::NotarizeMarketOffer\n");
+                Log::Output(0, "ERROR verifying signature on the Trade in "
+                               "Notary::NotarizeMarketOffer\n");
             }
             else if (pTrade->GetTransactionNum() !=
                        pItem->GetTransactionNum()) {
-                OTLog::Output(0, "ERROR bad transaction number on trade in "
-                                 "Notary::NotarizeMarketOffer\n");
+                Log::Output(0, "ERROR bad transaction number on trade in "
+                               "Notary::NotarizeMarketOffer\n");
             }
             // The transaction number opens the market offer, but there must
             // also be a closing number for closing it.
@@ -6864,20 +6857,20 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                                                               // USED
                      !server_->transactor_.verifyTransactionNumber(
                          theNym, pTrade->GetCurrencyAcctClosingNum())) {
-                OTLog::Output(0, "ERROR needed 2 valid closing transaction "
-                                 "numbers in Notary::NotarizeMarketOffer\n");
+                Log::Output(0, "ERROR needed 2 valid closing transaction "
+                               "numbers in Notary::NotarizeMarketOffer\n");
             }
             else if (pTrade->GetNotaryID() != NOTARY_ID) {
                 const String strID1(pTrade->GetNotaryID()), strID2(NOTARY_ID);
-                OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
-                                  "Notary ID (%s) on trade. Expected: %s\n",
-                               strID1.Get(), strID2.Get());
+                Log::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
+                                "Notary ID (%s) on trade. Expected: %s\n",
+                             strID1.Get(), strID2.Get());
             }
             else if (pTrade->GetSenderNymID() != NYM_ID) {
                 const String strID1(pTrade->GetSenderNymID()), strID2(NYM_ID);
-                OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
-                                  "Nym ID (%s) on trade. Expected: %s\n",
-                               strID1.Get(), strID2.Get());
+                Log::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
+                                "Nym ID (%s) on trade. Expected: %s\n",
+                             strID1.Get(), strID2.Get());
             }
             else if (pTrade->GetInstrumentDefinitionID() !=
                        theAssetAccount.GetInstrumentDefinitionID()) {
@@ -6885,7 +6878,7 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                     pTrade->GetInstrumentDefinitionID()),
                     strInstrumentDefinitionID2(
                         theAssetAccount.GetInstrumentDefinitionID());
-                OTLog::vOutput(
+                Log::vOutput(
                     0, "Notary::NotarizeMarketOffer: ERROR wrong "
                        "Instrument Definition ID (%s) on trade. Expected: %s\n",
                     strInstrumentDefinitionID1.Get(),
@@ -6894,53 +6887,53 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
             else if (pTrade->GetSenderAcctID() != ASSET_ACCT_ID) {
                 const String strAcctID1(pTrade->GetSenderAcctID()),
                     strAcctID2(ASSET_ACCT_ID);
-                OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
-                                  "asset Acct ID (%s) on trade. Expected: %s\n",
-                               strAcctID1.Get(), strAcctID2.Get());
+                Log::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
+                                "asset Acct ID (%s) on trade. Expected: %s\n",
+                             strAcctID1.Get(), strAcctID2.Get());
             }
             else if (pTrade->GetCurrencyID() !=
                        pCurrencyAcct->GetInstrumentDefinitionID()) {
                 const String strID1(pTrade->GetCurrencyID()),
                     strID2(pCurrencyAcct->GetInstrumentDefinitionID());
-                OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
-                                  "Currency Type ID (%s) on trade. Expected: "
-                                  "%s\n",
-                               strID1.Get(), strID2.Get());
+                Log::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
+                                "Currency Type ID (%s) on trade. Expected: "
+                                "%s\n",
+                             strID1.Get(), strID2.Get());
             }
             else if (pTrade->GetCurrencyAcctID() != CURRENCY_ACCT_ID) {
                 const String strID1(pTrade->GetCurrencyAcctID()),
                     strID2(CURRENCY_ACCT_ID);
-                OTLog::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
-                                  "Currency Acct ID (%s) on trade. Expected: "
-                                  "%s\n",
-                               strID1.Get(), strID2.Get());
+                Log::vOutput(0, "Notary::NotarizeMarketOffer: ERROR wrong "
+                                "Currency Acct ID (%s) on trade. Expected: "
+                                "%s\n",
+                             strID1.Get(), strID2.Get());
             }
             // If the Trade successfully verified, but I couldn't get the offer
             // out of it, then it
             // actually DIDN'T successfully load still.  :-(
             else if (!pTrade->GetOfferString(strOffer)) {
-                OTLog::vError("ERROR getting offer string from trade in "
-                              "Notary::NotarizeMarketOffer:\n%s\n",
-                              strTrade.Get());
+                Log::vError("ERROR getting offer string from trade in "
+                            "Notary::NotarizeMarketOffer:\n%s\n",
+                            strTrade.Get());
             }
             else if (!theOffer.LoadContractFromString(strOffer)) {
-                OTLog::vError("ERROR loading offer from string in "
-                              "Notary::NotarizeMarketOffer:\n%s\n",
-                              strTrade.Get());
+                Log::vError("ERROR loading offer from string in "
+                            "Notary::NotarizeMarketOffer:\n%s\n",
+                            strTrade.Get());
             }
             // ...And then we use that same Nym to verify the signature on the
             // offer.
             else if (!theOffer.VerifySignature(theNym)) {
-                OTLog::Error("ERROR verifying offer signature in "
-                             "Notary::NotarizeMarketOffer.\n");
+                Log::Error("ERROR verifying offer signature in "
+                           "Notary::NotarizeMarketOffer.\n");
             }
             else if (!pTrade->VerifyOffer(theOffer)) {
-                OTLog::Output(0, "FAILED verifying offer for Trade in "
-                                 "Notary::NotarizeMarketOffer\n");
+                Log::Output(0, "FAILED verifying offer for Trade in "
+                               "Notary::NotarizeMarketOffer\n");
             }
             else if (theOffer.GetScale() <
                        ServerSettings::GetMinMarketScale()) {
-                OTLog::vOutput(
+                Log::vOutput(
                     0, "Notary::NotarizeMarketOffer: FAILED "
                        "verifying Offer, SCALE: %" PRId64 ". (Minimum is "
                        "%" PRId64 ".) \n",
@@ -6957,11 +6950,11 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                 // payment plans and smart contracts. But it's a good enough
                 // approximation for now.
                 //
-                OTLog::Output(0, "Notary::NotarizeMarketOffer: FAILED adding "
-                                 "offer to market: "
-                                 "NYM HAS TOO MANY ACTIVE OFFERS ALREADY. See "
-                                 "'max_items_per_nym' setting in the config "
-                                 "file.\n");
+                Log::Output(0, "Notary::NotarizeMarketOffer: FAILED adding "
+                               "offer to market: "
+                               "NYM HAS TOO MANY ACTIVE OFFERS ALREADY. See "
+                               "'max_items_per_nym' setting in the config "
+                               "file.\n");
             }
             // At this point I feel pretty confident that the Trade is a valid
             // request from the user.
@@ -7002,8 +6995,8 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                     bOutSuccess = true; // The offer was successfully placed on
                                         // the market.
 
-                    OTLog::Output(2,
-                                  "Successfully added Trade to Cron object.\n");
+                    Log::Output(2,
+                                "Successfully added Trade to Cron object.\n");
 
                     // Server side, the Nym stores a list of all open cron item
                     // numbers.
@@ -7039,8 +7032,8 @@ void Notary::NotarizeMarketOffer(Nym& theNym, Account& theAssetAccount,
                         server_->m_nymServer); // <===== SAVED HERE.
                 }
                 else {
-                    OTLog::Output(0, "Unable to add trade to Cron object "
-                                     "Notary::NotarizeMarketOffer\n");
+                    Log::Output(0, "Unable to add trade to Cron object "
+                                   "Notary::NotarizeMarketOffer\n");
                 }
             }
 
@@ -7090,15 +7083,15 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
     // Make sure the "from" account even exists...
     if (!theFromAccount.LoadContract()) {
         const String strIDAcct(tranIn.GetPurportedAccountID());
-        OTLog::vOutput(0, "%s: Error loading asset account: %s\n", __FUNCTION__,
-                       strIDAcct.Get());
+        Log::vOutput(0, "%s: Error loading asset account: %s\n", __FUNCTION__,
+                     strIDAcct.Get());
     }
     // Make sure the "from" account isn't marked for deletion.
     else if (theFromAccount.IsMarkedForDeletion()) {
         const String strIDAcct(tranIn.GetPurportedAccountID());
-        OTLog::vOutput(0, "%s: Failed attempt to use an Asset account that was "
-                          "marked for deletion: %s\n",
-                       __FUNCTION__, strIDAcct.Get());
+        Log::vOutput(0, "%s: Failed attempt to use an Asset account that was "
+                        "marked for deletion: %s\n",
+                     __FUNCTION__, strIDAcct.Get());
     }
     // Make sure the Account ID loaded from the file matches the one we just set
     // and used as the filename.
@@ -7107,8 +7100,8 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
         // file, if the right
         // ID is on the filename itself? and vice versa.
         const String strIDAcct(tranIn.GetPurportedAccountID());
-        OTLog::vError("%s: Error verifying account ID: %s\n", __FUNCTION__,
-                      strIDAcct.Get());
+        Log::vError("%s: Error verifying account ID: %s\n", __FUNCTION__,
+                    strIDAcct.Get());
     }
     // Make sure the nymID loaded up in the account as its actual owner matches
     // the nym who was
@@ -7118,7 +7111,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
     else if (!theFromAccount.VerifyOwner(theNym)) {
         const Identifier idAcct(theFromAccount);
         const String strIDAcct(idAcct);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "%s: Error verifying account ownership... Nym: %s  Acct: %s\n",
             __FUNCTION__, strIDNym.Get(), strIDAcct.Get());
     }
@@ -7126,7 +7119,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
     else if (!theFromAccount.VerifySignature(server_->m_nymServer)) {
         const Identifier idAcct(theFromAccount);
         const String strIDAcct(idAcct);
-        OTLog::vError(
+        Log::vError(
             "%s: Error verifying server signature on account: %s for Nym: %s\n",
             __FUNCTION__, strIDAcct.Get(), strIDNym.Get());
     }
@@ -7138,7 +7131,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
         const String strIDAcct(idAcct);
         // The user may not submit a transaction using a number he's already
         // used before.
-        OTLog::vOutput(
+        Log::vOutput(
             0, "%s: Error verifying transaction number %" PRId64 " on user "
                "Nym: %s Account: %s\n",
             __FUNCTION__, lTransactionNumber, strIDNym.Get(), strIDAcct.Get());
@@ -7155,7 +7148,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
     else if (!tranIn.VerifyItems(theNym)) {
         const Identifier idAcct(theFromAccount);
         const String strIDAcct(idAcct);
-        OTLog::vOutput(
+        Log::vOutput(
             0, "%s: Error verifying transaction items. Trans: %" PRId64 " "
                "Nym: %s  Account: %s\n",
             __FUNCTION__, lTransactionNumber, strIDNym.Get(), strIDAcct.Get());
@@ -7176,8 +7169,8 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             server_->transactor_.removeTransactionNumber(
                 theNym, lTransactionNumber, true)) // bSave=true
         {
-            OTLog::Error("Error removing transaction number (as available) "
-                         "from user nym in Notary::NotarizeTransaction\n");
+            Log::Error("Error removing transaction number (as available) "
+                       "from user nym in Notary::NotarizeTransaction\n");
         }
         else {
             Item::itemType theReplyItemType = Item::error_state;
@@ -7188,7 +7181,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // transfer from her account ABC to the inbox of account DEF.
             // A copy will also remain in her outbox until canceled or accepted.
             case OTTransaction::transfer:
-                OTLog::Output(0, "NotarizeTransaction type: Transfer\n");
+                Log::Output(0, "NotarizeTransaction type: Transfer\n");
                 NotarizeTransfer(theNym, theFromAccount, tranIn, tranOut,
                                  bOutSuccess);
                 theReplyItemType = Item::atTransfer;
@@ -7199,7 +7192,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // Bob sends a signed request to the server asking it to reject
             // some of his inbox items and/or accept some into his account DEF.
             case OTTransaction::processInbox:
-                OTLog::Output(0, "NotarizeTransaction type: Process Inbox\n");
+                Log::Output(0, "NotarizeTransaction type: Process Inbox\n");
                 NotarizeProcessInbox(theNym, theFromAccount, tranIn, tranOut,
                                      bOutSuccess);
                 //                    theReplyItemType = OTItem::atProcessInbox;
@@ -7221,12 +7214,12 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
 
                 if (nullptr != pItemCash) {
                     theReplyItemType = Item::atWithdrawal;
-                    OTLog::Output(
+                    Log::Output(
                         0, "NotarizeTransaction type: Withdrawal (cash)\n");
                 }
                 else if (nullptr != pItemVoucher) {
                     theReplyItemType = Item::atWithdrawVoucher;
-                    OTLog::Output(
+                    Log::Output(
                         0, "NotarizeTransaction type: Withdrawal (voucher)\n");
                 }
                 NotarizeWithdrawal(theNym, theFromAccount, tranIn, tranOut,
@@ -7240,7 +7233,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // out to
             // Bob's user ID (or blank), --OR-- a purse full of tokens.
             case OTTransaction::deposit:
-                OTLog::Output(0, "NotarizeTransaction type: Deposit\n");
+                Log::Output(0, "NotarizeTransaction type: Deposit\n");
                 NotarizeDeposit(theNym, theFromAccount, tranIn, tranOut,
                                 bOutSuccess);
                 theReplyItemType = Item::atDeposit;
@@ -7254,7 +7247,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // are both
             // configurable.
             case OTTransaction::payDividend:
-                OTLog::Output(0, "NotarizeTransaction type: Pay Dividend\n");
+                Log::Output(0, "NotarizeTransaction type: Pay Dividend\n");
                 NotarizePayDividend(theNym, theFromAccount, tranIn, tranOut,
                                     bOutSuccess);
                 theReplyItemType = Item::atPayDividend;
@@ -7267,7 +7260,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // listing
             // the relevant information, instrument definitions and account IDs.
             case OTTransaction::marketOffer:
-                OTLog::Output(0, "NotarizeTransaction type: Market Offer\n");
+                Log::Output(0, "NotarizeTransaction type: Market Offer\n");
                 NotarizeMarketOffer(theNym, theFromAccount, tranIn, tranOut,
                                     bOutSuccess);
                 theReplyItemType = Item::atMarketOffer;
@@ -7279,7 +7272,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // payments to Alice. (BOTH Alice AND Bob must have signed the same
             // contract.)
             case OTTransaction::paymentPlan:
-                OTLog::Output(0, "NotarizeTransaction type: Payment Plan\n");
+                Log::Output(0, "NotarizeTransaction type: Payment Plan\n");
                 NotarizePaymentPlan(theNym, theFromAccount, tranIn, tranOut,
                                     bOutSuccess);
                 theReplyItemType = Item::atPaymentPlan;
@@ -7292,7 +7285,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // have signed it,
             // and have provided transaction #s for it.
             case OTTransaction::smartContract: {
-                OTLog::Output(0, "NotarizeTransaction type: Smart Contract\n");
+                Log::Output(0, "NotarizeTransaction type: Smart Contract\n");
 
                 // For all transaction numbers used on cron items, we keep track
                 // of them in
@@ -7311,7 +7304,7 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // Bob sends a signed request to the server asking it to cancel a
             // REGULARLY PROCESSING CONTRACT that he had previously created.
             case OTTransaction::cancelCronItem:
-                OTLog::Output(0, "NotarizeTransaction type: cancelCronItem\n");
+                Log::Output(0, "NotarizeTransaction type: cancelCronItem\n");
                 NotarizeCancelCronItem(theNym, theFromAccount, tranIn, tranOut,
                                        bOutSuccess);
                 theReplyItemType = Item::atCancelCronItem;
@@ -7324,15 +7317,15 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
             // account and his
             // various sub-accounts for each member currency in the basket.)
             case OTTransaction::exchangeBasket:
-                OTLog::Output(0, "NotarizeTransaction type: Exchange Basket\n");
+                Log::Output(0, "NotarizeTransaction type: Exchange Basket\n");
                 NotarizeExchangeBasket(theNym, theFromAccount, tranIn, tranOut,
                                        bOutSuccess);
                 theReplyItemType = Item::atExchangeBasket;
                 break;
 
             default:
-                OTLog::vError("%s: Error, unexpected type: %s\n", __FUNCTION__,
-                              tranIn.GetTypeString());
+                Log::vError("%s: Error, unexpected type: %s\n", __FUNCTION__,
+                            tranIn.GetTypeString());
                 break;
             }
 
@@ -7383,11 +7376,11 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                                     true)) // bSave=true
                             {
                                 const String strNymID(NYM_ID);
-                                OTLog::vError("%s: Error removing issued "
-                                              "number %" PRId64
-                                              " from user nym: %s\n",
-                                              __FUNCTION__, lTransactionNumber,
-                                              strNymID.Get());
+                                Log::vError("%s: Error removing issued "
+                                            "number %" PRId64
+                                            " from user nym: %s\n",
+                                            __FUNCTION__, lTransactionNumber,
+                                            strNymID.Get());
                             }
                         }
                     }
@@ -7407,15 +7400,15 @@ void Notary::NotarizeTransaction(Nym& theNym, OTTransaction& tranIn,
                         theNym, lTransactionNumber, true)) // bSave=true
                 {
                     const String strNymID(NYM_ID);
-                    OTLog::vError(
+                    Log::vError(
                         "%s: Error removing issued number %" PRId64 " from "
                         "user nym: %s\n",
                         __FUNCTION__, lTransactionNumber, strNymID.Get());
                 }
                 break;
             default:
-                OTLog::vError("%s: Error, unexpected type: %s\n", __FUNCTION__,
-                              tranIn.GetTypeString());
+                Log::vError("%s: Error, unexpected type: %s\n", __FUNCTION__,
+                            tranIn.GetTypeString());
                 break;
             }
         }
@@ -7490,16 +7483,16 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
     Identifier NYMBOX_HASH; // In case the Nymbox hash is updated, we will
                             // have the updated version here.
     if (!bSuccessLoadingNymbox) {
-        OTLog::vOutput(
+        Log::vOutput(
             0, "Notary::%s: Failed loading or verifying Nymbox for user:\n%s\n",
             __FUNCTION__, strNymID.Get());
     }
     else if (nullptr == pBalanceItem) {
         const String strTransaction(tranIn);
-        OTLog::vOutput(
-            0, "Notary::%s: No Transaction Agreement item found "
-               "on this transaction %" PRId64 " (required):\n\n%s\n\n",
-            __FUNCTION__, tranIn.GetTransactionNum(), strTransaction.Get());
+        Log::vOutput(0, "Notary::%s: No Transaction Agreement item found "
+                        "on this transaction %" PRId64 " (required):\n\n%s\n\n",
+                     __FUNCTION__, tranIn.GetTransactionNum(),
+                     strTransaction.Get());
     }
     else {
         String strBalanceItem;
@@ -7566,7 +7559,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                     // actual ones in the Nymbox.)
                     //
                     if (!listNumbersNymbox.Verify(listNumbersUserItem))
-                        OTLog::Error(
+                        Log::Error(
                             "Notary::NotarizeProcessNymbox: Failed "
                             "verifying: The numbers on the actual blank "
                             "transaction in the nymbox do not match the list "
@@ -7599,11 +7592,11 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                                 // call
                             }
                             else
-                                OTLog::vError("Notary::NotarizeProcessNymbox:"
-                                              " tried to add an issued trans# "
-                                              "(%" PRId64 ") to a nym who "
-                                              "ALREADY had that number...\n",
-                                              lTransactionNumber);
+                                Log::vError("Notary::NotarizeProcessNymbox:"
+                                            " tried to add an issued trans# "
+                                            "(%" PRId64 ") to a nym who "
+                                            "ALREADY had that number...\n",
+                                            lTransactionNumber);
                         }
                     }
                 }
@@ -7631,9 +7624,9 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
         //
 
         if (!bSuccessFindingAllTransactions) {
-            OTLog::vOutput(0, "%s: transactions in processNymbox message do "
-                              "not match actual nymbox.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: transactions in processNymbox message do "
+                            "not match actual nymbox.\n",
+                         __FUNCTION__);
 
             // Remove all issued nums from theNym that are stored on theTempNym
             // HERE.
@@ -7652,8 +7645,8 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                      theNym, tranIn, false)) // bIsRealTransaction=false (since
                                              // we're doing Nymbox) // <========
         {
-            OTLog::vOutput(0, "%s: ERROR verifying transaction statement.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: ERROR verifying transaction statement.\n",
+                         __FUNCTION__);
 
             // Remove all issued nums from theNym that are stored on theTempNym
             // HERE.
@@ -7735,7 +7728,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                         theReplyItemType = Item::atAcceptNotice;
                         break;
                     default:
-                        OTLog::Error("Should never happen.\n");
+                        Log::Error("Should never happen.\n");
                         theReplyItemType =
                             Item::error_state; // should never happen based on
                                                // above 'if' statement.
@@ -7920,11 +7913,11 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
 
                             if (!bGotNextTransNum) {
                                 lSuccessNoticeTransNum = 0;
-                                OTLog::Error("Error getting next transaction "
-                                             "number in "
-                                             "Notary::NotarizeProcessNymbox "
-                                             "for OTTransaction::blank (for "
-                                             "the successNotice)\n");
+                                Log::Error("Error getting next transaction "
+                                           "number in "
+                                           "Notary::NotarizeProcessNymbox "
+                                           "for OTTransaction::blank (for "
+                                           "the successNotice)\n");
                             }
                             else {
                                 // Drop SUCCESS NOTICE in the Nymbox
@@ -8049,10 +8042,10 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                         }
                     }
                     else {
-                        OTLog::vError("Error finding original Nymbox "
-                                      "transaction that client is trying to "
-                                      "accept: %" PRId64 "\n",
-                                      pItem->GetReferenceToNum());
+                        Log::vError("Error finding original Nymbox "
+                                    "transaction that client is trying to "
+                                    "accept: %" PRId64 "\n",
+                                    pItem->GetReferenceToNum());
                     }
 
                     // sign the response item before sending it back (it's
@@ -8069,10 +8062,10 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                     String strItemType;
                     pItem->GetTypeString(strItemType);
 
-                    OTLog::vError("Error, unexpected item type (%s) and/or "
-                                  "status (%d) in "
-                                  "Notary::NotarizeProcessNymbox\n",
-                                  strItemType.Get(), nStatus);
+                    Log::vError("Error, unexpected item type (%s) and/or "
+                                "status (%d) in "
+                                "Notary::NotarizeProcessNymbox\n",
+                                strItemType.Get(), nStatus);
                 }
             }
         }
@@ -8180,21 +8173,21 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                             // now.
     if (!NYM_IS_ALLOWED(strNymID.Get(),
                         ServerSettings::__transact_process_inbox)) {
-        OTLog::vOutput(
+        Log::vOutput(
             0, "%s: User %s cannot do this transaction (All \"process inbox\" "
                "transactions are disallowed in server.cfg)\n",
             __FUNCTION__, strNymID.Get());
     }
     else if (nullptr == pBalanceItem) {
-        OTLog::vOutput(
+        Log::vOutput(
             0, "%s: No Balance Agreement item found on this transaction.\n",
             __FUNCTION__);
     }
     else if (nullptr == pInbox) {
-        OTLog::vError("%s: Error loading or verifying inbox.\n", __FUNCTION__);
+        Log::vError("%s: Error loading or verifying inbox.\n", __FUNCTION__);
     }
     else if (nullptr == pOutbox) {
-        OTLog::vError("%s: Error loading or verifying outbox.\n", __FUNCTION__);
+        Log::vError("%s: Error loading or verifying outbox.\n", __FUNCTION__);
     }
     else {
         pBalanceItem->SaveContractRaw(strBalanceItem);
@@ -8278,27 +8271,27 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                 pServerTransaction = nullptr;
                 bSuccessFindingAllTransactions = false;
 
-                OTLog::vError("%s: Wrong item type: %s (%d).\n", __FUNCTION__,
-                              strItemType.Exists() ? strItemType.Get() : "",
-                              nItemType);
+                Log::vError("%s: Wrong item type: %s (%d).\n", __FUNCTION__,
+                            strItemType.Exists() ? strItemType.Get() : "",
+                            nItemType);
                 break;
             }
             }
             if (nullptr == pServerTransaction) {
                 const String strAccountID(ACCOUNT_ID);
-                OTLog::vError("%s: Unable to find or process inbox transaction "
-                              "being accepted by user: %s for account: %s\n",
-                              __FUNCTION__, strNymID.Get(), strAccountID.Get());
+                Log::vError("%s: Unable to find or process inbox transaction "
+                            "being accepted by user: %s for account: %s\n",
+                            __FUNCTION__, strNymID.Get(), strAccountID.Get());
                 bSuccessFindingAllTransactions = false;
                 break;
             }
             else if (pServerTransaction->GetReceiptAmount() !=
                        pItem->GetAmount()) {
-                OTLog::vError("%s: Receipt amounts don't match: %" PRId64
-                              " and %" PRId64 ". Nym: %s\n",
-                              __FUNCTION__,
-                              pServerTransaction->GetReceiptAmount(),
-                              pItem->GetAmount(), strNymID.Get());
+                Log::vError("%s: Receipt amounts don't match: %" PRId64
+                            " and %" PRId64 ". Nym: %s\n",
+                            __FUNCTION__,
+                            pServerTransaction->GetReceiptAmount(),
+                            pItem->GetAmount(), strNymID.Get());
                 bSuccessFindingAllTransactions = false;
                 break;
             }
@@ -8375,7 +8368,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                     if (pInbox->GetTransactionCountInRefTo(
                             pServerTransaction->GetReferenceToNum()) !=
                         static_cast<int32_t>(setOfRefNumbers.size())) {
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "%s: User tried to close a finalReceipt, "
                                "without also closing all related receipts. "
                                "(Those that share the IN REF TO number.)\n",
@@ -8412,7 +8405,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                     // adding it to
                     // theTempClosingNumNym.)
                     else
-                        OTLog::vOutput(
+                        Log::vOutput(
                             1, "%s: expected to find "
                                "pServerTransaction->GetClosingNum() (%" PRId64
                                ") on "
@@ -8440,7 +8433,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                 else {
                     bSuccessFindingAllTransactions = false;
 
-                    OTLog::vError(
+                    Log::vError(
                         "%s: basket or final receipt, trying to "
                         "'remove' an issued "
                         "number (%" PRId64 ") that already wasn't on Nym's "
@@ -8528,9 +8521,9 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                             if (false ==
                                 ((strCheque.GetLength() > 2) &&
                                  theCheque.LoadContractFromString(strCheque))) {
-                                OTLog::vError("%s: ERROR loading cheque from "
-                                              "string:\n%s\n",
-                                              __FUNCTION__, strCheque.Get());
+                                Log::vError("%s: ERROR loading cheque from "
+                                            "string:\n%s\n",
+                                            __FUNCTION__, strCheque.Get());
                                 bSuccessFindingAllTransactions = false;
                             }
                             else // Since the client wrote the cheque, and he
@@ -8552,7 +8545,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                 else {
                                     bSuccessFindingAllTransactions = false;
 
-                                    OTLog::vError(
+                                    Log::vError(
                                         "%s: cheque receipt, trying to "
                                         "'remove' an issued "
                                         "number (%" PRId64
@@ -8588,7 +8581,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                             else {
                                 bSuccessFindingAllTransactions = false;
 
-                                OTLog::vError(
+                                Log::vError(
                                     "%s: transfer receipt, trying to 'remove' "
                                     "an issued "
                                     "number (%" PRId64
@@ -8603,26 +8596,26 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         else {
                             String strOriginalItemType;
                             pOriginalItem->GetTypeString(strOriginalItemType);
-                            OTLog::vError("%s: Original item has wrong type, "
-                                          "while accepting item receipt:\n%s\n",
-                                          __FUNCTION__,
-                                          strOriginalItemType.Get());
+                            Log::vError("%s: Original item has wrong type, "
+                                        "while accepting item receipt:\n%s\n",
+                                        __FUNCTION__,
+                                        strOriginalItemType.Get());
                             bSuccessFindingAllTransactions = false;
                         }
                     }
                     else {
-                        OTLog::vError("%s: Unable to load original item from "
-                                      "string while accepting item "
-                                      "receipt:\n%s\n",
-                                      __FUNCTION__, strOriginalItem.Get());
+                        Log::vError("%s: Unable to load original item from "
+                                    "string while accepting item "
+                                    "receipt:\n%s\n",
+                                    __FUNCTION__, strOriginalItem.Get());
                         bSuccessFindingAllTransactions = false;
                     }
                 } // pItem is acceptItemReceipt --------------------
 
                 break;
             default:
-                OTLog::Error("Wrong item type in "
-                             "Notary::NotarizeProcessInbox. (2nd notice.)\n");
+                Log::Error("Wrong item type in "
+                           "Notary::NotarizeProcessInbox. (2nd notice.)\n");
                 bSuccessFindingAllTransactions = false;
                 break;
             } // switch --------------------------------------------
@@ -8655,9 +8648,9 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
         } // for loop (list of "process inbox" items)
 
         if (!bSuccessFindingAllTransactions) {
-            OTLog::vOutput(0, "%s: transactions in processInbox message do not "
-                              "match actual inbox.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: transactions in processInbox message do not "
+                            "match actual inbox.\n",
+                         __FUNCTION__);
         }
         else { // Remove certain receipts (determined in the big loop above)
                  // from the inbox copy,
@@ -8674,7 +8667,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                 //
                 if (false ==
                     pInbox->RemoveTransaction(lTemp)) // <================
-                    OTLog::vError(
+                    Log::vError(
                         "%s: Failed removing receipt from Inbox copy: %" PRId64
                         " \n"
                         "Meaning the client probably has an old copy of his "
@@ -8716,10 +8709,10 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
             // everything is successful between now and then.)
 
             if (!bVerifiedBalanceStatement) {
-                OTLog::vOutput(0, "Notary::NotarizeProcessInbox: ERROR "
-                                  "verifying balance statement for transaction "
-                                  "%" PRId64 ".\n",
-                               tranIn.GetTransactionNum());
+                Log::vOutput(0, "Notary::NotarizeProcessInbox: ERROR "
+                                "verifying balance statement for transaction "
+                                "%" PRId64 ".\n",
+                             tranIn.GetTransactionNum());
             }
             else // BALANCE AGREEMENT WAS SUCCESSFUL.......
             {
@@ -8805,7 +8798,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                             theReplyItemType = Item::atDisputeBasketReceipt;
                             break;
                         default:
-                            OTLog::Error("Should never happen.\n");
+                            Log::Error("Should never happen.\n");
                             theReplyItemType =
                                 Item::error_state; // should never happen
                                                    // based on above 'if'
@@ -8849,13 +8842,13 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         OTTransaction* pServerTransaction = nullptr;
 
                         if (!theInbox.LoadInbox()) {
-                            OTLog::Error(
+                            Log::Error(
                                 "Error loading inbox during processInbox\n");
                         }
                         else if (false ==
                                    theInbox.VerifyAccount(
                                        server_->m_nymServer)) {
-                            OTLog::Error(
+                            Log::Error(
                                 "Error verifying inbox during processInbox\n");
                         }
                         //
@@ -9195,7 +9188,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                     // match the Acct ID of the client trying to
                                     // accept the transaction...
                                     if (!(ACCOUNT_ID == IDToAccount)) {
-                                        OTLog::Error(
+                                        Log::Error(
                                             "Error: Destination account ID on "
                                             "the transaction does not match "
                                             "account ID of client transaction "
@@ -9230,10 +9223,10 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                             theFromInbox.VerifyAccount(
                                                 server_->m_nymServer);
                                     else
-                                        OTLog::Error("ERROR missing 'from' "
-                                                     "inbox in "
-                                                     "Notary::"
-                                                     "NotarizeProcessInbox.\n");
+                                        Log::Error("ERROR missing 'from' "
+                                                   "inbox in "
+                                                   "Notary::"
+                                                   "NotarizeProcessInbox.\n");
                                     // THE FROM OUTBOX -- We are removing an
                                     // item, so this outbox SHOULD already
                                     // exist.
@@ -9245,16 +9238,16 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                     else // If it does not already exist, that
                                          // is an error condition. For now, log
                                          // and fail.
-                                        OTLog::Error("ERROR missing 'from' "
-                                                     "outbox in "
-                                                     "Notary::"
-                                                     "NotarizeProcessInbox.\n");
+                                        Log::Error("ERROR missing 'from' "
+                                                   "outbox in "
+                                                   "Notary::"
+                                                   "NotarizeProcessInbox.\n");
                                     if (!bSuccessLoadingInbox ||
                                         false == bSuccessLoadingOutbox) {
-                                        OTLog::Error("ERROR loading 'from' "
-                                                     "inbox or outbox in "
-                                                     "Notary::"
-                                                     "NotarizeProcessInbox.\n");
+                                        Log::Error("ERROR loading 'from' "
+                                                   "inbox or outbox in "
+                                                   "Notary::"
+                                                   "NotarizeProcessInbox.\n");
                                     }
                                     else {
                                         // Generate a new transaction number for
@@ -9476,7 +9469,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                         else {
                                             delete pInboxTransaction;
                                             pInboxTransaction = nullptr;
-                                            OTLog::Error(
+                                            Log::Error(
                                                 "Unable to credit account in "
                                                 "Notary::"
                                                 "NotarizeProcessInbox.\n");
@@ -9485,15 +9478,15 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                 }     // its type is OTItem::transfer
                             }         // loaded original item from string
                             else {
-                                OTLog::Error("Error loading original item from "
-                                             "inbox transaction.\n");
+                                Log::Error("Error loading original item from "
+                                           "inbox transaction.\n");
                             }
                         }
                         else {
-                            OTLog::vError("Error finding original receipt or "
-                                          "transfer that client is trying to "
-                                          "accept: %" PRId64 "\n",
-                                          pItem->GetReferenceToNum());
+                            Log::vError("Error finding original receipt or "
+                                        "transfer that client is trying to "
+                                        "accept: %" PRId64 "\n",
+                                        pItem->GetReferenceToNum());
                         }
 
                         // sign the response item before sending it back (it's
@@ -9509,9 +9502,9 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         String strItemType;
                         pItem->GetTypeString(strItemType);
 
-                        OTLog::vError("Notary::%s: Error, unexpected "
-                                      "OTItem::itemType: %s\n",
-                                      __FUNCTION__, strItemType.Get());
+                        Log::vError("Notary::%s: Error, unexpected "
+                                    "OTItem::itemType: %s\n",
+                                    __FUNCTION__, strItemType.Get());
                     } // if type == ACCEPT, REJECT, DISPUTE
                 }     // for LOOP (each item)
             }         // else (balance agreement verified.)

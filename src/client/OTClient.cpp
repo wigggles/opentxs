@@ -2300,8 +2300,8 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
             {
                 otErr << __FUNCTION__ << ": Error saving transaction receipt "
                                          "(failed writing armored string):\n"
-                      << OTFolders::Receipt() << OTLog::PathSeparator()
-                      << strNotaryID << OTLog::PathSeparator()
+                      << OTFolders::Receipt() << Log::PathSeparator()
+                      << strNotaryID << Log::PathSeparator()
                       << strReceiptFilename << "\n";
                 return;
             }
@@ -6629,8 +6629,8 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                     otErr << "OTClient::ProcessServerReply: Error saving "
                              "transaction receipt (failed writing armored "
                              "string):\n" << OTFolders::Receipt()
-                          << OTLog::PathSeparator() << strNotaryID
-                          << OTLog::PathSeparator() << strReceiptFilename
+                          << Log::PathSeparator() << strNotaryID
+                          << Log::PathSeparator() << strReceiptFilename
                           << "\n Contents:\n" << strTransaction << "\n";
                 }
                 else // success writing armored string
@@ -6647,7 +6647,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                         otErr << "OTClient::ProcessServerReply: Error "
                                  "saving transaction receipt:  " << strNotaryID
-                              << OTLog::PathSeparator() << strReceiptFilename
+                              << Log::PathSeparator() << strReceiptFilename
                               << "\n";
 
                         OTDB::StorePlainString(

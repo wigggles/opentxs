@@ -524,7 +524,7 @@ Account* Account::LoadExistingAccount(const Identifier& accountId,
     if (!OTDB::Exists(account->m_strFoldername.Get(),
                       account->m_strFilename.Get())) {
         otInfo << "OTAccount::LoadExistingAccount: File does not exist: "
-               << account->m_strFoldername << OTLog::PathSeparator()
+               << account->m_strFoldername << Log::PathSeparator()
                << account->m_strFilename << "\n";
         delete account;
         return nullptr;

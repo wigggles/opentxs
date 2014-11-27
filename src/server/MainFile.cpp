@@ -180,7 +180,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
                                     ascMasterContents.Get());
         }
         else
-            OTLog::vError(
+            Log::vError(
                 "%s: Failed trying to write master key to notary file.\n",
                 szFunc);
     }
@@ -212,8 +212,8 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
                 BASKET_ACCOUNT_ID, BASKET_CONTRACT_ID);
 
         if (!bContractID) {
-            OTLog::vError("%s: Error: Missing Contract ID for basket ID %s\n",
-                          szFunc, strBasketID.Get());
+            Log::vError("%s: Error: Missing Contract ID for basket ID %s\n",
+                        szFunc, strBasketID.Get());
             break;
         }
 
@@ -244,7 +244,7 @@ bool MainFile::SaveMainFile()
     String strMainFile;
 
     if (!SaveMainFileToString(strMainFile)) {
-        OTLog::vError(
+        Log::vError(
             "%s: Error saving to string. (Giving up on save attempt.)\n",
             __FUNCTION__);
         return false;
@@ -258,9 +258,8 @@ bool MainFile::SaveMainFile()
         ascTemp.WriteArmoredString(strFinal, "NOTARY")) // todo hardcoding.
     {
 
-        OTLog::vError(
-            "%s: Error saving notary (failed writing armored string)\n",
-            __FUNCTION__);
+        Log::vError("%s: Error saving notary (failed writing armored string)\n",
+                    __FUNCTION__);
         return false;
     }
     // Save the Main File to the Harddrive... (or DB, if other storage module is
@@ -270,8 +269,8 @@ bool MainFile::SaveMainFile()
         strFinal.Get(), ".", server_->m_strWalletFilename.Get());
 
     if (!bSaved) {
-        OTLog::vError("%s: Error saving main file: %s\n", __FUNCTION__,
-                      server_->m_strWalletFilename.Get());
+        Log::vError("%s: Error saving main file: %s\n", __FUNCTION__,
+                    server_->m_strWalletFilename.Get());
     }
     return bSaved;
 }
@@ -283,13 +282,13 @@ bool MainFile::CreateMainFile(const std::string& strContract,
                               const std::string& strCachedKey)
 {
     if (!OTDB::StorePlainString(strContract, "contracts", strNotaryID)) {
-        OTLog::Error("Failed trying to store the server contract.\n");
+        Log::Error("Failed trying to store the server contract.\n");
         return false;
     }
 
     if (!strCert.empty() &&
         !OTDB::StorePlainString(strCert, "certs", strNymID)) {
-        OTLog::Error(
+        Log::Error(
             "Failed trying to store the server Nym's public/private cert.\n");
         return false;
     }
@@ -321,7 +320,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     if (!OTDB::StorePlainString(str_Notary, ".",
                                 "notaryServer.xml")) // todo hardcoding.
     {
-        OTLog::Error("Failed trying to store the new notaryServer.xml file.\n");
+        Log::Error("Failed trying to store the new notaryServer.xml file.\n");
         return false;
     }
     OTASCIIArmor ascCachedKey;
@@ -350,27 +349,27 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     server_->m_nymServer.SetIdentifier(strServerNymID);
 
     if (!server_->m_nymServer.Loadx509CertAndPrivateKey()) {
-        OTLog::vOutput(0, "%s: Error loading server credentials, or "
-                          "certificate and private key.\n",
-                       __FUNCTION__);
+        Log::vOutput(0, "%s: Error loading server credentials, or "
+                        "certificate and private key.\n",
+                     __FUNCTION__);
     }
     else if (!server_->m_nymServer.VerifyPseudonym()) {
-        OTLog::vOutput(0, "%s: Error verifying server nym. Are you sure you "
-                          "have the right ID?\n",
-                       __FUNCTION__);
+        Log::vOutput(0, "%s: Error verifying server nym. Are you sure you "
+                        "have the right ID?\n",
+                     __FUNCTION__);
     }
     else if (!server_->m_nymServer.SaveSignedNymfile(server_->m_nymServer)) {
-        OTLog::vOutput(0, "%s: Error saving new nymfile for server nym.\n",
-                       __FUNCTION__);
+        Log::vOutput(0, "%s: Error saving new nymfile for server nym.\n",
+                     __FUNCTION__);
     }
     else {
-        OTLog::vOutput(0, "%s: OKAY, we have apparently created the new "
-                          "server. Remember to erase the contents "
-                          "of your ~/.ot/client_data folder, since we used a "
-                          "temporary wallet to generate the server "
-                          "nym and its master key.\n"
-                          "Let's try to load up your new server contract...\n",
-                       __FUNCTION__);
+        Log::vOutput(0, "%s: OKAY, we have apparently created the new "
+                        "server. Remember to erase the contents "
+                        "of your ~/.ot/client_data folder, since we used a "
+                        "temporary wallet to generate the server "
+                        "nym and its master key.\n"
+                        "Let's try to load up your new server contract...\n",
+                     __FUNCTION__);
         return true;
     }
 
@@ -380,8 +379,8 @@ bool MainFile::CreateMainFile(const std::string& strContract,
 bool MainFile::LoadMainFile(bool bReadOnly)
 {
     if (!OTDB::Exists(".", server_->m_strWalletFilename.Get())) {
-        OTLog::vError("%s: Error finding file: %s\n", __FUNCTION__,
-                      server_->m_strWalletFilename.Get());
+        Log::vError("%s: Error finding file: %s\n", __FUNCTION__,
+                    server_->m_strWalletFilename.Get());
         return false;
     }
     String strFileContents(OTDB::QueryPlainString(
@@ -389,8 +388,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         server_->m_strWalletFilename.Get())); // <=== LOADING FROM DATA STORE.
 
     if (!strFileContents.Exists()) {
-        OTLog::vError("%s: Unable to read main file: %s\n", __FUNCTION__,
-                      server_->m_strWalletFilename.Get());
+        Log::vError("%s: Unable to read main file: %s\n", __FUNCTION__,
+                    server_->m_strWalletFilename.Get());
         return false;
     }
 
@@ -411,11 +410,11 @@ bool MainFile::LoadMainFile(bool bReadOnly)
             xmlFileContents.DecodeIfArmored()) // bEscapedIsAllowed=true by
                                                // default.
         {
-            OTLog::vError("%s: Notary server file apparently was encoded and "
-                          "then failed decoding. Filename: %s \n"
-                          "Contents: \n%s\n",
-                          __FUNCTION__, server_->m_strWalletFilename.Get(),
-                          strFileContents.Get());
+            Log::vError("%s: Notary server file apparently was encoded and "
+                        "then failed decoding. Filename: %s \n"
+                        "Contents: \n%s\n",
+                        __FUNCTION__, server_->m_strWalletFilename.Get(),
+                        strFileContents.Get());
             return false;
         }
         irr::io::IrrXMLReader* xml =
@@ -452,7 +451,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     server_->transactor_.transactionNumber(
                         strTransactionNumber.ToLong());
 
-                    OTLog::vOutput(
+                    Log::vOutput(
                         0,
                         "\nLoading Open Transactions server. File version: %s\n"
                         " Last Issued Transaction Number: %" PRId64
@@ -472,9 +471,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             OTCachedKey::It()->Pause();
 
                         if (!LoadServerUserAndContract()) {
-                            OTLog::vError("%s: Failed calling "
-                                          "LoadServerUserAndContract.\n",
-                                          __FUNCTION__);
+                            Log::vError("%s: Failed calling "
+                                        "LoadServerUserAndContract.\n",
+                                        __FUNCTION__);
                             bFailure = true;
                         }
 
@@ -512,8 +511,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         }
                     }
 
-                    OTLog::vOutput(0, "\nLoading cachedKey:\n%s\n",
-                                   ascCachedKey.Get());
+                    Log::vOutput(0, "\nLoading cachedKey:\n%s\n",
+                                 ascCachedKey.Get());
                     //
                     // It's only here, AFTER the master key has been loaded,
                     // that we can
@@ -525,9 +524,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     // This is, for example, 2.0
                     if (version_ != "1.0") {
                         if (!LoadServerUserAndContract()) {
-                            OTLog::vError("%s: Failed calling "
-                                          "LoadServerUserAndContract.\n",
-                                          __FUNCTION__);
+                            Log::vError("%s: Failed calling "
+                                        "LoadServerUserAndContract.\n",
+                                        __FUNCTION__);
                             bFailure = true;
                         }
                     }
@@ -542,9 +541,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     if ((-1) ==
                         server_->transactor_.voucherAccounts_.ReadFromXMLNode(
                             xml, strAcctType, strAcctCount))
-                        OTLog::vError(
-                            "%s: Error loading voucher accountList.\n",
-                            __FUNCTION__);
+                        Log::vError("%s: Error loading voucher accountList.\n",
+                                    __FUNCTION__);
                 }
                 else if (strNodeName.Compare("basketInfo")) {
                     String strBasketID = xml->getAttributeValue("basketID");
@@ -559,15 +557,15 @@ bool MainFile::LoadMainFile(bool bReadOnly)
 
                     if (server_->transactor_.addBasketAccountID(
                             BASKET_ID, BASKET_ACCT_ID, BASKET_CONTRACT_ID))
-                        OTLog::vOutput(0, "Loading basket currency info...\n "
-                                          "Basket ID: %s\n Basket Acct ID: "
-                                          "%s\n Basket Contract ID: %s\n",
-                                       strBasketID.Get(), strBasketAcctID.Get(),
-                                       strBasketContractID.Get());
+                        Log::vOutput(0, "Loading basket currency info...\n "
+                                        "Basket ID: %s\n Basket Acct ID: "
+                                        "%s\n Basket Contract ID: %s\n",
+                                     strBasketID.Get(), strBasketAcctID.Get(),
+                                     strBasketContractID.Get());
                     else
-                        OTLog::vError("Error adding basket currency info...\n "
-                                      "Basket ID: %s\n Basket Acct ID: %s\n",
-                                      strBasketID.Get(), strBasketAcctID.Get());
+                        Log::vError("Error adding basket currency info...\n "
+                                    "Basket ID: %s\n Basket Acct ID: %s\n",
+                                    strBasketID.Get(), strBasketAcctID.Get());
                 }
 
                 // Create an OTAssetContract and load them from file, (for each
@@ -583,10 +581,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     InstrumentDefinitionID = xml->getAttributeValue(
                         "instrumentDefinitionID"); // hash of contract itself
 
-                    OTLog::vOutput(0, "\n\n****Asset Contract**** (server "
-                                      "listing)\n Name: %s\n Contract ID: %s\n",
-                                   AssetName.Get(),
-                                   InstrumentDefinitionID.Get());
+                    Log::vOutput(0, "\n\n****Asset Contract**** (server "
+                                    "listing)\n Name: %s\n Contract ID: %s\n",
+                                 AssetName.Get(), InstrumentDefinitionID.Get());
 
                     String strContractPath;
                     strContractPath = OTFolders::Contract().Get();
@@ -601,7 +598,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
 
                     if (pContract->LoadContract()) {
                         if (pContract->VerifyContract()) {
-                            OTLog::Output(0, "** Asset Contract Verified **\n");
+                            Log::Output(0, "** Asset Contract Verified **\n");
 
                             pContract->SetName(AssetName);
 
@@ -612,22 +609,22 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         else {
                             delete pContract;
                             pContract = nullptr;
-                            OTLog::Output(0,
-                                          "Asset Contract FAILED to verify.\n");
+                            Log::Output(0,
+                                        "Asset Contract FAILED to verify.\n");
                         }
                     }
                     else {
                         delete pContract;
                         pContract = nullptr;
-                        OTLog::vOutput(
+                        Log::vOutput(
                             0, "%s: Failed reading file for Asset Contract.\n",
                             __FUNCTION__);
                     }
                 }
                 else {
                     // unknown element type
-                    OTLog::vError("%s: Unknown element type: %s\n",
-                                  __FUNCTION__, xml->getNodeName());
+                    Log::vError("%s: Unknown element type: %s\n", __FUNCTION__,
+                                xml->getNodeName());
                 }
             } break;
             default:
@@ -665,11 +662,11 @@ bool MainFile::LoadServerUserAndContract()
     server_->m_nymServer.SetIdentifier(server_->m_strServerNymID);
 
     if (!server_->m_nymServer.Loadx509CertAndPrivateKey(false)) {
-        OTLog::vOutput(0, "%s: Error loading server certificate and keys.\n",
-                       szFunc);
+        Log::vOutput(0, "%s: Error loading server certificate and keys.\n",
+                     szFunc);
     }
     else if (!server_->m_nymServer.VerifyPseudonym()) {
-        OTLog::vOutput(0, "%s: Error verifying server nym.\n", szFunc);
+        Log::vOutput(0, "%s: Error verifying server nym.\n", szFunc);
     }
     else {
         // This file will be saved during the course of operation
@@ -683,7 +680,7 @@ bool MainFile::LoadServerUserAndContract()
         //      m_nymServer.SaveSignedNymfile(m_nymServer); // Uncomment this if
         // you want to create the file. NORMALLY LEAVE IT OUT!!!! DANGEROUS!!!
 
-        OTLog::vOutput(
+        Log::vOutput(
             0,
             "%s: Loaded server certificate and keys.\nNext, loading Cron...\n",
             szFunc);
@@ -700,10 +697,10 @@ bool MainFile::LoadServerUserAndContract()
         server_->m_Cron.SetServerNym(&server_->m_nymServer);
 
         if (!server_->m_Cron.LoadCron())
-            OTLog::vError("%s: Failed loading Cron file. (Did you just create "
-                          "this server?)\n",
-                          szFunc);
-        OTLog::vOutput(0, "%s: Loading the server contract...\n", szFunc);
+            Log::vError("%s: Failed loading Cron file. (Did you just create "
+                        "this server?)\n",
+                        szFunc);
+        Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
         // We have the notaryID, so let's load  up the server Contract!
         String strContractPath(OTFolders::Contract().Get());
@@ -717,18 +714,17 @@ bool MainFile::LoadServerUserAndContract()
 
         if (pContract->LoadContract()) {
             if (pContract->VerifyContract()) {
-                OTLog::Output(0, "\n** Main Server Contract Verified **\n");
+                Log::Output(0, "\n** Main Server Contract Verified **\n");
                 server_->m_pServerContract.swap(pContract);
                 bSuccess = true;
             }
             else {
-                OTLog::Output(0, "\nMain Server Contract FAILED to verify.\n");
+                Log::Output(0, "\nMain Server Contract FAILED to verify.\n");
             }
         }
         else {
-            OTLog::vOutput(0,
-                           "\n%s: Failed reading Main Server Contract:\n%s\n",
-                           szFunc, strContractPath.Get());
+            Log::vOutput(0, "\n%s: Failed reading Main Server Contract:\n%s\n",
+                         szFunc, strContractPath.Get());
         }
     }
 

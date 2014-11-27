@@ -1584,7 +1584,7 @@ bool OTWallet::SaveWallet(const char* szFilename)
         {
             otErr << "OTWallet::SaveWallet: Error saving wallet (failed "
                      "writing armored string):\n" << m_strDataFolder
-                  << OTLog::PathSeparator() << m_strFilename << "\n";
+                  << Log::PathSeparator() << m_strFilename << "\n";
             return false;
         }
 

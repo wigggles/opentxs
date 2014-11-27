@@ -478,7 +478,7 @@ bool OTASCIIArmor::LoadFromFile(const String& foldername,
 
     if (!OTDB::Exists(foldername.Get(), filename.Get())) {
         otErr << "OTASCIIArmor::LoadFromFile: File does not exist: "
-              << foldername << "" << OTLog::PathSeparator() << "" << filename
+              << foldername << "" << Log::PathSeparator() << "" << filename
               << "\n";
         return false;
     }
@@ -488,7 +488,7 @@ bool OTASCIIArmor::LoadFromFile(const String& foldername,
 
     if (strFileContents.GetLength() < 2) {
         otErr << "OTASCIIArmor::LoadFromFile: Error reading file: "
-              << foldername << OTLog::PathSeparator() << filename << "\n";
+              << foldername << Log::PathSeparator() << filename << "\n";
         return false;
     }
 
@@ -587,7 +587,7 @@ bool OTASCIIArmor::WriteArmoredFile(
             otErr << "OTASCIIArmor::WriteArmoredFile"
                   << ": Failed saving to file: %s%s%s\n\n Contents:\n\n"
                   << strOutput << "\n\n",
-                foldername.Get(), OTLog::PathSeparator(), filename.Get();
+                foldername.Get(), Log::PathSeparator(), filename.Get();
             return false;
         }
 
@@ -620,7 +620,7 @@ bool OTASCIIArmor::WriteArmoredString(
         "%s%s %s-----\n\n", // "%s-----END OT ARMORED %s-----\n"
         bEscaped ? szEscape : "",
         OT_BEGIN_ARMORED, str_type.c_str(), // "%s%s %s-----\n"
-        OTLog::Version(),                   // "Version: Open Transactions %s\n"
+        Log::Version(),                     // "Version: Open Transactions %s\n"
         /* No variable */                   // "Comment:
         // http://github.com/FellowTraveler/Open-Transactions/wiki\n\n",
         Get(), //  "%s"     <==== CONTENTS OF THIS OBJECT BEING

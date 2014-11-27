@@ -387,8 +387,8 @@ bool VerifyBoxReceiptExists(
     otWarn << "OTTransaction::" << (bExists ? "(Already have this one)"
                                             : "(Need to download this one)")
            << ": " << __FUNCTION__ << ": " << strFolder1name
-           << OTLog::PathSeparator() << strFolder2name << OTLog::PathSeparator()
-           << strFolder3name << OTLog::PathSeparator() << strFilename << "\n";
+           << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+           << strFolder3name << Log::PathSeparator() << strFilename << "\n";
 
     return bExists;
 }
@@ -434,9 +434,8 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
                       strFolder3name.Get(), strFilename.Get())) {
         otWarn << __FUNCTION__
                << ": Box receipt does not exist: " << strFolder1name
-               << OTLog::PathSeparator() << strFolder2name
-               << OTLog::PathSeparator() << strFolder3name
-               << OTLog::PathSeparator() << strFilename << "\n";
+               << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+               << strFolder3name << Log::PathSeparator() << strFilename << "\n";
         return nullptr;
     }
 
@@ -447,9 +446,8 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
         strFolder2name.Get(), strFolder3name.Get(), strFilename.Get()));
     if (strFileContents.length() < 2) {
         otErr << __FUNCTION__ << ": Error reading file: " << strFolder1name
-              << OTLog::PathSeparator() << strFolder2name
-              << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\n";
+              << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+              << strFolder3name << Log::PathSeparator() << strFilename << "\n";
         return nullptr;
     }
 
@@ -458,9 +456,8 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
     if (!strRawFile.Exists()) {
         otErr << __FUNCTION__ << ": Error reading file (resulting output "
                                  "string is empty): " << strFolder1name
-              << OTLog::PathSeparator() << strFolder2name
-              << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\n";
+              << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+              << strFolder3name << Log::PathSeparator() << strFilename << "\n";
         return nullptr;
     }
 
@@ -473,9 +470,8 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
     if (nullptr == pTransType) {
         otErr << __FUNCTION__ << ": Error instantiating transaction "
                                  "type based on strRawFile: " << strFolder1name
-              << OTLog::PathSeparator() << strFolder2name
-              << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\n";
+              << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+              << strFolder3name << Log::PathSeparator() << strFilename << "\n";
         return nullptr;
     }
 
@@ -485,9 +481,8 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
         otErr << __FUNCTION__
               << ": Error dynamic_cast from transaction "
                  "type to transaction, based on strRawFile: " << strFolder1name
-              << OTLog::PathSeparator() << strFolder2name
-              << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\n";
+              << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+              << strFolder3name << Log::PathSeparator() << strFilename << "\n";
         delete pTransType;
         pTransType = nullptr; // cleanup!
         return nullptr;
@@ -503,9 +498,9 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
 
     if (!bSuccess) {
         otErr << __FUNCTION__ << ": Failed verifying Box Receipt:\n"
-              << strFolder1name << OTLog::PathSeparator() << strFolder2name
-              << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\n";
+              << strFolder1name << Log::PathSeparator() << strFolder2name
+              << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
+              << strFilename << "\n";
 
         delete pBoxReceipt;
         pBoxReceipt = nullptr;
@@ -513,9 +508,9 @@ OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, int64_t lLedgerType)
     }
     else
         otInfo << __FUNCTION__ << ": Successfully loaded Box Receipt in:\n"
-               << strFolder1name << OTLog::PathSeparator() << strFolder2name
-               << OTLog::PathSeparator() << strFolder3name
-               << OTLog::PathSeparator() << strFilename << "\n";
+               << strFolder1name << Log::PathSeparator() << strFolder2name
+               << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
+               << strFilename << "\n";
 
     // Todo: security analysis. By this point we've verified the hash of the
     // transaction against the stored

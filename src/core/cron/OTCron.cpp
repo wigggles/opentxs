@@ -191,7 +191,7 @@ bool OTCron::SaveCron()
     if (!SignContract(*m_pServerNym) || !SaveContract() ||
         !SaveContract(szFoldername, szFilename)) {
         otErr << "Error saving main Cronfile:\n" << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
     else

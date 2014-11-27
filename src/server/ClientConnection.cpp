@@ -182,9 +182,8 @@ bool ClientConnection::SealMessageForRecipient(Message& msg,
             return envelope.Seal(*publicKey_, strEnvelopeContents);
     }
     else
-        OTLog::Error(
-            "ClientConnection::SealMessageForRecipient: "
-            "Unable to seal message, possibly a missing public key. \n");
+        Log::Error("ClientConnection::SealMessageForRecipient: "
+                   "Unable to seal message, possibly a missing public key. \n");
     return false;
 }
 
