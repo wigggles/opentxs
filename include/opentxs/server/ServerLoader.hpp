@@ -152,7 +152,7 @@ public:
     {
 // This is optional! (I, of course, am using it in this test app...)
 #if defined(OT_SIGNAL_HANDLING)
-        OTLog::SetupSignalHandler();
+        Log::SetupSignalHandler();
 #endif
         // I instantiate this here (instead of globally) so that I am
         // assured that any globals and other
