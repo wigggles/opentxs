@@ -748,9 +748,9 @@ bool OTRecord::DeleteRecord() const
         theAcctID(str_using_account); // this last one sometimes contains NymID
                                       // (see above.)
 
-    OTLedger* pRecordbox =
+    Ledger* pRecordbox =
         OTAPI_Wrap::OTAPI()->LoadRecordBox(theNotaryID, theNymID, theAcctID);
-    std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
+    std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
     if (nullptr == pRecordbox) {
         otErr << __FUNCTION__ << ": Failed loading record box for server ID ("
               << m_str_notary_id << ") nymID "
@@ -812,9 +812,9 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
             theAcctID(m_str_account_id);
 
         // Open the Nym's asset account inbox.
-        OTLedger* pInbox =
+        Ledger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadInbox(theNotaryID, theNymID, theAcctID);
-        std::unique_ptr<OTLedger> theInboxAngel(pInbox);
+        std::unique_ptr<Ledger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load asset account inbox for "
@@ -878,9 +878,9 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
         const Identifier theNotaryID(m_str_notary_id), theNymID(m_str_nym_id);
 
         // Open the Nym's payments inbox.
-        OTLedger* pInbox =
+        Ledger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
-        std::unique_ptr<OTLedger> theInboxAngel(pInbox);
+        std::unique_ptr<Ledger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load payment inbox for server "
@@ -945,9 +945,9 @@ bool OTRecord::DiscardIncoming() const
         const Identifier theNotaryID(m_str_notary_id), theNymID(m_str_nym_id);
 
         // Open the Nym's payments inbox.
-        OTLedger* pInbox =
+        Ledger* pInbox =
             OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID, theNymID);
-        std::unique_ptr<OTLedger> theInboxAngel(pInbox);
+        std::unique_ptr<Ledger> theInboxAngel(pInbox);
         if (nullptr == pInbox) {
             otErr << __FUNCTION__
                   << ": Error: Unable to load payment inbox for server id ("

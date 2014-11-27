@@ -175,9 +175,9 @@ bool Message::HarvestTransactionNumbers(
 
     const String strLedger(m_ascPayload);
 
-    OTLedger theLedger(MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID); // We're going to
-                                                           // load a messsage
-                                                           // ledger from *this.
+    Ledger theLedger(MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID); // We're going to
+                                                         // load a messsage
+                                                         // ledger from *this.
 
     if (!strLedger.Exists() || !theLedger.LoadLedgerFromString(strLedger)) {
         otErr << __FUNCTION__

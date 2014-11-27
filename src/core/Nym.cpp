@@ -1634,7 +1634,7 @@ bool Nym::GetNymboxHashServerSide(const Identifier& theNotaryID,
                                   Identifier& theOutput) // server-side
 {
     if (m_NymboxHash.IsEmpty()) {
-        OTLedger theNymbox(m_nymID, m_nymID, theNotaryID);
+        Ledger theNymbox(m_nymID, m_nymID, theNotaryID);
 
         if (theNymbox.LoadNymbox() && theNymbox.CalculateNymboxHash(theOutput))
             return true;
@@ -1979,7 +1979,7 @@ for this Nym. Infinite if negative.
 // those pieces were already done
 // just prior to this call.
 //
-bool Nym::ResyncWithServer(const OTLedger& theNymbox, const Nym& theMessageNym)
+bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
 {
     bool bSuccess = true;
 

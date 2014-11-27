@@ -149,7 +149,7 @@ class Basket;
 class Cheque;
 class OTClient;
 class OTEnvelope;
-class OTLedger;
+class Ledger;
 class Message;
 class OTNumList;
 class OTNym_or_SymmetricKey;
@@ -649,53 +649,53 @@ public:
     EXPORT Account* LoadAssetAccount(const Identifier& NOTARY_ID,
                                      const Identifier& NYM_ID,
                                      const Identifier& ACCOUNT_ID) const;
-    EXPORT OTLedger* LoadNymbox(const Identifier& NOTARY_ID,
-                                const Identifier& NYM_ID) const;
+    EXPORT Ledger* LoadNymbox(const Identifier& NOTARY_ID,
+                              const Identifier& NYM_ID) const;
 
-    EXPORT OTLedger* LoadNymboxNoVerify(const Identifier& NOTARY_ID,
-                                        const Identifier& NYM_ID) const;
-
-    EXPORT OTLedger* LoadInbox(const Identifier& NOTARY_ID,
-                               const Identifier& NYM_ID,
-                               const Identifier& ACCOUNT_ID) const;
-
-    EXPORT OTLedger* LoadInboxNoVerify(const Identifier& NOTARY_ID,
-                                       const Identifier& NYM_ID,
-                                       const Identifier& ACCOUNT_ID) const;
-
-    EXPORT OTLedger* LoadOutbox(const Identifier& NOTARY_ID,
-                                const Identifier& NYM_ID,
-                                const Identifier& ACCOUNT_ID) const;
-
-    EXPORT OTLedger* LoadOutboxNoVerify(const Identifier& NOTARY_ID,
-                                        const Identifier& NYM_ID,
-                                        const Identifier& ACCOUNT_ID) const;
-    EXPORT OTLedger* LoadPaymentInbox(const Identifier& NOTARY_ID,
+    EXPORT Ledger* LoadNymboxNoVerify(const Identifier& NOTARY_ID,
                                       const Identifier& NYM_ID) const;
 
-    EXPORT OTLedger* LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
-                                              const Identifier& NYM_ID) const;
+    EXPORT Ledger* LoadInbox(const Identifier& NOTARY_ID,
+                             const Identifier& NYM_ID,
+                             const Identifier& ACCOUNT_ID) const;
+
+    EXPORT Ledger* LoadInboxNoVerify(const Identifier& NOTARY_ID,
+                                     const Identifier& NYM_ID,
+                                     const Identifier& ACCOUNT_ID) const;
+
+    EXPORT Ledger* LoadOutbox(const Identifier& NOTARY_ID,
+                              const Identifier& NYM_ID,
+                              const Identifier& ACCOUNT_ID) const;
+
+    EXPORT Ledger* LoadOutboxNoVerify(const Identifier& NOTARY_ID,
+                                      const Identifier& NYM_ID,
+                                      const Identifier& ACCOUNT_ID) const;
+    EXPORT Ledger* LoadPaymentInbox(const Identifier& NOTARY_ID,
+                                    const Identifier& NYM_ID) const;
+
+    EXPORT Ledger* LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
+                                            const Identifier& NYM_ID) const;
     // LoadRecordBox
     // Note: depending on the record type, the Account ID may contain the User
     // ID.
-    EXPORT OTLedger* LoadRecordBox(const Identifier& NOTARY_ID,
-                                   const Identifier& NYM_ID,
-                                   const Identifier& ACCOUNT_ID) const;
+    EXPORT Ledger* LoadRecordBox(const Identifier& NOTARY_ID,
+                                 const Identifier& NYM_ID,
+                                 const Identifier& ACCOUNT_ID) const;
 
-    EXPORT OTLedger* LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
-                                           const Identifier& NYM_ID,
-                                           const Identifier& ACCOUNT_ID) const;
+    EXPORT Ledger* LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
+                                         const Identifier& NYM_ID,
+                                         const Identifier& ACCOUNT_ID) const;
 
     EXPORT bool ClearRecord(
         const Identifier& NOTARY_ID, const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID, // NYM_ID can be passed here as well.
         int32_t nIndex, bool bClearAll = false // if true, nIndex is ignored.
         ) const;
-    EXPORT OTLedger* LoadExpiredBox(const Identifier& NOTARY_ID,
-                                    const Identifier& NYM_ID) const;
+    EXPORT Ledger* LoadExpiredBox(const Identifier& NOTARY_ID,
+                                  const Identifier& NYM_ID) const;
 
-    EXPORT OTLedger* LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
-                                            const Identifier& NYM_ID) const;
+    EXPORT Ledger* LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
+                                          const Identifier& NYM_ID) const;
 
     EXPORT bool ClearExpired(const Identifier& NOTARY_ID,
                              const Identifier& NYM_ID, int32_t nIndex,
@@ -736,13 +736,13 @@ public:
     EXPORT void FlushSentMessages(bool bHarvestingForRetry,
                                   const Identifier& NOTARY_ID,
                                   const Identifier& NYM_ID,
-                                  const OTLedger& THE_NYMBOX) const;
+                                  const Ledger& THE_NYMBOX) const;
 
     EXPORT bool HaveAlreadySeenReply(const Identifier& NOTARY_ID,
                                      const Identifier& NYM_ID,
                                      const int64_t& lRequestNumber) const;
 
-    EXPORT bool ResyncNymWithServer(Nym& theNym, const OTLedger& theNymbox,
+    EXPORT bool ResyncNymWithServer(Nym& theNym, const Ledger& theNymbox,
                                     const Nym& theMessageNym) const;
 
     // These commands below send messages to the server:

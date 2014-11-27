@@ -173,7 +173,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
                        "-----BEGIN SIGNED LEDGER-----")) // this string is 29
                                                          // chars long.
         {
-            pContract = new OTLedger();
+            pContract = new Ledger();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(

@@ -143,7 +143,7 @@ namespace opentxs
 
 class Account;
 class AssetContract;
-class OTLedger;
+class Ledger;
 class OTServerConnection;
 class OTServerContract;
 class OTWallet;
@@ -242,7 +242,7 @@ public:
                                       const Identifier* pHisAcctID = nullptr);
 
     bool processServerReply(std::shared_ptr<Message> theReply,
-                            OTLedger* pNymbox = nullptr);
+                            Ledger* pNymbox = nullptr);
     void ProcessIncomingTransactions(OTServerConnection& theConnection,
                                      const Message& theReply) const;
     void ProcessWithdrawalResponse(OTTransaction& theTransaction,
@@ -254,7 +254,7 @@ public:
     void ProcessPayDividendResponse(OTTransaction& theTransaction,
                                     const OTServerConnection& theConnection,
                                     const Message& theReply) const;
-    bool AcceptEntireNymbox(OTLedger& theNymbox, const Identifier& theNotaryID,
+    bool AcceptEntireNymbox(Ledger& theNymbox, const Identifier& theNotaryID,
                             const OTServerContract& theServerContract,
                             Nym& theNym, Message& theMessage);
 
@@ -263,7 +263,7 @@ private:
                                       const String& str_trans,
                                       String str_box_type,
                                       const int64_t& lTransNum, Nym& the_nym,
-                                      OTLedger& ledger) const;
+                                      Ledger& ledger) const;
 
     struct ProcessServerReplyArgs;
     void setRecentHash(const Message& theReply, const String& strNotaryID,
@@ -278,16 +278,16 @@ private:
                                                ProcessServerReplyArgs& args);
     bool processServerReplyGetTransactionNum(const Message& theReply,
                                              ProcessServerReplyArgs& args);
-    bool processServerReplyGetNymBox(const Message& theReply, OTLedger* pNymbox,
+    bool processServerReplyGetNymBox(const Message& theReply, Ledger* pNymbox,
                                      ProcessServerReplyArgs& args);
     bool processServerReplyGetBoxReceipt(const Message& theReply,
-                                         OTLedger* pNymbox,
+                                         Ledger* pNymbox,
                                          ProcessServerReplyArgs& args);
     bool processServerReplyProcessInbox(const Message& theReply,
-                                        OTLedger* pNymbox,
+                                        Ledger* pNymbox,
                                         ProcessServerReplyArgs& args);
     bool processServerReplyGetAccountData(const Message& theReply,
-                                          OTLedger* pNymbox,
+                                          Ledger* pNymbox,
                                           ProcessServerReplyArgs& args);
     bool processServerReplyGetInstrumentDefinition(
         const Message& theReply, ProcessServerReplyArgs& args);

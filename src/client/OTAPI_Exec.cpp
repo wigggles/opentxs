@@ -1904,9 +1904,9 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pInbox(
+    std::unique_ptr<Ledger> pInbox(
         OTAPI()->LoadInbox(theNotaryID, theNymID, theAccountID));
-    std::unique_ptr<OTLedger> pOutbox(
+    std::unique_ptr<Ledger> pOutbox(
         OTAPI()->LoadOutbox(theNotaryID, theNymID, theAccountID));
 
     if (nullptr == pInbox) {
@@ -7953,7 +7953,7 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
 
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadNymboxNoVerify(theNotaryID, theNymID));
 
     if (nullptr == pLedger) {
@@ -8116,8 +8116,7 @@ std::string OTAPI_Exec::LoadNymbox(const std::string& NOTARY_ID,
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
-        OTAPI()->LoadNymbox(theNotaryID, theNymID));
+    std::unique_ptr<Ledger> pLedger(OTAPI()->LoadNymbox(theNotaryID, theNymID));
 
     if (nullptr == pLedger) {
         otOut << __FUNCTION__ << ": Failure calling OT_API::LoadNymbox.\n";
@@ -8150,7 +8149,7 @@ std::string OTAPI_Exec::LoadNymboxNoVerify(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadNymboxNoVerify(theNotaryID, theNymID));
 
     if (nullptr == pLedger) {
@@ -8191,7 +8190,7 @@ std::string OTAPI_Exec::LoadInbox(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadInbox(theNotaryID, theNymID, theAccountID));
 
     if (nullptr == pLedger) {
@@ -8232,7 +8231,7 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadInboxNoVerify(theNotaryID, theNymID, theAccountID));
 
     if (nullptr == pLedger) {
@@ -8273,7 +8272,7 @@ std::string OTAPI_Exec::LoadOutbox(const std::string& NOTARY_ID,
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadOutbox(theNotaryID, theNymID, theAccountID));
 
     if (nullptr == pLedger) {
@@ -8314,7 +8313,7 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(const std::string& NOTARY_ID,
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID));
 
     if (nullptr == pLedger) {
@@ -8352,7 +8351,7 @@ std::string OTAPI_Exec::LoadPaymentInbox(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadPaymentInbox(theNotaryID, theNymID));
 
     if (nullptr == pLedger) {
@@ -8388,7 +8387,7 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadPaymentInboxNoVerify(theNotaryID, theNymID));
 
     if (nullptr == pLedger) {
@@ -8430,7 +8429,7 @@ std::string OTAPI_Exec::LoadRecordBox(const std::string& NOTARY_ID,
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadRecordBox(theNotaryID, theNymID, theAccountID));
 
     if (nullptr == pLedger) {
@@ -8468,7 +8467,7 @@ std::string OTAPI_Exec::LoadRecordBoxNoVerify(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadRecordBoxNoVerify(theNotaryID, theNymID, theAccountID));
 
     if (nullptr == pLedger) {
@@ -8501,7 +8500,7 @@ std::string OTAPI_Exec::LoadExpiredBox(const std::string& NOTARY_ID,
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadExpiredBox(theNotaryID, theNymID));
 
     if (nullptr == pLedger) {
@@ -8534,7 +8533,7 @@ std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    std::unique_ptr<OTLedger> pLedger(
+    std::unique_ptr<Ledger> pLedger(
         OTAPI()->LoadExpiredBoxNoVerify(theNotaryID, theNymID));
 
     if (nullptr == pLedger) {
@@ -8651,7 +8650,7 @@ int32_t OTAPI_Exec::Ledger_GetCount(const std::string& NOTARY_ID,
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -8700,7 +8699,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
     if (nullptr == pNym) return "";
     // Let's load up the ledger (an inbox) that was passed in...
     String strOriginalLedger(ORIGINAL_LEDGER);
-    OTLedger theOriginalLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theOriginalLedger(theNymID, theAccountID, theNotaryID);
 
     if (!theOriginalLedger.LoadLedgerFromString(strOriginalLedger)) {
         String strAcctID(theAccountID);
@@ -8719,8 +8718,8 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
     }
     // By this point, the ledger is loaded properly from the string,
     // Let's create the response to it.
-    std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        theNymID, theAccountID, theNotaryID, OTLedger::message));
+    std::unique_ptr<Ledger> pResponseLedger(Ledger::GenerateLedger(
+        theNymID, theAccountID, theNotaryID, Ledger::message));
     if (nullptr == pResponseLedger) {
         String strAcctID(theAccountID);
         otErr << __FUNCTION__
@@ -8783,7 +8782,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
         theAccountID(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
     //    std::set<int64_t> setUnloaded;
 
     if (!theLedger.LoadLedgerFromString(strLedger)
@@ -8908,7 +8907,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
 
     String strLedger(THE_LEDGER);
 
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -9069,7 +9068,7 @@ std::string OTAPI_Exec::Ledger_GetInstrument(
     Nym* pNym = OTAPI()->GetNym(theNymID, __FUNCTION__);
     if (nullptr == pNym) return "";
     String strLedger(THE_LEDGER);
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
     //    std::set<int64_t> setUnloaded;
 
     if (!theLedger.LoadLedgerFromString(strLedger)
@@ -9192,7 +9191,7 @@ int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
     int64_t lTransactionNumber = 0;
     OTTransaction* pTransaction = nullptr;
 
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -9269,7 +9268,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
         theNymID, false, __FUNCTION__); // These copiously log, and ASSERT.
     if (nullptr == pNym) return "";
 
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -9397,7 +9396,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger theLedger(theNymID, theAcctID, theNotaryID);
+    Ledger theLedger(theNymID, theAcctID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAcctID);
@@ -9430,8 +9429,8 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     std::unique_ptr<OTTransaction> theTransAngel;
 
     if (theTransaction.IsAbbreviated()) {
-        pTransaction = LoadBoxReceipt(theTransaction,
-                                      static_cast<int64_t>(OTLedger::inbox));
+        pTransaction =
+            LoadBoxReceipt(theTransaction, static_cast<int64_t>(Ledger::inbox));
 
         if (nullptr == pTransaction) {
             String strAcctID(theAcctID);
@@ -9781,7 +9780,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
     if (nullptr == pNym) return "";
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger theLedger(theNymID, theAcctID, theNotaryID);
+    Ledger theLedger(theNymID, theAcctID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAcctID);
@@ -9829,8 +9828,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(const std::string& NOTARY_ID,
     if (nullptr == pAccount) return "";
     // Load the inbox and outbox.
 
-    OTLedger theInbox(theNymID, theAcctID, theNotaryID);
-    OTLedger theOutbox(theNymID, theAcctID, theNotaryID);
+    Ledger theInbox(theNymID, theAcctID, theNotaryID);
+    Ledger theOutbox(theNymID, theAcctID, theNotaryID);
 
     if (!theInbox.LoadInbox() || !theInbox.VerifyAccount(*pNym)) {
         otOut << __FUNCTION__ << ": Unable to load or verify Inbox for acct "
@@ -10596,17 +10595,17 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: unknown ledger type.\n";
@@ -10690,17 +10689,17 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: unknown ledger type. \n";
@@ -10801,17 +10800,17 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: unknown ledger type.\n";
@@ -10896,17 +10895,17 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: unknown ledger type. \n";
@@ -10996,17 +10995,17 @@ std::string OTAPI_Exec::Pending_GetNote(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << " Error loading from abbreviated "
                                      "transaction: unknown ledger type. \n";
@@ -11113,17 +11112,17 @@ int64_t OTAPI_Exec::Transaction_GetAmount(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: unknown ledger type. \n";
@@ -11418,17 +11417,17 @@ int32_t OTAPI_Exec::Transaction_GetSuccess(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: unknown ledger type. \n";
@@ -11522,17 +11521,17 @@ int32_t OTAPI_Exec::Transaction_IsCanceled(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: unknown ledger type. \n";
@@ -11613,17 +11612,17 @@ int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
         int64_t lBoxType = 0;
 
         if (theTransaction.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (theTransaction.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (theTransaction.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (theTransaction.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (theTransaction.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (theTransaction.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << __FUNCTION__ << ": Error loading from abbreviated "
                                      "transaction: unknown ledger type. \n";
@@ -11718,7 +11717,7 @@ int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
         return OT_ERROR;
     }
 
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -14937,7 +14936,7 @@ void OTAPI_Exec::FlushSentMessages(const bool& bHarvestingForRetry,
 
     const Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
     const String strLedger(THE_NYMBOX);
-    OTLedger theLedger(theNymID, theNymID, theNotaryID);
+    Ledger theLedger(theNymID, theNymID, theNotaryID);
     if (strLedger.Exists() && theLedger.LoadContractFromString(strLedger))
         OTAPI()->FlushSentMessages(bHarvestingForRetry, theNotaryID, theNymID,
                                    theLedger);
@@ -15057,7 +15056,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
     }
     // Based on notaryID and NymID, load the Nymbox.
     //
-    OTLedger theNymbox(theNymID, theNymID, theNotaryID); // <===========
+    Ledger theNymbox(theNymID, theNymID, theNotaryID); // <===========
 
     bool bSynced = false;
     bool bLoadedNymbox =
@@ -15567,7 +15566,7 @@ int32_t OTAPI_Exec::Message_IsTransactionCanceled(
         return OT_ERROR;
     }
 
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadContractFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -15664,7 +15663,7 @@ int32_t OTAPI_Exec::Message_GetTransactionSuccess(
         return OT_ERROR;
     }
 
-    OTLedger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadContractFromString(strLedger)) {
         String strAcctID(theAccountID);

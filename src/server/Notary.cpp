@@ -358,7 +358,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
             // IF they can be loaded up from file, or generated, that is.
 
             // Load the inbox/outbox in case they already exist
-            OTLedger theFromOutbox(NYM_ID, IDFromAccount, NOTARY_ID),
+            Ledger theFromOutbox(NYM_ID, IDFromAccount, NOTARY_ID),
                 theToInbox(pItem->GetDestinationAcctID(), NOTARY_ID);
 
             bool bSuccessLoadingInbox = theToInbox.LoadInbox();
@@ -401,9 +401,9 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                 OTLog::Error("Notary::NotarizeTransfer: Error loading 'from' "
                              "outbox.\n");
 
-            std::unique_ptr<OTLedger> pInbox(
+            std::unique_ptr<Ledger> pInbox(
                 theFromAccount.LoadInbox(server_->m_nymServer));
-            std::unique_ptr<OTLedger> pOutbox(
+            std::unique_ptr<Ledger> pOutbox(
                 theFromAccount.LoadOutbox(server_->m_nymServer));
 
             if (nullptr == pInbox) {
@@ -804,9 +804,9 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
         // contains the server's funds to back vouchers of a specific instrument
         // definition
         std::shared_ptr<Account> pVoucherReserveAcct;
-        std::unique_ptr<OTLedger> pInbox(
+        std::unique_ptr<Ledger> pInbox(
             theAccount.LoadInbox(server_->m_nymServer));
-        std::unique_ptr<OTLedger> pOutbox(
+        std::unique_ptr<Ledger> pOutbox(
             theAccount.LoadOutbox(server_->m_nymServer));
 
         // I'm using the operator== because it exists.
@@ -1067,9 +1067,9 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
         pResponseBalanceItem->SetReferenceToNum(
             pItem->GetTransactionNum()); // This response item is IN RESPONSE to
                                          // pItem and its Owner Transaction.
-        std::unique_ptr<OTLedger> pInbox(
+        std::unique_ptr<Ledger> pInbox(
             theAccount.LoadInbox(server_->m_nymServer));
-        std::unique_ptr<OTLedger> pOutbox(
+        std::unique_ptr<Ledger> pOutbox(
             theAccount.LoadOutbox(server_->m_nymServer));
 
         Mint* pMint = nullptr;
@@ -1763,9 +1763,9 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                 // individual receipts, containing the vouchers
                 // for any failures, so he can have a record of them, and so he
                 // can recover the funds.
-                std::unique_ptr<OTLedger> pInbox(
+                std::unique_ptr<Ledger> pInbox(
                     theSourceAccount.LoadInbox(server_->m_nymServer));
-                std::unique_ptr<OTLedger> pOutbox(
+                std::unique_ptr<Ledger> pOutbox(
                     theSourceAccount.LoadOutbox(server_->m_nymServer));
                 // contains the server's funds to back vouchers of a specific
                 // instrument definition.
@@ -2428,9 +2428,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
         pResponseBalanceItem->SetReferenceToNum(
             pItem->GetTransactionNum()); // This response item is IN RESPONSE to
                                          // pItem and its Owner Transaction.
-        std::unique_ptr<OTLedger> pInbox(
+        std::unique_ptr<Ledger> pInbox(
             theAccount.LoadInbox(server_->m_nymServer));
-        std::unique_ptr<OTLedger> pOutbox(
+        std::unique_ptr<Ledger> pOutbox(
             theAccount.LoadOutbox(server_->m_nymServer));
 
         if (nullptr ==
@@ -2760,13 +2760,12 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                     strRecipientNymID(RECIPIENT_NYM_ID),
                     strRemitterNymID(REMITTER_NYM_ID),
                     strRemitterAcctID(REMITTER_ACCT_ID);
-                OTLedger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID,
-                                        NOTARY_ID); // chequeReceipt goes here.
-                OTLedger theRemitterInbox(
-                    REMITTER_NYM_ID, REMITTER_ACCT_ID,
-                    NOTARY_ID); // voucherReceipt goes here.
-                OTLedger* pSenderInbox = &theSenderInbox;
-                OTLedger* pRemitterInbox = &theRemitterInbox;
+                Ledger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID,
+                                      NOTARY_ID); // chequeReceipt goes here.
+                Ledger theRemitterInbox(REMITTER_NYM_ID, REMITTER_ACCT_ID,
+                                        NOTARY_ID); // voucherReceipt goes here.
+                Ledger* pSenderInbox = &theSenderInbox;
+                Ledger* pRemitterInbox = &theRemitterInbox;
                 Account* pRemitterAcct =
                     nullptr; // Only used in the case of vouchers.
                 std::unique_ptr<Account> theRemitterAcctGuardian;
@@ -3448,7 +3447,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                             // don't save unless everything is a success.
 
                             Account* pAcctWhereReceiptGoes = nullptr;
-                            OTLedger* pInboxWhereReceiptGoes = nullptr;
+                            Ledger* pInboxWhereReceiptGoes = nullptr;
                             if (bHasRemitter) // voucher
                             {
                                 pAcctWhereReceiptGoes = pRemitterAcct;
@@ -3773,9 +3772,9 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                               "'from' account ID on the deposit item.\n");
         }
         else {
-            std::unique_ptr<OTLedger> pInbox(
+            std::unique_ptr<Ledger> pInbox(
                 theAccount.LoadInbox(server_->m_nymServer));
-            std::unique_ptr<OTLedger> pOutbox(
+            std::unique_ptr<Ledger> pOutbox(
                 theAccount.LoadOutbox(server_->m_nymServer));
 
             if (nullptr == pInbox) {
@@ -5795,9 +5794,8 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
 
     const String strNymID(NYM_ID);
 
-    std::unique_ptr<OTLedger> pInbox(
-        theAccount.LoadInbox(server_->m_nymServer));
-    std::unique_ptr<OTLedger> pOutbox(
+    std::unique_ptr<Ledger> pInbox(theAccount.LoadInbox(server_->m_nymServer));
+    std::unique_ptr<Ledger> pOutbox(
         theAccount.LoadOutbox(server_->m_nymServer));
 
     pResponseItem =
@@ -5875,7 +5873,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
 
             // Set up some account pointer lists for later...
             listOfAccounts listUserAccounts, listServerAccounts;
-            std::list<OTLedger*> listInboxes;
+            std::list<Ledger*> listInboxes;
 
             // Here's the request from the user.
             String strBasket;
@@ -6072,7 +6070,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                                     // Load up the inbox for the user's sub
                                     // account, so we can drop the receipt.
                                     //
-                                    OTLedger* pSubInbox = pUserAcct->LoadInbox(
+                                    Ledger* pSubInbox = pUserAcct->LoadInbox(
                                         server_->m_nymServer);
 
                                     if (nullptr == pSubInbox) {
@@ -6578,7 +6576,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
                             // empty the list of inboxes (and save to disk, if
                             // everything was successful.)
                             while (!listInboxes.empty()) {
-                                OTLedger* pTempInbox = listInboxes.front();
+                                Ledger* pTempInbox = listInboxes.front();
                                 if (nullptr == pTempInbox) OT_FAIL;
                                 listInboxes.pop_front();
 
@@ -7474,7 +7472,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
     const Identifier NOTARY_ID(server_->m_strNotaryID), NYM_ID(theNym);
     Nym theTempNym;
 
-    OTLedger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
+    Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
     String strNymID(NYM_ID);
 
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
@@ -8170,9 +8168,8 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
     const String strNymID(NYM_ID);
 
     Nym theTempNym, theTempClosingNumNym;
-    std::unique_ptr<OTLedger> pInbox(
-        theAccount.LoadInbox(server_->m_nymServer));
-    std::unique_ptr<OTLedger> pOutbox(
+    std::unique_ptr<Ledger> pInbox(theAccount.LoadInbox(server_->m_nymServer));
+    std::unique_ptr<Ledger> pOutbox(
         theAccount.LoadOutbox(server_->m_nymServer));
 
     pResponseBalanceItem =
@@ -8847,7 +8844,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                         // process it.
                         // theAcctID is the ID on the client Account that was
                         // passed in.
-                        OTLedger theInbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
+                        Ledger theInbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
                         OTTransaction* pServerTransaction = nullptr;
 
@@ -9211,7 +9208,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                     // The 'from' inbox is loaded in order to
                                     // put a notice of this acceptance for the
                                     // sender's records.
-                                    OTLedger theFromOutbox(
+                                    Ledger theFromOutbox(
                                         IDFromAccount,
                                         NOTARY_ID), // Sender's *OUTBOX*
                                         theFromInbox(

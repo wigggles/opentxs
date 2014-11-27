@@ -140,7 +140,7 @@ namespace opentxs
 {
 
 class String;
-class OTLedger;
+class Ledger;
 class Message;
 class Nym;
 
@@ -234,14 +234,14 @@ public:
     EXPORT static Account* LoadExistingAccount(const Identifier& accountId,
                                                const Identifier& notaryID);
     // Caller responsible to delete.
-    EXPORT OTLedger* LoadInbox(Nym& nym) const;
+    EXPORT Ledger* LoadInbox(Nym& nym) const;
     // Caller responsible to delete.
-    EXPORT OTLedger* LoadOutbox(Nym& nym) const;
+    EXPORT Ledger* LoadOutbox(Nym& nym) const;
 
     // If you pass the identifier in, the inbox hash is recorded there
-    EXPORT bool SaveInbox(OTLedger& box, Identifier* hash = nullptr);
+    EXPORT bool SaveInbox(Ledger& box, Identifier* hash = nullptr);
     // If you pass the identifier in, the outbox hash is recorded there
-    EXPORT bool SaveOutbox(OTLedger& box, Identifier* nash = nullptr);
+    EXPORT bool SaveOutbox(Ledger& box, Identifier* nash = nullptr);
     EXPORT const Identifier& GetInstrumentDefinitionID() const;
     EXPORT int64_t GetBalance() const;
     // Debit a certain amount from the account (presumably the same amount is

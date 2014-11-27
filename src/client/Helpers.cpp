@@ -149,8 +149,8 @@ namespace opentxs
 // Caller responsible to delete.
 
 OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
-                         OTLedger& ledger) // Returns financial instrument
-                                           // by index.
+                         Ledger& ledger) // Returns financial instrument
+                                         // by index.
 {
     if ((0 > nIndex) || (nIndex >= ledger.GetTransactionCount())) {
         otErr << __FUNCTION__

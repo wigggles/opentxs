@@ -148,7 +148,7 @@ class OTAsymmetricKey;
 class OTCredential;
 class Item;
 class OTKeypair;
-class OTLedger;
+class Ledger;
 class Message;
 class OTPassword;
 class OTPasswordData;
@@ -769,7 +769,7 @@ public:
     // you can pass both of those objects into this function, which must assume
     // that those pieces were already done
     // just prior to this call.
-    EXPORT bool ResyncWithServer(const OTLedger& theNymbox,
+    EXPORT bool ResyncWithServer(const Ledger& theNymbox,
                                  const Nym& theMessageNym);
     // HIGH LEVEL:
     EXPORT bool AddTransactionNum(Nym& SIGNER_NYM, const String& strNotaryID,

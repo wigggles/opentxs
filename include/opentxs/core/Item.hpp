@@ -140,7 +140,7 @@ namespace opentxs
 
 class Account;
 class Item;
-class OTLedger;
+class Ledger;
 class Nym;
 class OTTransaction;
 
@@ -443,8 +443,8 @@ public:
     // whether the wallet side set it up correctly (and thus it's okay to sign
     // and return with acknowledgement.)
     EXPORT bool VerifyBalanceStatement(
-        int64_t lActualAdjustment, Nym& THE_NYM, OTLedger& THE_INBOX,
-        OTLedger& THE_OUTBOX, const Account& THE_ACCOUNT,
+        int64_t lActualAdjustment, Nym& THE_NYM, Ledger& THE_INBOX,
+        Ledger& THE_OUTBOX, const Account& THE_ACCOUNT,
         OTTransaction& TARGET_TRANSACTION,
         int64_t lOutboxTrnsNum = 0); // Used in special case of transfers (the
                                      // user

@@ -172,7 +172,7 @@ void OTTransaction::SetClosingNum(int64_t lClosingNum)
 //
 bool OTTransaction::VerifyAccount(const Nym& theNym)
 {
-    OTLedger* pParent = const_cast<OTLedger*>(m_pParent);
+    Ledger* pParent = const_cast<Ledger*>(m_pParent);
 
     // Make sure that the supposed AcctID matches the one read from the file.
     //
@@ -1659,9 +1659,9 @@ bool OTTransaction::VerifyBalanceReceipt(
 
     // LOAD INBOX AND OUTBOX
 
-    std::unique_ptr<OTLedger> pInbox(THE_ACCOUNT.LoadInbox(
+    std::unique_ptr<Ledger> pInbox(THE_ACCOUNT.LoadInbox(
         THE_NYM)); // OTAccount::Load also calls VerifyAccount() already
-    std::unique_ptr<OTLedger> pOutbox(THE_ACCOUNT.LoadOutbox(
+    std::unique_ptr<Ledger> pOutbox(THE_ACCOUNT.LoadOutbox(
         THE_NYM)); // OTAccount::Load also calls VerifyAccount() already
 
     if ((nullptr == pInbox) || (nullptr == pOutbox)) {
@@ -1870,7 +1870,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 
         OT_ASSERT(nullptr != pSubItem);
 
-        OTLedger* pLedger = nullptr;
+        Ledger* pLedger = nullptr;
 
         switch (pSubItem->GetType()) {
 
@@ -2931,7 +2931,7 @@ bool OTTransaction::VerifyBalanceReceipt(
 // Instead, it adds the string "MARKED_FOR_DELETION" to the bottom
 // of the file, so the sysadmin can delete later, at his leisure.
 //
-bool OTTransaction::DeleteBoxReceipt(OTLedger& theLedger)
+bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
 {
     String strFolder1name, strFolder2name, strFolder3name, strFilename;
 
@@ -3066,28 +3066,28 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
 // This function assumes that theLedger is the owner of this transaction.
 // We pass the ledger in so we can determine the proper directory we're
 // reading from.
-bool OTTransaction::SaveBoxReceipt(OTLedger& theLedger)
+bool OTTransaction::SaveBoxReceipt(Ledger& theLedger)
 {
     int64_t lLedgerType = 0;
 
     switch (theLedger.GetType()) {
-    case OTLedger::nymbox:
+    case Ledger::nymbox:
         lLedgerType = 0;
         break;
-    case OTLedger::inbox:
+    case Ledger::inbox:
         lLedgerType = 1;
         break;
-    case OTLedger::outbox:
+    case Ledger::outbox:
         lLedgerType = 2;
         break;
     //        case OTLedger::message:         lLedgerType = 3;    break;
-    case OTLedger::paymentInbox:
+    case Ledger::paymentInbox:
         lLedgerType = 4;
         break;
-    case OTLedger::recordBox:
+    case Ledger::recordBox:
         lLedgerType = 5;
         break;
-    case OTLedger::expiredBox:
+    case Ledger::expiredBox:
         lLedgerType = 6;
         break;
     default:
@@ -3240,7 +3240,7 @@ OTTransaction::OTTransaction()
 // off of
 // the inbox itself (which you presumably just read from a file or socket.)
 //
-OTTransaction::OTTransaction(const OTLedger& theOwner)
+OTTransaction::OTTransaction(const Ledger& theOwner)
     : OTTransactionType(theOwner.GetNymID(), theOwner.GetPurportedAccountID(),
                         theOwner.GetPurportedNotaryID())
     , m_pParent(&theOwner)
@@ -3447,7 +3447,7 @@ OTTransaction::OTTransaction(
 // transactionType theType, int64_t lTransactionNum=0);
 
 // static
-OTTransaction* OTTransaction::GenerateTransaction(const OTLedger& theOwner,
+OTTransaction* OTTransaction::GenerateTransaction(const Ledger& theOwner,
                                                   transactionType theType,
                                                   int64_t lTransactionNum)
 {
@@ -4415,26 +4415,26 @@ void OTTransaction::UpdateContents()
         if (nullptr != m_pParent) {
 
             switch (m_pParent->GetType()) {
-            case OTLedger::nymbox:
+            case Ledger::nymbox:
                 SaveAbbreviatedNymboxRecord(m_xmlUnsigned);
                 break;
-            case OTLedger::inbox:
+            case Ledger::inbox:
                 SaveAbbreviatedInboxRecord(m_xmlUnsigned);
                 break;
-            case OTLedger::outbox:
+            case Ledger::outbox:
                 SaveAbbreviatedOutboxRecord(m_xmlUnsigned);
                 break;
-            case OTLedger::paymentInbox:
+            case Ledger::paymentInbox:
                 SaveAbbrevPaymentInboxRecord(m_xmlUnsigned);
                 break;
-            case OTLedger::recordBox:
+            case Ledger::recordBox:
                 SaveAbbrevRecordBoxRecord(m_xmlUnsigned);
                 break;
-            case OTLedger::expiredBox:
+            case Ledger::expiredBox:
                 SaveAbbrevExpiredBoxRecord(m_xmlUnsigned);
                 break;
             /* --- BREAK --- */
-            case OTLedger::message:
+            case Ledger::message:
                 otErr << "OTTransaction::" << __FUNCTION__
                       << ": Unexpected message ledger type in 'abbreviated' "
                          "block. (Error.) \n";

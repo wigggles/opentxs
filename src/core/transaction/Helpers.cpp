@@ -393,7 +393,7 @@ bool VerifyBoxReceiptExists(
     return bExists;
 }
 
-OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, OTLedger& theLedger)
+OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, Ledger& theLedger)
 {
     const int64_t lLedgerType = static_cast<int64_t>(theLedger.GetType());
     return LoadBoxReceipt(theAbbrev, lLedgerType);
@@ -601,7 +601,7 @@ bool SetupBoxReceiptFilename(int64_t lLedgerType, OTTransaction& theTransaction,
                                    strFolder3name, strFilename);
 }
 
-bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
+bool SetupBoxReceiptFilename(Ledger& theLedger, OTTransaction& theTransaction,
                              const char* szCaller, String& strFolder1name,
                              String& strFolder2name, String& strFolder3name,
                              String& strFilename)
@@ -609,23 +609,23 @@ bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
     int64_t lLedgerType = 0;
 
     switch (theLedger.GetType()) {
-    case OTLedger::nymbox:
+    case Ledger::nymbox:
         lLedgerType = 0;
         break;
-    case OTLedger::inbox:
+    case Ledger::inbox:
         lLedgerType = 1;
         break;
-    case OTLedger::outbox:
+    case Ledger::outbox:
         lLedgerType = 2;
         break;
     //        case OTLedger::message:         lLedgerType = 3;    break;
-    case OTLedger::paymentInbox:
+    case Ledger::paymentInbox:
         lLedgerType = 4;
         break;
-    case OTLedger::recordBox:
+    case Ledger::recordBox:
         lLedgerType = 5;
         break;
-    case OTLedger::expiredBox:
+    case Ledger::expiredBox:
         lLedgerType = 6;
         break;
     default:

@@ -766,8 +766,8 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
     // Grab a string copy of pMsg.
     //
     const String strInMessage(*pMsg);
-    OTLedger theLedger(RECIPIENT_NYM_ID, RECIPIENT_NYM_ID,
-                       NOTARY_ID); // The recipient's Nymbox.
+    Ledger theLedger(RECIPIENT_NYM_ID, RECIPIENT_NYM_ID,
+                     NOTARY_ID); // The recipient's Nymbox.
     // Drop in the Nymbox
     if ((theLedger.LoadNymbox() && // I think this loads the box receipts too,
                                    // since I didn't call "LoadNymboxNoVerify"

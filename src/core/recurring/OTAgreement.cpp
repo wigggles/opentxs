@@ -276,7 +276,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
     const String& strReference, String* pstrNote, String* pstrAttachment,
     Nym* pActualNym)
 {
-    OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
+    Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
 
     // Inbox will receive notification of something ALREADY DONE.
     //
@@ -286,7 +286,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         bSuccessLoading = theLedger.VerifyAccount(theServerNym);
     else
         bSuccessLoading = theLedger.GenerateLedger(
-            NYM_ID, NOTARY_ID, OTLedger::nymbox, true); // bGenerateFile=true
+            NYM_ID, NOTARY_ID, Ledger::nymbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
         otErr << __FUNCTION__ << ": Failed loading or generating a nymbox. "

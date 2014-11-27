@@ -507,7 +507,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     pNym->SavePseudonym(strNymContents);
                     Identifier theNewNymID, NOTARY_ID(server_->m_strNotaryID);
                     pNym->GetIdentifier(theNewNymID);
-                    OTLedger theNymbox(theNewNymID, theNewNymID, NOTARY_ID);
+                    Ledger theNymbox(theNewNymID, theNewNymID, NOTARY_ID);
                     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
                     if (true == bSuccessLoadingNymbox)
@@ -517,7 +517,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                     // (No need here to load all the Box Receipts)
                     else {
                         bSuccessLoadingNymbox = theNymbox.GenerateLedger(
-                            theNewNymID, NOTARY_ID, OTLedger::nymbox, true);
+                            theNewNymID, NOTARY_ID, Ledger::nymbox, true);
 
                         if (bSuccessLoadingNymbox) {
                             bSuccessLoadingNymbox =
@@ -574,7 +574,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
                 Identifier theNewNymID, NOTARY_ID(server_->m_strNotaryID);
                 pNym->GetIdentifier(theNewNymID);
-                OTLedger theNymbox(theNewNymID, theNewNymID, NOTARY_ID);
+                Ledger theNymbox(theNewNymID, theNewNymID, NOTARY_ID);
                 bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
                 if (true == bSuccessLoadingNymbox) // that's
@@ -599,7 +599,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                 else {
                     bSuccessLoadingNymbox =
                         theNymbox.GenerateLedger(theNewNymID, NOTARY_ID,
-                                                 OTLedger::nymbox, true) &&
+                                                 Ledger::nymbox, true) &&
                         theNymbox.SignContract(server_->m_nymServer) &&
                         theNymbox.SaveContract() && theNymbox.SaveNymbox();
                 }
@@ -927,7 +927,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     {
         // Load Nymbox
         //
-        OTLedger theNymbox(pNym->GetConstID(), pNym->GetConstID(), NOTARY_ID);
+        Ledger theNymbox(pNym->GetConstID(), pNym->GetConstID(), NOTARY_ID);
 
         if (theNymbox.LoadNymbox() &&
             theNymbox.VerifySignature(server_->m_nymServer)) {
@@ -1675,7 +1675,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
 
         bool bSuccess = true;
         bool bSavedNymbox = false;
-        OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID); // Nymbox
+        Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID); // Nymbox
 
         // We'll store the transaction numbers here immediately after they're
         // issued,
@@ -1872,7 +1872,7 @@ void UserCommandProcessor::UserCmdGetRequestNumber(Nym& theNym, Message& MsgIn,
         EXISTING_NYMBOX_HASH.GetString(msgOut.m_strNymboxHash);
     else {
         const Identifier theNymID(theNym);
-        OTLedger theLedger(theNymID, theNymID, NOTARY_ID);
+        Ledger theLedger(theNymID, theNymID, NOTARY_ID);
 
         if (theLedger.LoadNymbox() && theLedger.VerifyContractID() &&
             theLedger.VerifySignature(server_->m_nymServer)) {
@@ -2172,7 +2172,7 @@ void UserCommandProcessor::UserCmdUsageCredits(Nym& theNym, Message& MsgIn,
             bErrorCondition = true;
         }
     }
-    OTLedger theNymbox(nym2ID, nym2ID, NOTARY_ID);
+    Ledger theNymbox(nym2ID, nym2ID, NOTARY_ID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
     if (bSuccessLoadingNymbox)
@@ -2180,7 +2180,7 @@ void UserCommandProcessor::UserCmdUsageCredits(Nym& theNym, Message& MsgIn,
                                  theNymbox.VerifyAccount(server_->m_nymServer));
     else {
         bSuccessLoadingNymbox =
-            theNymbox.GenerateLedger(nym2ID, NOTARY_ID, OTLedger::nymbox, true);
+            theNymbox.GenerateLedger(nym2ID, NOTARY_ID, Ledger::nymbox, true);
 
         if (bSuccessLoadingNymbox) {
             bSuccessLoadingNymbox =
@@ -2429,7 +2429,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                             0,
                             "Generating inbox/outbox for new issuer acct. \n");
 
-                        OTLedger theOutbox(NYM_ID, theNewAccountID, NOTARY_ID),
+                        Ledger theOutbox(NYM_ID, theNewAccountID, NOTARY_ID),
                             theInbox(NYM_ID, theNewAccountID, NOTARY_ID);
 
                         bool bSuccessLoadingInbox = theInbox.LoadInbox();
@@ -2446,7 +2446,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                         // the inbox already exist???
                         else {
                             bSuccessLoadingInbox = theInbox.GenerateLedger(
-                                theNewAccountID, NOTARY_ID, OTLedger::inbox,
+                                theNewAccountID, NOTARY_ID, Ledger::inbox,
                                 true);
 
                             if (bSuccessLoadingInbox) {
@@ -2473,7 +2473,7 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                         // the outbox already exist???
                         else {
                             bSuccessLoadingOutbox = theOutbox.GenerateLedger(
-                                theNewAccountID, NOTARY_ID, OTLedger::outbox,
+                                theNewAccountID, NOTARY_ID, Ledger::outbox,
                                 true);
 
                             if (bSuccessLoadingOutbox) {
@@ -2958,7 +2958,7 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
         Identifier theNewAccountID;
         pNewAccount->GetIdentifier(theNewAccountID);
 
-        OTLedger theOutbox(NYM_ID, theNewAccountID, NOTARY_ID),
+        Ledger theOutbox(NYM_ID, theNewAccountID, NOTARY_ID),
             theInbox(NYM_ID, theNewAccountID, NOTARY_ID);
 
         bool bSuccessLoadingInbox = theInbox.LoadInbox();
@@ -2974,7 +2974,7 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
         // already exist???
         else {
             bSuccessLoadingInbox = theInbox.GenerateLedger(
-                theNewAccountID, NOTARY_ID, OTLedger::inbox, true);
+                theNewAccountID, NOTARY_ID, Ledger::inbox, true);
 
             if (bSuccessLoadingInbox) {
                 bSuccessLoadingInbox =
@@ -2997,7 +2997,7 @@ void UserCommandProcessor::UserCmdRegisterAccount(Nym& theNym, Message& MsgIn,
         // already exist???
         else {
             bSuccessLoadingOutbox = theOutbox.GenerateLedger(
-                theNewAccountID, NOTARY_ID, OTLedger::outbox, true);
+                theNewAccountID, NOTARY_ID, Ledger::outbox, true);
 
             if (bSuccessLoadingOutbox) {
                 bSuccessLoadingOutbox =
@@ -3109,7 +3109,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
         // Get the Inbox.
         //
         {
-            OTLedger theInbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
+            Ledger theInbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
             bSuccessLoadingInbox = theInbox.LoadInbox();
 
@@ -3173,7 +3173,7 @@ void UserCommandProcessor::UserCmdGetAccountData(Nym&, Message& MsgIn,
         if (bSuccessLoadingInbox) // (Which we don't bother to do unless the
                                   // inbox was already successful.)
         {
-            OTLedger theOutbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
+            Ledger theOutbox(NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
             bSuccessLoadingOutbox = theOutbox.LoadOutbox();
 
@@ -3647,7 +3647,7 @@ void UserCommandProcessor::UserCmdDeleteUser(Nym& theNym, Message& MsgIn,
 
     const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID);
 
-    OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
+    Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
 
     std::set<int64_t>& theSetofCronItemIDs = theNym.GetSetOpenCronItems();
 
@@ -3799,8 +3799,7 @@ void UserCommandProcessor::UserCmdGetBoxReceipt(Message& MsgIn, Message& msgOut)
     const Identifier NYM_ID(MsgIn.m_strNymID), NOTARY_ID(MsgIn.m_strNotaryID),
         ACCOUNT_ID(MsgIn.m_strAcctID);
 
-    std::unique_ptr<OTLedger> pLedger(
-        new OTLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID));
+    std::unique_ptr<Ledger> pLedger(new Ledger(NYM_ID, ACCOUNT_ID, NOTARY_ID));
 
     bool bErrorCondition = false;
     bool bSuccessLoading = false;
@@ -4012,9 +4011,9 @@ void UserCommandProcessor::UserCmdDeleteAssetAcct(Nym& theNym, Message& MsgIn,
                        szFunc, MsgIn.m_strAcctID.Get());
     }
     else {
-        std::unique_ptr<OTLedger> pInbox(
+        std::unique_ptr<Ledger> pInbox(
             pAccount->LoadInbox(server_->m_nymServer));
-        std::unique_ptr<OTLedger> pOutbox(
+        std::unique_ptr<Ledger> pOutbox(
             pAccount->LoadOutbox(server_->m_nymServer));
 
         if (nullptr == pInbox) {
@@ -4143,7 +4142,7 @@ void UserCommandProcessor::UserCmdGetNymbox(Nym& theNym, Message& MsgIn,
     Identifier NYMBOX_HASH;
     bool bSavedNymbox = false;
 
-    OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
+    Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
 
     msgOut.m_bSuccess = theLedger.LoadNymbox();
 
@@ -4260,12 +4259,12 @@ void UserCommandProcessor::UserCmdProcessNymbox(Nym& theNym, Message& MsgIn,
     const Identifier NYM_ID(msgOut.m_strNymID),
         NOTARY_ID(server_->m_strNotaryID), NOTARY_NYM_ID(server_->m_nymServer);
 
-    OTLedger theLedger(NYM_ID, NYM_ID, NOTARY_ID); // These are ledgers used
-                                                   // as messages. The one we
-                                                   // received
+    Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID); // These are ledgers used
+                                                 // as messages. The one we
+                                                 // received
     // and the one we're sending back.
-    std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        NOTARY_NYM_ID, NYM_ID, NOTARY_ID, OTLedger::message, false));
+    std::unique_ptr<Ledger> pResponseLedger(Ledger::GenerateLedger(
+        NOTARY_NYM_ID, NYM_ID, NOTARY_ID, Ledger::message, false));
 
     // Grab the string (containing the request ledger) out of ascii-armored
     // form.
@@ -4494,12 +4493,12 @@ void UserCommandProcessor::UserCmdProcessInbox(Nym& theNym, Message& MsgIn,
     const Identifier NYM_ID(msgOut.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         NOTARY_ID(server_->m_strNotaryID), NOTARY_NYM_ID(server_->m_nymServer);
 
-    OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
-                                                       // used as messages. The
-                                                       // one we received,
+    Ledger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
+                                                     // used as messages. The
+                                                     // one we received,
     // and the one we're sending back.
-    std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        NOTARY_NYM_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
+    std::unique_ptr<Ledger> pResponseLedger(Ledger::GenerateLedger(
+        NOTARY_NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::message, false));
     OT_ASSERT_MSG(nullptr != pResponseLedger, "UserCommandProcessor::"
                                               "UserCmdProcessInbox: ASSERT: "
                                               "nullptr != pResponseLedger");
@@ -4826,13 +4825,13 @@ void UserCommandProcessor::UserCmdNotarizeTransaction(Nym& theNym,
     const Identifier NYM_ID(MsgIn.m_strNymID), ACCOUNT_ID(MsgIn.m_strAcctID),
         NOTARY_ID(server_->m_strNotaryID), NOTARY_NYM_ID(server_->m_nymServer);
 
-    OTLedger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
-                                                       // used as messages. The
-                                                       // one we received and
-                                                       // the one
+    Ledger theLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID); // These are ledgers
+                                                     // used as messages. The
+                                                     // one we received and
+                                                     // the one
     // that we're sending back in response.
-    std::unique_ptr<OTLedger> pResponseLedger(OTLedger::GenerateLedger(
-        NOTARY_NYM_ID, ACCOUNT_ID, NOTARY_ID, OTLedger::message, false));
+    std::unique_ptr<Ledger> pResponseLedger(Ledger::GenerateLedger(
+        NOTARY_NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::message, false));
 
     bool bTransSuccess = false; // for the Nymbox notice.
     bool bCancelled = false;    // for "failed" transactions that were actually
@@ -5126,7 +5125,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
     const String& strMessage, const int64_t& lRequestNum,
     const bool bReplyTransSuccess, Nym* pActualNym)
 {
-    OTLedger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
+    Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
 
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 

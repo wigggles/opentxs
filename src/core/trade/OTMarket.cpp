@@ -1340,8 +1340,8 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        OTLedger theFirstAssetInbox(FIRST_NYM_ID, theTrade.GetSenderAcctID(),
-                                    NOTARY_ID),
+        Ledger theFirstAssetInbox(FIRST_NYM_ID, theTrade.GetSenderAcctID(),
+                                  NOTARY_ID),
             theFirstCurrencyInbox(FIRST_NYM_ID, theTrade.GetCurrencyAcctID(),
                                   NOTARY_ID),
             theOtherAssetInbox(OTHER_NYM_ID, pOtherTrade->GetSenderAcctID(),
@@ -1363,7 +1363,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 theFirstAssetInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingFirstAsset = theFirstAssetInbox.GenerateLedger(
-                theTrade.GetSenderAcctID(), NOTARY_ID, OTLedger::inbox,
+                theTrade.GetSenderAcctID(), NOTARY_ID, Ledger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingFirstCurrency)
@@ -1371,7 +1371,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 theFirstCurrencyInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingFirstCurrency = theFirstCurrencyInbox.GenerateLedger(
-                theTrade.GetCurrencyAcctID(), NOTARY_ID, OTLedger::inbox,
+                theTrade.GetCurrencyAcctID(), NOTARY_ID, Ledger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherAsset)
@@ -1379,7 +1379,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 theOtherAssetInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingOtherAsset = theOtherAssetInbox.GenerateLedger(
-                pOtherTrade->GetSenderAcctID(), NOTARY_ID, OTLedger::inbox,
+                pOtherTrade->GetSenderAcctID(), NOTARY_ID, Ledger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherCurrency)
@@ -1387,7 +1387,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 theOtherCurrencyInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingOtherCurrency = theOtherCurrencyInbox.GenerateLedger(
-                pOtherTrade->GetCurrencyAcctID(), NOTARY_ID, OTLedger::inbox,
+                pOtherTrade->GetCurrencyAcctID(), NOTARY_ID, Ledger::inbox,
                 true); // bGenerateFile=true
 
         if ((false == bSuccessLoadingFirstAsset) ||
@@ -2229,7 +2229,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                     lMinIncrementPerRound) {
                     Item* pTempItem = nullptr;
                     OTTransaction* pTempTransaction = nullptr;
-                    OTLedger* pTempInbox = nullptr;
+                    Ledger* pTempInbox = nullptr;
 
                     if (pAssetAccountToDebit == pFirstAssetAcct) {
                         pTempItem = pItem1;
@@ -2289,7 +2289,7 @@ void OTMarket::ProcessTrade(OTTrade& theTrade, OTOffer& theOffer,
                 if (pCurrencyAccountToDebit->GetBalance() < lPrice) {
                     Item* pTempItem = nullptr;
                     OTTransaction* pTempTransaction = nullptr;
-                    OTLedger* pTempInbox = nullptr;
+                    Ledger* pTempInbox = nullptr;
 
                     if (pCurrencyAccountToDebit == pFirstCurrencyAcct) {
                         pTempItem = pItem2;
