@@ -141,7 +141,7 @@ namespace opentxs
 
 class String;
 class OTTransaction;
-class OTLedger;
+class Ledger;
 class Identifier;
 class OTNumList;
 
@@ -164,7 +164,7 @@ EXPORT bool VerifyBoxReceiptExists(
     int32_t nBoxType, // 0/nymbox, 1/inbox, 2/outbox
     const int64_t& lTransactionNum);
 
-OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, OTLedger& theLedger);
+OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, Ledger& theLedger);
 
 EXPORT OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev,
                                      int64_t lLedgerType);
@@ -174,7 +174,7 @@ bool SetupBoxReceiptFilename(int64_t lLedgerType, OTTransaction& theTransaction,
                              String& strFolder2name, String& strFolder3name,
                              String& strFilename);
 
-bool SetupBoxReceiptFilename(OTLedger& theLedger, OTTransaction& theTransaction,
+bool SetupBoxReceiptFilename(Ledger& theLedger, OTTransaction& theTransaction,
                              const char* szCaller, String& strFolder1name,
                              String& strFolder2name, String& strFolder3name,
                              String& strFilename);

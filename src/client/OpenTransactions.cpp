@@ -167,7 +167,7 @@
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTSettings.hpp>
@@ -318,17 +318,17 @@ bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
         int64_t lBoxType = 0;
 
         if (tranOut.Contains("nymboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::nymbox);
+            lBoxType = static_cast<int64_t>(Ledger::nymbox);
         else if (tranOut.Contains("inboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::inbox);
+            lBoxType = static_cast<int64_t>(Ledger::inbox);
         else if (tranOut.Contains("outboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::outbox);
+            lBoxType = static_cast<int64_t>(Ledger::outbox);
         else if (tranOut.Contains("paymentInboxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::paymentInbox);
+            lBoxType = static_cast<int64_t>(Ledger::paymentInbox);
         else if (tranOut.Contains("recordBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::recordBox);
+            lBoxType = static_cast<int64_t>(Ledger::recordBox);
         else if (tranOut.Contains("expiredBoxRecord"))
-            lBoxType = static_cast<int64_t>(OTLedger::expiredBox);
+            lBoxType = static_cast<int64_t>(Ledger::expiredBox);
         else {
             otErr << "OTTransaction::VerifyBalanceReceipt: Error loading from "
                      "abbreviated transaction: "
@@ -2108,9 +2108,9 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return nullptr if various verification fails.
-    std::unique_ptr<OTLedger> pInbox(
+    std::unique_ptr<Ledger> pInbox(
         OTAPI_Wrap::OTAPI()->LoadInbox(theNotaryID, theNymID, ACCOUNT_ID));
-    std::unique_ptr<OTLedger> pOutbox(
+    std::unique_ptr<Ledger> pOutbox(
         OTAPI_Wrap::OTAPI()->LoadOutbox(theNotaryID, theNymID, ACCOUNT_ID));
 
     if (nullptr == pInbox) {
@@ -6129,15 +6129,15 @@ Account* OT_API::LoadAssetAccount(const Identifier& NOTARY_ID,
 //
 // Caller IS responsible to delete
 //
-OTLedger* OT_API::LoadNymbox(const Identifier& NOTARY_ID,
-                             const Identifier& NYM_ID) const
+Ledger* OT_API::LoadNymbox(const Identifier& NOTARY_ID,
+                           const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger =
-        OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, OTLedger::nymbox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::nymbox);
     OT_ASSERT_MSG(nullptr != pLedger,
                   "OT_API::LoadNymbox: Error allocating memory in the OT API.");
     // Beyond this point, I know that pLedger will need to be deleted or
@@ -6164,15 +6164,15 @@ OTLedger* OT_API::LoadNymbox(const Identifier& NOTARY_ID,
 //
 // Caller IS responsible to delete
 //
-OTLedger* OT_API::LoadNymboxNoVerify(const Identifier& NOTARY_ID,
-                                     const Identifier& NYM_ID) const
+Ledger* OT_API::LoadNymboxNoVerify(const Identifier& NOTARY_ID,
+                                   const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger =
-        OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, OTLedger::nymbox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::nymbox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
         "OT_API::LoadNymboxNoVerify: Error allocating memory in the OT API.");
@@ -6194,16 +6194,15 @@ OTLedger* OT_API::LoadNymboxNoVerify(const Identifier& NOTARY_ID,
 //
 // Caller IS responsible to delete
 //
-OTLedger* OT_API::LoadInbox(const Identifier& NOTARY_ID,
-                            const Identifier& NYM_ID,
-                            const Identifier& ACCOUNT_ID) const
+Ledger* OT_API::LoadInbox(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
+                          const Identifier& ACCOUNT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
-                                                 OTLedger::inbox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::inbox);
     OT_ASSERT_MSG(nullptr != pLedger,
                   "OT_API::LoadInbox: Error allocating memory in the OT API.");
 
@@ -6232,16 +6231,16 @@ OTLedger* OT_API::LoadInbox(const Identifier& NOTARY_ID,
 //
 // Caller IS responsible to delete
 //
-OTLedger* OT_API::LoadInboxNoVerify(const Identifier& NOTARY_ID,
-                                    const Identifier& NYM_ID,
-                                    const Identifier& ACCOUNT_ID) const
+Ledger* OT_API::LoadInboxNoVerify(const Identifier& NOTARY_ID,
+                                  const Identifier& NYM_ID,
+                                  const Identifier& ACCOUNT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
-                                                 OTLedger::inbox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::inbox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
         "OT_API::LoadInboxNoVerify: Error allocating memory in the OT API.");
@@ -6264,16 +6263,16 @@ OTLedger* OT_API::LoadInboxNoVerify(const Identifier& NOTARY_ID,
 //
 // Caller IS responsible to delete
 //
-OTLedger* OT_API::LoadOutbox(const Identifier& NOTARY_ID,
-                             const Identifier& NYM_ID,
-                             const Identifier& ACCOUNT_ID) const
+Ledger* OT_API::LoadOutbox(const Identifier& NOTARY_ID,
+                           const Identifier& NYM_ID,
+                           const Identifier& ACCOUNT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
-                                                 OTLedger::outbox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::outbox);
     OT_ASSERT_MSG(nullptr != pLedger,
                   "OT_API::LoadOutbox: Error allocating memory in the OT API.");
 
@@ -6306,16 +6305,16 @@ OTLedger* OT_API::LoadOutbox(const Identifier& NOTARY_ID,
 //
 // Caller IS responsible to delete
 //
-OTLedger* OT_API::LoadOutboxNoVerify(const Identifier& NOTARY_ID,
-                                     const Identifier& NYM_ID,
-                                     const Identifier& ACCOUNT_ID) const
+Ledger* OT_API::LoadOutboxNoVerify(const Identifier& NOTARY_ID,
+                                   const Identifier& NYM_ID,
+                                   const Identifier& ACCOUNT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
-                                                 OTLedger::outbox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::outbox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
         "OT_API::LoadOutboxNoVerify: Error allocating memory in the OT API.");
@@ -6336,15 +6335,15 @@ OTLedger* OT_API::LoadOutboxNoVerify(const Identifier& NOTARY_ID,
     return nullptr;
 }
 
-OTLedger* OT_API::LoadPaymentInbox(const Identifier& NOTARY_ID,
-                                   const Identifier& NYM_ID) const
+Ledger* OT_API::LoadPaymentInbox(const Identifier& NOTARY_ID,
+                                 const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
-                                                 OTLedger::paymentInbox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::paymentInbox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
         "OT_API::LoadPaymentInbox: Error allocating memory in the OT API.");
@@ -6362,15 +6361,15 @@ OTLedger* OT_API::LoadPaymentInbox(const Identifier& NOTARY_ID,
     return nullptr;
 }
 
-OTLedger* OT_API::LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
-                                           const Identifier& NYM_ID) const
+Ledger* OT_API::LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
+                                         const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
-                                                 OTLedger::paymentInbox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::paymentInbox);
     OT_ASSERT_MSG(nullptr != pLedger, "OT_API::LoadPaymentInboxNoVerify: Error "
                                       "allocating memory in the OT API.");
     // Beyond this point, I know that pLedger will need to be deleted or
@@ -6389,17 +6388,17 @@ OTLedger* OT_API::LoadPaymentInboxNoVerify(const Identifier& NOTARY_ID,
 
 // Caller IS responsible to delete
 //
-OTLedger* OT_API::LoadRecordBox(const Identifier& NOTARY_ID,
-                                const Identifier& NYM_ID,
-                                const Identifier& ACCOUNT_ID) const
+Ledger* OT_API::LoadRecordBox(const Identifier& NOTARY_ID,
+                              const Identifier& NYM_ID,
+                              const Identifier& ACCOUNT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
-                                                 OTLedger::recordBox);
+    Ledger* pLedger = Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
+                                             Ledger::recordBox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
         "OT_API::LoadRecordBox: Error allocating memory in the OT API.");
@@ -6423,16 +6422,16 @@ OTLedger* OT_API::LoadRecordBox(const Identifier& NOTARY_ID,
     return nullptr;
 }
 
-OTLedger* OT_API::LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
-                                        const Identifier& NYM_ID,
-                                        const Identifier& ACCOUNT_ID) const
+Ledger* OT_API::LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
+                                      const Identifier& NYM_ID,
+                                      const Identifier& ACCOUNT_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
-                                                 OTLedger::recordBox);
+    Ledger* pLedger = Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
+                                             Ledger::recordBox);
     OT_ASSERT_MSG(nullptr != pLedger, "OT_API::LoadRecordBoxNoVerify: Error "
                                       "allocating memory in the OT API.");
     // Beyond this point, I know that pLedger will need to be deleted or
@@ -6451,16 +6450,16 @@ OTLedger* OT_API::LoadRecordBoxNoVerify(const Identifier& NOTARY_ID,
 
 // Caller IS responsible to delete.
 
-OTLedger* OT_API::LoadExpiredBox(const Identifier& NOTARY_ID,
-                                 const Identifier& NYM_ID) const
+Ledger* OT_API::LoadExpiredBox(const Identifier& NOTARY_ID,
+                               const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
-                                                 OTLedger::expiredBox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::expiredBox);
     OT_ASSERT_MSG(
         nullptr != pLedger,
         "OT_API::LoadExpiredBox: Error allocating memory in the OT API.");
@@ -6484,15 +6483,15 @@ OTLedger* OT_API::LoadExpiredBox(const Identifier& NOTARY_ID,
     return nullptr;
 }
 
-OTLedger* OT_API::LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
-                                         const Identifier& NYM_ID) const
+Ledger* OT_API::LoadExpiredBoxNoVerify(const Identifier& NOTARY_ID,
+                                       const Identifier& NYM_ID) const
 {
     Nym* pNym = GetOrLoadPrivateNym(NYM_ID, false, __FUNCTION__);
     if (nullptr == pNym) return nullptr;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pLedger = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
-                                                 OTLedger::expiredBox);
+    Ledger* pLedger =
+        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::expiredBox);
     OT_ASSERT_MSG(nullptr != pLedger, "OT_API::LoadExpiredBoxNoVerify: Error "
                                       "allocating memory in the OT API.");
     // Beyond this point, I know that pLedger will need to be deleted or
@@ -6518,10 +6517,10 @@ bool OT_API::ClearExpired(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<OTLedger> pExpiredBox(LoadExpiredBox(NOTARY_ID, NYM_ID));
+    std::unique_ptr<Ledger> pExpiredBox(LoadExpiredBox(NOTARY_ID, NYM_ID));
     if (nullptr == pExpiredBox) {
-        pExpiredBox.reset(OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
-                                                   OTLedger::expiredBox, true));
+        pExpiredBox.reset(Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
+                                                 Ledger::expiredBox, true));
 
         if (nullptr == pExpiredBox) {
             otErr << __FUNCTION__
@@ -6791,20 +6790,20 @@ bool OT_API::RecordPayment(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTLedger* pRecordBox = nullptr;
-    OTLedger* pExpiredBox = nullptr;
-    OTLedger* pActualBox =
+    Ledger* pRecordBox = nullptr;
+    Ledger* pExpiredBox = nullptr;
+    Ledger* pActualBox =
         nullptr; // This points to either pRecordBox or pExpiredBox.
-    std::unique_ptr<OTLedger> theRecordBoxAngel;
-    std::unique_ptr<OTLedger> theExpiredBoxAngel;
+    std::unique_ptr<Ledger> theRecordBoxAngel;
+    std::unique_ptr<Ledger> theExpiredBoxAngel;
     if (bSaveCopy) {
         pRecordBox = LoadRecordBox(NOTARY_ID, NYM_ID, NYM_ID);
         pExpiredBox = LoadExpiredBox(NOTARY_ID, NYM_ID);
         theRecordBoxAngel.reset(pRecordBox);
         theExpiredBoxAngel.reset(pExpiredBox);
         if (nullptr == pRecordBox) {
-            pRecordBox = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
-                                                  OTLedger::recordBox, true);
+            pRecordBox = Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
+                                                Ledger::recordBox, true);
             if (nullptr == pRecordBox) {
                 otErr << __FUNCTION__
                       << ": Unable to load or create record box "
@@ -6814,8 +6813,8 @@ bool OT_API::RecordPayment(
             theRecordBoxAngel.reset(pRecordBox);
         }
         if (nullptr == pExpiredBox) {
-            pExpiredBox = OTLedger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
-                                                   OTLedger::expiredBox, true);
+            pExpiredBox = Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID,
+                                                 Ledger::expiredBox, true);
             if (nullptr == pExpiredBox) {
                 otErr << __FUNCTION__
                       << ": Unable to load or create expired box"
@@ -6826,8 +6825,8 @@ bool OT_API::RecordPayment(
         }
     }
     pActualBox = pRecordBox;
-    OTLedger* pPaymentInbox = nullptr;
-    std::unique_ptr<OTLedger> thePaymentBoxAngel;
+    Ledger* pPaymentInbox = nullptr;
+    std::unique_ptr<Ledger> thePaymentBoxAngel;
 
     bool bIsExpired = false;
 
@@ -7620,7 +7619,7 @@ bool OT_API::RecordPayment(
                                             const Identifier theAcctID(
                                                 strAcctID);
 
-                                            OTLedger theSenderInbox(
+                                            Ledger theSenderInbox(
                                                 NYM_ID, theAcctID, NOTARY_ID);
 
                                             const bool
@@ -7665,8 +7664,8 @@ bool OT_API::RecordPayment(
                     else  // not a smart contract. (It's a payment plan or a
                           // cheque, most likely.)
                     {
-                        OTLedger theSenderInbox(NYM_ID, theSenderAcctID,
-                                                NOTARY_ID);
+                        Ledger theSenderInbox(NYM_ID, theSenderAcctID,
+                                              NOTARY_ID);
 
                         const bool bSuccessLoadingSenderInbox =
                             (theSenderInbox.LoadInbox() &&
@@ -7959,11 +7958,11 @@ bool OT_API::ClearRecord(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    std::unique_ptr<OTLedger> pRecordBox(
+    std::unique_ptr<Ledger> pRecordBox(
         LoadRecordBox(NOTARY_ID, NYM_ID, ACCOUNT_ID));
     if (nullptr == pRecordBox) {
-        pRecordBox.reset(OTLedger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
-                                                  OTLedger::recordBox, true));
+        pRecordBox.reset(Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID,
+                                                Ledger::recordBox, true));
 
         if (nullptr == pRecordBox) {
             otErr << __FUNCTION__
@@ -8027,11 +8026,11 @@ bool OT_API::ClearRecord(const Identifier& NOTARY_ID, const Identifier& NYM_ID,
 // message, with both objects being loaded and passed as arguments here, ready
 // to go.
 //
-bool OT_API::ResyncNymWithServer(Nym& theNym, const OTLedger& theNymbox,
+bool OT_API::ResyncNymWithServer(Nym& theNym, const Ledger& theNymbox,
                                  const Nym& theMessageNym) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    if (OTLedger::nymbox != theNymbox.GetType()) {
+    if (Ledger::nymbox != theNymbox.GetType()) {
         otErr << "OT_API::ResyncNymWithServer: Error: Expected a Nymbox, "
                  "but you passed in a " << theNymbox.GetTypeString() << ".\n";
         return false;
@@ -8197,7 +8196,7 @@ bool OT_API::RemoveSentMessage(const int64_t& lRequestNumber,
 void OT_API::FlushSentMessages(bool bHarvestingForRetry,
                                const Identifier& NOTARY_ID,
                                const Identifier& NYM_ID,
-                               const OTLedger& THE_NYMBOX) const
+                               const Ledger& THE_NYMBOX) const
 {
     OT_ASSERT_MSG(m_bInitialized && (m_pClient != nullptr),
                   "Not initialized; call OT_API::Init first.");
@@ -8952,8 +8951,8 @@ int32_t OT_API::exchangeBasket(
             if (bGotTransNum) {
                 // LOAD the INBOX for the MAIN ACCOUNT
                 //
-                std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
-                std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
+                std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+                std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
 
                 if (nullptr == pInbox) {
                     otOut << "OT_API::exchangeBasket: Failed loading inbox!\n";
@@ -9054,11 +9053,11 @@ int32_t OT_API::exchangeBasket(
                     pTransaction->SaveContract();
 
                     // set up the ledger
-                    OTLedger theLedger(NYM_ID, BASKET_ASSET_ACCT_ID, NOTARY_ID);
+                    Ledger theLedger(NYM_ID, BASKET_ASSET_ACCT_ID, NOTARY_ID);
                     theLedger.GenerateLedger(
                         BASKET_ASSET_ACCT_ID, NOTARY_ID,
-                        OTLedger::message); // bGenerateLedger defaults to
-                                            // false, which is correct.
+                        Ledger::message); // bGenerateLedger defaults to
+                                          // false, which is correct.
                     theLedger.AddTransaction(*pTransaction);
 
                     // sign the ledger
@@ -9215,8 +9214,8 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = false;
-    std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
-    std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
+    std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+    std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
 
     if (nullptr == pInbox) {
         otOut << __FUNCTION__ << ": Error: Failed loading inbox!\n";
@@ -9354,11 +9353,11 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
+        Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(ACCT_ID, NOTARY_ID,
-                                 OTLedger::message); // bGenerateLedger defaults
-                                                     // to false, which is
-                                                     // correct.
+                                 Ledger::message); // bGenerateLedger defaults
+                                                   // to false, which is
+                                                   // correct.
         theLedger.AddTransaction(*pTransaction);
 
         // sign the ledger
@@ -9460,8 +9459,8 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
 
     int64_t lStoredTransactionNumber = 0;
     bool bGotTransNum = false;
-    std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
-    std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
+    std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+    std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
 
     if (nullptr == pInbox) {
         otOut << __FUNCTION__ << ": Error: Failed loading inbox!\n";
@@ -9616,14 +9615,14 @@ int32_t OT_API::notarizeDeposit(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
+        Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(ACCT_ID, NOTARY_ID,
-                                 OTLedger::message); // bGenerateLedger defaults
-                                                     // to false, which is
-                                                     // correct.
-        theLedger.AddTransaction(*pTransaction); // now the ledger "owns" and
-                                                 // will handle cleaning up the
-                                                 // transaction.
+                                 Ledger::message); // bGenerateLedger defaults
+                                                   // to false, which is
+                                                   // correct.
+        theLedger.AddTransaction(*pTransaction);   // now the ledger "owns" and
+        // will handle cleaning up the
+        // transaction.
 
         // sign the ledger
         theLedger.SignContract(*pNym);
@@ -9851,9 +9850,9 @@ int32_t OT_API::payDividend(
          we set that as the "from" account on the request voucher (again, just
          as a way of transmitting it.)
          */
-        std::unique_ptr<OTLedger> pInbox(
+        std::unique_ptr<Ledger> pInbox(
             pDividendSourceAccount->LoadInbox(*pNym));
-        std::unique_ptr<OTLedger> pOutbox(
+        std::unique_ptr<Ledger> pOutbox(
             pDividendSourceAccount->LoadOutbox(*pNym));
 
         if (nullptr == pInbox) {
@@ -9958,11 +9957,11 @@ int32_t OT_API::payDividend(
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(ISSUER_NYM_ID, DIVIDEND_FROM_ACCT_ID, NOTARY_ID);
+            Ledger theLedger(ISSUER_NYM_ID, DIVIDEND_FROM_ACCT_ID, NOTARY_ID);
             theLedger.GenerateLedger(DIVIDEND_FROM_ACCT_ID, NOTARY_ID,
-                                     OTLedger::message); // bGenerateLedger
-                                                         // defaults to false,
-                                                         // which is correct.
+                                     Ledger::message); // bGenerateLedger
+                                                       // defaults to false,
+                                                       // which is correct.
             theLedger.AddTransaction(*pTransaction);
 
             // sign the ledger
@@ -10097,8 +10096,8 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
         lAmount, lVoucherTransNum, VALID_FROM, VALID_TO, ACCT_ID, NYM_ID,
         strChequeMemo,
         (strRecipientNymID.GetLength() > 2) ? &(RECIPIENT_NYM_ID) : nullptr);
-    std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
-    std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
+    std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+    std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
 
     if (nullptr == pInbox) {
         otOut << "OT_API::" << __FUNCTION__
@@ -10170,11 +10169,11 @@ int32_t OT_API::withdrawVoucher(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
+        Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(ACCT_ID, NOTARY_ID,
-                                 OTLedger::message); // bGenerateLedger defaults
-                                                     // to false, which is
-                                                     // correct.
+                                 Ledger::message); // bGenerateLedger defaults
+                                                   // to false, which is
+                                                   // correct.
         theLedger.AddTransaction(*pTransaction);
 
         // sign the ledger
@@ -10419,7 +10418,7 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
                                 true); // bSave=true
     }
     else {
-        std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
+        std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
 
         if (nullptr == pInbox) {
             otOut << __FUNCTION__ << ": Failed loading inbox for acct "
@@ -10547,7 +10546,7 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
         // the Transaction "owns" the item now and will handle cleaning it up.
         pTransaction->AddItem(*pItem); // the Transaction's destructor will
                                        // cleanup the item. It "owns" it now.
-        std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
+        std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
 
         if (nullptr == pOutbox) {
             otOut << "OT_API::depositCheque: Failed loading outbox for acct "
@@ -10581,14 +10580,14 @@ int32_t OT_API::depositCheque(const Identifier& NOTARY_ID,
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
+            Ledger theLedger(NYM_ID, ACCT_ID, NOTARY_ID);
             theLedger.GenerateLedger(ACCT_ID, NOTARY_ID,
-                                     OTLedger::message); // bGenerateLedger
-                                                         // defaults to false,
-                                                         // which is correct.
-            theLedger.AddTransaction(*pTransaction); // now the ledger "owns"
-                                                     // and will handle cleaning
-                                                     // up the transaction.
+                                     Ledger::message); // bGenerateLedger
+                                                       // defaults to false,
+                                                       // which is correct.
+            theLedger.AddTransaction(*pTransaction);   // now the ledger "owns"
+            // and will handle cleaning
+            // up the transaction.
             pTransaction.release();
 
             // sign the ledger
@@ -10770,14 +10769,14 @@ int32_t OT_API::depositPaymentPlan(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(NYM_ID, DEPOSITOR_ACCT_ID, NOTARY_ID);
+        Ledger theLedger(NYM_ID, DEPOSITOR_ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(DEPOSITOR_ACCT_ID, NOTARY_ID,
-                                 OTLedger::message); // bGenerateLedger defaults
-                                                     // to false, which is
-                                                     // correct.
-        theLedger.AddTransaction(*pTransaction); // now the ledger "owns" and
-                                                 // will handle cleaning up the
-                                                 // transaction.
+                                 Ledger::message); // bGenerateLedger defaults
+                                                   // to false, which is
+                                                   // correct.
+        theLedger.AddTransaction(*pTransaction);   // now the ledger "owns" and
+        // will handle cleaning up the
+        // transaction.
 
         // sign the ledger
         theLedger.SignContract(*pNym);
@@ -11223,15 +11222,15 @@ int32_t OT_API::activateSmartContract(const Identifier& NOTARY_ID,
         pTransaction->SignContract(*pNym);
         pTransaction->SaveContract();
         // set up the ledger
-        OTLedger theLedger(NYM_ID, theAcctID, NOTARY_ID);
+        Ledger theLedger(NYM_ID, theAcctID, NOTARY_ID);
 
         theLedger.GenerateLedger(theAcctID, NOTARY_ID,
-                                 OTLedger::message); // bGenerateLedger defaults
-                                                     // to false, which is
-                                                     // correct.
-        theLedger.AddTransaction(*pTransaction); // now the ledger "owns" and
-                                                 // will handle cleaning up the
-                                                 // transaction.
+                                 Ledger::message); // bGenerateLedger defaults
+                                                   // to false, which is
+                                                   // correct.
+        theLedger.AddTransaction(*pTransaction);   // now the ledger "owns" and
+        // will handle cleaning up the
+        // transaction.
         // sign the ledger
         theLedger.SignContract(*pNym);
         theLedger.SaveContract();
@@ -11416,14 +11415,14 @@ int32_t OT_API::cancelCronItem(const Identifier& NOTARY_ID,
         pTransaction->SaveContract();
 
         // set up the ledger
-        OTLedger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
+        Ledger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
         theLedger.GenerateLedger(ASSET_ACCT_ID, NOTARY_ID,
-                                 OTLedger::message); // bGenerateLedger defaults
-                                                     // to false, which is
-                                                     // correct.
-        theLedger.AddTransaction(*pTransaction); // now the ledger "owns" and
-                                                 // will handle cleaning up the
-                                                 // transaction.
+                                 Ledger::message); // bGenerateLedger defaults
+                                                   // to false, which is
+                                                   // correct.
+        theLedger.AddTransaction(*pTransaction);   // now the ledger "owns" and
+        // will handle cleaning up the
+        // transaction.
 
         // sign the ledger
         theLedger.SignContract(*pNym);
@@ -11743,14 +11742,14 @@ int32_t OT_API::issueMarketOffer(
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
+            Ledger theLedger(NYM_ID, ASSET_ACCT_ID, NOTARY_ID);
             theLedger.GenerateLedger(ASSET_ACCT_ID, NOTARY_ID,
-                                     OTLedger::message); // bGenerateLedger
-                                                         // defaults to false,
-                                                         // which is correct.
-            theLedger.AddTransaction(*pTransaction); // now the ledger "owns"
-                                                     // and will handle cleaning
-                                                     // up the transaction.
+                                     Ledger::message); // bGenerateLedger
+                                                       // defaults to false,
+                                                       // which is correct.
+            theLedger.AddTransaction(*pTransaction);   // now the ledger "owns"
+            // and will handle cleaning
+            // up the transaction.
 
             // sign the ledger
             theLedger.SignContract(*pNym);
@@ -12108,8 +12107,8 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
 
         pTransaction->AddItem(*pItem); // the Transaction's destructor will
                                        // cleanup the item. It "owns" it now.
-        std::unique_ptr<OTLedger> pInbox(pAccount->LoadInbox(*pNym));
-        std::unique_ptr<OTLedger> pOutbox(pAccount->LoadOutbox(*pNym));
+        std::unique_ptr<Ledger> pInbox(pAccount->LoadInbox(*pNym));
+        std::unique_ptr<Ledger> pOutbox(pAccount->LoadOutbox(*pNym));
 
         if (nullptr == pInbox) {
             otOut << "OT_API::notarizeTransfer: Failed loading inbox for acct: "
@@ -12185,11 +12184,11 @@ int32_t OT_API::notarizeTransfer(const Identifier& NOTARY_ID,
             pTransaction->SaveContract();
 
             // set up the ledger
-            OTLedger theLedger(NYM_ID, ACCT_FROM, NOTARY_ID);
+            Ledger theLedger(NYM_ID, ACCT_FROM, NOTARY_ID);
             theLedger.GenerateLedger(ACCT_FROM, NOTARY_ID,
-                                     OTLedger::message); // bGenerateLedger
-                                                         // defaults to false,
-                                                         // which is correct.
+                                     Ledger::message); // bGenerateLedger
+                                                       // defaults to false,
+                                                       // which is correct.
             theLedger.AddTransaction(*pTransaction);
 
             // sign the ledger
@@ -12331,7 +12330,7 @@ int32_t OT_API::processNymbox(const Identifier& NOTARY_ID,
         OTServerContract& theServer = *pServer;
 
         // Load up the appropriate Nymbox...
-        OTLedger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
+        Ledger theNymbox(NYM_ID, NYM_ID, NOTARY_ID);
 
         bool bLoadedNymbox = theNymbox.LoadNymbox();
         bool bVerifiedNymbox =

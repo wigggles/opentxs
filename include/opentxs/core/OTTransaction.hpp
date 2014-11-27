@@ -435,7 +435,7 @@ same time that it is first being
 
  */
 
-class OTLedger;
+class Ledger;
 
 class OTTransaction : public OTTransactionType
 {
@@ -522,7 +522,7 @@ public:
        // top of the .CPP file.
 
 public:
-    OTTransaction(const OTLedger& theOwner);
+    OTTransaction(const Ledger& theOwner);
 
     EXPORT OTTransaction(const Identifier& theNymID,
                          const Identifier& theAccountID,
@@ -567,7 +567,7 @@ public:
         m_bCancelled = true;
     }
 
-    void SetParent(const OTLedger& theParent)
+    void SetParent(const Ledger& theParent)
     {
         m_pParent = &theParent;
     }
@@ -668,7 +668,7 @@ public:
         int64_t lTransactionNum = 0);
 
     EXPORT static OTTransaction* GenerateTransaction(
-        const OTLedger& theOwner, transactionType theType,
+        const Ledger& theOwner, transactionType theType,
         int64_t lTransactionNum = 0);
     inline transactionType GetType() const
     {
@@ -685,9 +685,9 @@ public:
     // reading from.
     EXPORT bool SaveBoxReceipt(int64_t lLedgerType);
 
-    EXPORT bool SaveBoxReceipt(OTLedger& theLedger);
+    EXPORT bool SaveBoxReceipt(Ledger& theLedger);
 
-    EXPORT bool DeleteBoxReceipt(OTLedger& theLedger);
+    EXPORT bool DeleteBoxReceipt(Ledger& theLedger);
 
     // Call on abbreviated version, and pass in the purported full version.
     bool VerifyBoxReceipt(OTTransaction& theFullVersion);
@@ -798,7 +798,7 @@ protected:
 protected:
     // Usually a transaction object is inside a ledger object.
     // If this is not nullptr, then you can reference that object.
-    const OTLedger* m_pParent;
+    const Ledger* m_pParent;
 
     // Transactions can be loaded in abbreviated form from a ledger, but they
     // are not considered "actually loaded"

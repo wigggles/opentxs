@@ -135,7 +135,7 @@
 #include <opentxs/core/Item.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -357,7 +357,7 @@ bool Item::VerifyTransactionStatement(Nym& THE_NYM,
 //    are all still there.
 //
 bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
-                                  OTLedger& THE_INBOX, OTLedger& THE_OUTBOX,
+                                  Ledger& THE_INBOX, Ledger& THE_OUTBOX,
                                   const Account& THE_ACCOUNT,
                                   OTTransaction& TARGET_TRANSACTION,
                                   int64_t lOutboxTrnsNum) // Only used in the
@@ -415,7 +415,7 @@ bool Item::VerifyBalanceStatement(int64_t lActualAdjustment, Nym& THE_NYM,
 
         int64_t lReceiptAmountMultiplier = 1; // needed for outbox items.
 
-        OTLedger* pLedger = nullptr;
+        Ledger* pLedger = nullptr;
 
         switch (pSubItem->GetType()) {
         case Item::voucherReceipt:

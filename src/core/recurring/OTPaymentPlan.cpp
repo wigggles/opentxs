@@ -135,7 +135,7 @@
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Nym.hpp>
 
@@ -930,7 +930,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        OTLedger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
+        Ledger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
             theRecipientInbox(RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
@@ -945,7 +945,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                 theSenderInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingSenderInbox = theSenderInbox.GenerateLedger(
-                SOURCE_ACCT_ID, NOTARY_ID, OTLedger::inbox,
+                SOURCE_ACCT_ID, NOTARY_ID, Ledger::inbox,
                 true); // bGenerateFile=true
 
         if (true == bSuccessLoadingRecipientInbox)
@@ -953,7 +953,7 @@ bool OTPaymentPlan::ProcessPayment(const int64_t& lAmount)
                 theRecipientInbox.VerifyAccount(*pServerNym);
         else
             bSuccessLoadingRecipientInbox = theRecipientInbox.GenerateLedger(
-                RECIPIENT_ACCT_ID, NOTARY_ID, OTLedger::inbox,
+                RECIPIENT_ACCT_ID, NOTARY_ID, Ledger::inbox,
                 true); // bGenerateFile=true
 
         if ((false == bSuccessLoadingSenderInbox) ||

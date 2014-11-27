@@ -134,7 +134,7 @@
 
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>
@@ -149,8 +149,8 @@ namespace opentxs
 // Caller responsible to delete.
 
 OTPayment* GetInstrument(const Nym& theNym, const int32_t& nIndex,
-                         OTLedger& ledger) // Returns financial instrument
-                                           // by index.
+                         Ledger& ledger) // Returns financial instrument
+                                         // by index.
 {
     if ((0 > nIndex) || (nIndex >= ledger.GetTransactionCount())) {
         otErr << __FUNCTION__

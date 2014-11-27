@@ -599,7 +599,7 @@ various sequence numbers. Hm.
 #include <opentxs/core/script/OTClause.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
@@ -2620,7 +2620,7 @@ bool OTSmartContract::StashFunds(const mapOfNyms& map_NymsAlreadyLoaded,
         // (No need for the stash's inbox -- the server owns it.)
 
         // Load the inbox in case it already exists
-        OTLedger thePartyInbox(PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID);
+        Ledger thePartyInbox(PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -6234,7 +6234,7 @@ bool OTSmartContract::MoveFunds(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inboxes in case they already exist
-        OTLedger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
+        Ledger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
             theRecipientInbox(RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of

@@ -144,7 +144,7 @@
 
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -604,13 +604,13 @@ bool OTRecordList::PerformAutoAccept()
                 // will, however, work
                 // either way.
                 //
-                OTLedger* pInbox =
+                Ledger* pInbox =
                     m_bRunFast
                         ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(
                               theNotaryID, theNymID)
                         : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID,
                                                                 theNymID);
-                std::unique_ptr<OTLedger> theInboxAngel(pInbox);
+                std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
                 // It loaded up, so let's loop through it.
                 if (nullptr != pInbox) {
@@ -923,12 +923,12 @@ bool OTRecordList::PerformAutoAccept()
             // return for FASTER PERFORMANCE, then call SetFastMode() before
             // Populating.
             //
-            OTLedger* pInbox = m_bRunFast
-                                   ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
-                                         theNotaryID, theNymID, theAccountID)
-                                   : OTAPI_Wrap::OTAPI()->LoadInbox(
-                                         theNotaryID, theNymID, theAccountID);
-            std::unique_ptr<OTLedger> theInboxAngel(pInbox);
+            Ledger* pInbox = m_bRunFast
+                                 ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
+                                       theNotaryID, theNymID, theAccountID)
+                                 : OTAPI_Wrap::OTAPI()->LoadInbox(
+                                       theNotaryID, theNymID, theAccountID);
+            std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (nullptr == pInbox) {
                 otOut << __FUNCTION__ << ": Skipping an account ("
                       << str_account_id.c_str()
@@ -1565,13 +1565,13 @@ bool OTRecordList::Populate()
             // will, however, work
             // either way.
             //
-            OTLedger* pInbox =
+            Ledger* pInbox =
                 m_bRunFast
                     ? OTAPI_Wrap::OTAPI()->LoadPaymentInboxNoVerify(theNotaryID,
                                                                     theNymID)
                     : OTAPI_Wrap::OTAPI()->LoadPaymentInbox(theNotaryID,
                                                             theNymID);
-            std::unique_ptr<OTLedger> theInboxAngel(pInbox);
+            std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
             int32_t nIndex = (-1);
             // It loaded up, so let's loop through it.
@@ -1823,14 +1823,14 @@ bool OTRecordList::Populate()
             // NYM_ID twice,
             // since it's the recordbox for the Nym.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
-            OTLedger* pRecordbox =
+            Ledger* pRecordbox =
                 m_bRunFast
                     ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
                           theNotaryID, theNymID, theNymID)
                     : // twice.
                     OTAPI_Wrap::OTAPI()->LoadRecordBox(theNotaryID, theNymID,
                                                        theNymID);
-            std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
+            std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
 
             // It loaded up, so let's loop through it.
             if (nullptr != pRecordbox) {
@@ -2259,13 +2259,13 @@ bool OTRecordList::Populate()
 
             // Also loop through its expired record box.
             // OPTIMIZE FYI: m_bRunFast impacts run speed here.
-            OTLedger* pExpiredbox =
+            Ledger* pExpiredbox =
                 m_bRunFast
                     ? OTAPI_Wrap::OTAPI()->LoadExpiredBoxNoVerify(theNotaryID,
                                                                   theNymID)
                     : OTAPI_Wrap::OTAPI()->LoadExpiredBox(theNotaryID,
                                                           theNymID);
-            std::unique_ptr<OTLedger> theExpiredBoxAngel(pExpiredbox);
+            std::unique_ptr<Ledger> theExpiredBoxAngel(pExpiredbox);
 
             // It loaded up, so let's loop through it.
             if (nullptr != pExpiredbox) {
@@ -2769,12 +2769,12 @@ bool OTRecordList::Populate()
         // return for FASTER PERFORMANCE, then call SetFastMode() before
         // Populating.
         //
-        OTLedger* pInbox = m_bRunFast
-                               ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
-                                     theNotaryID, theNymID, theAccountID)
-                               : OTAPI_Wrap::OTAPI()->LoadInbox(
-                                     theNotaryID, theNymID, theAccountID);
-        std::unique_ptr<OTLedger> theInboxAngel(pInbox);
+        Ledger* pInbox = m_bRunFast
+                             ? OTAPI_Wrap::OTAPI()->LoadInboxNoVerify(
+                                   theNotaryID, theNymID, theAccountID)
+                             : OTAPI_Wrap::OTAPI()->LoadInbox(
+                                   theNotaryID, theNymID, theAccountID);
+        std::unique_ptr<Ledger> theInboxAngel(pInbox);
 
         // It loaded up, so let's loop through it.
         if (nullptr != pInbox) {
@@ -3037,12 +3037,12 @@ bool OTRecordList::Populate()
         // return for FASTER PERFORMANCE, then call SetFastMode() before running
         // Populate.
         //
-        OTLedger* pOutbox = m_bRunFast
-                                ? OTAPI_Wrap::OTAPI()->LoadOutboxNoVerify(
-                                      theNotaryID, theNymID, theAccountID)
-                                : OTAPI_Wrap::OTAPI()->LoadOutbox(
-                                      theNotaryID, theNymID, theAccountID);
-        std::unique_ptr<OTLedger> theOutboxAngel(pOutbox);
+        Ledger* pOutbox = m_bRunFast
+                              ? OTAPI_Wrap::OTAPI()->LoadOutboxNoVerify(
+                                    theNotaryID, theNymID, theAccountID)
+                              : OTAPI_Wrap::OTAPI()->LoadOutbox(
+                                    theNotaryID, theNymID, theAccountID);
+        std::unique_ptr<Ledger> theOutboxAngel(pOutbox);
 
         // It loaded up, so let's loop through it.
         if (nullptr != pOutbox) {
@@ -3211,12 +3211,12 @@ bool OTRecordList::Populate()
         // return for FASTER PERFORMANCE, then call SetFastMode() before
         // Populating.
         //
-        OTLedger* pRecordbox = m_bRunFast
-                                   ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
-                                         theNotaryID, theNymID, theAccountID)
-                                   : OTAPI_Wrap::OTAPI()->LoadRecordBox(
-                                         theNotaryID, theNymID, theAccountID);
-        std::unique_ptr<OTLedger> theRecordBoxAngel(pRecordbox);
+        Ledger* pRecordbox = m_bRunFast
+                                 ? OTAPI_Wrap::OTAPI()->LoadRecordBoxNoVerify(
+                                       theNotaryID, theNymID, theAccountID)
+                                 : OTAPI_Wrap::OTAPI()->LoadRecordBox(
+                                       theNotaryID, theNymID, theAccountID);
+        std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
 
         // It loaded up, so let's loop through it.
         if (nullptr != pRecordbox) {

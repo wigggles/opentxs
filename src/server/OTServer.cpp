@@ -151,7 +151,7 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/crypto/OTKeyring.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 #include <opentxs/core/Message.hpp>
@@ -766,8 +766,8 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
     // Grab a string copy of pMsg.
     //
     const String strInMessage(*pMsg);
-    OTLedger theLedger(RECIPIENT_NYM_ID, RECIPIENT_NYM_ID,
-                       NOTARY_ID); // The recipient's Nymbox.
+    Ledger theLedger(RECIPIENT_NYM_ID, RECIPIENT_NYM_ID,
+                     NOTARY_ID); // The recipient's Nymbox.
     // Drop in the Nymbox
     if ((theLedger.LoadNymbox() && // I think this loads the box receipts too,
                                    // since I didn't call "LoadNymboxNoVerify"

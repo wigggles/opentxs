@@ -135,7 +135,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -224,9 +224,9 @@ char const* Account::_GetTypeString(AccountType accountType)
 }
 
 // Caller responsible to delete.
-OTLedger* Account::LoadInbox(Nym& nym) const
+Ledger* Account::LoadInbox(Nym& nym) const
 {
-    auto* box = new OTLedger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
+    auto* box = new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(box != nullptr);
 
     if (box->LoadInbox() && box->VerifyAccount(nym)) {
@@ -240,9 +240,9 @@ OTLedger* Account::LoadInbox(Nym& nym) const
 }
 
 // Caller responsible to delete.
-OTLedger* Account::LoadOutbox(Nym& nym) const
+Ledger* Account::LoadOutbox(Nym& nym) const
 {
-    auto* box = new OTLedger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
+    auto* box = new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
     OT_ASSERT(nullptr != box);
 
     if (box->LoadOutbox() && box->VerifyAccount(nym)) {
@@ -257,7 +257,7 @@ OTLedger* Account::LoadOutbox(Nym& nym) const
 
 // hash is optional, the account will update its internal copy of the hash
 // anyway.
-bool Account::SaveInbox(OTLedger& box, Identifier* hash)
+bool Account::SaveInbox(Ledger& box, Identifier* hash)
 {
     if (!IsSameAccount(box)) {
         String strAcctID(GetRealAccountID());
@@ -284,7 +284,7 @@ bool Account::SaveInbox(OTLedger& box, Identifier* hash)
 
 // hash is optional, the account will update its internal copy of the hash
 // anyway. If you pass the identifier in, the hash is recorded there.
-bool Account::SaveOutbox(OTLedger& box, Identifier* hash)
+bool Account::SaveOutbox(Ledger& box, Identifier* hash)
 {
     if (!IsSameAccount(box)) {
         String strAcctID(GetRealAccountID());
@@ -324,7 +324,7 @@ bool Account::GetInboxHash(Identifier& output)
     }
     else if (!GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
                !GetRealNotaryID().IsEmpty()) {
-        OTLedger inbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
+        Ledger inbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
             SetInboxHash(output);
@@ -350,7 +350,7 @@ bool Account::GetOutboxHash(Identifier& output)
     }
     else if (!GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
                !GetRealNotaryID().IsEmpty()) {
-        OTLedger outbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
+        Ledger outbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
             SetOutboxHash(output);

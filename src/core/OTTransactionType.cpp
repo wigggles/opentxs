@@ -135,7 +135,7 @@
 #include <opentxs/core/OTTransactionType.hpp>
 
 #include <opentxs/core/Account.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 
 // static -- class factory.
@@ -173,7 +173,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
                        "-----BEGIN SIGNED LEDGER-----")) // this string is 29
                                                          // chars long.
         {
-            pContract = new OTLedger();
+            pContract = new Ledger();
             OT_ASSERT(nullptr != pContract);
         }
         else if (strFirstLine.Contains(

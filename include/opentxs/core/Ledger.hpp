@@ -157,7 +157,7 @@ class String;
 typedef std::map<int64_t, OTTransaction*> mapOfTransactions;
 
 // the "inbox" and "outbox" functionality is implemented in this class
-class OTLedger : public OTTransactionType
+class Ledger : public OTTransactionType
 {
 private: // Private prevents erroneous use by other classes.
     typedef OTTransactionType ot_super;
@@ -175,7 +175,7 @@ protected:
     virtual void UpdateContents(); // Before transmission or serialization, this
                                    // is where the ledger saves its contents
 
-    OTLedger(); // Hopefully stays here.
+    Ledger(); // Hopefully stays here.
 
 public:
     enum ledgerType {
@@ -236,7 +236,7 @@ public:
                                           const OTTransaction& theOwner,
                                           Nym& theNym,
                                           const Account& theAccount,
-                                          OTLedger& theOutbox);
+                                          Ledger& theOutbox);
 
     EXPORT void ProduceOutboxReport(Item& theBalanceItem);
 
@@ -338,9 +338,9 @@ public:
                                            // lookup the total value of pending
                                            // transfers within.
     EXPORT const mapOfTransactions& GetTransactionMap() const;
-    EXPORT OTLedger(const Identifier& theNymID, const Identifier& theAccountID,
-                    const Identifier& theNotaryID);
-    EXPORT virtual ~OTLedger();
+    EXPORT Ledger(const Identifier& theNymID, const Identifier& theAccountID,
+                  const Identifier& theNotaryID);
+    EXPORT virtual ~Ledger();
 
     EXPORT virtual void Release();
     EXPORT void Release_Ledger();
@@ -354,14 +354,14 @@ public:
     // function to get it
     // loaded up, and the NymID will hopefully be loaded up with the rest of
     // it.
-    EXPORT OTLedger(const Identifier& theAccountID,
-                    const Identifier& theNotaryID);
+    EXPORT Ledger(const Identifier& theAccountID,
+                  const Identifier& theNotaryID);
     EXPORT void InitLedger();
-    EXPORT static OTLedger* GenerateLedger(const Identifier& theNymID,
-                                           const Identifier& theAcctID,
-                                           const Identifier& theNotaryID,
-                                           ledgerType theType,
-                                           bool bCreateFile = false);
+    EXPORT static Ledger* GenerateLedger(const Identifier& theNymID,
+                                         const Identifier& theAcctID,
+                                         const Identifier& theNotaryID,
+                                         ledgerType theType,
+                                         bool bCreateFile = false);
 
     EXPORT bool GenerateLedger(const Identifier& theAcctID,
                                const Identifier& theNotaryID,

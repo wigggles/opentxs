@@ -138,7 +138,7 @@
 #include <opentxs/core/cron/OTCronItem.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLedger.hpp>
+#include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/OTLog.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -1171,7 +1171,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     std::unique_ptr<Account> theDestAcctGuardian;
 
     // Load the inbox in case it already exists.
-    OTLedger theInbox(NYM_ID, ACCOUNT_ID, GetNotaryID());
+    Ledger theInbox(NYM_ID, ACCOUNT_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theInbox.LoadInbox();
@@ -1356,7 +1356,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(const Identifier& NYM_ID,
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox"; // RESUME!!!!!!!
 
-    OTLedger theLedger(NYM_ID, NYM_ID, GetNotaryID());
+    Ledger theLedger(NYM_ID, NYM_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theLedger.LoadNymbox();
