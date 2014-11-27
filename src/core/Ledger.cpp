@@ -137,7 +137,7 @@
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -576,8 +576,8 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
     const String strNotaryID(GetRealNotaryID());
 
     if (!m_strFilename.Exists())
-        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strID.Get());
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
+                             strID.Get());
 
     String strFilename;
     strFilename = strID.Get();
@@ -598,8 +598,8 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
     {
         if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
             otLog3 << pszType << " does not exist in OTLedger::Load" << pszType
-                   << ": " << szFolder1name << OTLog::PathSeparator()
-                   << szFolder2name << OTLog::PathSeparator() << szFilename
+                   << ": " << szFolder1name << Log::PathSeparator()
+                   << szFolder2name << Log::PathSeparator() << szFilename
                    << "\n";
             return false;
         }
@@ -612,8 +612,8 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
 
         if (strFileContents.length() < 2) {
             otErr << "OTLedger::LoadGeneric: Error reading file: "
-                  << szFolder1name << OTLog::PathSeparator() << szFolder2name
-                  << OTLog::PathSeparator() << szFilename << "\n";
+                  << szFolder1name << Log::PathSeparator() << szFolder2name
+                  << Log::PathSeparator() << szFilename << "\n";
             return false;
         }
 
@@ -624,9 +624,8 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
 
     if (!strRawFile.Exists()) {
         otErr << "OTLedger::LoadGeneric: Unable to load box (" << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename
-              << ") from empty string.\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFilename << ") from empty string.\n";
         return false;
     }
 
@@ -636,16 +635,16 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
         otErr << "Failed loading " << pszType << " "
               << ((nullptr != pString) ? "from string" : "from file")
               << " in OTLedger::Load" << pszType << ": " << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
     else {
         otInfo << "Successfully loaded " << pszType << " "
                << ((nullptr != pString) ? "from string" : "from file")
                << " in OTLedger::Load" << pszType << ": " << szFolder1name
-               << OTLog::PathSeparator() << szFolder2name
-               << OTLog::PathSeparator() << szFilename << "\n";
+               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+               << szFilename << "\n";
     }
 
     return bSuccess;
@@ -691,8 +690,8 @@ bool Ledger::SaveGeneric(Ledger::ledgerType theType)
     const String strNotaryID(GetRealNotaryID());
 
     if (!m_strFilename.Exists())
-        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strID.Get());
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
+                             strID.Get());
 
     String strFilename;
     strFilename = strID.Get();
@@ -712,8 +711,8 @@ bool Ledger::SaveGeneric(Ledger::ledgerType theType)
 
     if (!SaveContractRaw(strRawFile)) {
         otErr << "OTLedger::SaveGeneric: Error saving " << pszType
-              << " (to string):\n" << szFolder1name << OTLog::PathSeparator()
-              << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
+              << " (to string):\n" << szFolder1name << Log::PathSeparator()
+              << szFolder2name << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -724,8 +723,8 @@ bool Ledger::SaveGeneric(Ledger::ledgerType theType)
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "OTLedger::SaveGeneric: Error saving " << pszType
               << " (failed writing armored string):\n" << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 
@@ -734,14 +733,14 @@ bool Ledger::SaveGeneric(Ledger::ledgerType theType)
                                szFilename); // <=== SAVING TO DATA STORE.
     if (!bSaved) {
         otErr << "OTLedger::SaveGeneric: Error writing " << pszType
-              << " to file: " << szFolder1name << OTLog::PathSeparator()
-              << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
+              << " to file: " << szFolder1name << Log::PathSeparator()
+              << szFolder2name << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
     else
         otInfo << "Successfully saved " << pszType << ": " << szFolder1name
-               << OTLog::PathSeparator() << szFolder2name
-               << OTLog::PathSeparator() << szFilename << "\n";
+               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+               << szFilename << "\n";
 
     return bSaved;
 }
@@ -968,34 +967,34 @@ bool Ledger::GenerateLedger(const Identifier& theAcctID,
     switch (theType) {
     case Ledger::nymbox: // stored by NymID ONLY.
         m_strFoldername = OTFolders::Nymbox().Get();
-        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strID.Get());
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
+                             strID.Get());
         break;
     case Ledger::inbox: // stored by AcctID ONLY.
         m_strFoldername = OTFolders::Inbox().Get();
-        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strID.Get());
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
+                             strID.Get());
         break;
     case Ledger::outbox: // stored by AcctID ONLY.
         m_strFoldername = OTFolders::Outbox().Get();
-        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strID.Get());
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
+                             strID.Get());
         break;
     case Ledger::paymentInbox: // stored by NymID ONLY.
         m_strFoldername = OTFolders::PaymentInbox().Get();
-        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strID.Get());
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
+                             strID.Get());
         break;
     case Ledger::recordBox: // stored by Acct ID *and* Nym ID (depending on
                             // the box.)
         m_strFoldername = OTFolders::RecordBox().Get();
-        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strID.Get());
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
+                             strID.Get());
         break;
     case Ledger::expiredBox: // stored by Nym ID only.
         m_strFoldername = OTFolders::ExpiredBox().Get();
-        m_strFilename.Format("%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strID.Get());
+        m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
+                             strID.Get());
         break;
     case Ledger::message:
         otLog4 << "Generating message ledger...\n";
@@ -1037,14 +1036,14 @@ bool Ledger::GenerateLedger(const Identifier& theAcctID,
 
         if (OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
             otOut << "ERROR: trying to generate ledger that already exists: "
-                  << szFolder1name << OTLog::PathSeparator() << szFolder2name
-                  << OTLog::PathSeparator() << szFilename << "\n";
+                  << szFolder1name << Log::PathSeparator() << szFolder2name
+                  << Log::PathSeparator() << szFilename << "\n";
             return false;
         }
 
         // Okay, it doesn't already exist. Let's generate it.
-        otOut << "Generating " << szFolder1name << OTLog::PathSeparator()
-              << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
+        otOut << "Generating " << szFolder1name << Log::PathSeparator()
+              << szFolder2name << Log::PathSeparator() << szFilename << "\n";
     }
 
     if ((Ledger::inbox == theType) || (Ledger::outbox == theType)) {

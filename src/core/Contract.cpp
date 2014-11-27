@@ -137,7 +137,7 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
@@ -646,7 +646,7 @@ bool Contract::SignContract(const char* szFoldername,
 
     if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << szFunc << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -655,7 +655,7 @@ bool Contract::SignContract(const char* szFoldername,
 
     if (strCertFileContents.length() < 2) {
         otErr << szFunc << ": Error reading file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -679,7 +679,7 @@ bool Contract::SignContract(const char* szFoldername,
                                      pPWData)) {
         otErr << szFunc << ": OTCrypto::It()->SignContract returned false, "
                            "using Cert file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -711,7 +711,7 @@ bool Contract::VerifySignature(const char* szFoldername,
 
     if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << szFunc << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -720,7 +720,7 @@ bool Contract::VerifySignature(const char* szFoldername,
 
     if (strCertFileContents.length() < 2) {
         otErr << szFunc << ": Error reading file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -733,7 +733,7 @@ bool Contract::VerifySignature(const char* szFoldername,
                                         pPWData)) {
         otLog4 << szFunc << ": OTCrypto::It()->VerifySignature returned false, "
                             "using Cert file: " << szFoldername
-               << OTLog::PathSeparator() << szFilename << "\n";
+               << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -1121,7 +1121,7 @@ bool Contract::AddBookendsAroundContent(String& strOutput,
                             "Comment: "
                             "http://github.com/FellowTraveler/"
                             "Open-Transactions/wiki\n",
-                            strContractType.Get(), OTLog::Version());
+                            strContractType.Get(), Log::Version());
 
         if (pSig->getMetaData().HasMetadata())
             strTemp.Concatenate("Meta:    %c%c%c%c\n",
@@ -1173,8 +1173,8 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
 
     if (!m_strRawFile.Exists()) {
         otErr << "OTContract::SaveContract: Error saving file (contract "
-                 "contents are empty): " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+                 "contents are empty): " << szFoldername << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 
@@ -1185,7 +1185,7 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "OTContract::SaveContract: Error saving file (failed writing "
-                 "armored string): " << szFoldername << OTLog::PathSeparator()
+                 "armored string): " << szFoldername << Log::PathSeparator()
               << szFilename << "\n";
         return false;
     }
@@ -1195,7 +1195,7 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
 
     if (!bSaved) {
         otErr << "OTContract::SaveContract: Error saving file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -1229,7 +1229,7 @@ bool Contract::LoadContractRawFile()
 
     if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -1238,7 +1238,7 @@ bool Contract::LoadContractRawFile()
 
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -1273,7 +1273,7 @@ bool Contract::LoadContract(const char* szFoldername, const char* szFilename)
                                // variables.
     else {
         otErr << "Failed loading raw contract file: " << m_strFoldername
-              << OTLog::PathSeparator() << m_strFilename << "\n";
+              << Log::PathSeparator() << m_strFilename << "\n";
     }
     return false;
 }
@@ -1339,7 +1339,7 @@ bool Contract::ParseRawFile()
 
     if (!m_strRawFile.GetLength()) {
         otErr << "Empty m_strRawFile in OTContract::ParseRawFile. Filename: "
-              << m_strFoldername << OTLog::PathSeparator() << m_strFilename
+              << m_strFoldername << Log::PathSeparator() << m_strFilename
               << ".\n";
         return false;
     }

@@ -168,7 +168,7 @@
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
@@ -296,8 +296,8 @@ bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
 
     if (strFileContents.length() < 2) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Error reading file: "
-              << szFolder1name << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << szFolder1name << Log::PathSeparator() << szFolder2name
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -305,8 +305,8 @@ bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
 
     if (!tranOut.LoadContractFromString(strTransaction)) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Unable to load balance "
-                 "statement:\n " << szFolder1name << OTLog::PathSeparator()
-              << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
+                 "statement:\n " << szFolder1name << Log::PathSeparator()
+              << szFolder2name << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -352,8 +352,8 @@ bool VerifyBalanceReceipt(Nym& SERVER_NYM, Nym& THE_NYM,
     if (!pTransaction->VerifySignature(SERVER_NYM)) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Unable to verify "
                  "SERVER_NYM signature on balance statement:\n "
-              << szFolder1name << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << szFolder1name << Log::PathSeparator() << szFolder2name
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -546,12 +546,12 @@ bool OT_API::InitOTApp()
     OT_ASSERT(!OT_API::bCleanupOTApp);
 
     if (!OT_API::bInitOTApp) {
-        if (!OTLog::Init("client")) {
+        if (!Log::Init("client")) {
             assert(false);
         }
 
         otOut << "\n\nWelcome to Open Transactions -- version "
-              << OTLog::Version() << "\n";
+              << Log::Version() << "\n";
 
         otWarn << "(transport build: OTMessage -> OTEnvelope -> ZMQ )\n";
 
@@ -815,7 +815,7 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
         bool bIsNewKey;
         int64_t lValue;
         p_Config->CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
-        OTLog::SetLogLevel(static_cast<int32_t>(lValue));
+        Log::SetLogLevel(static_cast<int32_t>(lValue));
     }
 
     // WALLET
@@ -6016,7 +6016,7 @@ Mint* OT_API::LoadMint(const Identifier& NOTARY_ID,
     if (!pMint->LoadMint() || !pMint->VerifyMint(*pServerNym)) {
         otOut << __FUNCTION__
               << ": Unable to load or verify Mintfile : " << OTFolders::Mint()
-              << OTLog::PathSeparator() << strNotaryID << OTLog::PathSeparator()
+              << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
               << strInstrumentDefinitionID << "\n";
         delete pMint;
         pMint = nullptr;
@@ -6038,7 +6038,7 @@ OTServerContract* OT_API::LoadServerContract(const Identifier& NOTARY_ID) const
     String strFilename = strNotaryID.Get();
     if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
         otErr << "OT_API::LoadServerContract: File does not exist: "
-              << strFoldername.Get() << OTLog::PathSeparator() << strFilename
+              << strFoldername.Get() << Log::PathSeparator() << strFilename
               << "\n";
         return nullptr;
     }
@@ -6075,7 +6075,7 @@ AssetContract* OT_API::LoadAssetContract(
     String strFilename = strInstrumentDefinitionID.Get();
     if (!OTDB::Exists(strFoldername.Get(), strFilename.Get())) {
         otErr << "OT_API::LoadAssetContract: File does not exist: "
-              << strFoldername.Get() << OTLog::PathSeparator() << strFilename
+              << strFoldername.Get() << Log::PathSeparator() << strFilename
               << "\n";
         return nullptr;
     }
@@ -9199,8 +9199,8 @@ int32_t OT_API::notarizeWithdrawal(const Identifier& NOTARY_ID,
     if (!OTDB::Exists(OTFolders::Mint().Get(), strNotaryID.Get(),
                       strContractID.Get())) {
         otErr << "OT_API::notarizeWithdrawal: File does not exist: "
-              << OTFolders::Mint() << OTLog::PathSeparator() << strNotaryID
-              << OTLog::PathSeparator() << strContractID << "\n";
+              << OTFolders::Mint() << Log::PathSeparator() << strNotaryID
+              << Log::PathSeparator() << strContractID << "\n";
         return -1;
     }
     std::unique_ptr<Mint> pMint(Mint::MintFactory(strNotaryID, strContractID));

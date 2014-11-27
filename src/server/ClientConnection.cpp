@@ -134,7 +134,7 @@
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 
 namespace opentxs
@@ -182,9 +182,8 @@ bool ClientConnection::SealMessageForRecipient(Message& msg,
             return envelope.Seal(*publicKey_, strEnvelopeContents);
     }
     else
-        OTLog::Error(
-            "ClientConnection::SealMessageForRecipient: "
-            "Unable to seal message, possibly a missing public key. \n");
+        Log::Error("ClientConnection::SealMessageForRecipient: "
+                   "Unable to seal message, possibly a missing public key. \n");
     return false;
 }
 

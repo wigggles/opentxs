@@ -40,7 +40,7 @@ set(cxx-sources
   crypto/OTKeypair.cpp
   crypto/OTKeyring.cpp
   Ledger.cpp
-  OTLog.cpp
+  Log.cpp
   crypto/OTLowLevelKeyData.cpp
   crypto/OTMasterkey.cpp
   Message.cpp

@@ -138,7 +138,7 @@
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -1501,8 +1501,8 @@ bool OTTransaction::VerifyBalanceReceipt(
     if (strFileContents.length() < 2) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Error reading "
                  "transaction statement:\n " << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 
@@ -1515,15 +1515,15 @@ bool OTTransaction::VerifyBalanceReceipt(
     if (nullptr == pContents) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Unable to load "
                  "transaction statement:\n " << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
     else if (!pContents->VerifySignature(SERVER_NYM)) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Unable to verify "
                  "signature on transaction statement:\n " << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 
@@ -1534,8 +1534,8 @@ bool OTTransaction::VerifyBalanceReceipt(
     if (nullptr == pTrans) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Was expecting an "
                  "OTTransaction to be stored in the transaction statement "
-                 "at:\n " << szFolder1name << OTLog::PathSeparator()
-              << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
+                 "at:\n " << szFolder1name << Log::PathSeparator()
+              << szFolder2name << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -2947,9 +2947,9 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
         otInfo
             << __FUNCTION__
             << ": Box receipt already doesn't exist, thus no need to delete: "
-               "At location: " << strFolder1name << OTLog::PathSeparator()
-            << strFolder2name << OTLog::PathSeparator() << strFolder3name
-            << OTLog::PathSeparator() << strFilename << "\n";
+               "At location: " << strFolder1name << Log::PathSeparator()
+            << strFolder2name << Log::PathSeparator() << strFolder3name
+            << Log::PathSeparator() << strFilename << "\n";
         return false;
     }
 
@@ -2964,9 +2964,9 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
             otErr << __FUNCTION__
                   << ": Error deleting (writing over) box receipt (failed "
                      "writing armored string):\n" << strFolder1name
-                  << OTLog::PathSeparator() << strFolder2name
-                  << OTLog::PathSeparator() << strFolder3name
-                  << OTLog::PathSeparator() << strFilename << "\n";
+                  << Log::PathSeparator() << strFolder2name
+                  << Log::PathSeparator() << strFolder3name
+                  << Log::PathSeparator() << strFilename << "\n";
             return false;
         }
     }
@@ -2993,10 +2993,9 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     if (!bDeleted)
         otErr << __FUNCTION__
               << ": Error deleting (writing over) file: " << strFolder1name
-              << OTLog::PathSeparator() << strFolder2name
-              << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\nContents:\n\n"
-              << m_strRawFile << "\n\n";
+              << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+              << strFolder3name << Log::PathSeparator() << strFilename
+              << "\nContents:\n\n" << m_strRawFile << "\n\n";
 
     return bDeleted;
 }
@@ -3028,9 +3027,9 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
                      strFolder3name.Get(), strFilename.Get())) {
         otOut << __FUNCTION__
               << ": Warning -- Box receipt already exists! (Overwriting)"
-                 "At location: " << strFolder1name << OTLog::PathSeparator()
-              << strFolder2name << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\n";
+                 "At location: " << strFolder1name << Log::PathSeparator()
+              << strFolder2name << Log::PathSeparator() << strFolder3name
+              << Log::PathSeparator() << strFilename << "\n";
         //        return false;
     }
 
@@ -3043,9 +3042,9 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << __FUNCTION__
               << ": Error saving box receipt (failed writing armored string):\n"
-              << strFolder1name << OTLog::PathSeparator() << strFolder2name
-              << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\n";
+              << strFolder1name << Log::PathSeparator() << strFolder2name
+              << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
+              << strFilename << "\n";
         return false;
     }
 
@@ -3055,10 +3054,9 @@ bool OTTransaction::SaveBoxReceipt(int64_t lLedgerType)
 
     if (!bSaved)
         otErr << __FUNCTION__ << ": Error writing file: " << strFolder1name
-              << OTLog::PathSeparator() << strFolder2name
-              << OTLog::PathSeparator() << strFolder3name
-              << OTLog::PathSeparator() << strFilename << "\nContents:\n\n"
-              << m_strRawFile << "\n\n";
+              << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+              << strFolder3name << Log::PathSeparator() << strFilename
+              << "\nContents:\n\n" << m_strRawFile << "\n\n";
 
     return bSaved;
 }

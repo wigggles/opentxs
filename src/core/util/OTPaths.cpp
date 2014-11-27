@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #ifdef _WIN32
 #include <opentxs/core/util/OTWindowsRegistryTools.hpp>
 #endif
@@ -1276,7 +1276,7 @@ bool OTPaths::BuildFolderPath(const String& strFolderPath,
     std::string l_strPathPart("");
     bool l_FolderExists(false), l_bBuiltFolder(false);
 
-    const bool bLog(OTLog::IsInitialized());
+    const bool bLog(Log::IsInitialized());
 
     for (size_t i = 0; i < nSize; i++) {
 #ifndef _WIN32                            // aka UNIX
@@ -1325,7 +1325,7 @@ bool OTPaths::BuildFilePath(const String& strFolderPath,
     std::string l_strPathPart("");
     bool l_FolderExists(false), l_bBuiltFolder(false);
 
-    const bool bLog(OTLog::IsInitialized());
+    const bool bLog(Log::IsInitialized());
 
     for (size_t i = 0; i < nSize; i++) {
 #ifndef _WIN32                            // aka UNIX

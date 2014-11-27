@@ -135,7 +135,7 @@
 
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 
@@ -194,9 +194,9 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
         (theSharesAccount.GetBalance() * GetPayoutPerShare());
 
     if (lPayoutAmount <= 0) {
-        OTLog::Output(0, "PayDividendVisitor::Trigger: nothing to pay, "
-                         "since this account owns no shares. (Returning "
-                         "true.)");
+        Log::Output(0, "PayDividendVisitor::Trigger: nothing to pay, "
+                       "since this account owns no shares. (Returning "
+                       "true.)");
         return true; // nothing to pay, since this account owns no shares.
                      // Success!
     }
@@ -309,13 +309,13 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
             const String strPayoutInstrumentDefinitionID(
                 thePayoutInstrumentDefinitionID),
                 strRecipientNymID(RECIPIENT_ID);
-            OTLog::vError("PayDividendVisitor::Trigger: ERROR failed "
-                          "issuing voucher (to send to dividend payout "
-                          "recipient.) "
-                          "WAS TRYING TO PAY %" PRId64
-                          " of instrument definition %s to Nym %s.\n",
-                          lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
-                          strRecipientNymID.Get());
+            Log::vError("PayDividendVisitor::Trigger: ERROR failed "
+                        "issuing voucher (to send to dividend payout "
+                        "recipient.) "
+                        "WAS TRYING TO PAY %" PRId64
+                        " of instrument definition %s to Nym %s.\n",
+                        lPayoutAmount, strPayoutInstrumentDefinitionID.Get(),
+                        strRecipientNymID.Get());
         }
         // If we didn't send it, then we need to return the funds to where they
         // came from.
@@ -371,16 +371,16 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
                 const String strPayoutInstrumentDefinitionID(
                     thePayoutInstrumentDefinitionID),
                     strSenderNymID(theSenderNymID);
-                OTLog::vError("PayDividendVisitor::Trigger: ERROR "
-                              "failed issuing voucher (to return back to "
-                              "the dividend payout initiator, after a failed "
-                              "payment attempt to the originally intended "
-                              "recipient.) WAS TRYING TO PAY %" PRId64
-                              " of instrument definition "
-                              "%s to Nym %s.\n",
-                              lPayoutAmount,
-                              strPayoutInstrumentDefinitionID.Get(),
-                              strSenderNymID.Get());
+                Log::vError("PayDividendVisitor::Trigger: ERROR "
+                            "failed issuing voucher (to return back to "
+                            "the dividend payout initiator, after a failed "
+                            "payment attempt to the originally intended "
+                            "recipient.) WAS TRYING TO PAY %" PRId64
+                            " of instrument definition "
+                            "%s to Nym %s.\n",
+                            lPayoutAmount,
+                            strPayoutInstrumentDefinitionID.Get(),
+                            strSenderNymID.Get());
             }
         }  // if !bSent
     }
@@ -389,7 +389,7 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
         const String strPayoutInstrumentDefinitionID(
             thePayoutInstrumentDefinitionID),
             strRecipientNymID(RECIPIENT_ID);
-        OTLog::vError(
+        Log::vError(
             "PayDividendVisitor::Trigger: ERROR!! Failed issuing next "
             "transaction "
             "number while trying to send a voucher (while paying dividends.) "

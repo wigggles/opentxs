@@ -140,7 +140,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/AssetContract.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 namespace opentxs
 {
@@ -232,7 +232,7 @@ bool Transactor::issueNextTransactionNumber(Nym& theNym,
 
     // Next, we save it to file.
     if (!server_->mainFile_.SaveMainFile()) {
-        OTLog::Error("Error saving main server file.\n");
+        Log::Error("Error saving main server file.\n");
         transactionNumber_--;
         return false;
     }
@@ -251,7 +251,7 @@ bool Transactor::issueNextTransactionNumber(Nym& theNym,
                                                          transactionNumber_,
                                                          true))) // bSave = true
     {
-        OTLog::Error("Error adding transaction number to Nym file.\n");
+        Log::Error("Error adding transaction number to Nym file.\n");
         transactionNumber_--;
         server_->mainFile_.SaveMainFile(); // Save it back how it was, since
                                            // we're not
@@ -304,11 +304,11 @@ bool Transactor::verifyTransactionNumber(
                 : "(In fact, that number isn't even issued to that Nym, though "
                   "perhaps it was at some time in the past?)\n");
 
-        OTLog::vError("%s: %" PRId64 " not available for Nym %s to use. \n%s",
-                      __FUNCTION__,
-                      //                    " Oh, and FYI, tangentially, the
-                      // current Trns# counter is: %ld\n",
-                      lTransactionNumber, strNymID.Get(), strIssued.Get());
+        Log::vError("%s: %" PRId64 " not available for Nym %s to use. \n%s",
+                    __FUNCTION__,
+                    //                    " Oh, and FYI, tangentially, the
+                    // current Trns# counter is: %ld\n",
+                    lTransactionNumber, strNymID.Get(), strIssued.Get());
         //                    transactionNumber_);
     }
 
@@ -438,7 +438,7 @@ bool Transactor::addBasketAccountID(const Identifier& BASKET_ID,
     Identifier theBasketAcctID;
 
     if (lookupBasketAccountID(BASKET_ID, theBasketAcctID)) {
-        OTLog::Output(0, "User attempted to add Basket that already exists.\n");
+        Log::Output(0, "User attempted to add Basket that already exists.\n");
         return false;
     }
 
@@ -551,14 +551,13 @@ std::shared_ptr<Account> Transactor::getVoucherAccount(
         pAccount->GetIdentifier(strAcctID);
         const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
 
-        OTLog::vOutput(0,
-                       "OTServer::GetVoucherAccount: Successfully created "
-                       "voucher account ID: %s Instrument Definition ID: %s\n",
-                       strAcctID.Get(), strInstrumentDefinitionID.Get());
+        Log::vOutput(0, "OTServer::GetVoucherAccount: Successfully created "
+                        "voucher account ID: %s Instrument Definition ID: %s\n",
+                     strAcctID.Get(), strInstrumentDefinitionID.Get());
 
         if (!server_->mainFile_.SaveMainFile()) {
-            OTLog::Error("OTServer::GetVoucherAccount: Error saving main "
-                         "server file containing new account ID!!\n");
+            Log::Error("OTServer::GetVoucherAccount: Error saving main "
+                       "server file containing new account ID!!\n");
         }
     }
 
@@ -590,7 +589,7 @@ Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
 
     String strMintFilename;
     strMintFilename.Format("%s%s%s%s%d", server_->m_strNotaryID.Get(),
-                           OTLog::PathSeparator(),
+                           Log::PathSeparator(),
                            INSTRUMENT_DEFINITION_ID_STR.Get(), ".", nSeries);
 
     const char* szFoldername = OTFolders::Mint().Get();
@@ -627,14 +626,14 @@ Mint* Transactor::getMint(const Identifier& INSTRUMENT_DEFINITION_ID,
             return pMint;
         }
         else {
-            OTLog::vError(
+            Log::vError(
                 "Error verifying Mint in Transactor::getMint:\n%s%s%s\n",
-                szFoldername, OTLog::PathSeparator(), szFilename);
+                szFoldername, Log::PathSeparator(), szFilename);
         }
     }
     else {
-        OTLog::vError("Error loading Mint in Transactor::getMint:\n%s%s%s\n",
-                      szFoldername, OTLog::PathSeparator(), szFilename);
+        Log::vError("Error loading Mint in Transactor::getMint:\n%s%s%s\n",
+                    szFoldername, Log::PathSeparator(), szFilename);
     }
 
     if (nullptr != pMint) delete pMint;

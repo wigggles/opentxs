@@ -143,7 +143,7 @@
 #include <opentxs/core/crypto/OpenSSL_BIO.hpp>
 #endif
 
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

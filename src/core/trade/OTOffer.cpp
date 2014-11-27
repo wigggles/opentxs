@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #include <irrxml/irrXML.hpp>
 

@@ -134,7 +134,7 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
@@ -328,7 +328,7 @@ Mint::Mint(const String& strNotaryID, const String& strServerNymID,
     , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format("%s%s%s", strNotaryID.Get(), OTLog::PathSeparator(),
+    m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
                          strInstrumentDefinitionID.Get());
 
     InitMint();
@@ -348,7 +348,7 @@ Mint::Mint(const String& strNotaryID, const String& strInstrumentDefinitionID)
     , m_pReserveAcct(nullptr)
 {
     m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format("%s%s%s", strNotaryID.Get(), OTLog::PathSeparator(),
+    m_strFilename.Format("%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
                          strInstrumentDefinitionID.Get());
 
     InitMint();
@@ -387,12 +387,12 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
     if (!m_strFilename.Exists()) {
         if (nullptr != szAppend)
             m_strFilename.Format("%s%s%s%s", strNotaryID.Get(),
-                                 OTLog::PathSeparator(), // server appends ".1"
-                                                         // or ".PUBLIC" here.
+                                 Log::PathSeparator(), // server appends ".1"
+                                                       // or ".PUBLIC" here.
                                  strInstrumentDefinitionID.Get(), szAppend);
         else
             m_strFilename.Format(
-                "%s%s%s", strNotaryID.Get(), OTLog::PathSeparator(),
+                "%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
                 strInstrumentDefinitionID.Get()); // client uses only
                                                   // instrument definition
                                                   // id, no append.
@@ -413,8 +413,8 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
 
     if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
         otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 
@@ -424,8 +424,8 @@ bool Mint::LoadMint(const char* szAppend) // todo: server should
 
     if (strFileContents.length() < 2) {
         otErr << "Mint::LoadMint: Error reading file: " << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 
@@ -450,11 +450,11 @@ bool Mint::SaveMint(const char* szAppend)
     if (!m_strFilename.Exists()) {
         if (nullptr != szAppend)
             m_strFilename.Format("%s%s%s%s", strNotaryID.Get(),
-                                 OTLog::PathSeparator(), // server side
+                                 Log::PathSeparator(), // server side
                                  strInstrumentDefinitionID.Get(), szAppend);
         else
             m_strFilename.Format(
-                "%s%s%s", strNotaryID.Get(), OTLog::PathSeparator(),
+                "%s%s%s", strNotaryID.Get(), Log::PathSeparator(),
                 strInstrumentDefinitionID.Get()); // client side
     }
 
@@ -472,8 +472,8 @@ bool Mint::SaveMint(const char* szAppend)
 
     if (!SaveContractRaw(strRawFile)) {
         otErr << "Mint::SaveMint: Error saving Mintfile (to string):\n"
-              << szFolder1name << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << szFolder1name << Log::PathSeparator() << szFolder2name
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -483,8 +483,8 @@ bool Mint::SaveMint(const char* szAppend)
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "Mint::SaveMint: Error saving mint (failed writing armored "
-                 "string):\n" << szFolder1name << OTLog::PathSeparator()
-              << szFolder2name << OTLog::PathSeparator() << szFilename << "\n";
+                 "string):\n" << szFolder1name << Log::PathSeparator()
+              << szFolder2name << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -494,12 +494,12 @@ bool Mint::SaveMint(const char* szAppend)
     if (!bSaved) {
         if (nullptr != szAppend)
             otErr << "Mint::SaveMint: Error writing to file: " << szFolder1name
-                  << OTLog::PathSeparator() << szFolder2name
-                  << OTLog::PathSeparator() << szFilename << szAppend << "\n";
+                  << Log::PathSeparator() << szFolder2name
+                  << Log::PathSeparator() << szFilename << szAppend << "\n";
         else
             otErr << "Mint::SaveMint: Error writing to file: " << szFolder1name
-                  << OTLog::PathSeparator() << szFolder2name
-                  << OTLog::PathSeparator() << szFilename << "\n";
+                  << Log::PathSeparator() << szFolder2name
+                  << Log::PathSeparator() << szFilename << "\n";
 
         return false;
     }

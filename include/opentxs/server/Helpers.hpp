@@ -133,7 +133,7 @@
 #ifndef OPENTXS_SERVER_HELPERS_HPP
 #define OPENTXS_SERVER_HELPERS_HPP
 
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <string>
 #include <iostream>
 
@@ -196,8 +196,8 @@ inline std::string OT_CLI_ReadUntilEOF()
             result += input_line;
         }
         else {
-            OTLog::Error("OT_CLI_ReadUntilEOF: getline() was unable to read a "
-                         "string from std::cin\n");
+            Log::Error("OT_CLI_ReadUntilEOF: getline() was unable to read a "
+                       "string from std::cin\n");
             break;
         }
         if (std::cin.eof()) {

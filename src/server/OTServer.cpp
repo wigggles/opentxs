@@ -152,7 +152,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/crypto/OTKeyring.hpp>
 #include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
@@ -248,33 +248,33 @@ void askInteractively(std::string& strContract, std::string& strNotaryID,
         " ==> WARNING: Main file not found. To create it, continue this "
         "process now...\n";
 
-    OTLog::Output(0, szInstructions);
-    OTLog::Output(0, "Enter the NotaryID for your server contract: ");
+    Log::Output(0, szInstructions);
+    Log::Output(0, "Enter the NotaryID for your server contract: ");
     strNotaryID = OT_CLI_ReadLine();
-    OTLog::Output(0, "Enter the Server Nym ID (the NymID of the Nym who "
-                     "signed the server contract): ");
+    Log::Output(0, "Enter the Server Nym ID (the NymID of the Nym who "
+                   "signed the server contract): ");
     strNymID = OT_CLI_ReadLine();
-    OTLog::Output(0, "Paste the cached key (ONLY the base64-encoded portion) "
-                     "below, from wallet.xml for that Nym.\n"
-                     "Terminate with '~' on a line by itself.\n\n");
+    Log::Output(0, "Paste the cached key (ONLY the base64-encoded portion) "
+                   "below, from wallet.xml for that Nym.\n"
+                   "Terminate with '~' on a line by itself.\n\n");
 
     strCachedKey = OT_CLI_ReadUntilEOF();
-    OTLog::Output(0, "Paste the contents of the server Nym's certfile, "
-                     "including public/PRIVATE, below.\n"
-                     "NOTE: LEAVE THIS BLANK unless you REALLY want to use the "
-                     "OLD system. If you leave this\n"
-                     "blank (preferred), it will instead use the new "
-                     "credentials system. (Just make sure\n"
-                     "you copied over the \"credentials\" folder, as described "
-                     "above, since we're about to\n"
-                     "use it, if you leave this blank.)\n"
-                     "Terminate with '~' on a line by itself.\n\n");
+    Log::Output(0, "Paste the contents of the server Nym's certfile, "
+                   "including public/PRIVATE, below.\n"
+                   "NOTE: LEAVE THIS BLANK unless you REALLY want to use the "
+                   "OLD system. If you leave this\n"
+                   "blank (preferred), it will instead use the new "
+                   "credentials system. (Just make sure\n"
+                   "you copied over the \"credentials\" folder, as described "
+                   "above, since we're about to\n"
+                   "use it, if you leave this blank.)\n"
+                   "Terminate with '~' on a line by itself.\n\n");
 
     strCert = OT_CLI_ReadUntilEOF();
     // signed server contract
-    OTLog::Output(0, "Paste the complete, signed, server contract below. (You "
-                     "must already have it.)\n"
-                     "Terminate with '~' on a line by itself.\n\n");
+    Log::Output(0, "Paste the complete, signed, server contract below. (You "
+                   "must already have it.)\n"
+                   "Terminate with '~' on a line by itself.\n\n");
 
     strContract = OT_CLI_ReadUntilEOF();
 }
@@ -295,8 +295,8 @@ int32_t OTCron::__cron_max_items_per_nym = 10;     // The maximum number of cron
 
 void OTServer::ActivateCron()
 {
-    OTLog::vOutput(1, "OTServer::ActivateCron: %s \n",
-                   m_Cron.ActivateCron() ? "(STARTED)" : "FAILED");
+    Log::vOutput(1, "OTServer::ActivateCron: %s \n",
+                 m_Cron.ActivateCron() ? "(STARTED)" : "FAILED");
 }
 
 /// Currently the test server calls this 10 times per second.
@@ -384,9 +384,9 @@ OTServer::~OTServer()
             pid_outfile.close();
         }
         else
-            OTLog::vError("Failed trying to open data locking file (to wipe "
-                          "PID back to 0): %s\n",
-                          strPIDPath.Get());
+            Log::vError("Failed trying to open data locking file (to wipe "
+                        "PID back to 0): %s\n",
+                        strPIDPath.Get());
     }
 }
 
@@ -395,11 +395,11 @@ void OTServer::Init(bool readOnly)
     m_bReadOnly = readOnly;
 
     if (!OTDataFolder::IsInitialized()) {
-        OTLog::vError("Unable to Init data folders!");
+        Log::vError("Unable to Init data folders!");
         OT_FAIL;
     }
     if (!ConfigLoader::load(m_strWalletFilename)) {
-        OTLog::vError("Unable to Load Config File!");
+        Log::vError("Unable to Load Config File!");
         OT_FAIL;
     }
 
@@ -437,7 +437,7 @@ void OTServer::Init(bool readOnly)
                 // There was a real PID in there.
                 if (old_pid != 0) {
                     uint64_t lPID = old_pid;
-                    OTLog::vError(
+                    Log::vError(
                         "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
                         "I found a PID (%" PRIu64
                         ") in the data lock file, located "
@@ -473,9 +473,9 @@ void OTServer::Init(bool readOnly)
                 pid_outfile.close();
             }
             else {
-                OTLog::vError("Failed trying to open data locking file (to "
-                              "store PID %" PRIu64 "): %s\n",
-                              the_pid, strPIDPath.Get());
+                Log::vError("Failed trying to open data locking file (to "
+                            "store PID %" PRIu64 "): %s\n",
+                            the_pid, strPIDPath.Get());
             }
         }
     }
@@ -488,7 +488,7 @@ void OTServer::Init(bool readOnly)
 
     if (!mainFileExists) {
         if (readOnly) {
-            OTLog::vError(
+            Log::vError(
                 "Error: Main file non-existent (%s). "
                 "Plus, unable to create, since read-only flag is set.\n",
                 m_strWalletFilename.Get());
@@ -509,7 +509,7 @@ void OTServer::Init(bool readOnly)
 
     if (mainFileExists) {
         if (!mainFile_.LoadMainFile(readOnly)) {
-            OTLog::vError("Error in Loading Main File!\n");
+            Log::vError("Error in Loading Main File!\n");
             OT_FAIL;
         }
     }
@@ -559,7 +559,7 @@ bool OTServer::SendInstrumentToNym(
         const bool bGotPaymentContents =
             pPayment->GetPaymentContents(strPayment);
         if (!bGotPaymentContents)
-            OTLog::vError("%s: Error GetPaymentContents Failed", __FUNCTION__);
+            Log::vError("%s: Error GetPaymentContents Failed", __FUNCTION__);
     }
     const bool bDropped = DropMessageToNymbox(
         NOTARY_ID, SENDER_NYM_ID, RECIPIENT_NYM_ID,
@@ -657,7 +657,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
         transactor_.issueNextTransactionNumber(m_nymServer, lTransNum, false);
 
     if (!bGotNextTransNum) {
-        OTLog::vError(
+        Log::vError(
             "%s: Error: failed trying to get next transaction number.\n",
             szFunc);
         return false;
@@ -668,7 +668,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
     case OTTransaction::instrumentNotice:
         break;
     default:
-        OTLog::vError(
+        Log::vError(
             "%s: Unexpected transactionType passed here (expected message "
             "or instrumentNotice.)\n",
             szFunc);
@@ -715,14 +715,13 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
                                           // Eventually we'll just call that
                                           // here directly.
         if (!bLoadedNym) {
-            OTLog::vError(
-                "%s: Failed trying to load public key for recipient.\n",
-                szFunc);
+            Log::vError("%s: Failed trying to load public key for recipient.\n",
+                        szFunc);
             return false;
         }
         else if (!nymRecipient.VerifyPseudonym()) {
-            OTLog::vError("%s: Failed trying to verify Nym for recipient.\n",
-                          szFunc);
+            Log::vError("%s: Failed trying to verify Nym for recipient.\n",
+                        szFunc);
             return false;
         }
         const OTAsymmetricKey& thePubkey = nymRecipient.GetPublicEncrKey();
@@ -746,10 +745,9 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
             pMsg->SaveContract();
         }
         else {
-            OTLog::vError(
-                "%s: Failed trying to seal envelope containing message "
-                "(or while grabbing the base64-encoded result.)\n",
-                szFunc);
+            Log::vError("%s: Failed trying to seal envelope containing message "
+                        "(or while grabbing the base64-encoded result.)\n",
+                        szFunc);
             return false;
         }
 
@@ -830,7 +828,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
         else // should never happen
         {
             const String strRecipientNymID(RECIPIENT_NYM_ID);
-            OTLog::vError(
+            Log::vError(
                 "%s: Failed while trying to generate transaction in order to "
                 "add a message to Nymbox: %s\n",
                 szFunc, strRecipientNymID.Get());
@@ -838,8 +836,8 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
     }
     else {
         const String strRecipientNymID(RECIPIENT_NYM_ID);
-        OTLog::vError("%s: Failed while trying to load or verify Nymbox: %s\n",
-                      szFunc, strRecipientNymID.Get());
+        Log::vError("%s: Failed while trying to load or verify Nymbox: %s\n",
+                    szFunc, strRecipientNymID.Get());
     }
 
     return false;

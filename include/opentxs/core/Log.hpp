@@ -193,12 +193,12 @@ public:
 };
 
 // cppcheck-suppress noConstructor
-class OTLog
+class Log
 {
 private:
     // public:  // should be private, but since of bug in msvc.
 
-    static OTLog* pLogger;
+    static Log* pLogger;
 
     static const String m_strVersion;
     static const String m_strPathSeparator;
@@ -218,7 +218,7 @@ private:
     // (Don't call this directly. Use the above #defined macro instead.)
     static Assert::fpt_Assert_sz_n_sz(logAssert);
 
-    static bool CheckLogger(OTLog* pLogger);
+    static bool CheckLogger(Log* pLogger);
 
 public:
     // EXPORT static OTLog& It();

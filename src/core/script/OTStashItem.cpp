@@ -134,7 +134,7 @@
 
 #include <opentxs/core/script/OTStashItem.hpp>
 
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 namespace opentxs
 {

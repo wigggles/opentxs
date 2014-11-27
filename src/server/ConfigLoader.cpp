@@ -136,7 +136,7 @@
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <cstdint>
 
@@ -167,7 +167,7 @@ bool ConfigLoader::load(String& walletFilename)
 
     // First Load, Create new fresh config file if failed loading.
     if (!p_Config->Load()) {
-        OTLog::vOutput(
+        Log::vOutput(
             0, "%s: Note: Unable to Load Config. Creating a new file: %s\n",
             szFunc, strConfigFilename.Get());
         if (!p_Config->Reset()) return false;
@@ -178,9 +178,9 @@ bool ConfigLoader::load(String& walletFilename)
 
     // Second Load, Throw Assert if Failed loading.
     if (!p_Config->Load()) {
-        OTLog::vError("%s: Error: Unable to load config file: %s It should "
-                      "exist, as we just saved it!\n",
-                      szFunc, strConfigFilename.Get());
+        Log::vError("%s: Error: Unable to load config file: %s It should "
+                    "exist, as we just saved it!\n",
+                    szFunc, strConfigFilename.Get());
         OT_FAIL;
     }
 
@@ -189,7 +189,7 @@ bool ConfigLoader::load(String& walletFilename)
         bool bIsNewKey;
         int64_t lValue;
         p_Config->CheckSet_long("logging", "log_level", 0, lValue, bIsNewKey);
-        OTLog::SetLogLevel(static_cast<int32_t>(lValue));
+        Log::SetLogLevel(static_cast<int32_t>(lValue));
     }
 
     // WALLET
@@ -203,7 +203,7 @@ bool ConfigLoader::load(String& walletFilename)
         p_Config->CheckSet_str("wallet", "wallet_filename",
                                SERVER_WALLET_FILENAME, strValue, bIsNewKey);
         walletFilename.Set(strValue);
-        OTLog::vOutput(0, "Using Wallet: %s\n", strValue.Get());
+        Log::vOutput(0, "Using Wallet: %s\n", strValue.Get());
     }
 
     // CRON
@@ -474,7 +474,7 @@ bool ConfigLoader::load(String& walletFilename)
 
     // Done Loading... Lets save any changes...
     if (!p_Config->Save()) {
-        OTLog::vError("%s: Error! Unable to save updated Config!!!\n", szFunc);
+        Log::vError("%s: Error! Unable to save updated Config!!!\n", szFunc);
         OT_FAIL;
     }
 

@@ -135,7 +135,7 @@
 #include <opentxs/core/OTServerContract.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #include <fstream>
 #include <cstring>

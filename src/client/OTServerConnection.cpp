@@ -138,7 +138,7 @@
 #include <opentxs/ext/OTSocket.hpp>
 
 #include <opentxs/core/crypto/OTEnvelope.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>

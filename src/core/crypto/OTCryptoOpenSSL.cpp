@@ -137,7 +137,7 @@
 #include <bitcoin-base58/hash.h> // for Hash()
 #include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/Nym.hpp>

@@ -142,7 +142,7 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -566,8 +566,8 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
 
     if (bTokenIsPresent) {
         otOut << "\nToken::IsTokenAlreadySpent: Token was already spent: "
-              << OTFolders::Spent() << OTLog::PathSeparator() << strAssetFolder
-              << OTLog::PathSeparator() << strTokenHash << "\n";
+              << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
+              << Log::PathSeparator() << strTokenHash << "\n";
         return true; // all errors must return true in this function.
                      // But this is not an error. Token really WAS already
     }                // spent, and this true is for real. The others are just
@@ -603,8 +603,8 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     if (bTokenIsPresent) {
         otErr << "Token::RecordTokenAsSpent: Trying to record token as spent,"
                  " but it was already recorded: " << OTFolders::Spent()
-              << OTLog::PathSeparator() << strAssetFolder
-              << OTLog::PathSeparator() << strTokenHash << "\n";
+              << Log::PathSeparator() << strAssetFolder << Log::PathSeparator()
+              << strTokenHash << "\n";
         return false;
     }
 
@@ -621,8 +621,8 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "Token::RecordTokenAsSpent: Error recording token as "
                  "spent (failed writing armored string):\n"
-              << OTFolders::Spent() << OTLog::PathSeparator() << strAssetFolder
-              << OTLog::PathSeparator() << strTokenHash << "\n";
+              << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
+              << Log::PathSeparator() << strTokenHash << "\n";
         return false;
     }
 
@@ -631,8 +631,8 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
                                strAssetFolder.Get(), strTokenHash.Get());
     if (!bSaved) {
         otErr << "Token::RecordTokenAsSpent: Error saving file: "
-              << OTFolders::Spent() << OTLog::PathSeparator() << strAssetFolder
-              << OTLog::PathSeparator() << strTokenHash << "\n";
+              << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
+              << Log::PathSeparator() << strTokenHash << "\n";
     }
 
     return bSaved;

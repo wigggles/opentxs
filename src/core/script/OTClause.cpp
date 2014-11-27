@@ -135,7 +135,7 @@
 #include <opentxs/core/script/OTClause.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 // ------------- OPERATIONS -------------
 // Below this point, have all the actions that a party might do.

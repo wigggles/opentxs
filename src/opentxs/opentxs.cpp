@@ -235,7 +235,7 @@
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTAPI.hpp>
 
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Version.hpp>
 

@@ -134,7 +134,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -191,7 +191,7 @@ bool OTCron::SaveCron()
     if (!SignContract(*m_pServerNym) || !SaveContract() ||
         !SaveContract(szFoldername, szFilename)) {
         otErr << "Error saving main Cronfile:\n" << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
     else

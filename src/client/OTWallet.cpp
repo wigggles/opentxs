@@ -141,7 +141,7 @@
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -1584,7 +1584,7 @@ bool OTWallet::SaveWallet(const char* szFilename)
         {
             otErr << "OTWallet::SaveWallet: Error saving wallet (failed "
                      "writing armored string):\n" << m_strDataFolder
-                  << OTLog::PathSeparator() << m_strFilename << "\n";
+                  << Log::PathSeparator() << m_strFilename << "\n";
             return false;
         }
 

@@ -135,7 +135,7 @@
 #include "../ot_made_easy_ot.hpp"
 #include <opentxs/client/ot_otapi_ot.hpp>
 
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 using namespace opentxs;

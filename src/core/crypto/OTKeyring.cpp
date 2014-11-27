@@ -140,7 +140,7 @@
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTData.hpp>

@@ -136,7 +136,7 @@
 #include <opentxs/core/crypto/OTCredential.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
@@ -316,7 +316,7 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
 
     // Error loading x509CertAndPrivateKey.
     if (!bLoadedKey)
-        OTLog::vOutput(
+        Log::vOutput(
             bChecking ? 1 : 0,
             "%s: %s: (%s: is %s).  Unable to load credentials, "
             "cert and private key for: %s (maybe this nym doesn't exist?)\n",
@@ -540,18 +540,17 @@ bool Nym::AddNewMasterCredential(
         }
 
         if (!b1 || !(mapPublic.size() > sizeMapPublic)) {
-            OTLog::vError("In %s, line %d: Failed %s public signing key in "
-                          "OTPseudonym::%s.\n",
-                          __FILE__, __LINE__, strPublicError.Get(),
-                          __FUNCTION__);
+            Log::vError("In %s, line %d: Failed %s public signing key in "
+                        "OTPseudonym::%s.\n",
+                        __FILE__, __LINE__, strPublicError.Get(), __FUNCTION__);
             return false;
         }
 
         if (!b2 || !(mapPrivate.size() > sizeMapPrivate)) {
-            OTLog::vError("In %s, line %d: Failed %s private signing key in "
-                          "OTPseudonym::%s.\n",
-                          __FILE__, __LINE__, strPrivateError.Get(),
-                          __FUNCTION__);
+            Log::vError("In %s, line %d: Failed %s private signing key in "
+                        "OTPseudonym::%s.\n",
+                        __FILE__, __LINE__, strPrivateError.Get(),
+                        __FUNCTION__);
             return false;
         }
         // *************************************************************************************8
@@ -871,7 +870,7 @@ bool Nym::AddNewMasterCredential(
     //
     String strFoldername, strFilename;
     strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         OTLog::PathSeparator(), strNymID.Get());
+                         Log::PathSeparator(), strNymID.Get());
     strFilename.Format("%s", pMaster->GetMasterCredID().Get());
     const bool bSaved =
         const_cast<OTMasterkey&>(pMaster->GetMasterkey())
@@ -972,7 +971,7 @@ bool Nym::AddNewSubkey(const Identifier& idMasterCredential,
 
     String strFoldername, strFilename;
     strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         OTLog::PathSeparator(), strNymID.Get());
+                         Log::PathSeparator(), strNymID.Get());
     strFilename.Format("%s", strSubkeyID.Get());
     const bool bSaved =
         pSubkey->SaveContract(strFoldername.Get(), strFilename.Get());
@@ -1053,7 +1052,7 @@ bool Nym::AddNewSubcredential(
 
     String strFoldername, strFilename;
     strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         OTLog::PathSeparator(), strNymID.Get());
+                         Log::PathSeparator(), strNymID.Get());
     strFilename.Format("%s", strSubcredentialID.Get());
     const bool bSaved =
         pSubcredential->SaveContract(strFoldername.Get(), strFilename.Get());
@@ -3630,7 +3629,7 @@ bool Nym::SavePublicKey(const String& strPath) const
 
         if (!bStored) {
             otErr << "Failure in OTPseudonym::SavePublicKey while saving to "
-                     "storage: " << szFoldername << OTLog::PathSeparator()
+                     "storage: " << szFoldername << Log::PathSeparator()
                   << szFilename << "\n";
             return false;
         }
@@ -3887,7 +3886,7 @@ bool Nym::SavePseudonym()
         m_strNymfile.Format("%s", nymID.Get());
     }
 
-    otInfo << "Saving nym to: " << OTFolders::Nym() << OTLog::PathSeparator()
+    otInfo << "Saving nym to: " << OTFolders::Nym() << Log::PathSeparator()
            << m_strNymfile << "\n";
 
     return SavePseudonym(OTFolders::Nym().Get(), m_strNymfile.Get());
@@ -3905,7 +3904,7 @@ bool Nym::SavePseudonym(const char* szFoldername, const char* szFilename)
         OTDB::StorePlainString(strNym.Get(), szFoldername, szFilename);
     if (!bSaved)
         otErr << __FUNCTION__ << ": Error saving file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
 
     return bSaved;
 }
@@ -4194,8 +4193,7 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
         else {
             otErr << __FUNCTION__
                   << ": Failed trying to load credential list from file: "
-                  << szFoldername << OTLog::PathSeparator() << szFilename
-                  << "\n";
+                  << szFoldername << Log::PathSeparator() << szFilename << "\n";
         }
     }
 

@@ -132,7 +132,7 @@
 
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/Contract.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>

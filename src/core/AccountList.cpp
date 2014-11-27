@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/AccountList.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
 

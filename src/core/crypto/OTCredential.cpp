@@ -148,7 +148,7 @@
 
 #include <opentxs/core/crypto/OTCredential.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTSubkey.hpp>

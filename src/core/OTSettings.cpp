@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/OTSettings.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 
 #include "simpleini/SimpleIni.h"
@@ -237,8 +237,8 @@ bool OTSettings::LogChange_str(const String& strSection, const String& strKey,
                                     : "nullptr";
 
     String strCategory, strOption;
-    if (!OTLog::StringFill(strCategory, strSection.Get(), 12)) return false;
-    if (!OTLog::StringFill(strOption, strKey.Get(), 30, " to:")) return false;
+    if (!Log::StringFill(strCategory, strSection.Get(), 12)) return false;
+    if (!Log::StringFill(strOption, strKey.Get(), 30, " to:")) return false;
 
     otWarn << "Setting " << strCategory << " " << strOption << " " << szValue
            << " \n";

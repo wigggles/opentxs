@@ -136,7 +136,7 @@
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
 #include <opentxs/ext/OTSocket.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/OTSettings.hpp>
@@ -193,7 +193,7 @@ void MessageProcessor::run()
             otErr << __FUNCTION__ << ": zmq_poll error, errno=" << errno
                   << "\n";
             // we do not want busy loop if something goes wrong
-            OTLog::SleepMilliseconds(100);
+            Log::SleepMilliseconds(100);
         }
     }
 }
@@ -203,7 +203,7 @@ void MessageProcessor::processSocket()
     zmq::message_t requestMessage;
 
     if (!zmqSocket_->recv(&requestMessage)) {
-        OTLog::Error("zeromq recv() failed\n");
+        Log::Error("zeromq recv() failed\n");
         return;
     }
 
@@ -222,10 +222,10 @@ void MessageProcessor::processSocket()
     memcpy(responseMsg.data(), responseString.data(), responseString.size());
 
     if (!zmqSocket_->send(responseMsg)) {
-        OTLog::vError("MessageProcessor: failed to send response\n"
-                      "request:\n%s\n\n"
-                      "response:\n%s\n\n",
-                      requestString.c_str(), responseString.c_str());
+        Log::vError("MessageProcessor: failed to send response\n"
+                    "request:\n%s\n\n"
+                    "response:\n%s\n\n",
+                    requestString.c_str(), responseString.c_str());
     }
 }
 
@@ -240,17 +240,17 @@ bool MessageProcessor::processMessage(const std::string& messageString,
 
     OTEnvelope envelope;
     if (!envelope.SetAsciiArmoredData(ascMessage)) {
-        OTLog::vError("Error retrieving envelope.\n");
+        Log::vError("Error retrieving envelope.\n");
         return true;
     }
 
     // Now the base64 is decoded and the envelope is in binary form again.
-    OTLog::vOutput(2, "Successfully retrieved envelope from message.\n");
+    Log::vOutput(2, "Successfully retrieved envelope from message.\n");
 
     // Decrypt the Envelope.
     String envelopeContents;
     if (!envelope.Open(server_->GetServerNym(), envelopeContents)) {
-        OTLog::vError("Unable to open envelope.\n");
+        Log::vError("Unable to open envelope.\n");
         return true;
     }
 
@@ -260,9 +260,9 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     Message message;
     if (!envelopeContents.Exists() ||
         !message.LoadContractFromString(envelopeContents)) {
-        OTLog::vError("Error loading message from envelope "
-                      "contents:\n\n%s\n\n",
-                      envelopeContents.Get());
+        Log::vError("Error loading message from envelope "
+                    "contents:\n\n%s\n\n",
+                    envelopeContents.Get());
         return true;
     }
 
@@ -288,9 +288,9 @@ bool MessageProcessor::processMessage(const std::string& messageString,
     if (!processedUserCmd) {
         String s1(message);
 
-        OTLog::vOutput(0, "Unable to process user command: %s\n ********** "
-                          "REQUEST:\n\n%s\n\n",
-                       message.m_strCommand.Get(), s1.Get());
+        Log::vOutput(0, "Unable to process user command: %s\n ********** "
+                        "REQUEST:\n\n%s\n\n",
+                     message.m_strCommand.Get(), s1.Get());
 
         // NOTE: normally you would even HAVE a true or false if
         // we're in this block. ProcessUserCommand()
@@ -317,13 +317,13 @@ bool MessageProcessor::processMessage(const std::string& messageString,
 
         String s2(replyMessage);
 
-        OTLog::vOutput(0, " ********** RESPONSE:\n\n%s\n\n", s2.Get());
+        Log::vOutput(0, " ********** RESPONSE:\n\n%s\n\n", s2.Get());
     }
     else {
         // At this point the reply is ready to go, and client
         // has the public key of the recipient...
-        OTLog::vOutput(1, "Successfully processed user command: %s.\n",
-                       message.m_strCommand.Get());
+        Log::vOutput(1, "Successfully processed user command: %s.\n",
+                     message.m_strCommand.Get());
     }
 
     // IF ProcessUserCommand returned true, THEN we process the
@@ -344,14 +344,14 @@ bool MessageProcessor::processMessage(const std::string& messageString,
             client.SealMessageForRecipient(replyMessage, recipientEnvelope);
 
         if (!sealed) {
-            OTLog::vOutput(0, "Unable to seal envelope. (No reply will be "
-                              "sent.)\n");
+            Log::vOutput(0, "Unable to seal envelope. (No reply will be "
+                            "sent.)\n");
             return true;
         }
 
         OTASCIIArmor ascReply;
         if (!recipientEnvelope.GetAsciiArmoredData(ascReply)) {
-            OTLog::vOutput(
+            Log::vOutput(
                 0,
                 "Unable to GetAsciiArmoredData from sealed "
                 "envelope int oOTASCIIArmor object. (No reply envelope will be "
@@ -364,10 +364,10 @@ bool MessageProcessor::processMessage(const std::string& messageString,
                    ascReply.WriteArmoredString(output, "ENVELOPE");
 
         if (!val || !output.Exists()) {
-            OTLog::vOutput(
-                0, "Unable to WriteArmoredString from "
-                   "OTASCIIArmor object into OTString object. (No reply "
-                   "envelope will be sent.)\n");
+            Log::vOutput(0,
+                         "Unable to WriteArmoredString from "
+                         "OTASCIIArmor object into OTString object. (No reply "
+                         "envelope will be sent.)\n");
             return true;
         }
 
@@ -379,9 +379,9 @@ bool MessageProcessor::processMessage(const std::string& messageString,
         String replyString(replyMessage);
 
         if (!replyString.Exists()) {
-            OTLog::vOutput(0, "Failed trying to grab the reply "
-                              "in OTString form. "
-                              "(No reply message will be sent.)\n");
+            Log::vOutput(0, "Failed trying to grab the reply "
+                            "in OTString form. "
+                            "(No reply message will be sent.)\n");
             return true;
         }
 
@@ -391,10 +391,10 @@ bool MessageProcessor::processMessage(const std::string& messageString,
             ascReply.Exists() && ascReply.WriteArmoredString(output, "MESSAGE");
 
         if (!val || !output.Exists()) {
-            OTLog::vOutput(
-                0, "Unable to WriteArmoredString from "
-                   "OTASCIIArmor object into OTString object. (No reply "
-                   "message will be sent.)\n");
+            Log::vOutput(0,
+                         "Unable to WriteArmoredString from "
+                         "OTASCIIArmor object into OTString object. (No reply "
+                         "message will be sent.)\n");
             return true;
         }
 

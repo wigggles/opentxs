@@ -149,7 +149,7 @@
 #include <opentxs/core/crypto/OTSubkey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCredential.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #include "irrxml/irrXML.hpp"
 
@@ -193,15 +193,15 @@ int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_strNymID = xml->getAttributeValue("nymID");
         m_strMasterCredID = xml->getAttributeValue("masterCredentialID");
 
-        OTLog::Output(1, "Loading keyCredential...\n");
+        Log::Output(1, "Loading keyCredential...\n");
         retval = 1;
     }
     else if (nodeName.Compare("masterSigned")) {
         if (!Contract::LoadEncodedTextField(xml, m_strMasterSigned)) {
-            OTLog::vError("Error in %s line %d: failed loading expected "
-                          "master-signed version while loading "
-                          "keyCredential.\n",
-                          __FILE__, __LINE__);
+            Log::vError("Error in %s line %d: failed loading expected "
+                        "master-signed version while loading "
+                        "keyCredential.\n",
+                        __FILE__, __LINE__);
             return -1;
         }
         retval = 1;
@@ -273,35 +273,35 @@ bool OTSubkey::VerifySignedByMaster()
         // Here we need to MAKE SURE that the "master signed" version contains
         // the same CONTENTS as the actual version.
         if (!GetNymID().Compare(masterKey.GetNymID())) {
-            OTLog::vOutput(0, "%s: Failure, NymID of this key credential "
-                              "doesn't match NymID of master-signed version of "
-                              "this key credential.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: Failure, NymID of this key credential "
+                            "doesn't match NymID of master-signed version of "
+                            "this key credential.\n",
+                         __FUNCTION__);
             return false;
         }
 
         if (!GetNymIDSource().Compare(masterKey.GetNymIDSource())) {
-            OTLog::vOutput(0, "%s: Failure, NymIDSource of this key credential "
-                              "doesn't match NymIDSource of master-signed "
-                              "version of this key credential.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: Failure, NymIDSource of this key credential "
+                            "doesn't match NymIDSource of master-signed "
+                            "version of this key credential.\n",
+                         __FUNCTION__);
             return false;
         }
 
         if (!GetMasterCredID().Compare(masterKey.GetMasterCredID())) {
-            OTLog::vOutput(0, "%s: Failure, MasterCredID of this key "
-                              "credential doesn't match MasterCredID of "
-                              "master-signed version of this key credential.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: Failure, MasterCredID of this key "
+                            "credential doesn't match MasterCredID of "
+                            "master-signed version of this key credential.\n",
+                         __FUNCTION__);
             return false;
         }
 
         if (GetPublicMap().size() > 0 &&
             GetPublicMap() != masterKey.GetPublicMap()) {
-            OTLog::vOutput(0, "%s: Failure, public info of this key credential "
-                              "doesn't match public info of master-signed "
-                              "version of this key credential.\n",
-                           __FUNCTION__);
+            Log::vOutput(0, "%s: Failure, public info of this key credential "
+                            "doesn't match public info of master-signed "
+                            "version of this key credential.\n",
+                         __FUNCTION__);
             return false;
         }
 

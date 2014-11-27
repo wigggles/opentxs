@@ -141,7 +141,7 @@
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -855,8 +855,8 @@ bool Purse::LoadPurse(const char* szNotaryID, const char* szNymID,
 
     if (!m_strFilename.Exists()) {
         m_strFilename.Format("%s%s%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strNymID.Get(),
-                             OTLog::PathSeparator(),
+                             Log::PathSeparator(), strNymID.Get(),
+                             Log::PathSeparator(),
                              strInstrumentDefinitionID.Get());
     }
 
@@ -870,9 +870,8 @@ bool Purse::LoadPurse(const char* szNotaryID, const char* szNymID,
     if (false ==
         OTDB::Exists(szFolder1name, szFolder2name, szFolder3name, szFilename)) {
         otInfo << "Purse::LoadPurse: File does not exist: " << szFolder1name
-               << OTLog::PathSeparator() << szFolder2name
-               << OTLog::PathSeparator() << szFolder3name
-               << OTLog::PathSeparator() << szFilename << "\n";
+               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+               << szFolder3name << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -882,9 +881,8 @@ bool Purse::LoadPurse(const char* szNotaryID, const char* szNymID,
 
     if (strFileContents.length() < 2) {
         otErr << "Purse::LoadPurse: Error reading file: " << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFolder3name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFolder3name << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -915,8 +913,8 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szNymID,
 
     if (!m_strFilename.Exists()) {
         m_strFilename.Format("%s%s%s%s%s", strNotaryID.Get(),
-                             OTLog::PathSeparator(), strNymID.Get(),
-                             OTLog::PathSeparator(),
+                             Log::PathSeparator(), strNymID.Get(),
+                             Log::PathSeparator(),
                              strInstrumentDefinitionID.Get());
     }
 
@@ -931,9 +929,9 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szNymID,
 
     if (!SaveContractRaw(strRawFile)) {
         otErr << "Purse::SavePurse: Error saving Pursefile (to string):\n"
-              << szFolder1name << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFolder3name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << szFolder1name << Log::PathSeparator() << szFolder2name
+              << Log::PathSeparator() << szFolder3name << Log::PathSeparator()
+              << szFilename << "\n";
         return false;
     }
 
@@ -943,9 +941,9 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szNymID,
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
         otErr << "Purse::SavePurse: Error saving Pursefile (failed writing "
-                 "armored string):\n" << szFolder1name << OTLog::PathSeparator()
-              << szFolder2name << OTLog::PathSeparator() << szFolder3name
-              << OTLog::PathSeparator() << szFilename << "\n";
+                 "armored string):\n" << szFolder1name << Log::PathSeparator()
+              << szFolder2name << Log::PathSeparator() << szFolder3name
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -954,9 +952,8 @@ bool Purse::SavePurse(const char* szNotaryID, const char* szNymID,
         szFilename); // <=== SAVING TO DATA STORE.
     if (!bSaved) {
         otErr << "Purse::SavePurse: Error writing to file: " << szFolder1name
-              << OTLog::PathSeparator() << szFolder2name
-              << OTLog::PathSeparator() << szFolder3name
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
+              << szFolder3name << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 

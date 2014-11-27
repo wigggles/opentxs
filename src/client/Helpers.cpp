@@ -138,7 +138,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 namespace opentxs
 {

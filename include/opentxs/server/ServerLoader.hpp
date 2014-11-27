@@ -137,7 +137,7 @@
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #define SERVER_CONFIG_KEY "server"
 
@@ -202,7 +202,7 @@ public:
 
     ~ServerLoader()
     {
-        OTLog::vOutput(0, "\n\n Shutting down and cleaning up.\n");
+        Log::vOutput(0, "\n\n Shutting down and cleaning up.\n");
 
         if (server_) {
             delete server_;

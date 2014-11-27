@@ -135,7 +135,7 @@
 #include <opentxs/core/script/OTStash.hpp>
 
 #include <opentxs/core/Contract.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTStashItem.hpp>
 #include <opentxs/core/OTStorage.hpp>
 

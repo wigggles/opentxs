@@ -138,7 +138,7 @@
 #include <opentxs/core/crypto/OTCaller.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -1194,8 +1194,8 @@ bool OTAsymmetricKey::LoadPrivateKey(
 
     if (!OTDB::Exists(szFoldername, szFilename)) {
         otOut << "OTAsymmetricKey::LoadPrivateKey: Unable to find private key "
-                 "file: " << szFoldername << OTLog::PathSeparator()
-              << szFilename << "\n";
+                 "file: " << szFoldername << Log::PathSeparator() << szFilename
+              << "\n";
         return false;
     }
 
@@ -1209,7 +1209,7 @@ bool OTAsymmetricKey::LoadPrivateKey(
 
     if (strFileContents.length() < 2) {
         otErr << "OTAsymmetricKey::LoadPrivateKey: Error reading file: "
-              << szFoldername << OTLog::PathSeparator() << szFilename << "\n";
+              << szFoldername << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -1274,7 +1274,7 @@ bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
 
     if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
@@ -1284,7 +1284,7 @@ bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
 
     if (strFileContents.length() < 2) {
         otErr << __FUNCTION__ << ": Error reading file: " << szFoldername
-              << OTLog::PathSeparator() << szFilename << "\n";
+              << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 

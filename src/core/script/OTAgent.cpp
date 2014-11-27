@@ -134,7 +134,7 @@
 
 #include <opentxs/core/recurring/OTAgreement.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
 #include <opentxs/core/Nym.hpp>

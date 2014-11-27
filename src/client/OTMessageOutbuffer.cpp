@@ -137,7 +137,7 @@
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 
 #include <memory>
@@ -225,12 +225,12 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
     //
     bool bAlreadyExists = false, bIsNewFolder = false;
     String strFolder, strFolder1, strFolder2;
-    strFolder1.Format("%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
+    strFolder1.Format("%s%s%s", OTFolders::Nym().Get(), Log::PathSeparator(),
                       theMessage.m_strNotaryID.Get());
-    strFolder2.Format("%s%s%s", strFolder1.Get(), OTLog::PathSeparator(),
+    strFolder2.Format("%s%s%s", strFolder1.Get(), Log::PathSeparator(),
                       "sent" /*todo hardcoding*/);
 
-    strFolder.Format("%s%s%s", strFolder2.Get(), OTLog::PathSeparator(),
+    strFolder.Format("%s%s%s", strFolder2.Get(), Log::PathSeparator(),
                      theMessage.m_strNymID.Get());
 
     String strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
@@ -342,10 +342,10 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
     // Didn't find it? Okay let's load it from local storage, if it's there...
     //
     String strFolder, strFile;
-    strFolder.Format(
-        "%s%s%s%s%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
-        strNotaryID.Get(), OTLog::PathSeparator(), "sent",
-        /*todo hardcoding*/ OTLog::PathSeparator(), strNymID.Get());
+    strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
+                     Log::PathSeparator(), strNotaryID.Get(),
+                     Log::PathSeparator(), "sent",
+                     /*todo hardcoding*/ Log::PathSeparator(), strNymID.Get());
     strFile.Format("%" PRId64 ".msg", lRequestNum);
 
     // Check the existing list, if it exists.
@@ -597,9 +597,9 @@ void OTMessageOutbuffer::Clear(const String* pstrNotaryID,
             if (nullptr != pstrNymID && nullptr != pstrNotaryID) {
                 String strFolder, strFile;
                 strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
-                                 OTLog::PathSeparator(), pstrNotaryID->Get(),
-                                 OTLog::PathSeparator(), "sent",
-                                 /*todo hardcoding*/ OTLog::PathSeparator(),
+                                 Log::PathSeparator(), pstrNotaryID->Get(),
+                                 Log::PathSeparator(), "sent",
+                                 /*todo hardcoding*/ Log::PathSeparator(),
                                  pstrNymID->Get());
                 strFile.Format("%" PRId64 ".msg", lRequestNum);
 
@@ -696,10 +696,10 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
                                            const String& strNymID)
 {
     String strFolder, strFile;
-    strFolder.Format(
-        "%s%s%s%s%s%s%s", OTFolders::Nym().Get(), OTLog::PathSeparator(),
-        strNotaryID.Get(), OTLog::PathSeparator(), "sent",
-        /*todo hardcoding*/ OTLog::PathSeparator(), strNymID.Get());
+    strFolder.Format("%s%s%s%s%s%s%s", OTFolders::Nym().Get(),
+                     Log::PathSeparator(), strNotaryID.Get(),
+                     Log::PathSeparator(), "sent",
+                     /*todo hardcoding*/ Log::PathSeparator(), strNymID.Get());
     strFile.Format("%" PRId64 ".msg", lRequestNum);
 
     auto it = messagesMap_.begin();

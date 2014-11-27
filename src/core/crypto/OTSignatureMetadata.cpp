@@ -134,7 +134,7 @@
 
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <string>
 
 namespace opentxs

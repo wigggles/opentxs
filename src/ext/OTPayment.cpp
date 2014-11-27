@@ -140,7 +140,7 @@
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/Cheque.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #include <irrxml/irrXML.hpp>
 
