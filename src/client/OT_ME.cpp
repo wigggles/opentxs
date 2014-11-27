@@ -148,7 +148,7 @@
 #include "commands/CmdWithdrawCash.hpp"
 
 #include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/script/OTVariable.hpp>

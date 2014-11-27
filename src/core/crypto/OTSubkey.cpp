@@ -149,7 +149,7 @@
 #include <opentxs/core/crypto/OTSubkey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCredential.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #include "irrxml/irrXML.hpp"
 

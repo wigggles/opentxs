@@ -149,7 +149,7 @@
 #include <opentxs/core/crypto/OTKeyCredential.hpp>
 
 #include <opentxs/core/crypto/OTCredential.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
 

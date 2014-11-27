@@ -132,7 +132,7 @@
 
 #include "ot_utility_ot.hpp"
 #include <opentxs/client/ot_otapi_ot.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #include <locale>
 

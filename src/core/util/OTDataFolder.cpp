@@ -134,7 +134,7 @@
 
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #ifdef _WIN32
 #include <direct.h>

@@ -135,7 +135,7 @@
 
 #include <opentxs/core/OTNumList.hpp>
 
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
 #include <cinttypes>

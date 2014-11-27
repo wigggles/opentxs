@@ -151,7 +151,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/OTData.hpp>

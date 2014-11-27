@@ -135,7 +135,7 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 
 #include <opentxs/core/crypto/OTCrypto.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>

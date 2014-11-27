@@ -133,7 +133,7 @@
 #ifndef OPENTXS_SERVER_HELPERS_HPP
 #define OPENTXS_SERVER_HELPERS_HPP
 
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <string>
 #include <iostream>
 

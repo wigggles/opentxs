@@ -135,7 +135,7 @@
 #include <opentxs/core/script/OTBylaw.hpp>
 
 #include <opentxs/core/script/OTClause.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTScriptable.hpp>
 
 #include <set>

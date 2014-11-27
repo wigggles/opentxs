@@ -134,7 +134,7 @@
 
 #include "CmdWithdrawVoucher.hpp"
 
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
 using namespace std;

@@ -134,7 +134,7 @@
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/OTNumList.hpp>

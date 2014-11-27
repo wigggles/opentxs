@@ -136,7 +136,7 @@
 
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTScript.hpp>
 

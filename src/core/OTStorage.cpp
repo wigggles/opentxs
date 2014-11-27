@@ -135,7 +135,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/OTStoragePB.hpp>

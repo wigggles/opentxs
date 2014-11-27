@@ -134,7 +134,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 
 #include <irrxml/irrXML.hpp>

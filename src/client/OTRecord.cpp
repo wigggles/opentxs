@@ -142,7 +142,7 @@
 
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/Ledger.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #include <memory>
 #include <algorithm>

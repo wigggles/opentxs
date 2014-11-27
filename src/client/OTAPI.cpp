@@ -135,7 +135,7 @@
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 namespace opentxs
 {

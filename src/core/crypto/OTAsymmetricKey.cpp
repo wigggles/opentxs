@@ -138,7 +138,7 @@
 #include <opentxs/core/crypto/OTCaller.hpp>
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
 #include <opentxs/core/OTStorage.hpp>

@@ -133,7 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/util/OTPaths.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #ifdef _WIN32
 #include <opentxs/core/util/OTWindowsRegistryTools.hpp>
 #endif

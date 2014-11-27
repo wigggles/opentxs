@@ -155,7 +155,7 @@
 #include <opentxs/core/Item.hpp>
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <deque>
 #include <memory>
 #include <list>

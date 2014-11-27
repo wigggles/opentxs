@@ -136,7 +136,7 @@
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/OTSettings.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <cstdint>
 

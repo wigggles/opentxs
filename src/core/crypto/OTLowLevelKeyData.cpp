@@ -136,7 +136,7 @@
 #include <opentxs/core/crypto/OTLowLevelKeyData.hpp>
 
 #include <opentxs/core/crypto/OTKeypair.hpp>
-#include <opentxs/core/OTLog.hpp>
+#include <opentxs/core/Log.hpp>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
