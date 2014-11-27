@@ -151,7 +151,7 @@ class OTClient;
 class OTEnvelope;
 class Ledger;
 class Message;
-class OTNumList;
+class NumList;
 class OTNym_or_SymmetricKey;
 class OTPassword;
 class OTPasswordData;
@@ -226,15 +226,15 @@ public:
     EXPORT bool LoadWallet() const;
 
     EXPORT time64_t GetTime() const;
-    EXPORT bool NumList_Add(OTNumList& theList,
-                            const OTNumList& theNewNumbers) const;
-    EXPORT bool NumList_Remove(OTNumList& theList,
-                               const OTNumList& theOldNumbers) const;
-    EXPORT bool NumList_VerifyQuery(const OTNumList& theList,
-                                    const OTNumList& theQueryNumbers) const;
-    EXPORT bool NumList_VerifyAll(const OTNumList& theList,
-                                  const OTNumList& theQueryNumbers) const;
-    EXPORT int32_t NumList_Count(const OTNumList& theList) const;
+    EXPORT bool NumList_Add(NumList& theList,
+                            const NumList& theNewNumbers) const;
+    EXPORT bool NumList_Remove(NumList& theList,
+                               const NumList& theOldNumbers) const;
+    EXPORT bool NumList_VerifyQuery(const NumList& theList,
+                                    const NumList& theQueryNumbers) const;
+    EXPORT bool NumList_VerifyAll(const NumList& theList,
+                                  const NumList& theQueryNumbers) const;
+    EXPORT int32_t NumList_Count(const NumList& theList) const;
     // Reading data about the local wallet.. presumably already loaded.
 
     EXPORT int32_t GetNymCount() const;

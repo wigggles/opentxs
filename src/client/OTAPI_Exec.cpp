@@ -434,7 +434,7 @@ std::string OTAPI_Exec::NumList_Add(const std::string& strNumList,
     }
 
     // strNumList can be null, (create a new one).
-    OTNumList theList, theNewNumbers(strNumbers);
+    NumList theList, theNewNumbers(strNumbers);
 
     if ("" != strNumList) {
         const String otstrNumList(strNumList);
@@ -475,7 +475,7 @@ std::string OTAPI_Exec::NumList_Remove(const std::string& strNumList,
         return "";
     }
 
-    OTNumList theList(strNumList), theNewNumbers(strNumbers);
+    NumList theList(strNumList), theNewNumbers(strNumbers);
 
     const bool& bRemoved = OTAPI()->NumList_Remove(theList, theNewNumbers);
 
@@ -510,7 +510,7 @@ bool OTAPI_Exec::NumList_VerifyQuery(const std::string& strNumList,
         return false;
     }
 
-    OTNumList theList(strNumList), theNewNumbers(strNumbers);
+    NumList theList(strNumList), theNewNumbers(strNumbers);
 
     const bool& bVerified =
         OTAPI()->NumList_VerifyQuery(theList, theNewNumbers);
@@ -537,7 +537,7 @@ bool OTAPI_Exec::NumList_VerifyAll(const std::string& strNumList,
         otErr << __FUNCTION__ << ": Null: strNumbers passed in!\n";
         return false;
     }
-    OTNumList theList(strNumList), theNewNumbers(strNumbers);
+    NumList theList(strNumList), theNewNumbers(strNumbers);
 
     const bool& bVerified = OTAPI()->NumList_VerifyAll(theList, theNewNumbers);
 
@@ -556,7 +556,7 @@ int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
         otErr << __FUNCTION__ << ": Null: strNumList passed in!\n";
         return OT_ERROR;
     }
-    OTNumList theList(strNumList);
+    NumList theList(strNumList);
 
     return OTAPI()->NumList_Count(theList);
 }
@@ -608,7 +608,7 @@ std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
         return "";
     }
     const Identifier nymId(NYM_ID), notaryID(NOTARY_ID);
-    OTNumList numlist;
+    NumList numlist;
     std::string str_return;
 
     if (OTCronItem::GetActiveCronTransNums(numlist, nymId, notaryID)) {
@@ -5203,7 +5203,7 @@ std::string OTAPI_Exec::EasyProposePlan(
     time64_t PAYMENT_PLAN_LENGTH = OT_TIME_ZERO;
     int32_t PAYMENT_PLAN_MAX_PAYMENTS = 0;
     if (!DATE_RANGE.empty()) {
-        OTNumList theList;
+        NumList theList;
         const String otstrNumList(DATE_RANGE);
         theList.Add(otstrNumList);
         // VALID_FROM
@@ -5220,7 +5220,7 @@ std::string OTAPI_Exec::EasyProposePlan(
         }
     }
     if (!INITIAL_PAYMENT.empty()) {
-        OTNumList theList;
+        NumList theList;
         const String otstrNumList(INITIAL_PAYMENT);
         theList.Add(otstrNumList);
         // INITIAL_PAYMENT_AMOUNT
@@ -5238,7 +5238,7 @@ std::string OTAPI_Exec::EasyProposePlan(
         }
     }
     if (!PAYMENT_PLAN.empty()) {
-        OTNumList theList;
+        NumList theList;
         const String otstrNumList(PAYMENT_PLAN);
         theList.Add(otstrNumList);
         // PAYMENT_PLAN_AMOUNT
@@ -5263,7 +5263,7 @@ std::string OTAPI_Exec::EasyProposePlan(
         }
     }
     if (!PLAN_EXPIRY.empty()) {
-        OTNumList theList;
+        NumList theList;
         const String otstrNumList(PLAN_EXPIRY);
         theList.Add(otstrNumList);
         // PAYMENT_PLAN_LENGTH

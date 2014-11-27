@@ -260,8 +260,8 @@ public:
     EXPORT static bool EraseActiveCronReceipt(
         const int64_t& lTransactionNum, const Identifier& nymID,
         const Identifier& notaryID); // Client-side only.
-    EXPORT static bool GetActiveCronTransNums(OTNumList& output, // Client-side
-                                                                 // only.
+    EXPORT static bool GetActiveCronTransNums(NumList& output, // Client-side
+                                                               // only.
                                               const Identifier& nymID,
                                               const Identifier& notaryID);
     inline void SetCreationDate(const time64_t& CREATION_DATE)

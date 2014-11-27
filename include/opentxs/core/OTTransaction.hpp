@@ -542,7 +542,7 @@ public:
                   transactionType theType, const String& strHash,
                   const int64_t& lAdjustment, const int64_t& lDisplayValue,
                   const int64_t& lClosingNum, const int64_t& lRequestNum,
-                  bool bReplyTransSuccess, OTNumList* pNumList = nullptr);
+                  bool bReplyTransSuccess, NumList* pNumList = nullptr);
 
     EXPORT virtual ~OTTransaction();
 
@@ -572,7 +572,7 @@ public:
         m_pParent = &theParent;
     }
 
-    EXPORT bool AddNumbersToTransaction(const OTNumList& theAddition);
+    EXPORT bool AddNumbersToTransaction(const NumList& theAddition);
 
     bool IsAbbreviated() const
     {

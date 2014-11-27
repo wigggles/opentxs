@@ -222,7 +222,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int& theType, String& strHash,
                               int64_t& lAdjustment, int64_t& lDisplayValue,
                               int64_t& lClosingNum, int64_t& lRequestNum,
-                              bool& bReplyTransSuccess, OTNumList* pNumList)
+                              bool& bReplyTransSuccess, NumList* pNumList)
 {
 
     const String strOrigin = xml->getAttributeValue("numberOfOrigin");

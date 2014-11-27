@@ -503,7 +503,7 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             // I also need to update my
             // "most recent" highest trans # to reflect these new numbers.
             //
-            OTNumList theOutput;
+            NumList theOutput;
             pTransaction->GetNumList(theOutput); // Get the numlist from the
                                                  // successNotice transaction
             std::set<int64_t> theNumbers;        //
@@ -719,7 +719,7 @@ bool OTClient::AcceptEntireNymbox(Ledger& theNymbox,
             // then only adding them for real if we get a server
             // acknowledgment.)
             //
-            OTNumList theNumlist, theBlankList;
+            NumList theNumlist, theBlankList;
             pTransaction->GetNumList(theNumlist);
             std::set<int64_t> theNumbers;
             theNumlist.Output(theNumbers);
@@ -1601,7 +1601,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                         pCronItem->SaveActiveCronReceipt(
                                             pNym->GetConstID());
                                     }
-                                    OTNumList numlistOutpayment(
+                                    NumList numlistOutpayment(
                                         lNymOpeningNumber);
                                     const int32_t nOutpaymentIndex =
                                         GetOutpaymentsIndexByTransNum(
@@ -1893,8 +1893,7 @@ void OTClient::ProcessIncomingTransactions(OTServerConnection& theConnection,
                                                     continue;
                                                 }
 
-                                                OTNumList
-                                                    numlistIncomingPayment;
+                                                NumList numlistIncomingPayment;
 
                                                 pPayment
                                                     ->GetAllTransactionNumbers(
@@ -5423,7 +5422,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                             // acknowledged AND rejected
                                             // smart contracts.)
                                             //
-                                            OTNumList numlistOutpayment(
+                                            NumList numlistOutpayment(
                                                 lNymOpeningNumber);
                                             String strInstrument; // If
                                                                   // the
@@ -5898,7 +5897,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                             continue;
                                                         }
 
-                                                        OTNumList
+                                                        NumList
                                                             numlistIncomingPayment;
 
                                                         pPayment->GetAllTransactionNumbers(

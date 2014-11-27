@@ -143,7 +143,7 @@ class String;
 class OTTransaction;
 class Ledger;
 class Identifier;
-class OTNumList;
+class NumList;
 
 EXPORT const char* GetTransactionTypeString(int transactionNumber);
 
@@ -155,7 +155,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int64_t& lAdjustment, int64_t& lDisplayValue,
                               int64_t& lClosingNum, int64_t& lRequestNum,
                               bool& bReplyTransSuccess,
-                              OTNumList* pNumList = nullptr);
+                              NumList* pNumList = nullptr);
 
 EXPORT bool VerifyBoxReceiptExists(
     const Identifier& NOTARY_ID, const Identifier& NYM_ID,

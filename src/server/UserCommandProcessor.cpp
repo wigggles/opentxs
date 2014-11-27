@@ -1006,9 +1006,9 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     // the client's list. If not,
     // then remove it from my own (server's) internal list as well.
     //
-    OTNumList numlist_to_remove; // a temp variable where we will put the
-                                 // numbers "to be removed" (so we can remove
-                                 // them all at once, after the loop.)
+    NumList numlist_to_remove; // a temp variable where we will put the
+                               // numbers "to be removed" (so we can remove
+                               // them all at once, after the loop.)
     const int32_t nAcknowledgedNumCount =
         pNym->GetAcknowledgedNumCount(NOTARY_ID);
 
@@ -1667,7 +1667,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
         // issued,
         // before adding them to the Nymbox.
         //
-        OTNumList theNumlist;
+        NumList theNumlist;
 
         int64_t lFirstTransNum =
             0; // While there may be 20 transaction numbers on this tranasction,

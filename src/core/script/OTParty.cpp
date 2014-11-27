@@ -162,7 +162,7 @@ bool OTParty::HasTransactionNum(const int64_t& lInput) const
     return false;
 }
 
-void OTParty::GetAllTransactionNumbers(OTNumList& numlistOutput) const
+void OTParty::GetAllTransactionNumbers(NumList& numlistOutput) const
 {
     if (m_lOpeningTransNo > 0) numlistOutput.Add(m_lOpeningTransNo);
 

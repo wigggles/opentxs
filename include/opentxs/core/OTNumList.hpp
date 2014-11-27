@@ -153,7 +153,7 @@ class String;
 // Also used in OTMessage, for storing lists of acknowledged
 // request numbers.
 //
-class OTNumList
+class NumList
 {
     std::set<int64_t> m_setData;
 
@@ -163,14 +163,14 @@ class OTNumList
                                       // already there. (At least one of them.)
 
 public:
-    EXPORT OTNumList(const std::set<int64_t>& theNumbers);
+    EXPORT NumList(const std::set<int64_t>& theNumbers);
     //        OTNumList(const char* szNumbers); // removed for security
     // reasons.
-    EXPORT OTNumList(const String& strNumbers);
-    EXPORT OTNumList(const std::string& strNumbers);
-    EXPORT OTNumList(int64_t lInput);
-    EXPORT OTNumList();
-    EXPORT ~OTNumList();
+    EXPORT NumList(const String& strNumbers);
+    EXPORT NumList(const std::string& strNumbers);
+    EXPORT NumList(int64_t lInput);
+    EXPORT NumList();
+    EXPORT ~NumList();
     EXPORT bool Add(const String& strNumbers); // if false, means the numbers
                                                // were already there. (At
                                                // least one of them.)
@@ -185,9 +185,9 @@ public:
     EXPORT bool Verify(const int64_t& theValue) const; // returns true/false
                                                        // (whether value is
                                                        // already there.)
-    EXPORT bool Add(const OTNumList& theNumList); // if false, means the numbers
-                                                  // were already there. (At
-                                                  // least one of them.)
+    EXPORT bool Add(const NumList& theNumList); // if false, means the numbers
+                                                // were already there. (At
+                                                // least one of them.)
     EXPORT bool Add(const std::set<int64_t>& theNumbers); // if false, means the
                                                           // numbers were
                                                           // already there. (At
@@ -200,13 +200,13 @@ public:
     EXPORT bool Verify(const std::set<int64_t>& theNumbers)
         const; // True/False, based on whether values are already there. (ALL
                // theNumbers must be present.)
-    EXPORT bool Verify(const OTNumList& rhs) const; // True/False, based on
-                                                    // whether OTNumLists MATCH
-                                                    // in COUNT and CONTENT (NOT
-                                                    // ORDER.)
-    EXPORT bool VerifyAny(const OTNumList& rhs) const; // True/False, based on
-                                                       // whether ANY of rhs are
-                                                       // found in *this.
+    EXPORT bool Verify(const NumList& rhs) const; // True/False, based on
+                                                  // whether OTNumLists MATCH
+                                                  // in COUNT and CONTENT (NOT
+                                                  // ORDER.)
+    EXPORT bool VerifyAny(const NumList& rhs) const; // True/False, based on
+                                                     // whether ANY of rhs are
+                                                     // found in *this.
     EXPORT bool VerifyAny(const std::set<int64_t>& setData) const; // Verify
                                                                    // whether
                                                                    // ANY of the

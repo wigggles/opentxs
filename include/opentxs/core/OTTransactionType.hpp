@@ -791,14 +791,14 @@ protected:
     //
     // THIS is where that list is stored:
     //
-    OTNumList m_Numlist; // blanks and successNotice use this instead of having
-                         // a separate transaction for EVERY NUMBER.
+    NumList m_Numlist; // blanks and successNotice use this instead of having
+                       // a separate transaction for EVERY NUMBER.
     // (Had to fix that... way too many box receipts were being downloaded.)
     // Note: I moved this to OTTransactionType so I can use it from within
     // OTItem as well, so when I accept transaction
     // numbers, I am able to list them in the accept item.
 public:
-    EXPORT void GetNumList(OTNumList& theOutput);
+    EXPORT void GetNumList(NumList& theOutput);
     EXPORT static OTTransactionType* TransactionFactory(String strInput);
     bool Contains(const String& strContains);     // Allows you to string-search
                                                   // the raw contract.

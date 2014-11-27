@@ -3344,7 +3344,7 @@ OTTransaction::OTTransaction(
     const int64_t& lInRefDisplay, time64_t the_DATE_SIGNED,
     transactionType theType, const String& strHash, const int64_t& lAdjustment,
     const int64_t& lDisplayValue, const int64_t& lClosingNum,
-    const int64_t& lRequestNum, bool bReplyTransSuccess, OTNumList* pNumList)
+    const int64_t& lRequestNum, bool bReplyTransSuccess, NumList* pNumList)
     : OTTransactionType(theNymID, theAccountID, theNotaryID, lTransactionNum)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(true)
@@ -4053,7 +4053,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const String strNodeName = xml->getNodeName();
 
-    OTNumList* pNumList = nullptr;
+    NumList* pNumList = nullptr;
     if (strNodeName.Compare("nymboxRecord")) {
         pNumList = &m_Numlist;
     }
@@ -4331,7 +4331,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // For "OTTransaction::blank" and "OTTransaction::successNotice"
 // which periodically have more numbers added to them.
 //
-bool OTTransaction::AddNumbersToTransaction(const OTNumList& theAddition)
+bool OTTransaction::AddNumbersToTransaction(const NumList& theAddition)
 {
     return m_Numlist.Add(theAddition);
 }

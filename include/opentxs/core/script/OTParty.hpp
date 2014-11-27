@@ -141,7 +141,7 @@ namespace opentxs
 class Account;
 class OTAgent;
 class Identifier;
-class OTNumList;
+class NumList;
 class OTPartyAccount;
 class Nym;
 class OTScript;
@@ -233,7 +233,7 @@ public:
     // See if a certain transaction number is present.
     // Checks opening number on party, and closing numbers on his accounts.
     bool HasTransactionNum(const int64_t& lInput) const;
-    void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
+    void GetAllTransactionNumbers(NumList& numlistOutput) const;
     // Set aside all the necessary transaction #s from the various Nyms.
     // (Assumes those Nym pointers are available inside their various agents.)
     //
