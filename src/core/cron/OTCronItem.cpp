@@ -300,7 +300,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
 
 // static
 // Client-side only.
-bool OTCronItem::GetActiveCronTransNums(OTNumList& output,
+bool OTCronItem::GetActiveCronTransNums(NumList& output,
                                         const Identifier& nymID,
                                         const Identifier& notaryID)
 {
@@ -362,7 +362,7 @@ bool OTCronItem::EraseActiveCronReceipt(const int64_t& lTransactionNum,
     if (OTDB::Exists(szFoldername, strNotaryID.Get(), strListFilename.Get())) {
         // Load up existing list, to remove the transaction num from it.
         //
-        OTNumList numlist;
+        NumList numlist;
 
         String strNumlist(OTDB::QueryPlainString(
             szFoldername, strNotaryID.Get(), strListFilename.Get()));
@@ -478,7 +478,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     {
         String strListFilename(theNymID);
         strListFilename.Concatenate(".lst"); // nymID.lst
-        OTNumList numlist;
+        NumList numlist;
 
         if (OTDB::Exists(szFoldername, strNotaryID.Get(),
                          strListFilename.Get())) {

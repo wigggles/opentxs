@@ -230,7 +230,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
     return nullptr;
 }
 
-void OTTransactionType::GetNumList(OTNumList& theOutput)
+void OTTransactionType::GetNumList(NumList& theOutput)
 {
     theOutput.Release();
     theOutput.Add(m_Numlist);

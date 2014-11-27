@@ -1990,8 +1990,8 @@ int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         String strExpected; // The record type has a different name for each
                             // box.
-        OTNumList theNumList;
-        OTNumList* pNumList = nullptr;
+        NumList theNumList;
+        NumList* pNumList = nullptr;
         switch (m_Type) {
         case Ledger::nymbox:
             strExpected.Set("nymboxRecord");

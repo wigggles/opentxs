@@ -1017,7 +1017,7 @@ bool OTSmartContract::HasTransactionNum(const int64_t& lInput) const
     return false;
 }
 
-void OTSmartContract::GetAllTransactionNumbers(OTNumList& numlistOutput) const
+void OTSmartContract::GetAllTransactionNumbers(NumList& numlistOutput) const
 {
     for (const auto& it : m_mapParties) {
         const OTParty* pParty = it.second;

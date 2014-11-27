@@ -319,7 +319,7 @@ public:
                                 // chance to expire, etc.
 
     virtual bool HasTransactionNum(const int64_t& lInput) const;
-    virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
+    virtual void GetAllTransactionNumbers(NumList& numlistOutput) const;
 
     virtual bool AddParty(OTParty& theParty); // Takes ownership. Overrides from
                                               // OTScriptable.

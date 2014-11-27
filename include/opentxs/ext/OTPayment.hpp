@@ -139,7 +139,7 @@ namespace opentxs
 {
 
 class Cheque;
-class OTNumList;
+class NumList;
 class OTPaymentPlan;
 class Purse;
 class OTSmartContract;
@@ -355,7 +355,7 @@ public:
                               const Identifier& theNymID) const;
     EXPORT bool GetClosingNum(int64_t& lOutput,
                               const Identifier& theAcctID) const;
-    EXPORT bool GetAllTransactionNumbers(OTNumList& numlistOutput) const;
+    EXPORT bool GetAllTransactionNumbers(NumList& numlistOutput) const;
     EXPORT bool HasTransactionNum(const int64_t& lInput) const;
     EXPORT bool GetMemo(String& strOutput) const;
     EXPORT bool GetInstrumentDefinitionID(Identifier& theOutput) const;

@@ -479,7 +479,7 @@ bool OTAgreement::HasTransactionNum(const int64_t& lInput) const
     return false;
 }
 
-void OTAgreement::GetAllTransactionNumbers(OTNumList& numlistOutput) const
+void OTAgreement::GetAllTransactionNumbers(NumList& numlistOutput) const
 {
 
     if (GetTransactionNum() > 0) numlistOutput.Add(GetTransactionNum());

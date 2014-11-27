@@ -252,7 +252,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage) // must be heap
     // number
     // to that list, and then save it again.
     //
-    OTNumList theNumList;
+    NumList theNumList;
     std::string str_data_filename("sent.dat"); // todo hardcoding.
     if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
         String strNumList(
@@ -350,7 +350,7 @@ Message* OTMessageOutbuffer::GetSentMessage(const int64_t& lRequestNum,
 
     // Check the existing list, if it exists.
     //
-    OTNumList theNumList;
+    NumList theNumList;
     std::string str_data_filename("sent.dat");
     if (OTDB::Exists(strFolder.Get(), str_data_filename)) // todo hardcoding.
     {
@@ -603,7 +603,7 @@ void OTMessageOutbuffer::Clear(const String* pstrNotaryID,
                                  pstrNymID->Get());
                 strFile.Format("%" PRId64 ".msg", lRequestNum);
 
-                OTNumList theNumList;
+                NumList theNumList;
                 std::string str_data_filename("sent.dat"); // todo hardcoding.
                 if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
                     String strNumList(OTDB::QueryPlainString(
@@ -750,7 +750,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(const int64_t& lRequestNum,
     // number
     // from that list, and then save it again.
 
-    OTNumList theNumList;
+    NumList theNumList;
     std::string str_data_filename("sent.dat"); // todo hardcoding.
     if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
         String strNumList(

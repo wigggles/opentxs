@@ -530,7 +530,7 @@ bool OTPayment::GetAmount(int64_t& lOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetAllTransactionNumbers(OTNumList& numlistOutput) const
+bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
 {
     // SMART CONTRACTS and PAYMENT PLANS get a little special
     // treatment here at the top.

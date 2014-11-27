@@ -1125,7 +1125,7 @@ Item* Item::GetFinalReceiptItemByReferenceNum(int64_t lReferenceNumber)
 
 // For "OTItem::acceptTransaction"
 //
-bool Item::AddBlankNumbersToItem(const OTNumList& theAddition)
+bool Item::AddBlankNumbersToItem(const NumList& theAddition)
 {
     return m_Numlist.Add(theAddition);
 }

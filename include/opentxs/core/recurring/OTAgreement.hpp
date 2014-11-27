@@ -417,7 +417,7 @@ public:
      */
 
     virtual bool HasTransactionNum(const int64_t& lInput) const;
-    virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
+    virtual void GetAllTransactionNumbers(NumList& numlistOutput) const;
 
     // From OTInstrument (parent class of OTTrackable, parent class of
     // OTCronItem, parent class of this)

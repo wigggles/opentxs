@@ -7549,7 +7549,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                 {
                     bSuccessFindingAllTransactions = true;
 
-                    OTNumList listNumbersNymbox, listNumbersUserItem;
+                    NumList listNumbersNymbox, listNumbersUserItem;
 
                     pItem->GetNumList(listNumbersUserItem);
                     pTransaction->GetNumList(listNumbersNymbox);
@@ -7950,7 +7950,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                                     pSuccessNotice->SetReferenceString(
                                         strInReferenceTo);
 
-                                    OTNumList theOutput;
+                                    NumList theOutput;
                                     pServerTransaction->GetNumList(
                                         theOutput); // now theOutput contains
                                                     // the numlist from the

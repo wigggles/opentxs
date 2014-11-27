@@ -382,7 +382,7 @@ public:
     // signed off!!
     //
     //
-    EXPORT bool AddBlankNumbersToItem(const OTNumList& theAddition);
+    EXPORT bool AddBlankNumbersToItem(const NumList& theAddition);
     int64_t GetClosingNum() const;
     void SetClosingNum(int64_t lClosingNum);
     EXPORT virtual int64_t GetNumberOfOrigin();

@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/OTTrackable.hpp>
-#include <opentxs/core/OTNumList.hpp>
+#include <opentxs/core/NumList.hpp>
 
 namespace opentxs
 {
@@ -181,7 +181,7 @@ bool OTTrackable::HasTransactionNum(const int64_t& lInput) const
     return lInput == m_lTransactionNum;
 }
 
-void OTTrackable::GetAllTransactionNumbers(OTNumList& numlistOutput) const
+void OTTrackable::GetAllTransactionNumbers(NumList& numlistOutput) const
 {
     if (m_lTransactionNum > 0) numlistOutput.Add(m_lTransactionNum);
 }

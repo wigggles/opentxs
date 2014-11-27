@@ -4327,7 +4327,7 @@ bool Nym::SavePseudonym(String& strNym)
         //        }
 
         if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
-            OTNumList theList;
+            NumList theList;
 
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 lTransactionNumber = pDeque->at(i);
@@ -4372,7 +4372,7 @@ bool Nym::SavePseudonym(String& strNym)
         //        }
 
         if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
-            OTNumList theList;
+            NumList theList;
 
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 lTransactionNumber = pDeque->at(i);
@@ -4416,7 +4416,7 @@ bool Nym::SavePseudonym(String& strNym)
         //        }
 
         if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
-            OTNumList theList;
+            NumList theList;
 
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 lTransactionNumber = pDeque->at(i);
@@ -4466,7 +4466,7 @@ bool Nym::SavePseudonym(String& strNym)
         //        }
 
         if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
-            OTNumList theList;
+            NumList theList;
 
             for (uint32_t i = 0; i < pDeque->size(); i++) {
                 const int64_t lRequestNumber = pDeque->at(i);
@@ -5243,7 +5243,7 @@ bool Nym::LoadFromString(const String& strNym,
                           << ": Error: transactionNums field without value.\n";
                     return false; // error condition
                 }
-                OTNumList theNumList;
+                NumList theNumList;
 
                 if (strTemp.Exists()) theNumList.Add(strTemp);
 
@@ -5270,7 +5270,7 @@ bool Nym::LoadFromString(const String& strNym,
                           << ": Error: issuedNums field without value.\n";
                     return false; // error condition
                 }
-                OTNumList theNumList;
+                NumList theNumList;
 
                 if (strTemp.Exists()) theNumList.Add(strTemp);
 
@@ -5295,7 +5295,7 @@ bool Nym::LoadFromString(const String& strNym,
                              "tentativeNums field without value.\n";
                     return false; // error condition
                 }
-                OTNumList theNumList;
+                NumList theNumList;
 
                 if (strTemp.Exists()) theNumList.Add(strTemp);
 
@@ -5337,7 +5337,7 @@ bool Nym::LoadFromString(const String& strNym,
                              "that value.)\n";
                     return false; // error condition
                 }
-                OTNumList theNumList;
+                NumList theNumList;
 
                 if (strTemp.Exists()) theNumList.Add(strTemp);
 

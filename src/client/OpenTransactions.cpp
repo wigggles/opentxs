@@ -2885,10 +2885,9 @@ bool OT_API::Wallet_ExportCert(const Identifier& NYM_ID,
 // bool  NumList::Peek(int64_t & lPeek) const;
 // bool  NumList::Pop();
 
-bool OT_API::NumList_Add(OTNumList& theList,
-                         const OTNumList& theNewNumbers) const
+bool OT_API::NumList_Add(NumList& theList, const NumList& theNewNumbers) const
 {
-    OTNumList tempNewList(theList);
+    NumList tempNewList(theList);
 
     const bool bSuccess = tempNewList.Add(theNewNumbers);
 
@@ -2900,10 +2899,10 @@ bool OT_API::NumList_Add(OTNumList& theList,
     return false;
 }
 
-bool OT_API::NumList_Remove(OTNumList& theList,
-                            const OTNumList& theOldNumbers) const
+bool OT_API::NumList_Remove(NumList& theList,
+                            const NumList& theOldNumbers) const
 {
-    OTNumList tempNewList(theList), tempOldList(theOldNumbers);
+    NumList tempNewList(theList), tempOldList(theOldNumbers);
 
     while (tempOldList.Count() > 0) {
         int64_t lPeek = 0;
@@ -2920,10 +2919,10 @@ bool OT_API::NumList_Remove(OTNumList& theList,
 
 // Verifies the presence of theQueryNumbers on theList (as a subset)
 //
-bool OT_API::NumList_VerifyQuery(const OTNumList& theList,
-                                 const OTNumList& theQueryNumbers) const
+bool OT_API::NumList_VerifyQuery(const NumList& theList,
+                                 const NumList& theQueryNumbers) const
 {
-    OTNumList theTempQuery(theQueryNumbers);
+    NumList theTempQuery(theQueryNumbers);
 
     while (theTempQuery.Count() > 0) {
         int64_t lPeek = 0;
@@ -2938,13 +2937,13 @@ bool OT_API::NumList_VerifyQuery(const OTNumList& theList,
 
 // Verifies the COUNT and CONTENT (but not the order) matches EXACTLY.
 //
-bool OT_API::NumList_VerifyAll(const OTNumList& theList,
-                               const OTNumList& theQueryNumbers) const
+bool OT_API::NumList_VerifyAll(const NumList& theList,
+                               const NumList& theQueryNumbers) const
 {
     return theList.Verify(theQueryNumbers);
 }
 
-int32_t OT_API::NumList_Count(const OTNumList& theList) const
+int32_t OT_API::NumList_Count(const NumList& theList) const
 {
     return theList.Count();
 }

@@ -138,7 +138,7 @@
 namespace opentxs
 {
 
-class OTNumList;
+class NumList;
 
 // OTTrackable is very similar to OTInstrument.
 // The difference is, it may have identifying info on it:
@@ -163,7 +163,7 @@ public:
     virtual void UpdateContents();
 
     virtual bool HasTransactionNum(const int64_t& lInput) const;
-    virtual void GetAllTransactionNumbers(OTNumList& numlistOutput) const;
+    virtual void GetAllTransactionNumbers(NumList& numlistOutput) const;
 
     inline int64_t GetTransactionNum() const
     {

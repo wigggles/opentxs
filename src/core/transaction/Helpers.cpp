@@ -137,7 +137,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/OTNumList.hpp>
+#include <opentxs/core/NumList.hpp>
 #include <irrxml/irrXML.hpp>
 #include <string>
 
@@ -222,7 +222,7 @@ int32_t LoadAbbreviatedRecord(irr::io::IrrXMLReader*& xml,
                               int& theType, String& strHash,
                               int64_t& lAdjustment, int64_t& lDisplayValue,
                               int64_t& lClosingNum, int64_t& lRequestNum,
-                              bool& bReplyTransSuccess, OTNumList* pNumList)
+                              bool& bReplyTransSuccess, NumList* pNumList)
 {
 
     const String strOrigin = xml->getAttributeValue("numberOfOrigin");

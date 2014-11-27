@@ -135,7 +135,7 @@
 
 #include "crypto/OTASCIIArmor.hpp"
 #include "Contract.hpp"
-#include "OTNumList.hpp"
+#include "NumList.hpp"
 
 #include <unordered_map>
 #include <memory>
@@ -266,8 +266,8 @@ public:
     // which messages have been received, and can avoid certain downloads, such
     // as replyNotice Box Receipts.
     //
-    OTNumList m_AcknowledgedReplies; // Client request: list of server replies
-                                     // client has already seen.
+    NumList m_AcknowledgedReplies; // Client request: list of server replies
+                                   // client has already seen.
     // Server reply:   list of client-acknowledged replies (so client knows that
     // server knows.)
 
