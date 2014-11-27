@@ -44,7 +44,7 @@ set(cxx-sources
   crypto/OTLowLevelKeyData.cpp
   crypto/OTMasterkey.cpp
   Message.cpp
-  OTNumList.cpp
+  NumList.cpp
   crypto/OTNymOrSymmetricKey.cpp
   crypto/OTPassword.cpp
   crypto/OTPasswordData.cpp

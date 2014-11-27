@@ -135,7 +135,7 @@
 
 #include "crypto/OTASCIIArmor.hpp"
 #include "Contract.hpp"
-#include "OTNumList.hpp"
+#include "NumList.hpp"
 
 namespace opentxs
 {

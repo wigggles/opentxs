@@ -135,7 +135,7 @@
 
 #include "crypto/OTASCIIArmor.hpp"
 #include "Contract.hpp"
-#include "OTNumList.hpp"
+#include "NumList.hpp"
 
 #include <unordered_map>
 #include <memory>

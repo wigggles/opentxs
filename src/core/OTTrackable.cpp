@@ -132,7 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/OTTrackable.hpp>
-#include <opentxs/core/OTNumList.hpp>
+#include <opentxs/core/NumList.hpp>
 
 namespace opentxs
 {

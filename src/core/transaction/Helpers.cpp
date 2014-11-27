@@ -137,7 +137,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/Identifier.hpp>
-#include <opentxs/core/OTNumList.hpp>
+#include <opentxs/core/NumList.hpp>
 #include <irrxml/irrXML.hpp>
 #include <string>
 
