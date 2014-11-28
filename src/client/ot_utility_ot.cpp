@@ -2373,7 +2373,7 @@ OT_UTILITY_OT int32_t
     OTAPI_Wrap::FlushMessageBuffer();
     bWasSent = false;
 
-    int32_t nRequestNum = OTAPI_Wrap::getTransactionNumber(
+    int32_t nRequestNum = OTAPI_Wrap::getTransactionNumbers(
         notaryID, nymID); // <===== ATTEMPT TO SEND THE MESSAGE HERE...;
     if (-1 == nRequestNum) {
         otOut << strLocation

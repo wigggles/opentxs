@@ -792,7 +792,7 @@ public:
     // How many transaction numbers does the Nym have (for a given server?)
     //
     // This function returns the count of numbers available. If 0, then no
-    // transactions will work until you call getTransactionNumber()
+    // transactions will work until you call getTransactionNumbers()
     // to replenish your Nym's supply for that NotaryID...
     //
     // Returns a count (0 through N numbers available),
@@ -1145,7 +1145,7 @@ public:
 
     lTransactionNumber, // The API will supply this automatically, as long as
     // there are some transaction numbers in the wallet. (Call
-    // getTransactionNumber() if your wallet needs more.)
+    // getTransactionNumbers() if your wallet needs more.)
 
     VALID_FROM, VALID_TO, // Valid date range (in seconds since Jan 1970...)
 
@@ -2889,8 +2889,8 @@ public:
     // ...and in fact the requestNum IS the return value!
     // ===> In 99% of cases, this LAST option is what actually happens!!
     //
-    EXPORT static int32_t getTransactionNumber(const std::string& NOTARY_ID,
-                                               const std::string& NYM_ID);
+    EXPORT static int32_t getTransactionNumbers(const std::string& NOTARY_ID,
+                                                const std::string& NYM_ID);
 
     /** --------------------------------------------------------------------
     // ISSUE ASSET TYPE -- Ask the server to issue a new instrument definition.

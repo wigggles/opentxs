@@ -1103,7 +1103,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_trans_nums);
 
-        UserCmdGetTransactionNum(*pNym, theMessage, msgOut);
+        UserCmdGetTransactionNumbers(*pNym, theMessage, msgOut);
 
         return true;
     }
@@ -1604,8 +1604,9 @@ void UserCommandProcessor::UserCmdPingNotary(Nym&, Message& MsgIn,
     msgOut.SaveContract();
 }
 
-void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
-                                                    Message& msgOut)
+void UserCommandProcessor::UserCmdGetTransactionNumbers(Nym& theNym,
+                                                        Message& MsgIn,
+                                                        Message& msgOut)
 {
     // (1) set up member variables
     msgOut.m_strCommand =
@@ -1636,11 +1637,11 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
     if ((bGotNymboxHashServerSide && bGotNymboxHashClientSide &&
          (theMsgNymboxHash != EXISTING_NYMBOX_HASH)) ||
         (bGotNymboxHashServerSide && !bGotNymboxHashClientSide)) {
-        Log::Output(0,
-                    "UserCommandProcessor::UserCmdGetTransactionNum: Rejecting "
-                    "message since nymbox hash "
-                    "doesn't match. (Send a getNymbox message to grab the "
-                    "newest one.)\n");
+        Log::Output(
+            0, "UserCommandProcessor::UserCmdGetTransactionNumbers: Rejecting "
+               "message since nymbox hash "
+               "doesn't match. (Send a getNymbox message to grab the "
+               "newest one.)\n");
 
     }
     else if (nCount > 50) // todo no hardcoding. (max transaction nums allowed
@@ -1648,7 +1649,8 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
     {
         Log::vOutput(
             0,
-            "UserCommandProcessor::UserCmdGetTransactionNum: Failure: Nym %s "
+            "UserCommandProcessor::UserCmdGetTransactionNumbers: Failure: Nym "
+            "%s "
             "already has "
             "more than 50 unused transaction numbers signed out. (He needs to "
             "use those first. "
@@ -1709,7 +1711,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
         }
         else if (!theLedger.LoadNymbox()) {
             Log::Error("Error loading Nymbox in "
-                       "UserCommandProcessor::UserCmdGetTransactionNum\n");
+                       "UserCommandProcessor::UserCmdGetTransactionNumbers\n");
         }
         // Drop in the Nymbox
         else if ((msgOut.m_bSuccess =
@@ -1774,7 +1776,7 @@ void UserCommandProcessor::UserCmdGetTransactionNum(Nym& theNym, Message& MsgIn,
         }
         else {
             Log::Error("Error verifying Nymbox in "
-                       "UserCommandProcessor::UserCmdGetTransactionNum\n");
+                       "UserCommandProcessor::UserCmdGetTransactionNumbers\n");
         }
         std::set<int64_t> theList;
         theNumlist.Output(theList);

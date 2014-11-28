@@ -171,7 +171,8 @@ private:
     void UserCmdSendNymMessage(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdSendNymInstrument(Nym& nym, Message& msgIn, Message& msgOut);
     void UserCmdGetRequestNumber(Nym& nym, Message& msgIn, Message& msgOut);
-    void UserCmdGetTransactionNum(Nym& nym, Message& msgIn, Message& msgOut);
+    void UserCmdGetTransactionNumbers(Nym& nym, Message& msgIn,
+                                      Message& msgOut);
     void UserCmdRegisterInstrumentDefinition(Nym& nym, Message& msgIn,
                                              Message& msgOut);
     void UserCmdIssueBasket(Nym& nym, Message& msgIn, Message& msgOut);

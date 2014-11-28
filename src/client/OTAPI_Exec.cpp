@@ -13996,8 +13996,8 @@ int32_t OTAPI_Exec::exchangeBasket(
 //  ...and in fact the requestNum IS the return value!
 //  ===> In 99% of cases, this LAST option is what actually happens!!
 //
-int32_t OTAPI_Exec::getTransactionNumber(const std::string& NOTARY_ID,
-                                         const std::string& NYM_ID) const
+int32_t OTAPI_Exec::getTransactionNumbers(const std::string& NOTARY_ID,
+                                          const std::string& NYM_ID) const
 {
     if (NOTARY_ID.empty()) {
         otErr << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
@@ -14010,7 +14010,7 @@ int32_t OTAPI_Exec::getTransactionNumber(const std::string& NOTARY_ID,
 
     Identifier theNotaryID(NOTARY_ID), theNymID(NYM_ID);
 
-    return OTAPI()->getTransactionNumber(theNotaryID, theNymID);
+    return OTAPI()->getTransactionNumbers(theNotaryID, theNymID);
 }
 
 // Returns int32_t:

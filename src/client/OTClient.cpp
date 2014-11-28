@@ -3081,8 +3081,8 @@ bool OTClient::processServerReplyNotarizeTransaction(
     return true;
 }
 
-bool OTClient::processServerReplyGetTransactionNum(const Message& theReply,
-                                                   ProcessServerReplyArgs& args)
+bool OTClient::processServerReplyGetTransactionNumbers(
+    const Message& theReply, ProcessServerReplyArgs& args)
 {
     otOut << "Received server response to Get Transaction Num message.\n";
 
@@ -7700,7 +7700,7 @@ bool OTClient::processServerReply(std::shared_ptr<Message> reply,
         return processServerReplyNotarizeTransaction(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getTransactionNumbersResponse")) {
-        return processServerReplyGetTransactionNum(theReply, args);
+        return processServerReplyGetTransactionNumbers(theReply, args);
     }
     if (theReply.m_strCommand.Compare("getNymboxResponse")) {
         return processServerReplyGetNymBox(theReply, pNymbox, args);
