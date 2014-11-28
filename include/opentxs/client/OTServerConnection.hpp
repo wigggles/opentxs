@@ -173,8 +173,8 @@ public:
 
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
-    void ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
-                           const Message& theMessage);
+    void send(OTServerContract* pServerContract, Nym* pNym,
+              const Message& theMessage);
 
 private:
     bool send(const OTEnvelope& envelope);

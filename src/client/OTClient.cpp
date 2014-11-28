@@ -232,7 +232,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
         connect(endpoint.Get());
     }
 
-    m_pConnection->ProcessMessageOut(pServerContract, pNym, theMessage);
+    m_pConnection->send(pServerContract, pNym, theMessage);
 }
 
 /// This is standard behavior for the Nymbox (NOT the inbox.)

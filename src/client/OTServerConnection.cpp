@@ -214,8 +214,8 @@ bool OTServerConnection::GetNotaryID(Identifier& theID) const
     return false;
 }
 
-void OTServerConnection::ProcessMessageOut(OTServerContract* pServerContract,
-                                           Nym* pNym, const Message& theMessage)
+void OTServerConnection::send(OTServerContract* pServerContract, Nym* pNym,
+                              const Message& theMessage)
 {
     OT_ASSERT(nullptr != pServerContract);
     OT_ASSERT(nullptr != pNym)
