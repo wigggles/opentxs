@@ -558,9 +558,7 @@ bool OT_API::InitOTApp()
 // SIGNALS
 //
 #if defined(OT_SIGNAL_HANDLING)
-        //
-        OTLog::SetupSignalHandler(); // <===== SIGNALS
-                                     //
+        Log::SetupSignalHandler();
 // This is optional! You can always remove it using the OT_NO_SIGNAL_HANDLING
 //  option, and plus, the internals only execute once anyway. (It keeps count.)
 #endif
