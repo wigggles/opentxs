@@ -134,7 +134,7 @@
 #define OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 
 #include <opentxs/client/OTMessageBuffer.hpp>
-#include <opentxs/ext/OTSocket.hpp>
+#include <cppzmq/zmq.hpp>
 #include <memory>
 #include <string>
 
@@ -147,7 +147,6 @@ class Nym;
 class OTServerContract;
 class OTWallet;
 class OTEnvelope;
-class OTSocket;
 
 class OTServerConnection
 {
@@ -179,9 +178,12 @@ public:
 
 private:
     bool send(const OTEnvelope& envelope);
+    bool receive(std::string& reply);
 
 private:
-    std::unique_ptr<OTSocket> m_pSocket;
+    zmq::context_t context_zmq;
+    zmq::socket_t socket_zmq;
+
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 

@@ -135,7 +135,6 @@
 #include <opentxs/server/MessageProcessor.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
-#include <opentxs/ext/OTSocket.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/String.hpp>
