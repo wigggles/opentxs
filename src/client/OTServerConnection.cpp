@@ -140,15 +140,6 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 
-extern "C" {
-#ifdef _WIN32
-#include <winsock2.h>
-#pragma comment(lib, "ws2_32.lib")
-#else
-#include <netinet/in.h>
-#endif
-}
-
 namespace opentxs
 {
 
