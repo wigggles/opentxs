@@ -145,14 +145,12 @@ class OTClient;
 class Identifier;
 class Nym;
 class OTServerContract;
-class OTWallet;
 class OTEnvelope;
 
 class OTServerConnection
 {
 public:
-    OTServerConnection(OTWallet* theWallet, OTClient* theClient,
-                       const std::string& endpoint);
+    OTServerConnection(OTClient* theClient, const std::string& endpoint);
 
     bool GetNotaryID(Identifier& theID) const;
 
@@ -164,11 +162,6 @@ public:
     inline OTServerContract* GetServerContract() const
     {
         return m_pServerContract;
-    }
-
-    inline OTWallet* GetWallet() const
-    {
-        return m_pWallet;
     }
 
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
@@ -189,7 +182,6 @@ private:
 
     Nym* m_pNym;
     OTServerContract* m_pServerContract;
-    OTWallet* m_pWallet;
     OTClient* m_pClient;
 };
 

@@ -160,13 +160,12 @@ namespace opentxs
 // There might be MORE THAN ONE connection per wallet, or only one,
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
-OTServerConnection::OTServerConnection(OTWallet* theWallet, OTClient* theClient,
+OTServerConnection::OTServerConnection(OTClient* theClient,
                                        const std::string& endpoint)
     : context_zmq(1, 31)
     , socket_zmq(context_zmq, ZMQ_REQ)
     , m_pNym(nullptr)
     , m_pServerContract(nullptr)
-    , m_pWallet(theWallet)
     , m_pClient(theClient)
 {
     int linger = 1000;
