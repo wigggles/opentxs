@@ -133,7 +133,6 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTServerConnection.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include "Helpers.hpp"
 
@@ -170,24 +169,16 @@ namespace opentxs
 {
 
 OTClient::OTClient(OTWallet* theWallet)
-    : m_pConnection(nullptr)
+    : m_pConnection()
     , m_pWallet(theWallet)
     , m_MessageBuffer()
     , m_MessageOutbuffer()
 {
 }
 
-OTClient::~OTClient()
-{
-    if (m_pConnection) {
-        delete m_pConnection;
-        m_pConnection = nullptr;
-    }
-}
-
 bool OTClient::connect(const std::string& endpoint)
 {
-    m_pConnection = new OTServerConnection(m_pWallet, this, endpoint);
+    m_pConnection.reset(new OTServerConnection(m_pWallet, this, endpoint));
     return true;
 }
 
