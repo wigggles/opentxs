@@ -152,37 +152,10 @@ inline std::string OT_CLI_ReadLine()
 // a line.)
 inline std::string OT_CLI_ReadUntilEOF()
 {
-    // don't skip the whitespace while reading
-    //    std::cin >> std::noskipws;
-
-    //    std::ostringstream oss;
-    //
-    //    oss << std::cin;   // Convert value into a string.
-    //    s = outs.str();
-
-    // use stream iterators to copy the stream to a string
-    //    std::istream_iterator<std::string> it(std::cin);
-    //    std::istream_iterator<std::string> end;
-    //    std::istream_iterator<char> it(std::cin);
-    //    std::istream_iterator<char> end;
-    //    std::string results(it, end);
-
-    //    int32_t onechar;
-
     std::string result("");
 
     for (;;) {
         std::string input_line("");
-
-        //        int32_t n;
-        ////      std::string sn;
-        //        std::stringstream ssn;
-        //
-        //        std::getline(std::cin, input_line);
-        //        ssn << input_line;
-        //        ssn >> n;
-
-        //            std::getline(std::cin, input_line, '\n');
         if (std::getline(std::cin, input_line, '\n')) {
             input_line += "\n";
 
@@ -201,11 +174,7 @@ inline std::string OT_CLI_ReadUntilEOF()
             std::cin.clear();
             break;
         }
-        //      std::cin.clear();
-        //      std::cin.ignore(std::numeric_limits<std::streamsize>::max(),
-        // '\n');
-
-    } // while
+    }
 
     return result;
 }
