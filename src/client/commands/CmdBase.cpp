@@ -139,6 +139,7 @@
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OTWallet.hpp>
+#include <opentxs/ext/Helpers.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/Log.hpp>

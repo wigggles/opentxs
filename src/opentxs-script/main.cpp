@@ -141,6 +141,7 @@
 
 #include <opentxs/cash/Purse.hpp>
 
+#include <opentxs/ext/Helpers.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>

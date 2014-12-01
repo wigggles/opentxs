@@ -136,8 +136,8 @@
 #include <opentxs/server/Macros.hpp>
 #include <opentxs/server/ServerSettings.hpp>
 #include <opentxs/server/PayDividendVisitor.hpp>
-#include <opentxs/server/Helpers.hpp>
 
+#include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/cash/Token.hpp>

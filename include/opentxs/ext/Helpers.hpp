@@ -130,15 +130,12 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef OPENTXS_SERVER_HELPERS_HPP
-#define OPENTXS_SERVER_HELPERS_HPP
+#ifndef OPENTXS_EXT_HELPERS_HPP
+#define OPENTXS_EXT_HELPERS_HPP
 
 #include <opentxs/core/Log.hpp>
 #include <string>
 #include <iostream>
-
-namespace opentxs
-{
 
 // Reads from cin until Newline.
 inline std::string OT_CLI_ReadLine()
@@ -155,37 +152,10 @@ inline std::string OT_CLI_ReadLine()
 // a line.)
 inline std::string OT_CLI_ReadUntilEOF()
 {
-    // don't skip the whitespace while reading
-    //    std::cin >> std::noskipws;
-
-    //    std::ostringstream oss;
-    //
-    //    oss << std::cin;   // Convert value into a string.
-    //    s = outs.str();
-
-    // use stream iterators to copy the stream to a string
-    //    std::istream_iterator<std::string> it(std::cin);
-    //    std::istream_iterator<std::string> end;
-    //    std::istream_iterator<char> it(std::cin);
-    //    std::istream_iterator<char> end;
-    //    std::string results(it, end);
-
-    //    int32_t onechar;
-
     std::string result("");
 
     for (;;) {
         std::string input_line("");
-
-        //        int32_t n;
-        ////      std::string sn;
-        //        std::stringstream ssn;
-        //
-        //        std::getline(std::cin, input_line);
-        //        ssn << input_line;
-        //        ssn >> n;
-
-        //            std::getline(std::cin, input_line, '\n');
         if (std::getline(std::cin, input_line, '\n')) {
             input_line += "\n";
 
@@ -196,34 +166,17 @@ inline std::string OT_CLI_ReadUntilEOF()
             result += input_line;
         }
         else {
-            Log::Error("OT_CLI_ReadUntilEOF: getline() was unable to read a "
-                       "string from std::cin\n");
+            opentxs::otErr << "OT_CLI_ReadUntilEOF: getline() was unable to "
+                              "read a string from std::cin\n";
             break;
         }
-        if (std::cin.eof()) {
-            //          cout << "IT WAS EOF\n";
+        if (std::cin.eof() || std::cin.fail() || std::cin.bad()) {
             std::cin.clear();
             break;
         }
-        if (std::cin.fail()) {
-            //          cout << "IT WAS FAIL\n";
-            std::cin.clear();
-            break;
-        }
-        if (std::cin.bad()) {
-            //          cout << "IT WAS BAD\n";
-            std::cin.clear();
-            break;
-        }
-        //      std::cin.clear();
-        //      std::cin.ignore(std::numeric_limits<std::streamsize>::max(),
-        // '\n');
-
-    } // while
+    }
 
     return result;
 }
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_HELPERS_HPP
+#endif // OPENTXS_EXT_HELPERS_HPP
