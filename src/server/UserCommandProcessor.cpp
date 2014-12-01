@@ -1690,8 +1690,7 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(Nym& theNym,
             // sign for it!
 
             if (false ==
-                server_->transactor_.issueNextTransactionNumber(
-                    theNym, lTransNum, false)) {
+                server_->transactor_.issueNextTransactionNumber(lTransNum)) {
                 lTransNum = 0;
                 Log::Error("UserCommandProcessor::UserCmdGetTransactionNu: "
                            "Error issuing "
@@ -1780,19 +1779,6 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(Nym& theNym,
         }
         std::set<int64_t> theList;
         theNumlist.Output(theList);
-
-        for (auto& it : theList) {
-            const int64_t lTransNum = it;
-            server_->transactor_.removeTransactionNumber(theNym, lTransNum,
-                                                         false);
-            server_->transactor_.removeIssuedNumber(
-                theNym, lTransNum, false); // I'll drop it in his
-                                           // Nymbox -- he can
-                                           // SIGN for it.
-            // Then why was it added in the first place? Because we originally
-            // sent it back in the reply directly,
-            // so IssueNext was designed to work that way originally.
-        }
 
         if (bSavedNymbox) {
             theNym.SetNymboxHashServerSide(NYMBOX_HASH);
@@ -5129,7 +5115,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
     else {
         int64_t lReplyNoticeTransNum = 0;
         bool bGotNextTransNum = server_->transactor_.issueNextTransactionNumber(
-            server_->m_nymServer, lReplyNoticeTransNum, false);
+            lReplyNoticeTransNum);
 
         if (!bGotNextTransNum) {
             lReplyNoticeTransNum = 0;

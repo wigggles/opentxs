@@ -179,38 +179,30 @@ Transactor::~Transactor()
 /// not repeat from user to user. They are unique to transaction.
 ///
 /// Users must ask the server to send them transaction numbers so that they
-/// can be used in transaction requests. The server keeps an internal counter
-/// and maintains a data file to store the latest one.
-///
-/// More specifically, the server file itself stores the latest transaction
-/// number
-/// (So it knows what number to issue and increment when the next request comes
-/// in.)
-///
-/// But once it issues the next number, that number needs to be recorded in the
-/// nym file
-/// for the user it was issued to, so that it can be verified later when he
-/// submits it
-/// for a transaction--and so it can be removed once the transaction is complete
-/// (so it
-/// won't work twice.)
-///
-/// The option to bSaveTheNumber defaults to true for this reason. But sometimes
-/// it
-/// will be sent to false, in cases where the number doesn't need to be saved
-/// because
-/// it's never going to be verified. For example, if the server creates a
-/// transaction
-/// number so it can put a transaction into your inbox, it's never going to have
-/// to verify
-/// that it actually put it into the inbox by checking it's own nymfile for that
-/// transaction
-/// number. Instead it would just check its own server signature on the inbox.
-/// But I digress...
-///
-bool Transactor::issueNextTransactionNumber(Nym& theNym,
-                                            int64_t& lTransactionNumber,
-                                            bool bStoreTheNumber)
+/// can be used in transaction requests.
+bool Transactor::issueNextTransactionNumber(int64_t& lTransactionNumber)
+{
+    // transactionNumber_ stores the last VALID AND ISSUED transaction number.
+    // So first, we increment that, since we don't want to issue the same number
+    // twice.
+    transactionNumber_++;
+
+    // Next, we save it to file.
+    if (!server_->mainFile_.SaveMainFile()) {
+        Log::Error("Error saving main server file.\n");
+        transactionNumber_--;
+        return false;
+    }
+
+    // SUCCESS?
+    // Now the server main file has saved the latest transaction number,
+    // NOW we set it onto the parameter and return true.
+    lTransactionNumber = transactionNumber_;
+    return true;
+}
+
+bool Transactor::issueNextTransactionNumberToNym(Nym& theNym,
+                                                 int64_t& lTransactionNumber)
 {
     Identifier NYM_ID(theNym), NOTARY_NYM_ID(server_->m_nymServer);
 
@@ -225,15 +217,7 @@ bool Transactor::issueNextTransactionNumber(Nym& theNym,
     else
         pNym = &theNym;
 
-    // transactionNumber_ stores the last VALID AND ISSUED transaction number.
-    // So first, we increment that, since we don't want to issue the same number
-    // twice.
-    transactionNumber_++;
-
-    // Next, we save it to file.
-    if (!server_->mainFile_.SaveMainFile()) {
-        Log::Error("Error saving main server file.\n");
-        transactionNumber_--;
+    if (!issueNextTransactionNumber(lTransactionNumber)) {
         return false;
     }
 
@@ -245,12 +229,8 @@ bool Transactor::issueNextTransactionNumber(Nym& theNym,
     // is also recorded in his Nym file.)  That way the server always knows
     // which
     // numbers are valid for each Nym.
-    else if (bStoreTheNumber && (false ==
-                                 pNym->AddTransactionNum(server_->m_nymServer,
-                                                         server_->m_strNotaryID,
-                                                         transactionNumber_,
-                                                         true))) // bSave = true
-    {
+    if (!pNym->AddTransactionNum(server_->m_nymServer, server_->m_strNotaryID,
+                                 transactionNumber_, true)) {
         Log::Error("Error adding transaction number to Nym file.\n");
         transactionNumber_--;
         server_->mainFile_.SaveMainFile(); // Save it back how it was, since
@@ -262,12 +242,9 @@ bool Transactor::issueNextTransactionNumber(Nym& theNym,
 
     // SUCCESS?
     // Now the server main file has saved the latest transaction number,
-    // and the number has been stored on the relevant nym file.
     // NOW we set it onto the parameter and return true.
-    else {
-        lTransactionNumber = transactionNumber_;
-        return true;
-    }
+    lTransactionNumber = transactionNumber_;
+    return true;
 }
 
 /// Transaction numbers are now stored in the nym file (on client and server

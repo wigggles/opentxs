@@ -243,9 +243,9 @@ bool PayDividendVisitor::Trigger(Account& theSharesAccount) // theSharesAccount
 
     int64_t lNewTransactionNumber = 0;
 
-    bool bGotNextTransNum = theServer.transactor_.issueNextTransactionNumber(
-        theServerNym, lNewTransactionNumber); // bStoreTheNumber defaults to
-                                              // true. We save the transaction
+    bool bGotNextTransNum =
+        theServer.transactor_.issueNextTransactionNumberToNym(
+            theServerNym, lNewTransactionNumber); // We save the transaction
     // number on the server Nym (normally we'd discard it) because
     // when the cheque is deposited, the server nym, as the owner of
     // the voucher account, needs to verify the transaction # on the

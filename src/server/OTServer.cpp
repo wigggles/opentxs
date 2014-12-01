@@ -315,8 +315,7 @@ void OTServer::ProcessCron()
     // first.
     while (m_Cron.GetTransactionCount() < OTCron::GetCronRefillAmount()) {
         int64_t lTransNum = 0;
-        bool bSuccess = transactor_.issueNextTransactionNumber(
-            m_nymServer, lTransNum, false);
+        bool bSuccess = transactor_.issueNextTransactionNumber(lTransNum);
 
         if (bSuccess) {
             m_Cron.AddTransactionNumber(lTransNum);
@@ -654,7 +653,7 @@ bool OTServer::DropMessageToNymbox(const Identifier& NOTARY_ID,
     const char* szFunc = "OTServer::DropMessageToNymbox";
     int64_t lTransNum = 0;
     const bool bGotNextTransNum =
-        transactor_.issueNextTransactionNumber(m_nymServer, lTransNum, false);
+        transactor_.issueNextTransactionNumber(lTransNum);
 
     if (!bGotNextTransNum) {
         Log::vError(
