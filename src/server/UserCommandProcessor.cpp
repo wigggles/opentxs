@@ -1690,8 +1690,7 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(Nym& theNym,
             // sign for it!
 
             if (false ==
-                server_->transactor_.issueNextTransactionNumber(
-                    theNym, lTransNum, false)) {
+                server_->transactor_.issueNextTransactionNumber(lTransNum)) {
                 lTransNum = 0;
                 Log::Error("UserCommandProcessor::UserCmdGetTransactionNu: "
                            "Error issuing "
@@ -5129,7 +5128,7 @@ void UserCommandProcessor::DropReplyNoticeToNymbox(
     else {
         int64_t lReplyNoticeTransNum = 0;
         bool bGotNextTransNum = server_->transactor_.issueNextTransactionNumber(
-            server_->m_nymServer, lReplyNoticeTransNum, false);
+            lReplyNoticeTransNum);
 
         if (!bGotNextTransNum) {
             lReplyNoticeTransNum = 0;

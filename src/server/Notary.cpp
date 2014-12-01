@@ -423,8 +423,7 @@ void Notary::NotarizeTransfer(Nym& theNym, Account& theFromAccount,
                 int64_t lNewTransactionNumber = 0;
 
                 server_->transactor_.issueNextTransactionNumber(
-                    server_->m_nymServer, lNewTransactionNumber,
-                    false); // bStoreTheNumber = false
+                    lNewTransactionNumber);
                 // I create TWO Outbox transactions -- one for the real outbox,
                 // (theFromOutbox)
                 // and one for pOutbox (used for verifying the balance
@@ -924,8 +923,8 @@ void Notary::NotarizeWithdrawal(Nym& theNym, Account& theAccount,
                 // remitter, instead of the transaction server.
                 //
                 //                int64_t lNewTransactionNumber = 0;
-                //                transactor_.issueNextTransactionNumber(server_->m_nymServer,
-                // lNewTransactionNumber); // bStoreTheNumber defaults to true.
+                //                transactor_.issueNextTransactionNumberToNym(server_->m_nymServer,
+                // lNewTransactionNumber);
                 // We save the transaction
                 // number on the server Nym (normally we'd discard it) because
                 const int64_t lAmount =
@@ -2096,12 +2095,10 @@ void Notary::NotarizePayDividend(Nym& theNym, Account& theSourceAccount,
                                     int64_t lNewTransactionNumber = 0;
                                     const bool bGotNextTransNum =
                                         server_->transactor_
-                                            .issueNextTransactionNumber(
+                                            .issueNextTransactionNumberToNym(
                                                 server_->m_nymServer,
-                                                lNewTransactionNumber); // bStoreTheNumber
-                                    // defaults to
-                                    // true. We save
-                                    // the
+                                                lNewTransactionNumber);
+                                    // We save the
                                     // transaction
                                     // number on the server Nym (normally we'd
                                     // discard it) because
@@ -2614,8 +2611,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                         int64_t lNewTransactionNumber = 0;
 
                         server_->transactor_.issueNextTransactionNumber(
-                            server_->m_nymServer, lNewTransactionNumber,
-                            false); // bStoreTheNumber = false
+                            lNewTransactionNumber);
 
                         OTTransaction* pInboxTransaction =
                             OTTransaction::GenerateTransaction(
@@ -3554,8 +3550,7 @@ void Notary::NotarizeDeposit(Nym& theNym, Account& theAccount,
                                 int64_t lNewTransactionNumber = 0;
 
                                 server_->transactor_.issueNextTransactionNumber(
-                                    server_->m_nymServer, lNewTransactionNumber,
-                                    false); // bStoreTheNumber = false
+                                    lNewTransactionNumber);
 
                                 OTTransaction* pInboxTransaction =
                                     OTTransaction::GenerateTransaction(
@@ -4721,9 +4716,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                     int64_t lOtherNewTransNumber = 0;
                                     server_->transactor_
                                         .issueNextTransactionNumber(
-                                            server_->m_nymServer,
-                                            lOtherNewTransNumber,
-                                            false); // bStoreTheNumber = false
+                                            lOtherNewTransNumber);
 
                                     if (false ==
                                         pPlan->SendNoticeToAllParties(
@@ -4770,9 +4763,7 @@ void Notary::NotarizePaymentPlan(Nym& theNym, Account& theDepositorAccount,
                                     int64_t lOtherNewTransNumber = 0;
                                     server_->transactor_
                                         .issueNextTransactionNumber(
-                                            server_->m_nymServer,
-                                            lOtherNewTransNumber,
-                                            false); // bStoreTheNumber = false
+                                            lOtherNewTransNumber);
 
                                     if (false ==
                                         pPlan->SendNoticeToAllParties(
@@ -5439,7 +5430,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                     //
                     int64_t lNewTransactionNumber = 0;
                     server_->transactor_.issueNextTransactionNumber(
-                        server_->m_nymServer, lNewTransactionNumber, false);
+                        lNewTransactionNumber);
 
                     if (false ==
                         pContract->SendNoticeToAllParties(
@@ -5479,7 +5470,7 @@ void Notary::NotarizeSmartContract(Nym& theNym, Account& theActivatingAccount,
                 else {
                     int64_t lNewTransactionNumber = 0;
                     server_->transactor_.issueNextTransactionNumber(
-                        server_->m_nymServer, lNewTransactionNumber, false);
+                        lNewTransactionNumber);
 
                     if (false ==
                         pContract->SendNoticeToAllParties(
@@ -6242,9 +6233,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
 
                                             server_->transactor_
                                                 .issueNextTransactionNumber(
-                                                    server_->m_nymServer,
-                                                    lNewTransactionNumber,
-                                                    false);
+                                                    lNewTransactionNumber);
 
                                             OTTransaction* pInboxTransaction =
                                                 OTTransaction::
@@ -6439,9 +6428,7 @@ void Notary::NotarizeExchangeBasket(Nym& theNym, Account& theAccount,
 
                                     server_->transactor_
                                         .issueNextTransactionNumber(
-                                            server_->m_nymServer,
-                                            lNewTransactionNumber,
-                                            false); // bStoreTheNumber = false
+                                            lNewTransactionNumber);
 
                                     OTTransaction* pInboxTransaction =
                                         OTTransaction::GenerateTransaction(
@@ -7907,9 +7894,7 @@ void Notary::NotarizeProcessNymbox(Nym& theNym, OTTransaction& tranIn,
                             int64_t lSuccessNoticeTransNum = 0;
                             bool bGotNextTransNum =
                                 server_->transactor_.issueNextTransactionNumber(
-                                    server_->m_nymServer,
-                                    lSuccessNoticeTransNum,
-                                    false); // bool bStoreTheNumber = false
+                                    lSuccessNoticeTransNum);
 
                             if (!bGotNextTransNum) {
                                 lSuccessNoticeTransNum = 0;
@@ -9256,10 +9241,7 @@ void Notary::NotarizeProcessInbox(Nym& theNym, Account& theAccount,
                                         int64_t lNewTransactionNumber = 0;
                                         server_->transactor_
                                             .issueNextTransactionNumber(
-                                                server_->m_nymServer,
-                                                lNewTransactionNumber,
-                                                false); // bStoreTheNumber =
-                                                        // false
+                                                lNewTransactionNumber);
 
                                         // Generate a new transaction... (to
                                         // notice the sender of acceptance.)

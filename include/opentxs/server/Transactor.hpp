@@ -158,8 +158,8 @@ public:
     explicit Transactor(OTServer* server);
     ~Transactor();
 
-    bool issueNextTransactionNumber(Nym& nym, int64_t& txNumber,
-                                    bool storeNumber = true);
+    bool issueNextTransactionNumber(int64_t& txNumber);
+    bool issueNextTransactionNumberToNym(Nym& nym, int64_t& txNumber);
     bool verifyTransactionNumber(Nym& nym, const int64_t& transactionNumber);
     bool removeTransactionNumber(Nym& nym, const int64_t& transactionNumber,
                                  bool save = false);
