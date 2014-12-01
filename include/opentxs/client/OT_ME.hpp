@@ -147,8 +147,6 @@ EXPORT std::string OT_CLI_GetValueByIndex(const std::string& str_Args,
                                           int32_t nIndex);
 EXPORT std::string OT_CLI_GetKeyByIndex(const std::string& str_Args,
                                         int32_t nIndex);
-EXPORT std::string OT_CLI_ReadLine();
-EXPORT std::string OT_CLI_ReadUntilEOF();
 
 class OTScript;
 class OTScriptChai;

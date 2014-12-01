@@ -152,6 +152,7 @@
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/script/OTVariable.hpp>
+#include <opentxs/ext/Helpers.hpp>
 
 #ifdef OT_USE_SCRIPT_CHAI
 #include <opentxs/core/script/OTScriptChai.hpp>
@@ -287,92 +288,6 @@ std::string OT_CLI_GetKeyByIndex(const std::string& str_Args, int32_t nIndex)
         }
     }
     return str_retval;
-}
-
-// Reads from cin until Newline.
-//
-std::string OT_CLI_ReadLine()
-{
-    std::string line;
-    if (std::getline(std::cin, line)) {
-        return line;
-    }
-
-    return "";
-}
-
-// Reads from cin until EOF. (Or until the ~ character as the first character on
-// a line.)
-//
-std::string OT_CLI_ReadUntilEOF()
-{
-    // don't skip the whitespace while reading
-    // std::cin >> std::noskipws;
-
-    // std::ostringstream oss;
-    //
-    // oss << std::cin;   // Convert value into a string.
-    // s = outs.str();
-
-    // use stream iterators to copy the stream to a string
-    // std::istream_iterator<std::string> it(std::cin);
-    // std::istream_iterator<std::string> end;
-    // std::istream_iterator<char> it(std::cin);
-    // std::istream_iterator<char> end;
-    // std::string results(it, end);
-
-    // int32_t onechar;
-
-    std::string result("");
-
-    for (;;) {
-        std::string input_line("");
-
-        //      int32_t n;
-        ////    std::string sn;
-        //      std::stringstream ssn;
-        //
-        //      std::getline(std::cin, input_line);
-        //      ssn << input_line;
-        //      ssn >> n;
-
-        //      std::getline(std::cin, input_line, '\n');
-        if (std::getline(std::cin, input_line, '\n')) {
-            input_line += "\n";
-
-            if (input_line[0] == '~') // This is our special "break" character
-                                      // for multi-line input.
-                break;
-
-            result += input_line;
-        }
-        else {
-            otErr << "OT_CLI_ReadUntilEOF: getline() was unable to read a "
-                     "string from std::cin\n";
-            break;
-        }
-        if (std::cin.eof()) {
-            //          cout << "IT WAS EOF\n";
-            std::cin.clear();
-            break;
-        }
-        if (std::cin.fail()) {
-            //          cout << "IT WAS FAIL\n";
-            std::cin.clear();
-            break;
-        }
-        if (std::cin.bad()) {
-            //          cout << "IT WAS BAD\n";
-            std::cin.clear();
-            break;
-        }
-        //      std::cin.clear();
-        //      std::cin.ignore(std::numeric_limits<std::streamsize>::max(),
-        // '\n');
-
-    } // while
-
-    return result;
 }
 
 // Note optimization:
