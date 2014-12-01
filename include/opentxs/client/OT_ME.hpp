@@ -178,10 +178,6 @@ public:
                                      const std::string& str_Attempt,
                                      const std::string& str_Response) const;
 
-    EXPORT std::string ExecuteScript_ReturnString(
-        const std::string& str_Code, std::string str_DisplayName = "<BLANK>");
-    EXPORT bool ExecuteScript_ReturnBool(
-        const std::string& str_Code, std::string str_DisplayName = "<BLANK>");
     EXPORT int32_t
         ExecuteScript_ReturnInt(const std::string& str_Code,
                                 std::string str_DisplayName = "<BLANK>");

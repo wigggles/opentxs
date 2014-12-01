@@ -1095,40 +1095,6 @@ OTVariable* OT_ME::FindVariable2(const std::string& str_var_name)
     return s_pMe->FindVariable(str_var_name);
 }
 
-std::string OT_ME::ExecuteScript_ReturnString(const std::string& str_Code,
-                                              std::string str_DisplayName)
-{
-    std::string str_Return = "";
-    if (HaveWorkingScript()) {
-        OTVariable the_return_value("ret_val", str_Return);
-
-        m_pScript->SetScript(str_Code);
-        m_pScript->SetDisplayFilename(str_DisplayName);
-        m_pScript->ExecuteScript(&the_return_value); // <====== EXECUTE SCRIPT.
-
-        if (OTVariable::Var_String == the_return_value.GetType())
-            str_Return = the_return_value.CopyValueString();
-    }
-    return str_Return;
-}
-
-bool OT_ME::ExecuteScript_ReturnBool(const std::string& str_Code,
-                                     std::string str_DisplayName)
-{
-    bool bReturn = false;
-    if (HaveWorkingScript()) {
-        OTVariable the_return_value("ret_val", bReturn);
-
-        m_pScript->SetScript(str_Code);
-        m_pScript->SetDisplayFilename(str_DisplayName);
-        m_pScript->ExecuteScript(&the_return_value); // <====== EXECUTE SCRIPT.
-
-        if (OTVariable::Var_Bool == the_return_value.GetType())
-            bReturn = the_return_value.CopyValueBool();
-    }
-    return bReturn;
-}
-
 int32_t OT_ME::ExecuteScript_ReturnInt(const std::string& str_Code,
                                        std::string str_DisplayName)
 {
