@@ -1111,7 +1111,8 @@ bool OTPaths::GetHomeFromSystem(String& out_strHomeFolder)
 #else
     out_strHomeFolder.Set(getenv("HOME"));
 #endif
-    return true;
+
+    return out_strHomeFolder.Exists();
 }
 
 #ifdef _WIN32
