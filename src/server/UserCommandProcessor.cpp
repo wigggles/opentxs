@@ -1780,19 +1780,6 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(Nym& theNym,
         std::set<int64_t> theList;
         theNumlist.Output(theList);
 
-        for (auto& it : theList) {
-            const int64_t lTransNum = it;
-            server_->transactor_.removeTransactionNumber(theNym, lTransNum,
-                                                         false);
-            server_->transactor_.removeIssuedNumber(
-                theNym, lTransNum, false); // I'll drop it in his
-                                           // Nymbox -- he can
-                                           // SIGN for it.
-            // Then why was it added in the first place? Because we originally
-            // sent it back in the reply directly,
-            // so IssueNext was designed to work that way originally.
-        }
-
         if (bSavedNymbox) {
             theNym.SetNymboxHashServerSide(NYMBOX_HASH);
             theNym.SaveSignedNymfile(server_->m_nymServer);
