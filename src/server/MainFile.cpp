@@ -132,7 +132,6 @@
 
 #include <opentxs/server/MainFile.hpp>
 #include <opentxs/server/OTServer.hpp>
-#include <opentxs/server/Helpers.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
