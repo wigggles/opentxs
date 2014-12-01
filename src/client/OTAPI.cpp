@@ -493,6 +493,13 @@ std::string OTAPI_Wrap::FormatAmount(
     return Exec()->FormatAmount(INSTRUMENT_DEFINITION_ID, THE_AMOUNT);
 }
 
+std::string OTAPI_Wrap::FormatAmountWithoutSymbol(
+    const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT)
+{
+    return Exec()->FormatAmountWithoutSymbol(INSTRUMENT_DEFINITION_ID,
+                                             THE_AMOUNT);
+}
+
 std::string OTAPI_Wrap::GetAssetType_Contract(
     const std::string& INSTRUMENT_DEFINITION_ID)
 {

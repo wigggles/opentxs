@@ -193,6 +193,8 @@ public:
                                       const char* szDecimalPoint = ".");
 
     EXPORT bool FormatAmount(int64_t amount, std::string& str_output) const;
+    EXPORT bool FormatAmountWithoutSymbol(const int64_t& theInput,
+                                          std::string& str_output) const;
 
     EXPORT bool StringToAmount(int64_t& amount,
                                const std::string& str_input) const;

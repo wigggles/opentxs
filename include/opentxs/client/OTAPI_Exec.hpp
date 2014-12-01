@@ -702,10 +702,20 @@ public:
     // Output: 545 becomes (for example) "$5.45"
     //
     // Returns formatted string for output, for a given amount, based on
-    currency contract and locale.
+    // currency contract and locale.
     */
     EXPORT std::string FormatAmount(const std::string& INSTRUMENT_DEFINITION_ID,
                                     const int64_t& THE_AMOUNT) const;
+
+    /** FormatAmountWithoutSymbol:
+    // Input: currency contract, amount. (And locale, internally.)
+    // Output: 545 becomes (for example) "5.45"
+    //
+    // Returns formatted string for output, for a given amount, based on
+    // currency contract and locale.
+    */
+    EXPORT std::string FormatAmountWithoutSymbol(
+        const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT);
 
     /** StringToAmount:
     // Input: currency contract, formatted string. (And locale, internally.)
