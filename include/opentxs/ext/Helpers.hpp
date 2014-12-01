@@ -130,15 +130,12 @@
  -----END PGP SIGNATURE-----
 **************************************************************/
 
-#ifndef OPENTXS_SERVER_HELPERS_HPP
-#define OPENTXS_SERVER_HELPERS_HPP
+#ifndef OPENTXS_EXT_HELPERS_HPP
+#define OPENTXS_EXT_HELPERS_HPP
 
 #include <opentxs/core/Log.hpp>
 #include <string>
 #include <iostream>
-
-namespace opentxs
-{
 
 // Reads from cin until Newline.
 inline std::string OT_CLI_ReadLine()
@@ -196,22 +193,11 @@ inline std::string OT_CLI_ReadUntilEOF()
             result += input_line;
         }
         else {
-            Log::Error("OT_CLI_ReadUntilEOF: getline() was unable to read a "
-                       "string from std::cin\n");
+            opentxs::otErr << "OT_CLI_ReadUntilEOF: getline() was unable to "
+                              "read a string from std::cin\n";
             break;
         }
-        if (std::cin.eof()) {
-            //          cout << "IT WAS EOF\n";
-            std::cin.clear();
-            break;
-        }
-        if (std::cin.fail()) {
-            //          cout << "IT WAS FAIL\n";
-            std::cin.clear();
-            break;
-        }
-        if (std::cin.bad()) {
-            //          cout << "IT WAS BAD\n";
+        if (std::cin.eof() || std::cin.fail() || std::cin.bad()) {
             std::cin.clear();
             break;
         }
@@ -224,6 +210,4 @@ inline std::string OT_CLI_ReadUntilEOF()
     return result;
 }
 
-} // namespace opentxs
-
-#endif // OPENTXS_SERVER_HELPERS_HPP
+#endif // OPENTXS_EXT_HELPERS_HPP
