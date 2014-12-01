@@ -217,15 +217,7 @@ bool Transactor::issueNextTransactionNumberToNym(Nym& theNym,
     else
         pNym = &theNym;
 
-    // transactionNumber_ stores the last VALID AND ISSUED transaction number.
-    // So first, we increment that, since we don't want to issue the same number
-    // twice.
-    transactionNumber_++;
-
-    // Next, we save it to file.
-    if (!server_->mainFile_.SaveMainFile()) {
-        Log::Error("Error saving main server file.\n");
-        transactionNumber_--;
+    if (!issueNextTransactionNumber(lTransactionNumber)) {
         return false;
     }
 
