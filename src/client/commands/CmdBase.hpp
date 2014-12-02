@@ -203,7 +203,6 @@ protected:
                              int64_t amount) const;
     std::string getAccountAssetType(const std::string& myacct) const;
     std::string getAccountNym(const std::string& myacct) const;
-    std::string getAccountServer(const std::string& myacct) const;
     std::string getOption(std::string optionName) const;
     OTWallet* getWallet() const;
     int32_t harvestTxNumbers(const std::string& contract,

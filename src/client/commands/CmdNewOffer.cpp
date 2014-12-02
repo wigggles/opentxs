@@ -202,8 +202,9 @@ int32_t CmdNewOffer::run(string myacct, string hisacct, string type,
         return -1;
     }
 
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
@@ -212,8 +213,9 @@ int32_t CmdNewOffer::run(string myacct, string hisacct, string type,
         return -1;
     }
 
-    string hisserver = getAccountServer(hisacct);
+    string hisserver = OTAPI_Wrap::GetAccountWallet_NotaryID(hisacct);
     if ("" == hisserver) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 

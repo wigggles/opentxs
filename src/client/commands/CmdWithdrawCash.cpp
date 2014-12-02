@@ -175,8 +175,9 @@ int32_t CmdWithdrawCash::run(string myacct, string amount)
 int32_t CmdWithdrawCash::withdrawCash(const string& myacct,
                                       int64_t amount) const
 {
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 

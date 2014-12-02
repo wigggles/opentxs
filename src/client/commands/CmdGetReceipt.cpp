@@ -134,6 +134,9 @@
 
 #include "../ot_made_easy_ot.hpp"
 
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/core/Log.hpp>
+
 using namespace opentxs;
 using namespace std;
 
@@ -189,8 +192,9 @@ int32_t CmdGetReceipt::run(string server, string mynym, string myacct,
             return -1;
         }
 
-        server = getAccountServer(myacct);
+        server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
         if ("" == server) {
+            otOut << "Error: cannot determine server from myacct.\n";
             return -1;
         }
 

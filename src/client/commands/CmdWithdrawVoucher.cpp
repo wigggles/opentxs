@@ -191,8 +191,9 @@ int32_t CmdWithdrawVoucher::run(string myacct, string hisnym, string amount,
         return -1;
     }
 
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 

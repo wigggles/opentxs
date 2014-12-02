@@ -182,8 +182,9 @@ int32_t CmdExchangeBasket::run(string myacct, string direction, string multiple)
         return -1;
     }
 
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
@@ -381,8 +382,9 @@ int32_t CmdExchangeBasket::showBasketAccounts(const string& server,
             return -1;
         }
 
-        string accountServer = getAccountServer(acct);
+        string accountServer = OTAPI_Wrap::GetAccountWallet_NotaryID(acct);
         if ("" == accountServer) {
+            otOut << "Error: cannot determine server from myacct.\n";
             return -1;
         }
 

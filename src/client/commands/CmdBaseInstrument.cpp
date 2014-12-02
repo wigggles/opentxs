@@ -246,8 +246,9 @@ string CmdBaseInstrument::writeCheque(string myacct, string hisnym,
         return "";
     }
 
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return "";
     }
 
