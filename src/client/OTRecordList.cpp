@@ -249,8 +249,8 @@ std::string OTNameLookup::GetNymName(const std::string& str_id,
 
 // virtual
 std::string OTNameLookup::GetAcctName(const std::string& str_id,
-                                      const std::string*, const std::string*,
-                                      const std::string*) const
+                                      const std::string, const std::string,
+                                      const std::string) const
 {
     if (str_id.empty()) return "";
 
@@ -330,8 +330,8 @@ std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
 
 std::string OTLookupCaller::GetAcctName(
     const std::string& str_id, // AcctID
-    const std::string* p_nym_id, const std::string* p_notary_id,
-    const std::string* p_instrument_definition_id) const
+    const std::string p_nym_id, const std::string p_notary_id,
+    const std::string p_instrument_definition_id) const
 {
     if (isCallbackSet()) {
         otWarn << "OTLookupCaller::GetAcctName: FYI, Executing address "
@@ -2828,14 +2828,12 @@ bool OTRecordList::Populate()
 
                             String strName(m_pLookup->GetAcctName(
                                 str_other_acct_id,
-                                str_other_nym_id.empty()
-                                    ? nullptr
-                                    : &str_other_nym_id, // nym ID if known
-                                pstr_notary_id,          // server ID if known.
-                                pstr_instrument_definition_id)), // instrument
-                                                                 // definition
-                                                                 // id if
-                                                                 // known.
+                                str_other_nym_id, // nym ID if known
+                                *pstr_notary_id,  // server ID if known.
+                                *pstr_instrument_definition_id)), // instrument
+                                                                  // definition
+                                                                  // id if
+                                                                  // known.
                                 strNameTemp;
 
                             if (strName.Exists()) {
@@ -2933,12 +2931,12 @@ bool OTRecordList::Populate()
 
                             String strName(m_pLookup->GetAcctName(
                                 str_recipient_acct_id,
-                                nullptr,        // nym ID if known
-                                pstr_notary_id, // server ID if known.
-                                pstr_instrument_definition_id)), // instrument
-                                                                 // definition
-                                                                 // id if
-                                                                 // known.
+                                "",              // nym ID if known
+                                *pstr_notary_id, // server ID if known.
+                                *pstr_instrument_definition_id)), // instrument
+                                                                  // definition
+                                                                  // id if
+                                                                  // known.
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -3098,11 +3096,11 @@ bool OTRecordList::Populate()
                             strRecipientAcctID.Get());
 
                         String strName(m_pLookup->GetAcctName(
-                            str_recipient_acct_id, nullptr, // nym ID if known
-                            pstr_notary_id, // server ID if known.
-                            pstr_instrument_definition_id)), // instrument
-                                                             // definition id if
-                                                             // known.
+                            str_recipient_acct_id, "", // nym ID if known
+                            *pstr_notary_id,           // server ID if known.
+                            *pstr_instrument_definition_id)), // instrument
+                            // definition id if
+                            // known.
                             strNameTemp;
 
                         if (strName.Exists())
@@ -3309,12 +3307,12 @@ bool OTRecordList::Populate()
                                         // the recipient Nym is the owner of the
                                         // sender acct.)
                                         bGotRecipientNymIDForDisplay
-                                            ? &str_recip_nym_id
-                                            : nullptr,  // nym ID if known
-                                        pstr_notary_id, // server ID if known.
-                                        pstr_instrument_definition_id)), // asset
-                                                                         // ID
-                                                                         // if
+                                            ? str_recip_nym_id
+                                            : "",        // nym ID if known
+                                        *pstr_notary_id, // server ID if known.
+                                        *pstr_instrument_definition_id)), // asset
+                                                                          // ID
+                                                                          // if
                                         // known.
                                         strNameTemp;
 
@@ -3374,14 +3372,12 @@ bool OTRecordList::Populate()
                             }
                             String strName(m_pLookup->GetAcctName(
                                 str_sender_acct_id,
-                                str_other_nym_id.empty()
-                                    ? nullptr
-                                    : &str_other_nym_id, // nym ID if known
-                                pstr_notary_id,          // server ID if known.
-                                pstr_instrument_definition_id)), // instrument
-                                                                 // definition
-                                                                 // id if
-                                                                 // known.
+                                str_other_nym_id, // nym ID if known
+                                *pstr_notary_id,  // server ID if known.
+                                *pstr_instrument_definition_id)), // instrument
+                                                                  // definition
+                                                                  // id if
+                                                                  // known.
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -3426,14 +3422,12 @@ bool OTRecordList::Populate()
 
                             String strName(m_pLookup->GetAcctName(
                                 str_recipient_acct_id,
-                                str_other_nym_id.empty()
-                                    ? nullptr
-                                    : &str_other_nym_id, // nym ID if known
-                                pstr_notary_id,          // server ID if known.
-                                pstr_instrument_definition_id)), // instrument
-                                                                 // definition
-                                                                 // id if
-                                                                 // known.
+                                str_other_nym_id, // nym ID if known
+                                *pstr_notary_id,  // server ID if known.
+                                *pstr_instrument_definition_id)), // instrument
+                                                                  // definition
+                                                                  // id if
+                                                                  // known.
                                 strNameTemp;
 
                             if (strName.Exists())

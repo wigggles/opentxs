@@ -160,9 +160,8 @@ public:
 
     EXPORT virtual std::string GetAcctName(
         const std::string& str_id, // AcctID
-        const std::string* p_nym_id = nullptr,
-        const std::string* p_notary_id = nullptr,
-        const std::string* p_instrument_definition_id = nullptr) const;
+        const std::string p_nym_id, const std::string p_notary_id,
+        const std::string p_instrument_definition_id) const;
 
     EXPORT virtual std::string GetAddressName(const std::string& str_address)
         const; // Used for Bitmessage and other special addresses.
@@ -213,9 +212,8 @@ public:
 
     EXPORT std::string GetAcctName(
         const std::string& str_id, // AcctID
-        const std::string* p_nym_id = nullptr,
-        const std::string* p_notary_id = nullptr,
-        const std::string* p_instrument_definition_id = nullptr) const;
+        const std::string p_nym_id, const std::string p_notary_id,
+        const std::string p_instrument_definition_id) const;
 
     EXPORT std::string GetAddressName(const std::string& str_address) const;
 };
