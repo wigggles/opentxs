@@ -240,7 +240,7 @@ OTNameLookup::~OTNameLookup()
 
 // virtual
 std::string OTNameLookup::GetNymName(const std::string& str_id,
-                                     const std::string*) const
+                                     const std::string) const
 {
     if (str_id.empty()) return "";
 
@@ -313,12 +313,12 @@ bool OTLookupCaller::isCallbackSet() const
 }
 
 std::string OTLookupCaller::GetNymName(const std::string& str_id, // NymID
-                                       const std::string* p_notary_id) const
+                                       const std::string notary_id) const
 {
     if (isCallbackSet()) {
         otWarn << "OTLookupCaller::GetNymName: FYI, Executing address "
                   "book callback...\n";
-        return _callback->GetNymName(str_id, p_notary_id);
+        return _callback->GetNymName(str_id, notary_id);
     }
     else {
         otOut << "OTLookupCaller::GetNymName: "
@@ -1269,8 +1269,8 @@ bool OTRecordList::Populate()
                 // and add the Nym's name as the second item in the map's pair.
                 // (Just like I already did with the instrument definition.)
                 //
-                String strName(m_pLookup->GetNymName(str_outpmt_recipientID,
-                                                     &(*it_server))),
+                String strName(
+                    m_pLookup->GetNymName(str_outpmt_recipientID, *it_server)),
                     strNameTemp;
                 std::string str_name;
 
@@ -1385,7 +1385,7 @@ bool OTRecordList::Populate()
                 // (Just like I already did with the instrument definition.)
                 //
                 String strName(
-                    m_pLookup->GetNymName(str_mail_senderID, &(*it_server))),
+                    m_pLookup->GetNymName(str_mail_senderID, *it_server)),
                     strNameTemp;
                 std::string str_name;
 
@@ -1483,7 +1483,7 @@ bool OTRecordList::Populate()
                 // (Just like I already did with the instrument definition.)
                 //
                 String strName(
-                    m_pLookup->GetNymName(str_mail_recipientID, &(*it_server))),
+                    m_pLookup->GetNymName(str_mail_recipientID, *it_server)),
                     strNameTemp;
                 std::string str_name;
 
@@ -1595,7 +1595,7 @@ bool OTRecordList::Populate()
                             str_sender_nym_id = strSenderID.Get();
 
                             String strName(m_pLookup->GetNymName(
-                                str_sender_nym_id, &it_server)),
+                                str_sender_nym_id, it_server)),
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -1881,7 +1881,7 @@ bool OTRecordList::Populate()
                                         strRecipientID.Get());
 
                                     String strName(m_pLookup->GetNymName(
-                                        str_recipient_id, &it_server)),
+                                        str_recipient_id, it_server)),
                                         strNameTemp;
 
                                     if (strName.Exists())
@@ -1911,7 +1911,7 @@ bool OTRecordList::Populate()
                                 // already false.)
 
                                 String strName(m_pLookup->GetNymName(
-                                    str_sender_id, &it_server)),
+                                    str_sender_id, it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -1953,7 +1953,7 @@ bool OTRecordList::Populate()
                                 bOutgoing = true;
 
                                 String strName(m_pLookup->GetNymName(
-                                    str_recipient_id, &it_server)),
+                                    str_recipient_id, it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -2317,7 +2317,7 @@ bool OTRecordList::Populate()
                                         strRecipientID.Get());
 
                                     String strName(m_pLookup->GetNymName(
-                                        str_recipient_id, &it_server)),
+                                        str_recipient_id, it_server)),
                                         strNameTemp;
 
                                     if (strName.Exists())
@@ -2347,7 +2347,7 @@ bool OTRecordList::Populate()
                                 // already false.)
 
                                 String strName(m_pLookup->GetNymName(
-                                    str_sender_id, &it_server)),
+                                    str_sender_id, it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -2389,7 +2389,7 @@ bool OTRecordList::Populate()
                                 bOutgoing = true;
 
                                 String strName(m_pLookup->GetNymName(
-                                    str_recipient_id, &it_server)),
+                                    str_recipient_id, it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -2845,7 +2845,7 @@ bool OTRecordList::Populate()
                             }
                             else if (!str_other_nym_id.empty()) {
                                 String strNymName(m_pLookup->GetNymName(
-                                    str_other_nym_id, &(*it_server))),
+                                    str_other_nym_id, *it_server)),
                                     strNymNameTemp;
 
                                 if (strNymName.Exists()) {
@@ -2867,8 +2867,8 @@ bool OTRecordList::Populate()
                             const String strSenderID(theSenderID);
                             const std::string str_sender_id(strSenderID.Get());
 
-                            String strName(m_pLookup->GetNymName(
-                                str_sender_id, &(*it_server))),
+                            String strName(m_pLookup->GetNymName(str_sender_id,
+                                                                 *it_server)),
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -2905,7 +2905,7 @@ bool OTRecordList::Populate()
                                 strRecipientID.Get());
 
                             String strName(m_pLookup->GetNymName(
-                                str_recipient_nym_id, &(*it_server))),
+                                str_recipient_nym_id, *it_server)),
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -3073,7 +3073,7 @@ bool OTRecordList::Populate()
                             strRecipientID.Get());
 
                         String strName(m_pLookup->GetNymName(str_recipient_id,
-                                                             &(*it_server))),
+                                                             *it_server)),
                             strNameTemp;
 
                         if (strName.Exists())
@@ -3344,7 +3344,7 @@ bool OTRecordList::Populate()
 
                                 if (str_name.empty()) {
                                     String strName(m_pLookup->GetNymName(
-                                        str_recipient_id, &(*it_server))),
+                                        str_recipient_id, *it_server)),
                                         strNameTemp;
 
                                     if (strName.Exists())
@@ -3479,7 +3479,7 @@ bool OTRecordList::Populate()
                                     strRecipientID.Get());
 
                                 String strName(m_pLookup->GetNymName(
-                                    str_recipient_id, &(*it_server))),
+                                    str_recipient_id, *it_server)),
                                     strNameTemp;
 
                                 if (strName.Exists())
@@ -3508,8 +3508,8 @@ bool OTRecordList::Populate()
                             // already
                             // false.)
 
-                            String strName(m_pLookup->GetNymName(
-                                str_sender_id, &(*it_server))),
+                            String strName(m_pLookup->GetNymName(str_sender_id,
+                                                                 *it_server)),
                                 strNameTemp;
 
                             if (strName.Exists())
@@ -3550,7 +3550,7 @@ bool OTRecordList::Populate()
                             bOutgoing = true;
 
                             String strName(m_pLookup->GetNymName(
-                                str_recipient_id, &(*it_server))),
+                                str_recipient_id, *it_server)),
                                 strNameTemp;
 
                             if (strName.Exists())

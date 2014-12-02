@@ -155,9 +155,8 @@ public:
     }
     EXPORT virtual ~OTNameLookup();
 
-    EXPORT virtual std::string GetNymName(
-        const std::string& str_id, // NymID
-        const std::string* p_notary_id = nullptr) const;
+    EXPORT virtual std::string GetNymName(const std::string& str_id, // NymID
+                                          const std::string p_notary_id) const;
 
     EXPORT virtual std::string GetAcctName(
         const std::string& str_id, // AcctID
@@ -209,9 +208,8 @@ public:
     EXPORT void setCallback(OTNameLookup* cb);
     EXPORT bool isCallbackSet() const;
 
-    EXPORT std::string GetNymName(
-        const std::string& str_id, // NymID
-        const std::string* p_notary_id = nullptr) const;
+    EXPORT std::string GetNymName(const std::string& str_id, // NymID
+                                  const std::string notary_id) const;
 
     EXPORT std::string GetAcctName(
         const std::string& str_id, // AcctID
