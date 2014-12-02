@@ -1745,6 +1745,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 
         theScript.chai->add(fun(&OTAPI_Wrap::FormatAmount),
                             "OT_API_FormatAmount");
+        theScript.chai->add(fun(&OTAPI_Wrap::FormatAmountWithoutSymbol),
+                            "OT_API_FormatAmountWithoutSymbol");
+
         theScript.chai->add(fun(&OTAPI_Wrap::StringToAmount),
                             "OT_API_StringToAmount");
 

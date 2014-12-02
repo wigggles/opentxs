@@ -167,6 +167,19 @@ bool OTRecord::FormatAmount(std::string& str_output) const
         OTAPI_Wrap::It()->StringToLong(m_str_amount));
     return (!str_output.empty());
 }
+
+bool OTRecord::FormatAmountWithoutSymbol(std::string& str_output)
+{
+    if (m_str_amount.empty() || m_str_instrument_definition_id.empty()) {
+        return false;
+    }
+
+    str_output = OTAPI_Wrap::It()->FormatAmountWithoutSymbol(
+        m_str_instrument_definition_id,
+        OTAPI_Wrap::It()->StringToLong(m_str_amount));
+    return (!str_output.empty());
+}
+
 bool OTRecord::FormatMailSubject(std::string& str_output) const
 {
     str_output.clear();

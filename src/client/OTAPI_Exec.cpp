@@ -1369,6 +1369,39 @@ std::string OTAPI_Exec::FormatAmount(
     return pBuf;
 }
 
+// Returns formatted string for output, for a given amount, based on currency
+// contract and locale.
+std::string OTAPI_Exec::FormatAmountWithoutSymbol(
+    const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT)
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        Log::vError("%s: Not initialized; call OT_API::Init first.\n",
+                    __FUNCTION__);
+        OT_FAIL;
+    }
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        Log::vError("%s: Empty %s passed in!\n", __FUNCTION__,
+                    "INSTRUMENT_DEFINITION_ID");
+        OT_FAIL;
+    }
+
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    AssetContract* pContract =
+        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    if (NULL == pContract) return "";
+    // By this point, pContract is a good pointer.  (No need to cleanup.)
+    // --------------------------------------------------------------------
+    String strBackup(LongToString(THE_AMOUNT));
+    std::string str_result;
+    const bool bFormatted = pContract->FormatAmountWithoutSymbol(
+        THE_AMOUNT, str_result); // Convert 545 to $5.45.
+    const String strOutput(bFormatted ? str_result.c_str() : strBackup.Get());
+
+    std::string pBuf = strOutput.Get();
+    return pBuf;
+}
+
 std::string OTAPI_Exec::GetAssetType_Contract(
     const std::string& INSTRUMENT_DEFINITION_ID) const // Returns currency
                                                        // contract based on

@@ -324,7 +324,7 @@ std::string AssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
         lValue = -lValue;
     }
 
-    sss << szCurrencySymbol << " ";
+    if (NULL != szCurrencySymbol) sss << szCurrencySymbol << " ";
 
     // For example, if 506 is supposed to be $5.06, then dividing by a factor of
     // 100 results in 5 dollars (integer value) and 6 cents (fractional value).
@@ -384,6 +384,44 @@ bool AssetContract::FormatAmount(int64_t amount,
     str_output = AssetContract::formatLongAmount(
         amount, nFactor, nPower, m_strCurrencySymbol.Get(), strSeparator.Get(),
         strDecimalPoint.Get());
+    return true;
+}
+
+// Convert 912545 to "9,125.45"
+//
+// (Assuming a Factor of 100, Decimal Power of 2
+//  separator of "," and decimal point of ".")
+//
+bool AssetContract::FormatAmountWithoutSymbol(
+    const int64_t& theInput,
+    std::string& str_output) const // Convert 545 to 5.45.
+{
+    int64_t lValue = theInput;
+    // --------------------------------------------------------
+    // default is 100  (100 cents in a dollar)
+    int32_t nFactor = atoi(m_strCurrencyFactor.Get());
+    if (nFactor < 1) nFactor = 1;
+    OT_ASSERT(nFactor > 0); // should be 1, 10, 100, etc.
+    // --------------------------------------------------------
+    // default is 2. ($5.05 is moved 2 decimal places.)
+    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get());
+    if (nPower < 0) nPower = 0;
+    OT_ASSERT(nPower >= 0); // should be 0, 1, 2, etc.
+    // --------------------------------------------------------
+    // Lookup separator and decimal point symbols based on locale.
+    // --------------------------------------------------------
+    // Get a moneypunct facet from the global ("C") locale
+    //
+    // NOTE: Turns out moneypunct kind of sucks.
+    // As a result, for internationalization purposes,
+    // these values have to be set here before compilation.
+    //
+    static String strSeparator(OT_THOUSANDS_SEP);
+    static String strDecimalPoint(OT_DECIMAL_POINT);
+
+    str_output = AssetContract::formatLongAmount(lValue, nFactor, nPower, NULL,
+                                                 strSeparator.Get(),
+                                                 strDecimalPoint.Get());
     return true;
 }
 

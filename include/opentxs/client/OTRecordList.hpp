@@ -155,15 +155,13 @@ public:
     }
     EXPORT virtual ~OTNameLookup();
 
-    EXPORT virtual std::string GetNymName(
-        const std::string& str_id, // NymID
-        const std::string* p_notary_id = nullptr) const;
+    EXPORT virtual std::string GetNymName(const std::string& str_id, // NymID
+                                          const std::string p_notary_id) const;
 
     EXPORT virtual std::string GetAcctName(
         const std::string& str_id, // AcctID
-        const std::string* p_nym_id = nullptr,
-        const std::string* p_notary_id = nullptr,
-        const std::string* p_instrument_definition_id = nullptr) const;
+        const std::string p_nym_id, const std::string p_notary_id,
+        const std::string p_instrument_definition_id) const;
 
     EXPORT virtual std::string GetAddressName(const std::string& str_address)
         const; // Used for Bitmessage and other special addresses.
@@ -209,15 +207,13 @@ public:
     EXPORT void setCallback(OTNameLookup* cb);
     EXPORT bool isCallbackSet() const;
 
-    EXPORT std::string GetNymName(
-        const std::string& str_id, // NymID
-        const std::string* p_notary_id = nullptr) const;
+    EXPORT std::string GetNymName(const std::string& str_id, // NymID
+                                  const std::string notary_id) const;
 
     EXPORT std::string GetAcctName(
         const std::string& str_id, // AcctID
-        const std::string* p_nym_id = nullptr,
-        const std::string* p_notary_id = nullptr,
-        const std::string* p_instrument_definition_id = nullptr) const;
+        const std::string p_nym_id, const std::string p_notary_id,
+        const std::string p_instrument_definition_id) const;
 
     EXPORT std::string GetAddressName(const std::string& str_address) const;
 };

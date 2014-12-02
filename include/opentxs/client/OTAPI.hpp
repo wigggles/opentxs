@@ -709,6 +709,9 @@ public:
     EXPORT static std::string FormatAmount(
         const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT);
 
+    EXPORT static std::string FormatAmountWithoutSymbol(
+        const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT);
+
     /** StringToAmount:
      // Input: currency contract, formatted string. (And locale, internally.)
      // Output: "$5.45" becomes 545 (for example.)
