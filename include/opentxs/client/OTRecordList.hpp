@@ -341,7 +341,7 @@ public:
     // RETRIEVE:
     //
     EXPORT int32_t size() const;
-    EXPORT std::shared_ptr<OTRecord> GetRecord(int32_t nIndex);
+    EXPORT OTRecord GetRecord(int32_t nIndex);
     EXPORT bool RemoveRecord(int32_t nIndex);
 };
 
