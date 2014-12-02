@@ -193,8 +193,9 @@ int32_t CmdDeposit::run(string mynym, string myacct, string indices)
         return -1;
     }
 
-    string toNym = getAccountNym(myacct);
+    string toNym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == toNym) {
+        otOut << "Error: cannot determine toNym from myacct.\n";
         return -1;
     }
 

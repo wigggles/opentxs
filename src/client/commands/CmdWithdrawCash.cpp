@@ -181,8 +181,9 @@ int32_t CmdWithdrawCash::withdrawCash(const string& myacct,
         return -1;
     }
 
-    string mynym = getAccountNym(myacct);
+    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
+        otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 

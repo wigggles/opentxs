@@ -186,8 +186,9 @@ int32_t CmdSendCash::run(string server, string mynym, string myacct,
             return -1;
         }
 
-        mynym = getAccountNym(myacct);
+        mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
         if ("" == mynym) {
+            otOut << "Error: cannot determine mynym from myacct.\n";
             return -1;
         }
 

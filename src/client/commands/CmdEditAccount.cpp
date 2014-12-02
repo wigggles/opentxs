@@ -166,8 +166,9 @@ int32_t CmdEditAccount::run(string myacct, string label)
         return -1;
     }
 
-    string mynym = getAccountNym(myacct);
+    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
+        otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 

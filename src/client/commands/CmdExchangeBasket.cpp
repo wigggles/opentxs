@@ -188,8 +188,9 @@ int32_t CmdExchangeBasket::run(string myacct, string direction, string multiple)
         return -1;
     }
 
-    string mynym = getAccountNym(myacct);
+    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
+        otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 
@@ -389,8 +390,9 @@ int32_t CmdExchangeBasket::showBasketAccounts(const string& server,
         }
 
         if ("" == server || server == accountServer) {
-            string accountNym = getAccountNym(acct);
+            string accountNym = OTAPI_Wrap::GetAccountWallet_NymID(acct);
             if ("" == accountNym) {
+                otOut << "Error: cannot determine accountNym from acct.\n";
                 return -1;
             }
 

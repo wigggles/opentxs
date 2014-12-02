@@ -252,8 +252,9 @@ string CmdBaseInstrument::writeCheque(string myacct, string hisnym,
         return "";
     }
 
-    string mynym = getAccountNym(myacct);
+    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
+        otOut << "Error: cannot determine mynym from myacct.\n";
         return "";
     }
 

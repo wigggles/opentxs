@@ -476,15 +476,6 @@ string CmdBase::getAccountAssetType(const string& myacct) const
     return assetType;
 }
 
-string CmdBase::getAccountNym(const string& myacct) const
-{
-    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
-    if ("" == mynym) {
-        otOut << "Error: cannot determine mynym from myacct.\n";
-    }
-    return mynym;
-}
-
 string CmdBase::getOption(string optionName) const
 {
     auto result = options.find(optionName);
