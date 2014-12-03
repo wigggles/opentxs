@@ -3874,14 +3874,11 @@ bool OTRecordList::RemoveRecord(int32_t nIndex)
     return true;
 }
 
-shared_ptr_OTRecord OTRecordList::GetRecord(int32_t nIndex)
+OTRecord OTRecordList::GetRecord(int32_t nIndex)
 {
     OT_ASSERT((nIndex >= 0) &&
               (nIndex < static_cast<int32_t>(m_contents.size())));
-    weak_ptr_OTRecord wp_record(m_contents[nIndex]);
-    shared_ptr_OTRecord sp_record(wp_record);
-
-    return sp_record;
+    return *(m_contents[nIndex]);
 }
 
 } // namespace opentxs
