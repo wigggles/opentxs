@@ -135,6 +135,7 @@
 #include "CmdWithdrawVoucher.hpp"
 
 #include <opentxs/core/Log.hpp>
+#include <opentxs/client/OTAPI.hpp>
 
 using namespace opentxs;
 using namespace std;
@@ -185,7 +186,7 @@ int32_t CmdSendVoucher::run(string myacct, string hisnym, string amount,
 
     cout << voucher << "\n";
 
-    string sender = getAccountNym(myacct);
+    string sender = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == sender) {
         otOut << "Error: cannot get sender from myacct.\n";
         return -1;

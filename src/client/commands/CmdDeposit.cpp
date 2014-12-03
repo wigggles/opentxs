@@ -187,13 +187,15 @@ int32_t CmdDeposit::run(string mynym, string myacct, string indices)
         return -1;
     }
 
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
-    string toNym = getAccountNym(myacct);
+    string toNym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == toNym) {
+        otOut << "Error: cannot determine toNym from myacct.\n";
         return -1;
     }
 

@@ -174,13 +174,15 @@ int32_t CmdShowRecords::run(string server, string mynym, string myacct)
             return -1;
         }
 
-        server = getAccountServer(myacct);
+        server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
         if ("" == server) {
+            otOut << "Error: cannot determine server from myacct.\n";
             return -1;
         }
 
-        mynym = getAccountNym(myacct);
+        mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
         if ("" == mynym) {
+            otOut << "Error: cannot determine mynym from myacct.\n";
             return -1;
         }
     }

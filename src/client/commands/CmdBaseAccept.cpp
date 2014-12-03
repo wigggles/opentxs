@@ -203,13 +203,15 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
                                        const string& indices,
                                        const int32_t itemType) const
 {
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
-    string mynym = getAccountNym(myacct);
+    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
+        otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 
@@ -332,13 +334,15 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
         return -1;
     }
 
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
-    string mynym = getAccountNym(myacct);
+    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
+        otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 

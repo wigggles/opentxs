@@ -182,13 +182,15 @@ int32_t CmdExchangeBasket::run(string myacct, string direction, string multiple)
         return -1;
     }
 
-    string server = getAccountServer(myacct);
+    string server = OTAPI_Wrap::GetAccountWallet_NotaryID(myacct);
     if ("" == server) {
+        otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
-    string mynym = getAccountNym(myacct);
+    string mynym = OTAPI_Wrap::GetAccountWallet_NymID(myacct);
     if ("" == mynym) {
+        otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 
@@ -381,14 +383,16 @@ int32_t CmdExchangeBasket::showBasketAccounts(const string& server,
             return -1;
         }
 
-        string accountServer = getAccountServer(acct);
+        string accountServer = OTAPI_Wrap::GetAccountWallet_NotaryID(acct);
         if ("" == accountServer) {
+            otOut << "Error: cannot determine server from myacct.\n";
             return -1;
         }
 
         if ("" == server || server == accountServer) {
-            string accountNym = getAccountNym(acct);
+            string accountNym = OTAPI_Wrap::GetAccountWallet_NymID(acct);
             if ("" == accountNym) {
+                otOut << "Error: cannot determine accountNym from acct.\n";
                 return -1;
             }
 
