@@ -263,15 +263,15 @@ private:
     static bool KWallet_DeleteSecret(const OTString& strUser,
                                      const std::string& str_display);
 #elif defined(OT_KEYRING_FLATFILE) // Do not use! Unsafe! For testing only!
-    static bool FlatFile_StoreSecret(const OTString& strUser,
+    static bool FlatFile_StoreSecret(const String& strUser,
                                      const OTPassword& thePassword,
                                      const std::string& str_display);
 
-    static bool FlatFile_RetrieveSecret(const OTString& strUser,
+    static bool FlatFile_RetrieveSecret(const String& strUser,
                                         OTPassword& thePassword,
                                         const std::string& str_display);
 
-    static bool FlatFile_DeleteSecret(const OTString& strUser,
+    static bool FlatFile_DeleteSecret(const String& strUser,
                                       const std::string& str_display);
 
 public:

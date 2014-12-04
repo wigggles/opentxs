@@ -1193,7 +1193,7 @@ const char* OTKeyring::FlatFile_GetPasswordFolder()
 }
 
 // static
-bool OTKeyring::FlatFile_StoreSecret(const OTString& strUser,
+bool OTKeyring::FlatFile_StoreSecret(const String& strUser,
                                      const OTPassword& thePassword,
                                      const std::string& str_display)
 {
@@ -1202,9 +1202,9 @@ bool OTKeyring::FlatFile_StoreSecret(const OTString& strUser,
 
     const std::string str_pw_folder(OTKeyring::FlatFile_GetPasswordFolder());
     if (!str_pw_folder.empty()) {
-        OTString strExactPath;
+        String strExactPath;
         strExactPath.Format("%s%s%s", str_pw_folder.c_str(),
-                            OTLog::PathSeparator(), strUser.Get());
+                            Log::PathSeparator(), strUser.Get());
         const std::string str_ExactPath(strExactPath.Get());
 
         OTData theData(thePassword.getMemory(), thePassword.getMemorySize());
@@ -1231,16 +1231,16 @@ bool OTKeyring::FlatFile_StoreSecret(const OTString& strUser,
 }
 
 // static
-bool OTKeyring::FlatFile_RetrieveSecret(const OTString& strUser,
+bool OTKeyring::FlatFile_RetrieveSecret(const String& strUser,
                                         OTPassword& thePassword,
                                         const std::string& str_display)
 {
     OT_ASSERT(strUser.Exists());
     const std::string str_pw_folder(OTKeyring::FlatFile_GetPasswordFolder());
     if (!str_pw_folder.empty()) {
-        OTString strExactPath;
+        String strExactPath;
         strExactPath.Format("%s%s%s", str_pw_folder.c_str(),
-                            OTLog::PathSeparator(), strUser.Get());
+                            Log::PathSeparator(), strUser.Get());
         const std::string str_ExactPath(strExactPath.Get());
 
         // Get the password
@@ -1259,7 +1259,7 @@ bool OTKeyring::FlatFile_RetrieveSecret(const OTString& strUser,
                                          "OTData from OTASCIIArmor from "
                                          "flat file contents.\n";
             else {
-                thePassword.setMemory(thePayload.GetPayloadPointer(),
+                thePassword.setMemory(thePayload.GetPointer(),
                                       thePayload.GetSize());
                 thePayload.zeroMemory(); // for security.
                 return true;
@@ -1276,16 +1276,16 @@ bool OTKeyring::FlatFile_RetrieveSecret(const OTString& strUser,
 }
 
 // static
-bool OTKeyring::FlatFile_DeleteSecret(const OTString& strUser,
+bool OTKeyring::FlatFile_DeleteSecret(const String& strUser,
                                       const std::string& str_display)
 {
     OT_ASSERT(strUser.Exists());
 
     const std::string str_pw_folder(OTKeyring::FlatFile_GetPasswordFolder());
     if (!str_pw_folder.empty()) {
-        OTString strExactPath;
+        String strExactPath;
         strExactPath.Format("%s%s%s", str_pw_folder.c_str(),
-                            OTLog::PathSeparator(), strUser.Get());
+                            Log::PathSeparator(), strUser.Get());
         const std::string str_ExactPath(strExactPath.Get());
 
         std::ofstream ofs(str_ExactPath.c_str(),
