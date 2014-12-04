@@ -138,6 +138,7 @@
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
+#include <opentxs/core/crypto/OTKeyring.hpp>
 #include <cstdint>
 
 #define SERVER_WALLET_FILENAME "notaryServer.xml"
@@ -371,14 +372,13 @@ bool ConfigLoader::load(String& walletFilename)
         //
         if (bValue) {
             bool bIsNewKey2;
-            OTString strValue;
-            p_Config->CheckSet_str("security", "password_folder",
-                                   SERVER_PASSWORD_FOLDER, strValue,
+            String strValue;
+            p_Config->CheckSet_str("security", "password_folder", "", strValue,
                                    bIsNewKey2);
             if (strValue.Exists()) {
                 OTKeyring::FlatFile_SetPasswordFolder(strValue.Get());
-                OTLog::vOutput(0, " Using server password folder: %s\n",
-                               strValue.Get());
+                Log::vOutput(0, " Using server password folder: %s\n",
+                             strValue.Get());
             }
         }
 #endif

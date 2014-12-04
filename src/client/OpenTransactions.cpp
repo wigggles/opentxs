@@ -179,7 +179,7 @@
 #include <opentxs/core/OTStorage.hpp>
 
 #if defined(OT_KEYRING_FLATFILE)
-#include <opentxs/core/OTKeyring.hpp>
+#include <opentxs/core/crypto/OTKeyring.hpp>
 #endif
 
 #include <cassert>
@@ -898,9 +898,8 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
         //
         if (bValue) {
             bool bIsNewKey2;
-            OTString strValue;
-            p_Config->CheckSet_str("security", "password_folder",
-                                   CLIENT_PASSWORD_FOLDER, strValue,
+            String strValue;
+            p_Config->CheckSet_str("security", "password_folder", "", strValue,
                                    bIsNewKey2);
             if (strValue.Exists()) {
                 OTKeyring::FlatFile_SetPasswordFolder(strValue.Get());
