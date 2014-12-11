@@ -134,6 +134,7 @@
 
 #include <opentxs/client/OT_ME.hpp>
 #include "ot_made_easy_ot.hpp"
+#include "ot_utility_ot.hpp"
 #include <opentxs/client/OTAPI.hpp>
 
 #include "commands/CmdAcceptInbox.hpp"
@@ -307,10 +308,50 @@ std::string OT_CLI_GetKeyByIndex(const std::string& str_Args, int32_t nIndex)
 //
 
 bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
-                                        const std::string& NOTARY_ID,
-                                        const std::string& NYM_ID) const
+                                        const std::string& strMyNotaryID,
+                                        const std::string& strMyNymID) const
 {
-    return MadeEasy::insure_enough_nums(nNumberNeeded, NOTARY_ID, NYM_ID);
+    Utility MsgUtil;
+    bool bReturnVal = true;
+
+    // Make sure we have at least one transaction number (to write the
+    // cheque...)
+    //
+    int32_t nTransCount =
+        OTAPI_Wrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
+
+    if (nTransCount < nNumberNeeded) {
+        otOut << "insure_enough_nums: I don't have enough "
+                 "transaction numbers. Grabbing more now...\n";
+
+        MsgUtil.getTransactionNumbers(strMyNotaryID, strMyNymID, true);
+
+        bool msgWasSent = false;
+        if (0 > MadeEasy::retrieve_nym(strMyNotaryID, strMyNymID, msgWasSent,
+                                       false)) {
+            otOut << "Error: cannot retrieve nym.\n";
+            return false;
+        }
+
+        // Try again.
+        //
+        nTransCount =
+            OTAPI_Wrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
+
+        if (nTransCount < nNumberNeeded) {
+            otOut
+                << "insure_enough_nums: I still don't have enough transaction "
+                   "numbers (I have " << nTransCount << ", but I need "
+                << nNumberNeeded
+                << ".)\n(Tried grabbing some, but failed somehow.)\n";
+            return false;
+        }
+        else {
+            bReturnVal = true;
+        }
+    }
+
+    return bReturnVal;
 }
 
 // REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)

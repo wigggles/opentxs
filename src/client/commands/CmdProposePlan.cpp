@@ -135,6 +135,7 @@
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -220,7 +221,8 @@ int32_t CmdProposePlan::run(string server, string mynym, string hisnym,
     otOut << "payment_plan (amount,delay,period): " << paymentplan << "\n";
     otOut << "plan_expiry (length,number): " << planexpiry << "\n";
 
-    if (!MadeEasy::insure_enough_nums(2, server, mynym)) {
+    OT_ME ot_me;
+    if (!ot_me.make_sure_enough_trans_nums(2, server, mynym)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }
