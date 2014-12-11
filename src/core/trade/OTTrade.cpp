@@ -515,7 +515,7 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
         GetInstrumentDefinitionID(), GetCurrencyID(), offer->GetScale());
 
     // Couldn't find (or create) the market.
-    if (pMarket != nullptr) {
+    if (pMarket == nullptr) {
         otOut
             << "OTTrade::" << __FUNCTION__
             << ": Unable to find or create market within requested parameters.";
