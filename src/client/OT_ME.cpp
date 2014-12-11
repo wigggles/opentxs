@@ -133,6 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OT_ME.hpp>
+#include <opentxs/client/ot_otapi_ot.hpp>
 #include "ot_made_easy_ot.hpp"
 #include "ot_utility_ot.hpp"
 #include <opentxs/client/OTAPI.hpp>
@@ -359,7 +360,33 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
 std::string OT_ME::register_nym(const std::string& NOTARY_ID,
                                 const std::string& NYM_ID) const
 {
-    return MadeEasy::register_nym(NOTARY_ID, NYM_ID);
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(REGISTER_NYM, NOTARY_ID, NYM_ID);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "REGISTER_NYM");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 == nSuccess) {
+        Utility MsgUtil;
+
+        // Use the getRequestNumber command, thus insuring that the request
+        // number is in sync.
+        if (1 != MsgUtil.getRequestNumber(NOTARY_ID, NYM_ID)) {
+            otOut << "\n Succeeded in register_nym, but strange: "
+                     "then failed calling getRequestNumber, to sync the "
+                     "request number for the first time.\n";
+            return "";
+        }
+    }
+    else {
+        // maybe an invalid server ID or the server contract isn't available
+        // (do AddServerContract(..) first)
+        otOut << "Failed to register_nym.\n";
+        return "";
+    }
+
+    return strResponse;
 }
 
 // CHECK USER (download a public key)

@@ -151,41 +151,6 @@
 using namespace opentxs;
 using namespace std;
 
-// REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)
-//
-OT_MADE_EASY_OT string
-    MadeEasy::register_nym(const string& NOTARY_ID, const string& NYM_ID)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(REGISTER_NYM, NOTARY_ID, NYM_ID);
-    string strResponse = theRequest.SendRequest(theRequest, "REGISTER_NYM");
-    int32_t nSuccess = VerifyMessageSuccess(strResponse);
-
-    if (1 == nSuccess) {
-        Utility MsgUtil;
-
-        // Use the getRequestNumber command, thus insuring that the request
-        // number is
-        // in sync.
-        //
-        if (1 != MsgUtil.getRequestNumber(NOTARY_ID, NYM_ID)) {
-            otOut << "\n Succeeded in register_nym, but strange: "
-                     "then failed calling getRequestNumber, to sync the "
-                     "request number for the first time.\n";
-            return "";
-        }
-    }
-    else {
-        // maybe an invalid server ID or the server contract isn't available (do
-        // AddServerContract(..) first)
-        otOut << "Failed to register_nym.\n";
-        return "";
-    }
-
-    return strResponse;
-}
-
 // RETRIEVE NYM INTERMEDIARY FILES
 
 OT_MADE_EASY_OT int32_t
