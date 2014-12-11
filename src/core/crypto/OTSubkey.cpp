@@ -191,7 +191,7 @@ int32_t OTSubkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     String nodeName(xml->getNodeName());
     if (nodeName.Compare("keyCredential")) {
         m_strNymID = xml->getAttributeValue("nymID");
-        m_strMasterCredID = xml->getAttributeValue("masterCredentialID");
+        m_strMasterCredID = xml->getAttributeValue("masterID");
 
         Log::Output(1, "Loading keyCredential...\n");
         retval = 1;
@@ -214,9 +214,9 @@ void OTSubkey::UpdateContents()
     m_xmlUnsigned.Release();
 
     m_xmlUnsigned.Concatenate(
-        "<keyCredential nymID=\"%s\"\n"     // a hash of the nymIDSource
-        " masterCredentialID=\"%s\" >\n\n", // Hash of the master credential
-                                            // that signed this subcredential.
+        "<keyCredential nymID=\"%s\"\n" // a hash of the nymIDSource
+        " masterID=\"%s\" >\n\n",       // Hash of the master credential
+                                        // that signed this subcredential.
         GetNymID().Get(),
         GetMasterCredID().Get());
 
