@@ -136,6 +136,7 @@
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -240,7 +241,8 @@ int32_t CmdExchangeBasket::run(string myacct, string direction, string multiple)
         }
     }
 
-    if (!MadeEasy::insure_enough_nums(20, server, mynym)) {
+    OT_ME ot_me;
+    if (!ot_me.make_sure_enough_trans_nums(20, server, mynym)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }

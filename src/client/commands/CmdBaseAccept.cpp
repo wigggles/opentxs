@@ -136,6 +136,7 @@
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -227,7 +228,8 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
     // call to OTAPI_Wrap::Ledger_CreateResponse is where the number is first
     // needed, and that call is made before the server transaction request is
     // actually sent.
-    if (!MadeEasy::insure_enough_nums(10, server, mynym)) {
+    OT_ME ot_me;
+    if (!ot_me.make_sure_enough_trans_nums(10, server, mynym)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }

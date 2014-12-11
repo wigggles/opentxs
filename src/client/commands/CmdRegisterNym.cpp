@@ -132,7 +132,7 @@
 
 #include "CmdRegisterNym.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include <opentxs/client/OT_ME.hpp>
 
 using namespace opentxs;
 using namespace std;
@@ -165,6 +165,7 @@ int32_t CmdRegisterNym::run(string server, string mynym)
         return -1;
     }
 
-    string response = MadeEasy::register_nym(server, mynym);
+    OT_ME ot_me;
+    string response = ot_me.register_nym(server, mynym);
     return processResponse(response, "register nym");
 }

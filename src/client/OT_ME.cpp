@@ -133,7 +133,9 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OT_ME.hpp>
+#include <opentxs/client/ot_otapi_ot.hpp>
 #include "ot_made_easy_ot.hpp"
+#include "ot_utility_ot.hpp"
 #include <opentxs/client/OTAPI.hpp>
 
 #include "commands/CmdAcceptInbox.hpp"
@@ -307,10 +309,50 @@ std::string OT_CLI_GetKeyByIndex(const std::string& str_Args, int32_t nIndex)
 //
 
 bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
-                                        const std::string& NOTARY_ID,
-                                        const std::string& NYM_ID) const
+                                        const std::string& strMyNotaryID,
+                                        const std::string& strMyNymID) const
 {
-    return MadeEasy::insure_enough_nums(nNumberNeeded, NOTARY_ID, NYM_ID);
+    Utility MsgUtil;
+    bool bReturnVal = true;
+
+    // Make sure we have at least one transaction number (to write the
+    // cheque...)
+    //
+    int32_t nTransCount =
+        OTAPI_Wrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
+
+    if (nTransCount < nNumberNeeded) {
+        otOut << "insure_enough_nums: I don't have enough "
+                 "transaction numbers. Grabbing more now...\n";
+
+        MsgUtil.getTransactionNumbers(strMyNotaryID, strMyNymID, true);
+
+        bool msgWasSent = false;
+        if (0 > MadeEasy::retrieve_nym(strMyNotaryID, strMyNymID, msgWasSent,
+                                       false)) {
+            otOut << "Error: cannot retrieve nym.\n";
+            return false;
+        }
+
+        // Try again.
+        //
+        nTransCount =
+            OTAPI_Wrap::GetNym_TransactionNumCount(strMyNotaryID, strMyNymID);
+
+        if (nTransCount < nNumberNeeded) {
+            otOut
+                << "insure_enough_nums: I still don't have enough transaction "
+                   "numbers (I have " << nTransCount << ", but I need "
+                << nNumberNeeded
+                << ".)\n(Tried grabbing some, but failed somehow.)\n";
+            return false;
+        }
+        else {
+            bReturnVal = true;
+        }
+    }
+
+    return bReturnVal;
 }
 
 // REGISTER NYM AT SERVER (or download nymfile, if nym already registered.)
@@ -318,7 +360,33 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
 std::string OT_ME::register_nym(const std::string& NOTARY_ID,
                                 const std::string& NYM_ID) const
 {
-    return MadeEasy::register_nym(NOTARY_ID, NYM_ID);
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(REGISTER_NYM, NOTARY_ID, NYM_ID);
+    std::string strResponse =
+        theRequest.SendRequest(theRequest, "REGISTER_NYM");
+    int32_t nSuccess = VerifyMessageSuccess(strResponse);
+
+    if (1 == nSuccess) {
+        Utility MsgUtil;
+
+        // Use the getRequestNumber command, thus insuring that the request
+        // number is in sync.
+        if (1 != MsgUtil.getRequestNumber(NOTARY_ID, NYM_ID)) {
+            otOut << "\n Succeeded in register_nym, but strange: "
+                     "then failed calling getRequestNumber, to sync the "
+                     "request number for the first time.\n";
+            return "";
+        }
+    }
+    else {
+        // maybe an invalid server ID or the server contract isn't available
+        // (do AddServerContract(..) first)
+        otOut << "Failed to register_nym.\n";
+        return "";
+    }
+
+    return strResponse;
 }
 
 // CHECK USER (download a public key)

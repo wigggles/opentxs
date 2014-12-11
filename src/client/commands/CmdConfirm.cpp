@@ -138,6 +138,7 @@
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -302,7 +303,8 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
         return -1;
     }
 
-    if (!MadeEasy::insure_enough_nums(2, server, senderUser)) {
+    OT_ME ot_me;
+    if (!ot_me.make_sure_enough_trans_nums(2, server, senderUser)) {
         otOut << "Error: cannot reserve transaction numbers.\n";
         return -1;
     }
@@ -886,7 +888,8 @@ int32_t CmdConfirm::confirmAccounts(string server, string mynym, string myacct,
         int32_t needed = OTAPI_Wrap::SmartContract_CountNumsNeeded(
             contract, mapAgents[x->first]);
 
-        if (!MadeEasy::insure_enough_nums(needed + 1, server, mynym)) {
+        OT_ME ot_me;
+        if (!ot_me.make_sure_enough_trans_nums(needed + 1, server, mynym)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
             return -1;
         }

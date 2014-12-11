@@ -230,9 +230,6 @@ public:
         const std::string& notaryID, const std::string& nymID,
         const std::string& instrumentDefinitionID, std::string& userInput,
         bool isPurse);
-    EXPORT OT_MADE_EASY_OT static bool insure_enough_nums(
-        int32_t nNumberNeeded, const std::string& strMyNotaryID,
-        const std::string& strMyNymID);
     EXPORT OT_MADE_EASY_OT static std::string issue_asset_type(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_CONTRACT);
@@ -279,8 +276,6 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string query_asset_types(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ENCODED_MAP);
-    EXPORT OT_MADE_EASY_OT static std::string register_nym(
-        const std::string& NOTARY_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static bool retrieve_account(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,
