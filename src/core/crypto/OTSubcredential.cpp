@@ -298,9 +298,9 @@ void OTSubcredential::UpdateContents()
     m_xmlUnsigned.Release();
 
     m_xmlUnsigned.Concatenate(
-        "<subCredential nymID=\"%s\"\n"     // a hash of the nymIDSource
-        " masterCredentialID=\"%s\" >\n\n", // Hash of the master credential
-                                            // that signed this subcredential.
+        "<subCredential nymID=\"%s\"\n" // a hash of the nymIDSource
+        " masterID=\"%s\" >\n\n",       // Hash of the master credential
+                                        // that signed this subcredential.
         GetNymID().Get(),
         GetMasterCredID().Get());
 
@@ -361,7 +361,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     if (strNodeName.Compare("subCredential")) {
         m_strNymID = xml->getAttributeValue("nymID");
-        m_strMasterCredID = xml->getAttributeValue("masterCredentialID");
+        m_strMasterCredID = xml->getAttributeValue("masterID");
 
         otWarn << "Loading subcredential...\n";
 
