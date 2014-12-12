@@ -133,7 +133,6 @@
 #ifndef OPENTXS_EXT_OTSOCKET_HPP
 #define OPENTXS_EXT_OTSOCKET_HPP
 
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <cppzmq/zmq.hpp>
 #include <string>
 #include <memory>
@@ -146,19 +145,17 @@ class OTSocket
 public:
     explicit OTSocket(bool connect);
 
-    EXPORT bool RemakeSocket();
-
     EXPORT bool Connect(const std::string& connectPath);
     EXPORT bool Listen(const std::string& bindingPath);
 
-    EXPORT bool Send(const OTASCIIArmor& ascEnvelope);
-    EXPORT bool Send(const OTASCIIArmor& ascEnvelope,
+    EXPORT bool Send(const char* data, std::size_t length);
+    EXPORT bool Send(const char* data, std::size_t length,
                      const std::string& connectPath);
     EXPORT bool Receive(std::string& serverReply);
 
 private:
     bool HandlePollingError();
-    bool HandleSendingError();
+    void HandleSendingError();
     bool HandleReceivingError();
 
     bool NewContext();
@@ -166,17 +163,13 @@ private:
 
 private:
     int64_t m_lLatencySendMs;
-    int32_t m_nLatencySendNoTries;
     int64_t m_lLatencyReceiveMs;
     int32_t m_nLatencyReceiveNoTries;
-    int64_t m_lLatencyDelayAfter;
 
     bool m_bConnected;
     bool m_bListening;
 
     std::string endpoint_;
-
-    OTASCIIArmor m_ascLastMsgSent;
 
     std::unique_ptr<zmq::context_t> context_zmq;
     std::unique_ptr<zmq::socket_t> socket_zmq;

@@ -140,10 +140,8 @@ namespace opentxs
 
 OTSocket::OTSocket(bool connect)
     : m_lLatencySendMs(5000)
-    , m_nLatencySendNoTries(2)
     , m_lLatencyReceiveMs(5000)
     , m_nLatencyReceiveNoTries(2)
-    , m_lLatencyDelayAfter(50)
     , m_bConnected(false)
     , m_bListening(false)
     , endpoint_()
@@ -153,14 +151,6 @@ OTSocket::OTSocket(bool connect)
 {
     int linger = 1000;
     socket_zmq->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
-}
-
-bool OTSocket::RemakeSocket()
-{
-    if (m_bConnected) return Connect(endpoint_);
-    if (m_bListening) return Listen(endpoint_);
-
-    return false;
 }
 
 bool OTSocket::Connect(const std::string& endpoint)
@@ -201,68 +191,23 @@ bool OTSocket::Listen(const std::string& endpoint)
     return true;
 }
 
-bool OTSocket::Send(const OTASCIIArmor& ascEnvelope)
+bool OTSocket::Send(const char* data, std::size_t length)
 {
     if (!m_bConnected && !m_bListening) return false;
 
-    m_ascLastMsgSent.Set(ascEnvelope); // In case we need to re-send.
-
-    zmq::message_t zmq_message(ascEnvelope.GetLength());
-    memcpy(zmq_message.data(), ascEnvelope.Get(), ascEnvelope.GetLength());
-
-    bool bSuccessSending = false;
-
-    int32_t sendTries = m_nLatencySendNoTries;
-    int64_t doubling = m_lLatencySendMs;
-
-    while (sendTries > 0) {
-        zmq::pollitem_t items[] = {{(*socket_zmq), 0, ZMQ_POLLOUT, 0}};
-
-        int nPoll = 0;
-        try {
-            // ZMQ_POLLOUT, 1 item, timeout (milliseconds)
-            nPoll = zmq::poll(&items[0], 1, doubling);
-        }
-        catch (const std::exception& e) {
-            Log::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
-            OT_FAIL;
-        }
-
-        doubling *= 2;
-
-        if (items[0].revents & ZMQ_POLLOUT) {
-            try {
-                bSuccessSending = socket_zmq->send(zmq_message, ZMQ_NOBLOCK);
-            }
-            catch (const std::exception& e) {
-                Log::vError("%s: Exception Caught: %s \n", __FUNCTION__,
-                            e.what());
-                OT_FAIL;
-            }
-
-            if (bSuccessSending || !HandleSendingError()) {
-                // Success, or the error is such that we do not want to
-                // retry.
-                break;
-            }
-        }
-        else if (nPoll == -1) // error.
-        {
-            if (!HandlePollingError()) break;
-        }
-
-        --sendTries;
+    if (!socket_zmq->send(data, length)) {
+        HandleSendingError();
+        return false;
     }
-
-    return bSuccessSending;
+    return true;
 }
 
-bool OTSocket::Send(const OTASCIIArmor& ascEnvelope,
+bool OTSocket::Send(const char* data, std::size_t length,
                     const std::string& endpoint)
 {
     if (endpoint_ != endpoint) Connect(endpoint);
 
-    return Send(ascEnvelope);
+    return Send(data, length);
 }
 
 bool OTSocket::Receive(std::string& serverReply)
@@ -360,10 +305,8 @@ bool OTSocket::HandlePollingError()
     return bRetVal;
 }
 
-bool OTSocket::HandleSendingError()
+void OTSocket::HandleSendingError()
 {
-    bool keepTrying = false;
-
     switch (errno) {
     // Non-blocking mode was requested and the message cannot be sent at the
     // moment.
@@ -371,13 +314,12 @@ bool OTSocket::HandleSendingError()
         Log::vOutput(0, "OTSocket::HandleSendingError: Non-blocking mode was "
                         "requested and the message cannot be sent at the "
                         "moment. Re-trying...\n");
-        keepTrying = true;
-        break;
+        return;
     // The zmq_send() operation is not supported by this socket type.
     case ENOTSUP:
         Log::Error("OTSocket::HandleSendingError: failure: The zmq_send() "
                    "operation is not supported by this socket type.\n");
-        break;
+        return;
     // The zmq_send() operation cannot be performed on this socket at the moment
     // due to the socket not being in the appropriate state. This error may
     // occur with socket types that switch between several states, such as
@@ -389,45 +331,36 @@ bool OTSocket::HandleSendingError()
                         "moment due to the socket not being in the "
                         "appropriate state. Deleting socket and "
                         "re-trying...\n");
-        RemakeSocket();
-        keepTrying = true;
-        break;
+        return;
     // The ØMQ context associated with the specified socket was terminated.
     case ETERM:
         Log::Error("OTSocket::HandleSendingError: The ØMQ context associated "
                    "with the specified socket was terminated. (Deleting and "
                    "re-creating the context and the socket, and trying "
                    "again.)\n");
-        RemakeSocket();
-        keepTrying = true;
-        break;
+        return;
     // The provided socket was invalid.
     case ENOTSOCK:
         Log::Error("OTSocket::HandleSendingError: The provided socket was "
                    "invalid. (Deleting socket and re-trying...)\n");
-        RemakeSocket();
-        keepTrying = true;
-        break;
+        return;
     // The operation was interrupted by delivery of a signal before the message
     // was sent. Re-trying...
     case EINTR:
         Log::Error("OTSocket::HandleSendingError: The operation was "
                    "interrupted by delivery of a signal before the message "
                    "was sent. (Re-trying...)\n");
-        keepTrying = true;
-        break;
+        return;
     // Invalid message.
     case EFAULT:
         Log::Error("OTSocket::HandleSendingError: Failure: The provided "
                    "pollitems were not valid (nullptr).\n");
-        break;
+        return;
     default:
         Log::Error(
             "OTSocket::HandleSendingError: Default case. Re-trying...\n");
-        keepTrying = true;
-        break;
+        return;
     }
-    return keepTrying;
 }
 
 bool OTSocket::HandleReceivingError()
@@ -459,32 +392,17 @@ bool OTSocket::HandleReceivingError()
                         "moment due to the socket not being in the "
                         "appropriate state. (Deleting socket and "
                         "re-trying...)\n");
-        RemakeSocket();
-        {
-            OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            keepTrying = Send(ascTemp);
-        }
         break;
     // The ØMQ context associated with the specified socket was terminated.
     case ETERM:
         Log::Error("OTSocket::HandleReceivingError: The ØMQ context "
                    "associated with the specified socket was terminated. "
                    "(Re-creating the context, and trying again...)\n");
-        RemakeSocket();
-        {
-            OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            keepTrying = Send(ascTemp);
-        }
         break;
     // The provided socket was invalid.
     case ENOTSOCK:
         Log::Error("OTSocket::HandleReceivingError: The provided socket was "
                    "invalid. (Deleting socket and re-trying.)\n");
-        RemakeSocket();
-        {
-            OTASCIIArmor ascTemp(m_ascLastMsgSent);
-            keepTrying = Send(ascTemp);
-        }
         break;
     // The operation was interrupted by delivery of a signal before a message
     // was available.

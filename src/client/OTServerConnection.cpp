@@ -248,8 +248,8 @@ bool OTServerConnection::send(const OTServerContract& theServerContract,
     OTASCIIArmor ascEnvelope(theEnvelope);
 
     if (ascEnvelope.Exists()) {
-        bool bSuccessSending =
-            m_pSocket->Send(ascEnvelope, strConnectPath.Get());
+        bool bSuccessSending = m_pSocket->Send(
+            ascEnvelope.Get(), ascEnvelope.GetLength(), strConnectPath.Get());
 
         if (!bSuccessSending) {
             otErr << __FUNCTION__
