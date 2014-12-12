@@ -136,6 +136,7 @@
 #include <opentxs/client/OTMessageBuffer.hpp>
 #include <opentxs/ext/OTSocket.hpp>
 #include <memory>
+#include <string>
 
 namespace opentxs
 {
@@ -151,7 +152,8 @@ class OTSocket;
 class OTServerConnection
 {
 public:
-    OTServerConnection(OTWallet* theWallet, OTClient* theClient);
+    OTServerConnection(OTWallet* theWallet, OTClient* theClient,
+                       const std::string& endpoint);
 
     bool GetNotaryID(Identifier& theID) const;
 
@@ -176,7 +178,7 @@ public:
                            const Message& theMessage);
 
 private:
-    bool send(const OTServerContract& contract, const OTEnvelope& envelope);
+    bool send(const OTEnvelope& envelope);
 
 private:
     std::unique_ptr<OTSocket> m_pSocket;

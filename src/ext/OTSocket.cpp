@@ -141,7 +141,6 @@ namespace opentxs
 OTSocket::OTSocket(bool connect)
     : m_lLatencySendMs(5000)
     , m_lLatencyReceiveMs(5000)
-    , m_nLatencyReceiveNoTries(2)
     , m_bConnected(false)
     , m_bListening(false)
     , endpoint_()
@@ -202,107 +201,18 @@ bool OTSocket::Send(const char* data, std::size_t length)
     return true;
 }
 
-bool OTSocket::Send(const char* data, std::size_t length,
-                    const std::string& endpoint)
-{
-    if (endpoint_ != endpoint) Connect(endpoint);
-
-    return Send(data, length);
-}
-
 bool OTSocket::Receive(std::string& serverReply)
 {
     if (!m_bConnected && !m_bListening) return false;
 
     zmq::message_t zmq_message;
-
-    bool bSuccessReceiving = false;
-
-    int64_t doubling = m_lLatencyReceiveMs;
-    int32_t receiveTries = m_nLatencyReceiveNoTries;
-
-    while (receiveTries > 0) {
-        //  Poll socket for a reply, with timeout
-        zmq::pollitem_t items[] = {{*socket_zmq, 0, ZMQ_POLLIN, 0}};
-
-        int nPoll = 0;
-        try {
-            // ZMQ_POLLIN, 1 item, timeout (milliseconds)
-            nPoll = zmq::poll(&items[0], 1, doubling);
-        }
-        catch (const std::exception& e) {
-            Log::vError("%s: Exception Caught: %s \n", __FUNCTION__, e.what());
-            OT_FAIL;
-        }
-
-        doubling *= 2;
-
-        //  If we got a reply, process it
-        if (items[0].revents & ZMQ_POLLIN) {
-            try {
-                bSuccessReceiving = socket_zmq->recv(&zmq_message, ZMQ_NOBLOCK);
-            }
-            catch (const std::exception& e) {
-                Log::vError("%s: Exception Caught: %s \n", __FUNCTION__,
-                            e.what());
-                OT_FAIL;
-            }
-
-            if (bSuccessReceiving || !HandleReceivingError()) {
-                // Success, or the error is such that we do not want to
-                // retry.
-                break;
-            }
-        }
-        else if (nPoll == -1) // error.
-        {
-            if (!HandlePollingError()) break;
-        }
-
-        --receiveTries;
+    if (!socket_zmq->recv(&zmq_message)) {
+        HandleReceivingError();
+        return false;
     }
-
-    if (bSuccessReceiving && zmq_message.size() > 0) {
-        serverReply = std::string(static_cast<const char*>(zmq_message.data()),
-                                  zmq_message.size());
-    }
-
-    return bSuccessReceiving && zmq_message.size() > 0;
-}
-
-bool OTSocket::HandlePollingError()
-{
-    bool bRetVal = false;
-
-    switch (errno) {
-    // At least one of the members of the items array refers to a socket whose
-    // associated ØMQ context was terminated.
-    case ETERM:
-        Log::Error("OTSocket::HandlePollingError: Failure: At least one of "
-                   "the members of the items array refers to a socket whose "
-                   "associated ØMQ context was terminated. (Deleting and "
-                   "re-creating the context.)\n");
-        break;
-    // The provided items was not valid (nullptr).
-    case EFAULT:
-        Log::Error("OTSocket::HandlePollingError: Failed: The provided "
-                   "polling items were not valid (nullptr).\n");
-        break;
-    // The operation was interrupted by delivery of a signal before any events
-    // were available.
-    case EINTR:
-        Log::Error("OTSocket::HandlePollingError: The operation was "
-                   "interrupted by delivery of a signal before any events "
-                   "were available. Re-trying...\n");
-        bRetVal = true;
-        break;
-    default:
-        Log::Error(
-            "OTSocket::HandlePollingError: Default case. Re-trying...\n");
-        bRetVal = true;
-        break;
-    }
-    return bRetVal;
+    serverReply.assign(static_cast<const char*>(zmq_message.data()),
+                       zmq_message.size());
+    return true;
 }
 
 void OTSocket::HandleSendingError()
@@ -363,10 +273,8 @@ void OTSocket::HandleSendingError()
     }
 }
 
-bool OTSocket::HandleReceivingError()
+void OTSocket::HandleReceivingError()
 {
-    bool keepTrying = false;
-
     switch (errno) {
     // Non-blocking mode was requested and no messages are available at the
     // moment.
@@ -374,13 +282,12 @@ bool OTSocket::HandleReceivingError()
         Log::vOutput(0, "OTSocket::HandleReceivingError: Non-blocking mode "
                         "was requested and no messages are available at the "
                         "moment. Re-trying...\n");
-        keepTrying = true;
-        break;
+        return;
     // The zmq_recv() operation is not supported by this socket type.
     case ENOTSUP:
         Log::Error("OTSocket::HandleReceivingError: Failure: The zmq_recv() "
                    "operation is not supported by this socket type.\n");
-        break;
+        return;
     // The zmq_recv() operation cannot be performed on this socket at the moment
     // due to the socket not being in the appropriate state. This error may
     // occur with socket types that switch between several states, such as
@@ -392,38 +299,35 @@ bool OTSocket::HandleReceivingError()
                         "moment due to the socket not being in the "
                         "appropriate state. (Deleting socket and "
                         "re-trying...)\n");
-        break;
+        return;
     // The ØMQ context associated with the specified socket was terminated.
     case ETERM:
         Log::Error("OTSocket::HandleReceivingError: The ØMQ context "
                    "associated with the specified socket was terminated. "
                    "(Re-creating the context, and trying again...)\n");
-        break;
+        return;
     // The provided socket was invalid.
     case ENOTSOCK:
         Log::Error("OTSocket::HandleReceivingError: The provided socket was "
                    "invalid. (Deleting socket and re-trying.)\n");
-        break;
+        return;
     // The operation was interrupted by delivery of a signal before a message
     // was available.
     case EINTR:
         Log::Error("OTSocket::HandleSendingError: The operation was "
                    "interrupted by delivery of a signal before the message "
                    "was sent. (Re-trying...)\n");
-        keepTrying = true;
-        break;
+        return;
     // The message passed to the function was invalid.
     case EFAULT:
         Log::Error("OTSocket::HandleReceivingError: Failure: The message "
                    "passed to the function was invalid.\n");
-        break;
+        return;
     default:
         Log::Error(
             "OTSocket::HandleReceivingError: Default case. Re-trying...\n");
-        keepTrying = true;
-        break;
+        return;
     }
-    return keepTrying;
 }
 
 } // namespace opentxs

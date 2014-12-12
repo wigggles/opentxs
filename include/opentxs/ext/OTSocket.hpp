@@ -149,14 +149,12 @@ public:
     EXPORT bool Listen(const std::string& bindingPath);
 
     EXPORT bool Send(const char* data, std::size_t length);
-    EXPORT bool Send(const char* data, std::size_t length,
-                     const std::string& connectPath);
     EXPORT bool Receive(std::string& serverReply);
 
 private:
     bool HandlePollingError();
     void HandleSendingError();
-    bool HandleReceivingError();
+    void HandleReceivingError();
 
     bool NewContext();
     bool NewSocket(bool bIsRequest);
@@ -164,7 +162,6 @@ private:
 private:
     int64_t m_lLatencySendMs;
     int64_t m_lLatencyReceiveMs;
-    int32_t m_nLatencyReceiveNoTries;
 
     bool m_bConnected;
     bool m_bListening;
