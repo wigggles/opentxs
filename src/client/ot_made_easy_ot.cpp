@@ -1008,20 +1008,6 @@ OT_MADE_EASY_OT string
 }
 
 OT_MADE_EASY_OT string
-    MadeEasy::deposit_cheque(const string& NOTARY_ID, const string& NYM_ID,
-                             const string& ACCT_ID, const string& STR_CHEQUE)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(DEPOSIT_CHEQUE, NOTARY_ID, NYM_ID, ACCT_ID,
-                          STR_CHEQUE);
-    string strResponse = theRequest.SendTransaction(
-        theRequest, "DEPOSIT_CHEQUE"); // <========================;
-
-    return strResponse;
-}
-
-OT_MADE_EASY_OT string
     MadeEasy::get_market_list(const string& NOTARY_ID, const string& NYM_ID)
 {
     OTAPI_Func ot_Msg;

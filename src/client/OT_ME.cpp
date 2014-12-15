@@ -891,7 +891,8 @@ std::string OT_ME::deposit_cheque(const std::string& NOTARY_ID,
                                   const std::string& ACCT_ID,
                                   const std::string& STR_CHEQUE) const
 {
-    return MadeEasy::deposit_cheque(NOTARY_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
+    OTAPI_Func request(DEPOSIT_CHEQUE, NOTARY_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
+    return request.SendTransaction(request, "DEPOSIT_CHEQUE");
 }
 
 bool OT_ME::deposit_cash(const std::string& NOTARY_ID,

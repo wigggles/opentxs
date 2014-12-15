@@ -135,6 +135,7 @@
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -265,8 +266,8 @@ int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
         return -1;
     }
 
-    string response =
-        MadeEasy::deposit_cheque(server, mynym, myacct, instrument);
+    OT_ME ot_me;
+    string response = ot_me.deposit_cheque(server, mynym, myacct, instrument);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "deposit_cheque");
     if (1 != reply) {
