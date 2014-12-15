@@ -191,27 +191,6 @@ OT_MADE_EASY_OT string MadeEasy::check_nym(const string& NOTARY_ID,
     return strResponse;
 }
 
-//  CREATE NYM (pseudonym)
-//  returns new Nym ID
-//
-OT_MADE_EASY_OT string MadeEasy::create_nym(int32_t nKeybits,
-                                            const string& strNymIDSource,
-                                            const string& strAltLocation)
-{
-    string strLocation = "OT_ME_create_nym";
-
-    string strNymID = OTAPI_Wrap::CreateNym(
-        nKeybits, strNymIDSource, strAltLocation); // returns new Nym ID;
-
-    if (!VerifyStringVal(strNymID)) {
-        otOut << strLocation
-              << ": Failed in OT_API_CreateNym(keybits == " << nKeybits
-              << ")\n";
-    }
-
-    return strNymID;
-}
-
 //  ISSUE ASSET TYPE
 //
 OT_MADE_EASY_OT string MadeEasy::issue_asset_type(const string& NOTARY_ID,

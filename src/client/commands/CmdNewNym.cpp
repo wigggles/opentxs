@@ -132,9 +132,8 @@
 
 #include "CmdNewNym.hpp"
 
-#include "../ot_made_easy_ot.hpp"
-
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -193,7 +192,8 @@ int32_t CmdNewNym::run(string keybits, string label, string source,
         return -1;
     }
 
-    string mynym = MadeEasy::create_nym(bits, source, location);
+    OT_ME ot_me;
+    string mynym = ot_me.create_nym(bits, source, location);
     if ("" == mynym) {
         otOut << "Error: cannot create new nym.\n";
         return -1;

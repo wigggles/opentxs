@@ -176,9 +176,6 @@ public:
         const std::string& quantity, const std::string& price, bool bSelling,
         const std::string& strLifespanInSeconds, const std::string& strStopSign,
         const std::string& strActivationPrice);
-    EXPORT OT_MADE_EASY_OT static std::string create_nym(
-        int32_t nKeybits, const std::string& strNymIDSource,
-        const std::string& strAltLocation);
     EXPORT OT_MADE_EASY_OT static std::string deposit_cheque(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& STR_CHEQUE);

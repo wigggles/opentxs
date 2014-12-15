@@ -402,10 +402,18 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
 // returns new Nym ID
 //
 std::string OT_ME::create_nym(int32_t nKeybits,
-                              const std::string& NYM_ID_SOURCE,
-                              const std::string& ALT_LOCATION) const
+                              const std::string& strNymIDSource,
+                              const std::string& strAltLocation) const
 {
-    return MadeEasy::create_nym(nKeybits, NYM_ID_SOURCE, ALT_LOCATION);
+    std::string strNymID =
+        OTAPI_Wrap::CreateNym(nKeybits, strNymIDSource, strAltLocation);
+
+    if (!VerifyStringVal(strNymID)) {
+        otOut << "OT_ME_create_nym: Failed in "
+              << "OT_API_CreateNym(keybits == " << nKeybits << ")\n";
+    }
+
+    return strNymID;
 }
 
 // ISSUE ASSET TYPE
