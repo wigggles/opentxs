@@ -607,14 +607,6 @@ std::string OT_ME::load_or_retrieve_encrypt_key(
                                                   TARGET_NYM_ID);
 }
 
-std::string OT_ME::load_or_retrieve_signing_key(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& TARGET_NYM_ID) const
-{
-    return MadeEasy::load_or_retrieve_signing_key(NOTARY_ID, NYM_ID,
-                                                  TARGET_NYM_ID);
-}
-
 // SEND USER MESSAGE (requires recipient public key)
 //
 std::string OT_ME::send_user_msg_pubkey(const std::string& NOTARY_ID,

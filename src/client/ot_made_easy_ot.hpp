@@ -248,9 +248,6 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_mint(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
-    EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_signing_key(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& TARGET_NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string load_public_encryption_key(
         const std::string& NYM_ID); // from local storage.
     EXPORT OT_MADE_EASY_OT static std::string load_public_signing_key(

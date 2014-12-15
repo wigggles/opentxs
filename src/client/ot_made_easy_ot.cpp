@@ -451,25 +451,6 @@ OT_MADE_EASY_OT string
     return strPubkey; // might be null.
 }
 
-OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_signing_key(const string& NOTARY_ID,
-                                           const string& NYM_ID,
-                                           const string& TARGET_NYM_ID)
-{
-    OTAPI_Func ot_Msg;
-
-    string strPubkey = load_public_signing_key(TARGET_NYM_ID);
-
-    if (!VerifyStringVal(strPubkey)) {
-        string strResponse = check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
-
-        if (1 == VerifyMessageSuccess(strResponse)) {
-            strPubkey = load_public_signing_key(TARGET_NYM_ID);
-        }
-    }
-    return strPubkey; // might be null.
-}
-
 // SEND USER MESSAGE  (requires recipient public key)
 //
 OT_MADE_EASY_OT string
