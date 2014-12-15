@@ -135,7 +135,7 @@
 
 #include <opentxs/client/OTMessageBuffer.hpp>
 #include <opentxs/client/OTMessageOutbuffer.hpp>
-
+#include <opentxs/client/OTServerConnection.hpp>
 #include <string>
 #include <memory>
 
@@ -145,7 +145,6 @@ namespace opentxs
 class Account;
 class AssetContract;
 class Ledger;
-class OTServerConnection;
 class OTServerContract;
 class OTWallet;
 
@@ -217,7 +216,6 @@ public:
 
 public:
     explicit OTClient(OTWallet* theWallet);
-    ~OTClient();
 
     bool connect(const std::string& endpoint);
 
@@ -311,7 +309,7 @@ private:
                                            ProcessServerReplyArgs& args);
 
 private:
-    OTServerConnection* m_pConnection;
+    std::unique_ptr<OTServerConnection> m_pConnection;
     OTWallet* m_pWallet;
     OTMessageBuffer m_MessageBuffer;
     OTMessageOutbuffer m_MessageOutbuffer;

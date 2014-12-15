@@ -147,7 +147,6 @@ namespace opentxs
 
 class ServerLoader;
 class OTServer;
-class OTSocket;
 
 class MessageProcessor
 {

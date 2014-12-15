@@ -133,7 +133,6 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OTClient.hpp>
-#include <opentxs/client/OTServerConnection.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include "Helpers.hpp"
 
@@ -170,24 +169,16 @@ namespace opentxs
 {
 
 OTClient::OTClient(OTWallet* theWallet)
-    : m_pConnection(nullptr)
+    : m_pConnection()
     , m_pWallet(theWallet)
     , m_MessageBuffer()
     , m_MessageOutbuffer()
 {
 }
 
-OTClient::~OTClient()
-{
-    if (m_pConnection) {
-        delete m_pConnection;
-        m_pConnection = nullptr;
-    }
-}
-
 bool OTClient::connect(const std::string& endpoint)
 {
-    m_pConnection = new OTServerConnection(m_pWallet, this, endpoint);
+    m_pConnection.reset(new OTServerConnection(this, endpoint));
     return true;
 }
 
@@ -232,7 +223,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
         connect(endpoint.Get());
     }
 
-    m_pConnection->ProcessMessageOut(pServerContract, pNym, theMessage);
+    m_pConnection->send(pServerContract, pNym, theMessage);
 }
 
 /// This is standard behavior for the Nymbox (NOT the inbox.)
@@ -2686,7 +2677,6 @@ void OTClient::ProcessWithdrawalResponse(
 
     const String strNymID(NYM_ID);
 
-    OTWallet* pWallet = theConnection.GetWallet();
     Nym* pServerNym = const_cast<Nym*>(
         theConnection.GetServerContract()->GetContractPublicNym());
 
@@ -2735,7 +2725,7 @@ void OTClient::ProcessWithdrawalResponse(
                 // wallet so that we could get to the private coin unblinding
                 // data when we
                 // needed it (now).
-                Purse* pRequestPurse = pWallet->GetPendingWithdrawal();
+                Purse* pRequestPurse = m_pWallet->GetPendingWithdrawal();
 
                 String strInstrumentDefinitionID(
                     thePurse.GetInstrumentDefinitionID());
@@ -6734,14 +6724,8 @@ bool OTClient::processServerReplyGetAccountData(const Message& theReply,
             pAccount->SaveContract();
             pAccount->SaveAccount();
 
-            // Next let's make sure the wallet's copy of this
-            // account is replaced with the new one...
-            OTWallet* pWallet = m_pConnection->GetWallet();
-
-            if (nullptr != pWallet) {
-                pWallet->AddAccount(*(pAccount.release()));
-                pWallet->SaveWallet();
-            }
+            m_pWallet->AddAccount(*(pAccount.release()));
+            m_pWallet->SaveWallet();
         }
     }
 
@@ -6958,14 +6942,10 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
     // Account.
     if (pContract->LoadContractFromString(strContract) &&
         pContract->VerifyContract()) {
-        // Next make sure the wallet has this contract on its list...
-        OTWallet* pWallet = m_pConnection->GetWallet();
 
-        if (nullptr != pWallet) {
-            pWallet->AddAssetContract(*pContract);
-            pContract = nullptr; // Success. The wallet "owns" it now, no need
-                                 // to clean it up.
-        }
+        m_pWallet->AddAssetContract(*pContract);
+        pContract = nullptr; // Success. The wallet "owns" it now, no need
+                             // to clean it up.
     }
 
     if (pContract) {

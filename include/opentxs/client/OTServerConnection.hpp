@@ -134,7 +134,7 @@
 #define OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 
 #include <opentxs/client/OTMessageBuffer.hpp>
-#include <opentxs/ext/OTSocket.hpp>
+#include <cppzmq/zmq.hpp>
 #include <memory>
 #include <string>
 
@@ -145,15 +145,12 @@ class OTClient;
 class Identifier;
 class Nym;
 class OTServerContract;
-class OTWallet;
 class OTEnvelope;
-class OTSocket;
 
 class OTServerConnection
 {
 public:
-    OTServerConnection(OTWallet* theWallet, OTClient* theClient,
-                       const std::string& endpoint);
+    OTServerConnection(OTClient* theClient, const std::string& endpoint);
 
     bool GetNotaryID(Identifier& theID) const;
 
@@ -167,27 +164,24 @@ public:
         return m_pServerContract;
     }
 
-    inline OTWallet* GetWallet() const
-    {
-        return m_pWallet;
-    }
-
     void OnServerResponseToGetRequestNumber(int64_t lNewRequestNumber) const;
 
-    void ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
-                           const Message& theMessage);
+    void send(OTServerContract* pServerContract, Nym* pNym,
+              const Message& theMessage);
 
 private:
     bool send(const OTEnvelope& envelope);
+    bool receive(std::string& reply);
 
 private:
-    std::unique_ptr<OTSocket> m_pSocket;
+    zmq::context_t context_zmq;
+    zmq::socket_t socket_zmq;
+
     OTMessageBuffer m_listIn;
     OTMessageBuffer m_listOut;
 
     Nym* m_pNym;
     OTServerContract* m_pServerContract;
-    OTWallet* m_pWallet;
     OTClient* m_pClient;
 };
 
