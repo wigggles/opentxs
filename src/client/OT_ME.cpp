@@ -830,7 +830,8 @@ std::string OT_ME::withdraw_cash(const std::string& NOTARY_ID,
                                  const std::string& ACCT_ID,
                                  int64_t AMOUNT) const
 {
-    return MadeEasy::withdraw_cash(NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
+    OTAPI_Func request(WITHDRAW_CASH, NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
+    return request.SendTransaction(request, "WITHDRAW_CASH");
 }
 
 // Difference between this function and the one above?

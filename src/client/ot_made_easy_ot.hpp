@@ -313,9 +313,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& STR_TRANS_NUM, const std::string& CLAUSE_NAME,
         const std::string& STR_PARAM);
-    EXPORT OT_MADE_EASY_OT static std::string withdraw_cash(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, int64_t AMOUNT);
 };
 
 } // namespace opentxs

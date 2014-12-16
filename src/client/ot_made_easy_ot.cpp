@@ -956,21 +956,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-// WITHDRAW CASH  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::withdraw_cash(const string& NOTARY_ID, const string& NYM_ID,
-                            const string& ACCT_ID, int64_t AMOUNT)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(WITHDRAW_CASH, NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "WITHDRAW_CASH");
-
-    return strResponse;
-}
-
 // PAY DIVIDEND  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
