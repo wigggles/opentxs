@@ -402,10 +402,18 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
 // returns new Nym ID
 //
 std::string OT_ME::create_nym(int32_t nKeybits,
-                              const std::string& NYM_ID_SOURCE,
-                              const std::string& ALT_LOCATION) const
+                              const std::string& strNymIDSource,
+                              const std::string& strAltLocation) const
 {
-    return MadeEasy::create_nym(nKeybits, NYM_ID_SOURCE, ALT_LOCATION);
+    std::string strNymID =
+        OTAPI_Wrap::CreateNym(nKeybits, strNymIDSource, strAltLocation);
+
+    if (!VerifyStringVal(strNymID)) {
+        otOut << "OT_ME_create_nym: Failed in "
+              << "OT_API_CreateNym(keybits == " << nKeybits << ")\n";
+    }
+
+    return strNymID;
 }
 
 // ISSUE ASSET TYPE
@@ -596,14 +604,6 @@ std::string OT_ME::load_or_retrieve_encrypt_key(
     const std::string& TARGET_NYM_ID) const
 {
     return MadeEasy::load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID,
-                                                  TARGET_NYM_ID);
-}
-
-std::string OT_ME::load_or_retrieve_signing_key(
-    const std::string& NOTARY_ID, const std::string& NYM_ID,
-    const std::string& TARGET_NYM_ID) const
-{
-    return MadeEasy::load_or_retrieve_signing_key(NOTARY_ID, NYM_ID,
                                                   TARGET_NYM_ID);
 }
 
@@ -891,7 +891,8 @@ std::string OT_ME::deposit_cheque(const std::string& NOTARY_ID,
                                   const std::string& ACCT_ID,
                                   const std::string& STR_CHEQUE) const
 {
-    return MadeEasy::deposit_cheque(NOTARY_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
+    OTAPI_Func request(DEPOSIT_CHEQUE, NOTARY_ID, NYM_ID, ACCT_ID, STR_CHEQUE);
+    return request.SendTransaction(request, "DEPOSIT_CHEQUE");
 }
 
 bool OT_ME::deposit_cash(const std::string& NOTARY_ID,

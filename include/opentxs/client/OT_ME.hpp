@@ -280,10 +280,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID) const;
 
-    EXPORT std::string load_or_retrieve_signing_key(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& TARGET_NYM_ID) const;
-
     EXPORT std::string send_user_msg_pubkey(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,

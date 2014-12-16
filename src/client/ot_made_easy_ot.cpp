@@ -191,27 +191,6 @@ OT_MADE_EASY_OT string MadeEasy::check_nym(const string& NOTARY_ID,
     return strResponse;
 }
 
-//  CREATE NYM (pseudonym)
-//  returns new Nym ID
-//
-OT_MADE_EASY_OT string MadeEasy::create_nym(int32_t nKeybits,
-                                            const string& strNymIDSource,
-                                            const string& strAltLocation)
-{
-    string strLocation = "OT_ME_create_nym";
-
-    string strNymID = OTAPI_Wrap::CreateNym(
-        nKeybits, strNymIDSource, strAltLocation); // returns new Nym ID;
-
-    if (!VerifyStringVal(strNymID)) {
-        otOut << strLocation
-              << ": Failed in OT_API_CreateNym(keybits == " << nKeybits
-              << ")\n";
-    }
-
-    return strNymID;
-}
-
 //  ISSUE ASSET TYPE
 //
 OT_MADE_EASY_OT string MadeEasy::issue_asset_type(const string& NOTARY_ID,
@@ -467,25 +446,6 @@ OT_MADE_EASY_OT string
 
         if (1 == VerifyMessageSuccess(strResponse)) {
             strPubkey = load_public_encryption_key(TARGET_NYM_ID);
-        }
-    }
-    return strPubkey; // might be null.
-}
-
-OT_MADE_EASY_OT string
-    MadeEasy::load_or_retrieve_signing_key(const string& NOTARY_ID,
-                                           const string& NYM_ID,
-                                           const string& TARGET_NYM_ID)
-{
-    OTAPI_Func ot_Msg;
-
-    string strPubkey = load_public_signing_key(TARGET_NYM_ID);
-
-    if (!VerifyStringVal(strPubkey)) {
-        string strResponse = check_nym(NOTARY_ID, NYM_ID, TARGET_NYM_ID);
-
-        if (1 == VerifyMessageSuccess(strResponse)) {
-            strPubkey = load_public_signing_key(TARGET_NYM_ID);
         }
     }
     return strPubkey; // might be null.
@@ -1043,20 +1003,6 @@ OT_MADE_EASY_OT string
                           SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
                           AMOUNT_PER_SHARE);
     string strResponse = theRequest.SendTransaction(theRequest, "PAY_DIVIDEND");
-
-    return strResponse;
-}
-
-OT_MADE_EASY_OT string
-    MadeEasy::deposit_cheque(const string& NOTARY_ID, const string& NYM_ID,
-                             const string& ACCT_ID, const string& STR_CHEQUE)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(DEPOSIT_CHEQUE, NOTARY_ID, NYM_ID, ACCT_ID,
-                          STR_CHEQUE);
-    string strResponse = theRequest.SendTransaction(
-        theRequest, "DEPOSIT_CHEQUE"); // <========================;
 
     return strResponse;
 }

@@ -176,12 +176,6 @@ public:
         const std::string& quantity, const std::string& price, bool bSelling,
         const std::string& strLifespanInSeconds, const std::string& strStopSign,
         const std::string& strActivationPrice);
-    EXPORT OT_MADE_EASY_OT static std::string create_nym(
-        int32_t nKeybits, const std::string& strNymIDSource,
-        const std::string& strAltLocation);
-    EXPORT OT_MADE_EASY_OT static std::string deposit_cheque(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, const std::string& STR_CHEQUE);
     EXPORT OT_MADE_EASY_OT static std::string deposit_payment_plan(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);
@@ -251,9 +245,6 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_mint(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
-    EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_signing_key(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& TARGET_NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string load_public_encryption_key(
         const std::string& NYM_ID); // from local storage.
     EXPORT OT_MADE_EASY_OT static std::string load_public_signing_key(
