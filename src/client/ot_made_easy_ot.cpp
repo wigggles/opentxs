@@ -934,28 +934,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-// TRIGGER CLAUSE (on running smart contract)  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::trigger_clause(const string& NOTARY_ID, const string& NYM_ID,
-                             const string& STR_TRANS_NUM,
-                             const string& CLAUSE_NAME, const string& STR_PARAM)
-{
-    OTAPI_Func ot_Msg;
-
-    //  int32_t OTAPI_Wrap::triggerClause(const char* NOTARY_ID,
-    //                                    const char * NYM_ID,
-    //                                    const char * TRANSACTION_NUMBER,
-    //                                    const char * CLAUSE_NAME,
-    //                                    const char * STR_PARAM);
-
-    OTAPI_Func theRequest(TRIGGER_CLAUSE, NOTARY_ID, NYM_ID, STR_TRANS_NUM,
-                          CLAUSE_NAME, STR_PARAM);
-    string strResponse = theRequest.SendRequest(theRequest, "TRIGGER_CLAUSE");
-
-    return strResponse;
-}
-
 // PAY DIVIDEND  -- TRANSACTION
 //
 OT_MADE_EASY_OT string

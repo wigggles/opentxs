@@ -132,7 +132,7 @@
 
 #include "CmdTriggerClause.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include <opentxs/client/OT_ME.hpp>
 
 #include <iostream>
 
@@ -193,7 +193,8 @@ int32_t CmdTriggerClause::run(string server, string mynym, string id,
         }
     }
 
+    OT_ME ot_me;
     string response =
-        MadeEasy::trigger_clause(server, mynym, id, clause, param);
+        ot_me.trigger_clause(server, mynym, std::stoi(id), clause, param);
     return processResponse(response, "trigger clause");
 }

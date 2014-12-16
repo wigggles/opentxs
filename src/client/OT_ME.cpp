@@ -819,8 +819,9 @@ std::string OT_ME::trigger_clause(const std::string& NOTARY_ID,
                                   const std::string& CLAUSE_NAME,
                                   const std::string& STR_PARAM) const
 {
-    return MadeEasy::trigger_clause(
-        NOTARY_ID, NYM_ID, std::to_string(TRANS_NUM), CLAUSE_NAME, STR_PARAM);
+    OTAPI_Func request(TRIGGER_CLAUSE, NOTARY_ID, NYM_ID,
+                       std::to_string(TRANS_NUM), CLAUSE_NAME, STR_PARAM);
+    return request.SendRequest(request, "TRIGGER_CLAUSE");
 }
 
 // WITHDRAW CASH -- TRANSACTION
