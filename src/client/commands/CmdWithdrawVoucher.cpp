@@ -135,6 +135,7 @@
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -209,8 +210,9 @@ int32_t CmdWithdrawVoucher::run(string myacct, string hisnym, string amount,
         return -1;
     }
 
+    OT_ME ot_me;
     string response =
-        MadeEasy::withdraw_voucher(server, mynym, myacct, hisnym, memo, value);
+        ot_me.withdraw_voucher(server, mynym, myacct, hisnym, memo, value);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "withdraw_voucher");
     if (1 != reply) {

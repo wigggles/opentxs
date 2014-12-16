@@ -971,24 +971,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-// WITHDRAW VOUCHER  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::withdraw_voucher(const string& NOTARY_ID, const string& NYM_ID,
-                               const string& ACCT_ID,
-                               const string& RECIP_NYM_ID,
-                               const string& STR_MEMO, int64_t AMOUNT)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(WITHDRAW_VOUCHER, NOTARY_ID, NYM_ID, ACCT_ID,
-                          RECIP_NYM_ID, STR_MEMO, AMOUNT);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "WITHDRAW_VOUCHER");
-
-    return strResponse;
-}
-
 // PAY DIVIDEND  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
