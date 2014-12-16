@@ -819,8 +819,9 @@ std::string OT_ME::trigger_clause(const std::string& NOTARY_ID,
                                   const std::string& CLAUSE_NAME,
                                   const std::string& STR_PARAM) const
 {
-    return MadeEasy::trigger_clause(
-        NOTARY_ID, NYM_ID, std::to_string(TRANS_NUM), CLAUSE_NAME, STR_PARAM);
+    OTAPI_Func request(TRIGGER_CLAUSE, NOTARY_ID, NYM_ID,
+                       std::to_string(TRANS_NUM), CLAUSE_NAME, STR_PARAM);
+    return request.SendRequest(request, "TRIGGER_CLAUSE");
 }
 
 // WITHDRAW CASH -- TRANSACTION
@@ -830,7 +831,8 @@ std::string OT_ME::withdraw_cash(const std::string& NOTARY_ID,
                                  const std::string& ACCT_ID,
                                  int64_t AMOUNT) const
 {
-    return MadeEasy::withdraw_cash(NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
+    OTAPI_Func request(WITHDRAW_CASH, NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
+    return request.SendTransaction(request, "WITHDRAW_CASH");
 }
 
 // Difference between this function and the one above?
@@ -869,8 +871,9 @@ std::string OT_ME::withdraw_voucher(const std::string& NOTARY_ID,
                                     const std::string& STR_MEMO,
                                     int64_t AMOUNT) const
 {
-    return MadeEasy::withdraw_voucher(NOTARY_ID, NYM_ID, ACCT_ID, RECIP_NYM_ID,
-                                      STR_MEMO, AMOUNT);
+    OTAPI_Func request(WITHDRAW_VOUCHER, NOTARY_ID, NYM_ID, ACCT_ID,
+                       RECIP_NYM_ID, STR_MEMO, AMOUNT);
+    return request.SendTransaction(request, "WITHDRAW_VOUCHER");
 }
 
 // PAY DIVIDEND -- TRANSACTION

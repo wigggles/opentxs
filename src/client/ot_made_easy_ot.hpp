@@ -309,17 +309,6 @@ public:
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT);
     EXPORT OT_MADE_EASY_OT static std::string stat_asset_account(
         const std::string& ACCOUNT_ID);
-    EXPORT OT_MADE_EASY_OT static std::string trigger_clause(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& STR_TRANS_NUM, const std::string& CLAUSE_NAME,
-        const std::string& STR_PARAM);
-    EXPORT OT_MADE_EASY_OT static std::string withdraw_cash(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, int64_t AMOUNT);
-    EXPORT OT_MADE_EASY_OT static std::string withdraw_voucher(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, const std::string& RECIP_NYM_ID,
-        const std::string& STR_MEMO, int64_t AMOUNT);
 };
 
 } // namespace opentxs

@@ -135,6 +135,7 @@
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -213,7 +214,8 @@ int32_t CmdWithdrawCash::withdrawCash(const string& myacct,
         return -1;
     }
 
-    string response = MadeEasy::withdraw_cash(server, mynym, myacct, amount);
+    OT_ME ot_me;
+    string response = ot_me.withdraw_cash(server, mynym, myacct, amount);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "withdraw_cash");
     if (1 != reply) {

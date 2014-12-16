@@ -934,61 +934,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-// TRIGGER CLAUSE (on running smart contract)  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::trigger_clause(const string& NOTARY_ID, const string& NYM_ID,
-                             const string& STR_TRANS_NUM,
-                             const string& CLAUSE_NAME, const string& STR_PARAM)
-{
-    OTAPI_Func ot_Msg;
-
-    //  int32_t OTAPI_Wrap::triggerClause(const char* NOTARY_ID,
-    //                                    const char * NYM_ID,
-    //                                    const char * TRANSACTION_NUMBER,
-    //                                    const char * CLAUSE_NAME,
-    //                                    const char * STR_PARAM);
-
-    OTAPI_Func theRequest(TRIGGER_CLAUSE, NOTARY_ID, NYM_ID, STR_TRANS_NUM,
-                          CLAUSE_NAME, STR_PARAM);
-    string strResponse = theRequest.SendRequest(theRequest, "TRIGGER_CLAUSE");
-
-    return strResponse;
-}
-
-// WITHDRAW CASH  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::withdraw_cash(const string& NOTARY_ID, const string& NYM_ID,
-                            const string& ACCT_ID, int64_t AMOUNT)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(WITHDRAW_CASH, NOTARY_ID, NYM_ID, ACCT_ID, AMOUNT);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "WITHDRAW_CASH");
-
-    return strResponse;
-}
-
-// WITHDRAW VOUCHER  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::withdraw_voucher(const string& NOTARY_ID, const string& NYM_ID,
-                               const string& ACCT_ID,
-                               const string& RECIP_NYM_ID,
-                               const string& STR_MEMO, int64_t AMOUNT)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(WITHDRAW_VOUCHER, NOTARY_ID, NYM_ID, ACCT_ID,
-                          RECIP_NYM_ID, STR_MEMO, AMOUNT);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "WITHDRAW_VOUCHER");
-
-    return strResponse;
-}
-
 // PAY DIVIDEND  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
