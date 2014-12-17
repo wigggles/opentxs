@@ -135,6 +135,7 @@
 
 #include <memory>
 #include <string>
+#include <opentxs/core/String.hpp>
 
 // forward declare zsock_t
 typedef struct _zsock_t zsock_t;
@@ -174,7 +175,7 @@ public:
               const Message& theMessage);
 
 private:
-    bool send(const OTEnvelope& envelope);
+    bool send(const String&);
     bool receive(std::string& reply);
 
 private:
