@@ -64,12 +64,11 @@ USER otuser
 RUN set +x; \
 		cd /home/otuser/opentxs-source/build \
 		&& cmake .. \             
-		--debug-output  
 	        -DPYTHON=1 \
 	        -DSIGNAL_HANLDER=ON \
 	        -DPYTHON_EXECUTABLE=/usr/bin/python3 \
 	        -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.4m.so \
-	        -DPYTHON_INCLUDE_DIR=/usr/include/python3
+	        -DPYTHON_INCLUDE_DIR=/usr/include/python3.4 \
 		&& make -j 4 -l 2 
 USER root
 RUN set +x; \
