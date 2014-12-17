@@ -46,11 +46,18 @@ WORKDIR /home/otuser
 RUN set +x; \
 		cd ~/ \
 		&& mkdir opentxs-source \
-		&& cd opentxs-source \ 
-		&& rm -rf build || true \
-		&& mkdir build || true
-		
-ADD . /home/otuser/opentxs-source/
+		&& cd opentxs-source \
+		&& mkdir build
+
+ADD CMakeLists.txt .clang-format .gitignore .gitmodules /home/otuser/opentxs-source/
+ADD cmake /home/otuser/opentxs-source/cmake
+ADD deps /home/otuser/opentxs-source/deps
+ADD include /home/otuser/opentxs-source/include
+ADD scripts /home/otuser/opentxs-source/scripts
+ADD src /home/otuser/opentxs-source/src
+ADD tests /home/otuser/opentxs-source/tests
+ADD wrappers /home/otuser/opentxs-source/wrappers
+ADD .git /home/otuser/opentxs-source/.git
 USER root
 RUN chown -R otuser:otuser /home/otuser/
 USER otuser
