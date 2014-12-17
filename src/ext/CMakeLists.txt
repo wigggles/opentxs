@@ -6,10 +6,6 @@ set(cxx-sources
 
 file(GLOB cxx-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ext/*.hpp")
 
-include_directories(SYSTEM
-  ${ZMQ_INCLUDE_DIR}
-)
-
 set(MODULE_NAME opentxs-ext)
 if(WIN32)
   configure_file(
@@ -31,7 +27,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-ext opentxs-cash opentxs-core ${ZMQ_LIBRARY})
+target_link_libraries(opentxs-ext opentxs-cash opentxs-core)
 set_target_properties(opentxs-ext PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_MAJOR})
 
 if(WIN32)

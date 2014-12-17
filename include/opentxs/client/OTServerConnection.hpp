@@ -133,7 +133,6 @@
 #ifndef OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 #define OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 
-#include <opentxs/client/OTMessageBuffer.hpp>
 #include <cppzmq/zmq.hpp>
 #include <memory>
 #include <string>
@@ -146,6 +145,7 @@ class Identifier;
 class Nym;
 class OTServerContract;
 class OTEnvelope;
+class Message;
 
 class OTServerConnection
 {
@@ -176,10 +176,6 @@ private:
 private:
     zmq::context_t context_zmq;
     zmq::socket_t socket_zmq;
-
-    OTMessageBuffer m_listIn;
-    OTMessageBuffer m_listOut;
-
     Nym* m_pNym;
     OTServerContract* m_pServerContract;
     OTClient* m_pClient;

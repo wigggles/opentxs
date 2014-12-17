@@ -41,9 +41,9 @@ else()
 endif()
 
 if(WIN32)
-  target_link_libraries(opentxs-server opentxs-ext opentxs-cash opentxs-basket opentxs-core irrxml)
+  target_link_libraries(opentxs-server opentxs-ext opentxs-cash opentxs-basket opentxs-core irrxml ${ZMQ_LIBRARY})
 else()
-  target_link_libraries(opentxs-server opentxs-ext opentxs-cash opentxs-basket opentxs-core)
+  target_link_libraries(opentxs-server opentxs-ext opentxs-cash opentxs-basket opentxs-core ${ZMQ_LIBRARY})
 endif()
 
 set_target_properties(opentxs-server PROPERTIES VERSION ${VERSION_STRING} SOVERSION ${VERSION_MAJOR})
