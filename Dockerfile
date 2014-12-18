@@ -7,8 +7,12 @@ WORKDIR /home/otbuilder/
 #install the following dependencies;
 RUN set +x; \
 		apt-get update \
+		&& apt-get install -y software-properties-common --no-install-recommends \
+		&& add-apt-repository ppa:hamrle/ppa \
+		&& apt-get update \
 		&& apt-get install -y build-essential cmake pkg-config libssl-dev protobuf-compiler libprotobuf-dev g++ gdc libzmq3-dev libzmq3 --no-install-recommends \
-		&& apt-get install -y git wget curl libpcre3-dev python3 python3-pip python3-dev openjdk-6-jdk openjdk-6-source --no-install-recommends ruby-dev \
+		&& apt-get install -y git wget curl libpcre3-dev python3 python3-pip python3-dev openjdk-6-jdk openjdk-6-source swig3.0 --no-install-recommends ruby-dev \
+		&& ln -s /usr/bin/swig3.0 /usr/bin/swig
 		&& apt-get autoremove
 ENV DEBIAN_FRONTEND noninteractive
 RUN set +x; \
@@ -19,22 +23,6 @@ RUN set +x; \
 
 RUN set +x; \
 		apt-get install -y cppcheck ccache clang-format-3.5 
-
-# install SWIG
-RUN set +x; \
-		cd /tmp/ \
-		&& mkdir tools \
-		&& cd tools \
-		&& wget http://archive.ubuntu.com/ubuntu/pool/universe/s/swig/swig_3.0.2.orig.tar.gz \
-		&& wget http://archive.ubuntu.com/ubuntu/pool/universe/s/swig/swig_3.0.2-1ubuntu1.debian.tar.xz \
-		&& tar -xzf swig_3.0.2.orig.tar.gz \
-		&& xzcat swig_3.0.2-1ubuntu1.debian.tar.xz | tar x -C swig-3.0.2/ \
-	        && cd swig-3.0.2/ \
-	        && ./configure --prefix=/usr \
-	        && make \
-	        && make install \
-	        && install -v -m755 -d /usr/share/doc/swig-3.0.2 \
-	        && cp -v -R Doc/* /usr/share/doc/swig-3.0.2
 
 # setup a non-root user
 RUN useradd -ms /bin/bash otuser
