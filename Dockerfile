@@ -7,12 +7,11 @@ WORKDIR /home/otbuilder/
 #install the following dependencies;
 RUN set +x; \
 		apt-get update \
-		&& apt-get install -y software-properties-common --no-install-recommends \
+		&& apt-get install -y --no-install-recommends software-properties-common \
 		&& add-apt-repository ppa:hamrle/ppa \
 		&& apt-get update \
-		&& apt-get install -y build-essential cmake pkg-config libssl-dev protobuf-compiler libprotobuf-dev g++ gdc libzmq3-dev libzmq3 --no-install-recommends \
-		&& apt-get install -y git wget curl libpcre3-dev python3 python3-pip python3-dev openjdk-6-jdk openjdk-6-source swig3.0 --no-install-recommends ruby-dev \
-		&& ln -s /usr/bin/swig3.0 /usr/bin/swig
+		&& apt-get install -y --no-install-recommends g++ make cmake libssl-dev protobuf-compiler libprotobuf-dev libzmq3-dev git python3-dev swig3.0 cppcheck clang-format-3.5 \
+		&& ln -s /usr/bin/swig3.0 /usr/bin/swig \
 		&& apt-get autoremove
 ENV DEBIAN_FRONTEND noninteractive
 RUN set +x; \
@@ -20,9 +19,6 @@ RUN set +x; \
 		&& locale-gen C.UTF-8 \
 		&& update-locale LANG=C.UTF-8 || true 
 #ENV LC_ALL C.UTF-8
-
-RUN set +x; \
-		apt-get install -y cppcheck ccache clang-format-3.5 
 
 # setup a non-root user
 RUN useradd -ms /bin/bash otuser
