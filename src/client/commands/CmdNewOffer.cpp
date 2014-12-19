@@ -236,7 +236,8 @@ int32_t CmdNewOffer::run(string myacct, string hisacct, string type,
         return -1;
     }
 
-    MadeEasy::get_nym_market_offers(server, mynym);
+    OT_ME ot_me;
+    ot_me.get_nym_market_offers(server, mynym);
 
     if (0 > cleanMarketOfferList(server, mynym, myacct, hisacct, type, scale,
                                  price)) {

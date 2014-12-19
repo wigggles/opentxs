@@ -209,8 +209,6 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string get_market_offers(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& MARKET_ID, int64_t MAX_DEPTH);
-    EXPORT OT_MADE_EASY_OT static std::string get_nym_market_offers(
-        const std::string& NOTARY_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string get_payment_instrument(
         const std::string& NOTARY_ID, const std::string& NYM_ID, int32_t nIndex,
         const std::string& PRELOADED_INBOX); // PRELOADED_INBOX is optional.
