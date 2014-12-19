@@ -133,9 +133,9 @@
 #include "CmdGetMarkets.hpp"
 
 #include "CmdShowMarkets.hpp"
-#include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/core/Log.hpp>
+#include <opentxs/client/OT_ME.hpp>
 
 using namespace opentxs;
 using namespace std;
@@ -168,7 +168,8 @@ int32_t CmdGetMarkets::run(string server, string mynym)
         return -1;
     }
 
-    string response = MadeEasy::get_market_list(server, mynym);
+    OT_ME ot_me;
+    string response = ot_me.get_market_list(server, mynym);
     if (1 != responseStatus(response)) {
         otOut << "Error: cannot get market list.\n";
         return -1;

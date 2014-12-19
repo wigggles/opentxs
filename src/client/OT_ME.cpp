@@ -918,7 +918,8 @@ bool OT_ME::deposit_local_purse(const std::string& NOTARY_ID,
 std::string OT_ME::get_market_list(const std::string& NOTARY_ID,
                                    const std::string& NYM_ID) const
 {
-    return MadeEasy::get_market_list(NOTARY_ID, NYM_ID);
+    OTAPI_Func request(GET_MARKET_LIST, NOTARY_ID, NYM_ID);
+    return request.SendRequest(request, "GET_MARKET_LIST");
 }
 
 std::string OT_ME::get_market_offers(const std::string& NOTARY_ID,
@@ -926,20 +927,24 @@ std::string OT_ME::get_market_offers(const std::string& NOTARY_ID,
                                      const std::string& MARKET_ID,
                                      int64_t MAX_DEPTH) const
 {
-    return MadeEasy::get_market_offers(NOTARY_ID, NYM_ID, MARKET_ID, MAX_DEPTH);
+    OTAPI_Func request(GET_MARKET_OFFERS, NOTARY_ID, NYM_ID, MARKET_ID,
+                       MAX_DEPTH);
+    return request.SendRequest(request, "GET_MARKET_OFFERS");
 }
 
 std::string OT_ME::get_nym_market_offers(const std::string& NOTARY_ID,
                                          const std::string& NYM_ID) const
 {
-    return MadeEasy::get_nym_market_offers(NOTARY_ID, NYM_ID);
+    OTAPI_Func request(GET_NYM_MARKET_OFFERS, NOTARY_ID, NYM_ID);
+    return request.SendRequest(request, "GET_NYM_MARKET_OFFERS");
 }
 
 std::string OT_ME::get_market_recent_trades(const std::string& NOTARY_ID,
                                             const std::string& NYM_ID,
                                             const std::string& MARKET_ID) const
 {
-    return MadeEasy::get_market_recent_trades(NOTARY_ID, NYM_ID, MARKET_ID);
+    OTAPI_Func request(GET_MARKET_RECENT_TRADES, NOTARY_ID, NYM_ID, MARKET_ID);
+    return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
 }
 
 std::string OT_ME::adjust_usage_credits(const std::string& NOTARY_ID,
@@ -947,8 +952,9 @@ std::string OT_ME::adjust_usage_credits(const std::string& NOTARY_ID,
                                         const std::string& TARGET_NYM_ID,
                                         const std::string& ADJUSTMENT) const
 {
-    return MadeEasy::adjust_usage_credits(NOTARY_ID, USER_NYM_ID, TARGET_NYM_ID,
-                                          ADJUSTMENT);
+    OTAPI_Func request(ADJUST_USAGE_CREDITS, NOTARY_ID, USER_NYM_ID,
+                       TARGET_NYM_ID, ADJUSTMENT);
+    return request.SendRequest(request, "ADJUST_USAGE_CREDITS");
 }
 
 int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const

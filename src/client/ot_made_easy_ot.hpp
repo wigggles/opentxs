@@ -158,9 +158,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& AGENT_NAME,
         const std::string& THE_SMART_CONTRACT);
-    EXPORT OT_MADE_EASY_OT static std::string adjust_usage_credits(
-        const std::string& NOTARY_ID, const std::string& USER_NYM_ID,
-        const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT);
     EXPORT OT_MADE_EASY_OT static std::string cancel_payment_plan(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);
@@ -207,16 +204,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, int32_t nBoxType,
         const std::string& STR_TRANS_NUM);
-    EXPORT OT_MADE_EASY_OT static std::string get_market_list(
-        const std::string& NOTARY_ID, const std::string& NYM_ID);
-    EXPORT OT_MADE_EASY_OT static std::string get_market_offers(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& MARKET_ID, int64_t MAX_DEPTH);
-    EXPORT OT_MADE_EASY_OT static std::string get_market_recent_trades(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& MARKET_ID);
-    EXPORT OT_MADE_EASY_OT static std::string get_nym_market_offers(
-        const std::string& NOTARY_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string get_payment_instrument(
         const std::string& NOTARY_ID, const std::string& NYM_ID, int32_t nIndex,
         const std::string& PRELOADED_INBOX); // PRELOADED_INBOX is optional.
