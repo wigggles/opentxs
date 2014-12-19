@@ -158,9 +158,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_ID, const std::string& AGENT_NAME,
         const std::string& THE_SMART_CONTRACT);
-    EXPORT OT_MADE_EASY_OT static std::string adjust_usage_credits(
-        const std::string& NOTARY_ID, const std::string& USER_NYM_ID,
-        const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT);
     EXPORT OT_MADE_EASY_OT static std::string cancel_payment_plan(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);

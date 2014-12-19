@@ -1010,22 +1010,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-OT_MADE_EASY_OT string
-    MadeEasy::adjust_usage_credits(const string& NOTARY_ID,
-                                   const string& USER_NYM_ID,
-                                   const string& TARGET_NYM_ID,
-                                   const string& ADJUSTMENT)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(ADJUST_USAGE_CREDITS, NOTARY_ID, USER_NYM_ID,
-                          TARGET_NYM_ID, ADJUSTMENT);
-    string strResponse = theRequest.SendRequest(
-        theRequest, "ADJUST_USAGE_CREDITS"); // <========================;
-
-    return strResponse;
-}
-
 // Imports a purse into the wallet.
 
 // NOTE:   UNUSED currently.

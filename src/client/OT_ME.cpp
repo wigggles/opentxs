@@ -947,8 +947,9 @@ std::string OT_ME::adjust_usage_credits(const std::string& NOTARY_ID,
                                         const std::string& TARGET_NYM_ID,
                                         const std::string& ADJUSTMENT) const
 {
-    return MadeEasy::adjust_usage_credits(NOTARY_ID, USER_NYM_ID, TARGET_NYM_ID,
-                                          ADJUSTMENT);
+    OTAPI_Func request(ADJUST_USAGE_CREDITS, NOTARY_ID, USER_NYM_ID,
+                       TARGET_NYM_ID, ADJUSTMENT);
+    return request.SendRequest(request, "ADJUST_USAGE_CREDITS");
 }
 
 int32_t OT_ME::VerifyMessageSuccess(const std::string& str_Message) const

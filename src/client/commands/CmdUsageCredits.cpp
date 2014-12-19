@@ -132,9 +132,8 @@
 
 #include "CmdUsageCredits.hpp"
 
-#include "../ot_made_easy_ot.hpp"
-
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -182,8 +181,8 @@ int32_t CmdUsageCredits::run(string server, string mynym, string hisnym,
         return -1;
     }
 
-    string response =
-        MadeEasy::adjust_usage_credits(server, mynym, hisnym, adjust);
+    OT_ME ot_me;
+    string response = ot_me.adjust_usage_credits(server, mynym, hisnym, adjust);
     if (1 != processResponse(response, "adjust usage credits")) {
         return -1;
     }
