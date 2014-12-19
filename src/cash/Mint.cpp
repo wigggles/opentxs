@@ -644,9 +644,9 @@ void Mint::UpdateContents()
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
         CASH_ACCOUNT_ID(m_CashAccountID);
 
-    int64_t lFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
-    int64_t lTo = OTTimeGetSecondsFromTime(m_VALID_TO);
-    int64_t lExpiration = OTTimeGetSecondsFromTime(m_EXPIRATION);
+    std::string from = formatTimestamp(m_VALID_FROM);
+    std::string to = formatTimestamp(m_VALID_TO);
+    std::string expiration = formatTimestamp(m_EXPIRATION);
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -660,13 +660,13 @@ void Mint::UpdateContents()
         " instrumentDefinitionID=\"%s\"\n"
         " cashAcctID=\"%s\"\n"
         " series=\"%d\"\n"
-        " expiration=\"%" PRId64 "\"\n"
-        " validFrom=\"%" PRId64 "\"\n"
-        " validTo=\"%" PRId64 "\""
+        " expiration=\"%s\"\n"
+        " validFrom=\"%s\"\n"
+        " validTo=\"%s\""
         " >\n\n",
         m_strVersion.Get(), NOTARY_ID.Get(), NOTARY_NYM_ID.Get(),
         INSTRUMENT_DEFINITION_ID.Get(), CASH_ACCOUNT_ID.Get(), m_nSeries,
-        lExpiration, lFrom, lTo);
+        expiration.c_str(), from.c_str(), to.c_str());
 
     OTASCIIArmor armorPublicKey;
     m_pKeyPublic->GetPublicKey(armorPublicKey);
@@ -738,14 +738,10 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strCashAcctID = xml->getAttributeValue("cashAcctID");
 
         m_nSeries = atoi(xml->getAttributeValue("series"));
-        m_EXPIRATION =
-            OTTimeGetTimeFromSeconds(xml->getAttributeValue("expiration"));
+        m_EXPIRATION = parseTimestamp(xml->getAttributeValue("expiration"));
 
-        const String str_valid_from = xml->getAttributeValue("validFrom");
-        const String str_valid_to = xml->getAttributeValue("validTo");
-
-        m_VALID_FROM = OTTimeGetTimeFromSeconds(str_valid_from.ToLong());
-        m_VALID_TO = OTTimeGetTimeFromSeconds(str_valid_to.ToLong());
+        m_VALID_FROM = parseTimestamp(xml->getAttributeValue("validFrom"));
+        m_VALID_TO = parseTimestamp(xml->getAttributeValue("validTo"));
 
         m_NotaryID.SetString(strNotaryID);
         m_ServerNymID.SetString(strServerNymID);
