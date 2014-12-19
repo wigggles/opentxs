@@ -5463,14 +5463,14 @@ void OTSmartContract::UpdateContents()
 
     if (m_bCanceled) m_pCancelerNymID->GetString(strCanceler);
 
-    int64_t tCreation = OTTimeGetSecondsFromTime(
-        m_bCalculatingID ? OT_TIME_ZERO : GetCreationDate());
-    int64_t tValidFrom = OTTimeGetSecondsFromTime(
-        m_bCalculatingID ? OT_TIME_ZERO : GetValidFrom());
-    int64_t tValidTo = OTTimeGetSecondsFromTime(
-        m_bCalculatingID ? OT_TIME_ZERO : GetValidTo());
-    int64_t tNextProcess = OTTimeGetSecondsFromTime(
-        m_bCalculatingID ? OT_TIME_ZERO : GetNextProcessDate());
+    std::string tCreation =
+        formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetCreationDate());
+    std::string tValidFrom =
+        formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetValidFrom());
+    std::string tValidTo =
+        formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetValidTo());
+    std::string tNextProcess =
+        formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetNextProcessDate());
 
     // OTSmartContract
     m_xmlUnsigned.Concatenate(
@@ -5485,10 +5485,10 @@ void OTSmartContract::UpdateContents()
         " canceled=\"%s\"\n"
         " cancelerNymID=\"%s\"\n"
         " transactionNum=\"%" PRId64 "\"\n"
-        " creationDate=\"%" PRId64 "\"\n"
-        " validFrom=\"%" PRId64 "\"\n"
-        " validTo=\"%" PRId64 "\"\n"
-        " nextProcessDate=\"%" PRId64 "\""
+        " creationDate=\"%s\"\n"
+        " validFrom=\"%s\"\n"
+        " validTo=\"%s\"\n"
+        " nextProcessDate=\"%s\""
         " >\n\n",
         m_strVersion.Get(), m_bCalculatingID ? "" : NOTARY_ID.Get(),
         m_bCalculatingID ? "" : ACTIVATOR_NYM_ID.Get(),
@@ -5498,8 +5498,8 @@ void OTSmartContract::UpdateContents()
         m_bCalculatingID ? "" : m_strLastRecipientUser.Get(),
         m_bCalculatingID ? "" : m_strLastRecipientAcct.Get(),
         m_bCanceled ? "true" : "false", m_bCanceled ? strCanceler.Get() : "",
-        m_bCalculatingID ? 0 : m_lTransactionNum, tCreation, tValidFrom,
-        tValidTo, tNextProcess);
+        m_bCalculatingID ? 0 : m_lTransactionNum, tCreation.c_str(),
+        tValidFrom.c_str(), tValidTo.c_str(), tNextProcess.c_str());
 
     // OTCronItem
     if (!m_bCalculatingID) {
@@ -5663,16 +5663,13 @@ int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         SetTransactionNum(strTransNum.Exists() ? strTransNum.ToLong() : 0);
 
-        const String str_valid_from = xml->getAttributeValue("validFrom");
-        const String str_valid_to = xml->getAttributeValue("validTo");
-        const String str_creation = xml->getAttributeValue("creationDate");
-        const String str_next_process =
-            xml->getAttributeValue("nextProcessDate");
-
-        int64_t tValidFrom = str_valid_from.ToLong();
-        int64_t tValidTo = str_valid_to.ToLong();
-        int64_t tCreation = str_creation.ToLong();
-        int64_t tNextProcess = str_next_process.ToLong();
+        int64_t tValidFrom =
+            parseTimestamp(xml->getAttributeValue("validFrom"));
+        int64_t tValidTo = parseTimestamp(xml->getAttributeValue("validTo"));
+        int64_t tCreation =
+            parseTimestamp(xml->getAttributeValue("creationDate"));
+        int64_t tNextProcess =
+            parseTimestamp(xml->getAttributeValue("nextProcessDate"));
 
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
