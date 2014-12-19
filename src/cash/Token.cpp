@@ -791,8 +791,8 @@ void Token::UpdateContents()
         break;
     }
 
-    int64_t lFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
-    int64_t lTo = OTTimeGetSecondsFromTime(m_VALID_TO);
+    std::string from = formatTimestamp(m_VALID_FROM);
+    std::string to = formatTimestamp(m_VALID_TO);
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -805,11 +805,12 @@ void Token::UpdateContents()
         " instrumentDefinitionID=\"%s\"\n"
         " notaryID=\"%s\"\n"
         " series=\"%d\"\n"
-        " validFrom=\"%" PRId64 "\"\n"
-        " validTo=\"%" PRId64 "\""
+        " validFrom=\"%s\"\n"
+        " validTo=\"%s\""
         " >\n\n",
         m_strVersion.Get(), strState.Get(), GetDenomination(),
-        INSTRUMENT_DEFINITION_ID.Get(), NOTARY_ID.Get(), m_nSeries, lFrom, lTo);
+        INSTRUMENT_DEFINITION_ID.Get(), NOTARY_ID.Get(), m_nSeries,
+        from.c_str(), to.c_str());
 
     // signed tokens, as well as spendable tokens, both carry a TokenID
     // (The spendable token contains the unblinded version.)
@@ -892,11 +893,8 @@ int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_nSeries = atoi(xml->getAttributeValue("series"));
 
-        const String str_from = xml->getAttributeValue("validFrom");
-        const String str_to = xml->getAttributeValue("validTo");
-
-        int64_t tFrom = str_from.ToLong();
-        int64_t tTo = str_to.ToLong();
+        int64_t tFrom = parseTimestamp(xml->getAttributeValue("validFrom"));
+        int64_t tTo = parseTimestamp(xml->getAttributeValue("validTo"));
 
         m_VALID_FROM = OTTimeGetTimeFromSeconds(tFrom);
         m_VALID_TO = OTTimeGetTimeFromSeconds(tTo);
