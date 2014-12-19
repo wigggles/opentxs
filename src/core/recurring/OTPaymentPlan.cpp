@@ -289,17 +289,17 @@ void OTPaymentPlan::UpdateContents()
         " canceled=\"%s\"\n"
         " cancelerNymID=\"%s\"\n"
         " transactionNum=\"%" PRId64 "\"\n"
-        " creationDate=\"%" PRId64 "\"\n"
-        " validFrom=\"%" PRId64 "\"\n"
-        " validTo=\"%" PRId64 "\""
+        " creationDate=\"%s\"\n"
+        " validFrom=\"%s\"\n"
+        " validTo=\"%s\""
         " >\n\n",
         m_strVersion.Get(), NOTARY_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(),
         SENDER_ACCT_ID.Get(), SENDER_NYM_ID.Get(), RECIPIENT_ACCT_ID.Get(),
         RECIPIENT_NYM_ID.Get(), m_bCanceled ? "true" : "false",
         m_bCanceled ? strCanceler.Get() : "", m_lTransactionNum,
-        OTTimeGetSecondsFromTime(GetCreationDate()),
-        OTTimeGetSecondsFromTime(GetValidFrom()),
-        OTTimeGetSecondsFromTime(GetValidTo()));
+        formatTimestamp(GetCreationDate()).c_str(),
+        formatTimestamp(GetValidFrom()).c_str(),
+        formatTimestamp(GetValidTo()).c_str());
 
     // There are "closing" transaction numbers, used to CLOSE a transaction.
     // Often where Cron items are involved such as this payment plan, or in
