@@ -964,25 +964,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-// int32_t OTAPI_Wrap::getMarketOffers(const char* NOTARY_ID,
-//                           const char * NYM_ID,
-//                           const char * MARKET_ID,
-//                           const char * MAX_DEPTH)
-
-OT_MADE_EASY_OT string
-    MadeEasy::get_market_offers(const string& NOTARY_ID, const string& NYM_ID,
-                                const string& MARKET_ID, int64_t MAX_DEPTH)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(GET_MARKET_OFFERS, NOTARY_ID, NYM_ID, MARKET_ID,
-                          MAX_DEPTH);
-    string strResponse = theRequest.SendRequest(
-        theRequest, "GET_MARKET_OFFERS"); // <========================;
-
-    return strResponse;
-}
-
 // Imports a purse into the wallet.
 
 // NOTE:   UNUSED currently.

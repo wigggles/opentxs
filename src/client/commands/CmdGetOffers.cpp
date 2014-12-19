@@ -133,7 +133,7 @@
 #include "CmdGetOffers.hpp"
 
 #include "CmdShowOffers.hpp"
-#include "../ot_made_easy_ot.hpp"
+#include <opentxs/client/OT_ME.hpp>
 
 using namespace opentxs;
 using namespace std;
@@ -179,8 +179,9 @@ int32_t CmdGetOffers::run(string server, string mynym, string market,
         depth = "50";
     }
 
+    OT_ME ot_me;
     string response =
-        MadeEasy::get_market_offers(server, mynym, market, stoll(depth));
+        ot_me.get_market_offers(server, mynym, market, stoll(depth));
     if (1 != processResponse(response, "get market offers")) {
         return -1;
     }

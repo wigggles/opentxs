@@ -926,7 +926,9 @@ std::string OT_ME::get_market_offers(const std::string& NOTARY_ID,
                                      const std::string& MARKET_ID,
                                      int64_t MAX_DEPTH) const
 {
-    return MadeEasy::get_market_offers(NOTARY_ID, NYM_ID, MARKET_ID, MAX_DEPTH);
+    OTAPI_Func request(GET_MARKET_OFFERS, NOTARY_ID, NYM_ID, MARKET_ID,
+                       MAX_DEPTH);
+    return request.SendRequest(request, "GET_MARKET_OFFERS");
 }
 
 std::string OT_ME::get_nym_market_offers(const std::string& NOTARY_ID,
