@@ -939,7 +939,8 @@ std::string OT_ME::get_market_recent_trades(const std::string& NOTARY_ID,
                                             const std::string& NYM_ID,
                                             const std::string& MARKET_ID) const
 {
-    return MadeEasy::get_market_recent_trades(NOTARY_ID, NYM_ID, MARKET_ID);
+    OTAPI_Func request(GET_MARKET_RECENT_TRADES, NOTARY_ID, NYM_ID, MARKET_ID);
+    return request.SendRequest(request, "GET_MARKET_RECENT_TRADES");
 }
 
 std::string OT_ME::adjust_usage_credits(const std::string& NOTARY_ID,

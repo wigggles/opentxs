@@ -995,21 +995,6 @@ OT_MADE_EASY_OT string MadeEasy::get_nym_market_offers(const string& NOTARY_ID,
     return strResponse;
 }
 
-OT_MADE_EASY_OT string
-    MadeEasy::get_market_recent_trades(const string& NOTARY_ID,
-                                       const string& NYM_ID,
-                                       const string& MARKET_ID)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(GET_MARKET_RECENT_TRADES, NOTARY_ID, NYM_ID,
-                          MARKET_ID);
-    string strResponse = theRequest.SendRequest(
-        theRequest, "GET_MARKET_RECENT_TRADES"); // <========================;
-
-    return strResponse;
-}
-
 // Imports a purse into the wallet.
 
 // NOTE:   UNUSED currently.
