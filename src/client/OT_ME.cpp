@@ -918,7 +918,8 @@ bool OT_ME::deposit_local_purse(const std::string& NOTARY_ID,
 std::string OT_ME::get_market_list(const std::string& NOTARY_ID,
                                    const std::string& NYM_ID) const
 {
-    return MadeEasy::get_market_list(NOTARY_ID, NYM_ID);
+    OTAPI_Func request(GET_MARKET_LIST, NOTARY_ID, NYM_ID);
+    return request.SendRequest(request, "GET_MARKET_LIST");
 }
 
 std::string OT_ME::get_market_offers(const std::string& NOTARY_ID,
