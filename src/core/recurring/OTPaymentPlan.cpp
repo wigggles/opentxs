@@ -172,20 +172,11 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // true.
         m_bInitialPayment = true;
 
-        const String str_date = xml->getAttributeValue("date");
-        const String str_completed = xml->getAttributeValue("dateCompleted");
-        const String str_last_attempt =
-            xml->getAttributeValue("dateOfLastAttempt");
-
-        int64_t tDate = str_date.ToLong();
-        int64_t tDateCompleted = str_completed.ToLong();
-        int64_t tDateLastAttempt = str_last_attempt.ToLong();
-
-        SetInitialPaymentDate(OTTimeGetTimeFromSeconds(tDate));
+        SetInitialPaymentDate(parseTimestamp(xml->getAttributeValue("date")));
         SetInitialPaymentCompletedDate(
-            OTTimeGetTimeFromSeconds(tDateCompleted));
+            parseTimestamp(xml->getAttributeValue("dateCompleted")));
         SetLastFailedInitialPaymentDate(
-            OTTimeGetTimeFromSeconds(tDateLastAttempt));
+            parseTimestamp(xml->getAttributeValue("dateOfLastAttempt")));
 
         SetNoInitialFailures(atoi(xml->getAttributeValue("numberOfAttempts")));
         SetInitialPaymentAmount(
@@ -195,13 +186,12 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_bInitialPaymentDone = strCompleted.Compare("true");
 
         otWarn << "\n\nInitial Payment. Amount: " << m_lInitialPaymentAmount
-               << ".   Date: " << tDate
-               << ".   Completed Date: " << tDateCompleted
+               << ".   Date: " << GetInitialPaymentDate()
+               << ".   Completed Date: " << GetInitialPaymentCompletedDate()
                << "\n"
                   " Number of failed attempts: " << m_nNumberInitialFailures
-               << ".   Date of last failed attempt: " << tDateLastAttempt
-               << "\n"
-                  " Payment "
+               << ".   Date of last failed attempt: "
+               << GetLastFailedInitialPaymentDate() << "\n Payment "
                << (m_bInitialPaymentDone ? "COMPLETED" : "NOT completed")
                << ".\n";
 
@@ -343,17 +333,17 @@ void OTPaymentPlan::UpdateContents()
 
         m_xmlUnsigned.Concatenate(
             "<initialPayment\n"
-            " date=\"%" PRId64 "\"\n"
+            " date=\"%s\"\n"
             " amount=\"%" PRId64 "\"\n"
             " numberOfAttempts=\"%d\"\n"
-            " dateOfLastAttempt=\"%" PRId64 "\"\n"
-            " dateCompleted=\"%" PRId64 "\"\n"
+            " dateOfLastAttempt=\"%s\"\n"
+            " dateCompleted=\"%s\"\n"
             " completed=\"%s\""
             " />\n\n",
-            OTTimeGetSecondsFromTime(tInitialPaymentDate), lAmount,
+            formatTimestamp(tInitialPaymentDate).c_str(), lAmount,
             nNumberOfFailedAttempts,
-            OTTimeGetSecondsFromTime(tFailedInitialPaymentDate),
-            OTTimeGetSecondsFromTime(tCompletedInitialPaymentDate),
+            formatTimestamp(tFailedInitialPaymentDate).c_str(),
+            formatTimestamp(tCompletedInitialPaymentDate).c_str(),
             (IsInitialPaymentDone() ? "true" : "false"));
     }
 
