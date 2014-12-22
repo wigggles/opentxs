@@ -4141,7 +4141,7 @@ int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         String strDateSigned = xml->getAttributeValue("dateSigned");
         const int64_t lDateSigned =
-            strDateSigned.Exists() ? strDateSigned.ToLong() : 0;
+            strDateSigned.Exists() ? parseTimestamp(strDateSigned.Get()) : 0;
         m_DATE_SIGNED = OTTimeGetTimeFromSeconds(lDateSigned); // Todo casting ?
 
         const String strAcctID = xml->getAttributeValue("accountID");
@@ -4589,7 +4589,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(String& strOutput)
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // DATE SIGNED
-    const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
+    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4612,13 +4612,13 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(String& strOutput)
     }
 
     strOutput.Concatenate("<paymentInboxRecord type=\"%s\"\n"
-                          " dateSigned=\"%" PRId64 "\"\n"
+                          " dateSigned=\"%s\"\n"
                           " receiptHash=\"%s\"\n"
                           " displayValue=\"%" PRId64 "\"\n"
                           " transactionNum=\"%" PRId64 "\"\n"
                           " inRefDisplay=\"%" PRId64 "\"\n"
                           " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                          strType.Get(), lDateSigned, strHash.Get(),
+                          strType.Get(), dateSigned.c_str(), strHash.Get(),
                           lDisplayValue, GetTransactionNum(),
                           GetReferenceNumForDisplay(), GetReferenceToNum());
 }
@@ -4672,7 +4672,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(String& strOutput)
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // DATE SIGNED
-    const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
+    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4695,13 +4695,13 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(String& strOutput)
     }
 
     strOutput.Concatenate("<expiredBoxRecord type=\"%s\"\n"
-                          " dateSigned=\"%" PRId64 "\"\n"
+                          " dateSigned=\"%s\"\n"
                           " receiptHash=\"%s\"\n"
                           " displayValue=\"%" PRId64 "\"\n"
                           " transactionNum=\"%" PRId64 "\"\n"
                           " inRefDisplay=\"%" PRId64 "\"\n"
                           " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                          strType.Get(), lDateSigned, strHash.Get(),
+                          strType.Get(), dateSigned.c_str(), strHash.Get(),
                           lDisplayValue, GetTransactionNum(),
                           GetReferenceNumForDisplay(), GetReferenceToNum());
 }
@@ -4881,7 +4881,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // DATE SIGNED
-    const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
+    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4908,7 +4908,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
 
         strOutput.Concatenate(
             "<recordBoxRecord type=\"%s\"\n"
-            " dateSigned=\"%" PRId64 "\"\n"
+            " dateSigned=\"%s\"\n"
             " receiptHash=\"%s\"\n"
             " adjustment=\"%" PRId64 "\"\n"
             " displayValue=\"%" PRId64 "\"\n"
@@ -4917,12 +4917,12 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
             " closingNum=\"%" PRId64 "\"\n"
             " inRefDisplay=\"%" PRId64 "\"\n"
             " inReferenceTo=\"%" PRId64 "\" />\n\n",
-            strType.Get(), lDateSigned, strHash.Get(), lAdjustment,
+            strType.Get(), dateSigned.c_str(), strHash.Get(), lAdjustment,
             lDisplayValue, GetRawNumberOfOrigin(), GetTransactionNum(),
             GetClosingNum(), GetReferenceNumForDisplay(), GetReferenceToNum());
     else
         strOutput.Concatenate("<recordBoxRecord type=\"%s\"\n"
-                              " dateSigned=\"%" PRId64 "\"\n"
+                              " dateSigned=\"%s\"\n"
                               " receiptHash=\"%s\"\n"
                               " adjustment=\"%" PRId64 "\"\n"
                               " displayValue=\"%" PRId64 "\"\n"
@@ -4930,7 +4930,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
                               " transactionNum=\"%" PRId64 "\"\n"
                               " inRefDisplay=\"%" PRId64 "\"\n"
                               " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                              strType.Get(), lDateSigned, strHash.Get(),
+                              strType.Get(), dateSigned.c_str(), strHash.Get(),
                               lAdjustment, lDisplayValue,
                               GetRawNumberOfOrigin(), GetTransactionNum(),
                               GetReferenceNumForDisplay(), GetReferenceToNum());
@@ -5031,7 +5031,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // DATE SIGNED
-    const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
+    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -5062,20 +5062,20 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
                                                   // can remove this line.
 
         strOutput.Concatenate("<nymboxRecord type=\"%s\"\n"
-                              " dateSigned=\"%" PRId64 "\"\n"
+                              " dateSigned=\"%s\"\n"
                               " receiptHash=\"%s\"\n"
                               " transactionNum=\"%" PRId64 "\"\n"
                               " closingNum=\"%" PRId64 "\"\n"
                               " inRefDisplay=\"%" PRId64 "\"\n"
                               " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                              strType.Get(), lDateSigned, strHash.Get(),
+                              strType.Get(), dateSigned.c_str(), strHash.Get(),
                               GetTransactionNum(), GetClosingNum(),
                               GetReferenceNumForDisplay(), GetReferenceToNum());
 
     else
         strOutput.Concatenate(
             "<nymboxRecord type=\"%s\"\n"
-            " dateSigned=\"%" PRId64 "\"\n%s"
+            " dateSigned=\"%s\"\n%s"
             " receiptHash=\"%s\"\n%s" // SOMETIMES this is added here by the
             // final %s: " displayValue=\"%" PRId64 "\"\n"
             " transactionNum=\"%" PRId64
@@ -5084,9 +5084,10 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
                      // totalListOfNumbers=\"%s\"\n"
             " inRefDisplay=\"%" PRId64 "\"\n"
             " inReferenceTo=\"%" PRId64 "\" />\n\n",
-            strType.Get(), lDateSigned, strRequestNum.Get(), strHash.Get(),
-            strDisplayValue.Get(), GetTransactionNum(), strListOfBlanks.Get(),
-            GetReferenceNumForDisplay(), GetReferenceToNum());
+            strType.Get(), dateSigned.c_str(), strRequestNum.Get(),
+            strHash.Get(), strDisplayValue.Get(), GetTransactionNum(),
+            strListOfBlanks.Get(), GetReferenceNumForDisplay(),
+            GetReferenceToNum());
 }
 
 void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
@@ -5132,7 +5133,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // DATE SIGNED
-    const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
+    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -5155,7 +5156,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
     }
 
     strOutput.Concatenate("<outboxRecord type=\"%s\"\n"
-                          " dateSigned=\"%" PRId64 "\"\n"
+                          " dateSigned=\"%s\"\n"
                           " receiptHash=\"%s\"\n"
                           " adjustment=\"%" PRId64 "\"\n"
                           " displayValue=\"%" PRId64 "\"\n"
@@ -5163,7 +5164,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
                           " transactionNum=\"%" PRId64 "\"\n"
                           " inRefDisplay=\"%" PRId64 "\"\n"
                           " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                          strType.Get(), lDateSigned, strHash.Get(),
+                          strType.Get(), dateSigned.c_str(), strHash.Get(),
                           lAdjustment, lDisplayValue, GetRawNumberOfOrigin(),
                           GetTransactionNum(), GetReferenceNumForDisplay(),
                           GetReferenceToNum());
@@ -5286,7 +5287,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // DATE SIGNED
-    const int64_t lDateSigned = OTTimeGetSecondsFromTime(m_DATE_SIGNED);
+    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -5313,7 +5314,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
 
         strOutput.Concatenate(
             "<inboxRecord type=\"%s\"\n"
-            " dateSigned=\"%" PRId64 "\"\n"
+            " dateSigned=\"%s\"\n"
             " receiptHash=\"%s\"\n"
             " adjustment=\"%" PRId64 "\"\n"
             " displayValue=\"%" PRId64 "\"\n"
@@ -5322,12 +5323,12 @@ void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
             " closingNum=\"%" PRId64 "\"\n"
             " inRefDisplay=\"%" PRId64 "\"\n"
             " inReferenceTo=\"%" PRId64 "\" />\n\n",
-            strType.Get(), lDateSigned, strHash.Get(), lAdjustment,
+            strType.Get(), dateSigned.c_str(), strHash.Get(), lAdjustment,
             lDisplayValue, GetRawNumberOfOrigin(), GetTransactionNum(),
             GetClosingNum(), GetReferenceNumForDisplay(), GetReferenceToNum());
     else
         strOutput.Concatenate("<inboxRecord type=\"%s\"\n"
-                              " dateSigned=\"%" PRId64 "\"\n"
+                              " dateSigned=\"%s\"\n"
                               " receiptHash=\"%s\"\n"
                               " adjustment=\"%" PRId64 "\"\n"
                               " displayValue=\"%" PRId64 "\"\n"
@@ -5335,7 +5336,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
                               " transactionNum=\"%" PRId64 "\"\n"
                               " inRefDisplay=\"%" PRId64 "\"\n"
                               " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                              strType.Get(), lDateSigned, strHash.Get(),
+                              strType.Get(), dateSigned.c_str(), strHash.Get(),
                               lAdjustment, lDisplayValue,
                               GetRawNumberOfOrigin(), GetTransactionNum(),
                               GetReferenceNumForDisplay(), GetReferenceToNum());
