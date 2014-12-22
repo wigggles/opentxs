@@ -478,7 +478,8 @@ int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     else if (!strcmp("cronItem", xml->getNodeName())) {
         const String str_date_added = xml->getAttributeValue("dateAdded");
         const int64_t lDateAdded =
-            (!str_date_added.Exists() ? 0 : str_date_added.ToLong());
+            (!str_date_added.Exists() ? 0
+                                      : parseTimestamp(str_date_added.Get()));
         const time64_t tDateAdded = OTTimeGetTimeFromSeconds(lDateAdded);
 
         String strData;
@@ -631,15 +632,15 @@ void OTCron::UpdateContents()
         OT_ASSERT(nullptr != pItem);
 
         time64_t tDateAdded = it.first;
-        int64_t lDateAdded = OTTimeGetSecondsFromTime(tDateAdded);
+        std::string dateAdded = formatTimestamp(tDateAdded);
 
         String strItem(
             *pItem); // Extract the cron item contract into string form.
         OTASCIIArmor ascItem(strItem); // Base64-encode that for storage.
 
-        m_xmlUnsigned.Concatenate("<cronItem dateAdded=\"%" PRId64
+        m_xmlUnsigned.Concatenate("<cronItem dateAdded=\"%s"
                                   "\" >\n%s</cronItem>\n\n",
-                                  lDateAdded, ascItem.Get());
+                                  dateAdded.c_str(), ascItem.Get());
     }
 
     // Save the transaction numbers.
