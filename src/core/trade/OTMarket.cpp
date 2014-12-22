@@ -194,7 +194,7 @@ int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     else if (!strcmp("offer", xml->getNodeName())) {
         const String strDateAdded(xml->getAttributeValue("dateAdded"));
         const int64_t lDateAdded =
-            strDateAdded.Exists() ? strDateAdded.ToLong() : 0;
+            strDateAdded.Exists() ? parseTimestamp(strDateAdded.Get()) : 0;
         const time64_t tDateAdded = OTTimeGetTimeFromSeconds(lDateAdded);
 
         String strData;
@@ -267,12 +267,12 @@ void OTMarket::UpdateContents()
             *pOffer); // Extract the offer contract into string form.
         OTASCIIArmor ascOffer(strOffer); // Base64-encode that for storage.
 
-        int64_t lDateAddedToMarket =
-            OTTimeGetSecondsFromTime(pOffer->GetDateAddedToMarket());
+        std::string dateAddedToMarket =
+            formatTimestamp(pOffer->GetDateAddedToMarket());
 
-        m_xmlUnsigned.Concatenate("<offer dateAdded=\"%" PRId64
+        m_xmlUnsigned.Concatenate("<offer dateAdded=\"%s"
                                   "\">\n%s</offer>\n\n",
-                                  lDateAddedToMarket, ascOffer.Get());
+                                  dateAddedToMarket.c_str(), ascOffer.Get());
     }
 
     // Save the bids.
@@ -284,12 +284,12 @@ void OTMarket::UpdateContents()
             *pOffer); // Extract the offer contract into string form.
         OTASCIIArmor ascOffer(strOffer); // Base64-encode that for storage.
 
-        int64_t lDateAddedToMarket =
-            OTTimeGetSecondsFromTime(pOffer->GetDateAddedToMarket());
+        std::string dateAddedToMarket =
+            formatTimestamp(pOffer->GetDateAddedToMarket());
 
-        m_xmlUnsigned.Concatenate("<offer dateAdded=\"%" PRId64
+        m_xmlUnsigned.Concatenate("<offer dateAdded=\"%s"
                                   "\">\n%s</offer>\n\n",
-                                  lDateAddedToMarket, ascOffer.Get());
+                                  dateAddedToMarket.c_str(), ascOffer.Get());
     }
 
     m_xmlUnsigned.Concatenate("</market>\n");
