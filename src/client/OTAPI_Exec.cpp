@@ -1882,7 +1882,7 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
 
     Identifier theID(NYM_ID);
 
-    if (pWallet->RemoveNym(theID)) {
+    if (pWallet->RemovePrivateNym(theID)) {
         otOut << __FUNCTION__ << ": Success erasing Nym from wallet: " << NYM_ID
               << "\n";
         pWallet->SaveWallet();
