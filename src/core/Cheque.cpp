@@ -154,8 +154,8 @@ void Cheque::UpdateContents()
         REMITTER_NYM_ID(GetRemitterNymID()),
         REMITTER_ACCT_ID(GetRemitterAcctID());
 
-    int64_t lFrom = OTTimeGetSecondsFromTime(GetValidFrom());
-    int64_t lTo = OTTimeGetSecondsFromTime(GetValidTo());
+    std::string from = formatTimestamp(GetValidFrom());
+    std::string to = formatTimestamp(GetValidTo());
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -175,8 +175,8 @@ void Cheque::UpdateContents()
         " hasRemitter=\"%s\"\n"
         " remitterNymID=\"%s\"\n"
         " remitterAcctID=\"%s\"\n"
-        " validFrom=\"%" PRId64 "\"\n"
-        " validTo=\"%" PRId64 "\""
+        " validFrom=\"%s\"\n"
+        " validTo=\"%s\""
         " >\n\n",
         m_strVersion.Get(), m_lAmount, INSTRUMENT_DEFINITION_ID.Get(),
         GetTransactionNum(), NOTARY_ID.Get(), SENDER_ACCT_ID.Get(),
@@ -184,7 +184,8 @@ void Cheque::UpdateContents()
         (m_bHasRecipient ? RECIPIENT_NYM_ID.Get() : ""),
         (m_bHasRemitter ? "true" : "false"),
         (m_bHasRemitter ? REMITTER_NYM_ID.Get() : ""),
-        (m_bHasRemitter ? REMITTER_ACCT_ID.Get() : ""), lFrom, lTo);
+        (m_bHasRemitter ? REMITTER_ACCT_ID.Get() : ""), from.c_str(),
+        to.c_str());
 
     if (m_strMemo.Exists() && m_strMemo.GetLength() > 2) {
         OTASCIIArmor ascMemo(m_strMemo);
@@ -223,11 +224,11 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
         SetTransactionNum(
             String::StringToLong(xml->getAttributeValue("transactionNum")));
 
-        const String str_valid_from = xml->getAttributeValue("validFrom");
-        const String str_valid_to = xml->getAttributeValue("validTo");
+        const std::string str_valid_from = xml->getAttributeValue("validFrom");
+        const std::string str_valid_to = xml->getAttributeValue("validTo");
 
-        SetValidFrom(OTTimeGetTimeFromSeconds(str_valid_from.ToLong()));
-        SetValidTo(OTTimeGetTimeFromSeconds(str_valid_to.ToLong()));
+        SetValidFrom(parseTimestamp(str_valid_from));
+        SetValidTo(parseTimestamp(str_valid_to));
 
         String strInstrumentDefinitionID(
             xml->getAttributeValue("instrumentDefinitionID")),
@@ -265,8 +266,8 @@ int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
 
         otInfo << "\n\nCheque Amount: " << m_lAmount
                << ".  Transaction Number: " << m_lTransactionNum
-               << "\n Valid From: " << str_valid_from.ToLong()
-               << "\n Valid To: " << str_valid_to.ToLong()
+               << "\n Valid From: " << str_valid_from
+               << "\n Valid To: " << str_valid_to
                << "\n InstrumentDefinitionID: " << strInstrumentDefinitionID
                << "\n NotaryID: " << strNotaryID
                << "\n"
