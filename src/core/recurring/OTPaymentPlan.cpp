@@ -216,10 +216,10 @@ int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             xml->getAttributeValue("dateOfLastFailedPayment");
 
         int64_t tBetween = str_between.ToLong();
-        int64_t tStart = str_start.ToLong();
+        int64_t tStart = parseTimestamp(str_start.Get());
         int64_t tLength = str_length.ToLong();
-        int64_t tLast = str_last.ToLong();
-        int64_t tLastAttempt = str_last_attempt.ToLong();
+        int64_t tLast = parseTimestamp(str_last.Get());
+        int64_t tLastAttempt = parseTimestamp(str_last_attempt.Get());
 
         SetTimeBetweenPayments(OTTimeGetTimeFromSeconds(tBetween));
         SetPaymentPlanStartDate(OTTimeGetTimeFromSeconds(tStart));
@@ -353,34 +353,34 @@ void OTPaymentPlan::UpdateContents()
         const int64_t lAmountPerPayment = GetPaymentPlanAmount();
         const int64_t lTimeBetween =
             OTTimeGetSecondsFromTime(GetTimeBetweenPayments());
-        const int64_t lPlanStartDate =
-            OTTimeGetSecondsFromTime(GetPaymentPlanStartDate());
+        const std::string planStartDate =
+            formatTimestamp(GetPaymentPlanStartDate());
         const int64_t lPlanLength =
             OTTimeGetSecondsFromTime(GetPaymentPlanLength());
-        const int64_t lDateOfLastPayment =
-            OTTimeGetSecondsFromTime(GetDateOfLastPayment());
-        const int64_t lDateOfLastFailedPayment =
-            OTTimeGetSecondsFromTime(GetDateOfLastPayment());
+        const std::string dateOfLastPayment =
+            formatTimestamp(GetDateOfLastPayment());
+        const std::string dateOfLastFailedPayment =
+            formatTimestamp(GetDateOfLastPayment());
 
         const int32_t nMaxNoPayments = GetMaximumNoPayments();
         const int32_t nNoPaymentsComplete = GetNoPaymentsDone();
         const int32_t nNoFailedPayments = GetNoFailedPayments();
 
-        m_xmlUnsigned.Concatenate("<paymentPlan\n"
-                                  " amountPerPayment=\"%" PRId64 "\"\n"
-                                  " timeBetweenPayments=\"%" PRId64 "\"\n"
-                                  " planStartDate=\"%" PRId64 "\"\n"
-                                  " planLength=\"%" PRId64 "\"\n"
-                                  " maxNoPayments=\"%d\"\n"
-                                  " completedNoPayments=\"%d\"\n"
-                                  " failedNoPayments=\"%d\"\n"
-                                  " dateOfLastPayment=\"%" PRId64 "\"\n"
-                                  " dateOfLastFailedPayment=\"%" PRId64 "\""
-                                  " />\n\n",
-                                  lAmountPerPayment, lTimeBetween,
-                                  lPlanStartDate, lPlanLength, nMaxNoPayments,
-                                  nNoPaymentsComplete, nNoFailedPayments,
-                                  lDateOfLastPayment, lDateOfLastFailedPayment);
+        m_xmlUnsigned.Concatenate(
+            "<paymentPlan\n"
+            " amountPerPayment=\"%" PRId64 "\"\n"
+            " timeBetweenPayments=\"%" PRId64 "\"\n"
+            " planStartDate=\"%s\"\n"
+            " planLength=\"%" PRId64 "\"\n"
+            " maxNoPayments=\"%d\"\n"
+            " completedNoPayments=\"%d\"\n"
+            " failedNoPayments=\"%d\"\n"
+            " dateOfLastPayment=\"%s\"\n"
+            " dateOfLastFailedPayment=\"%s\""
+            " />\n\n",
+            lAmountPerPayment, lTimeBetween, planStartDate.c_str(), lPlanLength,
+            nMaxNoPayments, nNoPaymentsComplete, nNoFailedPayments,
+            dateOfLastPayment.c_str(), dateOfLastFailedPayment.c_str());
     }
 
     // OTAgreement
