@@ -5924,14 +5924,14 @@ bool Nym::DoesCertfileExist(const String& strNymID)
                         strCredListFile.Get()); // New-school.
 }
 
-bool Nym::HasPublicKey()
+bool Nym::HasPublicKey() const
 {
     OT_ASSERT(nullptr != m_pkeypair);
 
     return m_pkeypair->HasPublicKey();
 }
 
-bool Nym::HasPrivateKey()
+bool Nym::HasPrivateKey() const
 {
     OT_ASSERT(nullptr != m_pkeypair);
 

@@ -201,8 +201,8 @@ public:
     EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
                           String& strOutput); // Used when importing/exporting
                                               // a Nym to/from the wallet.
-    EXPORT bool HasPublicKey();
-    EXPORT bool HasPrivateKey();
+    EXPORT bool HasPublicKey() const;
+    EXPORT bool HasPrivateKey() const;
     EXPORT const OTAsymmetricKey& GetPublicKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
     EXPORT bool CalculateID(Identifier& theOutput) const;
