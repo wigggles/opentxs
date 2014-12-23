@@ -153,23 +153,26 @@ namespace opentxs
 // they are associated with, so they can access those accounts.
 OTServerConnection::OTServerConnection(OTClient* theClient,
                                        const std::string& endpoint)
-    : context_zmq(1, 31)
-    , socket_zmq(context_zmq, ZMQ_REQ)
+    : socket_zmq(zsock_new_req(NULL))
     , m_pNym(nullptr)
     , m_pServerContract(nullptr)
     , m_pClient(theClient)
 {
-    int linger = 1000;
-    socket_zmq.setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
+    zsock_set_linger(socket_zmq, 1000);
 
     try {
-        socket_zmq.connect(endpoint.c_str());
+        zsock_connect(socket_zmq, "%s", endpoint.c_str());
     }
     catch (const std::exception& e) {
         Log::vError("Failed to connect to %s: %s \n", endpoint.c_str(),
                     e.what());
         OT_FAIL;
     }
+}
+
+OTServerConnection::~OTServerConnection()
+{
+    zsock_destroy(&socket_zmq);
 }
 
 // When the server sends a reply back with our new request number, we
@@ -239,9 +242,9 @@ bool OTServerConnection::send(const OTEnvelope& theEnvelope)
         return false;
     }
 
-    bool success = socket_zmq.send(ascEnvelope.Get(), ascEnvelope.GetLength());
+    int rc = zstr_send(socket_zmq, ascEnvelope.Get());
 
-    if (!success) {
+    if (rc != 0) {
         otErr << __FUNCTION__
               << ": Failed, even with error correction and retries, "
                  "while trying to send message to server.";
@@ -339,12 +342,10 @@ bool OTServerConnection::send(const OTEnvelope& theEnvelope)
 
 bool OTServerConnection::receive(std::string& serverReply)
 {
-    zmq::message_t zmq_message;
-    if (!socket_zmq.recv(&zmq_message)) {
-        return false;
-    }
-    serverReply.assign(static_cast<const char*>(zmq_message.data()),
-                       zmq_message.size());
+    char* msg = zstr_recv(socket_zmq);
+    if (msg == nullptr) return false;
+    serverReply.assign(msg);
+    zstr_free(&msg);
     return true;
 }
 

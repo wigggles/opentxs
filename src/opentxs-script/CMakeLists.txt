@@ -4,6 +4,8 @@ set(cxx-sources
   main.cpp
 )
 
+include_directories(SYSTEM ${CZMQ_INCLUDE_DIR})
+
 set(MODULE_NAME ot)
 if (WIN32)
   configure_file(
