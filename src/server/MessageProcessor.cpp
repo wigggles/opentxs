@@ -143,19 +143,19 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/Timer.hpp>
 
-#include <cppzmq/zmq.hpp>
-
-#define IO_THREADS 1
-
 namespace opentxs
 {
 
 MessageProcessor::MessageProcessor(ServerLoader& loader)
     : server_(loader.getServer())
-    , zmqContext_(new zmq::context_t(IO_THREADS))
-    , zmqSocket_(new zmq::socket_t(*zmqContext_, ZMQ_REP))
+    , zmqSocket_(zsock_new_rep(NULL))
 {
     init(loader.getPort());
+}
+
+MessageProcessor::~MessageProcessor()
+{
+    zsock_destroy(&zmqSocket_);
 }
 
 void MessageProcessor::init(int port)
@@ -163,11 +163,7 @@ void MessageProcessor::init(int port)
     if (port == 0) {
         OT_FAIL;
     }
-
-    std::ostringstream stringStream;
-    stringStream << "tcp://*:" << port;
-    std::string endpoint = stringStream.str();
-    zmqSocket_->bind(endpoint.c_str());
+    zsock_bind(zmqSocket_, "tcp://*:%d", port);
 }
 
 void MessageProcessor::run()
@@ -180,7 +176,7 @@ void MessageProcessor::run()
             continue;
         }
 
-        zmq_pollitem_t items[1]{*zmqSocket_, -1, ZMQ_POLLIN, 0};
+        zmq_pollitem_t items[1]{zsock_resolve(zmqSocket_), -1, ZMQ_POLLIN, 0};
         // wait for incoming message or up to timeout, i.e. stop polling in time
         // for the next cron execution.
         int rc = zmq_poll(items, 1, timeout);
@@ -199,15 +195,13 @@ void MessageProcessor::run()
 
 void MessageProcessor::processSocket()
 {
-    zmq::message_t requestMessage;
-
-    if (!zmqSocket_->recv(&requestMessage)) {
+    char* msg = zstr_recv(zmqSocket_);
+    if (msg == nullptr) {
         Log::Error("zeromq recv() failed\n");
         return;
     }
-
-    std::string requestString(static_cast<char*>(requestMessage.data()),
-                              requestMessage.size());
+    std::string requestString(msg);
+    zstr_free(&msg);
 
     std::string responseString;
 
@@ -217,10 +211,9 @@ void MessageProcessor::processSocket()
         responseString = "";
     }
 
-    zmq::message_t responseMsg(responseString.size());
-    memcpy(responseMsg.data(), responseString.data(), responseString.size());
+    int rc = zstr_send(zmqSocket_, responseString.c_str());
 
-    if (!zmqSocket_->send(responseMsg)) {
+    if (rc != 0) {
         Log::vError("MessageProcessor: failed to send response\n"
                     "request:\n%s\n\n"
                     "response:\n%s\n\n",
