@@ -788,8 +788,9 @@ std::string OT_ME::kill_payment_plan(const std::string& NOTARY_ID,
                                      const std::string& ACCT_ID,
                                      int64_t TRANS_NUM) const
 {
-    return MadeEasy::kill_payment_plan(NOTARY_ID, NYM_ID, ACCT_ID,
-                                       std::to_string(TRANS_NUM));
+    OTAPI_Func request(KILL_PAYMENT_PLAN, NOTARY_ID, NYM_ID, ACCT_ID,
+                       std::to_string(TRANS_NUM));
+    return request.SendTransaction(request, "KILL_PAYMENT_PLAN");
 }
 
 // CANCEL (NOT-YET-RUNNING) PAYMENT PLAN -- TRANSACTION

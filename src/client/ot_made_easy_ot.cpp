@@ -821,23 +821,6 @@ OT_MADE_EASY_OT string MadeEasy::kill_market_offer(const string& NOTARY_ID,
     return strResponse;
 }
 
-// KILL PAYMENT PLAN (an active one that's already running) -- TRANSACTION
-//
-OT_MADE_EASY_OT string MadeEasy::kill_payment_plan(const string& NOTARY_ID,
-                                                   const string& NYM_ID,
-                                                   const string& ACCT_ID,
-                                                   const string& STR_TRANS_NUM)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(KILL_PAYMENT_PLAN, NOTARY_ID, NYM_ID, ACCT_ID,
-                          STR_TRANS_NUM);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "KILL_PAYMENT_PLAN");
-
-    return strResponse;
-}
-
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 //
 OT_MADE_EASY_OT string

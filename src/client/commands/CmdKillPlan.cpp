@@ -132,7 +132,11 @@
 
 #include "CmdKillPlan.hpp"
 
-#include "../ot_made_easy_ot.hpp"
+#include <opentxs/client/OT_ME.hpp>
+
+#include <string>
+#include <cstdio>
+#include <cinttypes>
 
 using namespace opentxs;
 using namespace std;
@@ -172,7 +176,10 @@ int32_t CmdKillPlan::run(string server, string mynym, string myacct, string id)
         return -1;
     }
 
-    string response = MadeEasy::kill_payment_plan(server, mynym, myacct, id);
+    OT_ME ot_me;
+    int64_t i;
+    sscanf(id.c_str(), "%" SCNd64, &i);
+    string response = ot_me.kill_payment_plan(server, mynym, myacct, i);
     return processTxResponse(server, mynym, myacct, response,
                              "kill payment plan");
 }
