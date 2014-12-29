@@ -747,23 +747,6 @@ OT_MADE_EASY_OT string
     return strMint;
 }
 
-// QUERY ASSET TYPES
-//
-// See if some instrument definitions are issued on the server.
-//
-OT_MADE_EASY_OT string MadeEasy::query_asset_types(const string& NOTARY_ID,
-                                                   const string& NYM_ID,
-                                                   const string& ENCODED_MAP)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(QUERY_ASSET_TYPES, NOTARY_ID, NYM_ID, ENCODED_MAP);
-    string strResponse =
-        theRequest.SendRequest(theRequest, "QUERY_ASSET_TYPES");
-
-    return strResponse;
-}
-
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 //
 OT_MADE_EASY_OT string

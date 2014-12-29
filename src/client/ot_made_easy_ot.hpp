@@ -227,9 +227,6 @@ public:
         const std::vector<std::string>& selectedTokens,
         const std::string& recipientNymID, bool bPWProtectOldPurse,
         bool bPWProtectNewPurse);
-    EXPORT OT_MADE_EASY_OT static std::string query_asset_types(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ENCODED_MAP);
     EXPORT OT_MADE_EASY_OT static bool retrieve_account(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,

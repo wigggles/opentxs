@@ -744,17 +744,6 @@ std::string OT_ME::load_or_retrieve_mint(
                                            INSTRUMENT_DEFINITION_ID);
 }
 
-// QUERY ASSET TYPES
-//
-// See if some instrument definitions are issued on the server.
-//
-std::string OT_ME::query_asset_types(const std::string& NOTARY_ID,
-                                     const std::string& NYM_ID,
-                                     const std::string& ENCODED_MAP) const
-{
-    return MadeEasy::query_asset_types(NOTARY_ID, NYM_ID, ENCODED_MAP);
-}
-
 // CREATE MARKET OFFER -- TRANSACTION
 //
 std::string OT_ME::create_market_offer(
