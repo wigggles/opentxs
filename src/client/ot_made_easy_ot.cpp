@@ -631,27 +631,6 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
     return strInstrument;
 }
 
-// GET BOX RECEIPT
-// Note: nBoxType is 0 for Nymbox, 1 for Inbox, and 2 for Outbox.
-// Also, if nBoxType is 0 (nymbox) then you have to pass the NymID in the
-// ACCT_ID
-// argument, as well as the NYM_ID argument (you have to pass it twice...)
-// Otherwise for inbox/outbox, pass the actual ACCT_ID there as normal.
-//
-OT_MADE_EASY_OT string
-    MadeEasy::get_box_receipt(const string& NOTARY_ID, const string& NYM_ID,
-                              const string& ACCT_ID, int32_t nBoxType,
-                              const string& STR_TRANS_NUM)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(GET_BOX_RECEIPT, NOTARY_ID, NYM_ID, ACCT_ID,
-                          to_string(nBoxType), STR_TRANS_NUM);
-    string strResponse = theRequest.SendRequest(theRequest, "GET_BOX_RECEIPT");
-
-    return strResponse;
-}
-
 // DOWNLOAD PUBLIC MINT
 //
 OT_MADE_EASY_OT string

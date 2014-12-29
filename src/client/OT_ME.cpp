@@ -712,8 +712,9 @@ std::string OT_ME::get_box_receipt(const std::string& NOTARY_ID,
                                    const std::string& ACCT_ID, int32_t nBoxType,
                                    int64_t TRANS_NUM) const
 {
-    return MadeEasy::get_box_receipt(NOTARY_ID, NYM_ID, ACCT_ID, nBoxType,
-                                     std::to_string(TRANS_NUM));
+    OTAPI_Func request(GET_BOX_RECEIPT, NOTARY_ID, NYM_ID, ACCT_ID,
+                       std::to_string(nBoxType), std::to_string(TRANS_NUM));
+    return request.SendRequest(request, "GET_BOX_RECEIPT");
 }
 
 // DOWNLOAD PUBLIC MINT

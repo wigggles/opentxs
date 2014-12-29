@@ -187,10 +187,6 @@ public:
         const std::vector<std::string>& selectedTokens,
         std::string& recipientNymID, bool bPasswordProtected,
         std::string& strRetainedCopy);
-    EXPORT OT_MADE_EASY_OT static std::string get_box_receipt(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, int32_t nBoxType,
-        const std::string& STR_TRANS_NUM);
     EXPORT OT_MADE_EASY_OT static std::string get_payment_instrument(
         const std::string& NOTARY_ID, const std::string& NYM_ID, int32_t nIndex,
         const std::string& PRELOADED_INBOX); // PRELOADED_INBOX is optional.

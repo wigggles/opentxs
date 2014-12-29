@@ -132,9 +132,8 @@
 
 #include "CmdGetReceipt.hpp"
 
-#include "../ot_made_easy_ot.hpp"
-
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -205,7 +204,9 @@ int32_t CmdGetReceipt::run(string server, string mynym, string myacct,
         }
     }
 
-    string response =
-        MadeEasy::get_box_receipt(server, mynym, myacct, type, id);
+    OT_ME ot_me;
+    int64_t i;
+    sscanf(id.c_str(), "%" SCNd64, &i);
+    string response = ot_me.get_box_receipt(server, mynym, myacct, type, i);
     return processResponse(response, "get box receipt");
 }
