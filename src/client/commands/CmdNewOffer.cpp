@@ -132,7 +132,6 @@
 
 #include "CmdNewOffer.hpp"
 
-#include "../ot_made_easy_ot.hpp"
 #include <opentxs/client/ot_otapi_ot.hpp>
 #include <opentxs/client/OT_ME.hpp>
 
@@ -247,10 +246,14 @@ int32_t CmdNewOffer::run(string myacct, string hisacct, string type,
 
     // OKAY! Now that we've cleaned out any undesirable offers, let's place the
     // the offer itself!
-
-    string response =
-        MadeEasy::create_market_offer(myacct, hisacct, scale, mininc, quantity,
-                                      price, type == "ask", lifespan, "", "0");
+    int64_t s, m, q, p, l;
+    sscanf(scale.c_str(), "%" SCNd64, &s);
+    sscanf(mininc.c_str(), "%" SCNd64, &m);
+    sscanf(quantity.c_str(), "%" SCNd64, &q);
+    sscanf(price.c_str(), "%" SCNd64, &p);
+    sscanf(lifespan.c_str(), "%" SCNd64, &l);
+    string response = ot_me.create_market_offer(myacct, hisacct, s, m, q, p,
+                                                type == "ask", l, "", 0);
     return responseReply(response, server, mynym, myacct,
                          "create_market_offer");
 }

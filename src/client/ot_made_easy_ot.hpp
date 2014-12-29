@@ -160,12 +160,6 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string create_asset_acct(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
-    EXPORT OT_MADE_EASY_OT static std::string create_market_offer(
-        const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
-        const std::string& scale, const std::string& minIncrement,
-        const std::string& quantity, const std::string& price, bool bSelling,
-        const std::string& strLifespanInSeconds, const std::string& strStopSign,
-        const std::string& strActivationPrice);
     EXPORT OT_MADE_EASY_OT static std::string deposit_payment_plan(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);

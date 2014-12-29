@@ -763,11 +763,24 @@ std::string OT_ME::create_market_offer(
     bool bSelling, int64_t lLifespanInSeconds, const std::string& STOP_SIGN,
     int64_t ACTIVATION_PRICE) const
 {
-    return MadeEasy::create_market_offer(
-        ASSET_ACCT_ID, CURRENCY_ACCT_ID, std::to_string(scale),
-        std::to_string(minIncrement), std::to_string(quantity),
-        std::to_string(price), bSelling, std::to_string(lLifespanInSeconds),
-        STOP_SIGN, std::to_string(ACTIVATION_PRICE));
+    std::string strNotaryID =
+        OTAPI_Wrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
+    std::string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
+    OTAPI_Func request(CREATE_MARKET_OFFER, strNotaryID, strNymID,
+                       ASSET_ACCT_ID, CURRENCY_ACCT_ID, std::to_string(scale),
+                       std::to_string(minIncrement), std::to_string(quantity),
+                       std::to_string(price), bSelling);
+    // Cannot have more than 10 parameters in a function call, in this script.
+    // So I am forced to set the final parameters by hand, before sending the
+    // transaction:
+    //
+    request.tData = OTTimeGetTimeFromSeconds(lLifespanInSeconds);
+    request.lData = ACTIVATION_PRICE;
+    if (VerifyStringVal(STOP_SIGN)) {
+        request.strData5 = STOP_SIGN;
+    }
+
+    return request.SendTransaction(request, "CREATE_MARKET_OFFER");
 }
 
 // KILL MARKET OFFER -- TRANSACTION

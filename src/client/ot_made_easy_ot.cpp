@@ -764,46 +764,6 @@ OT_MADE_EASY_OT string MadeEasy::query_asset_types(const string& NOTARY_ID,
     return strResponse;
 }
 
-// CREATE MARKET OFFER  -- TRANSACTION
-
-OT_MADE_EASY_OT string MadeEasy::create_market_offer(
-    const string& ASSET_ACCT_ID, const string& CURRENCY_ACCT_ID,
-    const string& scale, const string& minIncrement, const string& quantity,
-    const string& price, bool bSelling, const string& strLifespanInSeconds,
-    const string& strStopSign, const string& strActivationPrice)
-{
-    OTAPI_Func ot_Msg;
-
-    string strNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
-    string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
-
-    OTAPI_Func theRequest(CREATE_MARKET_OFFER, strNotaryID, strNymID,
-                          ASSET_ACCT_ID, CURRENCY_ACCT_ID, scale, minIncrement,
-                          quantity, price, bSelling);
-
-    // Cannot have more than 10 parameters in a function call, in this script.
-    // So I am forced to set the final parameters by hand, before sending the
-    // transaction:
-    //
-    if (VerifyStringVal(strLifespanInSeconds)) {
-        theRequest.tData =
-            OTTimeGetTimeFromSeconds(stoll(strLifespanInSeconds));
-    }
-
-    if (VerifyStringVal(strStopSign)) {
-        theRequest.strData5 = strStopSign;
-    }
-
-    if (VerifyStringVal(strActivationPrice)) {
-        theRequest.lData = stoll(strActivationPrice);
-    }
-
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "CREATE_MARKET_OFFER");
-
-    return strResponse;
-}
-
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
