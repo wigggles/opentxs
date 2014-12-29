@@ -154,9 +154,6 @@ private:
     }
 
 public:
-    EXPORT OT_MADE_EASY_OT static std::string cancel_payment_plan(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& THE_PAYMENT_PLAN);
     EXPORT OT_MADE_EASY_OT static std::string check_nym(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& TARGET_NYM_ID);

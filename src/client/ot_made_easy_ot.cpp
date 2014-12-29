@@ -867,54 +867,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-// CANCEL PAYMENT PLAN (an inactive one that hasn't been activated yet) --
-// TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::cancel_payment_plan(const string& NOTARY_ID, const string& NYM_ID,
-                                  const string& THE_PAYMENT_PLAN)
-{
-    OTAPI_Func ot_Msg;
-
-    // NOTE: We have to include the account ID as well. Even though the API call
-    // itself
-    // doesn't need it (it retrieves it from the plan itself, as we are about to
-    // do here)
-    // we still have to provide the accountID for OTAPI_Func, which uses it to
-    // grab the
-    // intermediary files, as part of its automated sync duties. (FYI.)
-    //
-    string strRecipientAcctID =
-        OTAPI_Wrap::Instrmnt_GetRecipientAcctID(THE_PAYMENT_PLAN);
-
-    //  otOut << "\n\n DEBUGGING: NYM_ID: "+NYM_ID+"
-    // strRecipientAcctID: "+strRecipientAcctID+" \n\n")
-
-    // NOTE: Normally the SENDER (PAYER) is the one who deposits a payment plan.
-    // But
-    // in this case, the RECIPIENT (PAYEE) deposits it -- which means "Please
-    // cancel this plan."
-    // It SHOULD fail, since it's only been signed by the recipient, and not the
-    // sender.
-    // And that failure is what burns the transaction number on the plan, so
-    // that it can
-    // no longer be used.
-    //
-    // So how do we know the difference between an ACTUAL "failure" versus a
-    // purposeful "failure" ?
-    // Because if the failure comes from cancelling the plan, the server reply
-    // transaction will have
-    // IsCancelled() set to true.
-    //
-    // (Therefore theRequest.SendTransaction is smart enough to check for that.)
-
-    OTAPI_Func theRequest(DEPOSIT_PAYMENT_PLAN, NOTARY_ID, NYM_ID,
-                          strRecipientAcctID, THE_PAYMENT_PLAN);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "CANCEL_PAYMENT_PLAN");
-    return strResponse;
-}
-
 // Imports a purse into the wallet.
 
 // NOTE:   UNUSED currently.

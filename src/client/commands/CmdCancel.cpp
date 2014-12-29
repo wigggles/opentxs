@@ -133,7 +133,6 @@
 #include "CmdCancel.hpp"
 
 #include "CmdDeposit.hpp"
-#include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OT_ME.hpp>
@@ -315,8 +314,8 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             // propagated to the other party to the contract. (Which will result
             // in its automatic removal from the outpayment box.)
 
-            string response =
-                MadeEasy::cancel_payment_plan(server, mynym, payment);
+            OT_ME ot_me;
+            string response = ot_me.cancel_payment_plan(server, mynym, payment);
             if ("" == response) {
                 otOut << "Error: cannot cancel payment plan.\n";
                 retVal = -1;
