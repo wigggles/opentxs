@@ -838,25 +838,6 @@ OT_MADE_EASY_OT string MadeEasy::kill_payment_plan(const string& NOTARY_ID,
     return strResponse;
 }
 
-// ACTIVATE SMART CONTRACT  -- TRANSACTION
-//
-OT_MADE_EASY_OT string MadeEasy::activate_smart_contract(
-    const string& NOTARY_ID, const string& NYM_ID, const string& ACCT_ID,
-    const string& AGENT_NAME, const string& THE_SMART_CONTRACT)
-{
-    OTAPI_Func ot_Msg;
-
-    //  int32_t OTAPI_Wrap::activateSmartContract(NOTARY_ID, NYM_ID,
-    // THE_SMART_CONTRACT)
-
-    OTAPI_Func theRequest(ACTIVATE_SMART_CONTRACT, NOTARY_ID, NYM_ID, ACCT_ID,
-                          AGENT_NAME, THE_SMART_CONTRACT);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "ACTIVATE_SMART_CONTRACT");
-
-    return strResponse;
-}
-
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 //
 OT_MADE_EASY_OT string

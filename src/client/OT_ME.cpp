@@ -808,8 +808,9 @@ std::string OT_ME::activate_smart_contract(
     const std::string& ACCT_ID, const std::string& AGENT_NAME,
     const std::string& THE_SMART_CONTRACT) const
 {
-    return MadeEasy::activate_smart_contract(NOTARY_ID, NYM_ID, ACCT_ID,
-                                             AGENT_NAME, THE_SMART_CONTRACT);
+    OTAPI_Func request(ACTIVATE_SMART_CONTRACT, NOTARY_ID, NYM_ID, ACCT_ID,
+                       AGENT_NAME, THE_SMART_CONTRACT);
+    return request.SendTransaction(request, "ACTIVATE_SMART_CONTRACT");
 }
 
 // TRIGGER CLAUSE (on running smart contract) -- TRANSACTION

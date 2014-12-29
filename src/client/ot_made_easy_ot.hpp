@@ -154,10 +154,6 @@ private:
     }
 
 public:
-    EXPORT OT_MADE_EASY_OT static std::string activate_smart_contract(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, const std::string& AGENT_NAME,
-        const std::string& THE_SMART_CONTRACT);
     EXPORT OT_MADE_EASY_OT static std::string cancel_payment_plan(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);
