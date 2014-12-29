@@ -236,11 +236,6 @@ public:
         const std::string& NYM_ID); // from local storage.
     EXPORT OT_MADE_EASY_OT static std::string load_public_signing_key(
         const std::string& NYM_ID); // from local storage.
-    EXPORT OT_MADE_EASY_OT static std::string pay_dividend(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& SOURCE_ACCT_ID,
-        const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
-        const std::string& STR_MEMO, int64_t AMOUNT_PER_SHARE);
     EXPORT OT_MADE_EASY_OT static std::string process_inbox(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID, const std::string& RESPONSE_LEDGER);

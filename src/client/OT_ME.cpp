@@ -884,9 +884,10 @@ std::string OT_ME::pay_dividend(
     const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
     const std::string& STR_MEMO, int64_t AMOUNT_PER_SHARE) const
 {
-    return MadeEasy::pay_dividend(NOTARY_ID, NYM_ID, SOURCE_ACCT_ID,
-                                  SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
-                                  AMOUNT_PER_SHARE);
+    OTAPI_Func request(PAY_DIVIDEND, NOTARY_ID, NYM_ID, SOURCE_ACCT_ID,
+                       SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
+                       AMOUNT_PER_SHARE);
+    return request.SendTransaction(request, "PAY_DIVIDEND");
 }
 
 std::string OT_ME::deposit_cheque(const std::string& NOTARY_ID,

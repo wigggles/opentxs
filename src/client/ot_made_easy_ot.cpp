@@ -934,24 +934,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-// PAY DIVIDEND  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::pay_dividend(const string& NOTARY_ID, const string& NYM_ID,
-                           const string& SOURCE_ACCT_ID,
-                           const string& SHARES_INSTRUMENT_DEFINITION_ID,
-                           const string& STR_MEMO, int64_t AMOUNT_PER_SHARE)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(PAY_DIVIDEND, NOTARY_ID, NYM_ID, SOURCE_ACCT_ID,
-                          SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
-                          AMOUNT_PER_SHARE);
-    string strResponse = theRequest.SendTransaction(theRequest, "PAY_DIVIDEND");
-
-    return strResponse;
-}
-
 // Imports a purse into the wallet.
 
 // NOTE:   UNUSED currently.
