@@ -804,23 +804,6 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     return strResponse;
 }
 
-// KILL MARKET OFFER  -- TRANSACTION
-//
-OT_MADE_EASY_OT string MadeEasy::kill_market_offer(const string& NOTARY_ID,
-                                                   const string& NYM_ID,
-                                                   const string& ASSET_ACCT_ID,
-                                                   const string& STR_TRANS_NUM)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(KILL_MARKET_OFFER, NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
-                          STR_TRANS_NUM);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "KILL_MARKET_OFFER");
-
-    return strResponse;
-}
-
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 //
 OT_MADE_EASY_OT string

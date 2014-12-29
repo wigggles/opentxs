@@ -777,8 +777,9 @@ std::string OT_ME::kill_market_offer(const std::string& NOTARY_ID,
                                      const std::string& ASSET_ACCT_ID,
                                      int64_t TRANS_NUM) const
 {
-    return MadeEasy::kill_market_offer(NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
-                                       std::to_string(TRANS_NUM));
+    OTAPI_Func request(KILL_MARKET_OFFER, NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
+                       std::to_string(TRANS_NUM));
+    return request.SendTransaction(request, "KILL_MARKET_OFFER");
 }
 
 // KILL (ACTIVE) PAYMENT PLAN -- TRANSACTION

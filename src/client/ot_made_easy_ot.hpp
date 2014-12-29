@@ -210,9 +210,6 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string issue_basket_currency(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_BASKET);
-    EXPORT OT_MADE_EASY_OT static std::string kill_market_offer(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ASSET_ACCT_ID, const std::string& STR_TRANS_NUM);
     EXPORT OT_MADE_EASY_OT static std::string load_or_retrieve_contract(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& CONTRACT_ID);
