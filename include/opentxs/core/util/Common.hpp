@@ -245,6 +245,11 @@ inline time64_t OTTimeAddTimeInterval(time64_t lhs, int64_t rhs)
 {
     return lhs + rhs;
 }
+
+EXPORT std::string getTimestamp();
+EXPORT std::string formatTimestamp(time64_t tt);
+EXPORT time64_t parseTimestamp(std::string extendedTimeString);
+
 #endif
 
 #endif // OPENTXS_CORE_COMMON_HPP

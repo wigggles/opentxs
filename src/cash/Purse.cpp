@@ -966,8 +966,8 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
     const String NOTARY_ID(m_NotaryID), NYM_ID(m_NymID),
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID);
 
-    int64_t lValidFrom = OTTimeGetSecondsFromTime(m_tLatestValidFrom);
-    int64_t lValidTo = OTTimeGetSecondsFromTime(m_tEarliestValidTo);
+    std::string validFrom = formatTimestamp(m_tLatestValidFrom);
+    std::string validTo = formatTimestamp(m_tEarliestValidTo);
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -975,9 +975,9 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
     m_xmlUnsigned.Concatenate(
         "<purse version=\"%s\"\n"
         " totalValue=\"%" PRId64 "\"\n" // Total value of all the tokens within.
-        " validFrom=\"%" PRId64
+        " validFrom=\"%s"
         "\"\n" // Latest "valid from" date of all tokens contained.
-        " validTo=\"%" PRId64
+        " validTo=\"%s"
         "\"\n" // Earliest "valid to" date of all tokens contained.
         " isPasswordProtected=\"%s\"\n"
         " isNymIDIncluded=\"%s\"\n"
@@ -985,7 +985,7 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
         " instrumentDefinitionID=\"%s\"\n" // instrumentDefinitionID required.
         " notaryID=\"%s\">\n\n",           // notaryID is required.
         m_strVersion.Get(),
-        m_lTotalValue, lValidFrom, lValidTo,
+        m_lTotalValue, validFrom.c_str(), validTo.c_str(),
         m_bPasswordProtected ? "true" : "false",
         m_bIsNymIDIncluded ? "true" : "false",
 
@@ -1092,12 +1092,12 @@ int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const String str_valid_to = xml->getAttributeValue("validTo");
 
         if (str_valid_from.Exists()) {
-            int64_t lValidFrom = str_valid_from.ToLong();
+            int64_t lValidFrom = parseTimestamp(str_valid_from.Get());
 
             m_tLatestValidFrom = OTTimeGetTimeFromSeconds(lValidFrom);
         }
         if (str_valid_to.Exists()) {
-            int64_t lValidTo = str_valid_to.ToLong();
+            int64_t lValidTo = parseTimestamp(str_valid_to.Get());
 
             m_tEarliestValidTo = OTTimeGetTimeFromSeconds(lValidTo);
         }

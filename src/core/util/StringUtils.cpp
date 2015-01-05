@@ -130,8 +130,13 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
+#include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/util/StringUtils.hpp>
 #include <opentxs/core/util/Assert.hpp>
+
+#ifdef ANDROID
+#include <time64.h>
+#endif
 
 namespace opentxs
 {
@@ -172,3 +177,34 @@ char* str_dup2(const char* str, uint32_t length) // length doesn't/shouldn't
 }
 
 } // namespace opentxs
+
+std::string formatTimestamp(time64_t tt)
+{
+    struct tm tm;
+    time_t t = tt;
+    char buf[255];
+
+    strftime(buf, sizeof(buf), "%FT%T", gmtime_r(&t, &tm));
+    return std::string(buf);
+}
+
+std::string getTimestamp()
+{
+    return formatTimestamp(time(NULL));
+}
+
+time64_t parseTimestamp(std::string extendedTimeString)
+{
+    struct tm tm;
+    if (!strptime(extendedTimeString.c_str(), "%Y-%m-%dT%H:%M:%S", &tm)) {
+        return 0;
+    }
+
+#ifdef ANDROID
+    time64_t t = timegm64(&tm);
+#else
+    time_t t = timegm(&tm);
+#endif
+    if (t == -1) return 0;
+    return t;
+}

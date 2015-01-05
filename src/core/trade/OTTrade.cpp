@@ -200,13 +200,13 @@ int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetTransactionNum(
             String::StringToLong(xml->getAttributeValue("transactionNum")));
 
-        const String creationStr = xml->getAttributeValue("creationDate");
-        const String validFromStr = xml->getAttributeValue("validFrom");
-        const String validToStr = xml->getAttributeValue("validTo");
+        const std::string creationStr = xml->getAttributeValue("creationDate");
+        const std::string validFromStr = xml->getAttributeValue("validFrom");
+        const std::string validToStr = xml->getAttributeValue("validTo");
 
-        int64_t creation = creationStr.ToLong();
-        int64_t validFrom = validFromStr.ToLong();
-        int64_t validTo = validToStr.ToLong();
+        int64_t creation = parseTimestamp(creationStr);
+        int64_t validFrom = parseTimestamp(validFromStr);
+        int64_t validTo = parseTimestamp(validToStr);
 
         SetCreationDate(OTTimeGetTimeFromSeconds(creation));
         SetValidFrom(OTTimeGetTimeFromSeconds(validFrom));
@@ -320,6 +320,9 @@ void OTTrade::UpdateContents()
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         ASSET_ACCT_ID(GetSenderAcctID()), CURRENCY_TYPE_ID(GetCurrencyID()),
         CURRENCY_ACCT_ID(GetCurrencyAcctID());
+    std::string creationDate = formatTimestamp(GetCreationDate());
+    std::string validFrom = formatTimestamp(GetValidFrom());
+    std::string validTo = formatTimestamp(GetValidTo());
 
     m_xmlUnsigned.Concatenate(
         "<trade\n version=\"%s\"\n"
@@ -332,17 +335,15 @@ void OTTrade::UpdateContents()
         " nymID=\"%s\"\n"
         " completedNoTrades=\"%d\"\n"
         " transactionNum=\"%" PRId64 "\"\n"
-        " creationDate=\"%" PRId64 "\"\n"
-        " validFrom=\"%" PRId64 "\"\n"
-        " validTo=\"%" PRId64 "\""
+        " creationDate=\"%s\"\n"
+        " validFrom=\"%s\"\n"
+        " validTo=\"%s\""
         " >\n\n",
         m_strVersion.Get(), (hasTradeActivated_ ? "true" : "false"),
         NOTARY_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(), ASSET_ACCT_ID.Get(),
         CURRENCY_TYPE_ID.Get(), CURRENCY_ACCT_ID.Get(), NYM_ID.Get(),
-        tradesAlreadyDone_, m_lTransactionNum,
-        OTTimeGetSecondsFromTime(GetCreationDate()),
-        OTTimeGetSecondsFromTime(GetValidFrom()),
-        OTTimeGetSecondsFromTime(GetValidTo()));
+        tradesAlreadyDone_, m_lTransactionNum, creationDate.c_str(),
+        validFrom.c_str(), validTo.c_str());
 
     // There are "closing" transaction numbers, used to CLOSE a transaction.
     // Often where Cron items are involved such as this payment plan, or in

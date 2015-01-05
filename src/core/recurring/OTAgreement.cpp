@@ -1542,16 +1542,14 @@ int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetTransactionNum(
             String::StringToLong(xml->getAttributeValue("transactionNum")));
 
-        const String strCreation = xml->getAttributeValue("creationDate");
-        int64_t tCreation = strCreation.ToLong();
+        int64_t tCreation =
+            parseTimestamp(xml->getAttributeValue("creationDate"));
 
         SetCreationDate(OTTimeGetTimeFromSeconds(tCreation));
 
-        const String str_valid_from = xml->getAttributeValue("validFrom");
-        const String str_valid_to = xml->getAttributeValue("validTo");
-
-        int64_t tValidFrom = str_valid_from.ToLong();
-        int64_t tValidTo = str_valid_to.ToLong();
+        int64_t tValidFrom =
+            parseTimestamp(xml->getAttributeValue("validFrom"));
+        int64_t tValidTo = parseTimestamp(xml->getAttributeValue("validTo"));
 
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));

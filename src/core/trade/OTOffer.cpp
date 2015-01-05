@@ -358,8 +358,9 @@ int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const String str_valid_to = xml->getAttributeValue("validTo");
 
         int64_t tValidFrom =
-            str_valid_from.Exists() ? str_valid_from.ToLong() : 0;
-        int64_t tValidTo = str_valid_to.Exists() ? str_valid_to.ToLong() : 0;
+            str_valid_from.Exists() ? parseTimestamp(str_valid_from.Get()) : 0;
+        int64_t tValidTo =
+            str_valid_to.Exists() ? parseTimestamp(str_valid_to.Get()) : 0;
 
         if ((tValidTo < tValidFrom) && (tValidTo != 0)) {
             otOut << "OTOffer::" << __FUNCTION__ << ": Failure: validTo date ("
@@ -399,8 +400,8 @@ void OTOffer::UpdateContents()
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         CURRENCY_TYPE_ID(GetCurrencyID());
 
-    const int64_t lFrom = OTTimeGetSecondsFromTime(GetValidFrom());
-    const int64_t lTo = OTTimeGetSecondsFromTime(GetValidTo());
+    const std::string from = formatTimestamp(GetValidFrom());
+    const std::string to = formatTimestamp(GetValidTo());
     const int64_t lPriceLimit = GetPriceLimit();
     const int64_t lTotalAssetsOnOffer = GetTotalAssetsOnOffer();
     const int64_t lFinishedSoFar = GetFinishedSoFar();
@@ -413,26 +414,26 @@ void OTOffer::UpdateContents()
 
     m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
 
-    m_xmlUnsigned.Concatenate("<marketOffer\n version=\"%s\"\n"
-                              " isSelling=\"%s\"\n" // true or false.
-                              " notaryID=\"%s\"\n"
-                              " instrumentDefinitionID=\"%s\"\n"
-                              " currencyTypeID=\"%s\"\n"
-                              " priceLimit=\"%" PRId64 "\"\n"
-                              " totalAssetsOnOffer=\"%" PRId64 "\"\n"
-                              " finishedSoFar=\"%" PRId64 "\"\n"
-                              " marketScale=\"%" PRId64 "\"\n"
-                              " minimumIncrement=\"%" PRId64 "\"\n"
-                              " transactionNum=\"%" PRId64 "\"\n"
-                              " validFrom=\"%" PRId64 "\"\n"
-                              " validTo=\"%" PRId64 "\""
-                              " />\n\n", //  <=== the tag ends here.
-                              m_strVersion.Get(),
-                              (IsBid() ? "false" : "true"), NOTARY_ID.Get(),
-                              INSTRUMENT_DEFINITION_ID.Get(),
-                              CURRENCY_TYPE_ID.Get(), lPriceLimit,
-                              lTotalAssetsOnOffer, lFinishedSoFar, lScale,
-                              lMinimumIncrement, lTransactionNum, lFrom, lTo);
+    m_xmlUnsigned.Concatenate(
+        "<marketOffer\n version=\"%s\"\n"
+        " isSelling=\"%s\"\n" // true or false.
+        " notaryID=\"%s\"\n"
+        " instrumentDefinitionID=\"%s\"\n"
+        " currencyTypeID=\"%s\"\n"
+        " priceLimit=\"%" PRId64 "\"\n"
+        " totalAssetsOnOffer=\"%" PRId64 "\"\n"
+        " finishedSoFar=\"%" PRId64 "\"\n"
+        " marketScale=\"%" PRId64 "\"\n"
+        " minimumIncrement=\"%" PRId64 "\"\n"
+        " transactionNum=\"%" PRId64 "\"\n"
+        " validFrom=\"%s\"\n"
+        " validTo=\"%s\""
+        " />\n\n", //  <=== the tag ends here.
+        m_strVersion.Get(),
+        (IsBid() ? "false" : "true"), NOTARY_ID.Get(),
+        INSTRUMENT_DEFINITION_ID.Get(), CURRENCY_TYPE_ID.Get(), lPriceLimit,
+        lTotalAssetsOnOffer, lFinishedSoFar, lScale, lMinimumIncrement,
+        lTransactionNum, from.c_str(), to.c_str());
 
     //    m_xmlUnsigned.Concatenate("</marketOffer>\n");    // ^^^ Tag already
     // ended above.
