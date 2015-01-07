@@ -133,7 +133,7 @@
 #ifndef OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 #define OPENTXS_CLIENT_OTSERVERCONNECTION_HPP
 
-#include <cppzmq/zmq.hpp>
+#include <czmq.h>
 #include <memory>
 #include <string>
 
@@ -151,6 +151,7 @@ class OTServerConnection
 {
 public:
     OTServerConnection(OTClient* theClient, const std::string& endpoint);
+    ~OTServerConnection();
 
     bool GetNotaryID(Identifier& theID) const;
 
@@ -174,8 +175,7 @@ private:
     bool receive(std::string& reply);
 
 private:
-    zmq::context_t context_zmq;
-    zmq::socket_t socket_zmq;
+    zsock_t* socket_zmq;
     Nym* m_pNym;
     OTServerContract* m_pServerContract;
     OTClient* m_pClient;

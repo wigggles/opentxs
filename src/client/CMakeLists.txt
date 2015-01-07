@@ -2,6 +2,7 @@
 
 include_directories(SYSTEM
   ${ZMQ_INCLUDE_DIR}
+  ${CZMQ_INCLUDE_DIR}
 )
 
 set(cxx-sources
@@ -150,7 +151,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-client opentxs-ext opentxs-cash opentxs-basket opentxs-core ${ZMQ_LIBRARY})
+target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local PUBLIC ${ZMQ_LIBRARY})
 set_lib_property(opentxs-client)
 
 if(WIN32)

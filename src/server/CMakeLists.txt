@@ -2,6 +2,7 @@
 
 include_directories(SYSTEM
   ${ZMQ_INCLUDE_DIR}
+  ${CZMQ_INCLUDE_DIR}
 )
 
 set(cxx-sources
@@ -41,9 +42,9 @@ else()
 endif()
 
 if(WIN32)
-  target_link_libraries(opentxs-server opentxs-ext opentxs-cash opentxs-basket opentxs-core irrxml ${ZMQ_LIBRARY})
+  target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core irrxml PRIVATE czmq_local PUBLIC ${ZMQ_LIBRARY})
 else()
-  target_link_libraries(opentxs-server opentxs-ext opentxs-cash opentxs-basket opentxs-core ${ZMQ_LIBRARY})
+  target_link_libraries(opentxs-server PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local PUBLIC ${ZMQ_LIBRARY})
 endif()
 
 set_lib_property(opentxs-server)

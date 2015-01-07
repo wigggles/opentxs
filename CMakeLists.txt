@@ -186,6 +186,9 @@ if (ZMQ_LIB STREQUAL "ZMQ_LIB-NOTFOUND")
   set(ZMQ_LIB_FOUND 0)
   set(ZMQ_LIBRARY libzmq)
   set(ZMQ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/libzmq_4/include)
+  # For Android
+  set(ZEROMQ_LIBRARIES ${ZMQ_LIBRARY})
+  set(ZEROMQ_INCLUDE_DIRS ${ZMQ_INCLUDE_DIR})
   message(STATUS "System's ZeroMQ not found. Using local ZeroMQ.")
   if(WIN32)
     message(STATUS "  Check your CMAKE_LIBRARY_PATH environment variable")
@@ -201,6 +204,8 @@ string(REGEX REPLACE "^#define ZMQ_VERSION_MAJOR ([0-9])$" "\\1" ZMQ_VERSION_MAJ
 if (NOT ZMQ_VERSION_MAJOR STREQUAL "4")
   message(FATAL_ERROR "Wrong ZeroMQ major version ${ZMQ_VERSION_MAJOR}. Required version is 4.x.x")
 endif()
+
+set(CZMQ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/czmq/include)
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.

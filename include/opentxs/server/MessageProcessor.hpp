@@ -133,14 +133,9 @@
 #ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 #define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
+#include <czmq.h>
 #include <string>
 #include <memory>
-
-namespace zmq
-{
-class context_t;
-class socket_t;
-}
 
 namespace opentxs
 {
@@ -152,6 +147,7 @@ class MessageProcessor
 {
 public:
     EXPORT explicit MessageProcessor(ServerLoader& loader);
+    ~MessageProcessor();
     EXPORT void run();
 
 private:
@@ -161,8 +157,7 @@ private:
 
 private:
     OTServer* server_;
-    zmq::context_t* zmqContext_;
-    zmq::socket_t* zmqSocket_;
+    zsock_t* zmqSocket_;
 };
 
 } // namespace opentxs

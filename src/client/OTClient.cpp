@@ -129,6 +129,7 @@
  =uSzz
  -----END PGP SIGNATURE-----
  **************************************************************/
+#include <cinttypes>
 
 #include <opentxs/core/stdafx.hpp>
 
