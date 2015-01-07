@@ -409,8 +409,7 @@ bool Account::Debit(const int64_t& amount)
     // AS LONG AS the result is a HIGHER BALANCE  :-)
     else {
         balanceAmount_.Format("%" PRId64, newBalance);
-        time64_t t = OTTimeGetCurrentTime(); // Today, now.
-        balanceDate_.Format("%" PRId64, t);
+        balanceDate_.Set(getTimestamp());
         return true;
     }
 }
@@ -450,8 +449,7 @@ bool Account::Credit(const int64_t& amount)
     // AS LONG AS the result is a HIGHER BALANCE  :-)
     else {
         balanceAmount_.Format("%" PRId64, newBalance);
-        time64_t t = OTTimeGetCurrentTime(); // Today, now.
-        balanceDate_.Format("%" PRId64, t);
+        balanceDate_.Set(getTimestamp());
         return true;
     }
 }
@@ -636,9 +634,7 @@ bool Account::GenerateNewAccount(const Nym& server, const Message& message,
     SetRealNotaryID(notaryID);
     SetPurportedNotaryID(notaryID);
 
-    time64_t t = OTTimeGetCurrentTime(); // Today, now.
-    balanceDate_.Format("%" PRId64, t);
-
+    balanceDate_.Set(getTimestamp());
     balanceAmount_.Set("0");
 
     if (IsStashAcct()) {
@@ -890,10 +886,10 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         // I convert to integer / int64_t and back to string.
         // (Just an easy way to keep the data clean.)
 
-        int32_t date = atoi(balanceDate_.Get());
+        time64_t date = parseTimestamp((balanceDate_.Get()));
         int64_t amount = balanceAmount_.ToLong();
 
-        balanceDate_.Format("%d", date);
+        balanceDate_.Set(formatTimestamp(date));
         balanceAmount_.Format("%" PRId64, amount);
 
         otLog3 << "\nBALANCE  --  " << balanceAmount_ << "\nDATE     --  "
