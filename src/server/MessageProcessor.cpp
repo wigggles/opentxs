@@ -151,12 +151,14 @@ namespace opentxs
 MessageProcessor::MessageProcessor(ServerLoader& loader)
     : server_(loader.getServer())
     , zmqSocket_(zsock_new_rep(NULL))
+    , zmqAuth_(zactor_new(zauth, NULL))
 {
     init(loader.getPort());
 }
 
 MessageProcessor::~MessageProcessor()
 {
+    zactor_destroy(&zmqAuth_);
     zsock_destroy(&zmqSocket_);
 }
 
@@ -165,6 +167,15 @@ void MessageProcessor::init(int port)
     if (port == 0) {
         OT_FAIL;
     }
+    zstr_sendx(zmqAuth_, "CURVE", CURVE_ALLOW_ANY, NULL);
+    zsock_wait(zmqAuth_);
+    zsock_set_zap_domain(zmqSocket_, "global");
+    zsock_set_curve_server(zmqSocket_, 1);
+    // test key values taken from `man zmq_curve`
+    zsock_set_curve_publickey(zmqSocket_,
+                              "rq:rM>}U?@Lns47E1%kR.o@n%FcmmsL/@{H8]yf7");
+    zsock_set_curve_secretkey(zmqSocket_,
+                              "JTKVSB%%)wK0E.X)V>+}o?pNmC{O&4W4b!Ni{Lh6");
     zsock_bind(zmqSocket_, "tcp://*:%d", port);
 }
 
