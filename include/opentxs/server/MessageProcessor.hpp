@@ -133,9 +133,11 @@
 #ifndef OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 #define OPENTXS_SERVER_MESSAGEPROCESSOR_HPP
 
-#include <czmq.h>
 #include <string>
 #include <memory>
+
+// forward declare zsock_t
+typedef struct _zsock_t zsock_t;
 
 namespace opentxs
 {
