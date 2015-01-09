@@ -143,6 +143,8 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/Timer.hpp>
 
+#include <czmq.h>
+
 namespace opentxs
 {
 

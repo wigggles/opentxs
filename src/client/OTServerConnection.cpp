@@ -140,6 +140,8 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 
+#include <czmq.h>
+
 namespace opentxs
 {
 

@@ -129,8 +129,6 @@
  =uSzz
  -----END PGP SIGNATURE-----
  **************************************************************/
-#include <cinttypes>
-
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OTClient.hpp>
@@ -165,6 +163,7 @@
 
 #include <memory>
 #include <cstdio>
+#include <cinttypes>
 
 namespace opentxs
 {
