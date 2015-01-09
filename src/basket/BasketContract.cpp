@@ -156,8 +156,6 @@ BasketContract::BasketContract(Basket& theBasket, Nym& theSigner)
     String strTemplate;
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
 
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
-
     strTemplate.Concatenate("<basketContract version=\"%s\">\n\n",
                             m_strVersion.Get());
     strTemplate.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
@@ -175,8 +173,6 @@ BasketContract::~BasketContract()
 void BasketContract::CreateContents()
 {
     m_xmlUnsigned.Release();
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
-
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
 
     m_xmlUnsigned.Concatenate("<basketContract version=\"%s\">\n\n",

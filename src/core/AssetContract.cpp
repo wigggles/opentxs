@@ -828,7 +828,6 @@ bool AssetContract::EraseAccountRecord(const Identifier& theAcctID)
 void AssetContract::CreateContents()
 {
     m_xmlUnsigned.Release();
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n", "1.0");
 
     m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n", "instrumentDefinition",
                               m_strVersion.Get());

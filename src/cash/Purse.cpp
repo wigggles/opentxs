@@ -971,7 +971,6 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
     m_xmlUnsigned.Concatenate(
         "<purse version=\"%s\"\n"
         " totalValue=\"%" PRId64 "\"\n" // Total value of all the tokens within.

@@ -314,8 +314,6 @@ void OTTrade::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
-
     const String NOTARY_ID(GetNotaryID()), NYM_ID(GetSenderNymID()),
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         ASSET_ACCT_ID(GetSenderAcctID()), CURRENCY_TYPE_ID(GetCurrencyID()),

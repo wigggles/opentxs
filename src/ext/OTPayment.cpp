@@ -1563,8 +1563,6 @@ void OTPayment::UpdateContents() // Before transmission or serialization, this
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
-
     m_xmlUnsigned.Concatenate("<payment version=\"%s\"\n"
                               " type=\"%s\">\n\n",
                               m_strVersion.Get(), GetTypeString());

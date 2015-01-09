@@ -594,8 +594,6 @@ void OTCron::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
-
     const String NOTARY_ID(m_NOTARY_ID);
 
     m_xmlUnsigned.Concatenate("<cron\n version=\"%s\"\n"
