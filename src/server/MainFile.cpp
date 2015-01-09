@@ -161,7 +161,6 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     const char* szFunc = "MainFile::SaveMainFileToString";
 
     strMainFile.Format(
-        "<?xml version=\"1.0\"?>\n"
         "<notaryServer version=\"%s\"\n"
         " notaryID=\"%s\"\n"
         " serverNymID=\"%s\"\n"
@@ -293,7 +292,6 @@ bool MainFile::CreateMainFile(const std::string& strContract,
     }
 
     const char* szBlankFile = // todo hardcoding.
-        "<?xml version=\"1.0\"?>\n"
         "<notaryServer version=\"2.0\"\n"
         " notaryID=\"%s\"\n"
         " serverNymID=\"%s\"\n"

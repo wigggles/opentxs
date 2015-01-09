@@ -580,7 +580,6 @@ public:
     ASSET CONTRACTS will want to make sure they put something like this at the
     top:
 
-    <?xml version="1.0"?>
     <instrumentDefinition version="1.0">
 
     <entity shortname="Just testing"
@@ -601,7 +600,6 @@ public:
     SERVER CONTRACTS will want to make sure they put something like this at the
     top:
 
-    <?xml version="1.0"?>
     <notaryProviderContract version="1.0">
 
     <entity shortname="Transactions.com"

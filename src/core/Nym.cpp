@@ -3997,9 +3997,6 @@ void Nym::GetPublicCredentials(String& strCredList,
     String strNymID;
     GetIdentifier(strNymID);
 
-    strCredList.Concatenate("<?xml version=\"%s\"?>\n",
-                            "2.0"); // todo hardcoding.
-
     strCredList.Concatenate("<nymData version=\"%s\"\n"
                             " nymID=\"%s\""
                             ">\n\n",
@@ -4027,9 +4024,6 @@ void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
 {
     String strNymID;
     GetIdentifier(strNymID);
-
-    strCredList.Concatenate("<?xml version=\"%s\"?>\n",
-                            "2.0"); // todo hardcoding.
 
     strCredList.Concatenate("<nymData version=\"%s\"\n"
                             " nymID=\"%s\""
@@ -4069,9 +4063,6 @@ void Nym::SaveCredentialListToString(String& strOutput)
 {
     String strNymID;
     GetIdentifier(strNymID);
-
-    strOutput.Concatenate("<?xml version=\"%s\"?>\n",
-                          "2.0"); // todo hardcoding.
 
     strOutput.Concatenate("<nymData version=\"%s\"\n"
                           " nymID=\"%s\""
@@ -4242,8 +4233,6 @@ bool Nym::SavePseudonym(String& strNym)
 {
     String nymID;
     GetIdentifier(nymID);
-
-    strNym.Concatenate("<?xml version=\"%s\"?>\n", "2.0");
 
     if (m_lUsageCredits == 0)
         strNym.Concatenate("<nymData version=\"%s\"\n"

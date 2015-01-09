@@ -239,8 +239,6 @@ void OTMarket::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate("<?xml version=\"%s\"?>\n\n", "1.0");
-
     const String NOTARY_ID(m_NOTARY_ID),
         INSTRUMENT_DEFINITION_ID(m_INSTRUMENT_DEFINITION_ID),
         CURRENCY_TYPE_ID(m_CURRENCY_TYPE_ID);

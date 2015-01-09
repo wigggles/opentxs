@@ -1264,8 +1264,7 @@ bool OTWallet::SaveContract(String& strContract)
     }
 
     strContract.Concatenate(
-        "<?xml version=\"1.0\"?>\n<wallet name=\"%s\" version=\"%s\">\n\n",
-        ascName.Get(),
+        "<wallet name=\"%s\" version=\"%s\">\n\n", ascName.Get(),
         OTCachedKey::It()->IsGenerated() ? "2.0" : m_strVersion.Get());
 
     if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
@@ -1606,7 +1605,6 @@ bool OTWallet::SaveWallet(const char* szFilename)
 
 /*
 
-<?xml version="1.0"?>
 <wallet name="" version="2.0">
 
 <cachedKey>
@@ -1646,8 +1644,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
         otErr << __FUNCTION__ << ": Wallet file does not exist: " << szFilename
               << ". Creating...\n";
 
-        const char* szContents = "<?xml version=\"1.0\"?>\n"
-                                 "<wallet name=\"\" version=\"1.0\">\n"
+        const char* szContents = "<wallet name=\"\" version=\"1.0\">\n"
                                  "\n"
                                  "</wallet>\n";
 
