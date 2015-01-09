@@ -210,7 +210,7 @@ void OTKeypair::SetMetadata(const OTSignatureMetadata& theMetadata)
     *(m_pkeyPrivate->m_pMetadata) = theMetadata;
 }
 
-bool OTKeypair::HasPublicKey()
+bool OTKeypair::HasPublicKey() const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
@@ -218,7 +218,7 @@ bool OTKeypair::HasPublicKey()
                                      // in it, or tried to.
 }
 
-bool OTKeypair::HasPrivateKey()
+bool OTKeypair::HasPrivateKey() const
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
 

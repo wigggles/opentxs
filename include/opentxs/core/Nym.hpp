@@ -550,8 +550,8 @@ public:
         const String* pstrName = nullptr, const char* szFuncName = nullptr,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    EXPORT bool HasPublicKey();
-    EXPORT bool HasPrivateKey();
+    EXPORT bool HasPublicKey() const;
+    EXPORT bool HasPrivateKey() const;
     EXPORT const OTAsymmetricKey& GetPublicAuthKey() const; // Authentication
     const OTAsymmetricKey& GetPrivateAuthKey() const;
     EXPORT const OTAsymmetricKey& GetPublicEncrKey() const; // Encryption

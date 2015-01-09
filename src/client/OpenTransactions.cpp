@@ -2265,7 +2265,7 @@ bool OT_API::Wallet_RemoveNym(const Identifier& NYM_ID) const
         OT_FAIL;
     }
 
-    if (m_pWallet->RemoveNym(NYM_ID)) {
+    if (m_pWallet->RemovePrivateNym(NYM_ID)) {
         otOut << __FUNCTION__
               << ": Success erasing Nym from wallet: " << String(NYM_ID)
               << "\n";

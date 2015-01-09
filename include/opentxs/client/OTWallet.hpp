@@ -211,6 +211,8 @@ public:
     EXPORT void DisplayStatistics(String& strOutput);
 
     EXPORT Nym* GetNymByID(const Identifier& NYM_ID);
+    EXPORT Nym* GetPrivateNymByID(const Identifier& NYM_ID);
+    EXPORT Nym* GetPublicNymByID(const Identifier& NYM_ID);
     EXPORT Nym* GetNymByIDPartialMatch(std::string PARTIAL_ID); // wallet name
                                                                 // for nym also
                                                                 // accepted.
@@ -220,6 +222,8 @@ public:
     EXPORT OTServerContract* GetServerContractPartialMatch(
         std::string PARTIAL_ID); // wallet name for server also accepted.
 
+    EXPORT void AddPrivateNym(const Nym& theNym);
+    EXPORT void AddPublicNym(const Nym& theNym);
     EXPORT void AddNym(const Nym& theNym);
     EXPORT void AddAccount(const Account& theAcct);
 
@@ -305,13 +309,17 @@ public:
     // in addition to removing from wallet. (To delete them on server side.)
     //
     EXPORT bool RemoveAccount(const Identifier& theTargetID);
-    EXPORT bool RemoveNym(const Identifier& theTargetID);
+    EXPORT bool RemovePrivateNym(const Identifier& theTargetID);
+    EXPORT bool RemovePublicNym(const Identifier& theTargetID);
 
 private:
+    void AddNym(const Nym& theNym, mapOfNyms& map);
+    bool RemoveNym(const Identifier& theTargetID, mapOfNyms& map);
     void Release();
 
 private:
-    mapOfNyms m_mapNyms;
+    mapOfNyms m_mapPrivateNyms;
+    mapOfNyms m_mapPublicNyms;
     mapOfContracts m_mapContracts;
     mapOfServers m_mapServers;
     mapOfAccounts m_mapAccounts;
