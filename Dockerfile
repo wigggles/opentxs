@@ -1,4 +1,4 @@
-FROM monetas/base-ot-dev
+FROM monetas/ot-android-dev
 
 MAINTAINER Darragh Grealish "darragh@monetas.net"
 
@@ -7,12 +7,12 @@ RUN mkdir -p opentxs-source/build
 ADD CMakeLists.txt .clang-format .gitignore .gitmodules /home/otuser/opentxs-source/
 ADD cmake /home/otuser/opentxs-source/cmake
 ADD deps /home/otuser/opentxs-source/deps
-ADD include /home/otuser/opentxs-source/include
 ADD scripts /home/otuser/opentxs-source/scripts
-ADD src /home/otuser/opentxs-source/src
 ADD tests /home/otuser/opentxs-source/tests
 ADD wrappers /home/otuser/opentxs-source/wrappers
+ADD include /home/otuser/opentxs-source/include
 ADD .git /home/otuser/opentxs-source/.git
+ADD src /home/otuser/opentxs-source/src
 WORKDIR /home/otuser/opentxs-source/build
 RUN cmake .. \
         -DPYTHON=1 \
