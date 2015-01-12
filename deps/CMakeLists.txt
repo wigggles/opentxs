@@ -82,13 +82,8 @@ if(ANDROID)
   # needed for czmq
   add_definitions(-D_CRT_ERRNO_DEFINED)
 endif()
-if(NOT WIN32)
-  # Disable czmq tests. They cause trouble on Android MIPS
-  # and should not be executed anyway for our project.
-  execute_process(COMMAND sed "-i" "/^add_executable(czmq_selftest \${SOURCE_DIR}\\/src\\/czmq_selftest.c)$/d" "${CMAKE_CURRENT_SOURCE_DIR}/czmq/CMakeLists.txt")
-  execute_process(COMMAND sed "-i" "/^target_link_libraries(czmq_selftest czmq \${ZEROMQ_LIBRARIES})$/d" "${CMAKE_CURRENT_SOURCE_DIR}/czmq/CMakeLists.txt")
-  execute_process(COMMAND sed "-i" "/^add_test(czmq_selftest czmq_selftest)/d" "${CMAKE_CURRENT_SOURCE_DIR}/czmq/CMakeLists.txt")
-endif()
+# Disable czmq tests. They also cause trouble on Android MIPS
+set(CZMQ_BUILD_TESTS false CACHE BOOL "")
 add_subdirectory(czmq)
 # Create czmq_local for use inside opentxs' CMake project. Since czmq_local is
 # marked as IMPORTED, CMake will not complain about it not being exported.
