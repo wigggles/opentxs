@@ -133,9 +133,9 @@
 #include "CmdCancel.hpp"
 
 #include "CmdDeposit.hpp"
-#include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -286,7 +286,8 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             // So while we expect this 'activation' to fail, it should have the
             // desired effect of cancelling the smart contract and sending
             // failure notices to all the parties.
-            string response = MadeEasy::activate_smart_contract(
+            OT_ME ot_me;
+            string response = ot_me.activate_smart_contract(
                 server, mynym, myacct, "acct_agent_name", payment);
             if ("" == response) {
                 otOut << "Error: cannot cancel smart contract.\n";
@@ -313,8 +314,8 @@ int32_t CmdCancel::run(string mynym, string myacct, string indices)
             // propagated to the other party to the contract. (Which will result
             // in its automatic removal from the outpayment box.)
 
-            string response =
-                MadeEasy::cancel_payment_plan(server, mynym, payment);
+            OT_ME ot_me;
+            string response = ot_me.cancel_payment_plan(server, mynym, payment);
             if ("" == response) {
                 otOut << "Error: cannot cancel payment plan.\n";
                 retVal = -1;

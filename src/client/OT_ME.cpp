@@ -777,8 +777,9 @@ std::string OT_ME::kill_market_offer(const std::string& NOTARY_ID,
                                      const std::string& ASSET_ACCT_ID,
                                      int64_t TRANS_NUM) const
 {
-    return MadeEasy::kill_market_offer(NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
-                                       std::to_string(TRANS_NUM));
+    OTAPI_Func request(KILL_MARKET_OFFER, NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
+                       std::to_string(TRANS_NUM));
+    return request.SendTransaction(request, "KILL_MARKET_OFFER");
 }
 
 // KILL (ACTIVE) PAYMENT PLAN -- TRANSACTION
@@ -788,8 +789,9 @@ std::string OT_ME::kill_payment_plan(const std::string& NOTARY_ID,
                                      const std::string& ACCT_ID,
                                      int64_t TRANS_NUM) const
 {
-    return MadeEasy::kill_payment_plan(NOTARY_ID, NYM_ID, ACCT_ID,
-                                       std::to_string(TRANS_NUM));
+    OTAPI_Func request(KILL_PAYMENT_PLAN, NOTARY_ID, NYM_ID, ACCT_ID,
+                       std::to_string(TRANS_NUM));
+    return request.SendTransaction(request, "KILL_PAYMENT_PLAN");
 }
 
 // CANCEL (NOT-YET-RUNNING) PAYMENT PLAN -- TRANSACTION
@@ -798,7 +800,31 @@ std::string OT_ME::cancel_payment_plan(
     const std::string& NOTARY_ID, const std::string& NYM_ID,
     const std::string& THE_PAYMENT_PLAN) const
 {
-    return MadeEasy::cancel_payment_plan(NOTARY_ID, NYM_ID, THE_PAYMENT_PLAN);
+    // NOTE: We have to include the account ID as well. Even though the API call
+    // itself doesn't need it (it retrieves it from the plan itself, as we are
+    // about to do here) we still have to provide the accountID for OTAPI_Func,
+    // which uses it to grab the intermediary files, as part of its automated
+    // sync duties. (FYI.)
+
+    std::string strRecipientAcctID =
+        OTAPI_Wrap::Instrmnt_GetRecipientAcctID(THE_PAYMENT_PLAN);
+
+    // NOTE: Normally the SENDER (PAYER) is the one who deposits a payment plan.
+    // But in this case, the RECIPIENT (PAYEE) deposits it -- which means
+    // "Please cancel this plan." It SHOULD fail, since it's only been signed
+    // by the recipient, and not the sender. And that failure is what burns
+    // the transaction number on the plan, so that it can no longer be used.
+    //
+    // So how do we know the difference between an ACTUAL "failure" versus a
+    // purposeful "failure" ?
+    // Because if the failure comes from cancelling the plan, the server reply
+    // transaction will have IsCancelled() set to true.
+    //
+    // (Therefore theRequest.SendTransaction is smart enough to check for that.)
+
+    OTAPI_Func request(DEPOSIT_PAYMENT_PLAN, NOTARY_ID, NYM_ID,
+                       strRecipientAcctID, THE_PAYMENT_PLAN);
+    return request.SendTransaction(request, "CANCEL_PAYMENT_PLAN");
 }
 
 // ACTIVATE SMART CONTRACT -- TRANSACTION
@@ -808,8 +834,9 @@ std::string OT_ME::activate_smart_contract(
     const std::string& ACCT_ID, const std::string& AGENT_NAME,
     const std::string& THE_SMART_CONTRACT) const
 {
-    return MadeEasy::activate_smart_contract(NOTARY_ID, NYM_ID, ACCT_ID,
-                                             AGENT_NAME, THE_SMART_CONTRACT);
+    OTAPI_Func request(ACTIVATE_SMART_CONTRACT, NOTARY_ID, NYM_ID, ACCT_ID,
+                       AGENT_NAME, THE_SMART_CONTRACT);
+    return request.SendTransaction(request, "ACTIVATE_SMART_CONTRACT");
 }
 
 // TRIGGER CLAUSE (on running smart contract) -- TRANSACTION
@@ -884,9 +911,10 @@ std::string OT_ME::pay_dividend(
     const std::string& SHARES_INSTRUMENT_DEFINITION_ID,
     const std::string& STR_MEMO, int64_t AMOUNT_PER_SHARE) const
 {
-    return MadeEasy::pay_dividend(NOTARY_ID, NYM_ID, SOURCE_ACCT_ID,
-                                  SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
-                                  AMOUNT_PER_SHARE);
+    OTAPI_Func request(PAY_DIVIDEND, NOTARY_ID, NYM_ID, SOURCE_ACCT_ID,
+                       SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
+                       AMOUNT_PER_SHARE);
+    return request.SendTransaction(request, "PAY_DIVIDEND");
 }
 
 std::string OT_ME::deposit_cheque(const std::string& NOTARY_ID,

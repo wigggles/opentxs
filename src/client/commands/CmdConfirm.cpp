@@ -541,8 +541,9 @@ int32_t CmdConfirm::activateContract(const string& server, const string& mynym,
         }
     }
 
-    string response = MadeEasy::activate_smart_contract(
-        server, mynym, myAcctID, myAcctAgentName, contract);
+    OT_ME ot_me;
+    string response = ot_me.activate_smart_contract(server, mynym, myAcctID,
+                                                    myAcctAgentName, contract);
     if (1 != responseStatus(response)) {
         otOut << "Error: cannot activate smart contract.\n";
         harvestTxNumbers(contract, mynym);

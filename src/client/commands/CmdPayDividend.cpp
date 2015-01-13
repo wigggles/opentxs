@@ -136,6 +136,7 @@
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 
 using namespace opentxs;
 using namespace std;
@@ -194,8 +195,9 @@ int32_t CmdPayDividend::run(string myacct, string hispurse, string amount,
         return -1;
     }
 
+    OT_ME ot_me;
     string response =
-        MadeEasy::pay_dividend(server, mynym, myacct, hispurse, memo, value);
+        ot_me.pay_dividend(server, mynym, myacct, hispurse, memo, value);
     int32_t reply =
         responseReply(response, server, mynym, myacct, "pay_dividend");
     if (1 == reply) {

@@ -804,59 +804,6 @@ OT_MADE_EASY_OT string MadeEasy::create_market_offer(
     return strResponse;
 }
 
-// KILL MARKET OFFER  -- TRANSACTION
-//
-OT_MADE_EASY_OT string MadeEasy::kill_market_offer(const string& NOTARY_ID,
-                                                   const string& NYM_ID,
-                                                   const string& ASSET_ACCT_ID,
-                                                   const string& STR_TRANS_NUM)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(KILL_MARKET_OFFER, NOTARY_ID, NYM_ID, ASSET_ACCT_ID,
-                          STR_TRANS_NUM);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "KILL_MARKET_OFFER");
-
-    return strResponse;
-}
-
-// KILL PAYMENT PLAN (an active one that's already running) -- TRANSACTION
-//
-OT_MADE_EASY_OT string MadeEasy::kill_payment_plan(const string& NOTARY_ID,
-                                                   const string& NYM_ID,
-                                                   const string& ACCT_ID,
-                                                   const string& STR_TRANS_NUM)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(KILL_PAYMENT_PLAN, NOTARY_ID, NYM_ID, ACCT_ID,
-                          STR_TRANS_NUM);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "KILL_PAYMENT_PLAN");
-
-    return strResponse;
-}
-
-// ACTIVATE SMART CONTRACT  -- TRANSACTION
-//
-OT_MADE_EASY_OT string MadeEasy::activate_smart_contract(
-    const string& NOTARY_ID, const string& NYM_ID, const string& ACCT_ID,
-    const string& AGENT_NAME, const string& THE_SMART_CONTRACT)
-{
-    OTAPI_Func ot_Msg;
-
-    //  int32_t OTAPI_Wrap::activateSmartContract(NOTARY_ID, NYM_ID,
-    // THE_SMART_CONTRACT)
-
-    OTAPI_Func theRequest(ACTIVATE_SMART_CONTRACT, NOTARY_ID, NYM_ID, ACCT_ID,
-                          AGENT_NAME, THE_SMART_CONTRACT);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "ACTIVATE_SMART_CONTRACT");
-
-    return strResponse;
-}
-
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION
 //
 OT_MADE_EASY_OT string
@@ -883,72 +830,6 @@ OT_MADE_EASY_OT string
                           strSenderAcctID, THE_PAYMENT_PLAN);
     string strResponse =
         theRequest.SendTransaction(theRequest, "DEPOSIT_PAYMENT_PLAN");
-    return strResponse;
-}
-
-// CANCEL PAYMENT PLAN (an inactive one that hasn't been activated yet) --
-// TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::cancel_payment_plan(const string& NOTARY_ID, const string& NYM_ID,
-                                  const string& THE_PAYMENT_PLAN)
-{
-    OTAPI_Func ot_Msg;
-
-    // NOTE: We have to include the account ID as well. Even though the API call
-    // itself
-    // doesn't need it (it retrieves it from the plan itself, as we are about to
-    // do here)
-    // we still have to provide the accountID for OTAPI_Func, which uses it to
-    // grab the
-    // intermediary files, as part of its automated sync duties. (FYI.)
-    //
-    string strRecipientAcctID =
-        OTAPI_Wrap::Instrmnt_GetRecipientAcctID(THE_PAYMENT_PLAN);
-
-    //  otOut << "\n\n DEBUGGING: NYM_ID: "+NYM_ID+"
-    // strRecipientAcctID: "+strRecipientAcctID+" \n\n")
-
-    // NOTE: Normally the SENDER (PAYER) is the one who deposits a payment plan.
-    // But
-    // in this case, the RECIPIENT (PAYEE) deposits it -- which means "Please
-    // cancel this plan."
-    // It SHOULD fail, since it's only been signed by the recipient, and not the
-    // sender.
-    // And that failure is what burns the transaction number on the plan, so
-    // that it can
-    // no longer be used.
-    //
-    // So how do we know the difference between an ACTUAL "failure" versus a
-    // purposeful "failure" ?
-    // Because if the failure comes from cancelling the plan, the server reply
-    // transaction will have
-    // IsCancelled() set to true.
-    //
-    // (Therefore theRequest.SendTransaction is smart enough to check for that.)
-
-    OTAPI_Func theRequest(DEPOSIT_PAYMENT_PLAN, NOTARY_ID, NYM_ID,
-                          strRecipientAcctID, THE_PAYMENT_PLAN);
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "CANCEL_PAYMENT_PLAN");
-    return strResponse;
-}
-
-// PAY DIVIDEND  -- TRANSACTION
-//
-OT_MADE_EASY_OT string
-    MadeEasy::pay_dividend(const string& NOTARY_ID, const string& NYM_ID,
-                           const string& SOURCE_ACCT_ID,
-                           const string& SHARES_INSTRUMENT_DEFINITION_ID,
-                           const string& STR_MEMO, int64_t AMOUNT_PER_SHARE)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(PAY_DIVIDEND, NOTARY_ID, NYM_ID, SOURCE_ACCT_ID,
-                          SHARES_INSTRUMENT_DEFINITION_ID, STR_MEMO,
-                          AMOUNT_PER_SHARE);
-    string strResponse = theRequest.SendTransaction(theRequest, "PAY_DIVIDEND");
-
     return strResponse;
 }
 

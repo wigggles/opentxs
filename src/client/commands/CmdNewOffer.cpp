@@ -134,6 +134,7 @@
 
 #include "../ot_made_easy_ot.hpp"
 #include <opentxs/client/ot_otapi_ot.hpp>
+#include <opentxs/client/OT_ME.hpp>
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -344,8 +345,10 @@ int32_t CmdNewOffer::cleanMarketOfferList(
         otOut << "Canceling market offer with transaction number: " << id
               << ".\n";
 
-        string response =
-            MadeEasy::kill_market_offer(server, mynym, myacct, id);
+        OT_ME ot_me;
+        int64_t j;
+        sscanf(id.c_str(), "%" SCNd64, &j);
+        string response = ot_me.kill_market_offer(server, mynym, myacct, j);
         if (0 > processTxResponse(server, mynym, myacct, response,
                                   "kill market offer")) {
             return -1;
