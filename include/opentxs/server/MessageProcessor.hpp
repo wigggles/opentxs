@@ -136,8 +136,9 @@
 #include <string>
 #include <memory>
 
-// forward declare zsock_t
+// forward declare czmq types
 typedef struct _zsock_t zsock_t;
+typedef struct _zactor_t zactor_t;
 
 namespace opentxs
 {
@@ -160,6 +161,7 @@ private:
 private:
     OTServer* server_;
     zsock_t* zmqSocket_;
+    zactor_t* zmqAuth_;
 };
 
 } // namespace opentxs
