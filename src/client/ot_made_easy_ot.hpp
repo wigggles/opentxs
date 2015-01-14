@@ -237,10 +237,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_FROM, const std::string& ACCT_TO,
         int64_t AMOUNT, const std::string& NOTE);
-    EXPORT OT_MADE_EASY_OT static std::string send_user_cash(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& RECIPIENT_NYM_ID, const std::string& THE_PAYMENT,
-        const std::string& SENDERS_COPY);
     EXPORT OT_MADE_EASY_OT static std::string send_user_cash_pubkey(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,

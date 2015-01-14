@@ -559,34 +559,6 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
-// SEND USER CASH  (only requires recipient's ID, and retrieves pubkey
-// automatically)
-//
-OT_MADE_EASY_OT string MadeEasy::send_user_cash(const string& NOTARY_ID,
-                                                const string& NYM_ID,
-                                                const string& RECIPIENT_NYM_ID,
-                                                const string& THE_PAYMENT,
-                                                const string& SENDERS_COPY)
-{
-    OTAPI_Func ot_Msg;
-
-    string strRecipientPubkey =
-        load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
-
-    if (!VerifyStringVal(strRecipientPubkey)) {
-        otOut << "OT_ME_send_user_payment: Unable to load or "
-                 "retrieve public encryption key for recipient: "
-              << RECIPIENT_NYM_ID << "\n";
-        return strRecipientPubkey; // basically this means "return null".
-    }
-
-    string strResponse =
-        send_user_cash_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
-                              strRecipientPubkey, THE_PAYMENT, SENDERS_COPY);
-
-    return strResponse;
-}
-
 // DOWNLOAD PUBLIC MINT
 //
 OT_MADE_EASY_OT string

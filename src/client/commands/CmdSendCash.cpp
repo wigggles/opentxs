@@ -137,6 +137,7 @@
 #include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -305,8 +306,9 @@ int32_t CmdSendCash::sendCash(string& response, const string& server,
         return -1;
     }
 
-    response = MadeEasy::send_user_cash(server, mynym, hisnym, exportedCash,
-                                        retainedCopy);
+    OT_ME ot_me;
+    response =
+        ot_me.send_user_cash(server, mynym, hisnym, exportedCash, retainedCopy);
     if (1 != responseStatus(response)) {
         // cannot send cash so try to re-import into sender's purse
         if (!OTAPI_Wrap::Wallet_ImportPurse(server, assetType, mynym,
