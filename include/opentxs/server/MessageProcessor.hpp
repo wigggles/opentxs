@@ -139,6 +139,7 @@
 // forward declare czmq types
 typedef struct _zsock_t zsock_t;
 typedef struct _zactor_t zactor_t;
+typedef struct _zpoller_t zpoller_t;
 
 namespace opentxs
 {
@@ -162,6 +163,7 @@ private:
     OTServer* server_;
     zsock_t* zmqSocket_;
     zactor_t* zmqAuth_;
+    zpoller_t* zmqPoller_;
 };
 
 } // namespace opentxs
