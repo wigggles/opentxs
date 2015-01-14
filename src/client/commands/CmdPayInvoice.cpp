@@ -133,9 +133,9 @@
 #include "CmdPayInvoice.hpp"
 
 #include "CmdDeposit.hpp"
-#include "../ot_made_easy_ot.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
 
 using namespace opentxs;
@@ -286,8 +286,8 @@ int32_t CmdPayInvoice::processPayment(const string& myacct,
         }
     }
     else {
-        instrument =
-            MadeEasy::get_payment_instrument(server, mynym, index, inbox);
+        OT_ME ot_me;
+        instrument = ot_me.get_payment_instrument(server, mynym, index, inbox);
         if ("" == instrument) {
             otOut << "Error: cannot get payment instrument.\n";
             return -1;

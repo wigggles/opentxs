@@ -213,8 +213,9 @@ int32_t CmdConfirm::run(string server, string mynym, string myacct,
     }
 
     // use specified payment instrument from inpayments
+    OT_ME ot_me;
     string instrument =
-        MadeEasy::get_payment_instrument(server, mynym, messageNr, "");
+        ot_me.get_payment_instrument(server, mynym, messageNr, "");
     if ("" == instrument) {
         otOut << "Error: cannot load payment instrument.\n";
         return -1;

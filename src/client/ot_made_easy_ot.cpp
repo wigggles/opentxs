@@ -587,50 +587,6 @@ OT_MADE_EASY_OT string MadeEasy::send_user_cash(const string& NOTARY_ID,
     return strResponse;
 }
 
-// GET PAYMENT INSTRUMENT (from payments inbox, by index.)
-//
-OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
-    const string& NOTARY_ID, const string& NYM_ID, int32_t nIndex,
-    const string& PRELOADED_INBOX) // PRELOADED_INBOX is optional.
-{
-    string strInstrument;
-    string strInbox =
-        VerifyStringVal(PRELOADED_INBOX)
-            ? PRELOADED_INBOX
-            : OTAPI_Wrap::LoadPaymentInbox(
-                  NOTARY_ID, NYM_ID); // Returns nullptr, or an inbox.
-
-    if (!VerifyStringVal(strInbox)) {
-        otWarn << "\n\n get_payment_instrument:  "
-                  "OT_API_LoadPaymentInbox Failed. (Probably just "
-                  "doesn't exist yet.)\n\n";
-        return "";
-    }
-
-    int32_t nCount =
-        OTAPI_Wrap::Ledger_GetCount(NOTARY_ID, NYM_ID, NYM_ID, strInbox);
-    if (0 > nCount) {
-        otOut
-            << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
-        return "";
-    }
-    if (nIndex > (nCount - 1)) {
-        otOut << "Index " << nIndex
-              << " out of bounds. (The last index is: " << (nCount - 1)
-              << ". The first is 0.)\n";
-        return "";
-    }
-
-    strInstrument = OTAPI_Wrap::Ledger_GetInstrument(NOTARY_ID, NYM_ID, NYM_ID,
-                                                     strInbox, nIndex);
-    if (!VerifyStringVal(strInstrument)) {
-        otOut << "Failed trying to get payment instrument from payments box.\n";
-        return "";
-    }
-
-    return strInstrument;
-}
-
 // DOWNLOAD PUBLIC MINT
 //
 OT_MADE_EASY_OT string
