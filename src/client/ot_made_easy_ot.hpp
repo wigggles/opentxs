@@ -249,9 +249,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_MESSAGE);
-    EXPORT OT_MADE_EASY_OT static std::string send_user_payment(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& RECIPIENT_NYM_ID, const std::string& THE_PAYMENT);
     EXPORT OT_MADE_EASY_OT static std::string send_user_pmnt_pubkey(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,

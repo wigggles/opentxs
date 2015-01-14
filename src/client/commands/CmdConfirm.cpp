@@ -609,8 +609,9 @@ int32_t CmdConfirm::sendToNextParty(const string& server, const string& mynym,
         }
     }
 
+    OT_ME ot_me;
     string response =
-        MadeEasy::send_user_payment(server, mynym, hisNymID, contract);
+        ot_me.send_user_payment(server, mynym, hisNymID, contract);
     if (1 != responseStatus(response)) {
         otOut << "\nFor whatever reason, our attempt to send the instrument on "
                  "to the next user has failed.\n";

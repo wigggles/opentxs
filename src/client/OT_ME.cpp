@@ -663,8 +663,18 @@ std::string OT_ME::send_user_payment(const std::string& NOTARY_ID,
                                      const std::string& RECIPIENT_NYM_ID,
                                      const std::string& THE_PAYMENT) const
 {
-    return MadeEasy::send_user_payment(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
-                                       THE_PAYMENT);
+    std::string strRecipientPubkey =
+        load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
+
+    if (!VerifyStringVal(strRecipientPubkey)) {
+        otOut << "OT_ME_send_user_payment: Unable to load or "
+                 "retrieve public encryption key for recipient: "
+              << RECIPIENT_NYM_ID << "\n";
+        return strRecipientPubkey; // basically this means "return null".
+    }
+
+    return send_user_pmnt_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                 strRecipientPubkey, THE_PAYMENT);
 }
 
 // SEND USER CASH (only requires recipient's ID, and retrieves pubkey
