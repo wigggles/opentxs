@@ -350,12 +350,12 @@ public:
 
     // Asks for password once. (For authentication when using nym.)
     EXPORT virtual void runOne(const char* szDisplay,
-                               OTPassword& theOutput) const;
+                               OTPassword& theOutput) const = 0;
 
     // Asks for password twice. (For confirmation when changing password or
     // creating nym.)
     EXPORT virtual void runTwo(const char* szDisplay,
-                               OTPassword& theOutput) const;
+                               OTPassword& theOutput) const = 0;
 };
 
 } // namespace opentxs
