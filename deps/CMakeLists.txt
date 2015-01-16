@@ -88,7 +88,11 @@ add_subdirectory(czmq)
 # Create czmq_local for use inside opentxs' CMake project. Since czmq_local is
 # marked as IMPORTED, CMake will not complain about it not being exported.
 add_library(czmq_local SHARED IMPORTED GLOBAL)
-set_property(TARGET czmq_local PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libczmq.so)
+set(lib_ext so)
+if (APPLE)
+  set(lib_ext dylib)
+endif()
+set_property(TARGET czmq_local PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libczmq.${lib_ext})
 add_dependencies(czmq_local czmq)
 
 if (NOT WIN32)
