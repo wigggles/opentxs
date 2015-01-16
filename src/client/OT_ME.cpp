@@ -712,8 +712,9 @@ std::string OT_ME::get_box_receipt(const std::string& NOTARY_ID,
                                    const std::string& ACCT_ID, int32_t nBoxType,
                                    int64_t TRANS_NUM) const
 {
-    return MadeEasy::get_box_receipt(NOTARY_ID, NYM_ID, ACCT_ID, nBoxType,
-                                     std::to_string(TRANS_NUM));
+    OTAPI_Func request(GET_BOX_RECEIPT, NOTARY_ID, NYM_ID, ACCT_ID,
+                       std::to_string(nBoxType), std::to_string(TRANS_NUM));
+    return request.SendRequest(request, "GET_BOX_RECEIPT");
 }
 
 // DOWNLOAD PUBLIC MINT
@@ -744,17 +745,6 @@ std::string OT_ME::load_or_retrieve_mint(
                                            INSTRUMENT_DEFINITION_ID);
 }
 
-// QUERY ASSET TYPES
-//
-// See if some instrument definitions are issued on the server.
-//
-std::string OT_ME::query_asset_types(const std::string& NOTARY_ID,
-                                     const std::string& NYM_ID,
-                                     const std::string& ENCODED_MAP) const
-{
-    return MadeEasy::query_asset_types(NOTARY_ID, NYM_ID, ENCODED_MAP);
-}
-
 // CREATE MARKET OFFER -- TRANSACTION
 //
 std::string OT_ME::create_market_offer(
@@ -763,11 +753,24 @@ std::string OT_ME::create_market_offer(
     bool bSelling, int64_t lLifespanInSeconds, const std::string& STOP_SIGN,
     int64_t ACTIVATION_PRICE) const
 {
-    return MadeEasy::create_market_offer(
-        ASSET_ACCT_ID, CURRENCY_ACCT_ID, std::to_string(scale),
-        std::to_string(minIncrement), std::to_string(quantity),
-        std::to_string(price), bSelling, std::to_string(lLifespanInSeconds),
-        STOP_SIGN, std::to_string(ACTIVATION_PRICE));
+    std::string strNotaryID =
+        OTAPI_Wrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
+    std::string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
+    OTAPI_Func request(CREATE_MARKET_OFFER, strNotaryID, strNymID,
+                       ASSET_ACCT_ID, CURRENCY_ACCT_ID, std::to_string(scale),
+                       std::to_string(minIncrement), std::to_string(quantity),
+                       std::to_string(price), bSelling);
+    // Cannot have more than 10 parameters in a function call, in this script.
+    // So I am forced to set the final parameters by hand, before sending the
+    // transaction:
+    //
+    request.tData = OTTimeGetTimeFromSeconds(lLifespanInSeconds);
+    request.lData = ACTIVATION_PRICE;
+    if (VerifyStringVal(STOP_SIGN)) {
+        request.strData5 = STOP_SIGN;
+    }
+
+    return request.SendTransaction(request, "CREATE_MARKET_OFFER");
 }
 
 // KILL MARKET OFFER -- TRANSACTION

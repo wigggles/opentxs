@@ -160,12 +160,6 @@ public:
     EXPORT OT_MADE_EASY_OT static std::string create_asset_acct(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID);
-    EXPORT OT_MADE_EASY_OT static std::string create_market_offer(
-        const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
-        const std::string& scale, const std::string& minIncrement,
-        const std::string& quantity, const std::string& price, bool bSelling,
-        const std::string& strLifespanInSeconds, const std::string& strStopSign,
-        const std::string& strActivationPrice);
     EXPORT OT_MADE_EASY_OT static std::string deposit_payment_plan(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);
@@ -193,10 +187,6 @@ public:
         const std::vector<std::string>& selectedTokens,
         std::string& recipientNymID, bool bPasswordProtected,
         std::string& strRetainedCopy);
-    EXPORT OT_MADE_EASY_OT static std::string get_box_receipt(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ACCT_ID, int32_t nBoxType,
-        const std::string& STR_TRANS_NUM);
     EXPORT OT_MADE_EASY_OT static std::string get_payment_instrument(
         const std::string& NOTARY_ID, const std::string& NYM_ID, int32_t nIndex,
         const std::string& PRELOADED_INBOX); // PRELOADED_INBOX is optional.
@@ -233,9 +223,6 @@ public:
         const std::vector<std::string>& selectedTokens,
         const std::string& recipientNymID, bool bPWProtectOldPurse,
         bool bPWProtectNewPurse);
-    EXPORT OT_MADE_EASY_OT static std::string query_asset_types(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& ENCODED_MAP);
     EXPORT OT_MADE_EASY_OT static bool retrieve_account(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCOUNT_ID,

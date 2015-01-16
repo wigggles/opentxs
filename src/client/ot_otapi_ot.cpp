@@ -264,8 +264,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         accountID = p_strParam;
     }
     else if ((theType == ISSUE_ASSET_TYPE) ||
-               (theType == GET_MARKET_RECENT_TRADES) ||
-               (theType == QUERY_ASSET_TYPES)) {
+               (theType == GET_MARKET_RECENT_TRADES)) {
         strData = p_strParam;
     }
     else {
@@ -719,8 +718,6 @@ OT_OTAPI_OT int32_t OTAPI_Func::Run() const
                                                    instrumentDefinitionID);
     case GET_MINT:
         return OTAPI_Wrap::getMint(notaryID, nymID, instrumentDefinitionID);
-    case QUERY_ASSET_TYPES:
-        return OTAPI_Wrap::queryInstrumentDefinitions(notaryID, nymID, strData);
     case ISSUE_ASSET_TYPE:
         return OTAPI_Wrap::registerInstrumentDefinition(notaryID, nymID,
                                                         strData);

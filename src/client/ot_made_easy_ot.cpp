@@ -631,27 +631,6 @@ OT_MADE_EASY_OT string MadeEasy::get_payment_instrument(
     return strInstrument;
 }
 
-// GET BOX RECEIPT
-// Note: nBoxType is 0 for Nymbox, 1 for Inbox, and 2 for Outbox.
-// Also, if nBoxType is 0 (nymbox) then you have to pass the NymID in the
-// ACCT_ID
-// argument, as well as the NYM_ID argument (you have to pass it twice...)
-// Otherwise for inbox/outbox, pass the actual ACCT_ID there as normal.
-//
-OT_MADE_EASY_OT string
-    MadeEasy::get_box_receipt(const string& NOTARY_ID, const string& NYM_ID,
-                              const string& ACCT_ID, int32_t nBoxType,
-                              const string& STR_TRANS_NUM)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(GET_BOX_RECEIPT, NOTARY_ID, NYM_ID, ACCT_ID,
-                          to_string(nBoxType), STR_TRANS_NUM);
-    string strResponse = theRequest.SendRequest(theRequest, "GET_BOX_RECEIPT");
-
-    return strResponse;
-}
-
 // DOWNLOAD PUBLIC MINT
 //
 OT_MADE_EASY_OT string
@@ -745,63 +724,6 @@ OT_MADE_EASY_OT string
     }
 
     return strMint;
-}
-
-// QUERY ASSET TYPES
-//
-// See if some instrument definitions are issued on the server.
-//
-OT_MADE_EASY_OT string MadeEasy::query_asset_types(const string& NOTARY_ID,
-                                                   const string& NYM_ID,
-                                                   const string& ENCODED_MAP)
-{
-    OTAPI_Func ot_Msg;
-
-    OTAPI_Func theRequest(QUERY_ASSET_TYPES, NOTARY_ID, NYM_ID, ENCODED_MAP);
-    string strResponse =
-        theRequest.SendRequest(theRequest, "QUERY_ASSET_TYPES");
-
-    return strResponse;
-}
-
-// CREATE MARKET OFFER  -- TRANSACTION
-
-OT_MADE_EASY_OT string MadeEasy::create_market_offer(
-    const string& ASSET_ACCT_ID, const string& CURRENCY_ACCT_ID,
-    const string& scale, const string& minIncrement, const string& quantity,
-    const string& price, bool bSelling, const string& strLifespanInSeconds,
-    const string& strStopSign, const string& strActivationPrice)
-{
-    OTAPI_Func ot_Msg;
-
-    string strNotaryID = OTAPI_Wrap::GetAccountWallet_NotaryID(ASSET_ACCT_ID);
-    string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ASSET_ACCT_ID);
-
-    OTAPI_Func theRequest(CREATE_MARKET_OFFER, strNotaryID, strNymID,
-                          ASSET_ACCT_ID, CURRENCY_ACCT_ID, scale, minIncrement,
-                          quantity, price, bSelling);
-
-    // Cannot have more than 10 parameters in a function call, in this script.
-    // So I am forced to set the final parameters by hand, before sending the
-    // transaction:
-    //
-    if (VerifyStringVal(strLifespanInSeconds)) {
-        theRequest.tData =
-            OTTimeGetTimeFromSeconds(stoll(strLifespanInSeconds));
-    }
-
-    if (VerifyStringVal(strStopSign)) {
-        theRequest.strData5 = strStopSign;
-    }
-
-    if (VerifyStringVal(strActivationPrice)) {
-        theRequest.lData = stoll(strActivationPrice);
-    }
-
-    string strResponse =
-        theRequest.SendTransaction(theRequest, "CREATE_MARKET_OFFER");
-
-    return strResponse;
 }
 
 // DEPOSIT PAYMENT PLAN  -- TRANSACTION

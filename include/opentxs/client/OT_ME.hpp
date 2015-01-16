@@ -336,10 +336,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID) const;
 
-    EXPORT std::string query_asset_types(const std::string& NOTARY_ID,
-                                         const std::string& NYM_ID,
-                                         const std::string& ENCODED_MAP) const;
-
     EXPORT std::string create_market_offer(
         const std::string& ASSET_ACCT_ID, const std::string& CURRENCY_ACCT_ID,
         int64_t scale, int64_t minIncrement, int64_t quantity, int64_t price,
