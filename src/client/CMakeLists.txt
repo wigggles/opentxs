@@ -1,7 +1,7 @@
 # Copyright (c) Monetas AG, 2014
 
 include_directories(SYSTEM
-  ${ZMQ_INCLUDE_DIR}
+  ${ZEROMQ_INCLUDE_DIRS}
   ${CZMQ_INCLUDE_DIR}
 )
 
@@ -151,7 +151,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local PUBLIC ${ZMQ_LIBRARY})
+target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local)
 set_lib_property(opentxs-client)
 
 if(WIN32)

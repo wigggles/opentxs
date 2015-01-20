@@ -72,16 +72,15 @@ add_library(anyoption
 )
 
 
-set(ZMQ_BUILD_TESTS OFF CACHE BOOL "")
-
-if (NOT ZMQ_LIB_FOUND)
-  add_subdirectory(libzmq_4)
-endif()
-
 if(ANDROID)
+  set(ZMQ_BUILD_TESTS OFF CACHE BOOL "")
+  add_subdirectory(libzmq_4)
   # needed for czmq
+  set(ZEROMQ_LIBRARIES libzmq)
+  set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
   add_definitions(-D_CRT_ERRNO_DEFINED)
 endif()
+
 # Disable czmq tests. They also cause trouble on Android MIPS
 set(CZMQ_BUILD_TESTS false CACHE BOOL "")
 add_subdirectory(czmq)
@@ -94,6 +93,18 @@ if (APPLE)
 endif()
 set_property(TARGET czmq_local PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libczmq.${lib_ext})
 add_dependencies(czmq_local czmq)
+if (NOT ANDROID)
+  file(STRINGS "${ZEROMQ_INCLUDE_DIRS}/zmq.h" ZMQ_VERSION_MAJOR REGEX "^#define ZMQ_VERSION_MAJOR [0-9]$")
+  string(REGEX REPLACE "^#define ZMQ_VERSION_MAJOR ([0-9])$" "\\1" ZMQ_VERSION_MAJOR "${ZMQ_VERSION_MAJOR}")
+  if (NOT ZMQ_VERSION_MAJOR STREQUAL "4")
+    message(FATAL_ERROR "Wrong ZeroMQ major version ${ZMQ_VERSION_MAJOR}. Required version is 4.x.x")
+  endif()
+else()
+  # reset ZEROMQ_INCLUDE_DIRS because its value was overridden by czmq's CMakeLists.txt
+  set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include PARENT_SCOPE)
+endif()
+set(CZMQ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/czmq/include PARENT_SCOPE)
+
 
 if (NOT WIN32)
   include(GNUInstallDirs)

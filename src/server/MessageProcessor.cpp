@@ -152,12 +152,15 @@ MessageProcessor::MessageProcessor(ServerLoader& loader)
     : server_(loader.getServer())
     , zmqSocket_(zsock_new_rep(NULL))
     , zmqAuth_(zactor_new(zauth, NULL))
+    , zmqPoller_(zpoller_new(zmqSocket_, NULL))
 {
     init(loader.getPort());
 }
 
 MessageProcessor::~MessageProcessor()
 {
+    zpoller_remove(zmqPoller_, zmqSocket_);
+    zpoller_destroy(&zmqPoller_);
     zactor_destroy(&zmqAuth_);
     zsock_destroy(&zmqSocket_);
 }
@@ -189,17 +192,14 @@ void MessageProcessor::run()
             continue;
         }
 
-        zmq_pollitem_t items[1]{zsock_resolve(zmqSocket_), -1, ZMQ_POLLIN, 0};
-        // wait for incoming message or up to timeout, i.e. stop polling in time
-        // for the next cron execution.
-        int rc = zmq_poll(items, 1, timeout);
-        if (items[0].revents & ZMQ_POLLIN) {
+        // wait for incoming message or up to timeout,
+        // i.e. stop polling in time for the next cron execution.
+        if (zpoller_wait(zmqPoller_, timeout)) {
             processSocket();
             continue;
         }
-        if (rc < 0 && errno != EINTR) {
-            otErr << __FUNCTION__ << ": zmq_poll error, errno=" << errno
-                  << "\n";
+        if (!zpoller_expired(zmqPoller_)) {
+            otErr << __FUNCTION__ << ": zpoller_wait error\n";
             // we do not want busy loop if something goes wrong
             Log::SleepMilliseconds(100);
         }
