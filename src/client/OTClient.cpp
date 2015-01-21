@@ -2938,16 +2938,16 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
     // First try to get Credentials, if there are any.
     //
     const OTASCIIArmor& ascArmor =
-        theReply.m_ascPayload; // credentialList  (New style! Credentials.)
+        theReply.m_ascPayload; // credentialIDs  (New style! Credentials.)
     const OTASCIIArmor& ascArmor2 = theReply.m_ascPayload2; // credentials
     const bool bHasCredentials = (ascArmor.Exists() && ascArmor2.Exists());
     if (bHasCredentials) // New style of doing things, for Nym keys.
                          // Credentials!
     {
-        String strCredentialList;
-        ascArmor.GetString(strCredentialList);
+        String strCredentialIDs;
+        ascArmor.GetString(strCredentialIDs);
 
-        if (strCredentialList.Exists()) {
+        if (strCredentialIDs.Exists()) {
             std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
                 OTDB::STORED_OBJ_STRING_MAP, ascArmor2.Get()));
             OTDB::StringMap* pMap =
@@ -2963,7 +2963,7 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
                 theTargetNym.SetIdentifier(strNymID2);
 
                 if (false ==
-                    theTargetNym.LoadFromString(strCredentialList, &theMap)) {
+                    theTargetNym.LoadFromString(strCredentialIDs, &theMap)) {
                     otErr << __FUNCTION__
                           << ": checkNymResponse: Failure loading nym "
                           << strNymID2 << " from credential string.\n";
@@ -7865,7 +7865,7 @@ int32_t OTClient::ProcessUserCommand(
                 const bool bAddedSubkey = theNym.AddNewSubkey(theMasterCredID);
 
                 if (bAddedSubkey) {
-                    theNym.SaveCredentialList();
+                    theNym.SaveCredentialIDs();
                     theNym.GetPublicCredentials(strCredList, &theMap);
                 }
                 else

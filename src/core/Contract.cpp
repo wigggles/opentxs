@@ -2204,7 +2204,7 @@ void Contract::CreateInnerContents()
                                         ascNymIDSource.Get());
                 }
 
-                // credentialList
+                // credentialIDs
                 // credentials
                 //
                 if (bHasCredentials) {
@@ -2365,7 +2365,7 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
                 // alternate download location.
                 // We can also optionally allow people to just directly put the
                 // credentials inside the
-                // contract (credentialList, and credentials). That's why
+                // contract (credentialIDs, and credentials). That's why
                 // hasCredentials can be true or false.
                 // Ideally, people will not do that. Instead, we can download
                 // them from the source, or from
@@ -2415,15 +2415,15 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         // the above block,
         // it was loaded from the contract itself.
         if (bHasCredentials) {
-            String strCredentialList;
-            credListArmor.GetString(strCredentialList);
+            String strCredentialIDs;
+            credListArmor.GetString(strCredentialIDs);
 
-            if (strCredentialList.Exists()) {
+            if (strCredentialIDs.Exists()) {
                 std::unique_ptr<Nym> pNym(new Nym);
                 pNym->SetIdentifier(strSignerNymID);
 
                 if (false ==
-                    pNym->LoadFromString(strCredentialList, &credsMap)) {
+                    pNym->LoadFromString(strCredentialIDs, &credsMap)) {
                     otErr << __FUNCTION__ << ": Failure loading nym "
                           << strSignerNymID << " from credential string.\n";
                 }
@@ -2462,7 +2462,7 @@ void Contract::saveCredentialsToXml(String& result,
                                     const String::Map& credentials)
 {
     if (strCredList.Exists())
-        result.Concatenate("<credentialList>\n%s</credentialList>\n\n",
+        result.Concatenate("<credentialIDs>\n%s</credentialIDs>\n\n",
                            strCredList.Get());
 
     if (!credentials.empty()) {
@@ -2480,9 +2480,8 @@ bool Contract::loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
                                       OTASCIIArmor& credList,
                                       String::Map& credentials)
 {
-    if (!Contract::LoadEncodedTextFieldByName(xml, credList,
-                                              "credentialList")) {
-        otErr << "Error in OTMessage::ProcessXMLNode: Expected credentialList "
+    if (!Contract::LoadEncodedTextFieldByName(xml, credList, "credentialIDs")) {
+        otErr << "Error in OTMessage::ProcessXMLNode: Expected credentialIDs "
                  "element with text field.\n";
         return false;
     }

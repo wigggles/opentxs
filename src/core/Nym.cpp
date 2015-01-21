@@ -901,7 +901,7 @@ bool Nym::AddNewMasterCredential(
     // When that time comes, we'll need to set the altLocation here as
     // well, since it will be optional whenever there is a source involved.
 
-    SaveCredentialList();
+    SaveCredentialIDs();
 
     return true;
 }
@@ -982,7 +982,7 @@ bool Nym::AddNewSubkey(const Identifier& idMasterCredential,
         return false;
     }
 
-    SaveCredentialList();
+    SaveCredentialIDs();
 
     if (nullptr != pstrNewID) *pstrNewID = strSubkeyID;
 
@@ -1063,7 +1063,7 @@ bool Nym::AddNewSubcredential(
         return false;
     }
 
-    SaveCredentialList();
+    SaveCredentialIDs();
 
     return true;
 }
@@ -1483,7 +1483,7 @@ bool Nym::GenerateNym(int32_t nBits, bool bCreateFile, // By default, it
                 const bool bAddedSubkey = AddNewSubkey(theMasterCredID);
 
                 if (bAddedSubkey) {
-                    bSaved = SaveCredentialList();
+                    bSaved = SaveCredentialIDs();
                 }
                 else {
                     bSaved = false;
@@ -4059,7 +4059,7 @@ void Nym::SerializeNymIDSource(String& strOutput) const
     }
 }
 
-void Nym::SaveCredentialListToString(String& strOutput)
+void Nym::SaveCredentialIDsToString(String& strOutput)
 {
     String strNymID;
     GetIdentifier(strNymID);
@@ -4076,12 +4076,12 @@ void Nym::SaveCredentialListToString(String& strOutput)
     strOutput.Concatenate("</nymData>\n");
 }
 
-bool Nym::SaveCredentialList()
+bool Nym::SaveCredentialIDs()
 {
     String strNymID, strOutput;
     GetIdentifier(strNymID);
 
-    SaveCredentialListToString(strOutput);
+    SaveCredentialIDsToString(strOutput);
 
     if (strOutput.Exists()) {
         OTASCIIArmor ascOutput(strOutput);
