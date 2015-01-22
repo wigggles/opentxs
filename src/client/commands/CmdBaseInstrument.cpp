@@ -221,8 +221,9 @@ int32_t CmdBaseInstrument::sendPayment(const string& cheque, string sender,
         return -1;
     }
 
+    OT_ME ot_me;
     string response =
-        MadeEasy::send_user_payment(server, sender, recipient, cheque);
+        ot_me.send_user_payment(server, sender, recipient, cheque);
     return processResponse(response, what);
 }
 

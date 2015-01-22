@@ -132,8 +132,6 @@
 
 #include "CmdProposePlan.hpp"
 
-#include "../ot_made_easy_ot.hpp"
-
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OT_ME.hpp>
 #include <opentxs/core/Log.hpp>
@@ -247,7 +245,7 @@ int32_t CmdProposePlan::run(string server, string mynym, string hisnym,
     // before sending it -- he already has done that by this point, just as part
     // of the proposal itself.)
 
-    string response = MadeEasy::send_user_payment(server, mynym, hisnym, plan);
+    string response = ot_me.send_user_payment(server, mynym, hisnym, plan);
     if (1 != responseStatus(response)) {
         otOut << "Error: cannot send payment plan.\n";
         return harvestTxNumbers(plan, mynym);

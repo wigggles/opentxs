@@ -187,9 +187,6 @@ public:
         const std::vector<std::string>& selectedTokens,
         std::string& recipientNymID, bool bPasswordProtected,
         std::string& strRetainedCopy);
-    EXPORT OT_MADE_EASY_OT static std::string get_payment_instrument(
-        const std::string& NOTARY_ID, const std::string& NYM_ID, int32_t nIndex,
-        const std::string& PRELOADED_INBOX); // PRELOADED_INBOX is optional.
     EXPORT OT_MADE_EASY_OT static bool importCashPurse(
         const std::string& notaryID, const std::string& nymID,
         const std::string& instrumentDefinitionID, std::string& userInput,
@@ -240,10 +237,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& ACCT_FROM, const std::string& ACCT_TO,
         int64_t AMOUNT, const std::string& NOTE);
-    EXPORT OT_MADE_EASY_OT static std::string send_user_cash(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& RECIPIENT_NYM_ID, const std::string& THE_PAYMENT,
-        const std::string& SENDERS_COPY);
     EXPORT OT_MADE_EASY_OT static std::string send_user_cash_pubkey(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
@@ -256,9 +249,6 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,
         const std::string& RECIPIENT_PUBKEY, const std::string& THE_MESSAGE);
-    EXPORT OT_MADE_EASY_OT static std::string send_user_payment(
-        const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& RECIPIENT_NYM_ID, const std::string& THE_PAYMENT);
     EXPORT OT_MADE_EASY_OT static std::string send_user_pmnt_pubkey(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& RECIPIENT_NYM_ID,

@@ -663,8 +663,18 @@ std::string OT_ME::send_user_payment(const std::string& NOTARY_ID,
                                      const std::string& RECIPIENT_NYM_ID,
                                      const std::string& THE_PAYMENT) const
 {
-    return MadeEasy::send_user_payment(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
-                                       THE_PAYMENT);
+    std::string strRecipientPubkey =
+        load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
+
+    if (!VerifyStringVal(strRecipientPubkey)) {
+        otOut << "OT_ME_send_user_payment: Unable to load or "
+                 "retrieve public encryption key for recipient: "
+              << RECIPIENT_NYM_ID << "\n";
+        return strRecipientPubkey; // basically this means "return null".
+    }
+
+    return send_user_pmnt_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                 strRecipientPubkey, THE_PAYMENT);
 }
 
 // SEND USER CASH (only requires recipient's ID, and retrieves pubkey
@@ -676,8 +686,18 @@ std::string OT_ME::send_user_cash(const std::string& NOTARY_ID,
                                   const std::string& THE_PAYMENT,
                                   const std::string& SENDERS_COPY) const
 {
-    return MadeEasy::send_user_cash(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
-                                    THE_PAYMENT, SENDERS_COPY);
+    std::string strRecipientPubkey =
+        load_or_retrieve_encrypt_key(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID);
+
+    if (!VerifyStringVal(strRecipientPubkey)) {
+        otOut << "OT_ME_send_user_payment: Unable to load or "
+                 "retrieve public encryption key for recipient: "
+              << RECIPIENT_NYM_ID << "\n";
+        return strRecipientPubkey; // basically this means "return null".
+    }
+
+    return send_user_cash_pubkey(NOTARY_ID, NYM_ID, RECIPIENT_NYM_ID,
+                                 strRecipientPubkey, THE_PAYMENT, SENDERS_COPY);
 }
 
 bool OT_ME::withdraw_and_send_cash(const std::string& ACCT_ID,
@@ -696,8 +716,42 @@ std::string OT_ME::get_payment_instrument(
     const std::string& NOTARY_ID, const std::string& NYM_ID, int32_t nIndex,
     const std::string& PRELOADED_INBOX) const
 {
-    return MadeEasy::get_payment_instrument(NOTARY_ID, NYM_ID, nIndex,
-                                            PRELOADED_INBOX);
+    std::string strInstrument;
+    std::string strInbox =
+        VerifyStringVal(PRELOADED_INBOX)
+            ? PRELOADED_INBOX
+            : OTAPI_Wrap::LoadPaymentInbox(
+                  NOTARY_ID, NYM_ID); // Returns nullptr, or an inbox.
+
+    if (!VerifyStringVal(strInbox)) {
+        otWarn << "\n\n get_payment_instrument:  "
+                  "OT_API_LoadPaymentInbox Failed. (Probably just "
+                  "doesn't exist yet.)\n\n";
+        return "";
+    }
+
+    int32_t nCount =
+        OTAPI_Wrap::Ledger_GetCount(NOTARY_ID, NYM_ID, NYM_ID, strInbox);
+    if (0 > nCount) {
+        otOut
+            << "Unable to retrieve size of payments inbox ledger. (Failure.)\n";
+        return "";
+    }
+    if (nIndex > (nCount - 1)) {
+        otOut << "Index " << nIndex
+              << " out of bounds. (The last index is: " << (nCount - 1)
+              << ". The first is 0.)\n";
+        return "";
+    }
+
+    strInstrument = OTAPI_Wrap::Ledger_GetInstrument(NOTARY_ID, NYM_ID, NYM_ID,
+                                                     strInbox, nIndex);
+    if (!VerifyStringVal(strInstrument)) {
+        otOut << "Failed trying to get payment instrument from payments box.\n";
+        return "";
+    }
+
+    return strInstrument;
 }
 
 // GET BOX RECEIPT

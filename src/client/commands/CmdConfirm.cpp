@@ -213,8 +213,9 @@ int32_t CmdConfirm::run(string server, string mynym, string myacct,
     }
 
     // use specified payment instrument from inpayments
+    OT_ME ot_me;
     string instrument =
-        MadeEasy::get_payment_instrument(server, mynym, messageNr, "");
+        ot_me.get_payment_instrument(server, mynym, messageNr, "");
     if ("" == instrument) {
         otOut << "Error: cannot load payment instrument.\n";
         return -1;
@@ -608,8 +609,9 @@ int32_t CmdConfirm::sendToNextParty(const string& server, const string& mynym,
         }
     }
 
+    OT_ME ot_me;
     string response =
-        MadeEasy::send_user_payment(server, mynym, hisNymID, contract);
+        ot_me.send_user_payment(server, mynym, hisNymID, contract);
     if (1 != responseStatus(response)) {
         otOut << "\nFor whatever reason, our attempt to send the instrument on "
                  "to the next user has failed.\n";

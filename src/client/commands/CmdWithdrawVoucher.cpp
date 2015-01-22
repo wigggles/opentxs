@@ -246,7 +246,7 @@ int32_t CmdWithdrawVoucher::run(string myacct, string hisnym, string amount,
     // Notice how I can send an instrument to myself. This doesn't actually
     // send anything -- it just puts a copy into my outpayments box for
     // safe-keeping.
-    MadeEasy::send_user_payment(server, mynym, mynym, voucher);
+    ot_me.send_user_payment(server, mynym, mynym, voucher);
 
     if (!MadeEasy::retrieve_account(server, mynym, myacct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
