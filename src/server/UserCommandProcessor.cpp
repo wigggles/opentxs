@@ -294,8 +294,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         // First try to get Credentials, if there are any.
         const bool bHasCredentials =
             (ascArmor.Exists() && !theMessage.credentials.empty());
-        String strCredentialList(ascArmor);
-        if (bHasCredentials && strCredentialList.Exists()) {
+        String strCredentialIDs(ascArmor);
+        if (bHasCredentials && strCredentialIDs.Exists()) {
             // NOTE: This action may very well be a malicious attacker
             // saving a false
             // credential list and a false set of credentials under a
@@ -319,7 +319,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
             // storage.
             //
             if (false ==
-                pNym->LoadFromString(strCredentialList,
+                pNym->LoadFromString(strCredentialIDs,
                                      &theMessage.credentials)) {
                 Log::vError("%s: registerNymResponse: Failure loading nym %s "
                             "from credential string.\n",

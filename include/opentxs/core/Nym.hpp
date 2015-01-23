@@ -566,8 +566,8 @@ public:
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
-    EXPORT bool SaveCredentialList();
-    EXPORT void SaveCredentialListToString(String& strOutput);
+    EXPORT bool SaveCredentialIDs();
+    EXPORT void SaveCredentialIDsToString(String& strOutput);
     EXPORT void SaveCredentialsToString(String& strOutput,
                                         String::Map* pmapPubInfo = nullptr,
                                         String::Map* pmapPriInfo = nullptr);

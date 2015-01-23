@@ -1361,7 +1361,7 @@ public:
 
             // New style:
             if (bCredentials) {
-                result.Concatenate("<credentialList>\n%s</credentialList>\n\n",
+                result.Concatenate("<credentialIDs>\n%s</credentialIDs>\n\n",
                                    m.m_ascPayload.Get());
                 result.Concatenate("<credentials>\n%s</credentials>\n\n",
                                    m.m_ascPayload2.Get());
@@ -1411,7 +1411,7 @@ public:
             m.m_ascInReferenceTo = ascTextExpected;
 
         if (bHasCredentials) {
-            pElementExpected = "credentialList";
+            pElementExpected = "credentialIDs";
             ascTextExpected.Release();
 
             if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
