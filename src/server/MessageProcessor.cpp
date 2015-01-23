@@ -170,6 +170,10 @@ void MessageProcessor::init(int port)
     if (port == 0) {
         OT_FAIL;
     }
+    if (!zsys_has_curve()) {
+        Log::vError("Error: libzmq has no libsodium support");
+        OT_FAIL;
+    }
     zstr_sendx(zmqAuth_, "CURVE", CURVE_ALLOW_ANY, NULL);
     zsock_wait(zmqAuth_);
     zsock_set_zap_domain(zmqSocket_, "global");

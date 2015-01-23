@@ -160,6 +160,10 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
     , m_pServerContract(nullptr)
     , m_pClient(theClient)
 {
+    if (!zsys_has_curve()) {
+        Log::vError("Error: libzmq has no libsodium support");
+        OT_FAIL;
+    }
     zsock_set_linger(socket_zmq, 1000);
     // test key values taken from `man zmq_curve`
     zsock_set_curve_publickey(socket_zmq,

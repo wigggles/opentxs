@@ -71,10 +71,12 @@ add_library(anyoption
   ${CMAKE_CURRENT_SOURCE_DIR}/anyoption/anyoption.cpp
 )
 
-
 if(ANDROID)
   set(ZMQ_BUILD_TESTS OFF CACHE BOOL "")
+  add_definitions(-DHAVE_LIBSODIUM)
   add_subdirectory(libzmq_4)
+  find_library(SODIUM_LIBRARY sodium)
+  set_property(TARGET libzmq PROPERTY LINK_LIBRARIES "${SODIUM_LIBRARY}")
   # needed for czmq
   set(ZEROMQ_LIBRARIES libzmq)
   set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
