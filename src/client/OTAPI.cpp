@@ -481,6 +481,18 @@ std::string OTAPI_Wrap::GetServer_Contract(const std::string& NOTARY_ID)
     return Exec()->GetServer_Contract(NOTARY_ID);
 }
 
+int32_t OTAPI_Wrap::GetCurrencyFactor(
+    const std::string& INSTRUMENT_DEFINITION_ID)
+{
+    return Exec()->GetCurrencyFactor(INSTRUMENT_DEFINITION_ID);
+}
+
+int32_t OTAPI_Wrap::GetCurrencyDecimalPower(
+    const std::string& INSTRUMENT_DEFINITION_ID)
+{
+    return Exec()->GetCurrencyDecimalPower(INSTRUMENT_DEFINITION_ID);
+}
+
 int64_t OTAPI_Wrap::StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& str_input)
 {

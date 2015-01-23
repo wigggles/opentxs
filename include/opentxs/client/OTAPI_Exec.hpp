@@ -695,6 +695,11 @@ public:
         const; // Return's Server's contract (based on
                // server ID)
 
+    int32_t GetCurrencyFactor(
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
+    int32_t GetCurrencyDecimalPower(
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
+
     /** FormatAmount:
     // Input: currency contract, amount. (And locale, internally.)
     // Output: 545 becomes (for example) "$5.45"
