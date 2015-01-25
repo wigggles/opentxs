@@ -39,30 +39,6 @@ add_library(bitcoin-base58
 target_link_libraries(bitcoin-base58 ${OPENSSL_LIBRARIES})
 
 
-### Build bigint as library
-set(bigint-sources
-  ${CMAKE_CURRENT_SOURCE_DIR}/bigint/BigInteger.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/bigint/BigIntegerAlgorithms.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/bigint/BigIntegerUtils.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/bigint/BigUnsigned.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/bigint/BigUnsignedInABase.cc
-)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/bigint/)
-
-if(WIN32)
-  include_directories(${OPENSSL_INCLUDE_DIR})
-  add_library(bigint
-    STATIC
-    ${bigint-sources}
-  )
-else()
-  add_library(bigint
-    ${bigint-sources}
-  )
-endif()
-
-
 ### Build anyoption as library
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -110,7 +86,7 @@ set(CZMQ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/czmq/include PARENT_SCOPE)
 
 if (NOT WIN32)
   include(GNUInstallDirs)
-  install(TARGETS bigint lucre
+  install(TARGETS lucre
           DESTINATION ${CMAKE_INSTALL_LIBDIR}
           EXPORT opentxsTargets
           COMPONENT main)

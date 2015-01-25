@@ -7,9 +7,6 @@
 [submodule "deps/gtest"]
 	path = deps/gtest
 	url = https://github.com/monetas/gtest.git
-[submodule "deps/bigint"]
-	path = deps/bigint
-	url = https://github.com/monetas/BigInt.git
 [submodule "deps/ChaiScript"]
 	path = deps/ChaiScript
 	url = https://github.com/ChaiScript/ChaiScript.git
