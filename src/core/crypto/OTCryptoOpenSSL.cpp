@@ -147,8 +147,6 @@
 
 #include <bitcoin-base58/base58.h>
 
-#include <bigint/BigIntegerLibrary.hh>
-
 #include <thread>
 
 extern "C" {
