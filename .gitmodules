@@ -13,12 +13,6 @@
 [submodule "deps/libzmq_4"]
 	path = deps/libzmq_4
 	url = https://github.com/zeromq/zeromq4-x.git
-[submodule "deps/bitcoin-crypto"]
-	path = deps/bitcoin-crypto
-	url = https://github.com/Open-Transactions/bitcoin-crypto.git
-[submodule "deps/secp256k1"]
-	path = deps/secp256k1
-	url = https://github.com/Open-Transactions/secp256k1.git
 [submodule "deps/bitcoin-base58"]
 	path = deps/bitcoin-base58
 	url = https://github.com/benma/bitcoin-core-base58.git
