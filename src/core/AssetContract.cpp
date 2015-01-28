@@ -310,6 +310,25 @@ inline void separateThousands(std::stringstream& sss, int64_t value,
     sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
 }
 
+int32_t AssetContract::GetCurrencyFactor() const
+{
+    int32_t nFactor = atoi(m_strCurrencyFactor.Get());
+    if (nFactor < 1) nFactor = 1;
+    // should be 1, 10, 100, etc.
+    OT_ASSERT(nFactor > 0);
+
+    return nFactor;
+}
+
+int32_t AssetContract::GetCurrencyDecimalPower() const
+{
+    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get());
+    if (nPower < 0) nPower = 0;
+    // should be 0, 1, 2, etc.
+    OT_ASSERT(nPower >= 0);
+    return nPower;
+}
+
 std::string AssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
                                             int32_t nPower,
                                             const char* szCurrencySymbol,
@@ -350,17 +369,6 @@ bool AssetContract::FormatAmount(int64_t amount,
                                  std::string& str_output) const // Convert 545
                                                                 // to $5.45.
 {
-    int32_t nFactor = atoi(
-        m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
-    if (nFactor < 1) nFactor = 1;
-    OT_ASSERT(nFactor > 0); // should be 1, 10, 100, etc.
-
-    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get()); // default is 2.
-                                                            // ($5.05 is moved 2
-                                                            // decimal places.)
-    if (nPower < 0) nPower = 0;
-    OT_ASSERT(nPower >= 0); // should be 0, 1, 2, etc.
-
     // Lookup separator and decimal point symbols based on locale.
 
     // Get a moneypunct facet from the global ("C") locale
@@ -382,8 +390,8 @@ bool AssetContract::FormatAmount(int64_t amount,
     // it to choose from our own list of hardcoded values. Todo.
 
     str_output = AssetContract::formatLongAmount(
-        amount, nFactor, nPower, m_strCurrencySymbol.Get(), strSeparator.Get(),
-        strDecimalPoint.Get());
+        amount, GetCurrencyFactor(), GetCurrencyDecimalPower(),
+        m_strCurrencySymbol.Get(), strSeparator.Get(), strDecimalPoint.Get());
     return true;
 }
 
@@ -398,16 +406,6 @@ bool AssetContract::FormatAmountWithoutSymbol(
 {
     int64_t lValue = theInput;
     // --------------------------------------------------------
-    // default is 100  (100 cents in a dollar)
-    int32_t nFactor = atoi(m_strCurrencyFactor.Get());
-    if (nFactor < 1) nFactor = 1;
-    OT_ASSERT(nFactor > 0); // should be 1, 10, 100, etc.
-    // --------------------------------------------------------
-    // default is 2. ($5.05 is moved 2 decimal places.)
-    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get());
-    if (nPower < 0) nPower = 0;
-    OT_ASSERT(nPower >= 0); // should be 0, 1, 2, etc.
-    // --------------------------------------------------------
     // Lookup separator and decimal point symbols based on locale.
     // --------------------------------------------------------
     // Get a moneypunct facet from the global ("C") locale
@@ -419,9 +417,9 @@ bool AssetContract::FormatAmountWithoutSymbol(
     static String strSeparator(OT_THOUSANDS_SEP);
     static String strDecimalPoint(OT_DECIMAL_POINT);
 
-    str_output = AssetContract::formatLongAmount(lValue, nFactor, nPower, NULL,
-                                                 strSeparator.Get(),
-                                                 strDecimalPoint.Get());
+    str_output = AssetContract::formatLongAmount(
+        lValue, GetCurrencyFactor(), GetCurrencyDecimalPower(), NULL,
+        strSeparator.Get(), strDecimalPoint.Get());
     return true;
 }
 
@@ -434,17 +432,6 @@ bool AssetContract::StringToAmount(
     int64_t& amount,
     const std::string& str_input) const // Convert $5.45 to amount 545.
 {
-    int32_t nFactor = atoi(
-        m_strCurrencyFactor.Get()); // default is 100  (100 cents in a dollar)
-    if (nFactor < 1) nFactor = 1;
-    OT_ASSERT(nFactor > 0); // should be 1, 10, 100, etc.
-
-    int32_t nPower = atoi(m_strCurrencyDecimalPower.Get()); // default is 2.
-                                                            // ($5.05 is moved 2
-                                                            // decimal places.)
-    if (nPower < 0) nPower = 0;
-    OT_ASSERT(nPower >= 0); // should be 0, 1, 2, etc.
-
     // Lookup separator and decimal point symbols based on locale.
 
     // Get a moneypunct facet from the global ("C") locale
@@ -462,9 +449,9 @@ bool AssetContract::StringToAmount(
     static String strSeparator(",");
     static String strDecimalPoint(".");
 
-    bool bSuccess = AssetContract::ParseFormatted(amount, str_input, nFactor,
-                                                  nPower, strSeparator.Get(),
-                                                  strDecimalPoint.Get());
+    bool bSuccess = AssetContract::ParseFormatted(
+        amount, str_input, GetCurrencyFactor(), GetCurrencyDecimalPower(),
+        strSeparator.Get(), strDecimalPoint.Get());
 
     return bSuccess;
 }

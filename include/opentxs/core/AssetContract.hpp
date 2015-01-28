@@ -181,6 +181,9 @@ public:
 
     EXPORT bool VisitAccountRecords(AccountVisitor& visitor) const;
 
+    EXPORT int32_t GetCurrencyFactor() const;
+    EXPORT int32_t GetCurrencyDecimalPower() const;
+
     EXPORT static std::string formatLongAmount(
         int64_t lValue, int32_t nFactor = 100, int32_t nPower = 2,
         const char* szCurrencySymbol = "",
