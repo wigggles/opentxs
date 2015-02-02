@@ -493,6 +493,18 @@ int32_t OTAPI_Wrap::GetCurrencyDecimalPower(
     return Exec()->GetCurrencyDecimalPower(INSTRUMENT_DEFINITION_ID);
 }
 
+std::string OTAPI_Wrap::GetCurrencyTLA(
+    const std::string& INSTRUMENT_DEFINITION_ID)
+{
+    return Exec()->GetCurrencyTLA(INSTRUMENT_DEFINITION_ID);
+}
+
+std::string OTAPI_Wrap::GetCurrencySymbol(
+    const std::string& INSTRUMENT_DEFINITION_ID)
+{
+    return Exec()->GetCurrencySymbol(INSTRUMENT_DEFINITION_ID);
+}
+
 int64_t OTAPI_Wrap::StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,
                                    const std::string& str_input)
 {

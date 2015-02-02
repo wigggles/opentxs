@@ -713,6 +713,10 @@ public:
 
     EXPORT static std::string FormatAmountWithoutSymbol(
         const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT);
+    EXPORT static std::string GetCurrencyTLA(
+        const std::string& INSTRUMENT_DEFINITION_ID);
+    EXPORT static std::string GetCurrencySymbol(
+        const std::string& INSTRUMENT_DEFINITION_ID);
 
     /** StringToAmount:
      // Input: currency contract, formatted string. (And locale, internally.)

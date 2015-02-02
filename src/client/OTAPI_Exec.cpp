@@ -1344,6 +1344,50 @@ int32_t OTAPI_Exec::GetCurrencyDecimalPower(
     return pContract->GetCurrencyDecimalPower();
 }
 
+std::string OTAPI_Exec::GetCurrencyTLA(
+    const std::string& INSTRUMENT_DEFINITION_ID) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+              << ": Not initialized; call OT_API::Init first.\n";
+        return "";
+    }
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
+        return "";
+    }
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    AssetContract* pContract =
+        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    if (nullptr == pContract) return "";
+    // By this point, pContract is a good pointer.  (No need to cleanup.)
+    return pContract->GetCurrencyTLA().Get();
+}
+
+std::string OTAPI_Exec::GetCurrencySymbol(
+    const std::string& INSTRUMENT_DEFINITION_ID) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+              << ": Not initialized; call OT_API::Init first.\n";
+        return "";
+    }
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
+        otErr << __FUNCTION__
+              << ": Empty INSTRUMENT_DEFINITION_ID passed in!\n";
+        return "";
+    }
+    const Identifier theInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    AssetContract* pContract =
+        OTAPI()->GetAssetType(theInstrumentDefinitionID, __FUNCTION__);
+    if (nullptr == pContract) return "";
+    // By this point, pContract is a good pointer.  (No need to cleanup.)
+    return pContract->GetCurrencySymbol().Get();
+}
+
 // Returns amount from formatted string, based on currency contract and locale.
 //
 int64_t OTAPI_Exec::StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,
