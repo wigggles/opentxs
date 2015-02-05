@@ -302,11 +302,10 @@ void Message::UpdateContents()
     m_xmlUnsigned.Release();
 
     m_lTime = OTTimeGetCurrentTime();
-    
+
     m_xmlUnsigned.Concatenate(
         "<notaryMessage\n version=\"%s\"\n dateSigned=\"%s\">\n\n",
         m_strVersion.Get(), formatTimestamp(m_lTime).c_str());
-
 
     if (!updateContentsByType()) {
         m_xmlUnsigned.Concatenate("<%s\n" // Command

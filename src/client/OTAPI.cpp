@@ -504,12 +504,10 @@ std::string OTAPI_Wrap::GetCurrencySymbol(
 {
     return Exec()->GetCurrencySymbol(INSTRUMENT_DEFINITION_ID);
 }
-    
-    
+
 int64_t OTAPI_Wrap::StringToAmountLocale(
-        const std::string& INSTRUMENT_DEFINITION_ID,
-        const std::string& str_input,
-        const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT)
+    const std::string& INSTRUMENT_DEFINITION_ID, const std::string& str_input,
+    const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT)
 {
     return Exec()->StringToAmountLocale(INSTRUMENT_DEFINITION_ID, str_input,
                                         THOUSANDS_SEP, DECIMAL_POINT);
@@ -528,8 +526,7 @@ std::string OTAPI_Wrap::FormatAmountWithoutSymbolLocale(
     const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT)
 {
     return Exec()->FormatAmountWithoutSymbolLocale(
-                    INSTRUMENT_DEFINITION_ID, THE_AMOUNT,
-                    THOUSANDS_SEP, DECIMAL_POINT);
+        INSTRUMENT_DEFINITION_ID, THE_AMOUNT, THOUSANDS_SEP, DECIMAL_POINT);
 }
 
 int64_t OTAPI_Wrap::StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,

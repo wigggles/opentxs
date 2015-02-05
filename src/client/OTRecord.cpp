@@ -180,10 +180,9 @@ bool OTRecord::FormatAmountWithoutSymbol(std::string& str_output)
     return (!str_output.empty());
 }
 
-bool OTRecord::FormatAmountLocale(
-    std::string& str_output,
-    const std::string& str_thousands,
-    const std::string& str_decimal) const
+bool OTRecord::FormatAmountLocale(std::string& str_output,
+                                  const std::string& str_thousands,
+                                  const std::string& str_decimal) const
 {
     if (m_str_amount.empty() ||
         m_str_instrument_definition_id.empty()) // Need these to do the
@@ -197,15 +196,14 @@ bool OTRecord::FormatAmountLocale(
     }
     str_output = OTAPI_Wrap::It()->FormatAmountLocale(
         m_str_instrument_definition_id,
-        OTAPI_Wrap::It()->StringToLong(m_str_amount),
-        str_thousands, str_decimal);
+        OTAPI_Wrap::It()->StringToLong(m_str_amount), str_thousands,
+        str_decimal);
     return (!str_output.empty());
 }
 
-bool OTRecord::FormatAmountWithoutSymbolLocale(
-    std::string& str_output,
-    const std::string& str_thousands,
-    const std::string& str_decimal)
+bool OTRecord::FormatAmountWithoutSymbolLocale(std::string& str_output,
+                                               const std::string& str_thousands,
+                                               const std::string& str_decimal)
 {
     if (m_str_amount.empty() || m_str_instrument_definition_id.empty()) {
         return false;
@@ -213,8 +211,8 @@ bool OTRecord::FormatAmountWithoutSymbolLocale(
 
     str_output = OTAPI_Wrap::It()->FormatAmountWithoutSymbolLocale(
         m_str_instrument_definition_id,
-        OTAPI_Wrap::It()->StringToLong(m_str_amount),
-        str_thousands, str_decimal);
+        OTAPI_Wrap::It()->StringToLong(m_str_amount), str_thousands,
+        str_decimal);
     return (!str_output.empty());
 }
 
