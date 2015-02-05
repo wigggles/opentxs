@@ -711,8 +711,14 @@ public:
     // Returns formatted string for output, for a given amount, based on
     // currency contract and locale.
     */
-    EXPORT std::string FormatAmount(const std::string& INSTRUMENT_DEFINITION_ID,
-                                    const int64_t& THE_AMOUNT) const;
+    EXPORT std::string FormatAmount(
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const int64_t& THE_AMOUNT) const;
+    EXPORT std::string FormatAmountLocale(
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const int64_t& THE_AMOUNT,
+        const std::string& THOUSANDS_SEP,
+        const std::string& DECIMAL_POINT) const;
 
     /** FormatAmountWithoutSymbol:
     // Input: currency contract, amount. (And locale, internally.)
@@ -722,37 +728,49 @@ public:
     // currency contract and locale.
     */
     EXPORT std::string FormatAmountWithoutSymbol(
-        const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT);
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const int64_t& THE_AMOUNT) const;
+    EXPORT std::string FormatAmountWithoutSymbolLocale(
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const int64_t& THE_AMOUNT,
+        const std::string& THOUSANDS_SEP,
+        const std::string& DECIMAL_POINT) const;
 
     /** StringToAmount:
     // Input: currency contract, formatted string. (And locale, internally.)
     // Output: "$5.45" becomes 545 (for example.)
     //
     // Returns amount from formatted string, based on currency contract and
-    locale.
+    // locale.
     */
-    EXPORT int64_t StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,
-                                  const std::string& str_input) const;
+    EXPORT int64_t StringToAmount(
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& str_input) const;
+    EXPORT int64_t StringToAmountLocale(
+        const std::string& INSTRUMENT_DEFINITION_ID,
+        const std::string& str_input,
+        const std::string& THOUSANDS_SEP,
+        const std::string& DECIMAL_POINT) const;
 
-    EXPORT std::string GetAssetType_ID(const int32_t& nIndex) const; // returns
-                                                                     // Asset
-                                                                     // Type ID
-                                                                     // (based
-                                                                     // on index
-                                                                     // from
-    // GetAssetTypeCount)
+    /** GetAssetType_ID:
+     Returns Asset Type ID based on index from GetAssetTypeCount.
+     */
+    EXPORT std::string GetAssetType_ID(const int32_t& nIndex) const;
+
+    /** GetAssetType_Name:
+     Returns asset type name based on Instrument Definition ID.
+     */
     EXPORT std::string GetAssetType_Name(
-        const std::string& INSTRUMENT_DEFINITION_ID) const; // Returns asset
-                                                            // type name
-                                                            // based on
-    // Instrument Definition ID
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
+    
     EXPORT std::string GetAssetType_TLA(const std::string& THE_ID) const;
-    EXPORT std::string GetAssetType_Contract(
-        const std::string& INSTRUMENT_DEFINITION_ID) const; // Returns currency
-                                                            // contract
-                                                            // based on
-    // Instrument Definition ID
 
+    /** GetAssetType_Contract:
+     Returns currency contract based on Instrument Definition ID.
+     */
+    EXPORT std::string GetAssetType_Contract(
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
+    
     /** You already have accounts in your wallet (without any server
     communications)
     // and these functions allow you to query the data members of those
