@@ -699,6 +699,10 @@ public:
         const std::string& INSTRUMENT_DEFINITION_ID) const;
     int32_t GetCurrencyDecimalPower(
         const std::string& INSTRUMENT_DEFINITION_ID) const;
+    std::string GetCurrencyTLA(
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
+    std::string GetCurrencySymbol(
+        const std::string& INSTRUMENT_DEFINITION_ID) const;
 
     /** FormatAmount:
     // Input: currency contract, amount. (And locale, internally.)
