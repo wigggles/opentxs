@@ -180,6 +180,44 @@ bool OTRecord::FormatAmountWithoutSymbol(std::string& str_output)
     return (!str_output.empty());
 }
 
+bool OTRecord::FormatAmountLocale(
+    std::string& str_output,
+    const std::string& str_thousands,
+    const std::string& str_decimal) const
+{
+    if (m_str_amount.empty() ||
+        m_str_instrument_definition_id.empty()) // Need these to do the
+                                                // formatting.
+    {
+        //      otOut << __FUNCTION__ << ": Unable to format amount. Type: " <<
+        // m_str_type << " Amount:
+        // " << m_str_amount << "  Asset: " << m_str_instrument_definition_id <<
+        // "";
+        return false;
+    }
+    str_output = OTAPI_Wrap::It()->FormatAmountLocale(
+        m_str_instrument_definition_id,
+        OTAPI_Wrap::It()->StringToLong(m_str_amount),
+        str_thousands, str_decimal);
+    return (!str_output.empty());
+}
+
+bool OTRecord::FormatAmountWithoutSymbolLocale(
+    std::string& str_output,
+    const std::string& str_thousands,
+    const std::string& str_decimal)
+{
+    if (m_str_amount.empty() || m_str_instrument_definition_id.empty()) {
+        return false;
+    }
+
+    str_output = OTAPI_Wrap::It()->FormatAmountWithoutSymbolLocale(
+        m_str_instrument_definition_id,
+        OTAPI_Wrap::It()->StringToLong(m_str_amount),
+        str_thousands, str_decimal);
+    return (!str_output.empty());
+}
+
 bool OTRecord::FormatMailSubject(std::string& str_output) const
 {
     str_output.clear();
