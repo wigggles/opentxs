@@ -195,35 +195,26 @@ public:
                                       const char* szThousandSeparator = ",",
                                       const char* szDecimalPoint = ".");
 
-    //deprecated
-    EXPORT bool FormatAmount(
-        int64_t amount,
-        std::string& str_output) const;
-    //deprecated
-    EXPORT bool FormatAmountWithoutSymbol(
-        int64_t amount,
-        std::string& str_output) const;
-    //deprecated
-    EXPORT bool StringToAmount(
-        int64_t& amount,
-        const std::string& str_input) const;
+    // deprecated
+    EXPORT bool FormatAmount(int64_t amount, std::string& str_output) const;
+    // deprecated
+    EXPORT bool FormatAmountWithoutSymbol(int64_t amount,
+                                          std::string& str_output) const;
+    // deprecated
+    EXPORT bool StringToAmount(int64_t& amount,
+                               const std::string& str_input) const;
 
-    EXPORT bool FormatAmountLocale(
-        int64_t amount,
-        std::string& str_output,
-        const std::string& str_thousand,
-        const std::string& str_decimal) const;
+    EXPORT bool FormatAmountLocale(int64_t amount, std::string& str_output,
+                                   const std::string& str_thousand,
+                                   const std::string& str_decimal) const;
     EXPORT bool FormatAmountWithoutSymbolLocale(
-        int64_t amount,
-        std::string& str_output,
-        const std::string& str_thousand,
-        const std::string& str_decimal) const;
-    
-    EXPORT bool StringToAmountLocale(
-        int64_t& amount,
-        const std::string& str_input,
-        const std::string& str_thousand,
-        const std::string& str_decimal) const;
+        int64_t amount, std::string& str_output,
+        const std::string& str_thousand, const std::string& str_decimal) const;
+
+    EXPORT bool StringToAmountLocale(int64_t& amount,
+                                     const std::string& str_input,
+                                     const std::string& str_thousand,
+                                     const std::string& str_decimal) const;
 
     EXPORT const String& GetBasketInfo() const
     {

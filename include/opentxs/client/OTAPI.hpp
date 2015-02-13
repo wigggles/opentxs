@@ -713,18 +713,15 @@ public:
 
     EXPORT static std::string FormatAmountWithoutSymbol(
         const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT);
-    
+
     EXPORT static std::string FormatAmountLocale(
         const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT,
-        const std::string& THOUSANDS_SEP,
-        const std::string& DECIMAL_POINT);
-    
+        const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT);
+
     EXPORT static std::string FormatAmountWithoutSymbolLocale(
         const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT,
-        const std::string& THOUSANDS_SEP,
-        const std::string& DECIMAL_POINT);
-    
-    
+        const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT);
+
     EXPORT static std::string GetCurrencyTLA(
         const std::string& INSTRUMENT_DEFINITION_ID);
     EXPORT static std::string GetCurrencySymbol(
@@ -740,13 +737,11 @@ public:
     EXPORT static int64_t StringToAmount(
         const std::string& INSTRUMENT_DEFINITION_ID,
         const std::string& str_input);
-    
+
     EXPORT static int64_t StringToAmountLocale(
         const std::string& INSTRUMENT_DEFINITION_ID,
-        const std::string& str_input,
-        const std::string& THOUSANDS_SEP,
+        const std::string& str_input, const std::string& THOUSANDS_SEP,
         const std::string& DECIMAL_POINT);
-    
 
     EXPORT static std::string GetAssetType_ID(
         const int32_t& nIndex); // returns Instrument Definition ID (based on

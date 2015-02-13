@@ -337,13 +337,11 @@ public:
     EXPORT int32_t GetMaximumNoPayments() const;
     EXPORT bool FormatAmount(std::string& str_output) const;
     EXPORT bool FormatAmountWithoutSymbol(std::string& str_output);
-    EXPORT bool FormatAmountLocale(
-        std::string& str_output,
-        const std::string& str_thousands,
-        const std::string& str_decimal) const;
+    EXPORT bool FormatAmountLocale(std::string& str_output,
+                                   const std::string& str_thousands,
+                                   const std::string& str_decimal) const;
     EXPORT bool FormatAmountWithoutSymbolLocale(
-        std::string& str_output,
-        const std::string& str_thousands,
+        std::string& str_output, const std::string& str_thousands,
         const std::string& str_decimal);
     EXPORT bool FormatDescription(std::string& str_output) const;
     EXPORT bool FormatShortMailDescription(std::string& str_output) const;

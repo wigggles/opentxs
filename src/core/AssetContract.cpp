@@ -365,16 +365,14 @@ std::string AssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
 // (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
 //  separator of "," and decimal point of ".")
 //
-bool AssetContract::FormatAmount(
-    int64_t amount,
-    std::string& str_output) const // Convert 545
-                                   // to $5.45
+bool AssetContract::FormatAmount(int64_t amount,
+                                 std::string& str_output) const // Convert 545
+                                                                // to $5.45
 {
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
-    return FormatAmountLocale(amount, str_output,
-                              str_thousand, str_decimal);
+    return FormatAmountLocale(amount, str_output, str_thousand, str_decimal);
 }
 
 // Convert 912545 to "9,125.45"
@@ -389,8 +387,8 @@ bool AssetContract::FormatAmountWithoutSymbol(
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
-    return FormatAmountWithoutSymbolLocale(amount, str_output,
-                                           str_thousand, str_decimal);
+    return FormatAmountWithoutSymbolLocale(amount, str_output, str_thousand,
+                                           str_decimal);
 }
 
 // Convert "$9,125.45" to 912545.
@@ -404,16 +402,13 @@ bool AssetContract::StringToAmount(
 {
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
-    
-    return StringToAmountLocale(amount, str_input,
-                                str_thousand, str_decimal);
+
+    return StringToAmountLocale(amount, str_input, str_thousand, str_decimal);
 }
 
-
-bool AssetContract::FormatAmountLocale(int64_t amount,
-    std::string& str_output,
-    const std::string& str_thousand,
-    const std::string& str_decimal) const
+bool AssetContract::FormatAmountLocale(int64_t amount, std::string& str_output,
+                                       const std::string& str_thousand,
+                                       const std::string& str_decimal) const
 {
     // Lookup separator and decimal point symbols based on locale.
 
@@ -423,10 +418,10 @@ bool AssetContract::FormatAmountLocale(int64_t amount,
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    static String strSeparator(str_thousand.empty()
-                               ? OT_THOUSANDS_SEP : str_thousand);
-    static String strDecimalPoint(str_decimal.empty()
-                                  ? OT_DECIMAL_POINT : str_decimal);
+    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
+                                                    : str_thousand);
+    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
+                                                      : str_decimal);
 
     // NOTE: from web searching, I've determined that locale / moneypunct has
     // internationalization problems. Therefore it looks like if you want to
@@ -442,10 +437,9 @@ bool AssetContract::FormatAmountLocale(int64_t amount,
         m_strCurrencySymbol.Get(), strSeparator.Get(), strDecimalPoint.Get());
     return true; // Note: might want to return false if str_output is empty.
 }
-    
-bool AssetContract::FormatAmountWithoutSymbolLocale(int64_t amount,
-    std::string& str_output,
-    const std::string& str_thousand,
+
+bool AssetContract::FormatAmountWithoutSymbolLocale(
+    int64_t amount, std::string& str_output, const std::string& str_thousand,
     const std::string& str_decimal) const
 {
     // --------------------------------------------------------
@@ -457,10 +451,10 @@ bool AssetContract::FormatAmountWithoutSymbolLocale(int64_t amount,
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    static String strSeparator(str_thousand.empty()
-                               ? OT_THOUSANDS_SEP : str_thousand);
-    static String strDecimalPoint(str_decimal.empty()
-                                  ? OT_DECIMAL_POINT : str_decimal);
+    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
+                                                    : str_thousand);
+    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
+                                                      : str_decimal);
 
     str_output = AssetContract::formatLongAmount(
         amount, GetCurrencyFactor(), GetCurrencyDecimalPower(), NULL,
@@ -469,9 +463,9 @@ bool AssetContract::FormatAmountWithoutSymbolLocale(int64_t amount,
 }
 
 bool AssetContract::StringToAmountLocale(int64_t& amount,
-    const std::string& str_input,
-    const std::string& str_thousand,
-    const std::string& str_decimal) const
+                                         const std::string& str_input,
+                                         const std::string& str_thousand,
+                                         const std::string& str_decimal) const
 {
     // Lookup separator and decimal point symbols based on locale.
 
@@ -487,10 +481,10 @@ bool AssetContract::StringToAmountLocale(int64_t& amount,
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    static String strSeparator(str_thousand.empty()
-                               ? OT_THOUSANDS_SEP : str_thousand);
-    static String strDecimalPoint(str_decimal.empty()
-                                  ? OT_DECIMAL_POINT : str_decimal);
+    static String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP
+                                                    : str_thousand);
+    static String strDecimalPoint(str_decimal.empty() ? OT_DECIMAL_POINT
+                                                      : str_decimal);
 
     bool bSuccess = AssetContract::ParseFormatted(
         amount, str_input, GetCurrencyFactor(), GetCurrencyDecimalPower(),

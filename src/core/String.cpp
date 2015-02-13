@@ -138,7 +138,8 @@
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/util/StringUtils.hpp>
 
-#if !(defined(_WIN32) || defined(TARGET_OS_IPHONE) || defined(ANDROID))
+#if !(defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||    \
+      defined(ANDROID))
 #include <wordexp.h>
 #endif
 
@@ -443,7 +444,8 @@ bool String::operator>=(const String& s2) const
 bool String::TokenizeIntoKeyValuePairs(
     std::map<std::string, std::string>& mapOutput) const
 {
-#if !(defined(_WIN32) || defined(TARGET_OS_IPHONE) || defined(ANDROID))
+#if !(defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||    \
+      defined(ANDROID))
     // fabcy-pansy parser that allows for multiple level of quotes nesting and
     // escaped quotes
     if (!Exists()) return true;

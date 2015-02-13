@@ -198,6 +198,36 @@ extern "C" {
 }
 #endif
 
+// On certain platforms we can actually check to
+// see if the PID is running, and if not, we can
+// proceed even if the PID is in the file. (To
+// spare the user from having to delete the pid
+// file by hand.)
+//
+#ifdef PREDEF_PLATFORM_UNIX
+
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#include <CoreServices/CoreServices.h>
+#endif
+
+#if defined(ANDROID)
+// blank
+#elif defined(TARGET_OS_MAC)
+
+#if TARGET_OS_MAC
+#include <sys/wait.h>
+#define OT_CHECK_PID 1
+#endif
+
+#else
+#include <sys/types.h>
+#include <sys/wait.h>
+#define OT_CHECK_PID 1
+#endif
+
+#endif
+
 #define CLIENT_CONFIG_KEY "client"
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
 #define CLIENT_WALLET_FILENAME "wallet.xml"
@@ -378,6 +408,7 @@ public:
     void OpenPid(const String& strPidFilePath);
     void ClosePid();
     bool IsPidOpen() const;
+    static bool PIDAutorecoverImpossible(uint32_t pid);
 
 private:
     bool m_bIsPidOpen;
@@ -393,6 +424,19 @@ OT_API::Pid::Pid()
 OT_API::Pid::~Pid()
 {
     // nothing for now
+}
+
+// static
+bool OT_API::Pid::PIDAutorecoverImpossible(uint32_t pid)
+{
+#ifdef OT_CHECK_PID
+    while (waitpid(-1, 0, WNOHANG) > 0) {
+        // Wait for defunct....
+    }
+
+    if (0 != kill(pid, 0)) return false; // Process exists
+#endif
+    return true;
 }
 
 void OT_API::Pid::OpenPid(const String& strPidFilePath)
@@ -445,7 +489,7 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
             pid_infile.close();
 
             // There was a real PID in there.
-            if (old_pid != 0) {
+            if ((old_pid != 0) && PIDAutorecoverImpossible(old_pid)) {
                 const uint64_t lPID = old_pid;
                 otErr
                     << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
@@ -459,7 +503,8 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
                        "normally "
                        "cleaned "
                        "up during AppCleanup / AppShutdown. (Or should be.)\n";
-#ifndef ANDROID
+
+#if !(defined(ANDROID) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE))
                 m_bIsPidOpen = false;
                 return;
 #endif

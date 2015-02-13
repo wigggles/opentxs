@@ -1395,19 +1395,14 @@ int64_t OTAPI_Exec::StringToAmount(const std::string& INSTRUMENT_DEFINITION_ID,
 {
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
-    
-    return StringToAmountLocale(
-        INSTRUMENT_DEFINITION_ID,
-        str_input,
-        str_thousand,
-        str_decimal);
+
+    return StringToAmountLocale(INSTRUMENT_DEFINITION_ID, str_input,
+                                str_thousand, str_decimal);
 }
 
 int64_t OTAPI_Exec::StringToAmountLocale(
-        const std::string& INSTRUMENT_DEFINITION_ID,
-        const std::string& str_input,
-        const std::string& THOUSANDS_SEP,
-        const std::string& DECIMAL_POINT) const
+    const std::string& INSTRUMENT_DEFINITION_ID, const std::string& str_input,
+    const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1427,11 +1422,10 @@ int64_t OTAPI_Exec::StringToAmountLocale(
     // By this point, pContract is a good pointer.  (No need to cleanup.)
     int64_t theResult;
     bool bParsed = pContract->StringToAmountLocale(
-        theResult, str_input,
-        THOUSANDS_SEP, DECIMAL_POINT);
+        theResult, str_input, THOUSANDS_SEP, DECIMAL_POINT);
     return bParsed ? theResult : StringToLong(str_input);
 }
-    
+
 // Returns formatted string for output, for a given amount, based on currency
 // contract and locale.
 //
@@ -1442,18 +1436,13 @@ std::string OTAPI_Exec::FormatAmount(
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
 
-    return FormatAmountLocale(
-        INSTRUMENT_DEFINITION_ID,
-        THE_AMOUNT,
-        str_thousand,
-        str_decimal);
+    return FormatAmountLocale(INSTRUMENT_DEFINITION_ID, THE_AMOUNT,
+                              str_thousand, str_decimal);
 }
 
 std::string OTAPI_Exec::FormatAmountLocale(
-        const std::string& INSTRUMENT_DEFINITION_ID,
-        const int64_t& THE_AMOUNT,
-        const std::string& THOUSANDS_SEP,
-        const std::string& DECIMAL_POINT) const
+    const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT,
+    const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1485,35 +1474,29 @@ std::string OTAPI_Exec::FormatAmountLocale(
     std::string str_result;
     const bool bFormatted =
         pContract->FormatAmountLocale( // Convert 545 to $5.45.
-            theAmount, str_result,
-            THOUSANDS_SEP, DECIMAL_POINT);
+            theAmount, str_result, THOUSANDS_SEP, DECIMAL_POINT);
     const String strOutput(bFormatted ? str_result.c_str() : strBackup.Get());
 
     std::string pBuf = strOutput.Get();
     return pBuf;
 }
-    
+
 // Returns formatted string for output, for a given amount, based on currency
 // contract and locale.
 std::string OTAPI_Exec::FormatAmountWithoutSymbol(
-        const std::string& INSTRUMENT_DEFINITION_ID,
-        const int64_t& THE_AMOUNT) const
+    const std::string& INSTRUMENT_DEFINITION_ID,
+    const int64_t& THE_AMOUNT) const
 {
     const std::string str_thousand(OT_THOUSANDS_SEP);
     const std::string str_decimal(OT_DECIMAL_POINT);
-    
-    return FormatAmountWithoutSymbolLocale(
-        INSTRUMENT_DEFINITION_ID,
-        THE_AMOUNT,
-        str_thousand,
-        str_decimal);
+
+    return FormatAmountWithoutSymbolLocale(INSTRUMENT_DEFINITION_ID, THE_AMOUNT,
+                                           str_thousand, str_decimal);
 }
 
 std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
-        const std::string& INSTRUMENT_DEFINITION_ID,
-        const int64_t& THE_AMOUNT,
-        const std::string& THOUSANDS_SEP,
-        const std::string& DECIMAL_POINT) const
+    const std::string& INSTRUMENT_DEFINITION_ID, const int64_t& THE_AMOUNT,
+    const std::string& THOUSANDS_SEP, const std::string& DECIMAL_POINT) const
 {
     bool bIsInitialized = OTAPI()->IsInitialized();
     if (!bIsInitialized) {
@@ -1536,14 +1519,13 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
     String strBackup(LongToString(THE_AMOUNT));
     std::string str_result; // Convert 545 to $5.45.
     const bool bFormatted = pContract->FormatAmountWithoutSymbolLocale(
-        THE_AMOUNT, str_result,
-        THOUSANDS_SEP, DECIMAL_POINT);
+        THE_AMOUNT, str_result, THOUSANDS_SEP, DECIMAL_POINT);
     const String strOutput(bFormatted ? str_result.c_str() : strBackup.Get());
 
     std::string pBuf = strOutput.Get();
     return pBuf;
 }
-    
+
 std::string OTAPI_Exec::GetAssetType_Contract(
     const std::string& INSTRUMENT_DEFINITION_ID) const // Returns currency
                                                        // contract based on

@@ -1910,12 +1910,12 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_FormatAmount");
         theScript.chai->add(fun(&OTAPI_Wrap::FormatAmountWithoutSymbol),
                             "OT_API_FormatAmountWithoutSymbol");
-        
+
         theScript.chai->add(fun(&OTAPI_Wrap::FormatAmountLocale),
                             "OT_API_FormatAmountLocale");
         theScript.chai->add(fun(&OTAPI_Wrap::FormatAmountWithoutSymbolLocale),
                             "OT_API_FormatAmntWoSymbolLocale");
-        
+
         theScript.chai->add(fun(&OTAPI_Wrap::StringToAmount),
                             "OT_API_StringToAmount");
         theScript.chai->add(fun(&OTAPI_Wrap::StringToAmountLocale),
