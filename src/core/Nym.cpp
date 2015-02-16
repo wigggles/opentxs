@@ -3643,32 +3643,6 @@ bool Nym::SavePublicKey(const String& strPath) const
     return true;
 }
 
-bool Nym::SavePublicKey(std::ofstream& ofs) const
-{
-    OT_ASSERT(nullptr != m_pkeypair);
-
-    // By passing in an OTString instead of OTASCIIArmor, it knows to add the
-    // bookends
-    // ----- BEGIN PUBLIC KEY  etc.  These bookends are necessary for
-    // OTASCIIArmor to later
-    // read the thing back up into memory again.
-    String strKey;
-
-    if (m_pkeypair->GetPublicKey(strKey, false)) // false means "do not ESCAPE
-                                                 // the bookends"
-    // Ie we'll get ----------- instead of - ---------
-    {
-        strKey.WriteToFile(ofs);
-    }
-    else {
-        otErr << "Error in OTPseudonym::SavePublicKey: unable to GetPublicKey "
-                 "from Nym\n";
-        return false;
-    }
-
-    return true;
-}
-
 // pstrID is an output parameter.
 bool Nym::Server_PubKeyExists(String* pstrID) // Only used
                                               // on server
