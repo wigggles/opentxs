@@ -1671,11 +1671,6 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(Nym& theNym,
         //
         NumList theNumlist;
 
-        int64_t lFirstTransNum =
-            0; // While there may be 20 transaction numbers on this tranasction,
-               // ONE of them (the first one) is the "official" number of this
-               // transaction. The rest are just attached in an extra variable.
-
         // Update: Now we're going to grab 20 or 30 transaction numbers,
         // instead of just 1 like before!!!
         //
@@ -1689,19 +1684,26 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(Nym& theNym,
             // AHHHH Because I drop it into the Nymbox instead, and make him
             // sign for it!
 
-            if (false ==
-                server_->transactor_.issueNextTransactionNumber(lTransNum)) {
+            if (!server_->transactor_.issueNextTransactionNumber(lTransNum)) {
                 lTransNum = 0;
-                Log::Error("UserCommandProcessor::UserCmdGetTransactionNu: "
-                           "Error issuing "
-                           "next transaction number!\n");
+                Log::Error(
+                    "UserCommandProcessor::UserCmdGetTransactionNumbers: "
+                    "Error issuing "
+                    "next transaction number!\n");
                 bSuccess = false;
                 break;
             }
 
             theNumlist.Add(lTransNum); // <=========
-            if (0 == i)                // First iteration
-                lFirstTransNum = lTransNum;
+        }
+
+        int64_t transactionNumber;
+        if (bSuccess &&
+            !server_->transactor_.issueNextTransactionNumber(
+                transactionNumber)) {
+            Log::Error("UserCommandProcessor::UserCmdGetTransactionNumbers: "
+                       "Error issuing transaction number!\n");
+            bSuccess = false;
         }
 
         if (!bSuccess) {
@@ -1735,7 +1737,7 @@ void UserCommandProcessor::UserCmdGetTransactionNumbers(Nym& theNym,
 
             OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
                 theLedger, OTTransaction::blank,
-                lFirstTransNum); // Generate a new OTTransaction::blank
+                transactionNumber); // Generate a new OTTransaction::blank
 
             if (nullptr !=
                 pTransaction) // The above has an OT_ASSERT within, but
