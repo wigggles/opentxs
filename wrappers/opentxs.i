@@ -103,6 +103,7 @@ namespace std {
 
 
 %rename(OTRecordLessThan) opentxs::OTRecord::operator<(const OTRecord& rhs); 
+%apply std::string &OUTPUT { std::string& STR_RETAINED_COPY };
 
 %feature("director") OTCallback;
 %feature("director") OTNameLookup;
