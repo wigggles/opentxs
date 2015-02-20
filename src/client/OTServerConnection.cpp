@@ -165,20 +165,13 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
         OT_FAIL;
     }
     zsock_set_linger(socket_zmq, 1000);
-    // test key values taken from `man zmq_curve`
-    zsock_set_curve_publickey(socket_zmq,
-                              "Yne@$w-vo<fVvi]a<NY6T1ed:M$fCG*[IaLV{hID");
-    zsock_set_curve_secretkey(socket_zmq,
-                              "D:)Q[IlAW!ahhC2ac:9*A}h:p?([4%wOTJ%JR%cs");
+    zcert_apply(zcert_new(), socket_zmq);
+    // test key value taken from `man zmq_curve`
     zsock_set_curve_serverkey(socket_zmq,
                               "rq:rM>}U?@Lns47E1%kR.o@n%FcmmsL/@{H8]yf7");
 
-    try {
-        zsock_connect(socket_zmq, "%s", endpoint.c_str());
-    }
-    catch (const std::exception& e) {
-        Log::vError("Failed to connect to %s: %s \n", endpoint.c_str(),
-                    e.what());
+    if (zsock_connect(socket_zmq, "%s", endpoint.c_str())) {
+        Log::vError("Failed to connect to %s\n", endpoint.c_str());
         OT_FAIL;
     }
 }
