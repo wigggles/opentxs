@@ -224,8 +224,6 @@ protected:
     String m_strContents; // The actual final public credential as sent to the
                           // server. Does not include private keys, even on
                           // client side.
-    void UpdateMasterPublicToString(String& strAppendTo);     // Used in
-                                                              // UpdateContents.
     void UpdatePublicContentsToString(String& strAppendTo);   // Used in
                                                               // UpdateContents.
     void UpdatePublicCredentialToString(String& strAppendTo); // Used in

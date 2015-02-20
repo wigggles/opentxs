@@ -232,7 +232,6 @@ void OTSubkey::UpdateContents()
     // MASTER-SIGNED INFO
     if (OTSubcredential::credMasterSigned == m_StoreAs ||
         OTSubcredential::credPrivateInfo == m_StoreAs) {
-        UpdateMasterPublicToString(m_xmlUnsigned);
         UpdatePublicContentsToString(m_xmlUnsigned);
     }
     // PUBLIC INFO (signed by subkey, contains master signed info.)

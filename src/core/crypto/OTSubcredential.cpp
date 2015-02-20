@@ -235,15 +235,6 @@ void OTSubcredential::SetNymIDandSource(const String& strNymID,
     m_strSourceForNymID = strSourceForNymID;
 }
 
-void OTSubcredential::UpdateMasterPublicToString(
-    String& strAppendTo) // Used in UpdateContents.
-{
-    OT_ASSERT(nullptr != m_pOwner);
-    OTASCIIArmor ascMaster(m_pOwner->GetPubCredential());
-    strAppendTo.Concatenate("<masterPublic>\n%s</masterPublic>\n\n",
-                            ascMaster.Get());
-}
-
 void OTSubcredential::UpdatePublicContentsToString(
     String& strAppendTo) // Used in UpdateContents.
 {
@@ -318,8 +309,6 @@ void OTSubcredential::UpdateContents()
     // public info.)
     {
         // PUBLIC INFO
-        UpdateMasterPublicToString(m_xmlUnsigned);
-
         UpdatePublicContentsToString(m_xmlUnsigned);
     }
 
@@ -377,33 +366,6 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1); // error condition
         }
         if (ascTemp.Exists()) ascTemp.GetString(m_strSourceForNymID);
-
-        nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("masterPublic")) {
-        String strMasterPublicCredential;
-
-        if (false ==
-            Contract::LoadEncodedTextField(xml, strMasterPublicCredential)) {
-            otErr << "Error in " << __FILE__ << " line " << __LINE__
-                  << ": failed loading expected master public credential while "
-                     "loading subcredential.\n";
-            return (-1); // error condition
-        }
-        // Verify the master public credential we loaded against the one we
-        // expected to get, according
-        // to the OTCredential that is m_pOwner.
-        //
-        else if ((nullptr != m_pOwner) &&
-                 false == (m_pOwner->GetPubCredential().Compare(
-                              strMasterPublicCredential))) {
-            otErr << "Failure in " << __FILE__ << " line " << __LINE__
-                  << ": while loading subcredential: master public "
-                     "credential loaded just now, doesn't match the actual "
-                     "master public credential, "
-                     "according to the current owner object.\n";
-            return (-1); // error condition
-        }
 
         nReturnVal = 1;
     }
