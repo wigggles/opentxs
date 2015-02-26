@@ -596,7 +596,7 @@ public:
     type="currency"/>
 
     <currency name="game tokens" tla="TOKEN" symbol="tks" type="decimal"
-    factor="1" decimal_power="0" fraction="mg"/>
+    factor="1" decimalPower="0" fraction="mg"/>
 
     ---------------------------------
 
