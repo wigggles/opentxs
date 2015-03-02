@@ -154,7 +154,7 @@ MessageProcessor::MessageProcessor(ServerLoader& loader)
     , zmqAuth_(zactor_new(zauth, NULL))
     , zmqPoller_(zpoller_new(zmqSocket_, NULL))
 {
-    init(loader.getPort());
+    init(loader.getPort(), loader.getTransportKey());
 }
 
 MessageProcessor::~MessageProcessor()
@@ -165,7 +165,7 @@ MessageProcessor::~MessageProcessor()
     zsock_destroy(&zmqSocket_);
 }
 
-void MessageProcessor::init(int port)
+void MessageProcessor::init(int port, zcert_t* transportKey)
 {
     if (port == 0) {
         OT_FAIL;
@@ -178,11 +178,7 @@ void MessageProcessor::init(int port)
     zsock_wait(zmqAuth_);
     zsock_set_zap_domain(zmqSocket_, "global");
     zsock_set_curve_server(zmqSocket_, 1);
-    // test key values taken from `man zmq_curve`
-    zsock_set_curve_publickey(zmqSocket_,
-                              "rq:rM>}U?@Lns47E1%kR.o@n%FcmmsL/@{H8]yf7");
-    zsock_set_curve_secretkey(zmqSocket_,
-                              "JTKVSB%%)wK0E.X)V>+}o?pNmC{O&4W4b!Ni{Lh6");
+    zcert_apply(transportKey, zmqSocket_);
     zsock_bind(zmqSocket_, "tcp://*:%d", port);
 }
 
