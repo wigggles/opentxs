@@ -176,9 +176,10 @@ OTClient::OTClient(OTWallet* theWallet)
 {
 }
 
-bool OTClient::connect(const std::string& endpoint)
+bool OTClient::connect(const std::string& endpoint,
+                       const unsigned char* transportKey)
 {
-    m_pConnection.reset(new OTServerConnection(this, endpoint));
+    m_pConnection.reset(new OTServerConnection(this, endpoint, transportKey));
     return true;
 }
 
@@ -220,7 +221,7 @@ void OTClient::ProcessMessageOut(OTServerContract* pServerContract, Nym* pNym,
         String endpoint;
         endpoint.Format("tcp://%s:%d", hostname.Get(), port);
 
-        connect(endpoint.Get());
+        connect(endpoint.Get(), pServerContract->GetTransportKey());
     }
 
     m_pConnection->send(pServerContract, pNym, theMessage);

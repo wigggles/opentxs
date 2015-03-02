@@ -154,7 +154,8 @@ namespace opentxs
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
 OTServerConnection::OTServerConnection(OTClient* theClient,
-                                       const std::string& endpoint)
+                                       const std::string& endpoint,
+                                       const unsigned char* transportKey)
     : socket_zmq(zsock_new_req(NULL))
     , m_pNym(nullptr)
     , m_pServerContract(nullptr)
@@ -165,10 +166,10 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
         OT_FAIL;
     }
     zsock_set_linger(socket_zmq, 1000);
+    // Set new client public and secret key.
     zcert_apply(zcert_new(), socket_zmq);
-    // test key value taken from `man zmq_curve`
-    zsock_set_curve_serverkey(socket_zmq,
-                              "rq:rM>}U?@Lns47E1%kR.o@n%FcmmsL/@{H8]yf7");
+    // Set server public key.
+    zsock_set_curve_serverkey_bin(socket_zmq, transportKey);
 
     if (zsock_connect(socket_zmq, "%s", endpoint.c_str())) {
         Log::vError("Failed to connect to %s\n", endpoint.c_str());
