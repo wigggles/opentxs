@@ -1,5 +1,11 @@
 # Copyright (c) Monetas AG, 2014
 
+include_directories(SYSTEM
+  ${ZEROMQ_INCLUDE_DIRS}
+  ${CZMQ_INCLUDE_DIR}
+)
+
+
 set(cxx-sources
   OTPayment.cpp
 )

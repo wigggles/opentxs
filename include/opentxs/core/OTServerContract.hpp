@@ -134,6 +134,7 @@
 #define OPENTXS_CORE_OTSERVERCONTRACT_HPP
 
 #include "Contract.hpp"
+#include <czmq.h>
 
 namespace opentxs
 {
@@ -149,6 +150,8 @@ public:
     EXPORT virtual ~OTServerContract();
 
     EXPORT bool GetConnectInfo(String& strHostname, int32_t& nPort) const;
+    EXPORT unsigned char* GetTransportKey() const;
+    static zcert_t* LoadOrCreateTransportKey(const String& nymID);
     EXPORT virtual void CreateContents(); // Only used when first generating an
                                           // asset or server contract. Meant for
                                           // contracts which never change after
@@ -166,6 +169,7 @@ protected:
     String m_strHostname;
     int32_t m_nPort;
     String m_strURL;
+    unsigned char* m_transportKey;
 };
 
 } // namespace opentxs
