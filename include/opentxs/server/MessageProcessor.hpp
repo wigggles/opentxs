@@ -135,6 +135,7 @@
 
 #include <string>
 #include <memory>
+#include <czmq.h>
 
 // forward declare czmq types
 typedef struct _zsock_t zsock_t;
@@ -155,7 +156,7 @@ public:
     EXPORT void run();
 
 private:
-    void init(int port);
+    void init(int port, zcert_t* transportKey);
     bool processMessage(const std::string& messageString, std::string& reply);
     void processSocket();
 

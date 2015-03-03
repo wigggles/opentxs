@@ -139,6 +139,8 @@
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/Log.hpp>
 
+#include <czmq.h>
+
 #define SERVER_CONFIG_KEY "server"
 
 namespace opentxs
@@ -232,6 +234,11 @@ public:
                       "contract? Have you tried the test password? "
                       "(\"test\")\n");
         return port;
+    }
+
+    zcert_t* getTransportKey() const
+    {
+        return server_->GetTransportKey();
     }
 
 private:

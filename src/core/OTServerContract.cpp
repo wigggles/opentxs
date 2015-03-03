@@ -131,15 +131,20 @@
  **************************************************************/
 
 #include <opentxs/core/stdafx.hpp>
-
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
-
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/OTStorage.hpp>
 
 #include <fstream>
 #include <cstring>
 #include <irrxml/irrXML.hpp>
+
+// zcert_public_key returns a 32 bit public key.
+const int32_t TRANSPORT_KEY_SIZE = 32;
 
 namespace opentxs
 {
@@ -169,6 +174,11 @@ bool OTServerContract::GetConnectInfo(String& strHostname, int32_t& nPort) const
         return true;
     }
     return false;
+}
+
+unsigned char* OTServerContract::GetTransportKey() const
+{
+    return m_transportKey;
 }
 
 bool OTServerContract::DisplayStatistics(String& strContents) const
@@ -201,11 +211,26 @@ bool OTServerContract::SaveContractWallet(String& strContents) const
     return true;
 }
 
+zcert_t* OTServerContract::LoadOrCreateTransportKey(const String& nymID)
+{
+    std::string filepath;
+    OTDB::FormPathString(filepath, OTFolders::Credential().Get(), nymID.Get(),
+                         "transportKey");
+
+    if (!zcert_load(filepath.c_str())) {
+        // File does not exist: create keypair and store.
+        // This creates two files: `filepath` and `filepath`_secret.
+        zcert_save(zcert_new(), filepath.c_str());
+    }
+
+    return zcert_load(filepath.c_str());
+}
+
 void OTServerContract::CreateContents()
 {
     m_xmlUnsigned.Release();
-    m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n",
-                              "notaryProviderContract", m_strVersion.Get());
+    m_xmlUnsigned.Concatenate("<notaryProviderContract version=\"%s\">\n\n",
+                              m_strVersion.Get());
 
     // Entity
     m_xmlUnsigned.Concatenate("<entity shortname=\"%s\"\n"
@@ -222,19 +247,28 @@ void OTServerContract::CreateContents()
                               " URL=\"%s\"/>\n\n",
                               m_strHostname.Get(), m_nPort, m_strURL.Get());
 
+    // Write the transportKey
+    const Nym* nym = m_mapNyms["signer"];
+    const unsigned char* transportKey = zcert_public_key(
+        OTServerContract::LoadOrCreateTransportKey(String(nym->GetConstID())));
+    // base64-encode the binary public key because the encoded key
+    // (zcert_public_txt()) does Z85 encoding, which contains the '<','>' chars.
+    // See http://rfc.zeromq.org/spec:32.
+    m_xmlUnsigned.Concatenate(
+        "<transportKey>%s</transportKey>\n\n",
+        OTCrypto::It()->Base64Encode(transportKey, TRANSPORT_KEY_SIZE, false));
+
     // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
     // etc.
     CreateInnerContents();
 
-    m_xmlUnsigned.Concatenate("</%s>\n", "notaryProviderContract");
+    m_xmlUnsigned.Concatenate("</notaryProviderContract>\n");
 }
 
 // This is the serialization code for READING FROM THE CONTRACT
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0;
-
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
     // then we just return either way.  But if it comes back
@@ -243,8 +277,8 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
 
-    nReturnVal = Contract::ProcessXMLNode(xml);
-    if (nReturnVal) return nReturnVal;
+    auto result = Contract::ProcessXMLNode(xml);
+    if (result) return result;
 
     if (!strcmp("notaryProviderContract", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
@@ -254,9 +288,9 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   "structures...\n\n"
                   "Notary Server Name: " << m_strName
                << "\nContract version: " << m_strVersion << "\n----------\n";
-        nReturnVal = 1;
+        return 1;
     }
-    else if (!strcmp("notaryServer", xml->getNodeName())) {
+    if (!strcmp("notaryServer", xml->getNodeName())) {
         m_strHostname = xml->getAttributeValue("hostname");
         m_nPort = atoi(xml->getAttributeValue("port"));
         m_strURL = xml->getAttributeValue("URL");
@@ -265,10 +299,23 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   "Notary Server connection info:\n --- Hostname: "
                << m_strHostname << "\n --- Port: " << m_nPort
                << "\n --- URL:" << m_strURL << "\n\n";
-        nReturnVal = 1;
+        return 1;
+    }
+    if (!strcmp("transportKey", xml->getNodeName())) {
+        if (!SkipToTextField(xml)) {
+            return -1;
+        }
+        const char* transportKeyB64 = xml->getNodeData();
+        size_t outLen;
+        m_transportKey =
+            OTCrypto::It()->Base64Decode(transportKeyB64, &outLen, false);
+        if (outLen != TRANSPORT_KEY_SIZE) {
+            return -1;
+        }
+        return 1;
     }
 
-    return nReturnVal;
+    return 0;
 }
 
 } // namespace opentxs

@@ -154,7 +154,8 @@ namespace opentxs
 // but either way the connections need a pointer to the wallet
 // they are associated with, so they can access those accounts.
 OTServerConnection::OTServerConnection(OTClient* theClient,
-                                       const std::string& endpoint)
+                                       const std::string& endpoint,
+                                       const unsigned char* transportKey)
     : socket_zmq(zsock_new_req(NULL))
     , m_pNym(nullptr)
     , m_pServerContract(nullptr)
@@ -165,10 +166,10 @@ OTServerConnection::OTServerConnection(OTClient* theClient,
         OT_FAIL;
     }
     zsock_set_linger(socket_zmq, 1000);
+    // Set new client public and secret key.
     zcert_apply(zcert_new(), socket_zmq);
-    // test key value taken from `man zmq_curve`
-    zsock_set_curve_serverkey(socket_zmq,
-                              "rq:rM>}U?@Lns47E1%kR.o@n%FcmmsL/@{H8]yf7");
+    // Set server public key.
+    zsock_set_curve_serverkey_bin(socket_zmq, transportKey);
 
     if (zsock_connect(socket_zmq, "%s", endpoint.c_str())) {
         Log::vError("Failed to connect to %s\n", endpoint.c_str());
@@ -221,10 +222,8 @@ void OTServerConnection::send(OTServerContract* pServerContract, Nym* pNym,
     const Nym* pServerNym = pServerContract->GetContractPublicNym();
     OT_ASSERT(nullptr != pServerNym);
 
-    OTEnvelope theEnvelope;
-    String strEnvelopeContents;
-    theMessage.SaveContractRaw(strEnvelopeContents);
-    theEnvelope.Seal(*pServerNym, strEnvelopeContents);
+    String strContents;
+    theMessage.SaveContractRaw(strContents);
 
     otOut << "\n=====>BEGIN Sending " << theMessage.m_strCommand
           << " message via ZMQ... Request number: "
@@ -232,7 +231,7 @@ void OTServerConnection::send(OTServerContract* pServerContract, Nym* pNym,
 
     m_pServerContract = pServerContract;
     m_pNym = pNym;
-    send(theEnvelope);
+    send(strContents);
 
     otWarn << "<=====END Finished sending " << theMessage.m_strCommand
            << " message (and hopefully receiving "
@@ -240,9 +239,9 @@ void OTServerConnection::send(OTServerContract* pServerContract, Nym* pNym,
            << "\n\n";
 }
 
-bool OTServerConnection::send(const OTEnvelope& theEnvelope)
+bool OTServerConnection::send(const String& theString)
 {
-    OTASCIIArmor ascEnvelope(theEnvelope);
+    OTASCIIArmor ascEnvelope(theString);
 
     if (!ascEnvelope.Exists()) {
         return false;

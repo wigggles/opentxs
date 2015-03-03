@@ -143,6 +143,7 @@
 #include <opentxs/core/OTTransaction.hpp>
 #include <memory>
 #include <cstddef>
+#include <czmq.h>
 
 namespace opentxs
 {
@@ -170,6 +171,7 @@ public:
     bool IsFlaggedForShutdown() const;
 
     bool GetConnectInfo(String& hostname, int32_t& port) const;
+    zcert_t* GetTransportKey() const;
 
     const Nym& GetServerNym() const;
 
