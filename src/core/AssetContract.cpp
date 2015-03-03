@@ -877,7 +877,7 @@ void AssetContract::CreateContents()
     if (m_bIsCurrency)
         m_xmlUnsigned.Concatenate(
             "<currency name=\"%s\" tla=\"%s\" symbol=\"%s\" type=\"%s\" "
-            "factor=\"%s\" decimal_power=\"%s\" fraction=\"%s\" />\n\n",
+            "factor=\"%s\" decimalPower=\"%s\" fraction=\"%s\" />\n\n",
             m_strCurrencyName.Get(), m_strCurrencyTLA.Get(),
             m_strCurrencySymbol.Get(), m_strCurrencyType.Get(),
             m_strCurrencyFactor.Get(), m_strCurrencyDecimalPower.Get(),
@@ -885,7 +885,7 @@ void AssetContract::CreateContents()
     else if (m_bIsShares)
         m_xmlUnsigned.Concatenate(
             "<shares name=\"%s\" symbol=\"%s\" type=\"%s\" "
-            "issuedate=\"%s\" />\n\n",
+            "issueDate=\"%s\" />\n\n",
             m_strCurrencyName.Get(), m_strCurrencySymbol.Get(),
             m_strCurrencyType.Get(), m_strIssueDate.Get());
 
@@ -948,7 +948,7 @@ int32_t AssetContract::ProcessXMLNode(IrrXMLReader*& xml)
 
         m_strCurrencyTLA = xml->getAttributeValue("tla");
         m_strCurrencyFactor = xml->getAttributeValue("factor");
-        m_strCurrencyDecimalPower = xml->getAttributeValue("decimal_power");
+        m_strCurrencyDecimalPower = xml->getAttributeValue("decimalPower");
         m_strCurrencyFraction = xml->getAttributeValue("fraction");
 
         otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName
@@ -980,7 +980,7 @@ int32_t AssetContract::ProcessXMLNode(IrrXMLReader*& xml)
         m_strCurrencySymbol = xml->getAttributeValue("symbol");
         m_strCurrencyType = xml->getAttributeValue("type");
 
-        m_strIssueDate = xml->getAttributeValue("issuedate");
+        m_strIssueDate = xml->getAttributeValue("issueDate");
 
         otInfo << "Loaded " << strNodeName << ", Name: " << m_strCurrencyName
                << ", Symbol: " << m_strCurrencySymbol
