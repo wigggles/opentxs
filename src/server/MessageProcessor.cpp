@@ -324,80 +324,25 @@ bool MessageProcessor::processMessage(const std::string& messageString,
                      message.m_strCommand.Get());
     }
 
-    // IF ProcessUserCommand returned true, THEN we process the
-    // message for the recipient.
-    // ELSE IF ProcessUserCommand returned false, YET the PubKey
-    // DOES exist, THEN in this case also, we process the message
-    // for the recipient.
-    //
-    // if success + Nym's pub key exists here on server.
-    if (processedUserCmd || nym.Server_PubKeyExists()) {
-        // The transaction is now processed (or not), and the
-        // server's reply message is in replyMessage.
-        // Let's seal it up to the recipient's nym (in an envelope)
-        // and send back to the user...
-        OTEnvelope recipientEnvelope;
+    String replyString(replyMessage);
 
-        bool sealed =
-            client.SealMessageForRecipient(replyMessage, recipientEnvelope);
-
-        if (!sealed) {
-            Log::vOutput(0, "Unable to seal envelope. (No reply will be "
-                            "sent.)\n");
-            return true;
-        }
-
-        OTASCIIArmor ascReply;
-        if (!recipientEnvelope.GetAsciiArmoredData(ascReply)) {
-            Log::vOutput(
-                0,
-                "Unable to GetAsciiArmoredData from sealed "
-                "envelope int oOTASCIIArmor object. (No reply envelope will be "
-                "sent.)\n");
-            return true;
-        }
-
-        String output;
-        bool val = ascReply.Exists() &&
-                   ascReply.WriteArmoredString(output, "ENVELOPE");
-
-        if (!val || !output.Exists()) {
-            Log::vOutput(0,
-                         "Unable to WriteArmoredString from "
-                         "OTASCIIArmor object into OTString object. (No reply "
-                         "envelope will be sent.)\n");
-            return true;
-        }
-
-        reply.assign(output.Get(), output.GetLength());
+    if (!replyString.Exists()) {
+        Log::vOutput(0, "Failed trying to grab the reply "
+                        "in OTString form. "
+                        "(No reply message will be sent.)\n");
+        return true;
     }
-    // ELSE we send the message in the CLEAR. (As an armored
-    // message, instead of as an armored envelope.)
-    else {
-        String replyString(replyMessage);
 
-        if (!replyString.Exists()) {
-            Log::vOutput(0, "Failed trying to grab the reply "
-                            "in OTString form. "
-                            "(No reply message will be sent.)\n");
-            return true;
-        }
+    OTASCIIArmor ascReply(replyString);
 
-        OTASCIIArmor ascReply(replyString);
-        String output;
-        bool val =
-            ascReply.Exists() && ascReply.WriteArmoredString(output, "MESSAGE");
-
-        if (!val || !output.Exists()) {
-            Log::vOutput(0,
-                         "Unable to WriteArmoredString from "
-                         "OTASCIIArmor object into OTString object. (No reply "
-                         "message will be sent.)\n");
-            return true;
-        }
-
-        reply.assign(output.Get(), output.GetLength());
+    if (!ascReply.Exists()) {
+        Log::vOutput(0, "Unable to WriteArmoredString from "
+                        "OTASCIIArmor object into OTString object. (No reply "
+                        "message will be sent.)\n");
+        return true;
     }
+
+    reply.assign(ascReply.Get(), ascReply.GetLength());
 
     return false;
 }
