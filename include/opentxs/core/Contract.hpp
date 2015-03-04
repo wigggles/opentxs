@@ -160,6 +160,8 @@ class OTSignature;
 typedef std::list<OTSignature*> listOfSignatures;
 typedef std::map<std::string, Nym*> mapOfNyms;
 
+String trim(const String& str);
+
 class Contract
 {
 
