@@ -154,6 +154,12 @@ using namespace io;
 namespace opentxs
 {
 
+String trim(const String& str)
+{
+    std::string s(str.Get(), str.GetLength());
+    return String(String::trim(s));
+}
+
 // static
 bool Contract::DearmorAndTrim(const String& strInput, String& strOutput,
                               String& strFirstLine)
@@ -617,7 +623,7 @@ bool Contract::SignContract(const OTAsymmetricKey& theKey,
     UpdateContents();
 
     if (false ==
-        OTCrypto::It()->SignContract(m_xmlUnsigned, theKey, theSignature,
+        OTCrypto::It()->SignContract(trim(m_xmlUnsigned), theKey, theSignature,
                                      strHashType, pPWData)) {
         otErr << "OTContract::SignContract: "
                  "OTCrypto::It()->SignContract returned false.\n";
@@ -674,7 +680,7 @@ bool Contract::SignContract(const char* szFoldername,
     UpdateContents();
 
     if (false ==
-        OTCrypto::It()->SignContract(m_xmlUnsigned, m_strSigHashType,
+        OTCrypto::It()->SignContract(trim(m_xmlUnsigned), m_strSigHashType,
                                      strCertFileContents, theSignature,
                                      pPWData)) {
         otErr << szFunc << ": OTCrypto::It()->SignContract returned false, "
@@ -728,7 +734,7 @@ bool Contract::VerifySignature(const char* szFoldername,
     if (nullptr == pPWData) pPWData = &thePWData;
 
     if (false ==
-        OTCrypto::It()->VerifySignature(m_xmlUnsigned, m_strSigHashType,
+        OTCrypto::It()->VerifySignature(trim(m_xmlUnsigned), m_strSigHashType,
                                         strCertFileContents, theSignature,
                                         pPWData)) {
         otLog4 << szFunc << ": OTCrypto::It()->VerifySignature returned false, "
@@ -931,7 +937,7 @@ bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
 
     if (false ==
         OTCrypto::It()->VerifySignature(
-            m_xmlUnsigned, theKey, theSignature, strHashType,
+            trim(m_xmlUnsigned), theKey, theSignature, strHashType,
             (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
                << ": OTCrypto::It()->VerifySignature returned false.\n";
@@ -1070,10 +1076,10 @@ bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
     OTPasswordData thePWData("Signing flat text (need private key)");
 
     if (false ==
-        OTCrypto::It()->SignContract(strInput, theSigner.GetPrivateSignKey(),
-                                     theSignature, // the output
-                                     Identifier::DefaultHashAlgorithm,
-                                     &thePWData)) {
+        OTCrypto::It()->SignContract(
+            trim(strInput), theSigner.GetPrivateSignKey(),
+            theSignature, // the output
+            Identifier::DefaultHashAlgorithm, &thePWData)) {
         otErr << szFunc << ": SignContract failed. Contents:\n\n" << strInput
               << "\n\n\n";
         return false;
