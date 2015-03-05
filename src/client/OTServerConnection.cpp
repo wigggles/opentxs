@@ -264,67 +264,12 @@ bool OTServerConnection::send(const String& theString)
                                  "from server.\n";
         return false;
     }
-
-    String strRawServerReply(rawServerReply);
     OTASCIIArmor ascServerReply;
-    const bool bLoaded = strRawServerReply.Exists() &&
-                         ascServerReply.LoadFromString(strRawServerReply);
+    ascServerReply.Set(rawServerReply.c_str());
+
     String strServerReply;
-    bool bRetrievedReply = false;
-    if (!bLoaded)
-        otErr << __FUNCTION__ << ": Failed trying to load OTASCIIArmor "
-                                 "object from string:\n\n" << strRawServerReply
-              << "\n\n";
+    bool bRetrievedReply = ascServerReply.GetString(strServerReply);
 
-    else if (strRawServerReply.Contains("ENVELOPE")) // Server sent this
-                                                     // encrypted to my
-    // public key, in an armored envelope.
-    {
-        OTEnvelope theServerEnvelope;
-        if (theServerEnvelope.SetAsciiArmoredData(ascServerReply)) {
-
-            bRetrievedReply = theServerEnvelope.Open(*m_pNym, strServerReply);
-        }
-        else {
-            otErr << __FUNCTION__ << ": Failed: while setting "
-                                     "OTASCIIArmor'd string into an "
-                                     "OTEnvelope.\n";
-            return false;
-        }
-    }
-    // NOW ABLE TO HANDLE MESSAGES HERE IN ADDITION TO ENVELOPES!!!!
-    // (Sometimes the server HAS to reply with an unencrypted reply,
-    // and this is what makes it possible for the client to RECEIVE
-    // that reply.)
-    //
-    // The Server doesn't have to accept both types, but the client
-    // does,
-    // since technically all clients cannot talk to it without
-    // knowing its key first.
-    //
-    // ===> A CLIENT could POTENTIALLY have sent a message to server
-    // when unregistered,
-    // leaving server NO WAY to reply! Therefore server HAS to have
-    // the OPTION to send
-    // an unencrypted message, in that case, and the client HAS to
-    // be able to receive it
-    // properly!!
-    //
-    else if (strRawServerReply.Contains("MESSAGE")) // Server sent
-                                                    // this NOT
-                                                    // encrypted, in
-                                                    // an armored
-                                                    // message.
-    {
-        bRetrievedReply = ascServerReply.GetString(strServerReply);
-    }
-    else {
-        otErr << __FUNCTION__ << ": Error: Unknown reply type received from "
-                                 "server. (Expected envelope or message.)\n"
-                                 "\n\n PERHAPS YOU ARE RUNNING AN OLD VERSION "
-                                 "OF THE SERVER ????? \n\n";
-        return false;
-    }
     // todo: use a unique_ptr  soon as feasible.
     std::shared_ptr<Message> pServerReply(new Message());
     OT_ASSERT(nullptr != pServerReply);
@@ -338,7 +283,7 @@ bool OTServerConnection::send(const String& theString)
     }
     else {
         otErr << __FUNCTION__ << ": Error loading server reply from string:\n\n"
-              << strRawServerReply << "\n\n";
+              << rawServerReply << "\n\n";
         return false;
     }
 
