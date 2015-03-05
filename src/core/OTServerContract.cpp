@@ -306,9 +306,12 @@ int32_t OTServerContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return -1;
         }
         const char* transportKeyB64 = xml->getNodeData();
+        if (!transportKeyB64) return -1;
+        std::string transportKeyB64Trimmed(transportKeyB64);
+        String::trim(transportKeyB64Trimmed);
         size_t outLen;
-        m_transportKey =
-            OTCrypto::It()->Base64Decode(transportKeyB64, &outLen, false);
+        m_transportKey = OTCrypto::It()->Base64Decode(
+            transportKeyB64Trimmed.c_str(), &outLen, false);
         if (outLen != TRANSPORT_KEY_SIZE) {
             return -1;
         }
