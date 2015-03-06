@@ -13,9 +13,4 @@ includes="-I./include"
 # Exit code '1' is returned if arguments are not valid or if no input
 # files are provided. Compare 'cppcheck --help'.
 args="-f -q --inline-suppr --error-exitcode=2"
-# Travis kills the check if he does not see output for some time
-( while true; do echo "cppcheck in progress ..."; sleep 300; done) &
-loop_pid=$!
 cppcheck $args $define $includes $enabled $suppress "$@"
-sleep_pid=$(pstree -p $loop_pid | sed -n 's/.*(\([[:digit:]]\+\))$/\1/p')
-kill $loop_pid $sleep_pid
