@@ -416,7 +416,6 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         }
         irr::io::IrrXMLReader* xml =
             irr::io::createIrrXMLReader(xmlFileContents);
-        // cppcheck-suppress unreadVariable
         std::unique_ptr<irr::io::IrrXMLReader> theXMLGuardian(xml);
         while (xml && xml->read()) {
             // strings for storing the data that we want to read out of the file
