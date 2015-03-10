@@ -257,12 +257,9 @@ public:
         const OTPassword* pImportPassword = nullptr);
     // PUBLIC KEY
 
-    // * Get the public key in ASCII-armored format                 --
-    // OTASCIIArmor
     // * Get the public key in ASCII-armored format WITH bookends   -- OTString
     //       - ------- BEGIN PUBLIC KEY --------
     //       Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPublicKey(OTASCIIArmor& strKey) const;
     EXPORT bool GetPublicKey(String& strKey, bool bEscaped = true) const;
     // (Below) Decodes a public key from ASCII armor into an actual key pointer
     // and sets that as the m_pKey on this object.
