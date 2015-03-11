@@ -620,7 +620,6 @@ public:
     EXPORT bool SavePseudonymWallet(String& strOutput) const;
     EXPORT bool SavePseudonymWallet(std::ofstream& ofs) const;
     EXPORT bool SavePublicKey(const String& strPath) const;
-    EXPORT bool SavePublicKey(std::ofstream& ofs) const;
     EXPORT bool SavePseudonym(); // saves to filename m_strNymfile
     EXPORT bool SavePseudonym(const char* szFoldername, const char* szFilename);
     EXPORT bool SavePseudonym(String& strNym);
