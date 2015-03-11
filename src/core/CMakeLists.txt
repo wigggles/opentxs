@@ -123,8 +123,8 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58)
-target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring} czmq_local)
+target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
+target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 set_lib_property(opentxs-core)
 
 if(WIN32)

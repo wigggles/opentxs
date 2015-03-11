@@ -231,7 +231,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Build Unit tests
 
-if(BUILD_TESTS)
+if(BUILD_TESTS AND NOT ANDROID)
   set(GTEST_ROOT ${opentxs_SOURCE_DIR}/deps/gtest)
   set(GTEST_FOUND ON)
   set(GTEST_INCLUDE_DIRS ${GTEST_ROOT}/include)
@@ -240,6 +240,7 @@ if(BUILD_TESTS)
   set(GTEST_BOTH_LIBRARIES ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
 
   enable_testing()
+  add_subdirectory(tests)
 endif()
 
 
@@ -362,7 +363,6 @@ endfunction(set_lib_property)
 
 add_subdirectory(deps)
 add_subdirectory(src)
-add_subdirectory(tests)
 add_subdirectory(wrappers)
 
 
