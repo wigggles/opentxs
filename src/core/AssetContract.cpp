@@ -543,7 +543,7 @@ bool AssetContract::SaveContractWallet(String& strContents) const
     return true;
 }
 
-// currently only "simple" accounts (normal user asset accounts) are added to
+// currently only "user" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.
 bool AssetContract::VisitAccountRecords(AccountVisitor& visitor) const
