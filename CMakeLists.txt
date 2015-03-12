@@ -240,7 +240,6 @@ if(BUILD_TESTS AND NOT ANDROID)
   set(GTEST_BOTH_LIBRARIES ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
 
   enable_testing()
-  add_subdirectory(tests)
 endif()
 
 
@@ -364,6 +363,10 @@ endfunction(set_lib_property)
 add_subdirectory(deps)
 add_subdirectory(src)
 add_subdirectory(wrappers)
+
+if (NOT ANDROID)
+  add_subdirectory(tests)
+endif()
 
 
 if (NOT ANDROID)
