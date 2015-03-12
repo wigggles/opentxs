@@ -1,4 +1,4 @@
-FROM monetas/ot-android-dev
+FROM monetas/base-ot-dev
 
 MAINTAINER Darragh Grealish "darragh@monetas.net"
 
