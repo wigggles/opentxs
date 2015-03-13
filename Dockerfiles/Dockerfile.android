@@ -16,3 +16,4 @@ ADD src $OT_PATH/src
 
 WORKDIR /home/otuser/ot-android/
 RUN ./run-build.sh
+CMD uid=$(ls -ldn /mnt/ | awk '{print $3}') && install -o $uid -g $uid opentxs-*.tar.bz2 /mnt/
