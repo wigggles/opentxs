@@ -161,7 +161,7 @@ namespace opentxs
 {
 
 char const* const __TypeStringsAccount[] = {
-    "simple",    // used by users
+    "user",      // used by users
     "issuer",    // used by issuers    (these can only go negative.)
     "basket",    // issuer acct used by basket currencies (these can only go
                  // negative)
@@ -431,7 +431,7 @@ bool Account::Credit(const int64_t& amount)
     // int64_t int32_t.
     // We'll maybe explicitly check that it's not negative in order to prevent
     // that. TODO.
-    //    if (newBalance > 0 || (OTAccount::simple != acctType_))
+    //    if (newBalance > 0 || (OTAccount::user != acctType_))
     //    {
     //        balanceAmount_.Format("%" PRId64 "", newBalance);
     //        return true;
@@ -462,7 +462,7 @@ const Identifier& Account::GetInstrumentDefinitionID() const
 void Account::InitAccount()
 {
     m_strContractType = "ACCOUNT";
-    acctType_ = Account::simple;
+    acctType_ = Account::user;
 }
 
 // Verify Contract ID first, THEN Verify Owner.
@@ -610,7 +610,7 @@ bool Account::GenerateNewAccount(const Nym& server, const Message& message,
     }
 
     // Set up the various important starting values of the account.
-    // Account type defaults to OTAccount::simple.
+    // Account type defaults to OTAccount::user.
     // But there are also issuer accts.
     acctType_ = acctType;
 
@@ -928,7 +928,7 @@ int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 bool Account::IsInternalServerAcct() const
 {
     switch (acctType_) {
-    case Account::simple:
+    case Account::user:
     case Account::issuer:
         return false;
     case Account::basket:
@@ -947,7 +947,7 @@ bool Account::IsInternalServerAcct() const
 bool Account::IsOwnedByUser() const
 {
     switch (acctType_) {
-    case Account::simple:
+    case Account::user:
     case Account::issuer:
         return true;
     case Account::basket:
@@ -982,7 +982,7 @@ bool Account::IsAllowedToGoNegative() const
     case Account::basket:
         return true;
     // user asset acct
-    case Account::simple:
+    case Account::user:
     // internal server acct for storing reserves for basket sub currencies
     case Account::basketsub:
     // internal server acct for storing reserves for cash withdrawals

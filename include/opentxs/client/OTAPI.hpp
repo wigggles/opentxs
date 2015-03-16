@@ -782,7 +782,7 @@ public:
         const std::string& ACCOUNT_ID); // returns the account balance, based on
                                         // account ID.
     EXPORT static std::string GetAccountWallet_Type(
-        const std::string& ACCOUNT_ID); // returns the account type (simple,
+        const std::string& ACCOUNT_ID); // returns the account type (user,
                                         // issuer, etc)
     EXPORT static std::string GetAccountWallet_InstrumentDefinitionID(
         const std::string& ACCOUNT_ID); // returns instrument definition ID of

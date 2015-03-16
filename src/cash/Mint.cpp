@@ -862,14 +862,14 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                             const OTPseudonym & theServerNym,
  const OTMessage & theMessage,
                                             const OTAccount::AccountType
- eAcctType=OTAccount::simple)
+ eAcctType=OTAccount::user)
 
 
  // The above method uses this one internally...
  bool OTAccount::GenerateNewAccount(const OTPseudonym & theServer, const
  OTMessage & theMessage,
                                     const OTAccount::AccountType
- eAcctType=OTAccount::simple)
+ eAcctType=OTAccount::user)
 
 
  OTAccount * pAcct = nullptr;

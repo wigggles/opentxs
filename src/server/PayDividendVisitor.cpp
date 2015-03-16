@@ -178,7 +178,7 @@ PayDividendVisitor::~PayDividendVisitor()
     m_lAmountReturned = 0;
 }
 
-// For each "simple" account of a specific instrument definition, this function
+// For each "user" account of a specific instrument definition, this function
 // is called in order to pay a dividend to the Nym who owns that account.
 
 // PayDividendVisitor::Trigger() is used in

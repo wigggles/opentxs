@@ -818,11 +818,9 @@ bool OTRecordList::PerformAutoAccept()
                                     str_notary_id.c_str())) &&
                                 (strAcctInstrumentDefinitionID.Compare(
                                     str_instrument_definition_id.c_str())) &&
-                                (0 ==
-                                 str_acct_type.compare("simple"))) // No issuer
-                                                                   // accounts
-                            // allowed here. Only
-                            // simple accounts.
+                                (0 == str_acct_type.compare("user"))) // No
+                                                                      // issuer
+                            // accounts allowed here. Only user accounts.
                             {
                                 // Accept it.
                                 //

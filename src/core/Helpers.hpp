@@ -141,8 +141,8 @@ opentxs::Account::AccountType TranslateAccountTypeStringToEnum(
 {
     opentxs::Account::AccountType acctType = opentxs::Account::err_acct;
 
-    if (acctTypeString.Compare("simple"))
-        acctType = opentxs::Account::simple;
+    if (acctTypeString.Compare("user"))
+        acctType = opentxs::Account::user;
     else if (acctTypeString.Compare("issuer"))
         acctType = opentxs::Account::issuer;
     else if (acctTypeString.Compare("basket"))
@@ -166,8 +166,8 @@ void TranslateAccountTypeToString(opentxs::Account::AccountType type,
                                   opentxs::String& acctType)
 {
     switch (type) {
-    case opentxs::Account::simple:
-        acctType.Set("simple");
+    case opentxs::Account::user:
+        acctType.Set("user");
         break;
     case opentxs::Account::issuer:
         acctType.Set("issuer");

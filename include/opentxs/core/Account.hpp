@@ -153,7 +153,7 @@ public:
     // If you add any types to this list, update the list of strings at the
     // top of the .cpp file.
     enum AccountType {
-        simple,    // used by users
+        user,      // used by users
         issuer,    // used by issuers    (these can only go negative.)
         basket,    // issuer acct used by basket currencies (these can only go
                    // negative)
@@ -222,11 +222,11 @@ public:
                                               const Identifier& notaryID,
                                               const Nym& serverNym,
                                               const Message& message,
-                                              AccountType acctType = simple,
+                                              AccountType acctType = user,
                                               int64_t stashTransNum = 0);
 
     EXPORT bool GenerateNewAccount(const Nym& server, const Message& message,
-                                   AccountType acctType = simple,
+                                   AccountType acctType = user,
                                    int64_t stashTransNum = 0);
     // Let's say you don't have or know the NymID, and you just want to load
     // the damn thing up.
