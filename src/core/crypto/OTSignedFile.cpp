@@ -135,6 +135,7 @@
 #include <opentxs/core/crypto/OTSignedFile.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
@@ -166,29 +167,29 @@ void OTSignedFile::SetSignerNymID(const String& strArg)
 
 void OTSignedFile::UpdateContents()
 {
-
-    String strSignerNym("");
-    if (m_strSignerNymID.Exists()) {
-        strSignerNym.Format("\n signer=\"%s\"", m_strSignerNymID.Get());
-    }
-
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate("<signedFile\n version=\"%s\"\n"
-                              " localDir=\"%s\"\n"
-                              " filename=\"%s\"%s"
-                              " >\n\n",
-                              m_strVersion.Get(), m_strLocalDir.Get(),
-                              m_strSignedFilename.Get(), strSignerNym.Get());
+    Tag tag("signedFile");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("localDir", m_strLocalDir.Get());
+    tag.add_attribute("filename", m_strSignedFilename.Get());
+
+    if (m_strSignerNymID.Exists()) {
+        tag.add_attribute("signer", m_strSignerNymID.Get());
+    }
 
     if (m_strSignedFilePayload.Exists()) {
         OTASCIIArmor ascPayload(m_strSignedFilePayload);
-        m_xmlUnsigned.Concatenate("<filePayload>\n%s</filePayload>\n\n",
-                                  ascPayload.Get());
+        TagPtr tagPayload(new Tag("filePayload", ascPayload.Get()));
+        tag.add_tag(tagPayload);
     }
 
-    m_xmlUnsigned.Concatenate("</signedFile>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)

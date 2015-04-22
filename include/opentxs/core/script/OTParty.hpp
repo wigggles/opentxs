@@ -146,6 +146,7 @@ class OTPartyAccount;
 class Nym;
 class OTScript;
 class OTScriptable;
+class Tag;
 
 typedef std::map<std::string, Account*> mapOfAccounts;
 typedef std::map<std::string, OTAgent*> mapOfAgents;
@@ -220,7 +221,7 @@ public:
     void CleanupAgents();
     void CleanupAccounts();
     bool Compare(const OTParty& rhs) const;
-    void Serialize(String& strAppend, bool bCalculatingID = false,
+    void Serialize(Tag& parent, bool bCalculatingID = false,
                    bool bSpecifyInstrumentDefinitionID = false,
                    bool bSpecifyParties = false) const;
 

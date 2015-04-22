@@ -154,6 +154,7 @@ class OTPassword;
 class OTPasswordData;
 class OTSubcredential;
 class OTTransaction;
+class Tag;
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::map<std::string, int64_t> mapOfRequestNums;
@@ -568,9 +569,9 @@ public:
                                     // (authentication key)
     EXPORT bool SaveCredentialIDs();
     EXPORT void SaveCredentialIDsToString(String& strOutput);
-    EXPORT void SaveCredentialsToString(String& strOutput,
-                                        String::Map* pmapPubInfo = nullptr,
-                                        String::Map* pmapPriInfo = nullptr);
+    EXPORT void SaveCredentialsToTag(Tag& parent,
+                                     String::Map* pmapPubInfo = nullptr,
+                                     String::Map* pmapPriInfo = nullptr);
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
                                                            // credentials by
                                 // default. For private, pass true.
@@ -617,13 +618,11 @@ public:
                                           const String* pstrReason = nullptr);
     EXPORT bool Savex509CertAndPrivateKeyToString(
         String& strOutput, const String* pstrReason = nullptr);
-    EXPORT bool SavePseudonymWallet(String& strOutput) const;
-    EXPORT bool SavePseudonymWallet(std::ofstream& ofs) const;
+    EXPORT bool SavePseudonymWallet(Tag& parent) const;
     EXPORT bool SavePublicKey(const String& strPath) const;
     EXPORT bool SavePseudonym(); // saves to filename m_strNymfile
     EXPORT bool SavePseudonym(const char* szFoldername, const char* szFilename);
     EXPORT bool SavePseudonym(String& strNym);
-    EXPORT bool SavePseudonym(std::ofstream& ofs);
     EXPORT bool SetIdentifierByPubkey();
     EXPORT bool CompareID(const Identifier& theIdentifier) const
     {
@@ -650,7 +649,7 @@ public:
         m_strAltLocation = strLocation;
     }
 
-    EXPORT void SerializeNymIDSource(String& strOutput) const;
+    EXPORT void SerializeNymIDSource(Tag& parent) const;
     EXPORT const Identifier& GetConstID() const
     {
         return m_nymID;

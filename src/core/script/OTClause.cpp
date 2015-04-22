@@ -135,6 +135,7 @@
 #include <opentxs/core/script/OTClause.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
 // ------------- OPERATIONS -------------
@@ -181,20 +182,20 @@ const char* OTClause::GetCode() const
     return "print(\"(Empty script.)\")"; // todo hardcoding
 }
 
-void OTClause::Serialize(String& strAppend) const
+void OTClause::Serialize(Tag& parent) const
 {
-    if (m_strCode.GetLength() > 2) {
-        OTASCIIArmor ascCode;
-        ascCode.SetString(m_strCode);
+    OTASCIIArmor ascCode;
 
-        strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
-                              m_strName.Get(), ascCode.Get());
-    }
-    else {
-        strAppend.Concatenate("<clause\n name=\"%s\">\n%s</clause>\n\n",
-                              m_strName.Get(), "ERROR_CLAUSE_CODE_nullptr");
+    if (m_strCode.GetLength() > 2)
+        ascCode.SetString(m_strCode);
+    else
         otErr << "Empty script code in OTClause::Serialize()\n";
-    }
+
+    TagPtr pTag(new Tag("clause", ascCode.Get()));
+
+    pTag->add_attribute("name", m_strName.Get());
+
+    parent.add_tag(pTag);
 }
 
 // Done

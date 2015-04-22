@@ -137,6 +137,7 @@
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -1751,19 +1752,19 @@ bool Ledger::LoadLedgerFromString(const String& theStr)
     // Todo security: Look how this is done...
     // Any vulnerabilities?
     //
-    if (theStr.Contains("\"\n type=\"nymbox\""))
+    if (theStr.Contains("type=\"nymbox\""))
         bLoaded = LoadNymboxFromString(theStr);
-    else if (theStr.Contains("\"\n type=\"inbox\""))
+    else if (theStr.Contains("type=\"inbox\""))
         bLoaded = LoadInboxFromString(theStr);
-    else if (theStr.Contains("\"\n type=\"outbox\""))
+    else if (theStr.Contains("type=\"outbox\""))
         bLoaded = LoadOutboxFromString(theStr);
-    else if (theStr.Contains("\"\n type=\"paymentInbox\""))
+    else if (theStr.Contains("type=\"paymentInbox\""))
         bLoaded = LoadPaymentInboxFromString(theStr);
-    else if (theStr.Contains("\"\n type=\"recordBox\""))
+    else if (theStr.Contains("type=\"recordBox\""))
         bLoaded = LoadRecordBoxFromString(theStr);
-    else if (theStr.Contains("\"\n type=\"expiredBox\""))
+    else if (theStr.Contains("type=\"expiredBox\""))
         bLoaded = LoadExpiredBoxFromString(theStr);
-    else if (theStr.Contains("\"\n type=\"message\"")) {
+    else if (theStr.Contains("type=\"message\"")) {
         m_Type = Ledger::message;
         bLoaded = LoadContractFromString(theStr);
     }
@@ -1774,7 +1775,6 @@ bool Ledger::LoadLedgerFromString(const String& theStr)
 void Ledger::UpdateContents() // Before transmission or serialization, this is
                               // where the ledger saves its contents
 {
-
     switch (GetType()) {
     case Ledger::message:
     case Ledger::nymbox:
@@ -1809,62 +1809,70 @@ void Ledger::UpdateContents() // Before transmission or serialization, this is
         nPartialRecordCount = static_cast<int32_t>(m_mapTransactions.size());
     }
 
-    //
     // Notice I use the PURPORTED Account ID and Notary ID to create the output.
-    // That's because
-    // I don't want to inadvertantly substitute the real ID for a bad one and
-    // then sign it.
+    // That's because I don't want to inadvertantly substitute the real ID
+    // for a bad one and then sign it.
     // So if there's a bad one in there when I read it, THAT's the one that I
     // write as well!
-    //
     String strType(GetTypeString()), strLedgerAcctID(GetPurportedAccountID()),
         strLedgerAcctNotaryID(GetPurportedNotaryID()), strNymID(GetNymID());
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    String strLedgerContents = "";
+    Tag tag("accountLedger");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("type", strType.Get());
+    tag.add_attribute("numPartialRecords", formatInt(nPartialRecordCount));
+    tag.add_attribute("accountID", strLedgerAcctID.Get());
+    tag.add_attribute("nymID", strNymID.Get());
+    tag.add_attribute("notaryID", strLedgerAcctNotaryID.Get());
 
     // loop through the transactions and print them out here.
     for (auto& it : m_mapTransactions) {
         OTTransaction* pTransaction = it.second;
         OT_ASSERT(nullptr != pTransaction);
 
-        String strTransaction;
-
         if (false ==
             bSavingAbbreviated) // only OTLedger::message uses this block.
-        { // Save the FULL version of the receipt inside the box, so no separate
-            // files are necessary.
-            //
+        {
+            // Save the FULL version of the receipt inside the box, so
+            // no separate files are necessary.
+            String strTransaction;
+
             pTransaction->SaveContractRaw(strTransaction);
             OTASCIIArmor ascTransaction;
             ascTransaction.SetString(strTransaction, true); // linebreaks = true
-            strLedgerContents.Concatenate("<transaction>\n%s</transaction>\n\n",
-                                          ascTransaction.Get());
+
+            TagPtr pTag(new Tag("transaction", ascTransaction.Get()));
+
+            tag.add_tag(pTag);
         }
-        else // true == bSavingAbbreviated    // ALL OTHER ledger types are
-               // saved here in abbreviated form.
+        else // true == bSavingAbbreviated
         {
+            // ALL OTHER ledger types are
+            // saved here in abbreviated form.
+
             switch (GetType()) {
 
             case Ledger::nymbox:
-                pTransaction->SaveAbbreviatedNymboxRecord(strTransaction);
+                pTransaction->SaveAbbreviatedNymboxRecord(tag);
                 break;
             case Ledger::inbox:
-                pTransaction->SaveAbbreviatedInboxRecord(strTransaction);
+                pTransaction->SaveAbbreviatedInboxRecord(tag);
                 break;
             case Ledger::outbox:
-                pTransaction->SaveAbbreviatedOutboxRecord(strTransaction);
+                pTransaction->SaveAbbreviatedOutboxRecord(tag);
                 break;
             case Ledger::paymentInbox:
-                pTransaction->SaveAbbrevPaymentInboxRecord(strTransaction);
+                pTransaction->SaveAbbrevPaymentInboxRecord(tag);
                 break;
             case Ledger::recordBox:
-                pTransaction->SaveAbbrevRecordBoxRecord(strTransaction);
+                pTransaction->SaveAbbrevRecordBoxRecord(tag);
                 break;
             case Ledger::expiredBox:
-                pTransaction->SaveAbbrevExpiredBoxRecord(strTransaction);
+                pTransaction->SaveAbbrevExpiredBoxRecord(tag);
                 break;
 
             default: // todo: possibly change this to an OT_ASSERT. security.
@@ -1876,25 +1884,13 @@ void Ledger::UpdateContents() // Before transmission or serialization, this is
 
                 continue;
             }
-
-            strLedgerContents.Concatenate("%s", strTransaction.Get());
         }
     }
 
-    // HERE IS WHERE WE ACTUALLY BUILD THE STRING:
-    //
-    m_xmlUnsigned.Concatenate("<accountLedger version=\"%s\"\n "
-                              "type=\"%s\"\n "
-                              "numPartialRecords=\"%d\"\n "
-                              "accountID=\"%s\"\n "
-                              "nymID=\"%s\"\n "
-                              "notaryID=\"%s\" >\n\n",
-                              m_strVersion.Get(), strType.Get(),
-                              nPartialRecordCount, strLedgerAcctID.Get(),
-                              strNymID.Get(), strLedgerAcctNotaryID.Get());
+    std::string str_result;
+    tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", strLedgerContents.Get());
-    m_xmlUnsigned.Concatenate("</accountLedger>\n");
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // LoadContract will call this function at the right time.

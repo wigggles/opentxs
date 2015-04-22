@@ -146,6 +146,7 @@ class OTParty;
 class OTPartyAccount;
 class Nym;
 class OTSmartContract;
+class Tag;
 
 typedef std::map<std::string, Nym*> mapOfNyms;
 
@@ -222,7 +223,7 @@ public:
 
     virtual ~OTAgent();
 
-    void Serialize(String& strAppend) const;
+    void Serialize(Tag& parent) const;
 
     // For pointers I don't own, but store for convenience.
     // This clears them once we're done processing, so I don't

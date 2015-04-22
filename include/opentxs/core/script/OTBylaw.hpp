@@ -140,6 +140,7 @@ namespace opentxs
 
 class OTClause;
 class OTScriptable;
+class Tag;
 
 typedef std::map<std::string, std::string> mapOfCallbacks;
 typedef std::map<std::string, OTClause*> mapOfClauses;
@@ -271,7 +272,7 @@ public:
 
     EXPORT bool Compare(OTBylaw& rhs);
 
-    EXPORT void Serialize(String& strAppend, bool bCalculatingID = false) const;
+    EXPORT void Serialize(Tag& parent, bool bCalculatingID = false) const;
 };
 
 } // namespace opentxs

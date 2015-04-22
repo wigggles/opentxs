@@ -142,6 +142,8 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/util/Tag.hpp>
+
 #include <cstring>
 #include <irrxml/irrXML.hpp>
 
@@ -967,7 +969,7 @@ bool Contract::DisplayStatistics(String& strContents) const
     return false;
 }
 
-bool Contract::SaveContractWallet(String&) const
+bool Contract::SaveContractWallet(Tag&) const
 {
     // Subclasses may use this.
 
@@ -2152,28 +2154,23 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
 
 // Overrides of CreateContents call this in order to add some common internals.
 //
-void Contract::CreateInnerContents()
+void Contract::CreateInnerContents(Tag& parent)
 {
     // CONDITIONS
     //
     if (!m_mapConditions.empty()) {
-        m_xmlUnsigned.Concatenate("<!-- CONDITIONS -->\n\n");
-
         for (auto& it : m_mapConditions) {
             std::string str_condition_name = it.first;
             std::string str_condition_value = it.second;
 
-            m_xmlUnsigned.Concatenate(
-                "<condition name=\"%s\">%s</condition>\n\n",
-                str_condition_name.c_str(), str_condition_value.c_str());
+            TagPtr pTag(new Tag("condition", str_condition_value));
+            pTag->add_attribute("name", str_condition_name);
+            parent.add_tag(pTag);
         }
     }
-
     // CREDENTIALS
     //
     if (!m_mapNyms.empty()) {
-        String strTemp;
-
         // CREDENTIALS, based on NymID and Source, and credential IDs.
         for (auto& it : m_mapNyms) {
             std::string str_name = it.first;
@@ -2196,45 +2193,36 @@ void Contract::CreateInnerContents()
                                                      // default. But here, no
                                                      // line breaks.
 
-                strTemp.Concatenate("<%s hasCredentials=\"%s\"\n"
-                                    " nymID=\"%s\"\n"
-                                    " altLocation=\"%s\""
-                                    ">\n\n",
-                                    str_name.c_str(), //"signer"
-                                    bHasCredentials ? "true" : "false",
-                                    strNymID.Get(), ascAltLocation.Get());
+                TagPtr pTag(new Tag(str_name)); // "signer"
+                pTag->add_attribute("hasCredentials",
+                                    formatBool(bHasCredentials));
+                pTag->add_attribute("nymID", strNymID.Get());
+                pTag->add_attribute("altLocation", ascAltLocation.Get());
 
                 if (pNym->GetNymIDSource().Exists()) {
                     OTASCIIArmor ascNymIDSource(pNym->GetNymIDSource());
-                    strTemp.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n",
-                                        ascNymIDSource.Get());
+                    TagPtr pTagSource(
+                        new Tag("nymIDSource", ascNymIDSource.Get()));
+                    pTag->add_tag(pTagSource);
                 }
 
                 // credentialIDs
                 // credentials
                 //
                 if (bHasCredentials) {
-                    String strCredList;
+                    String strCredIDList;
                     String::Map credentials;
 
-                    pNym->GetPublicCredentials(strCredList, &credentials);
+                    pNym->GetPublicCredentials(strCredIDList, &credentials);
 
-                    if (strCredList.Exists() && !credentials.empty()) {
-                        OTASCIIArmor armor1(strCredList);
-                        saveCredentialsToXml(strTemp, armor1, credentials);
+                    if (strCredIDList.Exists() && !credentials.empty()) {
+                        OTASCIIArmor armor1(strCredIDList);
+                        saveCredentialsToTag(*pTag, armor1, credentials);
                     }
                 }
-
-                strTemp.Concatenate("</%s>\n\n", str_name.c_str()); //"signer"
-
+                parent.add_tag(pTag);
             } // "signer"
         }
-
-        if (strTemp.Exists()) {
-            m_xmlUnsigned.Concatenate("<!-- NYMS -->\n\n%s", strTemp.Get());
-            strTemp.Release();
-        }
-
     } // if (m_mapNyms.size() > 0)
 }
 
@@ -2463,22 +2451,25 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
     return 0;
 }
 
-void Contract::saveCredentialsToXml(String& result,
-                                    const OTASCIIArmor& strCredList,
+void Contract::saveCredentialsToTag(Tag& parent,
+                                    const OTASCIIArmor& strCredIDList,
                                     const String::Map& credentials)
 {
-    if (strCredList.Exists())
-        result.Concatenate("<credentialIDs>\n%s</credentialIDs>\n\n",
-                           strCredList.Get());
+    if (strCredIDList.Exists()) {
+        TagPtr pTag(new Tag("credentialIDs", strCredIDList.Get()));
+        parent.add_tag(pTag);
+    }
 
     if (!credentials.empty()) {
-        result.Concatenate("<credentials>\n");
+        TagPtr pTag(new Tag("credentials"));
+
         for (auto i : credentials) {
             OTASCIIArmor armored(i.second);
-            result.Concatenate("<credential\nID=\"%s\">\n%s</credential>\n\n",
-                               i.first.c_str(), armored.Get());
+            TagPtr pTagCred(new Tag("credential", armored.Get()));
+            pTagCred->add_attribute("ID", i.first);
+            pTag->add_tag(pTagCred);
         }
-        result.Concatenate("</credentials>\n\n");
+        parent.add_tag(pTag);
     }
 }
 

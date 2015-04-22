@@ -148,6 +148,7 @@
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/util/Tag.hpp>
 
 #include <irrxml/irrXML.hpp>
 
@@ -1255,25 +1256,27 @@ AssetContract* OTWallet::GetAssetContractPartialMatch(
 
 bool OTWallet::SaveContract(String& strContract)
 {
-    OTASCIIArmor ascName;
+    Tag tag("wallet");
 
-    if (m_strName.Exists()) // name is in the clear in memory, and base64 in
-                            // storage.
-    {
+    // Name is in the clear in memory,
+    // and base64 in storage.
+    OTASCIIArmor ascName;
+    if (m_strName.Exists()) {
         ascName.SetString(m_strName, false); // linebreaks == false
     }
 
-    strContract.Concatenate(
-        "<wallet name=\"%s\" version=\"%s\">\n\n", ascName.Get(),
-        OTCachedKey::It()->IsGenerated() ? "2.0" : m_strVersion.Get());
+    tag.add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
+    tag.add_attribute("version", OTCachedKey::It()->IsGenerated()
+                                     ? "2.0"
+                                     : m_strVersion.Get());
 
     if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
     {
         OTASCIIArmor ascMasterContents;
 
         if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
-            strContract.Concatenate("<cachedKey>\n%s</cachedKey>\n\n",
-                                    ascMasterContents.Get());
+            TagPtr pTag(new Tag("cachedKey", ascMasterContents.Get()));
+            tag.add_tag(pTag);
         }
         else
             otErr << "OTWallet::SaveContract: Failed trying to write master "
@@ -1297,9 +1300,9 @@ bool OTWallet::SaveContract(String& strContract)
         OTASCIIArmor ascKeyContents;
 
         if (pKey && pKey->SerializeTo(ascKeyContents)) {
-            strContract.Concatenate(
-                "<symmetricKey id=\"%s\">\n%s</symmetricKey>\n\n",
-                ascKeyID.Get(), ascKeyContents.Get());
+            TagPtr pTag(new Tag("symmetricKey", ascKeyContents.Get()));
+            pTag->add_attribute("id", ascKeyID.Get());
+            tag.add_tag(pTag);
         }
         else
             otErr << "OTWallet::SaveContract: Failed trying to serialize "
@@ -1307,16 +1310,18 @@ bool OTWallet::SaveContract(String& strContract)
     }
 
     //
-    // We want to save the NymIDs for the Nyms on the master key. I save those
-    // before the Nyms themselves, so that they are all loaded up and available
-    // in LoadWallet before the Nyms themselves are loaded.
+    // We want to save the NymIDs for the Nyms on the master key.
+    // I save those before the Nyms themselves, so that they are
+    // all loaded up and available in LoadWallet before the Nyms
+    // themselves are loaded.
     //
     for (const auto& it : m_setNymsOnCachedKey) {
         const Identifier& theNymID = it;
         String strNymID(theNymID);
 
-        strContract.Concatenate("<nymUsingCachedKey id=\"%s\" />\n\n",
-                                strNymID.Get());
+        TagPtr pTag(new Tag("nymUsingCachedKey"));
+        pTag->add_attribute("id", strNymID.Get());
+        tag.add_tag(pTag);
     }
 
     for (auto& it : m_mapPrivateNyms) {
@@ -1325,7 +1330,7 @@ bool OTWallet::SaveContract(String& strContract)
                                        "OTWallet::m_mapNyms, "
                                        "OTWallet::SaveContract");
 
-        pNym->SavePseudonymWallet(strContract);
+        pNym->SavePseudonymWallet(tag);
     }
 
     for (auto& it : m_mapContracts) {
@@ -1334,7 +1339,7 @@ bool OTWallet::SaveContract(String& strContract)
                                             "OTWallet::m_mapContracts, "
                                             "OTWallet::SaveContract");
 
-        pContract->SaveContractWallet(strContract);
+        pContract->SaveContractWallet(tag);
     }
 
     for (auto& it : m_mapServers) {
@@ -1343,7 +1348,7 @@ bool OTWallet::SaveContract(String& strContract)
                                           "OTWallet::m_mapServers, "
                                           "OTWallet::SaveContract");
 
-        pServer->SaveContractWallet(strContract);
+        pServer->SaveContractWallet(tag);
     }
 
     for (auto& it : m_mapAccounts) {
@@ -1352,10 +1357,13 @@ bool OTWallet::SaveContract(String& strContract)
                                            "OTWallet::m_mapAccounts, "
                                            "OTWallet::SaveContract");
 
-        pAccount->SaveContractWallet(strContract);
+        pAccount->SaveContractWallet(tag);
     }
 
-    strContract.Concatenate("%s", "</wallet>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    strContract.Concatenate("%s", str_result.c_str());
 
     return true;
 }

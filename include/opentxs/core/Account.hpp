@@ -143,6 +143,7 @@ class String;
 class Ledger;
 class Message;
 class Nym;
+class Tag;
 
 class Account : public OTTransactionType
 {
@@ -178,7 +179,7 @@ public:
     EXPORT virtual void Release();
     // overriding this so I can set filename automatically inside based on ID.
     EXPORT virtual bool LoadContract();
-    EXPORT virtual bool SaveContractWallet(String& contents) const;
+    EXPORT virtual bool SaveContractWallet(Tag& parent) const;
     EXPORT virtual bool DisplayStatistics(String& contents) const;
 
     inline void MarkForDeletion()

@@ -156,6 +156,7 @@ namespace opentxs
 class OTAsymmetricKey;
 class OTPasswordData;
 class OTSignature;
+class Tag;
 
 typedef std::list<OTSignature*> listOfSignatures;
 typedef std::map<std::string, Nym*> mapOfNyms;
@@ -427,23 +428,22 @@ public:
 
     // Update the internal unsigned contents based on the member variables
     EXPORT virtual void UpdateContents(); // default behavior does nothing.
-    EXPORT virtual void CreateContents(); // Only used when first generating an
-                                          // asset
-    // or server contract. Meant for contracts
-    // which never change after that point.
-    // Otherwise does the same thing as
-    // UpdateContents. (But meant for a different
-    // purpose.)
 
-    EXPORT void CreateInnerContents(); // Overrides of CreateContents call this
-                                       // in
-                                       // order to add some common internals.
+    // Only used when first generating an asset or server contract.
+    // Meant for contracts which never change after that point.
+    // Otherwise does the same thing as UpdateContents. (But meant
+    // for a different purpose.)
+    EXPORT virtual void CreateContents();
+
+    // Overrides of CreateContents call this in
+    // order to add some common internals.
+    EXPORT void CreateInnerContents(Tag& parent);
 
     // Save the internal contents (m_xmlUnsigned) to an already-open file
     EXPORT virtual bool SaveContents(std::ofstream& ofs) const;
 
     // Saves the entire contract to a file that's already open (like a wallet).
-    EXPORT virtual bool SaveContractWallet(String& strContents) const;
+    EXPORT virtual bool SaveContractWallet(Tag& parent) const;
 
     EXPORT virtual bool DisplayStatistics(String& strContents) const;
 
@@ -536,8 +536,8 @@ public:
     // it was signed.
     EXPORT const Nym* GetContractPublicNym() const;
 
-    static void saveCredentialsToXml(String& result,
-                                     const OTASCIIArmor& strCredList,
+    static void saveCredentialsToTag(Tag& parent,
+                                     const OTASCIIArmor& strCredIDList,
                                      const String::Map& credentials);
     static bool loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
                                        OTASCIIArmor& credList,

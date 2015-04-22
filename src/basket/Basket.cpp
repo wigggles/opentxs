@@ -133,6 +133,8 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/Nym.hpp>
+#include <opentxs/core/util/Tag.hpp>
+
 #include <opentxs/core/Log.hpp>
 
 #include <opentxs/basket/Basket.hpp>
@@ -388,24 +390,28 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
     // I release this because I'm about to repopulate it.
     xmlUnsigned.Release();
 
-    xmlUnsigned.Concatenate("<currencyBasket contractCount=\"%d\"\n"
-                            " minimumTransfer=\"%" PRId64 "\" >\n\n",
-                            m_nSubCount, m_lMinimumTransfer);
+    Tag tag("currencyBasket");
 
-    // Only uesd in Request Basket (requesting an exchange in/out.)
+    tag.add_attribute("contractCount", formatInt(m_nSubCount));
+    tag.add_attribute("minimumTransfer", formatLong(m_lMinimumTransfer));
+
+    // Only used in Request Basket (requesting an exchange in/out.)
     // (Versus a basket object used for ISSUING a basket currency, this is
     // EXCHANGING instead.)
     //
     if (IsExchanging()) {
         String strRequestAcctID(m_RequestAccountID);
-        xmlUnsigned.Concatenate("<requestExchange "
-                                "transferMultiple=\"%d\"\n "
-                                "transferAccountID=\"%s\"\n "
-                                "closingTransactionNo=\"%" PRId64 "\"\n "
-                                "direction=\"%s\" />\n\n",
-                                m_nTransferMultiple, strRequestAcctID.Get(),
-                                m_lClosingTransactionNo,
-                                m_bExchangingIn ? "in" : "out");
+
+        TagPtr tagRequest(new Tag("requestExchange"));
+
+        tagRequest->add_attribute("transferMultiple",
+                                  formatInt(m_nTransferMultiple));
+        tagRequest->add_attribute("transferAccountID", strRequestAcctID.Get());
+        tagRequest->add_attribute("closingTransactionNo",
+                                  formatLong(m_lClosingTransactionNo));
+        tagRequest->add_attribute("direction", m_bExchangingIn ? "in" : "out");
+
+        tag.add_tag(tagRequest);
     }
 
     for (int32_t i = 0; i < Count(); i++) {
@@ -417,24 +423,26 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned,
         String strAcctID(pItem->SUB_ACCOUNT_ID),
             strContractID(pItem->SUB_CONTRACT_ID);
 
-        if (IsExchanging())
-            xmlUnsigned.Concatenate(
-                "<basketItem minimumTransfer=\"%" PRId64 "\"\n"
-                " closingTransactionNo=\"%" PRId64 "\"\n"
-                " accountID=\"%s\"\n"
-                " instrumentDefinitionID=\"%s\" />\n\n",
-                pItem->lMinimumTransferAmount, pItem->lClosingTransactionNo,
-                bHideAccountID ? "" : strAcctID.Get(), strContractID.Get());
-        else
-            xmlUnsigned.Concatenate(
-                "<basketItem minimumTransfer=\"%" PRId64 "\"\n"
-                " accountID=\"%s\"\n"
-                " instrumentDefinitionID=\"%s\" />\n\n",
-                pItem->lMinimumTransferAmount,
-                bHideAccountID ? "" : strAcctID.Get(), strContractID.Get());
+        TagPtr tagItem(new Tag("basketItem"));
+
+        tagItem->add_attribute("minimumTransfer",
+                               formatLong(pItem->lMinimumTransferAmount));
+        tagItem->add_attribute("accountID",
+                               bHideAccountID ? "" : strAcctID.Get());
+        tagItem->add_attribute("instrumentDefinitionID", strContractID.Get());
+
+        if (IsExchanging()) {
+            tagItem->add_attribute("closingTransactionNo",
+                                   formatLong(pItem->lClosingTransactionNo));
+        }
+
+        tag.add_tag(tagItem);
     }
 
-    xmlUnsigned.Concatenate("</currencyBasket>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // Most contracts calculate their ID by hashing the Raw File (signatures and

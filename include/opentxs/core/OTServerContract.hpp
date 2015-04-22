@@ -140,6 +140,7 @@ namespace opentxs
 {
 
 class String;
+class Tag;
 
 class OTServerContract : public Contract
 {
@@ -158,7 +159,7 @@ public:
                                           // that point.  Otherwise does the
                                           // same thing as UpdateContents. (But
                                           // meant for a different purpose.)
-    virtual bool SaveContractWallet(String& strContents) const;
+    virtual bool SaveContractWallet(Tag& parent) const;
     virtual bool DisplayStatistics(String& strContents) const;
 
 protected:

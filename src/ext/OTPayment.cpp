@@ -140,6 +140,7 @@
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 #include <opentxs/core/Cheque.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -1557,25 +1558,29 @@ void OTPayment::Release()
     Contract::Release();
 }
 
-void OTPayment::UpdateContents() // Before transmission or serialization, this
-                                 // is where the Purse saves its contents
+void OTPayment::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate("<payment version=\"%s\"\n"
-                              " type=\"%s\">\n\n",
-                              m_strVersion.Get(), GetTypeString());
+    Tag tag("payment");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("type", GetTypeString());
 
     if (m_strPayment.Exists()) {
         const OTASCIIArmor ascContents(m_strPayment);
 
-        if (ascContents.Exists())
-            m_xmlUnsigned.Concatenate("<contents>\n%s</contents>\n\n",
-                                      ascContents.Get());
+        if (ascContents.Exists()) {
+            TagPtr tagContents(new Tag("contents", ascContents.Get()));
+            tag.add_tag(tagContents);
+        }
     }
 
-    m_xmlUnsigned.Concatenate("</payment>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)

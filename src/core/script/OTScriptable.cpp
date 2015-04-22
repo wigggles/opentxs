@@ -136,6 +136,7 @@
 #include <opentxs/core/script/OTAgent.hpp>
 #include <opentxs/core/script/OTBylaw.hpp>
 #include <opentxs/core/script/OTClause.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
@@ -2280,34 +2281,43 @@ void OTScriptable::CalculateContractID(Identifier& newID) const
 {
     // Produce a template version of the scriptable.
     OTStringXML xmlUnsigned;
-    UpdateContentsToString(xmlUnsigned, true);
+
+    Tag tag("scriptable");
+
+    UpdateContentsToTag(tag, true);
+
+    std::string str_result;
+    tag.output(str_result);
+
+    xmlUnsigned.Concatenate("%s", str_result.c_str());
 
     newID.CalculateDigest(xmlUnsigned);
 }
 
-void OTScriptable::UpdateContentsToString(String& strAppend,
-                                          bool bCalculatingID) const
+void OTScriptable::UpdateContentsToTag(Tag& parent, bool bCalculatingID) const
 {
     if ((!m_mapParties.empty()) || (!m_mapBylaws.empty())) {
-        strAppend.Concatenate(
-            "<scriptableContract\n specifyInstrumentDefinitionID=\"%s\"\n "
-            "specifyParties=\"%s\"\n"
-            " numParties=\"%" PRI_SIZE "\"\n numBylaws=\"%" PRI_SIZE "\" >\n\n",
-            m_bSpecifyInstrumentDefinitionID ? "true" : "false",
-            m_bSpecifyParties ? "true" : "false", m_mapParties.size(),
-            m_mapBylaws.size());
+
+        TagPtr pTag(new Tag("scriptableContract"));
+
+        uint32_t sizePartyMap = m_mapParties.size();
+        uint32_t sizeBylawMap = m_mapBylaws.size();
+
+        pTag->add_attribute("specifyInstrumentDefinitionID",
+                            formatBool(m_bSpecifyInstrumentDefinitionID));
+        pTag->add_attribute("specifyParties", formatBool(m_bSpecifyParties));
+        pTag->add_attribute("numParties", formatUint(sizePartyMap));
+        pTag->add_attribute("numBylaws", formatUint(sizeBylawMap));
 
         for (auto& it : m_mapParties) {
             OTParty* pParty = it.second;
             OT_ASSERT(nullptr != pParty);
 
-            // Serialization is slightly different depending on whether we are
-            // saving
-            // for real, or just generating a template version of the contract
-            // in order
-            // to generate its ID.
+            // Serialization is slightly different depending on whether
+            // we are saving for real, or just generating a template
+            // version of the contract in order to generate its ID.
             //
-            pParty->Serialize(strAppend, bCalculatingID,
+            pParty->Serialize(*pTag, bCalculatingID,
                               m_bSpecifyInstrumentDefinitionID,
                               m_bSpecifyParties);
         }
@@ -2316,10 +2326,10 @@ void OTScriptable::UpdateContentsToString(String& strAppend,
             OTBylaw* pBylaw = it.second;
             OT_ASSERT(nullptr != pBylaw);
 
-            pBylaw->Serialize(strAppend, bCalculatingID);
+            pBylaw->Serialize(*pTag, bCalculatingID);
         }
 
-        strAppend.Concatenate("</scriptableContract>\n\n");
+        parent.add_tag(pTag);
     }
 }
 
@@ -2330,7 +2340,14 @@ void OTScriptable::UpdateContents() // Before transmission or serialization,
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    UpdateContentsToString(m_xmlUnsigned, m_bCalculatingID);
+    Tag tag("scriptable");
+
+    UpdateContentsToTag(tag, m_bCalculatingID);
+
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

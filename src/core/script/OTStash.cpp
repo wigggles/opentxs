@@ -135,6 +135,7 @@
 #include <opentxs/core/script/OTStash.hpp>
 
 #include <opentxs/core/Contract.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTStashItem.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -146,10 +147,14 @@
 namespace opentxs
 {
 
-void OTStash::Serialize(String& strAppend) const
+void OTStash::Serialize(Tag& parent) const
 {
-    strAppend.Concatenate("<stash name=\"%s\" count=\"%" PRI_SIZE "\" >\n\n",
-                          m_str_stash_name.c_str(), m_mapStashItems.size());
+    uint32_t sizeMapStashItems = m_mapStashItems.size();
+
+    TagPtr pTag(new Tag("stash"));
+
+    pTag->add_attribute("name", m_str_stash_name);
+    pTag->add_attribute("count", formatUint(sizeMapStashItems));
 
     for (auto& it : m_mapStashItems) {
         const std::string str_instrument_definition_id = it.first;
@@ -157,14 +162,16 @@ void OTStash::Serialize(String& strAppend) const
         OT_ASSERT((str_instrument_definition_id.size() > 0) &&
                   (nullptr != pStashItem));
 
-        strAppend.Concatenate(
-            "<stashItem instrumentDefinitionID=\"%s\" balance=\"%" PRId64
-            "\" />\n\n",
-            pStashItem->GetInstrumentDefinitionID().Get(),
-            pStashItem->GetAmount());
+        TagPtr pTagItem(new Tag("stashItem"));
+
+        pTagItem->add_attribute("instrumentDefinitionID",
+                                pStashItem->GetInstrumentDefinitionID().Get());
+        pTagItem->add_attribute("balance", formatLong(pStashItem->GetAmount()));
+
+        pTag->add_tag(pTagItem);
     }
 
-    strAppend.Concatenate("</stash>\n\n");
+    parent.add_tag(pTag);
 }
 
 int32_t OTStash::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,

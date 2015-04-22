@@ -138,6 +138,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/util/Tag.hpp>
 
 #include <fstream>
 #include <cstring>
@@ -193,20 +194,23 @@ bool OTServerContract::DisplayStatistics(String& strContents) const
     return true;
 }
 
-bool OTServerContract::SaveContractWallet(String& strContents) const
+bool OTServerContract::SaveContractWallet(Tag& parent) const
 {
     const String strID(m_ID);
-    OTASCIIArmor ascName;
 
-    if (m_strName.Exists()) // name is in the clear in memory, and base64 in
-                            // storage.
-    {
+    // Name is in the clear in memory,
+    // and base64 in storage.
+    OTASCIIArmor ascName;
+    if (m_strName.Exists()) {
         ascName.SetString(m_strName, false); // linebreaks == false
     }
-    strContents.Concatenate("<notaryProvider name=\"%s\"\n"
-                            " notaryID=\"%s\" />\n\n",
-                            m_strName.Exists() ? ascName.Get() : "",
-                            strID.Get());
+
+    TagPtr pTag(new Tag("notaryProvider"));
+
+    pTag->add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
+    pTag->add_attribute("notaryID", strID.Get());
+
+    parent.add_tag(pTag);
 
     return true;
 }
@@ -229,23 +233,28 @@ zcert_t* OTServerContract::LoadOrCreateTransportKey(const String& nymID)
 void OTServerContract::CreateContents()
 {
     m_xmlUnsigned.Release();
-    m_xmlUnsigned.Concatenate("<notaryProviderContract version=\"%s\">\n\n",
-                              m_strVersion.Get());
+
+    Tag tag("notaryProviderContract");
+
+    tag.add_attribute("version", m_strVersion.Get());
 
     // Entity
-    m_xmlUnsigned.Concatenate("<entity shortname=\"%s\"\n"
-                              " longname=\"%s\"\n"
-                              " email=\"%s\"\n"
-                              " serverURL=\"%s\"/>\n\n",
-                              m_strEntityShortName.Get(),
-                              m_strEntityLongName.Get(), m_strEntityEmail.Get(),
-                              m_strURL.Get());
-
+    {
+        TagPtr pTag(new Tag("entity"));
+        pTag->add_attribute("shortname", m_strEntityShortName.Get());
+        pTag->add_attribute("longname", m_strEntityLongName.Get());
+        pTag->add_attribute("email", m_strEntityEmail.Get());
+        pTag->add_attribute("serverURL", m_strURL.Get());
+        tag.add_tag(pTag);
+    }
     // notaryServer
-    m_xmlUnsigned.Concatenate("<notaryServer hostname=\"%s\"\n"
-                              " port=\"%d\"\n"
-                              " URL=\"%s\"/>\n\n",
-                              m_strHostname.Get(), m_nPort, m_strURL.Get());
+    {
+        TagPtr pTag(new Tag("notaryServer"));
+        pTag->add_attribute("hostname", m_strHostname.Get());
+        pTag->add_attribute("port", formatInt(m_nPort));
+        pTag->add_attribute("URL", m_strURL.Get());
+        tag.add_tag(pTag);
+    }
 
     // Write the transportKey
     const Nym* nym = m_mapNyms["signer"];
@@ -254,15 +263,20 @@ void OTServerContract::CreateContents()
     // base64-encode the binary public key because the encoded key
     // (zcert_public_txt()) does Z85 encoding, which contains the '<','>' chars.
     // See http://rfc.zeromq.org/spec:32.
-    m_xmlUnsigned.Concatenate(
-        "<transportKey>%s</transportKey>\n\n",
-        OTCrypto::It()->Base64Encode(transportKey, TRANSPORT_KEY_SIZE, false));
 
-    // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
-    // etc.
-    CreateInnerContents();
+    TagPtr pTag(new Tag(
+        "transportKey",
+        OTCrypto::It()->Base64Encode(transportKey, TRANSPORT_KEY_SIZE, false)));
+    tag.add_tag(pTag);
 
-    m_xmlUnsigned.Concatenate("</notaryProviderContract>\n");
+    // This is where OTContract scribes tag with its keys,
+    // conditions, etc.
+    CreateInnerContents(tag);
+
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Format("%s", str_result.c_str());
 }
 
 // This is the serialization code for READING FROM THE CONTRACT

@@ -135,6 +135,7 @@
 #include <opentxs/core/Cheque.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -160,37 +161,36 @@ void Cheque::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<cheque\n version=\"%s\"\n"
-        " amount=\"%" PRId64 "\"\n"
-        " instrumentDefinitionID=\"%s\"\n"
-        " transactionNum=\"%" PRId64 "\"\n"
-        " notaryID=\"%s\"\n"
-        " senderAcctID=\"%s\"\n"
-        " senderNymID=\"%s\"\n"
-        " hasRecipient=\"%s\"\n"
-        " recipientNymID=\"%s\"\n"
-        " hasRemitter=\"%s\"\n"
-        " remitterNymID=\"%s\"\n"
-        " remitterAcctID=\"%s\"\n"
-        " validFrom=\"%s\"\n"
-        " validTo=\"%s\""
-        " >\n\n",
-        m_strVersion.Get(), m_lAmount, INSTRUMENT_DEFINITION_ID.Get(),
-        GetTransactionNum(), NOTARY_ID.Get(), SENDER_ACCT_ID.Get(),
-        SENDER_NYM_ID.Get(), (m_bHasRecipient ? "true" : "false"),
-        (m_bHasRecipient ? RECIPIENT_NYM_ID.Get() : ""),
-        (m_bHasRemitter ? "true" : "false"),
-        (m_bHasRemitter ? REMITTER_NYM_ID.Get() : ""),
-        (m_bHasRemitter ? REMITTER_ACCT_ID.Get() : ""), from.c_str(),
-        to.c_str());
+    Tag tag("cheque");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("amount", formatLong(m_lAmount));
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute("senderAcctID", SENDER_ACCT_ID.Get());
+    tag.add_attribute("senderNymID", SENDER_NYM_ID.Get());
+    tag.add_attribute("hasRecipient", formatBool(m_bHasRecipient));
+    tag.add_attribute("recipientNymID",
+                      m_bHasRecipient ? RECIPIENT_NYM_ID.Get() : "");
+    tag.add_attribute("hasRemitter", formatBool(m_bHasRemitter));
+    tag.add_attribute("remitterNymID",
+                      m_bHasRemitter ? REMITTER_NYM_ID.Get() : "");
+    tag.add_attribute("remitterAcctID",
+                      m_bHasRemitter ? REMITTER_ACCT_ID.Get() : "");
+
+    tag.add_attribute("validFrom", from);
+    tag.add_attribute("validTo", to);
 
     if (m_strMemo.Exists() && m_strMemo.GetLength() > 2) {
         OTASCIIArmor ascMemo(m_strMemo);
-        m_xmlUnsigned.Concatenate("<memo>\n%s</memo>\n\n", ascMemo.Get());
+        tag.add_tag("memo", ascMemo.Get());
     }
 
-    m_xmlUnsigned.Concatenate("</cheque>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

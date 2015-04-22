@@ -136,6 +136,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/Ledger.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -2237,28 +2238,6 @@ void Item::GetStringFromType(Item::itemType theType, String& strType)
 void Item::UpdateContents() // Before transmission or serialization, this is
                             // where the ledger saves its contents
 {
-    String strListOfBlanks; // IF this item is "acceptTransaction" then this
-                            // will serialize the list of transaction numbers
-                            // being accepted. (They now support multiple
-                            // numbers.)
-
-    switch (m_Type) {
-    case Item::acceptTransaction: {
-        if (m_Numlist.Count() >
-            0) // This is always 0, except for OTItem::acceptTransaction.
-        {
-            String strNumbers;
-            if (true == m_Numlist.Output(strNumbers))
-                strListOfBlanks.Format(" totalListOfNumbers=\"%s\"\n",
-                                       strNumbers.Get());
-            else // (False just means m_Numlist was empty.)
-                strListOfBlanks.Set("");
-        }
-    }
-    default:
-        break;
-    }
-
     String strFromAcctID(GetPurportedAccountID()),
         strToAcctID(GetDestinationAcctID()),
         strNotaryID(GetPurportedNotaryID()), strType, strStatus,
@@ -2284,64 +2263,63 @@ void Item::UpdateContents() // Before transmission or serialization, this is
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
+    Tag tag("item");
+
+    tag.add_attribute("type", strType.Get());
+    tag.add_attribute("status", strStatus.Get());
+    tag.add_attribute("numberOfOrigin", // GetRaw so it doesn't calculate.
+                      formatLong(GetRawNumberOfOrigin()));
+    tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    tag.add_attribute("notaryID", strNotaryID.Get());
+    tag.add_attribute("nymID", strNymID.Get());
+    tag.add_attribute("fromAccountID", strFromAcctID.Get());
+    tag.add_attribute("toAccountID", strToAcctID.Get());
+    tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+    tag.add_attribute("amount", formatLong(m_lAmount));
+
+    // Only used in server reply item:
+    // atBalanceStatement. In cases
+    // where the statement includes a
+    // new outbox item, this variable is
+    // used to transport the new
+    // transaction number (generated on
+    // server side for that new outbox
+    // item) back to the client, so the
+    // client knows the transaction
+    // number to verify when he is
+    // verifying the outbox against the
+    // last signed receipt.
     if (m_lNewOutboxTransNum > 0)
-        m_xmlUnsigned.Concatenate(
-            "<item type=\"%s\"\n status=\"%s\"\n"
-            " outboxNewTransNum=\"%" PRId64
-            "\"\n" // only used in server reply item:
-                   // atBalanceStatement. In cases
-                   // where the statement includes a
-                   // new outbox item, this variable is
-                   // used to transport the new
-                   // transaction number (generated on
-                   // server side for that new outbox
-                   // item) back to the client, so the
-                   // client knows the transaction
-                   // number to verify when he is
-                   // verifying the outbox against the
-                   // last signed receipt.
-            " numberOfOrigin=\"%" PRId64 "\"\n"
-            " transactionNum=\"%" PRId64 "\"\n"
-            " notaryID=\"%s\"\n"
-            " nymID=\"%s\"\n"
-            " fromAccountID=\"%s\"\n"
-            " toAccountID=\"%s\"\n"
-            " inReferenceTo=\"%" PRId64 "\"\n"
-            " amount=\"%" PRId64 "\" >\n\n",
-            strType.Get(), strStatus.Get(), m_lNewOutboxTransNum,
-            GetRawNumberOfOrigin(), // GetRaw so it doesn't calculate.
-            GetTransactionNum(), strNotaryID.Get(), strNymID.Get(),
-            strFromAcctID.Get(), strToAcctID.Get(), GetReferenceToNum(),
-            m_lAmount);
-    else
-        m_xmlUnsigned.Concatenate(
-            "<item type=\"%s\"\n status=\"%s\"\n"
-            " numberOfOrigin=\"%" PRId64 "\"\n"
-            " transactionNum=\"%" PRId64 "\"\n%s"
-            " notaryID=\"%s\"\n"
-            " nymID=\"%s\"\n"
-            " fromAccountID=\"%s\"\n"
-            " toAccountID=\"%s\"\n"
-            " inReferenceTo=\"%" PRId64 "\"\n"
-            " amount=\"%" PRId64 "\" >\n\n",
-            strType.Get(), strStatus.Get(),
-            GetRawNumberOfOrigin(), // GetRaw so it doesn't calculate.
-            GetTransactionNum(), strListOfBlanks.Get(), strNotaryID.Get(),
-            strNymID.Get(), strFromAcctID.Get(), strToAcctID.Get(),
-            GetReferenceToNum(), m_lAmount);
+        tag.add_attribute("outboxNewTransNum",
+                          formatLong(m_lNewOutboxTransNum));
+    else {
+        // IF this item is "acceptTransaction" then this
+        // will serialize the list of transaction numbers
+        // being accepted. (They now support multiple
+        // numbers.)
+        if ((Item::acceptTransaction == m_Type) && (m_Numlist.Count() > 0)) {
+            // m_Numlist.Count is always 0, except for
+            // OTItem::acceptTransaction.
+            String strListOfBlanks;
+
+            if (true == m_Numlist.Output(strListOfBlanks))
+                tag.add_attribute("totalListOfNumbers", strListOfBlanks.Get());
+        }
+    }
 
     if (m_ascNote.GetLength() > 2) {
-        m_xmlUnsigned.Concatenate("<note>\n%s</note>\n\n", m_ascNote.Get());
+        TagPtr tagNote(new Tag("note", m_ascNote.Get()));
+        tag.add_tag(tagNote);
     }
 
     if (m_ascInReferenceTo.GetLength() > 2) {
-        m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                  m_ascInReferenceTo.Get());
+        TagPtr tagRef(new Tag("inReferenceTo", m_ascInReferenceTo.Get()));
+        tag.add_tag(tagRef);
     }
 
     if (m_ascAttachment.GetLength() > 2) {
-        m_xmlUnsigned.Concatenate("<attachment>\n%s</attachment>\n\n",
-                                  m_ascAttachment.Get());
+        TagPtr tagAttachment(new Tag("attachment", m_ascAttachment.Get()));
+        tag.add_tag(tagAttachment);
     }
 
     if ((Item::balanceStatement == m_Type) ||
@@ -2360,24 +2338,33 @@ void Item::UpdateContents() // Before transmission or serialization, this is
             String receiptType;
             GetStringFromType(pItem->GetType(), receiptType);
 
-            m_xmlUnsigned.Concatenate(
-                "<transactionReport type=\"%s\"\n"
-                " adjustment=\"%" PRId64 "\"\n"
-                " accountID=\"%s\"\n"
-                " nymID=\"%s\"\n"
-                " notaryID=\"%s\"\n"
-                " numberOfOrigin=\"%" PRId64 "\"\n"
-                " transactionNum=\"%" PRId64 "\"\n"
-                " closingTransactionNum=\"%" PRId64 "\"\n"
-                " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                receiptType.Exists() ? receiptType.Get() : "error_state",
-                pItem->GetAmount(), acctID.Get(), nymID.Get(), notaryID.Get(),
-                pItem->GetRawNumberOfOrigin(), pItem->GetTransactionNum(),
-                pItem->GetClosingNum(), pItem->GetReferenceToNum());
+            TagPtr tagReport(new Tag("transactionReport"));
+
+            tagReport->add_attribute("type", receiptType.Exists()
+                                                 ? receiptType.Get()
+                                                 : "error_state");
+            tagReport->add_attribute("adjustment",
+                                     formatLong(pItem->GetAmount()));
+            tagReport->add_attribute("accountID", acctID.Get());
+            tagReport->add_attribute("nymID", nymID.Get());
+            tagReport->add_attribute("notaryID", notaryID.Get());
+            tagReport->add_attribute("numberOfOrigin",
+                                     formatLong(pItem->GetRawNumberOfOrigin()));
+            tagReport->add_attribute("transactionNum",
+                                     formatLong(pItem->GetTransactionNum()));
+            tagReport->add_attribute("closingTransactionNum",
+                                     formatLong(pItem->GetClosingNum()));
+            tagReport->add_attribute("inReferenceTo",
+                                     formatLong(pItem->GetReferenceToNum()));
+
+            tag.add_tag(tagReport);
         }
     }
 
-    m_xmlUnsigned.Concatenate("</item>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 } // namespace opentxs

@@ -59,6 +59,10 @@ if(ANDROID)
   add_definitions(-D_CRT_ERRNO_DEFINED)
 endif()
 
+# FT: I added this.
+set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
+
+
 # Disable czmq tests. They also cause trouble on Android MIPS
 set(CZMQ_BUILD_TESTS false CACHE BOOL "")
 add_subdirectory(czmq)

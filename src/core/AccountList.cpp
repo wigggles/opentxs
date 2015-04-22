@@ -133,6 +133,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/AccountList.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -171,13 +172,17 @@ AccountList::~AccountList()
     Release_AcctList();
 }
 
-void AccountList::Serialize(String& append) const
+void AccountList::Serialize(Tag& parent) const
 {
     String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
-    append.Concatenate("<accountList type=\"%s\" count=\"%" PRI_SIZE "\" >\n\n",
-                       acctType.Get(), mapAcctIDs_.size());
+    uint32_t sizeMapAcctIDs = mapAcctIDs_.size();
+
+    TagPtr pTag(new Tag("accountList"));
+
+    pTag->add_attribute("type", acctType.Get());
+    pTag->add_attribute("count", formatUint(sizeMapAcctIDs));
 
     for (auto& it : mapAcctIDs_) {
         std::string instrumentDefinitionID = it.first;
@@ -185,12 +190,16 @@ void AccountList::Serialize(String& append) const
         OT_ASSERT((instrumentDefinitionID.size() > 0) &&
                   (accountId.size() > 0));
 
-        append.Concatenate("<accountEntry instrumentDefinitionID=\"%s\" "
-                           "accountID=\"%s\" />\n\n",
-                           instrumentDefinitionID.c_str(), accountId.c_str());
+        TagPtr pTagEntry(new Tag("accountEntry"));
+
+        pTagEntry->add_attribute("instrumentDefinitionID",
+                                 instrumentDefinitionID);
+        pTagEntry->add_attribute("accountID", accountId);
+
+        pTag->add_tag(pTagEntry);
     }
 
-    append.Concatenate("</accountList>\n\n");
+    parent.add_tag(pTag);
 }
 
 int32_t AccountList::ReadFromXMLNode(irr::io::IrrXMLReader*& xml,

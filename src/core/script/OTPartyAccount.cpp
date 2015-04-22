@@ -136,6 +136,7 @@
 
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/script/OTAgent.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTScript.hpp>
@@ -440,21 +441,23 @@ Account* OTPartyAccount::LoadAccount(Nym& theSignerNym,
     return pAccount;
 }
 
-void OTPartyAccount::Serialize(String& strAppend, bool bCalculatingID,
+void OTPartyAccount::Serialize(Tag& parent, bool bCalculatingID,
                                bool bSpecifyInstrumentDefinitionID) const
 {
-    strAppend.Concatenate("<account\n name=\"%s\"\n"
-                          " acctID=\"%s\"\n"
-                          " instrumentDefinitionID=\"%s\"\n"
-                          " agentName=\"%s\"\n"
-                          " closingTransNo=\"%" PRId64 "\" />\n\n",
-                          m_strName.Get(),
-                          bCalculatingID ? "" : m_strAcctID.Get(),
-                          (bCalculatingID && !bSpecifyInstrumentDefinitionID)
-                              ? ""
-                              : m_strInstrumentDefinitionID.Get(),
-                          bCalculatingID ? "" : m_strAgentName.Get(),
-                          bCalculatingID ? 0 : m_lClosingTransNo);
+    TagPtr pTag(new Tag("account"));
+
+    pTag->add_attribute("name", m_strName.Get());
+    pTag->add_attribute("acctID", bCalculatingID ? "" : m_strAcctID.Get());
+    pTag->add_attribute("instrumentDefinitionID",
+                        (bCalculatingID && !bSpecifyInstrumentDefinitionID)
+                            ? ""
+                            : m_strInstrumentDefinitionID.Get());
+    pTag->add_attribute("agentName",
+                        bCalculatingID ? "" : m_strAgentName.Get());
+    pTag->add_attribute("closingTransNo",
+                        formatLong(bCalculatingID ? 0 : m_lClosingTransNo));
+
+    parent.add_tag(pTag);
 }
 
 void OTPartyAccount::RegisterForExecution(OTScript& theScript)

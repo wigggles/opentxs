@@ -142,6 +142,7 @@ namespace opentxs
 {
 
 class Nym;
+class Tag;
 
 // The server needs to store a list of accounts, by instrument definition ID, to
 // store the
@@ -166,7 +167,7 @@ public:
 
     EXPORT void Release_AcctList();
 
-    EXPORT void Serialize(String& append) const;
+    EXPORT void Serialize(Tag& parent) const;
     EXPORT int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
                                    const String& acctType,
                                    const String& acctCount);

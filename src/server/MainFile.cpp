@@ -143,6 +143,7 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <irrxml/irrXML.hpp>
 #include <string>
 #include <memory>
@@ -158,34 +159,29 @@ MainFile::MainFile(OTServer* server)
 
 bool MainFile::SaveMainFileToString(String& strMainFile)
 {
-    const char* szFunc = "MainFile::SaveMainFileToString";
+    Tag tag("notaryServer");
 
-    strMainFile.Format(
-        "<notaryServer version=\"%s\"\n"
-        " notaryID=\"%s\"\n"
-        " serverNymID=\"%s\"\n"
-        " transactionNum=\"%" PRId64 "\" >\n\n",
-        OTCachedKey::It()->IsGenerated() ? "2.0" : version_.c_str(),
-        server_->m_strNotaryID.Get(), server_->m_strServerNymID.Get(),
-        server_->transactor_.transactionNumber());
+    // We're on version 2.0 since adding the master key.
+    tag.add_attribute("version",
+                      OTCachedKey::It()->IsGenerated() ? "2.0" : version_);
+    tag.add_attribute("notaryID", server_->m_strNotaryID.Get());
+    tag.add_attribute("serverNymID", server_->m_strServerNymID.Get());
+    tag.add_attribute("transactionNum",
+                      formatLong(server_->transactor_.transactionNumber()));
 
     if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
     {
         OTASCIIArmor ascMasterContents;
 
         if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
-            strMainFile.Concatenate("<cachedKey>\n%s</cachedKey>\n\n",
-                                    ascMasterContents.Get());
+            TagPtr pTag(new Tag("cachedKey", ascMasterContents.Get()));
+            tag.add_tag(pTag);
         }
         else
             Log::vError(
                 "%s: Failed trying to write master key to notary file.\n",
-                szFunc);
+                __FUNCTION__);
     }
-
-    // ContractsMap    contractsMap_;   // If the server needs to store
-    // copies of the asset contracts, then here they are.
-    // MintsMap        m_mapMints;          // Mints for each of those.
 
     for (auto& it : server_->transactor_.contractsMap_) {
         Contract* pContract = it.second;
@@ -193,7 +189,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
                       "nullptr contract pointer in MainFile::SaveMainFile.\n");
 
         // This is like the Server's wallet.
-        pContract->SaveContractWallet(strMainFile);
+        pContract->SaveContractWallet(tag);
     }
 
     // Save the basket account information
@@ -211,22 +207,27 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
 
         if (!bContractID) {
             Log::vError("%s: Error: Missing Contract ID for basket ID %s\n",
-                        szFunc, strBasketID.Get());
+                        __FUNCTION__, strBasketID.Get());
             break;
         }
 
         String strBasketContractID(BASKET_CONTRACT_ID);
 
-        strMainFile.Concatenate("<basketInfo basketID=\"%s\"\n"
-                                " basketAcctID=\"%s\"\n"
-                                " basketContractID=\"%s\" />\n\n",
-                                strBasketID.Get(), strBasketAcctID.Get(),
-                                strBasketContractID.Get());
+        TagPtr pTag(new Tag("basketInfo"));
+
+        pTag->add_attribute("basketID", strBasketID.Get());
+        pTag->add_attribute("basketAcctID", strBasketAcctID.Get());
+        pTag->add_attribute("basketContractID", strBasketContractID.Get());
+
+        tag.add_tag(pTag);
     }
 
-    server_->transactor_.voucherAccounts_.Serialize(strMainFile);
+    server_->transactor_.voucherAccounts_.Serialize(tag);
 
-    strMainFile.Concatenate("</notaryServer>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    strMainFile.Concatenate("%s", str_result.c_str());
 
     return true;
 }

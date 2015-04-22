@@ -147,6 +147,7 @@ class OTCron;
 class Identifier;
 class Nym;
 class String;
+class Tag;
 
 class OTCronItem : public OTTrackable
 {
@@ -328,13 +329,13 @@ public:
     {
         return m_bCanceled;
     }
-    EXPORT bool CancelBeforeActivation(Nym& theCancelerNym); // When canceling a
-                                                             // cron item before
-                                                             // it
+
+    // When canceling a cron item before it
     // has been activated, use this.
+    EXPORT bool CancelBeforeActivation(Nym& theCancelerNym);
+
     // These are for     std::deque<int64_t> m_dequeClosingNumbers;
     // They are numbers used for CLOSING a transaction. (finalReceipt.)
-
     EXPORT int64_t GetClosingTransactionNoAt(uint32_t nIndex) const;
     EXPORT int32_t GetCountClosingNumbers() const;
 
@@ -348,9 +349,7 @@ public:
     virtual int64_t GetOpeningNumber(const Identifier& theNymID) const;
     virtual int64_t GetClosingNumber(const Identifier& theAcctID) const;
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    //    virtual void UpdateContents(); // Before transmission or
-    // serialization, this is where the ledger saves its contents
-    //    virtual bool SaveContractWallet(std::ofstream& ofs) const;
+    //  virtual void UpdateContents();
 };
 
 } // namespace opentxs

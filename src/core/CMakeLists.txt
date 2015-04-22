@@ -12,6 +12,7 @@ add_subdirectory(script)
 add_subdirectory(recurring)
 
 set(cxx-sources
+  util/Tag.cpp
   util/Timer.cpp
   util/Assert.cpp
   util/StringUtils.cpp

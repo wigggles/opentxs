@@ -138,6 +138,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/util/Tag.hpp>
 
 #include <fstream>
 #include <cstring>
@@ -291,11 +292,9 @@ void Message::SetAcknowledgments(Nym& theNym)
 
 // The framework (OTContract) will call this function at the appropriate time.
 // OTMessage is special because it actually does something here, when most
-// contracts
-// are read-only and thus never update their contents.
+// contracts are read-only and thus never update their contents.
 // Messages, obviously, are different every time, and this function will be
-// called
-// just prior to the signing of the message, in OTContract::SignContract.
+// called just prior to the signing of the message, in OTContract::SignContract.
 void Message::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
@@ -303,29 +302,28 @@ void Message::UpdateContents()
 
     m_lTime = OTTimeGetCurrentTime();
 
-    m_xmlUnsigned.Concatenate(
-        "<notaryMessage\n version=\"%s\"\n dateSigned=\"%s\">\n\n",
-        m_strVersion.Get(), formatTimestamp(m_lTime).c_str());
+    Tag tag("notaryMessage");
 
-    if (!updateContentsByType()) {
-        m_xmlUnsigned.Concatenate("<%s\n" // Command
-                                  " requestNum=\"%s\"\n"
-                                  " success=\"false\"\n"
-                                  " acctID=\"%s\"\n"
-                                  " nymID=\"%s\"\n"
-                                  " notaryID=\"%s\""
-                                  " ><!-- THIS IS AN INVALID MESSAGE -->\n\n",
-                                  m_strCommand.Get(), m_strRequestNum.Get(),
-                                  m_strAcctID.Get(), m_strNymID.Get(),
-                                  m_strNotaryID.Get());
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("dateSigned", formatTimestamp(m_lTime));
 
-        m_xmlUnsigned.Concatenate("</%s>\n\n", m_strCommand.Get());
+    if (!updateContentsByType(tag)) {
+        TagPtr pTag(new Tag(m_strCommand.Get()));
+        pTag->add_attribute("requestNum", m_strRequestNum.Get());
+        pTag->add_attribute("success", formatBool(false));
+        pTag->add_attribute("acctID", m_strAcctID.Get());
+        pTag->add_attribute("nymID", m_strNymID.Get());
+        pTag->add_attribute("notaryID", m_strNotaryID.Get());
+        // The below was an XML comment in the previous version
+        // of this code. It's unused.
+        pTag->add_attribute("infoInvalid", "THIS IS AN INVALID MESSAGE");
+        tag.add_tag(pTag);
     }
 
     // ACKNOWLEDGED REQUEST NUMBERS
     //
-    // (For reducing the number of box receipts for replyNotices that must be
-    // downloaded.)
+    // (For reducing the number of box receipts for replyNotices that
+    // must be downloaded.)
     //
     // Client keeps a list of server replies he's already seen.
     // Server keeps a list of numbers the client has provided on HIS list
@@ -336,32 +334,31 @@ void Message::UpdateContents()
     // Client removes any number he sees on the server's list.
     // Server removes any number he sees the client has also removed.
     //
-
     if (m_AcknowledgedReplies.Count() > 0) {
         String strAck;
         if (m_AcknowledgedReplies.Output(strAck) && strAck.Exists()) {
             const OTASCIIArmor ascTemp(strAck);
-
-            if (ascTemp.Exists())
-                m_xmlUnsigned.Concatenate("<ackReplies>\n%s</ackReplies>\n\n",
-                                          ascTemp.Get());
+            if (ascTemp.Exists()) {
+                TagPtr pTag(new Tag("ackReplies", ascTemp.Get()));
+                tag.add_tag(pTag);
+            }
         }
     }
 
-    m_xmlUnsigned.Concatenate("</notaryMessage>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
-bool Message::updateContentsByType()
+bool Message::updateContentsByType(Tag& parent)
 {
     OTMessageStrategy* strategy =
         messageStrategyManager.findStrategy(m_strCommand.Get());
     if (!strategy) return false;
-    m_xmlUnsigned.Concatenate(strategy->writeXml(*this));
+    strategy->writeXml(*this, parent);
     return true;
 }
-
-// Todo: consider leaving the request # inside all the server REPLIES, so they
-// are easier to match up to the requests. (Duh.)
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
@@ -568,23 +565,17 @@ OTMessageStrategy::~OTMessageStrategy()
 class StrategyGetMarketOffers : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " marketID=\"%s\"\n" // stored in NymID2
-                           " depth=\"%" PRId64 "\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strNymID2.Get(), // Storing Market ID
-                           m.m_lDepth);
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("marketID", m.m_strNymID2.Get());
+        pTag->add_attribute("depth", formatLong(m.m_lDepth));
+
+        parent.add_tag(pTag);
     }
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -615,33 +606,28 @@ RegisterStrategy StrategyGetMarketOffers::reg("getMarketOffers",
 class StrategyGetMarketOffersResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " marketID=\"%s\"\n" // stored in NymID2
-                           " depth=\"%" PRId64 "\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strNymID2.Get(), // Storing Market ID
-                           m.m_lDepth);
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("depth", formatLong(m.m_lDepth));
+        pTag->add_attribute("marketID", m.m_strNymID2.Get());
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
-            (m.m_lDepth > 0))
-            result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
-                               m.m_ascPayload.Get());
-        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2))
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+            (m.m_lDepth > 0)) {
+            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
+            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTag2);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        parent.add_tag(pTag);
     }
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -707,22 +693,16 @@ RegisterStrategy StrategyGetMarketOffersResponse::reg(
 class StrategyGetMarketRecentTrades : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " marketID=\"%s\"" // stored in NymID2
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strNymID2.Get() // Storing Market ID
-                           );
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("marketID", m.m_strNymID2.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -749,33 +729,28 @@ RegisterStrategy StrategyGetMarketRecentTrades::reg(
 class StrategyGetMarketRecentTradesResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " marketID=\"%s\"\n" // stored in NymID2
-                           " depth=\"%" PRId64 "\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strNymID2.Get(), // Storing Market ID
-                           m.m_lDepth);
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("depth", formatLong(m.m_lDepth));
+        pTag->add_attribute("marketID", m.m_strNymID2.Get());
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
-            (m.m_lDepth > 0))
-            result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
-                               m.m_ascPayload.Get());
-        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2))
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+            (m.m_lDepth > 0)) {
+            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
+            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTag2);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        parent.add_tag(pTag);
     }
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -842,19 +817,15 @@ RegisterStrategy StrategyGetMarketRecentTradesResponse::reg(
 class StrategyGetNymMarketOffers : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -879,31 +850,27 @@ RegisterStrategy StrategyGetNymMarketOffers::reg(
 class StrategyGetNymMarketOffersResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " depth=\"%" PRId64 "\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_lDepth);
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("depth", formatLong(m.m_lDepth));
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
-            (m.m_lDepth > 0))
-            result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
-                               m.m_ascPayload.Get());
-        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2))
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+            (m.m_lDepth > 0)) {
+            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
+            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTag2);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        parent.add_tag(pTag);
     }
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -966,25 +933,21 @@ RegisterStrategy StrategyGetNymMarketOffersResponse::reg(
 class StrategyPingNotary : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("<publicAuthentKey>\n%s</publicAuthentKey>\n\n",
-                           m.m_strNymPublicKey.Get());
-        result.Concatenate(
-            "<publicEncryptionKey>\n%s</publicEncryptionKey>\n\n",
-            m.m_strNymID2.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        TagPtr pTagKey1(new Tag("publicAuthentKey", m.m_strNymPublicKey.Get()));
+        TagPtr pTagKey2(new Tag("publicEncryptionKey", m.m_strNymID2.Get()));
+
+        pTag->add_tag(pTagKey1);
+        pTag->add_tag(pTagKey2);
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1038,21 +1001,16 @@ RegisterStrategy StrategyPingNotary::reg("pingNotary",
 class StrategyPingNotaryResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1080,21 +1038,17 @@ RegisterStrategy StrategyPingNotaryResponse::reg(
 class StrategyRegisterNym : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        Contract::saveCredentialsToXml(result, m.m_ascPayload, m.credentials);
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        Contract::saveCredentialsToTag(*pTag, m.m_ascPayload, m.credentials);
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1125,29 +1079,26 @@ RegisterStrategy StrategyRegisterNym::reg("registerNym",
 class StrategyRegisterNymResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2))
-            result.Concatenate("<nymfile>\n%s</nymfile>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        if (m.m_ascInReferenceTo.GetLength() > 2)
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2)) {
+            TagPtr pTag2(new Tag("nymfile", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascInReferenceTo.GetLength() > 2) {
+            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1200,19 +1151,15 @@ RegisterStrategy StrategyRegisterNymResponse::reg(
 class StrategyUnregisterNym : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1236,25 +1183,21 @@ RegisterStrategy StrategyUnregisterNym::reg("unregisterNym",
 class StrategyUnregisterNymResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength() > 2)
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascInReferenceTo.GetLength() > 2) {
+            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1293,21 +1236,16 @@ RegisterStrategy StrategyUnregisterNymResponse::reg(
 class StrategyCheckNym : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " requestNum=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1333,49 +1271,46 @@ RegisterStrategy StrategyCheckNym::reg("checkNym", new StrategyCheckNym());
 class StrategyCheckNymResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
         // This means new-style credentials are being sent, not just the public
         // key as before.
         const bool bCredentials =
             (m.m_ascPayload.Exists() && m.m_ascPayload2.Exists());
 
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " hasCredentials=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNymID2.Get(),
-                           (bCredentials ? "true" : "false"),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("hasCredentials", formatBool(bCredentials));
 
         if (m.m_bSuccess) {
             // Old style. (Deprecated.)
-            if (m.m_strNymPublicKey.Exists())
-                result.Concatenate("<nymPublicKey>\n%s</nymPublicKey>\n\n",
-                                   m.m_strNymPublicKey.Get());
+            if (m.m_strNymPublicKey.Exists()) {
+                TagPtr pTag2(
+                    new Tag("nymPublicKey", m.m_strNymPublicKey.Get()));
+                pTag->add_tag(pTag2);
+            }
 
             // New style:
             if (bCredentials) {
-                result.Concatenate("<credentialIDs>\n%s</credentialIDs>\n\n",
-                                   m.m_ascPayload.Get());
-                result.Concatenate("<credentials>\n%s</credentials>\n\n",
-                                   m.m_ascPayload2.Get());
+                TagPtr pTag2(new Tag("credentialIDs", m.m_ascPayload.Get()));
+                pTag->add_tag(pTag2);
+
+                TagPtr pTag3(new Tag("credentials", m.m_ascPayload2.Get()));
+                pTag->add_tag(pTag3);
             }
         }
-        else
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        else {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-
-        return result;
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1467,22 +1402,17 @@ RegisterStrategy StrategyCheckNymResponse::reg("checkNymResponse",
 class StrategyUsageCredits : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " requestNum=\"%s\"\n"
-                           " adjustment=\"%" PRId64 "\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_lDepth, m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("adjustment", formatLong(m.m_lDepth));
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1514,24 +1444,18 @@ RegisterStrategy StrategyUsageCredits::reg("usageCredits",
 class StrategyUsageCreditsResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " totalCredits=\"%" PRId64 "\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNymID2.Get(), m.m_lDepth,
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("totalCredits", formatLong(m.m_lDepth));
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1563,37 +1487,30 @@ public:
 RegisterStrategy StrategyUsageCreditsResponse::reg(
     "usageCreditsResponse", new StrategyUsageCreditsResponse());
 
+// This one isn't part of the message protocol, but is used for
+// outmail storage.
+// (Because outmail isn't encrypted like the inmail is, since the
+// Nymfile itself will soon be encrypted, and there's no need to
+// be redundant also as well in addition on top of that.
+//
 class StrategyOutpaymentsMessageOrOutmailMessage : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // This one isn't part of the message protocol, but is used for outmail
-        // storage.
-        // (Because outmail isn't encrypted like the inmail is, since the
-        // Nymfile
-        // itself
-        // will soon be encrypted, and there's no need to be redundant also as
-        // well
-        // in addition on top of that.
-        //
-        result.Concatenate("<%s\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " requestNum=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascPayload.GetLength() > 2)
-            result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength() > 2) {
+            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1635,25 +1552,21 @@ RegisterStrategy StrategyOutpaymentsMessageOrOutmailMessage::reg2(
 class StrategySendNymMessage : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " requestNum=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascPayload.GetLength() > 2)
-            result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength() > 2) {
+            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1692,23 +1605,17 @@ RegisterStrategy StrategySendNymMessage::reg("sendNymMessage",
 class StrategySendNymMessageResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNymID2.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1735,45 +1642,41 @@ public:
 RegisterStrategy StrategySendNymMessageResponse::reg(
     "sendNymMessageResponse", new StrategySendNymMessageResponse());
 
+// sendNymInstrument is sent from one user
+// to the server, which then attaches that
+// message as a payment, onto a transaction
+// on the Nymbox of the recipient.
+//
+// payDividend is not a normal user
+// message. Rather, the sender uses
+// notarizeTransaction to do a
+// payDividend transaction. On the
+// server side, this creates a new
+// message of type "payDividend"
+// for each recipient, in order to
+// attach a voucher to it (for each
+// recipient) and then that
+// (artificially created
+// payDividend msg) is added to the
+// Nymbox of each recipient.
 class StrategySendNymInstrumentOrPayDividend : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // sendNymInstrument is sent from one user
-        // to the server, which then attaches that
-        // message as a payment, onto a transaction
-        // on the Nymbox of the recipient.
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        // payDividend is not a normal user
-        // message. Rather, the sender uses
-        // notarizeTransaction to do a
-        // payDividend transaction. On the
-        // server side, this creates a new
-        // message of type "payDividend"
-        // for each recipient, in order to
-        // attach a voucher to it (for each
-        // recipient) and then that
-        // (artificially created
-        // payDividend msg) is added to the
-        // Nymbox of each recipient.
-        result.Concatenate("<%s\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " requestNum=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymID2.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        if (m.m_ascPayload.GetLength() > 2)
-            result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_ascPayload.GetLength() > 2) {
+            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1815,23 +1718,17 @@ RegisterStrategy StrategySendNymInstrumentOrPayDividend::reg2(
 class StrategySendNymInstrumentResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " nymID2=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNymID2.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1861,19 +1758,15 @@ RegisterStrategy StrategySendNymInstrumentResponse::reg(
 class StrategyGetRequestNumber : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1894,33 +1787,25 @@ public:
 RegisterStrategy StrategyGetRequestNumber::reg("getRequestNumber",
                                                new StrategyGetRequestNumber());
 
+// This is the ONE command where you see a request number coming
+// back from the server.
+// In all the other commands, it should be SENT to the server, not
+// received from the server.
 class StrategyGetRequestResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // This is the ONE command where you see a request number coming back
-        // from
-        // the server.
-        // In all the other commands, it should be SENT to the server, not
-        // received
-        // from the server.
-        result.Concatenate(
-            "<%s\n"             // command
-            " success=\"%s\"\n" // m.m_bSuccess
-            " nymID=\"%s\"\n"
-            " nymboxHash=\"%s\"\n"
-            " notaryID=\"%s\"\n"
-            " newRequestNum=\"%" PRId64 "\"\n"
-            " requestNum=\"%s\""
-            ">\n\n",
-            m.m_strCommand.Get(), (m.m_bSuccess ? "true" : "false"),
-            m.m_strNymID.Get(), m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
-            m.m_lNewRequestNum, m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("newRequestNum", formatLong(m.m_lNewRequestNum));
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -1955,26 +1840,22 @@ RegisterStrategy StrategyGetRequestResponse::reg(
 class StrategyRegisterInstrumentDefinition : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\"\n"
-                           " instrumentDefinitionID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get(),
-                           m.m_strInstrumentDefinitionID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate(
-                "<instrumentDefinition>\n%s</instrumentDefinition>\n\n",
-                m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("instrumentDefinitionID",
+                            m.m_strInstrumentDefinitionID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("instrumentDefinition", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2015,33 +1896,31 @@ RegisterStrategy StrategyRegisterInstrumentDefinition::reg(
 class StrategyRegisterInstrumentDefinitionResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " accountID=\"%s\"\n" // the new issuer account ID
-                           " nymID=\"%s\"\n"
-                           " instrumentDefinitionID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strAcctID.Get(), m.m_strNymID.Get(),
-                           m.m_strInstrumentDefinitionID.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("instrumentDefinitionID",
+                            m.m_strInstrumentDefinitionID.Get());
+        // the new issuer account ID
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength())
-            result.Concatenate("<issuerAccount>\n%s</issuerAccount>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("issuerAccount", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2125,23 +2004,20 @@ RegisterStrategy StrategyRegisterInstrumentDefinitionResponse::reg(
 class StrategyQueryInstrumentDefinitions : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate("<stringMap>\n%s</stringMap>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("stringMap", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2179,29 +2055,27 @@ RegisterStrategy StrategyQueryInstrumentDefinitions::reg(
 class StrategyQueryInstrumentDefinitionsResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength())
-            result.Concatenate("<stringMap>\n%s</stringMap>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("stringMap", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2274,23 +2148,20 @@ RegisterStrategy StrategyQueryInstrumentDefinitionsResponse::reg(
 class StrategyIssueBasket : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate("<currencyBasket>\n%s</currencyBasket>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("currencyBasket", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2339,29 +2210,25 @@ RegisterStrategy StrategyIssueBasket::reg("issueBasket",
 class StrategyIssueBasketResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate(
-            "<%s\n" // Command
-            " requestNum=\"%s\"\n"
-            " success=\"%s\"\n"
-            " accountID=\"%s\"\n" // the new basket issuer account ID
-            " nymID=\"%s\"\n"
-            " instrumentDefinitionID=\"%s\"\n" // the new Asset Type
-            " notaryID=\"%s\""
-            ">\n\n",
-            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-            (m.m_bSuccess ? "true" : "false"), m.m_strAcctID.Get(),
-            m.m_strNymID.Get(), m.m_strInstrumentDefinitionID.Get(),
-            m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("instrumentDefinitionID",
+                            m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2418,25 +2285,17 @@ RegisterStrategy StrategyIssueBasketResponse::reg(
 class StrategyRegisterAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\"\n"
-                           " instrumentDefinitionID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get(),
-                           m.m_strInstrumentDefinitionID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        //        otErr << "DEBUG: Asset Type length: %d, Value:\n%s\n",
-        // m.m_strInstrumentDefinitionID.GetLength(),
-        // m.m_strInstrumentDefinitionID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("instrumentDefinitionID",
+                            m.m_strInstrumentDefinitionID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2465,31 +2324,28 @@ RegisterStrategy StrategyRegisterAccount::reg("registerAccount",
 class StrategyRegisterAccountResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " accountID=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strAcctID.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.Exists())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
-        if (m.m_bSuccess && m.m_ascPayload.Exists())
-            result.Concatenate("<newAccount>\n%s</newAccount>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_ascInReferenceTo.Exists()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_bSuccess && m.m_ascPayload.Exists()) {
+            TagPtr pTag2(new Tag("newAccount", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2566,28 +2422,23 @@ RegisterStrategy StrategyRegisterAccountResponse::reg(
 class StrategyGetBoxReceipt : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " notaryID=\"%s\"\n"
-            " requestNum=\"%s\"\n"
-            " transactionNum=\"%" PRId64 "\"\n"
-            " boxType=\"%s\"\n"
-            " accountID=\"%s\"" // If retrieving box receipt for Nymbox, NymID
-                                // will appear in this variable.
-            ">\n\n",
-            m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-            m.m_strRequestNum.Get(), m.m_lTransactionNum,
-            (m.m_lDepth == 0)
-                ? "nymbox"
-                : ((m.m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
-            m.m_strAcctID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        // If retrieving box receipt for Nymbox, NymID
+        // will appear in this variable.
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("boxType", // outbox is 2.
+                            (m.m_lDepth == 0)
+                                ? "nymbox"
+                                : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
+        pTag->add_attribute("transactionNum", formatLong(m.m_lTransactionNum));
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2639,38 +2490,33 @@ RegisterStrategy StrategyGetBoxReceipt::reg("getBoxReceipt",
 class StrategyGetBoxReceiptResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate(
-            "<%s\n" // Command
-            " requestNum=\"%s\"\n"
-            " success=\"%s\"\n"
-            " accountID=\"%s\"\n"
-            " transactionNum=\"%" PRId64 "\"\n"
-            " boxType=\"%s\"\n"
-            " nymID=\"%s\"\n"
-            " notaryID=\"%s\""
-            ">\n\n",
-            m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-            (m.m_bSuccess ? "true" : "false"), m.m_strAcctID.Get(),
-            m.m_lTransactionNum,
-            (m.m_lDepth == 0)
-                ? "nymbox"
-                : ((m.m_lDepth == 1) ? "inbox" : "outbox"), // outbox is 2.
-            m.m_strNymID.Get(),
-            m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("boxType", // outbox is 2.
+                            (m.m_lDepth == 0)
+                                ? "nymbox"
+                                : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
+        pTag->add_attribute("transactionNum", formatLong(m.m_lTransactionNum));
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength())
-            result.Concatenate("<boxReceipt>\n%s</boxReceipt>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("boxReceipt", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2764,21 +2610,16 @@ RegisterStrategy StrategyGetBoxReceiptResponse::reg(
 class StrategyUnregisterAccount : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\"\n"
-                           " accountID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get(),
-                           m.m_strAcctID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2806,27 +2647,23 @@ RegisterStrategy StrategyUnregisterAccount::reg(
 class StrategyUnregisterAccountResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " accountID=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strAcctID.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2885,29 +2722,22 @@ RegisterStrategy StrategyUnregisterAccountResponse::reg(
 class StrategyNotarizeTransaction : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTLedger object.
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " nymboxHash=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " accountID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
-                           m.m_strAcctID.Get(), m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate("<accountLedger>\n%s</accountLedger>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("accountLedger", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -2950,34 +2780,28 @@ RegisterStrategy StrategyNotarizeTransaction::reg(
 class StrategyNotarizeTransactionResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTLedger object.
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " accountID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strAcctID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate("<responseLedger>\n%s</responseLedger>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("responseLedger", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3054,21 +2878,16 @@ RegisterStrategy StrategyNotarizeTransactionResponse::reg(
 class StrategyGetTransactionNumbers : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " nymboxHash=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
-                           m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3095,23 +2914,17 @@ RegisterStrategy StrategyGetTransactionNumbers::reg(
 class StrategyGetTransactionNumbersResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " nymboxHash=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNymboxHash.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3141,19 +2954,15 @@ RegisterStrategy StrategyGetTransactionNumbersResponse::reg(
 class StrategyGetNymbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get(), m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3177,34 +2986,28 @@ RegisterStrategy StrategyGetNymbox::reg("getNymbox", new StrategyGetNymbox());
 class StrategyGetNymboxResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTLedger object.
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " nymboxHash=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNymboxHash.Get(),
-                           m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_bSuccess && m.m_ascPayload.GetLength())
-            result.Concatenate("<nymboxLedger>\n%s</nymboxLedger>\n\n",
-                               m.m_ascPayload.Get());
+        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("nymboxLedger", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3255,21 +3058,16 @@ RegisterStrategy StrategyGetNymboxResponse::reg(
 class StrategyGetAccountData : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " accountID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNotaryID.Get(), m.m_strAcctID.Get(),
-                           m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3296,45 +3094,40 @@ RegisterStrategy StrategyGetAccountData::reg("getAccountData",
 class StrategyGetAccountDataResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains a STRING_MAP containing the OTAccount,
-        // plus the inbox and outbox for that acct..
-        //
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " inboxHash=\"%s\"\n"
-                           " outboxHash=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " accountID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strInboxHash.Get(), m.m_strOutboxHash.Get(),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strAcctID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("inboxHash", m.m_strInboxHash.Get());
+        pTag->add_attribute("outboxHash", m.m_strOutboxHash.Get());
 
-        if (m.m_bSuccess) {
-            if (m.m_ascPayload.GetLength())
-                result.Concatenate("<account>\n%s</account>\n\n",
-                                   m.m_ascPayload.Get());
-            if (m.m_ascPayload2.GetLength())
-                result.Concatenate("<inbox>\n%s</inbox>\n\n",
-                                   m.m_ascPayload2.Get());
-            if (m.m_ascPayload3.GetLength())
-                result.Concatenate("<outbox>\n%s</outbox>\n\n",
-                                   m.m_ascPayload3.Get());
+        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
         }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_bSuccess) {
+            if (m.m_ascPayload.GetLength()) {
+                TagPtr pTag2(new Tag("account", m.m_ascPayload.Get()));
+                pTag->add_tag(pTag2);
+            }
+            if (m.m_ascPayload2.GetLength()) {
+                TagPtr pTag2(new Tag("inbox", m.m_ascPayload2.Get()));
+                pTag->add_tag(pTag2);
+            }
+            if (m.m_ascPayload3.GetLength()) {
+                TagPtr pTag2(new Tag("outbox", m.m_ascPayload3.Get()));
+                pTag->add_tag(pTag2);
+            }
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3402,21 +3195,17 @@ RegisterStrategy StrategyGetAccountDataResponse::reg(
 class StrategyGetInstrumentDefinition : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " notaryID=\"%s\"\n"
-            " instrumentDefinitionID=\"%s\"\n"
-            " requestNum=\"%s\""
-            " >\n\n",
-            m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-            m.m_strInstrumentDefinitionID.Get(), m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("instrumentDefinitionID",
+                            m.m_strInstrumentDefinitionID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3444,35 +3233,29 @@ RegisterStrategy StrategyGetInstrumentDefinition::reg(
 class StrategyGetInstrumentDefinitionResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTAssetContract object.
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " instrumentDefinitionID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strInstrumentDefinitionID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("instrumentDefinitionID",
+                            m.m_strInstrumentDefinitionID.Get());
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_bSuccess && m.m_ascPayload.GetLength())
-            result.Concatenate(
-                "<instrumentDefinition>\n%s</instrumentDefinition>\n\n",
-                m.m_ascPayload.Get());
+        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("instrumentDefinition", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3527,21 +3310,17 @@ RegisterStrategy StrategyGetInstrumentDefinitionResponse::reg(
 class StrategyGetMint : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " notaryID=\"%s\"\n"
-            " instrumentDefinitionID=\"%s\"\n"
-            " requestNum=\"%s\""
-            " >\n\n",
-            m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-            m.m_strInstrumentDefinitionID.Get(), m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("instrumentDefinitionID",
+                            m.m_strInstrumentDefinitionID.Get());
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3568,33 +3347,29 @@ RegisterStrategy StrategyGetMint::reg("getMint", new StrategyGetMint());
 class StrategyGetMintResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTMint object.
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " instrumentDefinitionID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strInstrumentDefinitionID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("instrumentDefinitionID",
+                            m.m_strInstrumentDefinitionID.Get());
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_bSuccess && m.m_ascPayload.GetLength())
-            result.Concatenate("<mint>\n%s</mint>\n\n", m.m_ascPayload.Get());
+        if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("mint", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3648,29 +3423,22 @@ RegisterStrategy StrategyGetMintResponse::reg("getMintResponse",
 class StrategyProcessInbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTLedger object.
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " nymboxHash=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " accountID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
-                           m.m_strAcctID.Get(), m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate("<processLedger>\n%s</processLedger>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("processLedger", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3713,34 +3481,28 @@ RegisterStrategy StrategyProcessInbox::reg("processInbox",
 class StrategyProcessInboxResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTLedger object.
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " accountID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_strAcctID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate("<responseLedger>\n%s</responseLedger>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("responseLedger", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3814,28 +3576,21 @@ RegisterStrategy StrategyProcessInboxResponse::reg(
 class StrategyProcessNymbox : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTLedger object.
-        result.Concatenate("<%s\n" // Command
-                           " nymID=\"%s\"\n"
-                           " nymboxHash=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " requestNum=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strNymID.Get(),
-                           m.m_strNymboxHash.Get(), m.m_strNotaryID.Get(),
-                           m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate("<processLedger>\n%s</processLedger>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("processLedger", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3876,32 +3631,27 @@ RegisterStrategy StrategyProcessNymbox::reg("processNymbox",
 class StrategyProcessNymboxResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTLedger object.
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        // I would check if this was empty, but it should never be empty...
-        // famous last words.
-        if (m.m_ascPayload.GetLength())
-            result.Concatenate("<responseLedger>\n%s</responseLedger>\n\n",
-                               m.m_ascPayload.Get());
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.GetLength()) {
+            TagPtr pTag2(new Tag("responseLedger", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -3974,31 +3724,24 @@ RegisterStrategy StrategyProcessNymboxResponse::reg(
 class StrategyTriggerClause : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate(
-            "<%s\n" // Command
-            " nymID=\"%s\"\n"
-            " nymboxHash=\"%s\"\n"
-            " notaryID=\"%s\"\n"
-            " smartContractID=\"%" PRId64 "\"\n"
-            " clauseName=\"%s\"\n"
-            " hasParam=\"%s\"\n"
-            " requestNum=\"%s\""
-            " >\n\n",
-            m.m_strCommand.Get(), m.m_strNymID.Get(), m.m_strNymboxHash.Get(),
-            m.m_strNotaryID.Get(), m.m_lTransactionNum,
-            m.m_strNymID2.Get(), // clause name is stored here for this message.
-            (m.m_ascPayload.Exists()) ? "true" : "false",
-            m.m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascPayload.Exists())
-            result.Concatenate("<parameter>\n%s</parameter>\n\n",
-                               m.m_ascPayload.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("smartContractID", formatLong(m.m_lTransactionNum));
+        pTag->add_attribute("clauseName", m.m_strNymID2.Get());
+        pTag->add_attribute("hasParam", formatBool(m.m_ascPayload.Exists()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascPayload.Exists()) {
+            TagPtr pTag2(new Tag("parameter", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -4049,26 +3792,22 @@ RegisterStrategy StrategyTriggerClause::reg("triggerClause",
 class StrategyTriggerClauseResponse : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        // the Payload contains an ascii-armored OTMint object.
-        result.Concatenate("<%s\n" // Command
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           " >\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        if (m.m_ascInReferenceTo.GetLength())
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        if (m.m_ascInReferenceTo.GetLength()) {
+            TagPtr pTagRef(
+                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTagRef);
+        }
+
+        parent.add_tag(pTag);
     }
 
     int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -4110,19 +3849,15 @@ RegisterStrategy StrategyTriggerClauseResponse::reg(
 class StrategyGetMarketList : public OTMessageStrategy
 {
 public:
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get());
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+
+        parent.add_tag(pTag);
     }
 
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
@@ -4149,7 +3884,6 @@ class StrategyGetMarketListResponse : public OTMessageStrategy
 public:
     virtual int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        //      std::cerr << m_xmlUnsigned << std::endl;
         processXmlSuccess(m, xml);
 
         m.m_strCommand = xml->getNodeName(); // Command
@@ -4201,31 +3935,27 @@ public:
         return 1;
     }
 
-    virtual String writeXml(Message& m)
+    virtual void writeXml(Message& m, Tag& parent)
     {
-        String result;
-        result.Concatenate("<%s\n"
-                           " requestNum=\"%s\"\n"
-                           " success=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " notaryID=\"%s\"\n"
-                           " depth=\"%" PRId64 "\""
-                           ">\n\n",
-                           m.m_strCommand.Get(), m.m_strRequestNum.Get(),
-                           (m.m_bSuccess ? "true" : "false"),
-                           m.m_strNymID.Get(), m.m_strNotaryID.Get(),
-                           m.m_lDepth);
+        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+
+        pTag->add_attribute("success", formatBool(m.m_bSuccess));
+        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
+        pTag->add_attribute("nymID", m.m_strNymID.Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("depth", formatLong(m.m_lDepth));
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
-            (m.m_lDepth > 0))
-            result.Concatenate("<messagePayload>\n%s</messagePayload>\n\n",
-                               m.m_ascPayload.Get());
-        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2))
-            result.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                               m.m_ascInReferenceTo.Get());
+            (m.m_lDepth > 0)) {
+            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
+            pTag->add_tag(pTag2);
+        }
+        else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
+            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
+            pTag->add_tag(pTag2);
+        }
 
-        result.Concatenate("</%s>\n\n", m.m_strCommand.Get());
-        return result;
+        parent.add_tag(pTag);
     }
 
     static RegisterStrategy reg;

@@ -146,6 +146,7 @@ class OTParty;
 class OTPartyAccount;
 class OTScript;
 class OTVariable;
+class Tag;
 
 typedef std::map<std::string, OTBylaw*> mapOfBylaws;
 typedef std::map<std::string, OTClause*> mapOfClauses;
@@ -444,7 +445,7 @@ public:
     OTScriptable();
     virtual ~OTScriptable();
 
-    void UpdateContentsToString(String& strAppend, bool bCalculatingID) const;
+    void UpdateContentsToTag(Tag& parent, bool bCalculatingID) const;
     EXPORT virtual void CalculateContractID(Identifier& newID) const;
 
     virtual void Release();

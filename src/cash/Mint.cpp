@@ -134,6 +134,7 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -644,32 +645,25 @@ void Mint::UpdateContents()
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
         CASH_ACCOUNT_ID(m_CashAccountID);
 
-    std::string from = formatTimestamp(m_VALID_FROM);
-    std::string to = formatTimestamp(m_VALID_TO);
-    std::string expiration = formatTimestamp(m_EXPIRATION);
-
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<mint version=\"%s\"\n"
-        " notaryID=\"%s\"\n"
-        " serverNymID=\"%s\"\n"
-        " instrumentDefinitionID=\"%s\"\n"
-        " cashAcctID=\"%s\"\n"
-        " series=\"%d\"\n"
-        " expiration=\"%s\"\n"
-        " validFrom=\"%s\"\n"
-        " validTo=\"%s\""
-        " >\n\n",
-        m_strVersion.Get(), NOTARY_ID.Get(), NOTARY_NYM_ID.Get(),
-        INSTRUMENT_DEFINITION_ID.Get(), CASH_ACCOUNT_ID.Get(), m_nSeries,
-        expiration.c_str(), from.c_str(), to.c_str());
+    Tag tag("mint");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute("serverNymID", NOTARY_NYM_ID.Get());
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("cashAcctID", CASH_ACCOUNT_ID.Get());
+    tag.add_attribute("series", formatInt(m_nSeries));
+    tag.add_attribute("expiration", formatTimestamp(m_EXPIRATION));
+    tag.add_attribute("validFrom", formatTimestamp(m_VALID_FROM));
+    tag.add_attribute("validTo", formatTimestamp(m_VALID_TO));
 
     OTASCIIArmor armorPublicKey;
     m_pKeyPublic->GetPublicKey(armorPublicKey);
-    m_xmlUnsigned.Concatenate("<mintPublicKey>\n%s</mintPublicKey>\n\n",
-                              armorPublicKey.Get());
+    TagPtr tagPubkey(new Tag("mintPublicKey", armorPublicKey.Get()));
+    tag.add_tag(tagPubkey);
 
     if (m_nDenominationCount) {
         if (m_bSavePrivateKeys) {
@@ -682,10 +676,11 @@ void Mint::UpdateContents()
                                                  "in "
                                                  "Mint::UpdateContents.\n");
 
-                m_xmlUnsigned.Concatenate(
-                    "<mintPrivateInfo denomination=\"%" PRId64 "\">\n"
-                    "%s</mintPrivateInfo>\n\n",
-                    it.first, pArmor->Get());
+                TagPtr tagPrivateInfo(
+                    new Tag("mintPrivateInfo", pArmor->Get()));
+                tagPrivateInfo->add_attribute("denomination",
+                                              formatLong(it.first));
+                tag.add_tag(tagPrivateInfo);
             }
         }
         for (auto& it : m_mapPublic) {
@@ -694,14 +689,16 @@ void Mint::UpdateContents()
                 nullptr != pArmor,
                 "nullptr public mint pointer in Mint::UpdateContents.\n");
 
-            m_xmlUnsigned.Concatenate("<mintPublicInfo denomination=\"%" PRId64
-                                      "\">\n"
-                                      "%s</mintPublicInfo>\n\n",
-                                      it.first, pArmor->Get());
+            TagPtr tagPublicInfo(new Tag("mintPublicInfo", pArmor->Get()));
+            tagPublicInfo->add_attribute("denomination", formatLong(it.first));
+            tag.add_tag(tagPublicInfo);
         }
     }
 
-    m_xmlUnsigned.Concatenate("</mint>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

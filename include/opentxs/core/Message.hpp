@@ -146,13 +146,14 @@ namespace opentxs
 class OTPasswordData;
 class Nym;
 class Message;
+class Tag;
 
 class OTMessageStrategy
 {
 public:
     virtual int32_t processXml(Message& message,
                                irr::io::IrrXMLReader*& xml) = 0;
-    virtual String writeXml(Message& message) = 0;
+    virtual void writeXml(Message& message, Tag& parent) = 0;
     virtual ~OTMessageStrategy();
 
     void processXmlSuccess(Message& m, irr::io::IrrXMLReader*& xml);
@@ -186,7 +187,7 @@ protected:
     bool m_bIsSigned;
 
 private:
-    bool updateContentsByType();
+    bool updateContentsByType(Tag& parent);
 
     int32_t processXmlNodeAckReplies(Message& m, irr::io::IrrXMLReader*& xml);
     int32_t processXmlNodeAcknowledgedReplies(Message& m,
