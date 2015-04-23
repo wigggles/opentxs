@@ -360,8 +360,7 @@ void OTTrade::UpdateContents()
 
     if (marketOffer_.Exists()) {
         OTASCIIArmor ascOffer(marketOffer_);
-        TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
-        tag.add_tag(tagOffer);
+        tag.add_tag("offer", ascOffer.Get());
     }
 
     std::string str_result;

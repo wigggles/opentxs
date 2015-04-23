@@ -264,10 +264,10 @@ void OTServerContract::CreateContents()
     // (zcert_public_txt()) does Z85 encoding, which contains the '<','>' chars.
     // See http://rfc.zeromq.org/spec:32.
 
-    TagPtr pTag(new Tag(
-        "transportKey",
-        OTCrypto::It()->Base64Encode(transportKey, TRANSPORT_KEY_SIZE, false)));
-    tag.add_tag(pTag);
+    tag.add_tag("transportKey",
+                OTCrypto::It()->Base64Encode(transportKey,
+                                             TRANSPORT_KEY_SIZE,
+                                             false));
 
     // This is where OTContract scribes tag with its keys,
     // conditions, etc.

@@ -1030,22 +1030,17 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
                     //
 
                     // The "password" for the internal symmetric key.
-                    TagPtr tagCachedKey(
-                        new Tag("cachedKey", ascCachedKey.Get()));
-                    tag.add_tag(tagCachedKey);
+                    tag.add_tag("cachedKey", ascCachedKey.Get());
 
                     // The internal symmetric key, owned by the purse.
-                    TagPtr tagInternalKey(
-                        new Tag("internalKey", ascSymmetricKey.Get()));
-                    tag.add_tag(tagInternalKey);
+                    tag.add_tag("internalKey", ascSymmetricKey.Get());
                 }
             }
         }
     }
 
     for (int32_t i = 0; i < Count(); i++) {
-        TagPtr tagToken(new Tag("token", m_dequeTokens[i]->Get()));
-        tag.add_tag(tagToken);
+        tag.add_tag("token", m_dequeTokens[i]->Get());
     }
 
     std::string str_result;

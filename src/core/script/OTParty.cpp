@@ -1767,10 +1767,7 @@ void OTParty::Serialize(Tag& parent, bool bCalculatingID,
 
     if (!bCalculatingID && m_strMySignedCopy.Exists()) {
         OTASCIIArmor ascTemp(m_strMySignedCopy);
-
-        TagPtr pTagSignedCopy(new Tag("mySignedCopy", ascTemp.Get()));
-
-        pTag->add_tag(pTagSignedCopy);
+        pTag->add_tag("mySignedCopy", ascTemp.Get());
     }
 
     parent.add_tag(pTag);
