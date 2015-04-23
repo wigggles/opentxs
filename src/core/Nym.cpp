@@ -4231,10 +4231,9 @@ bool Nym::SavePseudonym(String& strNym)
     // (targeting marked nyms...)
     //
     if (m_bMarkForDeletion) {
-        TagPtr pTag(new Tag("MARKED_FOR_DELETION",
-                            "THIS NYM HAS BEEN MARKED "
-                            "FOR DELETION AT ITS OWN REQUEST"));
-        tag.add_tag(pTag);
+        tag.add_tag("MARKED_FOR_DELETION",
+                    "THIS NYM HAS BEEN MARKED "
+                    "FOR DELETION AT ITS OWN REQUEST");
     }
 
     int64_t lTransactionNumber = 0;
@@ -4371,8 +4370,7 @@ bool Nym::SavePseudonym(String& strNym)
             if (strMail.Exists()) ascMail.SetString(strMail);
 
             if (ascMail.Exists()) {
-                TagPtr pTag(new Tag("mailMessage", ascMail.Get()));
-                tag.add_tag(pTag);
+                tag.add_tag("mailMessage", ascMail.Get());
             }
         }
     }
@@ -4389,8 +4387,7 @@ bool Nym::SavePseudonym(String& strNym)
             if (strOutmail.Exists()) ascOutmail.SetString(strOutmail);
 
             if (ascOutmail.Exists()) {
-                TagPtr pTag(new Tag("outmailMessage", ascOutmail.Get()));
-                tag.add_tag(pTag);
+                tag.add_tag("outmailMessage", ascOutmail.Get());
             }
         }
     }
@@ -4408,9 +4405,7 @@ bool Nym::SavePseudonym(String& strNym)
                 ascOutpayments.SetString(strOutpayments);
 
             if (ascOutpayments.Exists()) {
-                TagPtr pTag(
-                    new Tag("outpaymentsMessage", ascOutpayments.Get()));
-                tag.add_tag(pTag);
+                tag.add_tag("outpaymentsMessage", ascOutpayments.Get());
             }
         }
     }

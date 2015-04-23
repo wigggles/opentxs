@@ -2308,18 +2308,15 @@ void Item::UpdateContents() // Before transmission or serialization, this is
     }
 
     if (m_ascNote.GetLength() > 2) {
-        TagPtr tagNote(new Tag("note", m_ascNote.Get()));
-        tag.add_tag(tagNote);
+        tag.add_tag("note", m_ascNote.Get());
     }
 
     if (m_ascInReferenceTo.GetLength() > 2) {
-        TagPtr tagRef(new Tag("inReferenceTo", m_ascInReferenceTo.Get()));
-        tag.add_tag(tagRef);
+        tag.add_tag("inReferenceTo", m_ascInReferenceTo.Get());
     }
 
     if (m_ascAttachment.GetLength() > 2) {
-        TagPtr tagAttachment(new Tag("attachment", m_ascAttachment.Get()));
-        tag.add_tag(tagAttachment);
+        tag.add_tag("attachment", m_ascAttachment.Get());
     }
 
     if ((Item::balanceStatement == m_Type) ||

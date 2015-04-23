@@ -182,8 +182,7 @@ void OTSignedFile::UpdateContents()
 
     if (m_strSignedFilePayload.Exists()) {
         OTASCIIArmor ascPayload(m_strSignedFilePayload);
-        TagPtr tagPayload(new Tag("filePayload", ascPayload.Get()));
-        tag.add_tag(tagPayload);
+        tag.add_tag("filePayload", ascPayload.Get());
     }
 
     std::string str_result;

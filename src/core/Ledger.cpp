@@ -1845,9 +1845,7 @@ void Ledger::UpdateContents() // Before transmission or serialization, this is
             OTASCIIArmor ascTransaction;
             ascTransaction.SetString(strTransaction, true); // linebreaks = true
 
-            TagPtr pTag(new Tag("transaction", ascTransaction.Get()));
-
-            tag.add_tag(pTag);
+            tag.add_tag("transaction", ascTransaction.Get());
         }
         else // true == bSavingAbbreviated
         {

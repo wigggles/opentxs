@@ -1275,8 +1275,7 @@ bool OTWallet::SaveContract(String& strContract)
         OTASCIIArmor ascMasterContents;
 
         if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
-            TagPtr pTag(new Tag("cachedKey", ascMasterContents.Get()));
-            tag.add_tag(pTag);
+            tag.add_tag("cachedKey", ascMasterContents.Get());
         }
         else
             otErr << "OTWallet::SaveContract: Failed trying to write master "

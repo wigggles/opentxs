@@ -810,8 +810,7 @@ void Token::UpdateContents()
     // signed tokens, as well as spendable tokens, both carry a TokenID
     // (The spendable token contains the unblinded version.)
     if (Token::signedToken == m_State || Token::spendableToken == m_State) {
-        TagPtr tagTokenID(new Tag("tokenID", m_ascSpendable.Get()));
-        tag.add_tag(tagTokenID);
+        tag.add_tag("tokenID", m_ascSpendable.Get());
     }
 
     // Only signedTokens carry the signature, which is discarded in spendable
@@ -820,8 +819,7 @@ void Token::UpdateContents()
     // could
     // be used to track the token.)
     if (Token::signedToken == m_State) {
-        TagPtr tagTokenSignature(new Tag("tokenSignature", m_Signature.Get()));
-        tag.add_tag(tagTokenSignature);
+        tag.add_tag("tokenSignature", m_Signature.Get());
     }
 
     if ((Token::protoToken == m_State || Token::signedToken == m_State) &&
@@ -834,8 +832,7 @@ void Token::UpdateContents()
         for (auto& it : m_mapPublic) {
             OTASCIIArmor* pPrototoken = it.second;
             OT_ASSERT(nullptr != pPrototoken);
-            TagPtr tagProtoToken(new Tag("prototoken", pPrototoken->Get()));
-            tagProtoPurse->add_tag(tagProtoToken);
+            tagProtoPurse->add_tag("prototoken", pPrototoken->Get());
         }
 
         tag.add_tag(tagProtoPurse);
@@ -849,9 +846,7 @@ void Token::UpdateContents()
         for (auto& it : m_mapPrivate) {
             OTASCIIArmor* pPrototoken = it.second;
             OT_ASSERT(nullptr != pPrototoken);
-            TagPtr tagPrivateProtoToken(
-                new Tag("privatePrototoken", pPrototoken->Get()));
-            tagPrivateProtoPurse->add_tag(tagPrivateProtoToken);
+            tagPrivateProtoPurse->add_tag("privatePrototoken", pPrototoken->Get());
         }
         tag.add_tag(tagPrivateProtoPurse);
     }

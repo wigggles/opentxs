@@ -364,15 +364,13 @@ void OTPaymentPlan::UpdateContents()
     // OTAgreement
     if (m_strConsideration.Exists()) {
         OTASCIIArmor ascTemp(m_strConsideration);
-        TagPtr tagConsideration(new Tag("consideration", ascTemp.Get()));
-        tag.add_tag(tagConsideration);
+        tag.add_tag("consideration", ascTemp.Get());
     }
 
     // OTAgreement
     if (m_strMerchantSignedCopy.Exists()) {
         OTASCIIArmor ascTemp(m_strMerchantSignedCopy);
-        TagPtr tagSignedCopy(new Tag("merchantSignedCopy", ascTemp.Get()));
-        tag.add_tag(tagSignedCopy);
+        tag.add_tag("merchantSignedCopy", ascTemp.Get());
     }
 
     std::string str_result;

@@ -2201,9 +2201,7 @@ void Contract::CreateInnerContents(Tag& parent)
 
                 if (pNym->GetNymIDSource().Exists()) {
                     OTASCIIArmor ascNymIDSource(pNym->GetNymIDSource());
-                    TagPtr pTagSource(
-                        new Tag("nymIDSource", ascNymIDSource.Get()));
-                    pTag->add_tag(pTagSource);
+                    pTag->add_tag("nymIDSource", ascNymIDSource.Get());
                 }
 
                 // credentialIDs
@@ -2456,8 +2454,7 @@ void Contract::saveCredentialsToTag(Tag& parent,
                                     const String::Map& credentials)
 {
     if (strCredIDList.Exists()) {
-        TagPtr pTag(new Tag("credentialIDs", strCredIDList.Get()));
-        parent.add_tag(pTag);
+        parent.add_tag("credentialIDs", strCredIDList.Get());
     }
 
     if (!credentials.empty()) {

@@ -662,8 +662,7 @@ void Mint::UpdateContents()
 
     OTASCIIArmor armorPublicKey;
     m_pKeyPublic->GetPublicKey(armorPublicKey);
-    TagPtr tagPubkey(new Tag("mintPublicKey", armorPublicKey.Get()));
-    tag.add_tag(tagPubkey);
+    tag.add_tag("mintPublicKey", armorPublicKey.Get());
 
     if (m_nDenominationCount) {
         if (m_bSavePrivateKeys) {
