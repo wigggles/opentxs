@@ -797,8 +797,9 @@ void Account::UpdateContents()
     tag.add_tag(tagBalance);
 
     if (markForDeletion_) {
-        tag.add_tag("MARKED_FOR_DELETION",
-                    "THIS ACCOUNT HAS BEEN MARKED FOR DELETION AT ITS OWN REQUEST");
+        tag.add_tag(
+            "MARKED_FOR_DELETION",
+            "THIS ACCOUNT HAS BEEN MARKED FOR DELETION AT ITS OWN REQUEST");
     }
 
     std::string str_result;

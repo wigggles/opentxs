@@ -846,7 +846,8 @@ void Token::UpdateContents()
         for (auto& it : m_mapPrivate) {
             OTASCIIArmor* pPrototoken = it.second;
             OT_ASSERT(nullptr != pPrototoken);
-            tagPrivateProtoPurse->add_tag("privatePrototoken", pPrototoken->Get());
+            tagPrivateProtoPurse->add_tag("privatePrototoken",
+                                          pPrototoken->Get());
         }
         tag.add_tag(tagPrivateProtoPurse);
     }

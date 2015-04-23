@@ -4231,9 +4231,8 @@ bool Nym::SavePseudonym(String& strNym)
     // (targeting marked nyms...)
     //
     if (m_bMarkForDeletion) {
-        tag.add_tag("MARKED_FOR_DELETION",
-                    "THIS NYM HAS BEEN MARKED "
-                    "FOR DELETION AT ITS OWN REQUEST");
+        tag.add_tag("MARKED_FOR_DELETION", "THIS NYM HAS BEEN MARKED "
+                                           "FOR DELETION AT ITS OWN REQUEST");
     }
 
     int64_t lTransactionNumber = 0;

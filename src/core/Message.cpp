@@ -2691,7 +2691,7 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascPayload.GetLength()) {
-            pTag->add_tag(accountLedger", m.m_ascPayload.Get());
+            pTag->add_tag("accountLedger", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
