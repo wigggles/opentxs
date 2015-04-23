@@ -145,6 +145,8 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
+#include <opentxs/core/util/Tag.hpp>
+
 #include <irrxml/irrXML.hpp>
 
 namespace opentxs
@@ -791,30 +793,25 @@ void Token::UpdateContents()
         break;
     }
 
-    std::string from = formatTimestamp(m_VALID_FROM);
-    std::string to = formatTimestamp(m_VALID_TO);
-
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<token\n version=\"%s\"\n state=\"%s\"\n denomination=\"%" PRId64
-        "\"\n"
-        " instrumentDefinitionID=\"%s\"\n"
-        " notaryID=\"%s\"\n"
-        " series=\"%d\"\n"
-        " validFrom=\"%s\"\n"
-        " validTo=\"%s\""
-        " >\n\n",
-        m_strVersion.Get(), strState.Get(), GetDenomination(),
-        INSTRUMENT_DEFINITION_ID.Get(), NOTARY_ID.Get(), m_nSeries,
-        from.c_str(), to.c_str());
+    Tag tag("token");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("state", strState.Get());
+    tag.add_attribute("denomination", formatLong(GetDenomination()));
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute("series", formatInt(m_nSeries));
+    tag.add_attribute("validFrom", formatTimestamp(m_VALID_FROM));
+    tag.add_attribute("validTo", formatTimestamp(m_VALID_TO));
 
     // signed tokens, as well as spendable tokens, both carry a TokenID
     // (The spendable token contains the unblinded version.)
     if (Token::signedToken == m_State || Token::spendableToken == m_State) {
-        m_xmlUnsigned.Concatenate("<tokenID>\n%s</tokenID>\n\n",
-                                  m_ascSpendable.Get());
+        TagPtr tagTokenID(new Tag("tokenID", m_ascSpendable.Get()));
+        tag.add_tag(tagTokenID);
     }
 
     // Only signedTokens carry the signature, which is discarded in spendable
@@ -823,43 +820,46 @@ void Token::UpdateContents()
     // could
     // be used to track the token.)
     if (Token::signedToken == m_State) {
-        m_xmlUnsigned.Concatenate("<tokenSignature>\n%s</tokenSignature>\n\n",
-                                  m_Signature.Get());
+        TagPtr tagTokenSignature(new Tag("tokenSignature", m_Signature.Get()));
+        tag.add_tag(tagTokenSignature);
     }
 
     if ((Token::protoToken == m_State || Token::signedToken == m_State) &&
         m_nTokenCount) {
-        m_xmlUnsigned.Concatenate(
-            "<protopurse count=\"%d\" chosenIndex=\"%d\">\n\n", m_nTokenCount,
-            m_nChosenIndex);
+
+        TagPtr tagProtoPurse(new Tag("protopurse"));
+        tagProtoPurse->add_attribute("count", formatInt(m_nTokenCount));
+        tagProtoPurse->add_attribute("chosenIndex", formatInt(m_nChosenIndex));
 
         for (auto& it : m_mapPublic) {
             OTASCIIArmor* pPrototoken = it.second;
             OT_ASSERT(nullptr != pPrototoken);
-
-            m_xmlUnsigned.Concatenate("<prototoken>\n%s</prototoken>\n\n",
-                                      pPrototoken->Get());
+            TagPtr tagProtoToken(new Tag("prototoken", pPrototoken->Get()));
+            tagProtoPurse->add_tag(tagProtoToken);
         }
-        m_xmlUnsigned.Concatenate("</protopurse>\n\n");
+
+        tag.add_tag(tagProtoPurse);
     }
 
     if (m_bSavePrivateKeys) {
         m_bSavePrivateKeys = false; // set it back to false;
 
-        m_xmlUnsigned.Concatenate("<privateProtopurse>\n\n");
+        TagPtr tagPrivateProtoPurse(new Tag("privateProtopurse"));
 
         for (auto& it : m_mapPrivate) {
             OTASCIIArmor* pPrototoken = it.second;
             OT_ASSERT(nullptr != pPrototoken);
-
-            m_xmlUnsigned.Concatenate(
-                "<privatePrototoken>\n%s</privatePrototoken>\n\n",
-                pPrototoken->Get());
+            TagPtr tagPrivateProtoToken(
+                new Tag("privatePrototoken", pPrototoken->Get()));
+            tagPrivateProtoPurse->add_tag(tagPrivateProtoToken);
         }
-        m_xmlUnsigned.Concatenate("</privateProtopurse>\n\n");
+        tag.add_tag(tagPrivateProtoPurse);
     }
 
-    m_xmlUnsigned.Concatenate("</token>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

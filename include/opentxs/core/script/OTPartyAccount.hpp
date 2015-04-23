@@ -145,6 +145,7 @@ class OTParty;
 class Nym;
 class OTScript;
 class OTSmartContract;
+class Tag;
 
 typedef std::map<std::string, Nym*> mapOfNyms;
 
@@ -291,7 +292,7 @@ public:
 
     virtual ~OTPartyAccount();
 
-    void Serialize(String& strAppend, bool bCalculatingID = false,
+    void Serialize(Tag& parent, bool bCalculatingID = false,
                    bool bSpecifyInstrumentDefinitionID = false) const;
 
     // For pointers I don't own, but store for convenience.

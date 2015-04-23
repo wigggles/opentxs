@@ -150,6 +150,7 @@
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
@@ -235,52 +236,59 @@ void OTSubcredential::SetNymIDandSource(const String& strNymID,
     m_strSourceForNymID = strSourceForNymID;
 }
 
-void OTSubcredential::UpdatePublicContentsToString(
-    String& strAppendTo) // Used in UpdateContents.
+void OTSubcredential::UpdatePublicContentsToTag(Tag& parent) // Used in
+                                                             // UpdateContents.
 {
     if (!m_mapPublicInfo.empty()) {
-        strAppendTo.Concatenate("<publicContents count=\"%" PRI_SIZE "\">\n\n",
-                                m_mapPublicInfo.size());
+        uint64_t theSize = m_mapPublicInfo.size();
+
+        TagPtr tagContents(new Tag("publicContents"));
+        tagContents->add_attribute("count", formatUlong(theSize));
 
         for (auto& it : m_mapPublicInfo) {
             String strInfo(it.second);
             OTASCIIArmor ascInfo(strInfo);
-            strAppendTo.Concatenate(
-                "<publicInfo key=\"%s\">\n%s</publicInfo>\n\n",
-                it.first.c_str(), ascInfo.Get());
-        }
 
-        strAppendTo.Concatenate("</publicContents>\n\n");
+            TagPtr tagInfo(new Tag("publicInfo", ascInfo.Get()));
+            tagInfo->add_attribute("key", it.first);
+
+            tagContents->add_tag(tagInfo);
+        }
+        parent.add_tag(tagContents);
     }
 }
 
-void OTSubcredential::UpdatePublicCredentialToString(
-    String& strAppendTo) // Used in UpdateContents.
+void OTSubcredential::UpdatePublicCredentialToTag(
+    Tag& parent) // Used in UpdateContents.
 {
     if (GetContents().Exists()) {
         OTASCIIArmor ascContents(GetContents());
-        if (ascContents.Exists())
-            strAppendTo.Concatenate(
-                "<publicCredential>\n%s</publicCredential>\n\n",
-                ascContents.Get());
+        if (ascContents.Exists()) {
+            TagPtr tagPubCred(new Tag("publicCredential", ascContents.Get()));
+            parent.add_tag(tagPubCred);
+        }
     }
 }
 
-void OTSubcredential::UpdatePrivateContentsToString(
-    String& strAppendTo) // Used in UpdateContents.
+void OTSubcredential::UpdatePrivateContentsToTag(Tag& parent) // Used in
+                                                              // UpdateContents.
 {
     if (!m_mapPrivateInfo.empty()) {
-        strAppendTo.Concatenate("<privateContents count=\"%" PRI_SIZE "\">\n\n",
-                                m_mapPrivateInfo.size());
+        uint64_t theSize = m_mapPrivateInfo.size();
+
+        TagPtr tagContents(new Tag("privateContents"));
+        tagContents->add_attribute("count", formatUlong(theSize));
 
         for (auto& it : m_mapPrivateInfo) {
             String strInfo(it.second);
             OTASCIIArmor ascInfo(strInfo);
-            strAppendTo.Concatenate(
-                "<privateInfo key=\"%s\">\n%s</privateInfo>\n\n",
-                it.first.c_str(), ascInfo.Get());
+
+            TagPtr tagInfo(new Tag("privateInfo", ascInfo.Get()));
+            tagInfo->add_attribute("key", it.first);
+
+            tagContents->add_tag(tagInfo);
         }
-        strAppendTo.Concatenate("</privateContents>\n\n");
+        parent.add_tag(tagContents);
     }
 }
 
@@ -288,12 +296,13 @@ void OTSubcredential::UpdateContents()
 {
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<subCredential nymID=\"%s\"\n" // a hash of the nymIDSource
-        " masterID=\"%s\" >\n\n",       // Hash of the master credential
-                                        // that signed this subcredential.
-        GetNymID().Get(),
-        GetMasterCredID().Get());
+    Tag tag("subCredential");
+
+    // a hash of the nymIDSource
+    tag.add_attribute("nymID", GetNymID().Get());
+    // Hash of the master credential that signed
+    // this subcredential.
+    tag.add_attribute("masterID", GetMasterCredID().Get());
 
     if (GetNymIDSource().Exists()) {
         OTASCIIArmor ascSource;
@@ -301,26 +310,28 @@ void OTSubcredential::UpdateContents()
                                                // verify through its own
                                                // source. (Whatever that
                                                // may be.)
-        m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n",
-                                  ascSource.Get());
+        TagPtr tagSource(new Tag("nymIDSource", ascSource.Get()));
+        tag.add_tag(tagSource);
     }
 
     //  if (OTSubcredential::credPublicInfo == m_StoreAs)  // (Always saving
     // public info.)
     {
         // PUBLIC INFO
-        UpdatePublicContentsToString(m_xmlUnsigned);
+        UpdatePublicContentsToTag(tag);
     }
 
     // If we're saving the private credential info...
     //
     if (OTSubcredential::credPrivateInfo == m_StoreAs) {
-        UpdatePublicCredentialToString(m_xmlUnsigned);
-
-        UpdatePrivateContentsToString(m_xmlUnsigned);
+        UpdatePublicCredentialToTag(tag);
+        UpdatePrivateContentsToTag(tag);
     }
     // -------------------------------------------------
-    m_xmlUnsigned.Concatenate("</subCredential>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 
     m_StoreAs = OTSubcredential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
                                                   // BEHAVIOR. Any other state

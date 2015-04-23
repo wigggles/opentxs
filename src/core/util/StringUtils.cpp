@@ -134,6 +134,8 @@
 #include <opentxs/core/util/StringUtils.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
+#include <opentxs/core/String.hpp>
+
 #ifdef ANDROID
 #include <time64.h>
 #endif
@@ -186,6 +188,56 @@ std::string formatTimestamp(time64_t tt)
 
     strftime(buf, sizeof(buf), "%FT%T", gmtime_r(&t, &tm));
     return std::string(buf);
+}
+
+std::string formatInt(int32_t tt)
+{
+    opentxs::String temp;
+
+    temp.Format("%" PRId32 "", tt);
+
+    return temp.Get();
+}
+
+std::string formatUint(uint32_t tt)
+{
+    opentxs::String temp;
+
+    temp.Format("%" PRIu32 "", tt);
+
+    return temp.Get();
+}
+
+std::string formatChar(char tt)
+{
+    std::string temp;
+
+    temp += tt;
+
+    return temp;
+}
+
+std::string formatLong(int64_t tt)
+{
+    opentxs::String temp;
+
+    temp.Format("%" PRId64 "", tt);
+
+    return temp.Get();
+}
+
+std::string formatUlong(uint64_t tt)
+{
+    opentxs::String temp;
+
+    temp.Format("%" PRIu64 "", tt);
+
+    return temp.Get();
+}
+
+std::string formatBool(bool tt)
+{
+    return tt ? "true" : "false";
 }
 
 std::string getTimestamp()

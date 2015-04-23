@@ -135,6 +135,7 @@
 #include <opentxs/core/script/OTParty.hpp>
 
 #include <opentxs/core/script/OTAgent.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -1724,51 +1725,55 @@ bool OTParty::ReserveTransNumsForConfirm(const String& strNotaryID)
     return true;
 }
 
-void OTParty::Serialize(String& strAppend, bool bCalculatingID,
+void OTParty::Serialize(Tag& parent, bool bCalculatingID,
                         bool bSpecifyInstrumentDefinitionID,
                         bool bSpecifyParties) const
 {
-    strAppend.Concatenate(
-        "<party\n name=\"%s\"\n"
-        " ownerType=\"%s\"\n" // "nym" or "entity"
-        " ownerID=\"%s\"\n"   // Entity or Nym ID.  Perhaps should just have
-                              // both...
-        " openingTransNo=\"%" PRId64 "\"\n" // fine here.
-        " signedCopyProvided=\"%s\"\n"      // true/false
-        " authorizingAgent=\"%s\"\n" // When an agent activates this contract,
-                                     // it's HIS opening trans#.
-        " numAgents=\"%" PRI_SIZE "\"\n"        // integer count.
-        " numAccounts=\"%" PRI_SIZE "\" >\n\n", // integer count.
-        GetPartyName().c_str(),
-        bCalculatingID ? "" : (m_bPartyIsNym ? "nym" : "entity"),
-        (bCalculatingID && !bSpecifyParties) ? "" : m_str_owner_id.c_str(),
-        bCalculatingID ? 0 : m_lOpeningTransNo,
-        (!bCalculatingID && m_strMySignedCopy.Exists()) ? "true" : "false",
-        bCalculatingID ? "" : m_str_authorizing_agent.c_str(),
-        bCalculatingID ? 0 : m_mapAgents.size(), m_mapPartyAccounts.size());
+    TagPtr pTag(new Tag("party"));
+
+    uint32_t numAgents = m_mapAgents.size();
+    uint32_t numAccounts = m_mapPartyAccounts.size();
+
+    pTag->add_attribute("name", GetPartyName());
+    pTag->add_attribute(
+        "ownerType", bCalculatingID ? "" : (m_bPartyIsNym ? "nym" : "entity"));
+    pTag->add_attribute(
+        "ownerID", (bCalculatingID && !bSpecifyParties) ? "" : m_str_owner_id);
+    pTag->add_attribute("openingTransNo",
+                        formatLong(bCalculatingID ? 0 : m_lOpeningTransNo));
+    pTag->add_attribute(
+        "signedCopyProvided",
+        formatBool((!bCalculatingID && m_strMySignedCopy.Exists())));
+    // When an agent activates this contract, it's HIS opening trans#.
+    pTag->add_attribute("authorizingAgent",
+                        bCalculatingID ? "" : m_str_authorizing_agent);
+    pTag->add_attribute("numAgents",
+                        formatUint(bCalculatingID ? 0 : numAgents));
+    pTag->add_attribute("numAccounts", formatUint(numAccounts));
 
     if (!bCalculatingID) {
         for (auto& it : m_mapAgents) {
             OTAgent* pAgent = it.second;
             OT_ASSERT(nullptr != pAgent);
-            pAgent->Serialize(strAppend);
+            pAgent->Serialize(*pTag);
         }
     }
 
     for (auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
         OT_ASSERT(nullptr != pAcct);
-        pAcct->Serialize(strAppend, bCalculatingID,
-                         bSpecifyInstrumentDefinitionID);
+        pAcct->Serialize(*pTag, bCalculatingID, bSpecifyInstrumentDefinitionID);
     }
 
     if (!bCalculatingID && m_strMySignedCopy.Exists()) {
         OTASCIIArmor ascTemp(m_strMySignedCopy);
-        strAppend.Concatenate("<mySignedCopy>\n%s</mySignedCopy>\n\n",
-                              ascTemp.Get());
+
+        TagPtr pTagSignedCopy(new Tag("mySignedCopy", ascTemp.Get()));
+
+        pTag->add_tag(pTagSignedCopy);
     }
 
-    strAppend.Concatenate("</party>\n\n");
+    parent.add_tag(pTag);
 }
 
 // Register the variables of a specific Bylaw into the Script interpreter,

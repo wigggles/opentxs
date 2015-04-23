@@ -132,6 +132,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -400,41 +401,31 @@ void OTOffer::UpdateContents()
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         CURRENCY_TYPE_ID(GetCurrencyID());
 
-    const std::string from = formatTimestamp(GetValidFrom());
-    const std::string to = formatTimestamp(GetValidTo());
-    const int64_t lPriceLimit = GetPriceLimit();
-    const int64_t lTotalAssetsOnOffer = GetTotalAssetsOnOffer();
-    const int64_t lFinishedSoFar = GetFinishedSoFar();
-    const int64_t lScale = GetScale();
-    const int64_t lMinimumIncrement = GetMinimumIncrement();
-    const int64_t lTransactionNum = GetTransactionNum();
-
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<marketOffer\n version=\"%s\"\n"
-        " isSelling=\"%s\"\n" // true or false.
-        " notaryID=\"%s\"\n"
-        " instrumentDefinitionID=\"%s\"\n"
-        " currencyTypeID=\"%s\"\n"
-        " priceLimit=\"%" PRId64 "\"\n"
-        " totalAssetsOnOffer=\"%" PRId64 "\"\n"
-        " finishedSoFar=\"%" PRId64 "\"\n"
-        " marketScale=\"%" PRId64 "\"\n"
-        " minimumIncrement=\"%" PRId64 "\"\n"
-        " transactionNum=\"%" PRId64 "\"\n"
-        " validFrom=\"%s\"\n"
-        " validTo=\"%s\""
-        " />\n\n", //  <=== the tag ends here.
-        m_strVersion.Get(),
-        (IsBid() ? "false" : "true"), NOTARY_ID.Get(),
-        INSTRUMENT_DEFINITION_ID.Get(), CURRENCY_TYPE_ID.Get(), lPriceLimit,
-        lTotalAssetsOnOffer, lFinishedSoFar, lScale, lMinimumIncrement,
-        lTransactionNum, from.c_str(), to.c_str());
+    Tag tag("marketOffer");
 
-    //    m_xmlUnsigned.Concatenate("</marketOffer>\n");    // ^^^ Tag already
-    // ended above.
+    tag.add_attribute("version", m_strVersion.Get());
+
+    tag.add_attribute("isSelling", formatBool(!IsBid()));
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID.Get());
+    tag.add_attribute("priceLimit", formatLong(GetPriceLimit()));
+    tag.add_attribute("totalAssetsOnOffer",
+                      formatLong(GetTotalAssetsOnOffer()));
+    tag.add_attribute("finishedSoFar", formatLong(GetFinishedSoFar()));
+    tag.add_attribute("marketScale", formatLong(GetScale()));
+    tag.add_attribute("minimumIncrement", formatLong(GetMinimumIncrement()));
+    tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    tag.add_attribute("validFrom", formatTimestamp(GetValidFrom()));
+    tag.add_attribute("validTo", formatTimestamp(GetValidTo()));
+
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 bool OTOffer::MakeOffer(

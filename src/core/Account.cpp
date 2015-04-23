@@ -136,6 +136,7 @@
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Ledger.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -698,7 +699,7 @@ bool Account::DisplayStatistics(String& contents) const
     return true;
 }
 
-bool Account::SaveContractWallet(String& contents) const
+bool Account::SaveContractWallet(Tag& parent) const
 {
     String strAccountID(GetPurportedAccountID());
     String strNotaryID(GetPurportedNotaryID());
@@ -708,22 +709,32 @@ bool Account::SaveContractWallet(String& contents) const
     String acctType;
     TranslateAccountTypeToString(acctType_, acctType);
 
+    // Name is in the clear in memory,
+    // and base64 in storage.
     OTASCIIArmor ascName;
-    // name is in the clear in memory, and base64 in storage.
     if (m_strName.Exists()) {
         ascName.SetString(m_strName, false); // linebreaks == false
     }
 
-    contents.Concatenate(
-        "<!-- Last retrieved balance: %s on date: %s -->\n"
-        "<!-- Account type: %s --><account name=\"%s\"\n"
-        " accountID=\"%s\"\n"
-        " nymID=\"%s\"\n"
-        " notaryID=\"%s\" />\n"
-        "<!-- instrumentDefinitionID: %s -->\n\n",
-        balanceAmount_.Get(), balanceDate_.Get(), acctType.Get(),
-        m_strName.Exists() ? ascName.Get() : "", strAccountID.Get(),
-        strNymID.Get(), strNotaryID.Get(), strInstrumentDefinitionID.Get());
+    TagPtr pTag(new Tag("account"));
+
+    pTag->add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
+    pTag->add_attribute("accountID", strAccountID.Get());
+    pTag->add_attribute("nymID", strNymID.Get());
+    pTag->add_attribute("notaryID", strNotaryID.Get());
+
+    // These are here for informational purposes only,
+    // and are not ever actually loaded back up. In the
+    // previous version of this code, they were written
+    // only as XML comments.
+    pTag->add_attribute("infoLastKnownBalance", balanceAmount_.Get());
+    pTag->add_attribute("infoDateOfLastBalance", balanceDate_.Get());
+    pTag->add_attribute("infoAccountType", acctType.Get());
+    pTag->add_attribute("infoInstrumentDefinitionID",
+                        strInstrumentDefinitionID.Get());
+
+    parent.add_tag(pTag);
+
     return true;
 }
 
@@ -741,7 +752,6 @@ bool Account::SaveContractWallet(String& contents) const
 void Account::UpdateContents()
 {
     String strAssetTYPEID(acctInstrumentDefinitionID_);
-
     String ACCOUNT_ID(GetPurportedAccountID());
     String NOTARY_ID(GetPurportedNotaryID());
     String NYM_ID(GetNymID());
@@ -752,37 +762,51 @@ void Account::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<account\n version=\"%s\"\n type=\"%s\"\n "
-        "accountID=\"%s\"\n nymID=\"%s\"\n"
-        " notaryID=\"%s\"\n instrumentDefinitionID=\"%s\" >\n\n",
-        m_strVersion.Get(), acctType.Get(), ACCOUNT_ID.Get(), NYM_ID.Get(),
-        NOTARY_ID.Get(), strAssetTYPEID.Get());
+    Tag tag("account");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("type", acctType.Get());
+    tag.add_attribute("accountID", ACCOUNT_ID.Get());
+    tag.add_attribute("nymID", NYM_ID.Get());
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute("instrumentDefinitionID", strAssetTYPEID.Get());
+
     if (IsStashAcct()) {
-        m_xmlUnsigned.Concatenate(
-            "<stashinfo cronItemNum=\"%" PRId64 "\"/>\n\n", stashTransNum_);
+        TagPtr tagStash(new Tag("stashinfo"));
+        tagStash->add_attribute("cronItemNum", formatLong(stashTransNum_));
+        tag.add_tag(tagStash);
     }
     if (!inboxHash_.IsEmpty()) {
         String strHash(inboxHash_);
-        m_xmlUnsigned.Concatenate("<inboxHash value=\"%s\"/>\n\n",
-                                  strHash.Get());
+        TagPtr tagBox(new Tag("inboxHash"));
+        tagBox->add_attribute("value", strHash.Get());
+        tag.add_tag(tagBox);
     }
     if (!outboxHash_.IsEmpty()) {
         String strHash(outboxHash_);
-        m_xmlUnsigned.Concatenate("<outboxHash value=\"%s\"/>\n\n",
-                                  strHash.Get());
+        TagPtr tagBox(new Tag("outboxHash"));
+        tagBox->add_attribute("value", strHash.Get());
+        tag.add_tag(tagBox);
     }
 
-    m_xmlUnsigned.Concatenate("<balance date=\"%s\" amount=\"%s\"/>\n\n",
-                              balanceDate_.Get(), balanceAmount_.Get());
+    TagPtr tagBalance(new Tag("balance"));
+
+    tagBalance->add_attribute("date", balanceDate_.Get());
+    tagBalance->add_attribute("amount", balanceAmount_.Get());
+
+    tag.add_tag(tagBalance);
 
     if (markForDeletion_) {
-        m_xmlUnsigned.Concatenate(
-            "<MARKED_FOR_DELETION>\n"
-            "%s</MARKED_FOR_DELETION>\n\n",
-            "THIS ACCOUNT HAS BEEN MARKED FOR DELETION AT ITS OWN REQUEST");
+        TagPtr tagMark(new Tag(
+            "MARKED_FOR_DELETION",
+            "THIS ACCOUNT HAS BEEN MARKED FOR DELETION AT ITS OWN REQUEST"));
+        tag.add_tag(tagMark);
     }
-    m_xmlUnsigned.Concatenate("</account>\n");
+
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

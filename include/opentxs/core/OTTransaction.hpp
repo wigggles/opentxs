@@ -436,6 +436,7 @@ same time that it is first being
  */
 
 class Ledger;
+class Tag;
 
 class OTTransaction : public OTTransactionType
 {
@@ -730,12 +731,12 @@ public:
     // Because all of the actual receipts cannot fit into the single inbox
     // file, you must put their hash, and then store the receipt itself
     // separately...
-    void SaveAbbreviatedNymboxRecord(String& strOutput);
-    void SaveAbbreviatedOutboxRecord(String& strOutput);
-    void SaveAbbreviatedInboxRecord(String& strOutput);
-    void SaveAbbrevPaymentInboxRecord(String& strOutput);
-    void SaveAbbrevRecordBoxRecord(String& strOutput);
-    void SaveAbbrevExpiredBoxRecord(String& strOutput);
+    void SaveAbbreviatedNymboxRecord(Tag& parent);
+    void SaveAbbreviatedOutboxRecord(Tag& parent);
+    void SaveAbbreviatedInboxRecord(Tag& parent);
+    void SaveAbbrevPaymentInboxRecord(Tag& parent);
+    void SaveAbbrevRecordBoxRecord(Tag& parent);
+    void SaveAbbrevExpiredBoxRecord(Tag& parent);
     void ProduceInboxReportItem(Item& theBalanceItem);
     void ProduceOutboxReportItem(Item& theBalanceItem);
 

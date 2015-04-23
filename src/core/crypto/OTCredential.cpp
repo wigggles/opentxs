@@ -152,6 +152,7 @@
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTSubkey.hpp>
+#include <opentxs/core/util/Tag.hpp>
 
 #include <memory>
 #include <algorithm>
@@ -1550,19 +1551,18 @@ void OTCredential::ClearSubcredentials()
 // pmapPubInfo is optional output, the public info for all the credentials will
 // be placed inside, if a pointer is provided.
 //
-void OTCredential::SerializeIDs(String& strOutput,
-                                const String::List& listRevokedIDs,
+void OTCredential::SerializeIDs(Tag& parent, const String::List& listRevokedIDs,
                                 String::Map* pmapPubInfo,
                                 String::Map* pmapPriInfo, bool bShowRevoked,
                                 bool bValid) const
 {
     if (bValid || bShowRevoked) {
-        strOutput.Concatenate("<masterCredential\n"
-                              " ID=\"%s\"\n"
-                              " valid=\"%s\""
-                              "/>\n\n",
-                              GetMasterCredID().Get(),
-                              bValid ? "true" : "false");
+        TagPtr pTag(new Tag("masterCredential"));
+
+        pTag->add_attribute("ID", GetMasterCredID().Get());
+        pTag->add_attribute("valid", formatBool(bValid));
+
+        parent.add_tag(pTag);
 
         if (nullptr != pmapPubInfo) // optional out-param.
             pmapPubInfo->insert(std::pair<std::string, std::string>(
@@ -1594,24 +1594,22 @@ void OTCredential::SerializeIDs(String& strOutput,
         if (bSubcredValid || bShowRevoked) {
             const OTSubkey* pSubkey = dynamic_cast<const OTSubkey*>(pSub);
 
-            if (nullptr != pSubkey)
-                strOutput.Concatenate("<keyCredential\n"
-                                      " ID=\"%s\"\n"
-                                      " masterID=\"%s\"\n"
-                                      " valid=\"%s\""
-                                      "/>\n\n",
-                                      str_cred_id.c_str(),
-                                      pSubkey->GetMasterCredID().Get(),
-                                      bSubcredValid ? "true" : "false");
-            else
-                strOutput.Concatenate("<subCredential\n"
-                                      " ID=\"%s\"\n"
-                                      " masterID=\"%s\"\n"
-                                      " valid=\"%s\""
-                                      "/>\n\n",
-                                      str_cred_id.c_str(),
-                                      pSub->GetMasterCredID().Get(),
-                                      bSubcredValid ? "true" : "false");
+            TagPtr pTag;
+
+            if (nullptr != pSubkey) {
+                pTag.reset(new Tag("keyCredential"));
+                pTag->add_attribute("masterID",
+                                    pSubkey->GetMasterCredID().Get());
+            }
+            else {
+                pTag.reset(new Tag("subCredential"));
+                pTag->add_attribute("masterID", pSub->GetMasterCredID().Get());
+            }
+
+            pTag->add_attribute("ID", str_cred_id);
+            pTag->add_attribute("valid", formatBool(bSubcredValid));
+
+            parent.add_tag(pTag);
 
             if (nullptr != pmapPubInfo) // optional out-param.
                 pmapPubInfo->insert(std::pair<std::string, std::string>(

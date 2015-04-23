@@ -144,6 +144,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTSubkey.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/util/Tag.hpp>
 
 #include <irrxml/irrXML.hpp>
 
@@ -3569,34 +3570,24 @@ bool Nym::CompareID(const Nym& RHS) const
     return RHS.CompareID(m_nymID);
 }
 
-bool Nym::SavePseudonymWallet(String& strOutput) const
+bool Nym::SavePseudonymWallet(Tag& parent) const
 {
     String nymID;
     GetIdentifier(nymID);
 
+    // Name is in the clear in memory,
+    // and base64 in storage.
     OTASCIIArmor ascName;
-
-    if (m_strName.Exists()) // name is in the clear in memory, and base64 in
-                            // storage.
-    {
+    if (m_strName.Exists()) {
         ascName.SetString(m_strName, false); // linebreaks == false
     }
 
-    strOutput.Concatenate("<pseudonym name=\"%s\"\n"
-                          " nymID=\"%s\" />\n\n",
-                          ascName.Get(), nymID.Get());
+    TagPtr pTag(new Tag("pseudonym"));
 
-    return true;
-}
+    pTag->add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
+    pTag->add_attribute("nymID", nymID.Get());
 
-bool Nym::SavePseudonymWallet(std::ofstream& ofs) const
-{
-    String strOutput;
-
-    if (SavePseudonymWallet(strOutput))
-        ofs << strOutput;
-    else
-        return false;
+    parent.add_tag(pTag);
 
     return true;
 }
@@ -3883,19 +3874,8 @@ bool Nym::SavePseudonym(const char* szFoldername, const char* szFilename)
     return bSaved;
 }
 
-bool Nym::SavePseudonym(std::ofstream& ofs)
-{
-    String strNym;
-    SavePseudonym(strNym);
-
-    ofs << strNym;
-
-    return true;
-}
-
-// Used when importing/exporting Nym into and out-of the sphere of the cached
-// key
-// in the wallet.
+// Used when importing/exporting Nym into and out-of the sphere of the
+// cached key in the wallet.
 bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
                                                        // false if exporting.
                                       const OTPasswordData* pPWData,
@@ -3926,20 +3906,9 @@ bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
             otErr << __FUNCTION__ << ": Failed in GetPassphraseFromUser.\n";
             return false;
         }
-
-        //      otOut << "%s: DEBUGGING pExportPassphrase, size %d, contains: %s
-        // \n",
-        //                     __FUNCTION__,
-        // pExportPassphrase->getPasswordSize(),
-        // pExportPassphrase->getPassword());
     }
     else {
         pExportPassphrase = pImportPassword;
-
-        //      otOut << "%s: DEBUGGING pImportPassword, size %d, contains: %s
-        // \n",
-        //                     __FUNCTION__, pImportPassword->getPasswordSize(),
-        // pImportPassword->getPassword());
     }
 
     for (auto& it : m_mapCredentials) {
@@ -3955,34 +3924,33 @@ bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
     return true;
 }
 
-// If the Nym's source is a URL, he needs to post his valid master credential
-// IDs
-// there, so they can be verified against their source. This method is what
-// creates
-// the file which you can post at that URL. (Containing only the valid IDs, not
-// the revoked ones.)
-// Optionally it also returns the contents of the public credential files,
-// mapped by their
-// credential IDs.
+// If the Nym's source is a URL, he needs to post his valid
+// master credential IDs there, so they can be verified against
+// their source. This method is what creates the file which you
+// can post at that URL. (Containing only the valid IDs, not the
+// revoked ones.)
+// Optionally it also returns the contents of the public credential
+// files, mapped by their credential IDs.
 //
 void Nym::GetPublicCredentials(String& strCredList,
                                String::Map* pmapCredFiles) const
 {
+    Tag tag("nymData");
+
+    tag.add_attribute("version", m_strVersion.Get());
+
     String strNymID;
     GetIdentifier(strNymID);
 
-    strCredList.Concatenate("<nymData version=\"%s\"\n"
-                            " nymID=\"%s\""
-                            ">\n\n",
-                            m_strVersion.Get(), strNymID.Get());
+    tag.add_attribute("nymID", strNymID.Get());
 
-    SerializeNymIDSource(strCredList);
+    SerializeNymIDSource(tag);
 
     for (auto& it : m_mapCredentials) {
         OTCredential* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
-        pCredential->SerializeIDs(strCredList, m_listRevokedIDs,
+        pCredential->SerializeIDs(tag, m_listRevokedIDs,
                                   pmapCredFiles); // bShowRevoked=false by
                                                   // default, bValid=true by
                                                   // default. (True since we're
@@ -3991,63 +3959,71 @@ void Nym::GetPublicCredentials(String& strCredList,
                                                   // m_mapRevoked.)
     }
 
-    strCredList.Concatenate("</nymData>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    strCredList.Concatenate("%s", str_result.c_str());
 }
 
 void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
 {
+    Tag tag("nymData");
+
+    tag.add_attribute("version", m_strVersion.Get());
+
     String strNymID;
     GetIdentifier(strNymID);
 
-    strCredList.Concatenate("<nymData version=\"%s\"\n"
-                            " nymID=\"%s\""
-                            ">\n\n",
-                            m_strVersion.Get(), strNymID.Get());
+    tag.add_attribute("nymID", strNymID.Get());
 
-    SerializeNymIDSource(strCredList);
+    SerializeNymIDSource(tag);
 
-    SaveCredentialsToString(strCredList, nullptr, pmapCredFiles);
+    SaveCredentialsToTag(tag, nullptr, pmapCredFiles);
 
-    strCredList.Concatenate("</nymData>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    strCredList.Concatenate("%s", str_result.c_str());
 }
 
-void Nym::SerializeNymIDSource(String& strOutput) const
+void Nym::SerializeNymIDSource(Tag& parent) const
 {
-
     // We encode these before storing.
     if (m_strSourceForNymID.Exists()) {
         const OTASCIIArmor ascSourceForNymID(m_strSourceForNymID);
+
+        TagPtr pTag(new Tag("nymIDSource", ascSourceForNymID.Get()));
 
         if (m_strAltLocation.Exists()) {
             OTASCIIArmor ascAltLocation;
             ascAltLocation.SetString(m_strAltLocation,
                                      false); // bLineBreaks=true by default.
 
-            strOutput.Concatenate(
-                "<nymIDSource altLocation=\"%s\">\n%s</nymIDSource>\n\n",
-                ascAltLocation.Get(), ascSourceForNymID.Get());
+            pTag->add_attribute("altLocation", ascAltLocation.Get());
         }
-        else
-            strOutput.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n",
-                                  ascSourceForNymID.Get());
+        parent.add_tag(pTag);
     }
 }
 
 void Nym::SaveCredentialIDsToString(String& strOutput)
 {
+    Tag tag("nymData");
+
+    tag.add_attribute("version", m_strVersion.Get());
+
     String strNymID;
     GetIdentifier(strNymID);
 
-    strOutput.Concatenate("<nymData version=\"%s\"\n"
-                          " nymID=\"%s\""
-                          ">\n\n",
-                          m_strVersion.Get(), strNymID.Get());
+    tag.add_attribute("nymID", strNymID.Get());
 
-    SerializeNymIDSource(strOutput);
+    SerializeNymIDSource(tag);
 
-    SaveCredentialsToString(strOutput);
+    SaveCredentialsToTag(tag);
 
-    strOutput.Concatenate("</nymData>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    strOutput.Concatenate("%s", str_result.c_str());
 }
 
 bool Nym::SaveCredentialIDs()
@@ -4167,17 +4143,15 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
                   // (No need for error message every time they don't exist.)
 }
 
-void Nym::SaveCredentialsToString(String& strOutput, String::Map* pmapPubInfo,
-                                  String::Map* pmapPriInfo)
+void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
+                               String::Map* pmapPriInfo)
 {
-
     // IDs for revoked subcredentials are saved here.
     for (auto& it : m_listRevokedIDs) {
         std::string str_revoked_id = it;
-        strOutput.Concatenate("<revokedCredential\n"
-                              " ID=\"%s\""
-                              "/>\n\n",
-                              str_revoked_id.c_str());
+        TagPtr pTag(new Tag("revokedCredential"));
+        pTag->add_attribute("ID", str_revoked_id);
+        parent.add_tag(pTag);
     }
 
     // Serialize master and sub-credentials here.
@@ -4186,7 +4160,7 @@ void Nym::SaveCredentialsToString(String& strOutput, String::Map* pmapPubInfo,
         OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(
-            strOutput, m_listRevokedIDs, pmapPubInfo, pmapPriInfo,
+            parent, m_listRevokedIDs, pmapPubInfo, pmapPriInfo,
             true); // bShowRevoked=false by default (true here), bValid=true
     }
 
@@ -4196,7 +4170,7 @@ void Nym::SaveCredentialsToString(String& strOutput, String::Map* pmapPubInfo,
         OT_ASSERT(nullptr != pCredential);
 
         pCredential->SerializeIDs(
-            strOutput, m_listRevokedIDs, pmapPubInfo, pmapPriInfo, true,
+            parent, m_listRevokedIDs, pmapPubInfo, pmapPriInfo, true,
             false); // bShowRevoked=false by default. (Here it's true.)
                     // bValid=true by default. Here is for revoked, so false.
     }
@@ -4205,65 +4179,63 @@ void Nym::SaveCredentialsToString(String& strOutput, String::Map* pmapPubInfo,
 // Save the Pseudonym to a string...
 bool Nym::SavePseudonym(String& strNym)
 {
+    Tag tag("nymData");
+
     String nymID;
     GetIdentifier(nymID);
 
-    if (m_lUsageCredits == 0)
-        strNym.Concatenate("<nymData version=\"%s\"\n"
-                           " nymID=\"%s\""
-                           ">\n\n",
-                           m_strVersion.Get(), nymID.Get());
-    else
-        strNym.Concatenate("<nymData version=\"%s\"\n"
-                           " nymID=\"%s\"\n"
-                           " usageCredits=\"%" PRId64 "\""
-                           ">\n\n",
-                           m_strVersion.Get(), nymID.Get(), m_lUsageCredits);
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("nymID", nymID.Get());
 
-    SerializeNymIDSource(strNym);
+    if (m_lUsageCredits != 0)
+        tag.add_attribute("usageCredits", formatLong(m_lUsageCredits));
 
-    // For now I'm saving the credential list to a separate file. (And then of
-    // course,
-    // each credential also gets its own file.) We load the credential list
-    // file,
-    // and any associated credentials, before loading the Nymfile proper.
-    // Then we use the keys from those credentials possibly to verify the
-    // signature on
-    // the Nymfile (or not, in the case of the server which uses its own key.)
+    SerializeNymIDSource(tag);
 
-    //  SaveCredentialsToString(strNym);
+    // For now I'm saving the credential list to a separate file.
+    // (And then of course, each credential also gets its own file.)
+    // We load the credential list file, and any associated credentials,
+    // before loading the Nymfile proper.
+    // Then we use the keys from those credentials possibly to verify
+    // the signature on the Nymfile (or not, in the case of the server
+    // which uses its own key.)
+    //
+    //  SaveCredentialsToTag(tag);
 
     for (auto& it : m_mapRequestNum) {
         std::string strNotaryID = it.first;
         int64_t lRequestNum = it.second;
 
-        strNym.Concatenate("<requestNum\n"
-                           " notaryID=\"%s\"\n"
-                           " currentRequestNum=\"%" PRId64 "\""
-                           "/>\n\n",
-                           strNotaryID.c_str(), lRequestNum);
+        TagPtr pTag(new Tag("requestNum"));
+
+        pTag->add_attribute("notaryID", strNotaryID);
+        pTag->add_attribute("currentRequestNum", formatLong(lRequestNum));
+
+        tag.add_tag(pTag);
     }
 
     for (auto& it : m_mapHighTransNo) {
         std::string strNotaryID = it.first;
         int64_t lHighestNum = it.second;
 
-        strNym.Concatenate("<highestTransNum\n"
-                           " notaryID=\"%s\"\n"
-                           " mostRecent=\"%" PRId64 "\""
-                           "/>\n\n",
-                           strNotaryID.c_str(), lHighestNum);
+        TagPtr pTag(new Tag("highestTransNum"));
+
+        pTag->add_attribute("notaryID", strNotaryID);
+        pTag->add_attribute("mostRecent", formatLong(lHighestNum));
+
+        tag.add_tag(pTag);
     }
 
     // When you delete a Nym, it just marks it.
-    // Actual deletion occurs during maintenance sweep (targeting marked
-    // nyms...)
+    // Actual deletion occurs during maintenance sweep
+    // (targeting marked nyms...)
     //
-    if (m_bMarkForDeletion)
-        strNym.Concatenate(
-            "<MARKED_FOR_DELETION>\n"
-            "%s</MARKED_FOR_DELETION>\n\n",
-            "THIS NYM HAS BEEN MARKED FOR DELETION AT ITS OWN REQUEST");
+    if (m_bMarkForDeletion) {
+        TagPtr pTag(new Tag("MARKED_FOR_DELETION",
+                            "THIS NYM HAS BEEN MARKED "
+                            "FOR DELETION AT ITS OWN REQUEST"));
+        tag.add_tag(pTag);
+    }
 
     int64_t lTransactionNumber = 0;
 
@@ -4272,22 +4244,6 @@ bool Nym::SavePseudonym(String& strNym)
         dequeOfTransNums* pDeque = it.second;
 
         OT_ASSERT(nullptr != pDeque);
-
-        //        if (!(pDeque->empty()) && (strNotaryID.size() > 0) )
-        //        {
-        //            for (uint32_t i = 0; i < pDeque->size(); i++)
-        //            {
-        //                lTransactionNumber = pDeque->at(i);
-        //
-        //                strNym.Concatenate("<transactionNum\n"
-        //                                   " notaryID=\"%s\"\n"
-        //                                   " transactionNum=\"%" PRId64 "\""
-        //                                   "/>\n\n",
-        //                                   strNotaryID.c_str(),
-        //                                   lTransactionNumber
-        //                                   );
-        //            }
-        //        }
 
         if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
             NumList theList;
@@ -4301,11 +4257,11 @@ bool Nym::SavePseudonym(String& strNym)
                 strTemp.Exists()) {
                 const OTASCIIArmor ascTemp(strTemp);
 
-                if (ascTemp.Exists())
-                    strNym.Concatenate("<transactionNums "
-                                       "notaryID=\"%s\">\n%s</"
-                                       "transactionNums>\n\n",
-                                       strNotaryID.c_str(), ascTemp.Get());
+                if (ascTemp.Exists()) {
+                    TagPtr pTag(new Tag("transactionNums", ascTemp.Get()));
+                    pTag->add_attribute("notaryID", strNotaryID);
+                    tag.add_tag(pTag);
+                }
             }
         }
     } // for
@@ -4318,22 +4274,6 @@ bool Nym::SavePseudonym(String& strNym)
 
         OT_ASSERT(nullptr != pDeque);
 
-        //        if (!(pDeque->empty()) && (strNotaryID.size() > 0) )
-        //        {
-        //            for (uint32_t i = 0; i < pDeque->size(); i++)
-        //            {
-        //                lTransactionNumber = pDeque->at(i);
-        //
-        //                strNym.Concatenate("<issuedNum\n"
-        //                                   " notaryID=\"%s\"\n"
-        //                                   " transactionNum=\"%" PRId64 "\""
-        //                                   "/>\n\n",
-        //                                   strNotaryID.c_str(),
-        //                                   lTransactionNumber
-        //                                   );
-        //            }
-        //        }
-
         if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
             NumList theList;
 
@@ -4346,10 +4286,11 @@ bool Nym::SavePseudonym(String& strNym)
                 strTemp.Exists()) {
                 const OTASCIIArmor ascTemp(strTemp);
 
-                if (ascTemp.Exists())
-                    strNym.Concatenate(
-                        "<issuedNums notaryID=\"%s\">\n%s</issuedNums>\n\n",
-                        strNotaryID.c_str(), ascTemp.Get());
+                if (ascTemp.Exists()) {
+                    TagPtr pTag(new Tag("issuedNums", ascTemp.Get()));
+                    pTag->add_attribute("notaryID", strNotaryID);
+                    tag.add_tag(pTag);
+                }
             }
         }
     } // for
@@ -4362,22 +4303,6 @@ bool Nym::SavePseudonym(String& strNym)
 
         OT_ASSERT(nullptr != pDeque);
 
-        //        if (!(pDeque->empty()) && (strNotaryID.size() > 0) )
-        //        {
-        //            for (uint32_t i = 0; i < pDeque->size(); i++)
-        //            {
-        //                lTransactionNumber = pDeque->at(i);
-        //
-        //                strNym.Concatenate("<tentativeNum\n"
-        //                                   " notaryID=\"%s\"\n"
-        //                                   " transactionNum=\"%" PRId64 "\""
-        //                                   "/>\n\n",
-        //                                   strNotaryID.c_str(),
-        //                                   lTransactionNumber
-        //                                   );
-        //            }
-        //        }
-
         if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
             NumList theList;
 
@@ -4390,11 +4315,11 @@ bool Nym::SavePseudonym(String& strNym)
                 strTemp.Exists()) {
                 const OTASCIIArmor ascTemp(strTemp);
 
-                if (ascTemp.Exists())
-                    strNym.Concatenate("<tentativeNums "
-                                       "notaryID=\"%s\">\n%s</"
-                                       "tentativeNums>\n\n",
-                                       strNotaryID.c_str(), ascTemp.Get());
+                if (ascTemp.Exists()) {
+                    TagPtr pTag(new Tag("tentativeNums", ascTemp.Get()));
+                    pTag->add_attribute("notaryID", strNotaryID);
+                    tag.add_tag(pTag);
+                }
             }
         }
 
@@ -4412,22 +4337,6 @@ bool Nym::SavePseudonym(String& strNym)
 
         OT_ASSERT(nullptr != pDeque);
 
-        //        if (!(pDeque->empty()) && (strNotaryID.size() > 0) )
-        //        {
-        //            for (uint32_t i = 0; i < pDeque->size(); i++)
-        //            {
-        //                const int64_t lRequestNumber = pDeque->at(i);
-        //
-        //                strNym.Concatenate("<acknowledgedNum\n"
-        //                                   " notaryID=\"%s\"\n"
-        //                                   " requestNum=\"%" PRId64 "\""
-        //                                   "/>\n\n",
-        //                                   strNotaryID.c_str(),
-        //                                   lRequestNumber
-        //                                   );
-        //            }
-        //        }
-
         if (!(pDeque->empty()) && (strNotaryID.size() > 0)) {
             NumList theList;
 
@@ -4440,10 +4349,11 @@ bool Nym::SavePseudonym(String& strNym)
                 strTemp.Exists()) {
                 const OTASCIIArmor ascTemp(strTemp);
 
-                if (ascTemp.Exists())
-                    strNym.Concatenate(
-                        "<ackNums notaryID=\"%s\">\n%s</ackNums>\n\n",
-                        strNotaryID.c_str(), ascTemp.Get());
+                if (ascTemp.Exists()) {
+                    TagPtr pTag(new Tag("ackNums", ascTemp.Get()));
+                    pTag->add_attribute("notaryID", strNotaryID);
+                    tag.add_tag(pTag);
+                }
             }
         }
 
@@ -4460,10 +4370,10 @@ bool Nym::SavePseudonym(String& strNym)
 
             if (strMail.Exists()) ascMail.SetString(strMail);
 
-            if (ascMail.Exists())
-                strNym.Concatenate("<mailMessage>\n"
-                                   "%s</mailMessage>\n\n",
-                                   ascMail.Get());
+            if (ascMail.Exists()) {
+                TagPtr pTag(new Tag("mailMessage", ascMail.Get()));
+                tag.add_tag(pTag);
+            }
         }
     }
 
@@ -4478,10 +4388,10 @@ bool Nym::SavePseudonym(String& strNym)
 
             if (strOutmail.Exists()) ascOutmail.SetString(strOutmail);
 
-            if (ascOutmail.Exists())
-                strNym.Concatenate("<outmailMessage>\n"
-                                   "%s</outmailMessage>\n\n",
-                                   ascOutmail.Get());
+            if (ascOutmail.Exists()) {
+                TagPtr pTag(new Tag("outmailMessage", ascOutmail.Get()));
+                tag.add_tag(pTag);
+            }
         }
     }
 
@@ -4497,10 +4407,11 @@ bool Nym::SavePseudonym(String& strNym)
             if (strOutpayments.Exists())
                 ascOutpayments.SetString(strOutpayments);
 
-            if (ascOutpayments.Exists())
-                strNym.Concatenate("<outpaymentsMessage>\n"
-                                   "%s</outpaymentsMessage>\n\n",
-                                   ascOutpayments.Get());
+            if (ascOutpayments.Exists()) {
+                TagPtr pTag(
+                    new Tag("outpaymentsMessage", ascOutpayments.Get()));
+                tag.add_tag(pTag);
+            }
         }
     }
 
@@ -4509,8 +4420,10 @@ bool Nym::SavePseudonym(String& strNym)
     //
     if (!(m_setOpenCronItems.empty())) {
         for (auto& it : m_setOpenCronItems) {
-            strNym.Concatenate("<hasOpenCronItem ID=\"%" PRId64 "\" />\n\n",
-                               it);
+            int64_t lID = it;
+            TagPtr pTag(new Tag("hasOpenCronItem"));
+            pTag->add_attribute("ID", formatLong(lID));
+            tag.add_tag(pTag);
         }
     }
 
@@ -4519,7 +4432,10 @@ bool Nym::SavePseudonym(String& strNym)
     //
     if (!(m_setAccounts.empty())) {
         for (auto& it : m_setAccounts) {
-            strNym.Concatenate("<ownsAssetAcct ID=\"%s\" />\n\n", it.c_str());
+            std::string strID(it);
+            TagPtr pTag(new Tag("ownsAssetAcct"));
+            pTag->add_attribute("ID", strID);
+            tag.add_tag(pTag);
         }
     }
 
@@ -4530,11 +4446,10 @@ bool Nym::SavePseudonym(String& strNym)
 
         if ((strNotaryID.size() > 0) && !theID.IsEmpty()) {
             const String strNymboxHash(theID);
-            strNym.Concatenate("<nymboxHashItem\n"
-                               " notaryID=\"%s\"\n"
-                               " nymboxHash=\"%s\""
-                               "/>\n\n",
-                               strNotaryID.c_str(), strNymboxHash.Get());
+            TagPtr pTag(new Tag("nymboxHashItem"));
+            pTag->add_attribute("notaryID", strNotaryID);
+            pTag->add_attribute("nymboxHash", strNymboxHash.Get());
+            tag.add_tag(pTag);
         }
     } // for
 
@@ -4545,21 +4460,19 @@ bool Nym::SavePseudonym(String& strNym)
 
         if ((strNotaryID.size() > 0) && !theID.IsEmpty()) {
             const String strRecentHash(theID);
-            strNym.Concatenate("<recentHashItem\n"
-                               " notaryID=\"%s\"\n"
-                               " recentHash=\"%s\""
-                               "/>\n\n",
-                               strNotaryID.c_str(), strRecentHash.Get());
+            TagPtr pTag(new Tag("recentHashItem"));
+            pTag->add_attribute("notaryID", strNotaryID);
+            pTag->add_attribute("recentHash", strRecentHash.Get());
+            tag.add_tag(pTag);
         }
     } // for
 
     // server-side
     if (!m_NymboxHash.IsEmpty()) {
         const String strNymboxHash(m_NymboxHash);
-        strNym.Concatenate("<nymboxHash\n"
-                           " value=\"%s\""
-                           "/>\n\n",
-                           strNymboxHash.Get());
+        TagPtr pTag(new Tag("nymboxHash"));
+        pTag->add_attribute("value", strNymboxHash.Get());
+        tag.add_tag(pTag);
     }
 
     // client-side
@@ -4569,11 +4482,10 @@ bool Nym::SavePseudonym(String& strNym)
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
-            strNym.Concatenate("<inboxHashItem\n"
-                               " accountID=\"%s\"\n"
-                               " hashValue=\"%s\""
-                               "/>\n\n",
-                               strAcctID.c_str(), strHash.Get());
+            TagPtr pTag(new Tag("inboxHashItem"));
+            pTag->add_attribute("accountID", strAcctID);
+            pTag->add_attribute("hashValue", strHash.Get());
+            tag.add_tag(pTag);
         }
     } // for
 
@@ -4584,15 +4496,17 @@ bool Nym::SavePseudonym(String& strNym)
 
         if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
             const String strHash(theID);
-            strNym.Concatenate("<outboxHashItem\n"
-                               " accountID=\"%s\"\n"
-                               " hashValue=\"%s\""
-                               "/>\n\n",
-                               strAcctID.c_str(), strHash.Get());
+            TagPtr pTag(new Tag("outboxHashItem"));
+            pTag->add_attribute("accountID", strAcctID);
+            pTag->add_attribute("hashValue", strHash.Get());
+            tag.add_tag(pTag);
         }
     } // for
 
-    strNym.Concatenate("</nymData>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    strNym.Concatenate("%s", str_result.c_str());
 
     return true;
 }

@@ -180,6 +180,7 @@ class OTPassword;
 class OTPasswordData;
 class OTSubcredential;
 class OTSubkey;
+class Tag;
 
 typedef std::map<std::string, OTSubcredential*> mapOfSubcredentials;
 
@@ -360,8 +361,7 @@ public:
     // bValid=true means we are saving OTPseudonym::m_mapCredentials. Whereas
     // bValid=false means we're saving m_mapRevoked.
     //
-    EXPORT void SerializeIDs(String& strOutput,
-                             const String::List& listRevokedIDs,
+    EXPORT void SerializeIDs(Tag& parent, const String::List& listRevokedIDs,
                              String::Map* pmapPubInfo = nullptr,
                              String::Map* pmapPriInfo = nullptr,
                              bool bShowRevoked = false,

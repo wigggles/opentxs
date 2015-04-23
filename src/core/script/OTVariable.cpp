@@ -135,99 +135,78 @@
 #include <opentxs/core/script/OTVariable.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTScript.hpp>
+
+#include <opentxs/core/util/Common.hpp>
 
 namespace opentxs
 {
 
-void OTVariable::Serialize(String& strAppend, bool bCalculatingID) const
+void OTVariable::Serialize(Tag& parent, bool bCalculatingID) const
 {
-
-    std::string str_access("");
+    std::string str_access(""), str_type("");
 
     switch (m_Access) {
-    case OTVariable::Var_Constant: // This cannot be changed from inside the
-                                   // script.
+    // This cannot be changed from inside the
+    // script.
+    case OTVariable::Var_Constant:
         str_access = "constant";
         break;
-    case OTVariable::Var_Persistent: // This can be changed without notifying
-                                     // the parties.
+    // This can be changed without notifying
+    // the parties.
+    case OTVariable::Var_Persistent:
         str_access = "persistent";
         break;
-    case OTVariable::Var_Important: // This cannot be changed without notifying
-                                    // the parties.
+    // This cannot be changed without notifying
+    // the parties.
+    case OTVariable::Var_Important:
         str_access = "important";
         break;
     default:
-        otErr << "OTVariable::Serialize:  ERROR:  Bad variable type.\n";
+        otErr << "OTVariable::Serialize: ERROR: Bad variable access.\n";
         break;
     }
 
-    std::string str_type;
+    TagPtr pTag(new Tag("variable"));
 
+    pTag->add_attribute("name", m_strName.Get());
+    pTag->add_attribute("access", str_access);
+
+    // Notice the use of bCalculatingID. Because
+    // we don't serialize the variable's value when
+    // calculating the smart contract's ID.
     switch (m_Type) {
     case OTVariable::Var_String: {
         str_type = "string";
-
-        if ((false == bCalculatingID) && // we don't serialize the variable's
-                                         // value when calculating the
-            (m_str_Value.size() > 0))    // owner OTScriptable's ID, since the
-                                         // value can change over time.
-        {
+        if ((false == bCalculatingID) && (m_str_Value.size() > 0)) {
             String strVal(m_str_Value.c_str());
             OTASCIIArmor ascVal(strVal);
-            strAppend.Concatenate("<variable\n name=\"%s\"\n"
-                                  " value=\"%s\"\n"
-                                  " type=\"%s\"\n"
-                                  " access=\"%s\" >\n%s</variable>\n\n",
-                                  m_strName.Get(), "exists", str_type.c_str(),
-                                  str_access.c_str(), ascVal.Get());
+            pTag->add_attribute("value", "exists");
+            pTag->set_text(ascVal.Get());
         }
         else {
-            strAppend.Concatenate("<variable\n name=\"%s\"\n"
-                                  " value=\"%s\"\n"
-                                  " type=\"%s\"\n"
-                                  " access=\"%s\" />\n\n",
-                                  m_strName.Get(), "none", // value
-                                  str_type.c_str(), str_access.c_str());
+            pTag->add_attribute("value", "none");
         }
     } break;
     case OTVariable::Var_Integer:
         str_type = "integer";
-        strAppend.Concatenate(
-            "<variable\n name=\"%s\"\n"
-            " value=\"%d\"\n"
-            " type=\"%s\"\n"
-            " access=\"%s\" />\n\n",
-            m_strName.Get(),
-            bCalculatingID ? 0 : m_nValue, // we don't serialize the variable's
-                                           // value when calculating the smart
-                                           // contract's ID.
-            str_type.c_str(), str_access.c_str());
+        pTag->add_attribute("value", formatInt(bCalculatingID ? 0 : m_nValue));
         break;
     case OTVariable::Var_Bool:
         str_type = "bool";
-        strAppend.Concatenate(
-            "<variable\n name=\"%s\"\n"
-            " value=\"%s\"\n"
-            " type=\"%s\"\n"
-            " access=\"%s\" />\n\n",
-            m_strName.Get(),
-            bCalculatingID
-                ? "false"
-                : (m_bValue ? "true" : "false"), // we don't serialize the
-                                                 // variable's value when
-                                                 // calculating the smart
-                                                 // contract's ID.
-            str_type.c_str(),
-            str_access.c_str());
+        pTag->add_attribute("value",
+                            bCalculatingID ? "false" : formatBool(m_bValue));
         break;
     default:
-        otErr
-            << "OTVariable::Serialize: Error, Wrong Type -- not serializing.\n";
+        otErr << "OTVariable::Serialize: ERROR: Bad variable type.\n";
         break;
     }
+
+    pTag->add_attribute("type", str_type);
+
+    parent.add_tag(pTag);
 }
 
 // NO TYPE (YET)

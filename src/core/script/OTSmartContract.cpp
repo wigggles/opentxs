@@ -600,6 +600,7 @@ various sequence numbers. Hm.
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Ledger.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTParty.hpp>
 #include <opentxs/core/script/OTPartyAccount.hpp>
@@ -5473,33 +5474,30 @@ void OTSmartContract::UpdateContents()
         formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetNextProcessDate());
 
     // OTSmartContract
-    m_xmlUnsigned.Concatenate(
-        "<smartContract\n version=\"%s\"\n"
-        " notaryID=\"%s\"\n"
-        " activatorNymID=\"%s\"\n"
-        " activatorAcctID=\"%s\"\n"
-        " lastSenderNymID=\"%s\"\n"
-        " lastSenderAcctID=\"%s\"\n"
-        " lastRecipientNymID=\"%s\"\n"
-        " lastRecipientAcctID=\"%s\"\n"
-        " canceled=\"%s\"\n"
-        " cancelerNymID=\"%s\"\n"
-        " transactionNum=\"%" PRId64 "\"\n"
-        " creationDate=\"%s\"\n"
-        " validFrom=\"%s\"\n"
-        " validTo=\"%s\"\n"
-        " nextProcessDate=\"%s\""
-        " >\n\n",
-        m_strVersion.Get(), m_bCalculatingID ? "" : NOTARY_ID.Get(),
-        m_bCalculatingID ? "" : ACTIVATOR_NYM_ID.Get(),
-        m_bCalculatingID ? "" : ACTIVATOR_ACCT_ID.Get(),
-        m_bCalculatingID ? "" : m_strLastSenderUser.Get(),
-        m_bCalculatingID ? "" : m_strLastSenderAcct.Get(),
-        m_bCalculatingID ? "" : m_strLastRecipientUser.Get(),
-        m_bCalculatingID ? "" : m_strLastRecipientAcct.Get(),
-        m_bCanceled ? "true" : "false", m_bCanceled ? strCanceler.Get() : "",
-        m_bCalculatingID ? 0 : m_lTransactionNum, tCreation.c_str(),
-        tValidFrom.c_str(), tValidTo.c_str(), tNextProcess.c_str());
+    Tag tag("smartContract");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("notaryID", m_bCalculatingID ? "" : NOTARY_ID.Get());
+    tag.add_attribute("activatorNymID",
+                      m_bCalculatingID ? "" : ACTIVATOR_NYM_ID.Get());
+    tag.add_attribute("activatorAcctID",
+                      m_bCalculatingID ? "" : ACTIVATOR_ACCT_ID.Get());
+    tag.add_attribute("lastSenderNymID",
+                      m_bCalculatingID ? "" : m_strLastSenderUser.Get());
+    tag.add_attribute("lastSenderAcctID",
+                      m_bCalculatingID ? "" : m_strLastSenderAcct.Get());
+    tag.add_attribute("lastRecipientNymID",
+                      m_bCalculatingID ? "" : m_strLastRecipientUser.Get());
+    tag.add_attribute("lastRecipientAcctID",
+                      m_bCalculatingID ? "" : m_strLastRecipientAcct.Get());
+    tag.add_attribute("canceled", formatBool(m_bCanceled));
+    tag.add_attribute("cancelerNymID", m_bCanceled ? strCanceler.Get() : "");
+    tag.add_attribute("transactionNum",
+                      formatLong(m_bCalculatingID ? 0 : m_lTransactionNum));
+    tag.add_attribute("creationDate", tCreation);
+    tag.add_attribute("validFrom", tValidFrom);
+    tag.add_attribute("validTo", tValidTo);
+    tag.add_attribute("nextProcessDate", tNextProcess);
 
     // OTCronItem
     if (!m_bCalculatingID) {
@@ -5507,15 +5505,16 @@ void OTSmartContract::UpdateContents()
             int64_t lClosingNumber = GetClosingTransactionNoAt(i);
             OT_ASSERT(lClosingNumber > 0);
 
-            m_xmlUnsigned.Concatenate(
-                "<closingTransactionNumber value=\"%" PRId64 "\"/>\n\n",
-                lClosingNumber);
+            TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
+
+            tagClosingNo->add_attribute("value", formatLong(lClosingNumber));
+
+            tag.add_tag(tagClosingNo);
 
             // For OTSmartContract, this should only contain a single number,
             // from the activator Nym.
             // I preserved the loop anyway. Call me crazy. But I'm still
-            // displaying an error if there's
-            // more than one.
+            // displaying an error if there's more than one.
             if (i > 0)
                 otErr << "OTSmartContract::" << __FUNCTION__
                       << ": ERROR: There's only ever "
@@ -5525,9 +5524,8 @@ void OTSmartContract::UpdateContents()
     }
 
     // *** OT SCRIPTABLE ***
-    //
-    UpdateContentsToString(m_xmlUnsigned,
-                           m_bCalculatingID); // FYI: this is: void
+    // FYI: this is: void
+    UpdateContentsToTag(tag, m_bCalculatingID);
 
     if (!m_bCalculatingID) {
 
@@ -5536,7 +5534,7 @@ void OTSmartContract::UpdateContents()
         // (This is an object that contains a map of OTAccountIDs, by
         // instrument_definition_id)
         //
-        m_StashAccts.Serialize(m_xmlUnsigned);
+        m_StashAccts.Serialize(tag);
 
         // This is a map of OTStash's, by stash_name.
         // EACH ONE contains a map of OTStashItems, by instrument_definition_id
@@ -5547,11 +5545,14 @@ void OTSmartContract::UpdateContents()
             // where the actual funds are stored for each instrument definition.
             OTStash* pStash = it.second;
             OT_ASSERT(nullptr != pStash);
-            pStash->Serialize(m_xmlUnsigned);
+            pStash->Serialize(tag);
         }
     }
 
-    m_xmlUnsigned.Concatenate("</smartContract>\n\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // Used internally here.

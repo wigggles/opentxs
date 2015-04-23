@@ -138,6 +138,7 @@
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/util/Tag.hpp>
 
 #include <irrxml/irrXML.hpp>
 
@@ -357,7 +358,9 @@ std::string AssetContract::formatLongAmount(int64_t lValue, int32_t nFactor,
             << (lValue % nFactor);
     }
 
-    return sss.str();
+    std::string str_result(sss.str());
+
+    return str_result;
 }
 
 // Convert 912545 to "$9,125.45"
@@ -523,22 +526,23 @@ bool AssetContract::DisplayStatistics(String& strContents) const
     return true;
 }
 
-bool AssetContract::SaveContractWallet(String& strContents) const
+bool AssetContract::SaveContractWallet(Tag& parent) const
 {
     const String strID(m_ID);
 
+    // Name is in the clear in memory,
+    // and base64 in storage.
     OTASCIIArmor ascName;
-
-    if (m_strName.Exists()) // name is in the clear in memory, and base64 in
-                            // storage.
-    {
+    if (m_strName.Exists()) {
         ascName.SetString(m_strName, false); // linebreaks == false
     }
 
-    strContents.Concatenate("<assetType name=\"%s\"\n"
-                            " instrumentDefinitionID=\"%s\" />\n\n",
-                            m_strName.Exists() ? ascName.Get() : "",
-                            strID.Get());
+    TagPtr pTag(new Tag("assetType"));
+
+    pTag->add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
+    pTag->add_attribute("instrumentDefinitionID", strID.Get());
+
+    parent.add_tag(pTag);
 
     return true;
 }
@@ -853,47 +857,57 @@ void AssetContract::CreateContents()
 {
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate("<%s version=\"%s\">\n\n", "instrumentDefinition",
-                              m_strVersion.Get());
+    Tag tag("instrumentDefinition");
+
+    tag.add_attribute("version", m_strVersion.Get());
 
     // Entity
-    m_xmlUnsigned.Concatenate("<entity shortname=\"%s\"\n"
-                              " longname=\"%s\"\n"
-                              " email=\"%s\"/>\n\n",
-                              m_strEntityShortName.Get(),
-                              m_strEntityLongName.Get(),
-                              m_strEntityEmail.Get());
-
+    {
+        TagPtr pTag(new Tag("entity"));
+        pTag->add_attribute("shortname", m_strEntityShortName.Get());
+        pTag->add_attribute("longname", m_strEntityLongName.Get());
+        pTag->add_attribute("email", m_strEntityEmail.Get());
+        tag.add_tag(pTag);
+    }
     // Issue
-    m_xmlUnsigned.Concatenate("<issue company=\"%s\"\n"
-                              " email=\"%s\"\n"
-                              " contractUrl=\"%s\"\n"
-                              " type=\"%s\"/>\n\n",
-                              m_strIssueCompany.Get(), m_strIssueEmail.Get(),
-                              m_strIssueContractURL.Get(),
-                              m_strIssueType.Get());
+    {
+        TagPtr pTag(new Tag("issue"));
+        pTag->add_attribute("company", m_strIssueCompany.Get());
+        pTag->add_attribute("email", m_strIssueEmail.Get());
+        pTag->add_attribute("contractUrl", m_strIssueContractURL.Get());
+        pTag->add_attribute("type", m_strIssueType.Get());
+        tag.add_tag(pTag);
+    }
 
     // [currency|shares]
-    if (m_bIsCurrency)
-        m_xmlUnsigned.Concatenate(
-            "<currency name=\"%s\" tla=\"%s\" symbol=\"%s\" type=\"%s\" "
-            "factor=\"%s\" decimalPower=\"%s\" fraction=\"%s\" />\n\n",
-            m_strCurrencyName.Get(), m_strCurrencyTLA.Get(),
-            m_strCurrencySymbol.Get(), m_strCurrencyType.Get(),
-            m_strCurrencyFactor.Get(), m_strCurrencyDecimalPower.Get(),
-            m_strCurrencyFraction.Get());
-    else if (m_bIsShares)
-        m_xmlUnsigned.Concatenate(
-            "<shares name=\"%s\" symbol=\"%s\" type=\"%s\" "
-            "issueDate=\"%s\" />\n\n",
-            m_strCurrencyName.Get(), m_strCurrencySymbol.Get(),
-            m_strCurrencyType.Get(), m_strIssueDate.Get());
+    if (m_bIsCurrency) {
+        TagPtr pTag(new Tag("currency"));
+        pTag->add_attribute("name", m_strCurrencyName.Get());
+        pTag->add_attribute("tla", m_strCurrencyTLA.Get());
+        pTag->add_attribute("symbol", m_strCurrencySymbol.Get());
+        pTag->add_attribute("type", m_strCurrencyType.Get());
+        pTag->add_attribute("factor", m_strCurrencyFactor.Get());
+        pTag->add_attribute("decimalPower", m_strCurrencyDecimalPower.Get());
+        pTag->add_attribute("fraction", m_strCurrencyFraction.Get());
+        tag.add_tag(pTag);
+    }
+    else if (m_bIsShares) {
+        TagPtr pTag(new Tag("shares"));
+        pTag->add_attribute("name", m_strCurrencyName.Get());
+        pTag->add_attribute("symbol", m_strCurrencySymbol.Get());
+        pTag->add_attribute("type", m_strCurrencyType.Get());
+        pTag->add_attribute("issueDate", m_strIssueDate.Get());
+        tag.add_tag(pTag);
+    }
 
-    // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
-    // etc.
-    CreateInnerContents();
+    // This is where OTContract scribes tag with its keys,
+    // conditions, etc.
+    CreateInnerContents(tag);
 
-    m_xmlUnsigned.Concatenate("</%s>\n", "instrumentDefinition");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Format("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

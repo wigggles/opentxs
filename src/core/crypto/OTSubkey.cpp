@@ -149,6 +149,7 @@
 #include <opentxs/core/crypto/OTSubkey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
 #include "irrxml/irrXML.hpp"
@@ -213,26 +214,25 @@ void OTSubkey::UpdateContents()
 {
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<keyCredential nymID=\"%s\"\n" // a hash of the nymIDSource
-        " masterID=\"%s\" >\n\n",       // Hash of the master credential
-                                        // that signed this subcredential.
-        GetNymID().Get(),
-        GetMasterCredID().Get());
+    Tag tag("keyCredential");
+
+    // a hash of the nymIDSource
+    tag.add_attribute("nymID", GetNymID().Get());
+    // Hash of the master credential that signed this subcredential.
+    tag.add_attribute("masterID", GetMasterCredID().Get());
 
     if (GetNymIDSource().Exists()) {
         OTASCIIArmor ascSource;
-        ascSource.SetString(GetNymIDSource()); // A nym should always
-                                               // verify through its own
-                                               // source. (Whatever that
-                                               // may be.)
-        m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n",
-                                  ascSource.Get());
+        // A nym should always verify through its own
+        // source. (Whatever that may be.)
+        ascSource.SetString(GetNymIDSource());
+        TagPtr tagSource(new Tag("nymIDSource", ascSource.Get()));
+        tag.add_tag(tagSource);
     }
     // MASTER-SIGNED INFO
     if (OTSubcredential::credMasterSigned == m_StoreAs ||
         OTSubcredential::credPrivateInfo == m_StoreAs) {
-        UpdatePublicContentsToString(m_xmlUnsigned);
+        UpdatePublicContentsToTag(tag);
     }
     // PUBLIC INFO (signed by subkey, contains master signed info.)
     if (OTSubcredential::credPublicInfo == m_StoreAs ||
@@ -241,25 +241,28 @@ void OTSubkey::UpdateContents()
         // containing the master-signed contents
         // from the above block.
         OTASCIIArmor ascMasterSigned(GetMasterSigned());
-        m_xmlUnsigned.Concatenate(
-            "<masterSigned>\n%s</masterSigned>\n\n", // Contains all the public
-                                                     // info, signed by the
-                                                     // master key.
-            ascMasterSigned.Get()); // Packaged up here inside a final,
-                                    // subkey-signed credential.
+
+        // Contains all the public info, signed by the master key.
+        // Packaged up here inside a final, subkey-signed credential.
+        TagPtr tagMasterSigned(new Tag("masterSigned", ascMasterSigned.Get()));
+        tag.add_tag(tagMasterSigned);
     }
     // PRIVATE INFO
     //
     // If we're saving the private credential info...
     if (OTSubcredential::credPrivateInfo == m_StoreAs) {
-        UpdatePublicCredentialToString(m_xmlUnsigned);
-        UpdatePrivateContentsToString(m_xmlUnsigned);
+        UpdatePublicCredentialToTag(tag);
+        UpdatePrivateContentsToTag(tag);
     }
 
     // <=== SET IT BACK TO DEFAULT BEHAVIOR. Any other state
     // processes ONCE, and then goes back to this again.
-    m_xmlUnsigned.Concatenate("</keyCredential>\n");
     m_StoreAs = OTSubcredential::credPrivateInfo;
+
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 bool OTSubkey::VerifySignedByMaster()

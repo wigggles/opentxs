@@ -154,6 +154,7 @@ namespace opentxs
 class Identifier;
 class OTStashItem;
 class String;
+class Tag;
 
 typedef std::map<std::string, OTStashItem*> mapOfStashItems;
 
@@ -177,7 +178,7 @@ public:
     bool DebitStash(std::string str_instrument_definition_id,
                     const int64_t& lAmount);
 
-    void Serialize(String& strAppend) const;
+    void Serialize(Tag& parent) const;
     int32_t ReadFromXMLNode(irr::io::IrrXMLReader*& xml,
                             const String& strStashName,
                             const String& strItemCount);

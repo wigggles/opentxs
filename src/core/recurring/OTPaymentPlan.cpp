@@ -136,6 +136,7 @@
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/cron/OTCron.hpp>
 #include <opentxs/core/Ledger.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 
@@ -266,43 +267,35 @@ void OTPaymentPlan::UpdateContents()
     if (m_bCanceled) m_pCancelerNymID->GetString(strCanceler);
 
     // OTAgreement
-    m_xmlUnsigned.Concatenate(
-        "<agreement\n version=\"%s\"\n"
-        " notaryID=\"%s\"\n"
-        " instrumentDefinitionID=\"%s\"\n"
-        " senderAcctID=\"%s\"\n"
-        " senderNymID=\"%s\"\n"
-        " recipientAcctID=\"%s\"\n"
-        " recipientNymID=\"%s\"\n"
-        " canceled=\"%s\"\n"
-        " cancelerNymID=\"%s\"\n"
-        " transactionNum=\"%" PRId64 "\"\n"
-        " creationDate=\"%s\"\n"
-        " validFrom=\"%s\"\n"
-        " validTo=\"%s\""
-        " >\n\n",
-        m_strVersion.Get(), NOTARY_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(),
-        SENDER_ACCT_ID.Get(), SENDER_NYM_ID.Get(), RECIPIENT_ACCT_ID.Get(),
-        RECIPIENT_NYM_ID.Get(), m_bCanceled ? "true" : "false",
-        m_bCanceled ? strCanceler.Get() : "", m_lTransactionNum,
-        formatTimestamp(GetCreationDate()).c_str(),
-        formatTimestamp(GetValidFrom()).c_str(),
-        formatTimestamp(GetValidTo()).c_str());
+    Tag tag("agreement");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("senderAcctID", SENDER_ACCT_ID.Get());
+    tag.add_attribute("senderNymID", SENDER_NYM_ID.Get());
+    tag.add_attribute("recipientAcctID", RECIPIENT_ACCT_ID.Get());
+    tag.add_attribute("recipientNymID", RECIPIENT_NYM_ID.Get());
+    tag.add_attribute("canceled", formatBool(m_bCanceled));
+    tag.add_attribute("cancelerNymID", m_bCanceled ? strCanceler.Get() : "");
+    tag.add_attribute("transactionNum", formatLong(m_lTransactionNum));
+    tag.add_attribute("creationDate", formatTimestamp(GetCreationDate()));
+    tag.add_attribute("validFrom", formatTimestamp(GetValidFrom()));
+    tag.add_attribute("validTo", formatTimestamp(GetValidTo()));
 
     // There are "closing" transaction numbers, used to CLOSE a transaction.
     // Often where Cron items are involved such as this payment plan, or in
-    // baskets,
-    // where many asset accounts are involved and require receipts to be closed
-    // out.
+    // baskets, where many asset accounts are involved and require receipts
+    // to be closed out.
 
     // OTCronItem
     for (int32_t i = 0; i < GetCountClosingNumbers(); i++) {
         int64_t lClosingNumber = GetClosingTransactionNoAt(i);
         OT_ASSERT(lClosingNumber > 0);
 
-        m_xmlUnsigned.Concatenate("<closingTransactionNumber value=\"%" PRId64
-                                  "\"/>\n\n",
-                                  lClosingNumber);
+        TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
+        tagClosingNo->add_attribute("value", formatLong(lClosingNumber));
+        tag.add_tag(tagClosingNo);
     }
 
     // OTAgreement
@@ -313,91 +306,79 @@ void OTPaymentPlan::UpdateContents()
         int64_t lClosingNumber = GetRecipientClosingTransactionNoAt(i);
         OT_ASSERT(lClosingNumber > 0);
 
-        m_xmlUnsigned.Concatenate("<closingRecipientNumber value=\"%" PRId64
-                                  "\"/>\n\n",
-                                  lClosingNumber);
+        TagPtr tagClosingNo(new Tag("closingRecipientNumber"));
+        tagClosingNo->add_attribute("value", formatLong(lClosingNumber));
+        tag.add_tag(tagClosingNo);
     }
 
     // OTPaymentPlan
-
     if (HasInitialPayment()) {
-        const time64_t& tInitialPaymentDate = GetInitialPaymentDate();
-        const int64_t lAmount = GetInitialPaymentAmount();
-        const int32_t nNumberOfFailedAttempts = GetNoInitialFailures();
-        const time64_t& tFailedInitialPaymentDate =
-            GetLastFailedInitialPaymentDate();
-        const time64_t& tCompletedInitialPaymentDate =
-            GetInitialPaymentCompletedDate();
+        TagPtr tagInitial(new Tag("initialPayment"));
 
-        m_xmlUnsigned.Concatenate(
-            "<initialPayment\n"
-            " date=\"%s\"\n"
-            " amount=\"%" PRId64 "\"\n"
-            " numberOfAttempts=\"%d\"\n"
-            " dateOfLastAttempt=\"%s\"\n"
-            " dateCompleted=\"%s\"\n"
-            " completed=\"%s\""
-            " />\n\n",
-            formatTimestamp(tInitialPaymentDate).c_str(), lAmount,
-            nNumberOfFailedAttempts,
-            formatTimestamp(tFailedInitialPaymentDate).c_str(),
-            formatTimestamp(tCompletedInitialPaymentDate).c_str(),
-            (IsInitialPaymentDone() ? "true" : "false"));
+        tagInitial->add_attribute("date",
+                                  formatTimestamp(GetInitialPaymentDate()));
+        tagInitial->add_attribute("amount",
+                                  formatLong(GetInitialPaymentAmount()));
+        tagInitial->add_attribute("numberOfAttempts",
+                                  formatInt(GetNoInitialFailures()));
+        tagInitial->add_attribute(
+            "dateOfLastAttempt",
+            formatTimestamp(GetLastFailedInitialPaymentDate()));
+        tagInitial->add_attribute(
+            "dateCompleted", formatTimestamp(GetInitialPaymentCompletedDate()));
+        tagInitial->add_attribute("completed",
+                                  formatBool(IsInitialPaymentDone()));
+
+        tag.add_tag(tagInitial);
     }
 
     // OTPaymentPlan
-
     if (HasPaymentPlan()) {
-        const int64_t lAmountPerPayment = GetPaymentPlanAmount();
         const int64_t lTimeBetween =
             OTTimeGetSecondsFromTime(GetTimeBetweenPayments());
-        const std::string planStartDate =
-            formatTimestamp(GetPaymentPlanStartDate());
         const int64_t lPlanLength =
             OTTimeGetSecondsFromTime(GetPaymentPlanLength());
-        const std::string dateOfLastPayment =
-            formatTimestamp(GetDateOfLastPayment());
-        const std::string dateOfLastFailedPayment =
-            formatTimestamp(GetDateOfLastPayment());
 
-        const int32_t nMaxNoPayments = GetMaximumNoPayments();
-        const int32_t nNoPaymentsComplete = GetNoPaymentsDone();
-        const int32_t nNoFailedPayments = GetNoFailedPayments();
+        TagPtr tagPlan(new Tag("paymentPlan"));
 
-        m_xmlUnsigned.Concatenate(
-            "<paymentPlan\n"
-            " amountPerPayment=\"%" PRId64 "\"\n"
-            " timeBetweenPayments=\"%" PRId64 "\"\n"
-            " planStartDate=\"%s\"\n"
-            " planLength=\"%" PRId64 "\"\n"
-            " maxNoPayments=\"%d\"\n"
-            " completedNoPayments=\"%d\"\n"
-            " failedNoPayments=\"%d\"\n"
-            " dateOfLastPayment=\"%s\"\n"
-            " dateOfLastFailedPayment=\"%s\""
-            " />\n\n",
-            lAmountPerPayment, lTimeBetween, planStartDate.c_str(), lPlanLength,
-            nMaxNoPayments, nNoPaymentsComplete, nNoFailedPayments,
-            dateOfLastPayment.c_str(), dateOfLastFailedPayment.c_str());
+        tagPlan->add_attribute("amountPerPayment",
+                               formatLong(GetPaymentPlanAmount()));
+        tagPlan->add_attribute("timeBetweenPayments", formatLong(lTimeBetween));
+        tagPlan->add_attribute("planStartDate",
+                               formatTimestamp(GetPaymentPlanStartDate()));
+        tagPlan->add_attribute("planLength", formatLong(lPlanLength));
+        tagPlan->add_attribute("maxNoPayments",
+                               formatInt(GetMaximumNoPayments()));
+        tagPlan->add_attribute("completedNoPayments",
+                               formatInt(GetNoPaymentsDone()));
+        tagPlan->add_attribute("failedNoPayments",
+                               formatInt(GetNoFailedPayments()));
+        tagPlan->add_attribute("dateOfLastPayment",
+                               formatTimestamp(GetDateOfLastPayment()));
+        tagPlan->add_attribute("dateOfLastFailedPayment",
+                               formatTimestamp(GetDateOfLastFailedPayment()));
+
+        tag.add_tag(tagPlan);
     }
 
     // OTAgreement
-
     if (m_strConsideration.Exists()) {
         OTASCIIArmor ascTemp(m_strConsideration);
-        m_xmlUnsigned.Concatenate("<consideration>\n%s</consideration>\n\n",
-                                  ascTemp.Get());
+        TagPtr tagConsideration(new Tag("consideration", ascTemp.Get()));
+        tag.add_tag(tagConsideration);
     }
 
     // OTAgreement
-
     if (m_strMerchantSignedCopy.Exists()) {
         OTASCIIArmor ascTemp(m_strMerchantSignedCopy);
-        m_xmlUnsigned.Concatenate(
-            "<merchantSignedCopy>\n%s</merchantSignedCopy>\n\n", ascTemp.Get());
+        TagPtr tagSignedCopy(new Tag("merchantSignedCopy", ascTemp.Get()));
+        tag.add_tag(tagSignedCopy);
     }
 
-    m_xmlUnsigned.Concatenate("</agreement>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // *** Set Initial Payment ***  / Make sure to call SetAgreement() first.

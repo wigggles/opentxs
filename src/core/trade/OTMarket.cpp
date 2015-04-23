@@ -137,6 +137,7 @@
 #include <opentxs/core/trade/OTTrade.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/Ledger.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -243,18 +244,15 @@ void OTMarket::UpdateContents()
         INSTRUMENT_DEFINITION_ID(m_INSTRUMENT_DEFINITION_ID),
         CURRENCY_TYPE_ID(m_CURRENCY_TYPE_ID);
 
-    m_xmlUnsigned.Concatenate("<market\n version=\"%s\"\n"
-                              " notaryID=\"%s\"\n"
-                              " instrumentDefinitionID=\"%s\"\n"
-                              " currencyTypeID=\"%s\"\n"
-                              " marketScale=\"%" PRId64 "\"\n"
-                              " lastSaleDate=\"%s\"\n"
-                              " lastSalePrice=\"%" PRId64 "\""
-                              " >\n\n",
-                              m_strVersion.Get(), NOTARY_ID.Get(),
-                              INSTRUMENT_DEFINITION_ID.Get(),
-                              CURRENCY_TYPE_ID.Get(), m_lScale,
-                              m_strLastSaleDate.c_str(), m_lLastSalePrice);
+    Tag tag("market");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID.Get());
+    tag.add_attribute("marketScale", formatLong(m_lScale));
+    tag.add_attribute("lastSaleDate", m_strLastSaleDate);
+    tag.add_attribute("lastSalePrice", formatLong(m_lLastSalePrice));
 
     // Save the offers for sale.
     for (auto& it : m_mapAsks) {
@@ -265,12 +263,10 @@ void OTMarket::UpdateContents()
             *pOffer); // Extract the offer contract into string form.
         OTASCIIArmor ascOffer(strOffer); // Base64-encode that for storage.
 
-        std::string dateAddedToMarket =
-            formatTimestamp(pOffer->GetDateAddedToMarket());
-
-        m_xmlUnsigned.Concatenate("<offer dateAdded=\"%s"
-                                  "\">\n%s</offer>\n\n",
-                                  dateAddedToMarket.c_str(), ascOffer.Get());
+        TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
+        tagOffer->add_attribute(
+            "dateAdded", formatTimestamp(pOffer->GetDateAddedToMarket()));
+        tag.add_tag(tagOffer);
     }
 
     // Save the bids.
@@ -282,15 +278,16 @@ void OTMarket::UpdateContents()
             *pOffer); // Extract the offer contract into string form.
         OTASCIIArmor ascOffer(strOffer); // Base64-encode that for storage.
 
-        std::string dateAddedToMarket =
-            formatTimestamp(pOffer->GetDateAddedToMarket());
-
-        m_xmlUnsigned.Concatenate("<offer dateAdded=\"%s"
-                                  "\">\n%s</offer>\n\n",
-                                  dateAddedToMarket.c_str(), ascOffer.Get());
+        TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
+        tagOffer->add_attribute(
+            "dateAdded", formatTimestamp(pOffer->GetDateAddedToMarket()));
+        tag.add_tag(tagOffer);
     }
 
-    m_xmlUnsigned.Concatenate("</market>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 int64_t OTMarket::GetTotalAvailableAssets()

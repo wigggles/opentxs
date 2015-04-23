@@ -139,6 +139,7 @@ namespace opentxs
 {
 
 class OTBylaw;
+class Tag;
 
 class OTClause
 {
@@ -170,7 +171,7 @@ public:
     OTClause(const char* szName, const char* szCode);
     virtual ~OTClause();
 
-    void Serialize(String& strAppend) const;
+    void Serialize(Tag& parent) const;
 };
 
 } // namespace opentxs

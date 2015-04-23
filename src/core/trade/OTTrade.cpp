@@ -136,6 +136,7 @@
 #include <opentxs/core/trade/OTMarket.hpp>
 #include <opentxs/core/trade/OTOffer.hpp>
 #include <opentxs/core/Account.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 
@@ -318,30 +319,22 @@ void OTTrade::UpdateContents()
         INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
         ASSET_ACCT_ID(GetSenderAcctID()), CURRENCY_TYPE_ID(GetCurrencyID()),
         CURRENCY_ACCT_ID(GetCurrencyAcctID());
-    std::string creationDate = formatTimestamp(GetCreationDate());
-    std::string validFrom = formatTimestamp(GetValidFrom());
-    std::string validTo = formatTimestamp(GetValidTo());
 
-    m_xmlUnsigned.Concatenate(
-        "<trade\n version=\"%s\"\n"
-        " hasActivated=\"%s\"\n"
-        " notaryID=\"%s\"\n"
-        " instrumentDefinitionID=\"%s\"\n"
-        " assetAcctID=\"%s\"\n"
-        " currencyTypeID=\"%s\"\n"
-        " currencyAcctID=\"%s\"\n"
-        " nymID=\"%s\"\n"
-        " completedNoTrades=\"%d\"\n"
-        " transactionNum=\"%" PRId64 "\"\n"
-        " creationDate=\"%s\"\n"
-        " validFrom=\"%s\"\n"
-        " validTo=\"%s\""
-        " >\n\n",
-        m_strVersion.Get(), (hasTradeActivated_ ? "true" : "false"),
-        NOTARY_ID.Get(), INSTRUMENT_DEFINITION_ID.Get(), ASSET_ACCT_ID.Get(),
-        CURRENCY_TYPE_ID.Get(), CURRENCY_ACCT_ID.Get(), NYM_ID.Get(),
-        tradesAlreadyDone_, m_lTransactionNum, creationDate.c_str(),
-        validFrom.c_str(), validTo.c_str());
+    Tag tag("trade");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("hasActivated", formatBool(hasTradeActivated_));
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("assetAcctID", ASSET_ACCT_ID.Get());
+    tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID.Get());
+    tag.add_attribute("currencyAcctID", CURRENCY_ACCT_ID.Get());
+    tag.add_attribute("nymID", NYM_ID.Get());
+    tag.add_attribute("completedNoTrades", formatInt(tradesAlreadyDone_));
+    tag.add_attribute("transactionNum", formatLong(m_lTransactionNum));
+    tag.add_attribute("creationDate", formatTimestamp(GetCreationDate()));
+    tag.add_attribute("validFrom", formatTimestamp(GetValidFrom()));
+    tag.add_attribute("validTo", formatTimestamp(GetValidTo()));
 
     // There are "closing" transaction numbers, used to CLOSE a transaction.
     // Often where Cron items are involved such as this payment plan, or in
@@ -352,28 +345,29 @@ void OTTrade::UpdateContents()
     for (int32_t i = 0; i < GetCountClosingNumbers(); i++) {
         int64_t closingNumber = GetClosingTransactionNoAt(i);
         OT_ASSERT(closingNumber > 0);
-
-        m_xmlUnsigned.Concatenate("<closingTransactionNumber value=\"%" PRId64
-                                  "\"/>\n\n",
-                                  closingNumber);
+        TagPtr tagClosing(new Tag("closingTransactionNumber"));
+        tagClosing->add_attribute("value", formatLong(closingNumber));
+        tag.add_tag(tagClosing);
     }
 
     if (('<' == stopSign_) || ('>' == stopSign_)) {
-        m_xmlUnsigned.Concatenate("<stopOrder\n"
-                                  " hasActivated=\"%s\"\n"
-                                  " sign=\"%c\"\n"
-                                  " price=\"%" PRId64 "\""
-                                  " />\n\n",
-                                  (stopActivated_ ? "true" : "false"),
-                                  stopSign_, stopPrice_);
+        TagPtr tagStopOrder(new Tag("stopOrder"));
+        tagStopOrder->add_attribute("hasActivated", formatBool(stopActivated_));
+        tagStopOrder->add_attribute("sign", formatChar(stopSign_));
+        tagStopOrder->add_attribute("price", formatLong(stopPrice_));
+        tag.add_tag(tagStopOrder);
     }
 
     if (marketOffer_.Exists()) {
         OTASCIIArmor ascOffer(marketOffer_);
-        m_xmlUnsigned.Concatenate("<offer>\n%s</offer>\n\n", ascOffer.Get());
+        TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
+        tag.add_tag(tagOffer);
     }
 
-    m_xmlUnsigned.Concatenate("</trade>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 // The trade stores a copy of the Offer in string form.

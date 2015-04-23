@@ -137,6 +137,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/util/Tag.hpp>
 
 #include <irrxml/irrXML.hpp>
 
@@ -154,14 +155,18 @@ BasketContract::BasketContract(Basket& theBasket, Nym& theSigner)
     theBasket.SaveContractRaw(m_strBasketInfo);
 
     String strTemplate;
+
+    Tag tag("basketContract");
+    tag.add_attribute("version", m_strVersion.Get());
+
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
+    TagPtr pTag(new Tag("basketInfo", theBasketArmor.Get()));
+    tag.add_tag(pTag);
 
-    strTemplate.Concatenate("<basketContract version=\"%s\">\n\n",
-                            m_strVersion.Get());
-    strTemplate.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
-                            theBasketArmor.Get());
+    std::string str_result;
+    tag.output(str_result);
 
-    strTemplate.Concatenate("</%s>\n", "basketContract");
+    strTemplate.Format("%s", str_result.c_str());
 
     CreateContract(strTemplate, theSigner);
 }
@@ -173,18 +178,22 @@ BasketContract::~BasketContract()
 void BasketContract::CreateContents()
 {
     m_xmlUnsigned.Release();
+
+    Tag tag("basketContract");
+    tag.add_attribute("version", m_strVersion.Get());
+
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
+    TagPtr pTag(new Tag("basketInfo", theBasketArmor.Get()));
+    tag.add_tag(pTag);
 
-    m_xmlUnsigned.Concatenate("<basketContract version=\"%s\">\n\n",
-                              m_strVersion.Get());
-    m_xmlUnsigned.Concatenate("<basketInfo>\n%s</basketInfo>\n\n",
-                              theBasketArmor.Get());
+    // This is where OTContract scribes tag with its keys,
+    // conditions, etc.
+    CreateInnerContents(tag);
 
-    // This is where OTContract scribes m_xmlUnsigned with its keys, conditions,
-    // etc.
-    CreateInnerContents();
+    std::string str_result;
+    tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("</%s>\n", "basketContract");
+    m_xmlUnsigned.Format("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

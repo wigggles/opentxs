@@ -138,6 +138,7 @@
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Ledger.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -4344,45 +4345,6 @@ bool OTTransaction::AddNumbersToTransaction(const NumList& theAddition)
 //
 void OTTransaction::UpdateContents()
 {
-    String strCancelled;
-
-    if (m_bCancelled) {
-        strCancelled.Format(" cancelled=\"%s\"\n", "true");
-    }
-
-    String strListOfBlanks; // IF this transaction is "blank" or
-                            // "successNotice" this will serialize the list of
-                            // transaction numbers for it. (They now support
-                            // multiple numbers.)
-    String strRequestNum;   // Used by replyNotice only.
-
-    switch (m_Type) {
-    case OTTransaction::replyNotice:
-        strRequestNum.Format(
-            " requestNumber=\"%" PRId64 "\"\n transSuccess=\"%s\"\n",
-            m_lRequestNumber, m_bReplyTransSuccess ? "true" : "false");
-        break;
-
-    case OTTransaction::blank:         // freshly issued transaction number, not
-                                       // accepted by the user (yet).
-    case OTTransaction::successNotice: // A transaction # has successfully been
-                                       // signed out.
-        {
-            if (m_Numlist.Count() >
-                0) // This is always 0, except for blanks and successNotices.
-            {
-                String strNumbers;
-                if (true == m_Numlist.Output(strNumbers))
-                    strListOfBlanks.Format(" totalListOfNumbers=\"%s\"\n",
-                                           strNumbers.Get());
-                else // (False just means m_Numlist was empty.)
-                    strListOfBlanks.Set("");
-            }
-        }
-    default:
-        break;
-    }
-
     const char* pTypeStr = GetTypeString(); // TYPE
     const String strType((nullptr != pTypeStr) ? pTypeStr : "error_state"),
         strAcctID(GetPurportedAccountID()), strNotaryID(GetPurportedNotaryID()),
@@ -4391,41 +4353,65 @@ void OTTransaction::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<transaction type=\"%s\"\n%s"
-        " dateSigned=\"%s\"\n"
-        " accountID=\"%s\"\n"
-        " nymID=\"%s\"\n"
-        " notaryID=\"%s\"\n%s"
-        " numberOfOrigin=\"%" PRId64 "\"\n"
-        " transactionNum=\"%" PRId64 "\"\n%s"
-        " inReferenceTo=\"%" PRId64 "\" >\n\n",
-        strType.Get(), strCancelled.Get(), getTimestamp().c_str(),
-        strAcctID.Get(), strNymID.Get(), strNotaryID.Get(), strRequestNum.Get(),
-        GetRawNumberOfOrigin(), GetTransactionNum(), strListOfBlanks.Get(),
-        GetReferenceToNum());
+    Tag tag("transaction");
+
+    tag.add_attribute("type", strType.Get());
+    tag.add_attribute("dateSigned", getTimestamp());
+    tag.add_attribute("accountID", strAcctID.Get());
+    tag.add_attribute("nymID", strNymID.Get());
+    tag.add_attribute("notaryID", strNotaryID.Get());
+    tag.add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+
+    if (m_bCancelled) tag.add_attribute("cancelled", formatBool(m_bCancelled));
+
+    if (OTTransaction::replyNotice == m_Type) {
+        tag.add_attribute("requestNumber", formatLong(m_lRequestNumber));
+        tag.add_attribute("transSuccess", formatBool(m_bReplyTransSuccess));
+    }
+
+    // IF this transaction is "blank" or
+    // "successNotice" this will serialize the list of
+    // transaction numbers for it. (They now support
+    // multiple numbers.)
+    //
+    // Blank is a freshly issued transaction number,
+    // not accepted by the user (yet.)
+    // Whereas successNotice means a transaction #
+    // has successfully been signed out.
+    if ((OTTransaction::blank == m_Type) ||
+        (OTTransaction::successNotice == m_Type)) {
+        // Count is always 0, except for blanks
+        // and successNotices.
+        if (m_Numlist.Count() > 0) {
+            String strNumbers;
+            if (m_Numlist.Output(strNumbers))
+                tag.add_attribute("totalListOfNumbers", strNumbers.Get());
+        }
+    }
 
     if (IsAbbreviated()) {
         if (nullptr != m_pParent) {
 
             switch (m_pParent->GetType()) {
             case Ledger::nymbox:
-                SaveAbbreviatedNymboxRecord(m_xmlUnsigned);
+                SaveAbbreviatedNymboxRecord(tag);
                 break;
             case Ledger::inbox:
-                SaveAbbreviatedInboxRecord(m_xmlUnsigned);
+                SaveAbbreviatedInboxRecord(tag);
                 break;
             case Ledger::outbox:
-                SaveAbbreviatedOutboxRecord(m_xmlUnsigned);
+                SaveAbbreviatedOutboxRecord(tag);
                 break;
             case Ledger::paymentInbox:
-                SaveAbbrevPaymentInboxRecord(m_xmlUnsigned);
+                SaveAbbrevPaymentInboxRecord(tag);
                 break;
             case Ledger::recordBox:
-                SaveAbbrevRecordBoxRecord(m_xmlUnsigned);
+                SaveAbbrevRecordBoxRecord(tag);
                 break;
             case Ledger::expiredBox:
-                SaveAbbrevExpiredBoxRecord(m_xmlUnsigned);
+                SaveAbbrevExpiredBoxRecord(tag);
                 break;
             /* --- BREAK --- */
             case Ledger::message:
@@ -4450,21 +4436,26 @@ void OTTransaction::UpdateContents()
     {
         if ((OTTransaction::finalReceipt == m_Type) ||
             (OTTransaction::basketReceipt == m_Type)) {
-            m_xmlUnsigned.Concatenate(
-                "<closingTransactionNumber value=\"%" PRId64 "\"/>\n\n",
-                m_lClosingTransactionNo);
+            TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
+            tagClosingNo->add_attribute("value",
+                                        formatLong(m_lClosingTransactionNo));
+            tag.add_tag(tagClosingNo);
         }
 
         // a transaction contains a list of items, but it is also in reference
         // to some item, from someone else
         // We include a full copy of that item here.
-        if (m_ascInReferenceTo.GetLength())
-            m_xmlUnsigned.Concatenate("<inReferenceTo>\n%s</inReferenceTo>\n\n",
-                                      m_ascInReferenceTo.Get());
+        if (m_ascInReferenceTo.GetLength()) {
+            TagPtr tagInRefTo(
+                new Tag("inReferenceTo", m_ascInReferenceTo.Get()));
+            tag.add_tag(tagInRefTo);
+        }
 
-        if (m_ascCancellationRequest.GetLength())
-            m_xmlUnsigned.Concatenate("<cancelRequest>\n%s</cancelRequest>\n\n",
-                                      m_ascCancellationRequest.Get());
+        if (m_ascCancellationRequest.GetLength()) {
+            TagPtr tagCancel(
+                new Tag("cancelRequest", m_ascCancellationRequest.Get()));
+            tag.add_tag(tagCancel);
+        }
 
         // loop through the items that make up this transaction and print them
         // out here, base64-encoded, of course.
@@ -4478,11 +4469,15 @@ void OTTransaction::UpdateContents()
             OTASCIIArmor ascItem;
             ascItem.SetString(strItem, true); // linebreaks = true
 
-            m_xmlUnsigned.Concatenate("<item>\n%s</item>\n\n", ascItem.Get());
+            TagPtr tagItem(new Tag("item", ascItem.Get()));
+            tag.add_tag(tagItem);
         }
     } // not abbreviated (full details.)
 
-    m_xmlUnsigned.Concatenate("</transaction>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 /*
@@ -4552,7 +4547,7 @@ paymentInbox, you get one of these in YOUR paymentInbox.
     "instrumentRejection",    // When someone rejects your invoice from his
   paymentInbox, you get one of these in YOUR paymentInbox.
  */
-void OTTransaction::SaveAbbrevPaymentInboxRecord(String& strOutput)
+void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
 {
     int64_t lDisplayValue = 0;
 
@@ -4579,17 +4574,14 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(String& strOutput)
         return;
     }
 
-    // By this point, we know only the right types of receipts are being saved,
-    // and
-    // the adjustment and display value are both set correctly.
+    // By this point, we know only the right types of receipts
+    // are being saved, and the adjustment and display value are
+    // both set correctly.
 
     // TYPE
     String strType;
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
-
-    // DATE SIGNED
-    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4611,19 +4603,21 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(String& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
-    strOutput.Concatenate("<paymentInboxRecord type=\"%s\"\n"
-                          " dateSigned=\"%s\"\n"
-                          " receiptHash=\"%s\"\n"
-                          " displayValue=\"%" PRId64 "\"\n"
-                          " transactionNum=\"%" PRId64 "\"\n"
-                          " inRefDisplay=\"%" PRId64 "\"\n"
-                          " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                          strType.Get(), dateSigned.c_str(), strHash.Get(),
-                          lDisplayValue, GetTransactionNum(),
-                          GetReferenceNumForDisplay(), GetReferenceToNum());
+    TagPtr pTag(new Tag("paymentInboxRecord"));
+
+    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
+    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
+    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("inRefDisplay",
+                        formatLong(GetReferenceNumForDisplay()));
+    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+
+    parent.add_tag(pTag);
 }
 
-void OTTransaction::SaveAbbrevExpiredBoxRecord(String& strOutput)
+void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
 {
     int64_t lDisplayValue = 0;
 
@@ -4671,9 +4665,6 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(String& strOutput)
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
-    // DATE SIGNED
-    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
-
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
     // outbox, and nymbox.
@@ -4694,16 +4685,18 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(String& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
-    strOutput.Concatenate("<expiredBoxRecord type=\"%s\"\n"
-                          " dateSigned=\"%s\"\n"
-                          " receiptHash=\"%s\"\n"
-                          " displayValue=\"%" PRId64 "\"\n"
-                          " transactionNum=\"%" PRId64 "\"\n"
-                          " inRefDisplay=\"%" PRId64 "\"\n"
-                          " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                          strType.Get(), dateSigned.c_str(), strHash.Get(),
-                          lDisplayValue, GetTransactionNum(),
-                          GetReferenceNumForDisplay(), GetReferenceToNum());
+    TagPtr pTag(new Tag("expiredBoxRecord"));
+
+    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
+    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
+    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("inRefDisplay",
+                        formatLong(GetReferenceNumForDisplay()));
+    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+
+    parent.add_tag(pTag);
 }
 
 /*
@@ -4747,7 +4740,7 @@ payments inbox or outpayments box.)
  Except it's used for expired payments, instead of completed / canceled
 payments.
  */
-void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
+void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
 {
     // Have some kind of check in here, whether the AcctID and NymID match.
     // Some recordBoxes DO, and some DON'T (the different kinds store different
@@ -4880,9 +4873,6 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
-    // DATE SIGNED
-    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
-
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
     // outbox, and nymbox.
@@ -4903,37 +4893,24 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
+    TagPtr pTag(new Tag("recordBoxRecord"));
+
+    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
+    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("adjustment", formatLong(lAdjustment));
+    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
+    pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("inRefDisplay",
+                        formatLong(GetReferenceNumForDisplay()));
+    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+
     if ((OTTransaction::finalReceipt == m_Type) ||
         (OTTransaction::basketReceipt == m_Type))
+        pTag->add_attribute("closingNum", formatLong(GetClosingNum()));
 
-        strOutput.Concatenate(
-            "<recordBoxRecord type=\"%s\"\n"
-            " dateSigned=\"%s\"\n"
-            " receiptHash=\"%s\"\n"
-            " adjustment=\"%" PRId64 "\"\n"
-            " displayValue=\"%" PRId64 "\"\n"
-            " numberOfOrigin=\"%" PRId64 "\"\n"
-            " transactionNum=\"%" PRId64 "\"\n"
-            " closingNum=\"%" PRId64 "\"\n"
-            " inRefDisplay=\"%" PRId64 "\"\n"
-            " inReferenceTo=\"%" PRId64 "\" />\n\n",
-            strType.Get(), dateSigned.c_str(), strHash.Get(), lAdjustment,
-            lDisplayValue, GetRawNumberOfOrigin(), GetTransactionNum(),
-            GetClosingNum(), GetReferenceNumForDisplay(), GetReferenceToNum());
-    else
-        strOutput.Concatenate("<recordBoxRecord type=\"%s\"\n"
-                              " dateSigned=\"%s\"\n"
-                              " receiptHash=\"%s\"\n"
-                              " adjustment=\"%" PRId64 "\"\n"
-                              " displayValue=\"%" PRId64 "\"\n"
-                              " numberOfOrigin=\"%" PRId64 "\"\n"
-                              " transactionNum=\"%" PRId64 "\"\n"
-                              " inRefDisplay=\"%" PRId64 "\"\n"
-                              " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                              strType.Get(), dateSigned.c_str(), strHash.Get(),
-                              lAdjustment, lDisplayValue,
-                              GetRawNumberOfOrigin(), GetTransactionNum(),
-                              GetReferenceNumForDisplay(), GetReferenceToNum());
+    parent.add_tag(pTag);
 }
 
 // All of the actual receipts cannot fit inside the inbox file,
@@ -4943,45 +4920,37 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(String& strOutput)
 // way, each message cannot be too large to download, such as
 // a giant inbox can be with 400000 receipts inside of it.
 //
-void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
+void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
 {
     int64_t lDisplayValue = 0;
+    bool bAddRequestNumber = false;
 
-    String strDisplayValue; // IF this transaction is passing through on its
-                            // way to the paymentInbox, it will have a
-                            // displayValue.
     String strListOfBlanks; // IF this transaction is "blank" or
                             // "successNotice" this will serialize the list of
                             // transaction numbers for it. (They now support
                             // multiple numbers.)
-    String strRequestNum;   // ONLY replyNotice transactions carry a request
-                            // Num.
-
     switch (m_Type) {
     case OTTransaction::blank:         // freshly issued transaction number, not
                                        // accepted by the user (yet).
     case OTTransaction::successNotice: // A transaction # has successfully been
                                        // signed out.
         {
-            if (m_Numlist.Count() >
-                0) // This is always 0, except for blanks and successNotices.
-            {
-                String strNumbers;
-                if (true == m_Numlist.Output(strNumbers))
-                    strListOfBlanks.Format(" totalListOfNumbers=\"%s\"\n",
-                                           strNumbers.Get());
-                else // (False just means it was empty.)
-                    strListOfBlanks.Set("");
-            }
+            // This is always 0, except for blanks and successNotices.
+            if (m_Numlist.Count() > 0) m_Numlist.Output(strListOfBlanks);
         }
+
     /* ! CONTINUES FALLING THROUGH HERE!!... */
 
     case OTTransaction::replyNotice: // A copy of a server reply to a previous
                                      // request you sent. (To make SURE you get
                                      // the reply.)
-        strRequestNum.Format(
-            " requestNumber=\"%" PRId64 "\"\n transSuccess=\"%s\"\n",
-            m_lRequestNumber, m_bReplyTransSuccess ? "true" : "false");
+
+        // NOTE: a comment says "ONLY replyNotice
+        // transactions carry a request num" but the
+        // fall-thru above seems to disagree. Bug?
+        // Or just an old comment?
+        bAddRequestNumber = true;
+
         break;
 
     case OTTransaction::message: // A message from one user to another, also in
@@ -5001,8 +4970,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
             lDisplayValue = GetAbbrevDisplayAmount();
         else
             lDisplayValue = GetReceiptAmount();
-        strDisplayValue.Format(" displayValue=\"%" PRId64 "\"\n",
-                               lDisplayValue);
+
         break; // (These last two are just passing through, on their way to the
                // paymentInbox.)
     case OTTransaction::instrumentRejection: // A rejection notice from the
@@ -5030,9 +4998,6 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
-    // DATE SIGNED
-    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
-
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
     // outbox, and nymbox.
@@ -5053,44 +5018,42 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(String& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
+    TagPtr pTag(new Tag("nymboxRecord"));
+
+    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
+    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("inRefDisplay",
+                        formatLong(GetReferenceNumForDisplay()));
+    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+
+    // I actually don't think you can put a basket receipt
+    // notice in a nymbox, the way you can with a final
+    // receipt notice. Probably can remove that line.
     if ((OTTransaction::finalReceipt == m_Type) ||
-        (OTTransaction::basketReceipt == m_Type)) // I actually don't think you
-                                                  // can put a basket receipt
-                                                  // notice in a nymbox, the way
-                                                  // you can with a final
-                                                  // receipt notice. Probably
-                                                  // can remove this line.
+        (OTTransaction::basketReceipt == m_Type))
+        pTag->add_attribute("closingNum", formatLong(GetClosingNum()));
+    else {
+        if (strListOfBlanks.Exists())
+            pTag->add_attribute("totalListOfNumbers", strListOfBlanks.Get());
+        if (bAddRequestNumber) {
+            pTag->add_attribute("requestNumber", formatLong(m_lRequestNumber));
+            pTag->add_attribute("transSuccess",
+                                formatBool(m_bReplyTransSuccess));
+        }
+        if (lDisplayValue > 0) {
+            // IF this transaction is passing through on its
+            // way to the paymentInbox, it will have a
+            // displayValue.
+            pTag->add_attribute("displayValue", formatLong(lDisplayValue));
+        }
+    }
 
-        strOutput.Concatenate("<nymboxRecord type=\"%s\"\n"
-                              " dateSigned=\"%s\"\n"
-                              " receiptHash=\"%s\"\n"
-                              " transactionNum=\"%" PRId64 "\"\n"
-                              " closingNum=\"%" PRId64 "\"\n"
-                              " inRefDisplay=\"%" PRId64 "\"\n"
-                              " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                              strType.Get(), dateSigned.c_str(), strHash.Get(),
-                              GetTransactionNum(), GetClosingNum(),
-                              GetReferenceNumForDisplay(), GetReferenceToNum());
-
-    else
-        strOutput.Concatenate(
-            "<nymboxRecord type=\"%s\"\n"
-            " dateSigned=\"%s\"\n%s"
-            " receiptHash=\"%s\"\n%s" // SOMETIMES this is added here by the
-            // final %s: " displayValue=\"%" PRId64 "\"\n"
-            " transactionNum=\"%" PRId64
-            "\"\n%s" // SOMETIMES this is added here by
-                     // the final %s: "
-                     // totalListOfNumbers=\"%s\"\n"
-            " inRefDisplay=\"%" PRId64 "\"\n"
-            " inReferenceTo=\"%" PRId64 "\" />\n\n",
-            strType.Get(), dateSigned.c_str(), strRequestNum.Get(),
-            strHash.Get(), strDisplayValue.Get(), GetTransactionNum(),
-            strListOfBlanks.Get(), GetReferenceNumForDisplay(),
-            GetReferenceToNum());
+    parent.add_tag(pTag);
 }
 
-void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
+void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
 {
     int64_t lAdjustment = 0, lDisplayValue = 0;
 
@@ -5132,9 +5095,6 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
-    // DATE SIGNED
-    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
-
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
     // outbox, and nymbox.
@@ -5155,22 +5115,23 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(String& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
-    strOutput.Concatenate("<outboxRecord type=\"%s\"\n"
-                          " dateSigned=\"%s\"\n"
-                          " receiptHash=\"%s\"\n"
-                          " adjustment=\"%" PRId64 "\"\n"
-                          " displayValue=\"%" PRId64 "\"\n"
-                          " numberOfOrigin=\"%" PRId64 "\"\n"
-                          " transactionNum=\"%" PRId64 "\"\n"
-                          " inRefDisplay=\"%" PRId64 "\"\n"
-                          " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                          strType.Get(), dateSigned.c_str(), strHash.Get(),
-                          lAdjustment, lDisplayValue, GetRawNumberOfOrigin(),
-                          GetTransactionNum(), GetReferenceNumForDisplay(),
-                          GetReferenceToNum());
+    TagPtr pTag(new Tag("outboxRecord"));
+
+    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
+    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("adjustment", formatLong(lAdjustment));
+    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
+    pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("inRefDisplay",
+                        formatLong(GetReferenceNumForDisplay()));
+    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+
+    parent.add_tag(pTag);
 }
 
-void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
+void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
 {
     // This is the actual amount that your account is changed BY this receipt.
     // Versus the useful amount the user will want to see (lDisplayValue.) For
@@ -5286,9 +5247,6 @@ void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
     const char* pTypeStr = GetTypeString();
     strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
-    // DATE SIGNED
-    const std::string dateSigned = formatTimestamp(m_DATE_SIGNED);
-
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
     // outbox, and nymbox.
@@ -5309,37 +5267,24 @@ void OTTransaction::SaveAbbreviatedInboxRecord(String& strOutput)
         idReceiptHash.GetString(strHash);
     }
 
+    TagPtr pTag(new Tag("inboxRecord"));
+
+    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
+    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("adjustment", formatLong(lAdjustment));
+    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
+    pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("inRefDisplay",
+                        formatLong(GetReferenceNumForDisplay()));
+    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+
     if ((OTTransaction::finalReceipt == m_Type) ||
         (OTTransaction::basketReceipt == m_Type))
+        pTag->add_attribute("closingNum", formatLong(GetClosingNum()));
 
-        strOutput.Concatenate(
-            "<inboxRecord type=\"%s\"\n"
-            " dateSigned=\"%s\"\n"
-            " receiptHash=\"%s\"\n"
-            " adjustment=\"%" PRId64 "\"\n"
-            " displayValue=\"%" PRId64 "\"\n"
-            " numberOfOrigin=\"%" PRId64 "\"\n"
-            " transactionNum=\"%" PRId64 "\"\n"
-            " closingNum=\"%" PRId64 "\"\n"
-            " inRefDisplay=\"%" PRId64 "\"\n"
-            " inReferenceTo=\"%" PRId64 "\" />\n\n",
-            strType.Get(), dateSigned.c_str(), strHash.Get(), lAdjustment,
-            lDisplayValue, GetRawNumberOfOrigin(), GetTransactionNum(),
-            GetClosingNum(), GetReferenceNumForDisplay(), GetReferenceToNum());
-    else
-        strOutput.Concatenate("<inboxRecord type=\"%s\"\n"
-                              " dateSigned=\"%s\"\n"
-                              " receiptHash=\"%s\"\n"
-                              " adjustment=\"%" PRId64 "\"\n"
-                              " displayValue=\"%" PRId64 "\"\n"
-                              " numberOfOrigin=\"%" PRId64 "\"\n"
-                              " transactionNum=\"%" PRId64 "\"\n"
-                              " inRefDisplay=\"%" PRId64 "\"\n"
-                              " inReferenceTo=\"%" PRId64 "\" />\n\n",
-                              strType.Get(), dateSigned.c_str(), strHash.Get(),
-                              lAdjustment, lDisplayValue,
-                              GetRawNumberOfOrigin(), GetTransactionNum(),
-                              GetReferenceNumForDisplay(), GetReferenceToNum());
+    parent.add_tag(pTag);
 }
 
 // The ONE case where an Item has SUB-ITEMS is in the case of Balance Agreement.

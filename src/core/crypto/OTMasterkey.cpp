@@ -150,6 +150,7 @@
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -195,9 +196,10 @@ void OTMasterkey::UpdateContents()
 {
     m_xmlUnsigned.Release();
 
-    m_xmlUnsigned.Concatenate(
-        "<masterCredential nymID=\"%s\" >\n\n", // a hash of the nymIDSource
-        GetNymID().Get());
+    Tag tag("masterCredential");
+
+    // a hash of the nymIDSource
+    tag.add_attribute("nymID", GetNymID().Get());
 
     if (GetNymIDSource().Exists()) {
         OTASCIIArmor ascSource;
@@ -205,8 +207,8 @@ void OTMasterkey::UpdateContents()
                                                // verify through its own
                                                // source. (Whatever that
                                                // may be.)
-        m_xmlUnsigned.Concatenate("<nymIDSource>\n%s</nymIDSource>\n\n",
-                                  ascSource.Get());
+        TagPtr tagSource(new Tag("nymIDSource", ascSource.Get()));
+        tag.add_tag(tagSource);
     }
 
     // PUBLIC INFO
@@ -214,7 +216,7 @@ void OTMasterkey::UpdateContents()
     //  if (OTSubcredential::credPublicInfo == m_StoreAs)   // PUBLIC INFO
     // (Always save this in every state.)
     {
-        UpdatePublicContentsToString(m_xmlUnsigned);
+        UpdatePublicContentsToTag(tag);
     }
 
     // PRIVATE INFO
@@ -223,12 +225,14 @@ void OTMasterkey::UpdateContents()
     //
     if (OTSubcredential::credPrivateInfo == m_StoreAs) // PRIVATE INFO
     {
-        UpdatePublicCredentialToString(m_xmlUnsigned);
-
-        UpdatePrivateContentsToString(m_xmlUnsigned);
+        UpdatePublicCredentialToTag(tag);
+        UpdatePrivateContentsToTag(tag);
     }
     // -------------------------------------------------
-    m_xmlUnsigned.Concatenate("</masterCredential>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 
     m_StoreAs = OTSubcredential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
                                                   // BEHAVIOR. Any other state

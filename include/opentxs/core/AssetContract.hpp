@@ -143,6 +143,7 @@ class AccountVisitor;
 class Identifier;
 class Nym;
 class String;
+class Tag;
 
 class AssetContract : public Contract
 {
@@ -238,7 +239,7 @@ public:
         return m_strCurrencyTLA;
     } // "USD""     (for example)
 
-    EXPORT virtual bool SaveContractWallet(String& strContents) const;
+    EXPORT virtual bool SaveContractWallet(Tag& parent) const;
     EXPORT virtual bool DisplayStatistics(String& strContents) const;
 
 protected:

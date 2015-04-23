@@ -250,6 +250,15 @@ EXPORT std::string getTimestamp();
 EXPORT std::string formatTimestamp(time64_t tt);
 EXPORT time64_t parseTimestamp(std::string extendedTimeString);
 
+EXPORT std::string formatLong(int64_t tt);
+EXPORT std::string formatUlong(uint64_t tt);
+
+EXPORT std::string formatBool(bool tt);
+EXPORT std::string formatChar(char tt);
+
+EXPORT std::string formatInt(int32_t tt);
+EXPORT std::string formatUint(uint32_t tt);
+
 #endif
 
 #endif // OPENTXS_CORE_COMMON_HPP

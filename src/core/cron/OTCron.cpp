@@ -134,6 +134,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/trade/OTMarket.hpp>
 
@@ -596,10 +597,10 @@ void OTCron::UpdateContents()
 
     const String NOTARY_ID(m_NOTARY_ID);
 
-    m_xmlUnsigned.Concatenate("<cron\n version=\"%s\"\n"
-                              " notaryID=\"%s\""
-                              " >\n\n",
-                              m_strVersion.Get(), NOTARY_ID.Get());
+    Tag tag("cron");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
 
     // Save the Market entries (the markets themselves are saved in a markets
     // folder.)
@@ -614,14 +615,14 @@ void OTCron::UpdateContents()
             pMarket->GetInstrumentDefinitionID());
         String str_CURRENCY_ID(pMarket->GetCurrencyID());
 
-        m_xmlUnsigned.Concatenate("<market\n marketID=\"%s\"\n"
-                                  " instrumentDefinitionID=\"%s\"\n"
-                                  " currencyID=\"%s\"\n"
-                                  " marketScale=\"%" PRId64 "\""
-                                  " />\n\n",
-                                  str_MARKET_ID.Get(),
-                                  str_INSTRUMENT_DEFINITION_ID.Get(),
-                                  str_CURRENCY_ID.Get(), pMarket->GetScale());
+        TagPtr tagMarket(new Tag("market"));
+        tagMarket->add_attribute("marketID", str_MARKET_ID.Get());
+        tagMarket->add_attribute("instrumentDefinitionID",
+                                 str_INSTRUMENT_DEFINITION_ID.Get());
+        tagMarket->add_attribute("currencyID", str_CURRENCY_ID.Get());
+        tagMarket->add_attribute("marketScale",
+                                 formatLong(pMarket->GetScale()));
+        tag.add_tag(tagMarket);
     }
 
     // Save the Cron Items
@@ -630,25 +631,27 @@ void OTCron::UpdateContents()
         OT_ASSERT(nullptr != pItem);
 
         time64_t tDateAdded = it.first;
-        std::string dateAdded = formatTimestamp(tDateAdded);
-
         String strItem(
             *pItem); // Extract the cron item contract into string form.
         OTASCIIArmor ascItem(strItem); // Base64-encode that for storage.
 
-        m_xmlUnsigned.Concatenate("<cronItem dateAdded=\"%s"
-                                  "\" >\n%s</cronItem>\n\n",
-                                  dateAdded.c_str(), ascItem.Get());
+        TagPtr tagCronItem(new Tag("cronItem", ascItem.Get()));
+        tagCronItem->add_attribute("dateAdded", formatTimestamp(tDateAdded));
+        tag.add_tag(tagCronItem);
     }
 
     // Save the transaction numbers.
     //
     for (auto& lTransactionNumber : m_listTransactionNumbers) {
-        m_xmlUnsigned.Concatenate(
-            "<transactionNum value=\"%" PRId64 "\" />\n\n", lTransactionNumber);
+        TagPtr tagNumber(new Tag("transactionNum"));
+        tagNumber->add_attribute("value", formatLong(lTransactionNumber));
+        tag.add_tag(tagNumber);
     } // for
 
-    m_xmlUnsigned.Concatenate("</cron>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 int64_t OTCron::computeTimeout()

@@ -140,6 +140,8 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
 
+#include <opentxs/core/util/Tag.hpp>
+
 #include <memory>
 
 // Have the agent try to verify his own signature against any contract.
@@ -1205,22 +1207,19 @@ bool OTAgent::ReserveOpeningTransNum(const String& strNotaryID)
     return false;
 }
 
-void OTAgent::Serialize(String& strAppend) const
+void OTAgent::Serialize(Tag& parent) const
 {
-    //    strAppend.Concatenate("<agent>\n\n");
+    TagPtr pTag(new Tag("agent"));
 
-    strAppend.Concatenate(
-        "<agent\n name=\"%s\"\n"
-        " doesAgentRepresentHimself=\"%s\"\n"
-        " isAgentAnIndividual=\"%s\"\n"
-        " nymID=\"%s\"\n"
-        " roleID=\"%s\"\n"
-        " groupName=\"%s\" />\n\n",
-        m_strName.Get(), m_bNymRepresentsSelf ? "true" : "false",
-        m_bIsAnIndividual ? "true" : "false", m_strNymID.Get(),
-        m_strRoleID.Get(), m_strGroupName.Get());
+    pTag->add_attribute("name", m_strName.Get());
+    pTag->add_attribute("doesAgentRepresentHimself",
+                        formatBool(m_bNymRepresentsSelf));
+    pTag->add_attribute("isAgentAnIndividual", formatBool(m_bIsAnIndividual));
+    pTag->add_attribute("nymID", m_strNymID.Get());
+    pTag->add_attribute("roleID", m_strRoleID.Get());
+    pTag->add_attribute("groupName", m_strGroupName.Get());
 
-    //    strAppend.Concatenate("</agent>\n");
+    parent.add_tag(pTag);
 }
 
 } // namespace opentxs

@@ -141,6 +141,7 @@
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
@@ -966,46 +967,25 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
     const String NOTARY_ID(m_NotaryID), NYM_ID(m_NymID),
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID);
 
-    std::string validFrom = formatTimestamp(m_tLatestValidFrom);
-    std::string validTo = formatTimestamp(m_tEarliestValidTo);
-
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
-    m_xmlUnsigned.Concatenate(
-        "<purse version=\"%s\"\n"
-        " totalValue=\"%" PRId64 "\"\n" // Total value of all the tokens within.
-        " validFrom=\"%s"
-        "\"\n" // Latest "valid from" date of all tokens contained.
-        " validTo=\"%s"
-        "\"\n" // Earliest "valid to" date of all tokens contained.
-        " isPasswordProtected=\"%s\"\n"
-        " isNymIDIncluded=\"%s\"\n"
-        " nymID=\"%s\"\n"                  // NymID   is optional.
-        " instrumentDefinitionID=\"%s\"\n" // instrumentDefinitionID required.
-        " notaryID=\"%s\">\n\n",           // notaryID is required.
-        m_strVersion.Get(),
-        m_lTotalValue, validFrom.c_str(), validTo.c_str(),
-        m_bPasswordProtected ? "true" : "false",
-        m_bIsNymIDIncluded ? "true" : "false",
 
-        // NYM_ID / NYM_ID of purse owner.
-        // IF a real NymID (from the user's wallet) is listed in the purse
-        // (which is
-        // optional--user's choice) we attach that NymID here...
-        //
+    Tag tag("purse");
+
+    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("totalValue", formatLong(m_lTotalValue));
+    tag.add_attribute("validFrom", formatTimestamp(m_tLatestValidFrom));
+    tag.add_attribute("validTo", formatTimestamp(m_tEarliestValidTo));
+    tag.add_attribute("isPasswordProtected", formatBool(m_bPasswordProtected));
+    tag.add_attribute("isNymIDIncluded", formatBool(m_bIsNymIDIncluded));
+    tag.add_attribute(
+        "nymID",
         (m_bIsNymIDIncluded &&
          !m_NymID.IsEmpty()) // (Provided that the ID even exists, of course.)
-            ?                // =====>
-            NYM_ID.Get()
-            : "", // Then print the ID (otherwise print an empty string.)
-        (!m_InstrumentDefinitionID.IsEmpty())
-            ? INSTRUMENT_DEFINITION_ID.Get()
-            : "", // (Should never actually be empty.) todo:
-                  // Change this to just the Get()
-        (!m_NotaryID.IsEmpty()) ? NOTARY_ID.Get()
-                                : "" // (Should never actually be empty.) todo:
-                                     // Change this to just the Get()
-        );
+            ? NYM_ID.Get()
+            : ""); // Then print the ID (otherwise print an empty string.)
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("notaryID", NOTARY_ID.Get());
 
     // Save the Internal Symmetric Key here (if there IS one.)
     // (Some Purses own their own internal Symmetric Key, in order to "password
@@ -1048,27 +1028,30 @@ void Purse::UpdateContents() // Before transmission or serialization, this is
 
                     // By this point, ascInternalKey contains the Key itself.
                     //
-                    m_xmlUnsigned.Concatenate(
-                        "<cachedKey>\n%s</cachedKey>\n\n",
-                        ascCachedKey.Get()); // The "password" for the internal
-                                             // symmetric key.
 
-                    m_xmlUnsigned.Concatenate(
-                        "<internalKey>\n%s</internalKey>\n\n",
-                        ascSymmetricKey.Get()); // The internal symmetric key,
-                                                // owned by the purse.
-                                                // ascii-armored.
+                    // The "password" for the internal symmetric key.
+                    TagPtr tagCachedKey(
+                        new Tag("cachedKey", ascCachedKey.Get()));
+                    tag.add_tag(tagCachedKey);
+
+                    // The internal symmetric key, owned by the purse.
+                    TagPtr tagInternalKey(
+                        new Tag("internalKey", ascSymmetricKey.Get()));
+                    tag.add_tag(tagInternalKey);
                 }
             }
         }
     }
 
     for (int32_t i = 0; i < Count(); i++) {
-        m_xmlUnsigned.Concatenate("<token>\n%s</token>\n\n",
-                                  m_dequeTokens[i]->Get());
+        TagPtr tagToken(new Tag("token", m_dequeTokens[i]->Get()));
+        tag.add_tag(tagToken);
     }
 
-    m_xmlUnsigned.Concatenate("</purse>\n");
+    std::string str_result;
+    tag.output(str_result);
+
+    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
 int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)

@@ -141,6 +141,7 @@ namespace opentxs
 class OTBylaw;
 class OTScript;
 class OTVariable;
+class Tag;
 
 class OTVariable
 {
@@ -280,7 +281,7 @@ public:
                       OTVariable_Access theAccess = Var_Persistent);
     EXPORT virtual ~OTVariable();
 
-    void Serialize(String& strAppend, bool bCalculatingID = false) const;
+    void Serialize(Tag& parent, bool bCalculatingID = false) const;
 };
 
 } // namespace opentxs

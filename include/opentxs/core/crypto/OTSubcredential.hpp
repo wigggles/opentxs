@@ -135,6 +135,8 @@
 
 #include <opentxs/core/Contract.hpp>
 
+#include <memory>
+
 // A nym contains a list of master credentials, via OTCredential.
 // The whole purpose of a Nym is to be an identity, which can have
 // master credentials.
@@ -178,6 +180,7 @@ class OTCredential;
 class Identifier;
 class OTPassword;
 class String;
+class Tag;
 
 // This is stored as an OTContract, and it must be signed by the
 // master key. (which is also an OTSubcredential.)
@@ -224,12 +227,12 @@ protected:
     String m_strContents; // The actual final public credential as sent to the
                           // server. Does not include private keys, even on
                           // client side.
-    void UpdatePublicContentsToString(String& strAppendTo);   // Used in
-                                                              // UpdateContents.
-    void UpdatePublicCredentialToString(String& strAppendTo); // Used in
-                                                              // UpdateContents.
-    void UpdatePrivateContentsToString(String& strAppendTo);  // Used in
-                                                              // UpdateContents.
+    void UpdatePublicContentsToTag(Tag& parent);   // Used in
+                                                   // UpdateContents.
+    void UpdatePublicCredentialToTag(Tag& parent); // Used in
+                                                   // UpdateContents.
+    void UpdatePrivateContentsToTag(Tag& parent);  // Used in
+                                                   // UpdateContents.
     inline void SetMasterSigned(const String& strMasterSigned)
     {
         m_strMasterSigned = strMasterSigned;

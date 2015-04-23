@@ -135,6 +135,7 @@
 #include <opentxs/core/script/OTBylaw.hpp>
 
 #include <opentxs/core/script/OTClause.hpp>
+#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/script/OTScriptable.hpp>
 
@@ -143,59 +144,64 @@
 namespace opentxs
 {
 
-void OTBylaw::Serialize(String& strAppend, bool bCalculatingID) const
+void OTBylaw::Serialize(Tag& parent, bool bCalculatingID) const
 {
-    strAppend.Concatenate("<bylaw\n name=\"%s\"\n"
-                          " numVariables=\"%" PRI_SIZE "\"\n"
-                          " numClauses=\"%" PRI_SIZE "\"\n"
-                          " numHooks=\"%" PRI_SIZE "\"\n"
-                          " numCallbacks=\"%" PRI_SIZE "\"\n"
-                          " language=\"%s\" >\n\n",
-                          m_strName.Get(),
-                          m_mapVariables.size(), // HOW MANY VARIABLES?
-                          m_mapClauses.size(),   // HOW MANY CLAUSES?
-                          m_mapHooks.size(),     // How many HOOKS?
-                          m_mapCallbacks.size(), // How many CALLBACK?
-                          m_strLanguage.Get());
+    TagPtr pTag(new Tag("bylaw"));
+
+    pTag->add_attribute("name", m_strName.Get());
+    pTag->add_attribute("language", m_strLanguage.Get());
+
+    const uint64_t numVariables = m_mapVariables.size();
+    const uint64_t numClauses = m_mapClauses.size();
+    const uint64_t numHooks = m_mapHooks.size();
+    const uint64_t numCallbacks = m_mapCallbacks.size();
+
+    pTag->add_attribute("numVariables", formatUlong(numVariables));
+    pTag->add_attribute("numClauses", formatUlong(numClauses));
+    pTag->add_attribute("numHooks", formatUlong(numHooks));
+    pTag->add_attribute("numCallbacks", formatUlong(numCallbacks));
 
     for (auto& it : m_mapVariables) {
         OTVariable* pVar = it.second;
         OT_ASSERT(nullptr != pVar);
-
-        pVar->Serialize(strAppend, bCalculatingID); // Variables save in a
-                                                    // specific state during ID
-                                                    // calculation (no matter
-                                                    // their current actual
-                                                    // value.)
+        // Variables save in a specific state during ID
+        // calculation (no matter their current actual
+        // value.)
+        pVar->Serialize(*pTag, bCalculatingID);
     }
 
     for (auto& it : m_mapClauses) {
         OTClause* pClause = it.second;
         OT_ASSERT(nullptr != pClause);
 
-        pClause->Serialize(strAppend);
+        pClause->Serialize(*pTag);
     }
 
     for (auto& it : m_mapHooks) {
         const std::string& str_hook_name = it.first;
         const std::string& str_clause_name = it.second;
 
-        strAppend.Concatenate("<hook\n name=\"%s\"\n"
-                              " clause=\"%s\" />\n\n",
-                              str_hook_name.c_str(), str_clause_name.c_str());
+        TagPtr pTagHook(new Tag("hook"));
+
+        pTagHook->add_attribute("name", str_hook_name);
+        pTagHook->add_attribute("clause", str_clause_name);
+
+        pTag->add_tag(pTagHook);
     }
 
     for (auto& it : m_mapCallbacks) {
         const std::string& str_callback_name = it.first;
         const std::string& str_clause_name = it.second;
 
-        strAppend.Concatenate("<callback\n name=\"%s\"\n"
-                              " clause=\"%s\" />\n\n",
-                              str_callback_name.c_str(),
-                              str_clause_name.c_str());
+        TagPtr pTagCallback(new Tag("callback"));
+
+        pTagCallback->add_attribute("name", str_callback_name);
+        pTagCallback->add_attribute("clause", str_clause_name);
+
+        pTag->add_tag(pTagCallback);
     }
 
-    strAppend.Concatenate("</bylaw>\n\n");
+    parent.add_tag(pTag);
 }
 
 // So you can tell if the persistent or important variables have CHANGED since
