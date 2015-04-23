@@ -339,8 +339,7 @@ void Message::UpdateContents()
         if (m_AcknowledgedReplies.Output(strAck) && strAck.Exists()) {
             const OTASCIIArmor ascTemp(strAck);
             if (ascTemp.Exists()) {
-                TagPtr pTag(new Tag("ackReplies", ascTemp.Get()));
-                tag.add_tag(pTag);
+                tag.add_tag("ackReplies", ascTemp.Get());
             }
         }
     }
@@ -619,12 +618,10 @@ public:
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
-            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
         }
         else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
-            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -742,12 +739,10 @@ public:
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
-            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
         }
         else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
-            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -862,12 +857,10 @@ public:
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
-            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
         }
         else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
-            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -941,11 +934,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        TagPtr pTagKey1(new Tag("publicAuthentKey", m.m_strNymPublicKey.Get()));
-        TagPtr pTagKey2(new Tag("publicEncryptionKey", m.m_strNymID2.Get()));
-
-        pTag->add_tag(pTagKey1);
-        pTag->add_tag(pTagKey2);
+        pTag->add_tag("publicAuthentKey", m.m_strNymPublicKey.Get());
+        pTag->add_tag("publicEncryptionKey", m.m_strNymID2.Get());
 
         parent.add_tag(pTag);
     }
@@ -1089,13 +1079,11 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2)) {
-            TagPtr pTag2(new Tag("nymfile", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("nymfile", m.m_ascPayload.Get());
         }
 
         if (m.m_ascInReferenceTo.GetLength() > 2) {
-            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -1193,8 +1181,7 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength() > 2) {
-            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -1290,24 +1277,17 @@ public:
         if (m.m_bSuccess) {
             // Old style. (Deprecated.)
             if (m.m_strNymPublicKey.Exists()) {
-                TagPtr pTag2(
-                    new Tag("nymPublicKey", m.m_strNymPublicKey.Get()));
-                pTag->add_tag(pTag2);
+                pTag->add_tag("nymPublicKey", m.m_strNymPublicKey.Get());
             }
 
             // New style:
             if (bCredentials) {
-                TagPtr pTag2(new Tag("credentialIDs", m.m_ascPayload.Get()));
-                pTag->add_tag(pTag2);
-
-                TagPtr pTag3(new Tag("credentials", m.m_ascPayload2.Get()));
-                pTag->add_tag(pTag3);
+                pTag->add_tag("credentialIDs", m.m_ascPayload.Get());
+                pTag->add_tag("credentials", m.m_ascPayload2.Get());
             }
         }
         else {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -1506,8 +1486,7 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascPayload.GetLength() > 2) {
-            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -1562,8 +1541,7 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascPayload.GetLength() > 2) {
-            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -1672,8 +1650,7 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascPayload.GetLength() > 2) {
-            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -1851,8 +1828,7 @@ public:
                             m.m_strInstrumentDefinitionID.Get());
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("instrumentDefinition", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("instrumentDefinition", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -1910,14 +1886,11 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("issuerAccount", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("issuerAccount", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -2013,8 +1986,7 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("stringMap", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("stringMap", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -2065,14 +2037,11 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("stringMap", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("stringMap", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -2157,8 +2126,7 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("currencyBasket", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("currencyBasket", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -2223,9 +2191,7 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -2335,14 +2301,11 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.Exists()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_bSuccess && m.m_ascPayload.Exists()) {
-            TagPtr pTag2(new Tag("newAccount", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("newAccount", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -2506,14 +2469,11 @@ public:
         pTag->add_attribute("transactionNum", formatLong(m.m_lTransactionNum));
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("boxReceipt", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("boxReceipt", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -2658,9 +2618,7 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -2733,8 +2691,7 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("accountLedger", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("accountLedger", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -2791,14 +2748,11 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("responseLedger", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("responseLedger", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -2997,14 +2951,11 @@ public:
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("nymboxLedger", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("nymboxLedger", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -3107,23 +3058,18 @@ public:
         pTag->add_attribute("outboxHash", m.m_strOutboxHash.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_bSuccess) {
             if (m.m_ascPayload.GetLength()) {
-                TagPtr pTag2(new Tag("account", m.m_ascPayload.Get()));
-                pTag->add_tag(pTag2);
+                pTag->add_tag("account", m.m_ascPayload.Get());
             }
             if (m.m_ascPayload2.GetLength()) {
-                TagPtr pTag2(new Tag("inbox", m.m_ascPayload2.Get()));
-                pTag->add_tag(pTag2);
+                pTag->add_tag("inbox", m.m_ascPayload2.Get());
             }
             if (m.m_ascPayload3.GetLength()) {
-                TagPtr pTag2(new Tag("outbox", m.m_ascPayload3.Get()));
-                pTag->add_tag(pTag2);
+                pTag->add_tag("outbox", m.m_ascPayload3.Get());
             }
         }
 
@@ -3245,14 +3191,11 @@ public:
                             m.m_strInstrumentDefinitionID.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("instrumentDefinition", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("instrumentDefinition", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -3359,14 +3302,11 @@ public:
                             m.m_strInstrumentDefinitionID.Get());
 
         if (!m.m_bSuccess && m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("mint", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("mint", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -3434,8 +3374,7 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("processLedger", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("processLedger", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -3492,14 +3431,11 @@ public:
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("responseLedger", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("responseLedger", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -3586,8 +3522,7 @@ public:
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("processLedger", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("processLedger", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -3641,14 +3576,11 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         if (m.m_ascPayload.GetLength()) {
-            TagPtr pTag2(new Tag("responseLedger", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("responseLedger", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -3737,8 +3669,7 @@ public:
         pTag->add_attribute("hasParam", formatBool(m.m_ascPayload.Exists()));
 
         if (m.m_ascPayload.Exists()) {
-            TagPtr pTag2(new Tag("parameter", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("parameter", m.m_ascPayload.Get());
         }
 
         parent.add_tag(pTag);
@@ -3802,9 +3733,7 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
-            TagPtr pTagRef(
-                new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTagRef);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);
@@ -3947,12 +3876,10 @@ public:
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
-            TagPtr pTag2(new Tag("messagePayload", m.m_ascPayload.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
         }
         else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
-            TagPtr pTag2(new Tag("inReferenceTo", m.m_ascInReferenceTo.Get()));
-            pTag->add_tag(pTag2);
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
         }
 
         parent.add_tag(pTag);

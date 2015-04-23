@@ -264,8 +264,7 @@ void OTSubcredential::UpdatePublicCredentialToTag(
     if (GetContents().Exists()) {
         OTASCIIArmor ascContents(GetContents());
         if (ascContents.Exists()) {
-            TagPtr tagPubCred(new Tag("publicCredential", ascContents.Get()));
-            parent.add_tag(tagPubCred);
+            parent.add_tag("publicCredential", ascContents.Get());
         }
     }
 }
@@ -310,8 +309,7 @@ void OTSubcredential::UpdateContents()
                                                // verify through its own
                                                // source. (Whatever that
                                                // may be.)
-        TagPtr tagSource(new Tag("nymIDSource", ascSource.Get()));
-        tag.add_tag(tagSource);
+        tag.add_tag("nymIDSource", ascSource.Get());
     }
 
     //  if (OTSubcredential::credPublicInfo == m_StoreAs)  // (Always saving

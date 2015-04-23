@@ -174,8 +174,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
         OTASCIIArmor ascMasterContents;
 
         if (OTCachedKey::It()->SerializeTo(ascMasterContents)) {
-            TagPtr pTag(new Tag("cachedKey", ascMasterContents.Get()));
-            tag.add_tag(pTag);
+            tag.add_tag("cachedKey", ascMasterContents.Get());
         }
         else
             Log::vError(

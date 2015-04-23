@@ -207,8 +207,7 @@ void OTMasterkey::UpdateContents()
                                                // verify through its own
                                                // source. (Whatever that
                                                // may be.)
-        TagPtr tagSource(new Tag("nymIDSource", ascSource.Get()));
-        tag.add_tag(tagSource);
+        tag.add_tag("nymIDSource", ascSource.Get());
     }
 
     // PUBLIC INFO

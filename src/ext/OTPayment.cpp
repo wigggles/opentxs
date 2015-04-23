@@ -1572,8 +1572,7 @@ void OTPayment::UpdateContents()
         const OTASCIIArmor ascContents(m_strPayment);
 
         if (ascContents.Exists()) {
-            TagPtr tagContents(new Tag("contents", ascContents.Get()));
-            tag.add_tag(tagContents);
+            tag.add_tag("contents", ascContents.Get());
         }
     }
 

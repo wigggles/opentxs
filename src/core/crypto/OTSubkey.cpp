@@ -226,8 +226,7 @@ void OTSubkey::UpdateContents()
         // A nym should always verify through its own
         // source. (Whatever that may be.)
         ascSource.SetString(GetNymIDSource());
-        TagPtr tagSource(new Tag("nymIDSource", ascSource.Get()));
-        tag.add_tag(tagSource);
+        tag.add_tag("nymIDSource", ascSource.Get());
     }
     // MASTER-SIGNED INFO
     if (OTSubcredential::credMasterSigned == m_StoreAs ||
@@ -244,8 +243,7 @@ void OTSubkey::UpdateContents()
 
         // Contains all the public info, signed by the master key.
         // Packaged up here inside a final, subkey-signed credential.
-        TagPtr tagMasterSigned(new Tag("masterSigned", ascMasterSigned.Get()));
-        tag.add_tag(tagMasterSigned);
+        tag.add_tag("masterSigned", ascMasterSigned.Get());
     }
     // PRIVATE INFO
     //

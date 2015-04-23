@@ -4446,15 +4446,11 @@ void OTTransaction::UpdateContents()
         // to some item, from someone else
         // We include a full copy of that item here.
         if (m_ascInReferenceTo.GetLength()) {
-            TagPtr tagInRefTo(
-                new Tag("inReferenceTo", m_ascInReferenceTo.Get()));
-            tag.add_tag(tagInRefTo);
+            tag.add_tag("inReferenceTo", m_ascInReferenceTo.Get());
         }
 
         if (m_ascCancellationRequest.GetLength()) {
-            TagPtr tagCancel(
-                new Tag("cancelRequest", m_ascCancellationRequest.Get()));
-            tag.add_tag(tagCancel);
+            tag.add_tag("cancelRequest", m_ascCancellationRequest.Get());
         }
 
         // loop through the items that make up this transaction and print them
@@ -4469,8 +4465,7 @@ void OTTransaction::UpdateContents()
             OTASCIIArmor ascItem;
             ascItem.SetString(strItem, true); // linebreaks = true
 
-            TagPtr tagItem(new Tag("item", ascItem.Get()));
-            tag.add_tag(tagItem);
+            tag.add_tag("item", ascItem.Get());
         }
     } // not abbreviated (full details.)
 

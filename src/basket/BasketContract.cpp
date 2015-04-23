@@ -160,8 +160,7 @@ BasketContract::BasketContract(Basket& theBasket, Nym& theSigner)
     tag.add_attribute("version", m_strVersion.Get());
 
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
-    TagPtr pTag(new Tag("basketInfo", theBasketArmor.Get()));
-    tag.add_tag(pTag);
+    tag.add_tag("basketInfo", theBasketArmor.Get());
 
     std::string str_result;
     tag.output(str_result);
@@ -183,8 +182,7 @@ void BasketContract::CreateContents()
     tag.add_attribute("version", m_strVersion.Get());
 
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
-    TagPtr pTag(new Tag("basketInfo", theBasketArmor.Get()));
-    tag.add_tag(pTag);
+    tag.add_tag("basketInfo", theBasketArmor.Get());
 
     // This is where OTContract scribes tag with its keys,
     // conditions, etc.
