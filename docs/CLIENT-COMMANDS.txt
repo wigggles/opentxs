@@ -2,12 +2,11 @@
 
 
 
-*** NOTE: These instructions are for the LOW-LEVEL command-line, 'ot',
-    which is not meant for users. It's a CLI for low-level testing.
+*** NOTE: These instructions are for the LOW-LEVEL command-line, "ot",
+    which is not meant for users. (It's a CLI for low-level testing.)
 
-*** 'ot' is also used as a script interpreter -- the high-level client
-    'opentxs' is actually written in script form, and then executed
-    through the 'ot' interpreter. To see the help for 'opentxs', try:
+*** You probably want to use "opentxs", not "ot".
+    To see the help for opentxs, try:
 
    $ opentxs list
    $ opentxs help
@@ -163,22 +162,4 @@ clearreq     -- Clears all the request numbers from a Nym. Low-level tool!
 
 Deprecated: (happens automatically now)
 load         -- Load wallet.xml from the data_folder. (Do this first.)
-
-
-NOTE: The below commands are for TCP / SSL mode only. 
-(You can **IGNORE** them.)
-
-connect      -- Connect to the first server on the wallet's list.
-                (NOTE: **NOT** necessary in ZMQ mode! If you didn't
-                use "make tcp", then you can ignore this command. It's
-                only used in TCP/SSL mode.)
-
-1            -- Sends a type 1 header command to the server, with no
-                payload.
-2            -- Sends a deliberately-malformed command to the server.
-3            -- Sends a signed XML message in the payload, but with no
-                XML requests.
-
-
-
 
