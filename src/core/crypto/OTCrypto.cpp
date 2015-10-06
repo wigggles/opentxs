@@ -311,6 +311,12 @@ OTCrypto* OTCrypto::RSA_Engine()
   return &s_theSingleton;
 }
 
+// static
+OTCrypto* OTCrypto::AES_Engine()
+{
+  return RSA_Engine();
+}
+
 // Currently called by OTLog::OT_Init();
 
 void OTCrypto::Init() const

@@ -198,7 +198,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
 
     OTData theCipherText;
 
-    const bool bEncrypted = OTCrypto::It()->Encrypt(
+    const bool bEncrypted = OTCrypto::AES_Engine()->Encrypt(
         theRawSymmetricKey,       // The symmetric key, in clear form.
         theInput.Get(),           // This is the Plaintext.
         theInput.GetLength() + 1, // for null terminator
@@ -390,7 +390,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     //
     OTData thePlaintext; // for output.
 
-    const bool bDecrypted = OTCrypto::It()->Decrypt(
+    const bool bDecrypted = OTCrypto::AES_Engine()->Decrypt(
         theRawSymmetricKey, // The symmetric key, in clear form.
         static_cast<const char*>(
             theCipherText.GetPointer()), // This is the Ciphertext.
