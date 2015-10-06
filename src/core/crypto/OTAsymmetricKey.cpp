@@ -42,7 +42,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
@@ -504,7 +504,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         {
             otOut << "Passphrase request for: \"" << str_userdata << "\"\n";
 
-            bGotPassword = OTCrypto::It()->GetPasswordFromConsole(
+            bGotPassword = CryptoEngine::Util()->GetPasswordFromConsole(
                 thePassword, (1 == rwflag) ? true : false);
         }
         else // Okay, we have a callback, so let's pop up the dialog!

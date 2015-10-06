@@ -76,7 +76,7 @@ class OTSignature;
 
 class OTCrypto_OpenSSL : public OTCrypto
 {
-    friend class OTCrypto;
+    friend class CryptoEngine;
 
 protected:
     OTCrypto_OpenSSL();

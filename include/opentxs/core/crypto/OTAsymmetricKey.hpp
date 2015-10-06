@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/util/Timer.hpp>
 #include <list>
 

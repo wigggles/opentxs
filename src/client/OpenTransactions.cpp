@@ -66,7 +66,7 @@
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTNymOrSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -518,7 +518,9 @@ bool OT_API::InitOTApp()
 // This is optional! You can always remove it using the OT_NO_SIGNAL_HANDLING
 //  option, and plus, the internals only execute once anyway. (It keeps count.)
 #endif
-        OTCrypto::RSA_Engine()->Init(); // (OpenSSL gets initialized here.)
+
+        CryptoEngine::Init();
+
         // TODO in the case of Windows, figure err into this return val somehow.
         // (Or log it or something.)
         //
@@ -553,7 +555,7 @@ bool OT_API::CleanupOTApp()
         // seems
         // like the best default, in absence of any brighter ideas.
         //
-        OTCrypto::RSA_Engine()->Cleanup(); // (OpenSSL gets cleaned up here.)
+        CryptoEngine::Cleanup();
 
         return true;
     }

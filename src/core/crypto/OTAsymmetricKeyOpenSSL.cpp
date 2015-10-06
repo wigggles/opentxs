@@ -1071,7 +1071,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
 OTCrypto* OTAsymmetricKey::engine() const
 
 {
-    return OTCrypto::RSA_Engine();
+    return CryptoEngine::RSA();
 }
 
 #elif defined(OT_CRYPTO_USING_GPG)

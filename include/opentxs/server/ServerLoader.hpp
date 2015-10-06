@@ -41,7 +41,7 @@
 
 #include "OTServer.hpp"
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/Log.hpp>
 
@@ -89,7 +89,8 @@ public:
                 OT_FAIL;
             }
         }
-        OTCrypto::RSA_Engine()->Init();
+
+        CryptoEngine::Init();
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
         // in envelopes. It also does various other initialization work.
@@ -117,7 +118,7 @@ public:
             server_ = nullptr;
         }
         OTCachedKey::Cleanup();
-        OTCrypto::RSA_Engine()->Cleanup();
+        CryptoEngine::Cleanup();
     }
 
     OTServer* getServer()

@@ -40,12 +40,6 @@
 
 #include <opentxs/core/crypto/OTCrypto.hpp>
 
-#ifdef OT_CRYPTO_USING_OPENSSL
-#include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
-#else // Apparently NO crypto engine is defined!
-// Perhaps error out here...
-#endif
-
 #include <iostream>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -65,13 +59,6 @@ extern "C" {
 
 namespace opentxs
 {
-
-// Choose your OTCrypto implementation here.
-#ifdef OT_CRYPTO_USING_OPENSSL
-typedef OTCrypto_OpenSSL RSAImplementation;
-#else // Apparently NO crypto engine is defined!
-// Perhaps error out here...
-#endif
 
 // class OTCrypto
 //
@@ -295,26 +282,6 @@ bool OTCrypto::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
     std::cout << "Sorry." << std::endl;
 
     return false;
-}
-
-// static
-OTCrypto* OTCrypto::It()
-{
-  return RSA_Engine();
-}
-
-// static
-OTCrypto* OTCrypto::RSA_Engine()
-{
-  static RSAImplementation s_theSingleton; // For now we're only allowing a single
-                                           // instance.
-  return &s_theSingleton;
-}
-
-// static
-OTCrypto* OTCrypto::AES_Engine()
-{
-  return RSA_Engine();
 }
 
 // Currently called by OTLog::OT_Init();

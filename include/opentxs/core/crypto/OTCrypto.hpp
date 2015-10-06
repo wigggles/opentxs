@@ -268,12 +268,6 @@ public:
         const std::string& strCertFileContents, const OTSignature& theSignature,
         const OTPasswordData* pPWData = nullptr) const = 0;
 
-    EXPORT static OTCrypto* It();
-    //Asymmetric encryption engines
-    EXPORT static OTCrypto* RSA_Engine();
-    //Symmetric encryption engines
-    EXPORT static OTCrypto* AES_Engine();
-
     EXPORT void Init() const;
     EXPORT void Cleanup() const;
 };
