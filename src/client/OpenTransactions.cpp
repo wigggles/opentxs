@@ -518,7 +518,7 @@ bool OT_API::InitOTApp()
 // This is optional! You can always remove it using the OT_NO_SIGNAL_HANDLING
 //  option, and plus, the internals only execute once anyway. (It keeps count.)
 #endif
-        OTCrypto::It()->Init(); // (OpenSSL gets initialized here.)
+        OTCrypto::RSA_Engine()->Init(); // (OpenSSL gets initialized here.)
         // TODO in the case of Windows, figure err into this return val somehow.
         // (Or log it or something.)
         //
@@ -553,7 +553,7 @@ bool OT_API::CleanupOTApp()
         // seems
         // like the best default, in absence of any brighter ideas.
         //
-        OTCrypto::It()->Cleanup(); // (OpenSSL gets cleaned up here.)
+        OTCrypto::RSA_Engine()->Cleanup(); // (OpenSSL gets cleaned up here.)
 
         return true;
     }

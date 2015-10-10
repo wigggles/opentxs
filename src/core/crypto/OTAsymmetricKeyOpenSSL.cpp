@@ -1068,6 +1068,12 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
     return bReturnValue;
 }
 
+OTCrypto* OTAsymmetricKey::engine() const
+
+{
+    return OTCrypto::RSA_Engine();
+}
+
 #elif defined(OT_CRYPTO_USING_GPG)
 
 #else

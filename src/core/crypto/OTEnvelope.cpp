@@ -419,63 +419,26 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     return bDecrypted;
 }
 
-// RSA / AES
-
 bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 {
-    String strNymID;
-    mapOfAsymmetricKeys theKeys;
-    theRecipient.GetIdentifier(strNymID);
-    theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-        strNymID.Get(),
-        const_cast<OTAsymmetricKey*>(&(theRecipient.GetPublicEncrKey()))));
-
-    return Seal(theKeys, theInput);
-}
-
-bool OTEnvelope::Seal(setOfNyms& theRecipients, const String& theInput)
-{
-    mapOfAsymmetricKeys RecipPubKeys;
-
-    // Loop through theRecipients, and add the public key of each one to a set
-    // of keys.
-    for (auto& it : theRecipients) {
-        Nym* pNym = it;
-        OT_ASSERT_MSG(nullptr != pNym,
-                      "OTEnvelope::Seal: Assert: nullptr pseudonym pointer.");
-
-        String strNymID;
-        pNym->GetIdentifier(strNymID);
-        RecipPubKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-            strNymID.Get(),
-            const_cast<OTAsymmetricKey*>(&(pNym->GetPublicEncrKey()))));
-    }
-
-    if (RecipPubKeys.empty()) return false;
-
-    return Seal(RecipPubKeys, theInput);
+    return Seal(theRecipient.GetPublicEncrKey(), theInput);
 }
 
 bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
                       const String& theInput)
 {
-    mapOfAsymmetricKeys theKeys;
+  OTCrypto* engine = RecipPubKey.engine();
+
+  mapOfAsymmetricKeys theKeys;
     theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
         "", // Normally the NymID goes here, but we don't know what it is, in
             // this case.
         const_cast<OTAsymmetricKey*>(&RecipPubKey)));
 
-    return Seal(theKeys, theInput);
-}
-
-// Seal up as envelope (Asymmetric, using public key and then AES key.)
-
-bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput)
-{
-    OT_ASSERT_MSG(!RecipPubKeys.empty(),
+    OT_ASSERT_MSG(!theKeys.empty(),
                   "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
 
-    return OTCrypto::It()->Seal(RecipPubKeys, theInput, m_dataContents);
+    return engine->Seal(theKeys, theInput, m_dataContents);
 }
 
 // RSA / AES
@@ -483,11 +446,13 @@ bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput)
 bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
                       const OTPasswordData* pPWData)
 {
-    return OTCrypto::It()->Open(m_dataContents, theRecipient, theOutput,
+  OTCrypto* engine = theRecipient.GetPublicEncrKey().engine();
+
+  return engine->Open(m_dataContents, theRecipient, theOutput,
                                 pPWData);
 }
 
-// DONE: Fix OTEnvelope so we can seal to multiple recipients simultaneously.
+// TODO: Fix OTEnvelope so we can seal to multiple recipients simultaneously.
 // DONE: Fix OTEnvelope so it supports symmetric crypto as well as asymmetric.
 
 // DONE: Remove the Nym stored inside the purse, and replace with a

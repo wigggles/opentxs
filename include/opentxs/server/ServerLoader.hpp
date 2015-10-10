@@ -89,7 +89,7 @@ public:
                 OT_FAIL;
             }
         }
-        OTCrypto::It()->Init();
+        OTCrypto::RSA_Engine()->Init();
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
         // in envelopes. It also does various other initialization work.
@@ -117,7 +117,7 @@ public:
             server_ = nullptr;
         }
         OTCachedKey::Cleanup();
-        OTCrypto::It()->Cleanup();
+        OTCrypto::RSA_Engine()->Cleanup();
     }
 
     OTServer* getServer()

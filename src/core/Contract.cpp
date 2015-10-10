@@ -529,124 +529,13 @@ bool Contract::SignContract(const OTAsymmetricKey& theKey,
     //
     UpdateContents();
 
+    OTCrypto* engine = theKey.engine();
+
     if (false ==
-        OTCrypto::It()->SignContract(trim(m_xmlUnsigned), theKey, theSignature,
+        engine->SignContract(trim(m_xmlUnsigned), theKey, theSignature,
                                      strHashType, pPWData)) {
         otErr << "Contract::SignContract: "
-                 "OTCrypto::It()->SignContract returned false.\n";
-        return false;
-    }
-
-    return true;
-}
-
-// Todo: make this private so we can see if anyone is calling it.
-// Might want to ditch it if possible, since the metadata isn't
-// stored in that cert file...
-
-// Sign the Contract using a private key from a file.
-// theSignature will contain the output.
-bool Contract::SignContract(const char* szFoldername,
-                            const char* szFilename,    // for Certfile, for
-                                                       // private key.
-                            OTSignature& theSignature, // output
-                            const OTPasswordData* pPWData)
-{
-    OT_ASSERT(nullptr != szFoldername);
-    OT_ASSERT(nullptr != szFilename);
-
-    const char* szFunc = "Contract::SignContract";
-
-    if (!OTDB::Exists(szFoldername, szFilename)) {
-        otErr << szFunc << ": File does not exist: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
-        return false;
-    }
-
-    const std::string strCertFileContents(OTDB::QueryPlainString(
-        szFoldername, szFilename)); // <=== LOADING FROM DATA STORE.
-
-    if (strCertFileContents.length() < 2) {
-        otErr << szFunc << ": Error reading file: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
-        return false;
-    }
-
-    OTPasswordData thePWData(
-        "(Contract::SignContract is trying to read the private key...)");
-    if (nullptr == pPWData) pPWData = &thePWData;
-
-    // Update the contents, (not always necessary, many contracts are read-only)
-    // This is where we provide an overridable function for the child classes
-    // that
-    // need to update their contents at this point.
-    // But the Contract version of this function is actually empty, since the
-    // default behavior is that contract contents don't change.
-    // (Accounts and Messages being two big exceptions.)
-    //
-    UpdateContents();
-
-    if (false ==
-        OTCrypto::It()->SignContract(trim(m_xmlUnsigned), m_strSigHashType,
-                                     strCertFileContents, theSignature,
-                                     pPWData)) {
-        otErr << szFunc << ": OTCrypto::It()->SignContract returned false, "
-                           "using Cert file: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
-        return false;
-    }
-
-    return true;
-}
-
-// Presumably the Signature passed in here was just loaded as part of this
-// contract and is
-// somewhere in m_listSignatures. Now it is being verified.
-//
-bool Contract::VerifySignature(const char* szFoldername,
-                               const char* szFilename, // for Cert.
-                               const OTSignature& theSignature,
-                               const OTPasswordData* pPWData) const // optional
-                                                                    // in/out
-{
-    OT_ASSERT_MSG(
-        nullptr != szFoldername,
-        "Null foldername pointer passed to Contract::VerifySignature");
-    OT_ASSERT_MSG(
-        nullptr != szFilename,
-        "Null filename pointer passed to Contract::VerifySignature");
-
-    const char* szFunc = __FUNCTION__;
-
-    // Read public key
-    otInfo << szFunc << ": Reading public key from certfile in order to verify "
-                        "signature...\n";
-
-    if (!OTDB::Exists(szFoldername, szFilename)) {
-        otErr << szFunc << ": File does not exist: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
-        return false;
-    }
-
-    const std::string strCertFileContents(OTDB::QueryPlainString(
-        szFoldername, szFilename)); // <=== LOADING FROM DATA STORE.
-
-    if (strCertFileContents.length() < 2) {
-        otErr << szFunc << ": Error reading file: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
-        return false;
-    }
-
-    OTPasswordData thePWData("Reading the public key...");
-    if (nullptr == pPWData) pPWData = &thePWData;
-
-    if (false ==
-        OTCrypto::It()->VerifySignature(trim(m_xmlUnsigned), m_strSigHashType,
-                                        strCertFileContents, theSignature,
-                                        pPWData)) {
-        otLog4 << szFunc << ": OTCrypto::It()->VerifySignature returned false, "
-                            "using Cert file: " << szFoldername
-               << Log::PathSeparator() << szFilename << "\n";
+                 "engine->SignContract returned false.\n";
         return false;
     }
 
@@ -842,12 +731,14 @@ bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
 
     OTPasswordData thePWData("Contract::VerifySignature 2");
 
+    OTCrypto* engine = theKey.engine();
+
     if (false ==
-        OTCrypto::It()->VerifySignature(
+        engine->VerifySignature(
             trim(m_xmlUnsigned), theKey, theSignature, strHashType,
             (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
-               << ": OTCrypto::It()->VerifySignature returned false.\n";
+               << ": engine->VerifySignature returned false.\n";
         return false;
     }
 
@@ -982,8 +873,10 @@ bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
     OTSignature theSignature;
     OTPasswordData thePWData("Signing flat text (need private key)");
 
+    OTCrypto* engine = theSigner.GetPrivateSignKey().engine();
+
     if (false ==
-        OTCrypto::It()->SignContract(
+      engine->SignContract(
             trim(strInput), theSigner.GetPrivateSignKey(),
             theSignature, // the output
             Identifier::DefaultHashAlgorithm, &thePWData)) {

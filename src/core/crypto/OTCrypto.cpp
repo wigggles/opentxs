@@ -68,7 +68,7 @@ namespace opentxs
 
 // Choose your OTCrypto implementation here.
 #ifdef OT_CRYPTO_USING_OPENSSL
-typedef OTCrypto_OpenSSL OTCryptoImpl;
+typedef OTCrypto_OpenSSL RSAImplementation;
 #else // Apparently NO crypto engine is defined!
 // Perhaps error out here...
 #endif
@@ -300,13 +300,15 @@ bool OTCrypto::GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat) const
 // static
 OTCrypto* OTCrypto::It()
 {
-    // Todo: someday, swapping the crypto lib should be as easy as changing this
-    // compile flag to OT_CRYPTO_USING_GPG. We'll get there.
-    //
-    static OTCryptoImpl s_theSingleton; // For now we're only allowing a single
-                                        // instance.
+  return RSA_Engine();
+}
 
-    return &s_theSingleton;
+// static
+OTCrypto* OTCrypto::RSA_Engine()
+{
+  static RSAImplementation s_theSingleton; // For now we're only allowing a single
+                                           // instance.
+  return &s_theSingleton;
 }
 
 // Currently called by OTLog::OT_Init();
