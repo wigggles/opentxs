@@ -72,7 +72,7 @@ CryptoSymmetric& CryptoEngine::AES()
 
 CryptoEngine& CryptoEngine::Instance()
 {
-    if (nullptr != pInstance_)
+    if (nullptr == pInstance_)
     {
         pInstance_ = new CryptoEngine;
     }
