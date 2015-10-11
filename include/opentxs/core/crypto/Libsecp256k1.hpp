@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
 
 #include <opentxs/core/crypto/Crypto.hpp>
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 
 extern "C" {
 #include "secp256k1.h"
@@ -48,7 +49,13 @@ extern "C" {
 namespace opentxs
 {
 
-class Libsecp256k1 : public Crypto
+class OTAsymmetricKey;
+class OTData;
+class OTPasswordData;
+class Nym;
+class OTSignature;
+
+class Libsecp256k1 : public Crypto, public CryptoAsymmetric
 {
     friend class CryptoEngine;
 
@@ -62,6 +69,20 @@ protected:
 
 public:
     ~Libsecp256k1();
+    bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
+                      OTData& dataOutput) const;
+    bool Open(OTData& dataInput, const Nym& theRecipient,
+                      String& theOutput,
+                      const OTPasswordData* pPWData = nullptr) const;
+    bool SignContract(const String& strContractUnsigned,
+                              const OTAsymmetricKey& theKey,
+                              OTSignature& theSignature, // output
+                              const String& strHashType,
+                              const OTPasswordData* pPWData = nullptr);
+    bool VerifySignature(
+        const String& strContractToVerify, const OTAsymmetricKey& theKey,
+        const OTSignature& theSignature, const String& strHashType,
+        const OTPasswordData* pPWData = nullptr) const;
 };
 
 } // namespace opentxs

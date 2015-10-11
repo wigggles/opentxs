@@ -90,6 +90,9 @@ public:
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoAsymmetric& RSA();
 #endif
+#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    EXPORT CryptoAsymmetric& SECP256K1();
+#endif
     //Symmetric encryption engines
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoSymmetric& AES();

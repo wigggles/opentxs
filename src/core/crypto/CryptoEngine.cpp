@@ -75,14 +75,21 @@ CryptoAsymmetric& CryptoEngine::RSA()
 
     return *pSSL_;
 }
+#endif
+#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+CryptoAsymmetric& CryptoEngine::SECP256K1()
+{
+    OT_ASSERT(nullptr != psecp256k1_);
 
+    return *psecp256k1_;
+}
 #endif
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
 CryptoSymmetric& CryptoEngine::AES()
 {
     OT_ASSERT(nullptr != pSSL_);
 
-    return *pSSL_;
+    return *pSSL_);
 }
 #endif
 CryptoEngine& CryptoEngine::Instance()
