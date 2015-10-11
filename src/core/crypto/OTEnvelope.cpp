@@ -161,7 +161,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     //
     OTData theIV;
 
-    if (!theIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
+    if (!theIV.Randomize(CryptoConfig::SymmetricIvSize())) {
         otErr << __FUNCTION__ << ": Failed trying to randomly generate IV.\n";
         return false;
     }
@@ -240,7 +240,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     // Write IV size (in network-order)
     //
     uint32_t ivlen =
-        OTCryptoConfig::SymmetricIvSize(); // Length of IV for this cipher...
+        CryptoConfig::SymmetricIvSize(); // Length of IV for this cipher...
     OT_ASSERT(ivlen >= theIV.GetSize());
     uint32_t ivlen_n = htonl(
         theIV.GetSize()); // Calculate "network-order" version of iv length.
@@ -328,7 +328,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     // Read network-order IV size (and convert to host version)
     //
     const uint32_t max_iv_length =
-        OTCryptoConfig::SymmetricIvSize(); // I believe this is a max length, so
+        CryptoConfig::SymmetricIvSize(); // I believe this is a max length, so
                                            // it may not match the actual length
                                            // of the IV.
 
@@ -459,7 +459,7 @@ bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
 // DONE: Remove the Nym stored inside the purse, and replace with a
 // session key, just as envelopes will support a session key.
 
-// TODO: Make sure OTEnvelope / OTCrypto_OpenSSL is safe with zeroing memory
+// TODO: Make sure OTEnvelope / OpenSSL is safe with zeroing memory
 // wherever needed.
 
 // Todo: Once envelopes support multiple recipient Nyms, then make a habit of

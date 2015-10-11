@@ -35,10 +35,10 @@ set(cxx-sources
   Cheque.cpp
   Contract.cpp
   crypto/CredentialSet.cpp
-  crypto/OTCrypto.cpp
+  crypto/Crypto.cpp
   crypto/CryptoUtil.cpp
   crypto/CryptoSymmetric.cpp
-  crypto/OTCryptoOpenSSL.cpp
+  crypto/OpenSSL.cpp
   crypto/CryptoEngine.cpp
   OTData.cpp
   crypto/OTEnvelope.cpp

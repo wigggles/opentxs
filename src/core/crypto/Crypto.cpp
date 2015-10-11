@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/Crypto.hpp>
 
 #include <opentxs/core/stdafx.hpp>
 #include <opentxs/core/Log.hpp>
@@ -56,7 +56,7 @@ extern "C" {
 namespace opentxs
 {
 
-// class OTCrypto
+// class Crypto
 //
 // To someday get us to the point where we can easily swap crypto libs.
 // For now, just for static init / cleanup functions we can call from
@@ -83,16 +83,16 @@ namespace opentxs
 #define OT_KEY_PUBLIC_KEYSIZE "public_keysize"
 #define OT_KEY_PUBLIC_KEYSIZE_MAX "public_keysize_max"
 
-const int32_t* OTCryptoConfig::sp_nIterationCount = nullptr;
-const int32_t* OTCryptoConfig::sp_nSymmetricSaltSize = nullptr;
-const int32_t* OTCryptoConfig::sp_nSymmetricKeySize = nullptr;
-const int32_t* OTCryptoConfig::sp_nSymmetricKeySizeMax = nullptr;
-const int32_t* OTCryptoConfig::sp_nSymmetricIvSize = nullptr;
-const int32_t* OTCryptoConfig::sp_nSymmetricBufferSize = nullptr;
-const int32_t* OTCryptoConfig::sp_nPublicKeysize = nullptr;
-const int32_t* OTCryptoConfig::sp_nPublicKeysizeMax = nullptr;
+const int32_t* CryptoConfig::sp_nIterationCount = nullptr;
+const int32_t* CryptoConfig::sp_nSymmetricSaltSize = nullptr;
+const int32_t* CryptoConfig::sp_nSymmetricKeySize = nullptr;
+const int32_t* CryptoConfig::sp_nSymmetricKeySizeMax = nullptr;
+const int32_t* CryptoConfig::sp_nSymmetricIvSize = nullptr;
+const int32_t* CryptoConfig::sp_nSymmetricBufferSize = nullptr;
+const int32_t* CryptoConfig::sp_nPublicKeysize = nullptr;
+const int32_t* CryptoConfig::sp_nPublicKeysizeMax = nullptr;
 
-bool OTCryptoConfig::GetSetAll()
+bool CryptoConfig::GetSetAll()
 {
     OTSettings config(OTPaths::GlobalConfigFile());
 
@@ -133,7 +133,7 @@ bool OTCryptoConfig::GetSetAll()
     return true;
 }
 
-bool OTCryptoConfig::GetSetValue(OTSettings& config, std::string strKeyName,
+bool CryptoConfig::GetSetValue(OTSettings& config, std::string strKeyName,
                                  int32_t nDefaultValue,
                                  const int32_t*& out_nValue)
 
@@ -159,7 +159,7 @@ bool OTCryptoConfig::GetSetValue(OTSettings& config, std::string strKeyName,
     return true;
 }
 
-const int32_t& OTCryptoConfig::GetValue(const int32_t*& pValue)
+const int32_t& CryptoConfig::GetValue(const int32_t*& pValue)
 {
     if (nullptr == pValue) {
         if (!GetSetAll()) OT_FAIL;
@@ -170,51 +170,51 @@ const int32_t& OTCryptoConfig::GetValue(const int32_t*& pValue)
     return *pValue;
 }
 
-uint32_t OTCryptoConfig::IterationCount()
+uint32_t CryptoConfig::IterationCount()
 {
     return GetValue(sp_nIterationCount);
 }
-uint32_t OTCryptoConfig::SymmetricSaltSize()
+uint32_t CryptoConfig::SymmetricSaltSize()
 {
     return GetValue(sp_nSymmetricSaltSize);
 }
-uint32_t OTCryptoConfig::SymmetricKeySize()
+uint32_t CryptoConfig::SymmetricKeySize()
 {
     return GetValue(sp_nSymmetricKeySize);
 }
-uint32_t OTCryptoConfig::SymmetricKeySizeMax()
+uint32_t CryptoConfig::SymmetricKeySizeMax()
 {
     return GetValue(sp_nSymmetricKeySizeMax);
 }
-uint32_t OTCryptoConfig::SymmetricIvSize()
+uint32_t CryptoConfig::SymmetricIvSize()
 {
     return GetValue(sp_nSymmetricIvSize);
 }
-uint32_t OTCryptoConfig::SymmetricBufferSize()
+uint32_t CryptoConfig::SymmetricBufferSize()
 {
     return GetValue(sp_nSymmetricBufferSize);
 }
-uint32_t OTCryptoConfig::PublicKeysize()
+uint32_t CryptoConfig::PublicKeysize()
 {
     return GetValue(sp_nPublicKeysize);
 }
-uint32_t OTCryptoConfig::PublicKeysizeMax()
+uint32_t CryptoConfig::PublicKeysizeMax()
 {
     return GetValue(sp_nPublicKeysizeMax);
 }
 
 // static
-int32_t OTCrypto::s_nCount =
+int32_t Crypto::s_nCount =
     0; // Instance count, should never exceed 1. (At this point, anyway.)
 
 // Currently called by OTLog::OT_Init();
 
-void OTCrypto::Init() const
+void Crypto::Init() const
 {
     // This is only supposed to happen once per run.
     //
-    if (0 == OTCrypto::s_nCount) {
-        ++(OTCrypto::s_nCount);
+    if (0 == Crypto::s_nCount) {
+        ++(Crypto::s_nCount);
 
         otWarn << "OT_Init: Setting up rlimits, and crypto library...\n";
 
@@ -227,7 +227,7 @@ void OTCrypto::Init() const
         getrlimit(RLIMIT_CORE, &rlim);
         rlim.rlim_max = rlim.rlim_cur = 0;
         if (setrlimit(RLIMIT_CORE, &rlim)) {
-            OT_FAIL_MSG("OTCrypto::Init: ASSERT: setrlimit failed. (Used for "
+            OT_FAIL_MSG("Crypto::Init: ASSERT: setrlimit failed. (Used for "
                         "preventing core dumps.)\n");
         }
 #endif
@@ -235,41 +235,41 @@ void OTCrypto::Init() const
         Init_Override();
     }
     else
-        otErr << "OTCrypto::Init: ERROR: Somehow this erroneously got called "
+        otErr << "Crypto::Init: ERROR: Somehow this erroneously got called "
                  "more than once! (Doing nothing.)\n";
 }
 
 // Currently called by OTLog::OT_Cleanup();
 
-void OTCrypto::Cleanup() const
+void Crypto::Cleanup() const
 {
     // This is only supposed to happen once per run.
     //
-    if (1 == OTCrypto::s_nCount) {
-        --(OTCrypto::s_nCount);
+    if (1 == Crypto::s_nCount) {
+        --(Crypto::s_nCount);
 
         // Any crypto-related cleanup code NOT specific to OpenSSL (which is
-        // handled in OTCrypto_OpenSSL, a subclass) would go here.
+        // handled in OpenSSL, a subclass) would go here.
         //
 
         Cleanup_Override();
     }
     else
-        otErr << "OTCrypto::Cleanup: ERROR: Somehow this erroneously got "
+        otErr << "Crypto::Cleanup: ERROR: Somehow this erroneously got "
                  "called more than once! (Doing nothing.)\n";
 }
 
 // virtual (Should never get called.)
-void OTCrypto::Init_Override() const
+void Crypto::Init_Override() const
 {
-    otErr << "OTCrypto::Init_Override: ERROR: This function should NEVER be "
+    otErr << "Crypto::Init_Override: ERROR: This function should NEVER be "
              "called (you should be overriding it...)\n";
 }
 
 // virtual (Should never get called.)
-void OTCrypto::Cleanup_Override() const
+void Crypto::Cleanup_Override() const
 {
-    otErr << "OTCrypto::Cleanup_Override: ERROR: This function should NEVER be "
+    otErr << "Crypto::Cleanup_Override: ERROR: This function should NEVER be "
              "called (you should be overriding it...)\n";
 }
 

@@ -130,7 +130,7 @@ protected:
     // If a hash with one of the special names comes through, it will
     // be processed here instead of the normal code. The above two functions
     // will call these two when appropriate.
-    // NOTE: Moved to OTCrypto
+    // NOTE: Moved to Crypto
     //
     //    bool SignContractDefaultHash  (const EVP_PKEY* pkey, OTSignature&
     // theSignature);

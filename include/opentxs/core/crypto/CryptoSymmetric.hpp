@@ -58,26 +58,26 @@ class OTData;
 // without duplicating the static Decrypt() function, by wrapping both
 // types.
 //
-class OTCrypto_Decrypt_Output
+class CryptoSymmetricDecryptOutput
 {
 private:
     OTPassword* m_pPassword;
     OTData* m_pPayload;
 
-    OTCrypto_Decrypt_Output();
+    CryptoSymmetricDecryptOutput();
 
 public:
-    EXPORT ~OTCrypto_Decrypt_Output();
+    EXPORT ~CryptoSymmetricDecryptOutput();
 
-    EXPORT OTCrypto_Decrypt_Output(const OTCrypto_Decrypt_Output& rhs);
+    EXPORT CryptoSymmetricDecryptOutput(const CryptoSymmetricDecryptOutput& rhs);
 
-    EXPORT OTCrypto_Decrypt_Output(OTPassword& thePassword);
-    EXPORT OTCrypto_Decrypt_Output(OTData& thePayload);
+    EXPORT CryptoSymmetricDecryptOutput(OTPassword& thePassword);
+    EXPORT CryptoSymmetricDecryptOutput(OTData& thePayload);
 
-    EXPORT void swap(OTCrypto_Decrypt_Output& other);
+    EXPORT void swap(CryptoSymmetricDecryptOutput& other);
 
-    EXPORT OTCrypto_Decrypt_Output& operator=(
-        OTCrypto_Decrypt_Output other); // passed by value.
+    EXPORT CryptoSymmetricDecryptOutput& operator=(
+        CryptoSymmetricDecryptOutput other); // passed by value.
 
     EXPORT bool Concatenate(const void* pAppendData,
                             uint32_t lAppendSize) const;
@@ -142,7 +142,7 @@ public:
                          const OTData& theIV, // (We assume this IV is
                                               // already generated and passed
                                               // in.)
-                         OTCrypto_Decrypt_Output theDecryptedOutput)
+                         CryptoSymmetricDecryptOutput theDecryptedOutput)
         const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
                    // OTData& here (either will work.)
 };

@@ -46,7 +46,7 @@ namespace opentxs
 
 class OTSettings;
 
-class OTCryptoConfig
+class CryptoConfig
 {
 private:
     static bool GetSetAll();
@@ -76,18 +76,18 @@ public:
     EXPORT static uint32_t PublicKeysizeMax();
 };
 
-class OTCrypto
+class Crypto
 {
 private:
     static int32_t s_nCount; // Instance count, should never exceed 1.
 protected:
-    OTCrypto() = default;
+    Crypto() = default;
 
     virtual void Init_Override() const;
     virtual void Cleanup_Override() const;
 
 public:
-    virtual ~OTCrypto() = default;
+    virtual ~Crypto() = default;
     virtual void Init() const;
     virtual void Cleanup() const;
 };

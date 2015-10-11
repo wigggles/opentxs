@@ -44,7 +44,7 @@
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 
 #ifdef OT_CRYPTO_USING_OPENSSL
-#include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
+#include <opentxs/core/crypto/OpenSSL.hpp>
 #else // Apparently NO crypto engine is defined!
 // Perhaps error out here...
 #endif
@@ -54,7 +54,7 @@ namespace opentxs
 
 // Choose your OpenSSL-compatible library here.
 #ifdef OT_CRYPTO_USING_OPENSSL
-typedef OTCrypto_OpenSSL SSLImplementation;
+typedef OpenSSL SSLImplementation;
 #else // Apparently NO crypto engine is defined!
 // Perhaps error out here...
 #endif

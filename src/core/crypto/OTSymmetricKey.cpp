@@ -109,14 +109,14 @@ bool OTSymmetricKey::ChangePassphrase(const OTPassword& oldPassphrase,
     // the symmetric key itself, whereas the content has its own IV in
     // OTEnvelope.
     //
-    if (!dataIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
+    if (!dataIV.Randomize(CryptoConfig::SymmetricIvSize())) {
         otErr << __FUNCTION__ << ": Failed generating iv for changing "
                                  "passphrase on a symmetric key. (Returning "
                                  "false.)\n";
         return false;
     }
 
-    if (!dataSalt.Randomize(OTCryptoConfig::SymmetricSaltSize())) {
+    if (!dataSalt.Randomize(CryptoConfig::SymmetricSaltSize())) {
         otErr << __FUNCTION__ << ": Failed generating random salt for changing "
                                  "passphrase on a symmetric key. (Returning "
                                  "false.)\n";
@@ -194,13 +194,13 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
     otInfo << "  Begin: " << __FUNCTION__
            << ": GENERATING keys and passwords...\n";
 
-    if (!m_dataIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
+    if (!m_dataIV.Randomize(CryptoConfig::SymmetricIvSize())) {
         otErr << __FUNCTION__ << ": Failed generating iv for encrypting a "
                                  "symmetric key. (Returning false.)\n";
         return false;
     }
 
-    if (!m_dataSalt.Randomize(OTCryptoConfig::SymmetricSaltSize())) {
+    if (!m_dataSalt.Randomize(CryptoConfig::SymmetricSaltSize())) {
         otErr << __FUNCTION__
               << ": Failed generating random salt. (Returning false.)\n";
         return false;
@@ -213,14 +213,14 @@ bool OTSymmetricKey::GenerateKey(const OTPassword& thePassphrase,
 
     {
         int32_t nRes =
-            theActualKey.randomizeMemory(OTCryptoConfig::SymmetricKeySize());
+            theActualKey.randomizeMemory(CryptoConfig::SymmetricKeySize());
         if (0 > nRes) {
             OT_FAIL;
         }
         uint32_t uRes =
             static_cast<uint32_t>(nRes); // we need an uint32_t value.
 
-        if (OTCryptoConfig::SymmetricKeySize() != uRes) {
+        if (CryptoConfig::SymmetricKeySize() != uRes) {
             otErr << __FUNCTION__
                   << ": Failed generating symmetric key. (Returning false.)\n";
             return false;
@@ -1124,18 +1124,18 @@ bool OTSymmetricKey::SerializeFrom(OTData& theInput)
 OTSymmetricKey::OTSymmetricKey()
     : m_bIsGenerated(false)
     , m_bHasHashCheck(false)
-    , m_nKeySize(OTCryptoConfig::SymmetricKeySize() * 8)
+    , m_nKeySize(CryptoConfig::SymmetricKeySize() * 8)
     , // 128 (in bits)
-    m_uIterationCount(OTCryptoConfig::IterationCount())
+    m_uIterationCount(CryptoConfig::IterationCount())
 {
 }
 
 OTSymmetricKey::OTSymmetricKey(const OTPassword& thePassword)
     : m_bIsGenerated(false)
     , m_bHasHashCheck(false)
-    , m_nKeySize(OTCryptoConfig::SymmetricKeySize() * 8)
+    , m_nKeySize(CryptoConfig::SymmetricKeySize() * 8)
     , // 128 (in bits)
-    m_uIterationCount(OTCryptoConfig::IterationCount())
+    m_uIterationCount(CryptoConfig::IterationCount())
 {
     //  const bool bGenerated =
     GenerateKey(thePassword);
@@ -1149,8 +1149,8 @@ OTSymmetricKey::~OTSymmetricKey()
 void OTSymmetricKey::Release_SymmetricKey()
 {
     m_bIsGenerated = false;
-    m_uIterationCount = OTCryptoConfig::IterationCount();
-    m_nKeySize = OTCryptoConfig::SymmetricKeySize() * 8; // 128 (in bits)
+    m_uIterationCount = CryptoConfig::IterationCount();
+    m_nKeySize = CryptoConfig::SymmetricKeySize() * 8; // 128 (in bits)
 
     m_dataSalt.Release();
     m_dataIV.Release();

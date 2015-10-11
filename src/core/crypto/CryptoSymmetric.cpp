@@ -39,20 +39,20 @@
 #include <opentxs/core/crypto/CryptoSymmetric.hpp>
 
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/Crypto.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 
 namespace opentxs
 {
 
-OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output()
+CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput()
     : m_pPassword(nullptr)
     , m_pPayload(nullptr)
 {
 }
 
-OTCrypto_Decrypt_Output::~OTCrypto_Decrypt_Output()
+CryptoSymmetricDecryptOutput::~CryptoSymmetricDecryptOutput()
 {
     // We don't own these objects.
     // Rather, we own a pointer to ONE of them, since we are a wrapper
@@ -70,8 +70,8 @@ OTCrypto_Decrypt_Output::~OTCrypto_Decrypt_Output()
     //  Release_Envelope_Decrypt_Output();
 }
 
-OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output(
-    const OTCrypto_Decrypt_Output& rhs) // passed
+CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(
+    const CryptoSymmetricDecryptOutput& rhs) // passed
     : m_pPassword(nullptr),
       m_pPayload(nullptr)
 {
@@ -79,19 +79,19 @@ OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output(
     m_pPayload = rhs.m_pPayload;
 }
 
-OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output(OTPassword& thePassword)
+CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(OTPassword& thePassword)
     : m_pPassword(&thePassword)
     , m_pPayload(nullptr)
 {
 }
 
-OTCrypto_Decrypt_Output::OTCrypto_Decrypt_Output(OTData& thePayload)
+CryptoSymmetricDecryptOutput::CryptoSymmetricDecryptOutput(OTData& thePayload)
     : m_pPassword(nullptr)
     , m_pPayload(&thePayload)
 {
 }
 
-void OTCrypto_Decrypt_Output::swap(OTCrypto_Decrypt_Output& other) // the swap
+void CryptoSymmetricDecryptOutput::swap(CryptoSymmetricDecryptOutput& other) // the swap
                                                                    // member
                                                                    // function
                                                                    // (should
@@ -104,8 +104,8 @@ void OTCrypto_Decrypt_Output::swap(OTCrypto_Decrypt_Output& other) // the swap
     }
 }
 
-OTCrypto_Decrypt_Output& OTCrypto_Decrypt_Output::operator=(
-    OTCrypto_Decrypt_Output other) // note: argument passed by value!
+CryptoSymmetricDecryptOutput& CryptoSymmetricDecryptOutput::operator=(
+    CryptoSymmetricDecryptOutput other) // note: argument passed by value!
 {
     // swap this with other
     swap(other);
@@ -115,7 +115,7 @@ OTCrypto_Decrypt_Output& OTCrypto_Decrypt_Output::operator=(
 }
 
 // This is just a wrapper class.
-void OTCrypto_Decrypt_Output::Release()
+void CryptoSymmetricDecryptOutput::Release()
 {
     OT_ASSERT((m_pPassword != nullptr) || (m_pPayload != nullptr));
 
@@ -126,14 +126,14 @@ void OTCrypto_Decrypt_Output::Release()
 }
 
 // This is just a wrapper class.
-void OTCrypto_Decrypt_Output::Release_Envelope_Decrypt_Output() const
+void CryptoSymmetricDecryptOutput::Release_Envelope_Decrypt_Output() const
 {
     if (nullptr != m_pPassword) m_pPassword->zeroMemory();
 
     if (nullptr != m_pPayload) m_pPayload->Release();
 }
 
-bool OTCrypto_Decrypt_Output::Concatenate(const void* pAppendData,
+bool CryptoSymmetricDecryptOutput::Concatenate(const void* pAppendData,
                                           uint32_t lAppendSize) const
 {
     OT_ASSERT((m_pPassword != nullptr) || (m_pPayload != nullptr));

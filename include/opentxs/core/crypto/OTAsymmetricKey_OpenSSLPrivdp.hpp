@@ -57,7 +57,7 @@ class OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp
 private:
     friend class LowLevelKeyGenerator; // For access to OpenSSL-specific calls that
                                     // are otherwise private.
-    friend class OTCrypto_OpenSSL;  // For OpenSSL-specific crypto functions to
+    friend class OpenSSL;  // For OpenSSL-specific crypto functions to
                                     // access OpenSSL-specific methods.
     friend class OTAsymmetricKey_OpenSSL;
 
