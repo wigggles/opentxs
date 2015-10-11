@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
+#include <opentxs/core/crypto/CryptoUtil.hpp>
+
 #ifdef OT_CRYPTO_USING_OPENSSL
 #include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
 #else // Apparently NO crypto engine is defined!
@@ -51,22 +53,33 @@ class OTCrypto;
 
 // Choose your OTCrypto implementation here.
 #ifdef OT_CRYPTO_USING_OPENSSL
-typedef OTCrypto_OpenSSL RSAImplementation;
+typedef OTCrypto_OpenSSL SSLImplementation;
 #else // Apparently NO crypto engine is defined!
 // Perhaps error out here...
 #endif
 
+//Singlton class for providing an interface to external crypto libraries
+//and hold the state required by those libraries.
+//Lifetime is the duration of the application.
 class CryptoEngine
 {
-public:
-    EXPORT static OTCrypto* Util();
-    //Asymmetric encryption engines
-    EXPORT static OTCrypto* RSA();
-    //Symmetric encryption engines
-    EXPORT static OTCrypto* AES();
+private:
+    CryptoEngine();
+    CryptoEngine(CryptoEngine const&) = delete;
+    CryptoEngine& operator=(CryptoEngine const&) = delete;
+    void Init();
+    SSLImplementation* pSSL_;
+    static CryptoEngine* pInstance_;
 
-    EXPORT static void Init();
-    EXPORT static void Cleanup();
+public:
+    EXPORT CryptoUtil* Util();
+    //Asymmetric encryption engines
+    EXPORT OTCrypto* RSA();
+    //Symmetric encryption engines
+    EXPORT OTCrypto* AES();
+    EXPORT static CryptoEngine* Instance();
+    void Cleanup();
+    ~CryptoEngine();
 };
 
 }  // namespace opentxs

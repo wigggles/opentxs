@@ -73,7 +73,7 @@ bool OTSignatureMetadata::SetMetadata(char metaKeyType, char metaNymID,
     str_verify_base62 += metaMasterCredID;
     str_verify_base62 += metaChildCredID;
 
-    if (!CryptoEngine::Util()->IsBase62(str_verify_base62)) {
+    if (!CryptoEngine::Instance()->Util()->IsBase62(str_verify_base62)) {
         otErr << __FUNCTION__
               << ": Metadata for signature failed base62 validation: "
               << str_verify_base62 << "\n";

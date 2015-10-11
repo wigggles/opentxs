@@ -559,7 +559,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
     LowLevelReleaseThread();
 
     m_pMasterPassword =
-        CryptoEngine::AES()->InstantiateBinarySecret(); // already asserts.
+        CryptoEngine::Instance()->AES()->InstantiateBinarySecret(); // already asserts.
 
     /*
     How does this work?
@@ -652,7 +652,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
         //      m_pSymmetricKey->GetIdentifier(strCachedKeyHash);
 
         pDerivedKey =
-            CryptoEngine::AES()->InstantiateBinarySecret(); // pDerivedKey is
+            CryptoEngine::Instance()->AES()->InstantiateBinarySecret(); // pDerivedKey is
                                                        // instantiated here to
                                                        // use as output argument
                                                        // below.

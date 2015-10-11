@@ -39,7 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
-#include "OTCrypto.hpp"
+#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoUtil.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
@@ -74,7 +75,7 @@ class OTSignature;
 
 #elif defined(OT_CRYPTO_USING_OPENSSL)
 
-class OTCrypto_OpenSSL : public OTCrypto
+class OTCrypto_OpenSSL : public OTCrypto, public CryptoUtil
 {
     friend class CryptoEngine;
 
@@ -86,13 +87,13 @@ protected:
     class OTCrypto_OpenSSLdp;
     OTCrypto_OpenSSLdp* dp;
 
+    virtual bool GetPasswordFromConsole(OTPassword& theOutput,
+                                                const char* szPrompt) const;
+
 public:
     static std::mutex* s_arrayMutex;
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     virtual OTPassword* InstantiateBinarySecret() const;
-
-    virtual bool GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
-                                                const char* szPrompt) const;
 
     // RANDOM NUMBERS
     virtual bool RandomizeMemory(uint8_t* szDestination,

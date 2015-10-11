@@ -504,7 +504,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
         {
             otOut << "Passphrase request for: \"" << str_userdata << "\"\n";
 
-            bGotPassword = CryptoEngine::Util()->GetPasswordFromConsole(
+            bGotPassword = CryptoEngine::Instance()->Util()->GetPasswordFromConsole(
                 thePassword, (1 == rwflag) ? true : false);
         }
         else // Okay, we have a callback, so let's pop up the dialog!

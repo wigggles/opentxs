@@ -705,7 +705,7 @@ OTPassword* OTCrypto_OpenSSL::InstantiateBinarySecret() const
 #define _PASSWORD_LEN 128
 #endif
 
-bool OTCrypto_OpenSSL::GetPasswordFromConsoleLowLevel(
+bool OTCrypto_OpenSSL::GetPasswordFromConsole(
     OTPassword& theOutput, const char* szPrompt) const
 {
     OT_ASSERT(nullptr != szPrompt);
@@ -1096,7 +1096,7 @@ void OTCrypto_OpenSSL::Init_Override() const
     otWarn << szFunc << ": OpenSSL WAS compiled with thread support, FYI. "
                         "Setting up mutexes...\n";
 
-    thread_setup();
+    this->thread_setup();
 
 #else
     // no thread support

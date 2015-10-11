@@ -200,7 +200,7 @@ bool Identifier::CalculateDigest(const OTData& dataInput)
 //
 void Identifier::SetString(const String& theStr)
 {
-    CryptoEngine::Util()->SetIDFromEncoded(theStr, *this);
+    CryptoEngine::Instance()->Util()->SetIDFromEncoded(theStr, *this);
 }
 
 // This Identifier is stored in binary form.
@@ -209,7 +209,7 @@ void Identifier::SetString(const String& theStr)
 //
 void Identifier::GetString(String& theStr) const
 {
-    CryptoEngine::Util()->EncodeID(*this, theStr); // *this input, theStr output.
+    CryptoEngine::Instance()->Util()->EncodeID(*this, theStr); // *this input, theStr output.
 }
 
 } // namespace opentxs

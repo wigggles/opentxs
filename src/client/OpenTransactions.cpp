@@ -519,7 +519,7 @@ bool OT_API::InitOTApp()
 //  option, and plus, the internals only execute once anyway. (It keeps count.)
 #endif
 
-        CryptoEngine::Init();
+        CryptoEngine::Instance();
 
         // TODO in the case of Windows, figure err into this return val somehow.
         // (Or log it or something.)
@@ -555,7 +555,7 @@ bool OT_API::CleanupOTApp()
         // seems
         // like the best default, in absence of any brighter ideas.
         //
-        CryptoEngine::Cleanup();
+        CryptoEngine::Instance()->Cleanup();
 
         return true;
     }

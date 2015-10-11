@@ -42,31 +42,53 @@
 namespace opentxs
 {
 
-OTCrypto* CryptoEngine::Util()
-{
-  return RSA();
-}
+CryptoEngine* CryptoEngine::pInstance_ = nullptr;
 
-OTCrypto* CryptoEngine::RSA()
+CryptoEngine::CryptoEngine()
+    : pSSL_(new SSLImplementation)
 {
-  static RSAImplementation s_theSingleton; // For now we're only allowing a single
-                                           // instance.
-  return &s_theSingleton;
-}
-
-OTCrypto* CryptoEngine::AES()
-{
-  return RSA();
+    Init();
 }
 
 void CryptoEngine::Init()
 {
-    RSA()->Init();
+    pSSL_->Init();
+
+}
+
+CryptoUtil* CryptoEngine::Util()
+{
+    return static_cast<CryptoUtil*>(pSSL_);
+}
+
+OTCrypto* CryptoEngine::RSA()
+{
+  return pSSL_;
+}
+
+OTCrypto* CryptoEngine::AES()
+{
+  return pSSL_;
+}
+
+CryptoEngine* CryptoEngine::Instance()
+{
+    if (nullptr != pInstance_)
+    {
+        pInstance_ = new CryptoEngine;
+    }
+
+    return pInstance_;
 }
 
 void CryptoEngine::Cleanup()
 {
-    RSA()->Cleanup();
+    pSSL_->Cleanup();
+}
+
+CryptoEngine::~CryptoEngine()
+{
+    Cleanup();
 }
 
 } // namespace opentxs

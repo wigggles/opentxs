@@ -136,49 +136,17 @@ class OTCrypto
 private:
     static int32_t s_nCount; // Instance count, should never exceed 1.
 protected:
-    OTCrypto();
+    OTCrypto() = default;
 
     virtual void Init_Override() const;
     virtual void Cleanup_Override() const;
 
 public:
-    virtual ~OTCrypto();
+    virtual ~OTCrypto() = default;
     // InstantiateBinarySecret
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     //
     virtual OTPassword* InstantiateBinarySecret() const = 0;
-    // GET PASSPHRASE FROM CONSOLE
-    //
-    EXPORT bool GetPasswordFromConsole(OTPassword& theOutput,
-                                       bool bRepeat = false) const;
-
-    EXPORT virtual bool GetPasswordFromConsoleLowLevel(
-        OTPassword& theOutput, const char* szPrompt) const = 0;
-    // RANDOM NUMBERS
-    //
-    virtual bool RandomizeMemory(uint8_t* szDestination,
-                                 uint32_t nNewSize) const = 0;
-    // BASE 62 ENCODING  (for IDs)
-    //
-    bool IsBase62(const std::string& str) const;
-
-    virtual void SetIDFromEncoded(const String& strInput,
-                                  Identifier& theOutput) const = 0;
-    virtual void EncodeID(const Identifier& theInput,
-                          String& strOutput) const = 0;
-    // BASE 64 ENCODING
-    // Caller is responsible to delete. Todo: return a unqiue pointer.
-    virtual char* Base64Encode(const uint8_t* input, int32_t in_len,
-                               bool bLineBreaks) const = 0; // NOTE: the
-                                                            // 'int32_t' here is
-                                                            // very worrying to
-                                                            // me. The
-    // reason it's here is because that's what OpenSSL uses. So
-    // we may need to find another way of doing it, so we can use
-    // a safer parameter here than what it currently is. Todo
-    // security.
-    virtual uint8_t* Base64Decode(const char* input, size_t* out_len,
-                                  bool bLineBreaks) const = 0;
     // KEY DERIVATION
     //
     // DeriveNewKey derives a 128-bit symmetric key from a passphrase.
@@ -268,8 +236,8 @@ public:
         const std::string& strCertFileContents, const OTSignature& theSignature,
         const OTPasswordData* pPWData = nullptr) const = 0;
 
-    EXPORT void Init() const;
-    EXPORT void Cleanup() const;
+    virtual void Init() const;
+    virtual void Cleanup() const;
 };
 
 /*
