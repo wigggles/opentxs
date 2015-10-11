@@ -40,12 +40,9 @@
 #define OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
 
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 #include <mutex>
-
-#include <set>
 
 namespace opentxs
 {
@@ -59,8 +56,6 @@ class OTData;
 class Nym;
 class OTSettings;
 class OTSignature;
-
-typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
 
 class OTCryptoConfig
 {
@@ -199,42 +194,6 @@ public:
                          OTCrypto_Decrypt_Output theDecryptedOutput)
         const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
                    // OTData& here (either will work.)
-    // SEAL / OPEN (RSA envelopes...)
-    //
-    // Asymmetric (public key) encryption / decryption
-    //
-    virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
-                      OTData& dataOutput) const = 0;
-
-    virtual bool Open(OTData& dataInput, const Nym& theRecipient,
-                      String& theOutput,
-                      const OTPasswordData* pPWData = nullptr) const = 0;
-    // SIGN / VERIFY
-    //
-    // Sign or verify using the Asymmetric Key itself.
-    //
-    virtual bool SignContract(const String& strContractUnsigned,
-                              const OTAsymmetricKey& theKey,
-                              OTSignature& theSignature, // output
-                              const String& strHashType,
-                              const OTPasswordData* pPWData = nullptr) = 0;
-
-    virtual bool VerifySignature(
-        const String& strContractToVerify, const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature, const String& strHashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
-    // Sign or verify using the contents of a Certfile.
-    //
-    virtual bool SignContract(const String& strContractUnsigned,
-                              const String& strSigHashType,
-                              const std::string& strCertFileContents,
-                              OTSignature& theSignature, // output
-                              const OTPasswordData* pPWData = nullptr) = 0;
-
-    virtual bool VerifySignature(
-        const String& strContractToVerify, const String& strSigHashType,
-        const std::string& strCertFileContents, const OTSignature& theSignature,
-        const OTPasswordData* pPWData = nullptr) const = 0;
 
     virtual void Init() const;
     virtual void Cleanup() const;

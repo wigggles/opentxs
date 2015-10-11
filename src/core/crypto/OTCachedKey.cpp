@@ -41,7 +41,7 @@
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/crypto/OTKeyring.hpp>
 #include <opentxs/core/Log.hpp>

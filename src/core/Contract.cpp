@@ -40,7 +40,7 @@
 
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
@@ -529,7 +529,7 @@ bool Contract::SignContract(const OTAsymmetricKey& theKey,
     //
     UpdateContents();
 
-    OTCrypto* engine = theKey.engine();
+    CryptoAsymmetric* engine = theKey.engine();
 
     if (false ==
         engine->SignContract(trim(m_xmlUnsigned), theKey, theSignature,
@@ -731,7 +731,7 @@ bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
 
     OTPasswordData thePWData("Contract::VerifySignature 2");
 
-    OTCrypto* engine = theKey.engine();
+    CryptoAsymmetric* engine = theKey.engine();
 
     if (false ==
         engine->VerifySignature(
@@ -873,7 +873,7 @@ bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
     OTSignature theSignature;
     OTPasswordData thePWData("Signing flat text (need private key)");
 
-    OTCrypto* engine = theSigner.GetPrivateSignKey().engine();
+    CryptoAsymmetric* engine = theSigner.GetPrivateSignKey().engine();
 
     if (false ==
       engine->SignContract(

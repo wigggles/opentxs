@@ -40,7 +40,8 @@
 
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -427,7 +428,7 @@ bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
                       const String& theInput)
 {
-  OTCrypto* engine = RecipPubKey.engine();
+  CryptoAsymmetric* engine = RecipPubKey.engine();
 
   mapOfAsymmetricKeys theKeys;
     theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
@@ -446,7 +447,7 @@ bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
 bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
                       const OTPasswordData* pPWData)
 {
-  OTCrypto* engine = theRecipient.GetPublicEncrKey().engine();
+  CryptoAsymmetric* engine = theRecipient.GetPublicEncrKey().engine();
 
   return engine->Open(m_dataContents, theRecipient, theOutput,
                                 pPWData);

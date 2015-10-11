@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
 #include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/String.hpp>
@@ -75,7 +76,7 @@ class OTSignature;
 
 #elif defined(OT_CRYPTO_USING_OPENSSL)
 
-class OTCrypto_OpenSSL : public OTCrypto, public CryptoUtil
+class OTCrypto_OpenSSL : public OTCrypto, public CryptoAsymmetric, public CryptoUtil
 {
     friend class CryptoEngine;
 
@@ -158,18 +159,6 @@ public:
                                  const OTAsymmetricKey& theKey,
                                  const OTSignature& theSignature,
                                  const String& strHashType,
-                                 const OTPasswordData* pPWData = nullptr) const;
-    // Sign or verify using the contents of a Certfile.
-    virtual bool SignContract(const String& strContractUnsigned,
-                              const String& strSigHashType,
-                              const std::string& strCertFileContents,
-                              OTSignature& theSignature, // output
-                              const OTPasswordData* pPWData = nullptr);
-
-    virtual bool VerifySignature(const String& strContractToVerify,
-                                 const String& strSigHashType,
-                                 const std::string& strCertFileContents,
-                                 const OTSignature& theSignature,
                                  const OTPasswordData* pPWData = nullptr) const;
     void thread_setup() const;
     void thread_cleanup() const;

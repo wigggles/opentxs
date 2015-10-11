@@ -41,7 +41,7 @@
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <bitcoin-base58/hash.h>

@@ -37,7 +37,6 @@
  ************************************************************/
 
 #include <opentxs/core/crypto/CryptoEngine.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
 
 namespace opentxs
 {
@@ -61,14 +60,14 @@ CryptoUtil* CryptoEngine::Util()
     return static_cast<CryptoUtil*>(pSSL_);
 }
 
-OTCrypto* CryptoEngine::RSA()
+CryptoAsymmetric* CryptoEngine::RSA()
 {
-  return pSSL_;
+    return static_cast<CryptoAsymmetric*>(pSSL_);
 }
 
 OTCrypto* CryptoEngine::AES()
 {
-  return pSSL_;
+    return pSSL_;
 }
 
 CryptoEngine* CryptoEngine::Instance()

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/util/Timer.hpp>
 #include <list>
 
@@ -126,7 +126,7 @@ public:
 
     KeyType keyType() const;
 
-    virtual OTCrypto* engine() const;
+    virtual CryptoAsymmetric* engine() const;
 
 protected:
     KeyType m_keyType = ERROR_TYPE;

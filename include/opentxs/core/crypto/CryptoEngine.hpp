@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
+#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 
 #ifdef OT_CRYPTO_USING_OPENSSL
@@ -74,7 +76,7 @@ private:
 public:
     EXPORT CryptoUtil* Util();
     //Asymmetric encryption engines
-    EXPORT OTCrypto* RSA();
+    EXPORT CryptoAsymmetric* RSA();
     //Symmetric encryption engines
     EXPORT OTCrypto* AES();
     EXPORT static CryptoEngine* Instance();
