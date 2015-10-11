@@ -65,9 +65,9 @@ CryptoAsymmetric* CryptoEngine::RSA()
     return static_cast<CryptoAsymmetric*>(pSSL_);
 }
 
-OTCrypto* CryptoEngine::AES()
+CryptoSymmetric* CryptoEngine::AES()
 {
-    return pSSL_;
+    return static_cast<CryptoSymmetric*>(pSSL_);
 }
 
 CryptoEngine* CryptoEngine::Instance()

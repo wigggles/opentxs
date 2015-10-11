@@ -41,6 +41,7 @@
 
 #include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
+#include <opentxs/core/crypto/CryptoSymmetric.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/String.hpp>
@@ -76,7 +77,7 @@ class OTSignature;
 
 #elif defined(OT_CRYPTO_USING_OPENSSL)
 
-class OTCrypto_OpenSSL : public OTCrypto, public CryptoAsymmetric, public CryptoUtil
+class OTCrypto_OpenSSL : public OTCrypto, public CryptoAsymmetric, public CryptoSymmetric, public CryptoUtil
 {
     friend class CryptoEngine;
 

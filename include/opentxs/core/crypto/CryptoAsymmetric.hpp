@@ -48,7 +48,6 @@ namespace opentxs
 class OTAsymmetricKey;
 class OTData;
 class OTPasswordData;
-class OTData;
 class Nym;
 class OTSignature;
 

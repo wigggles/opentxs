@@ -37,6 +37,7 @@ set(cxx-sources
   crypto/CredentialSet.cpp
   crypto/OTCrypto.cpp
   crypto/CryptoUtil.cpp
+  crypto/CryptoSymmetric.cpp
   crypto/OTCryptoOpenSSL.cpp
   crypto/CryptoEngine.cpp
   OTData.cpp

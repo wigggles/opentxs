@@ -50,6 +50,7 @@
 #include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/OTCryptoOpenSSL.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/crypto/OTCrypto.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/Nym.hpp>
