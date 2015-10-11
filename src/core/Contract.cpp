@@ -529,13 +529,13 @@ bool Contract::SignContract(const OTAsymmetricKey& theKey,
     //
     UpdateContents();
 
-    CryptoAsymmetric* engine = theKey.engine();
+    CryptoAsymmetric& engine = theKey.engine();
 
     if (false ==
-        engine->SignContract(trim(m_xmlUnsigned), theKey, theSignature,
+        engine.SignContract(trim(m_xmlUnsigned), theKey, theSignature,
                                      strHashType, pPWData)) {
         otErr << "Contract::SignContract: "
-                 "engine->SignContract returned false.\n";
+                 "engine.SignContract returned false.\n";
         return false;
     }
 
@@ -731,14 +731,14 @@ bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
 
     OTPasswordData thePWData("Contract::VerifySignature 2");
 
-    CryptoAsymmetric* engine = theKey.engine();
+    CryptoAsymmetric& engine = theKey.engine();
 
     if (false ==
-        engine->VerifySignature(
+        engine.VerifySignature(
             trim(m_xmlUnsigned), theKey, theSignature, strHashType,
             (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
-               << ": engine->VerifySignature returned false.\n";
+               << ": engine.VerifySignature returned false.\n";
         return false;
     }
 
@@ -873,10 +873,10 @@ bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
     OTSignature theSignature;
     OTPasswordData thePWData("Signing flat text (need private key)");
 
-    CryptoAsymmetric* engine = theSigner.GetPrivateSignKey().engine();
+    CryptoAsymmetric& engine = theSigner.GetPrivateSignKey().engine();
 
     if (false ==
-      engine->SignContract(
+      engine.SignContract(
             trim(strInput), theSigner.GetPrivateSignKey(),
             theSignature, // the output
             Identifier::DefaultHashAlgorithm, &thePWData)) {

@@ -1069,10 +1069,10 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
     return bReturnValue;
 }
 
-CryptoAsymmetric* OTAsymmetricKey::engine() const
+CryptoAsymmetric& OTAsymmetricKey::engine() const
 
 {
-    return CryptoEngine::Instance()->RSA();
+    return CryptoEngine::Instance().RSA();
 }
 
 #elif defined(OT_CRYPTO_USING_GPG)

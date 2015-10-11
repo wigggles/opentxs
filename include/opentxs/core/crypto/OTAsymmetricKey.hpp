@@ -126,7 +126,7 @@ public:
 
     KeyType keyType() const;
 
-    virtual CryptoAsymmetric* engine() const;
+    virtual CryptoAsymmetric& engine() const;
 
 protected:
     KeyType m_keyType = ERROR_TYPE;

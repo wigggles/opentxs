@@ -555,7 +555,7 @@ bool OT_API::CleanupOTApp()
         // seems
         // like the best default, in absence of any brighter ideas.
         //
-        CryptoEngine::Instance()->Cleanup();
+        CryptoEngine::Instance().Cleanup();
 
         return true;
     }

@@ -73,13 +73,13 @@ private:
 
 public:
     //Utility class for misc OpenSSL-provided functions
-    EXPORT CryptoUtil* Util();
+    EXPORT CryptoUtil& Util();
     //Asymmetric encryption engines
-    EXPORT CryptoAsymmetric* RSA();
+    EXPORT CryptoAsymmetric& RSA();
     //Symmetric encryption engines
-    EXPORT CryptoSymmetric* AES();
+    EXPORT CryptoSymmetric& AES();
 
-    EXPORT static CryptoEngine* Instance();
+    EXPORT static CryptoEngine& Instance();
     void Cleanup();
     ~CryptoEngine();
 };

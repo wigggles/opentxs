@@ -118,7 +118,7 @@ public:
             server_ = nullptr;
         }
         OTCachedKey::Cleanup();
-        CryptoEngine::Instance()->Cleanup();
+        CryptoEngine::Instance().Cleanup();
     }
 
     OTServer* getServer()

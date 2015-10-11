@@ -199,7 +199,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
 
     OTData theCipherText;
 
-    const bool bEncrypted = CryptoEngine::Instance()->AES()->Encrypt(
+    const bool bEncrypted = CryptoEngine::Instance().AES().Encrypt(
         theRawSymmetricKey,       // The symmetric key, in clear form.
         theInput.Get(),           // This is the Plaintext.
         theInput.GetLength() + 1, // for null terminator
@@ -391,7 +391,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     //
     OTData thePlaintext; // for output.
 
-    const bool bDecrypted = CryptoEngine::Instance()->AES()->Decrypt(
+    const bool bDecrypted = CryptoEngine::Instance().AES().Decrypt(
         theRawSymmetricKey, // The symmetric key, in clear form.
         static_cast<const char*>(
             theCipherText.GetPointer()), // This is the Ciphertext.
@@ -428,7 +428,7 @@ bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
                       const String& theInput)
 {
-  CryptoAsymmetric* engine = RecipPubKey.engine();
+  CryptoAsymmetric& engine = RecipPubKey.engine();
 
   mapOfAsymmetricKeys theKeys;
     theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
@@ -439,7 +439,7 @@ bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
     OT_ASSERT_MSG(!theKeys.empty(),
                   "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
 
-    return engine->Seal(theKeys, theInput, m_dataContents);
+    return engine.Seal(theKeys, theInput, m_dataContents);
 }
 
 // RSA / AES
@@ -447,9 +447,9 @@ bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
 bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
                       const OTPasswordData* pPWData)
 {
-  CryptoAsymmetric* engine = theRecipient.GetPublicEncrKey().engine();
+  CryptoAsymmetric& engine = theRecipient.GetPublicEncrKey().engine();
 
-  return engine->Open(m_dataContents, theRecipient, theOutput,
+  return engine.Open(m_dataContents, theRecipient, theOutput,
                                 pPWData);
 }
 

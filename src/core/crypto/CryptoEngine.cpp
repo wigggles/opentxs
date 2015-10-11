@@ -55,29 +55,29 @@ void CryptoEngine::Init()
 
 }
 
-CryptoUtil* CryptoEngine::Util()
+CryptoUtil& CryptoEngine::Util()
 {
-    return static_cast<CryptoUtil*>(pSSL_);
+    return *(static_cast<CryptoUtil*>(pSSL_));
 }
 
-CryptoAsymmetric* CryptoEngine::RSA()
+CryptoAsymmetric& CryptoEngine::RSA()
 {
-    return static_cast<CryptoAsymmetric*>(pSSL_);
+    return *(static_cast<CryptoAsymmetric*>(pSSL_));
 }
 
-CryptoSymmetric* CryptoEngine::AES()
+CryptoSymmetric& CryptoEngine::AES()
 {
-    return static_cast<CryptoSymmetric*>(pSSL_);
+    return *(static_cast<CryptoSymmetric*>(pSSL_));
 }
 
-CryptoEngine* CryptoEngine::Instance()
+CryptoEngine& CryptoEngine::Instance()
 {
     if (nullptr != pInstance_)
     {
         pInstance_ = new CryptoEngine;
     }
 
-    return pInstance_;
+    return *pInstance_;
 }
 
 void CryptoEngine::Cleanup()
