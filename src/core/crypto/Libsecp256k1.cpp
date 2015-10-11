@@ -36,76 +36,38 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/Libsecp256k1.hpp>
+
+#include <opentxs/core/OTData.hpp>
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 
 namespace opentxs
 {
 
-CryptoEngine* CryptoEngine::pInstance_ = nullptr;
-
-CryptoEngine::CryptoEngine()
-    : pSSL_(new SSLImplementation)
-#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    , psecp256k1_ (new secp256k1)
-#endif
+Libsecp256k1::Libsecp256k1()
+    : Crypto(),
+    context_(secp256k1_context_create(SECP256K1_CONTEXT_SIGN & SECP256K1_CONTEXT_VERIFY))
 {
-    Init();
+    OTData randomSeed;
+    randomSeed.Randomize(32);
+    OTASCIIArmor randomSeedArmored(randomSeed);
+
+    int __attribute__((unused)) randomize = secp256k1_context_randomize(
+        context_,
+        reinterpret_cast<const unsigned char*>(randomSeedArmored.Get()));
 }
 
-void CryptoEngine::Init()
+Libsecp256k1::~Libsecp256k1()
 {
-    pSSL_->Init();
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    psecp256k1_->Init();
-#endif
-
 }
 
-CryptoUtil& CryptoEngine::Util()
+void Libsecp256k1::Init_Override() const
 {
-    OT_ASSERT(nullptr != pSSL_);
-
-    return *pSSL_;
 }
 
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoAsymmetric& CryptoEngine::RSA()
+void Libsecp256k1::Cleanup_Override() const
 {
-    OT_ASSERT(nullptr != pSSL_);
-
-    return *pSSL_;
-}
-
-#endif
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoSymmetric& CryptoEngine::AES()
-{
-    OT_ASSERT(nullptr != pSSL_);
-
-    return *pSSL_;
-}
-#endif
-CryptoEngine& CryptoEngine::Instance()
-{
-    if (nullptr == pInstance_)
-    {
-        pInstance_ = new CryptoEngine;
-    }
-
-    return *pInstance_;
-}
-
-void CryptoEngine::Cleanup()
-{
-    pSSL_->Cleanup();
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    psecp256k1_->Cleanup();
-#endif
-}
-
-CryptoEngine::~CryptoEngine()
-{
-    Cleanup();
+    secp256k1_context_destroy(context_);
 }
 
 } // namespace opentxs

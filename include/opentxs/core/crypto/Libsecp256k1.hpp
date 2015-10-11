@@ -36,76 +36,34 @@
  *
  ************************************************************/
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
+#ifndef OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
+#define OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
+
+#include <opentxs/core/crypto/Crypto.hpp>
+
+extern "C" {
+#include "secp256k1.h"
+}
 
 namespace opentxs
 {
 
-CryptoEngine* CryptoEngine::pInstance_ = nullptr;
-
-CryptoEngine::CryptoEngine()
-    : pSSL_(new SSLImplementation)
-#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    , psecp256k1_ (new secp256k1)
-#endif
+class Libsecp256k1 : public Crypto
 {
-    Init();
-}
+    friend class CryptoEngine;
 
-void CryptoEngine::Init()
-{
-    pSSL_->Init();
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    psecp256k1_->Init();
-#endif
+private:
+    secp256k1_context_t* context_ = nullptr;
 
-}
+protected:
+    Libsecp256k1();
+    void Init_Override() const;
+    void Cleanup_Override() const;
 
-CryptoUtil& CryptoEngine::Util()
-{
-    OT_ASSERT(nullptr != pSSL_);
-
-    return *pSSL_;
-}
-
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoAsymmetric& CryptoEngine::RSA()
-{
-    OT_ASSERT(nullptr != pSSL_);
-
-    return *pSSL_;
-}
-
-#endif
-#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
-CryptoSymmetric& CryptoEngine::AES()
-{
-    OT_ASSERT(nullptr != pSSL_);
-
-    return *pSSL_;
-}
-#endif
-CryptoEngine& CryptoEngine::Instance()
-{
-    if (nullptr == pInstance_)
-    {
-        pInstance_ = new CryptoEngine;
-    }
-
-    return *pInstance_;
-}
-
-void CryptoEngine::Cleanup()
-{
-    pSSL_->Cleanup();
-#if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    psecp256k1_->Cleanup();
-#endif
-}
-
-CryptoEngine::~CryptoEngine()
-{
-    Cleanup();
-}
+public:
+    ~Libsecp256k1();
+};
 
 } // namespace opentxs
+
+#endif // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP

@@ -5,6 +5,12 @@ include_directories(SYSTEM
   ${CZMQ_INCLUDE_DIR}
 )
 
+if(OT_CRYPTO_USING_LIBSECP256K1)
+  set(LIBSECP256K1 "crypto/Libsecp256k1.cpp")
+else()
+  set(LIBSECP256K1 "")
+endif()
+
 add_subdirectory(otprotob)
 add_subdirectory(trade)
 add_subdirectory(cron)
@@ -39,6 +45,7 @@ set(cxx-sources
   crypto/CryptoUtil.cpp
   crypto/CryptoSymmetric.cpp
   crypto/OpenSSL.cpp
+  ${LIBSECP256K1}
   crypto/CryptoEngine.cpp
   OTData.cpp
   crypto/OTEnvelope.cpp
