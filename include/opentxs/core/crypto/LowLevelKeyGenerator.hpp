@@ -36,8 +36,10 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_OTLOWLEVELKEYDATA_HPP
-#define OPENTXS_CORE_CRYPTO_OTLOWLEVELKEYDATA_HPP
+#ifndef OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
+#define OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
+
+#include <memory>
 
 namespace opentxs
 {
@@ -77,37 +79,49 @@ class OTKeypair;
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif // OT_KEY_TIMER
 
-/// OTLowLevelKeyData
+class NymParameters;
+/// LowLevelKeyGenerator
 /// Used for passing x509's and EVP_PKEYs around, so a replacement
 /// crypto engine will not require changes to any function parameters
 /// throughout the rest of OT.
-class OTLowLevelKeyData
+class LowLevelKeyGenerator
 {
 private:
-    OTLowLevelKeyData(const OTLowLevelKeyData&);
-    OTLowLevelKeyData& operator=(const OTLowLevelKeyData&);
+
+    std::shared_ptr<NymParameters> pkeyData_;
+
+    LowLevelKeyGenerator();
+    LowLevelKeyGenerator(const LowLevelKeyGenerator&);
+    LowLevelKeyGenerator& operator=(const LowLevelKeyGenerator&);
+    void Cleanup();
 
 public:
-    bool m_bCleanup; // By default, OTLowLevelKeyData cleans up the members. But
+    bool m_bCleanup = true; // By default, LowLevelKeyGenerator cleans up the members. But
                      // if you set this to false, it will NOT cleanup.
-    bool MakeNewKeypair(int32_t nBits = 1024);
-    void Cleanup();
+    bool MakeNewKeypair();
+//    void Cleanup();
     bool SetOntoKeypair(OTKeypair& theKeypair);
 
-    OTLowLevelKeyData();
-    ~OTLowLevelKeyData();
+    LowLevelKeyGenerator(const std::shared_ptr<NymParameters>& pkeyData);
+    ~LowLevelKeyGenerator();
 
+//----------------------------------------
+// CRYPTO LIBRARIES
+//----------------------------------------
 #if defined(OT_CRYPTO_USING_OPENSSL)
-    class OTLowLevelKeyDataOpenSSLdp;
-    OTLowLevelKeyDataOpenSSLdp* dp;
+    class LowLevelKeyGeneratorOpenSSLdp;
+    LowLevelKeyGeneratorOpenSSLdp* dp = nullptr;
+#endif
 
-#elif defined(OT_CRYPTO_USING_GPG)
+//----------------------------------------
+// CRYPTO ALGORITHMS
+//----------------------------------------
+#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
 
-#else
+#endif
 
-#endif // Crypto engine.
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTLOWLEVELKEYDATA_HPP
+#endif // OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP

@@ -308,16 +308,16 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
 // CREATE NYM
 // returns new Nym ID
 //
-std::string OT_ME::create_nym(int32_t nKeybits,
+std::string OT_ME::create_nym_legacy(int32_t nKeybits,
                               const std::string& strNymIDSource,
                               const std::string& strAltLocation) const
 {
     std::string strNymID =
-        OTAPI_Wrap::CreateNym(nKeybits, strNymIDSource, strAltLocation);
+        OTAPI_Wrap::CreateNymLegacy(nKeybits, strNymIDSource, strAltLocation);
 
     if (!VerifyStringVal(strNymID)) {
-        otOut << "OT_ME_create_nym: Failed in "
-              << "OT_API_CreateNym(keybits == " << nKeybits << ")\n";
+        otOut << "OT_ME_create_nym_legacy: Failed in "
+              << "OT_API_CreateNymLegacy(keybits == " << nKeybits << ")\n";
     }
 
     return strNymID;
@@ -1839,7 +1839,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::VerifySignature),
                             "OT_API_VerifySignature");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::CreateNym), "OT_API_CreateNym");
+        theScript.chai->add(fun(&OTAPI_Wrap::CreateNymLegacy),
+                            "OT_API_CreateNymLegacy");
 
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ActiveCronItemIDs),
                             "OT_API_GetNym_ActiveCronItemIDs");
@@ -1850,29 +1851,29 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_GetNym_SourceForID");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_AltSourceLocation),
                             "OT_API_GetNym_AltSourceLocation");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_CredentialCount),
-                            "OT_API_GetNym_CredentialCount");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_CredentialID),
-                            "OT_API_GetNym_CredentialID");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_CredentialContents),
-                            "OT_API_GetNym_CredentialContents");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MasterCredentialCount),
+                            "OT_API_GetNym_MasterCredentialCount");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MasterCredentialID),
+                            "OT_API_GetNym_MasterCredentialID");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MasterCredentialContents),
+                            "OT_API_GetNym_MasterCredentialContents");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_RevokedCredCount),
                             "OT_API_GetNym_RevokedCredCount");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_RevokedCredID),
                             "OT_API_GetNym_RevokedCredID");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_RevokedCredContents),
                             "OT_API_GetNym_RevokedCredContents");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_SubcredentialCount),
-                            "OT_API_GetNym_SubcredentialCount");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_SubCredentialID),
-                            "OT_API_GetNym_SubCredentialID");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_SubCredentialContents),
-                            "OT_API_GetNym_SubCredentialContents");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ChildCredentialCount),
+                            "OT_API_GetNym_ChildCredentialCount");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ChildCredentialID),
+                            "OT_API_GetNym_ChildCredentialID");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ChildCredentialContents),
+                            "OT_API_GetNym_ChildCredentialContents");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::AddSubcredential),
-                            "OT_API_AddSubcredential");
-        theScript.chai->add(fun(&OTAPI_Wrap::RevokeSubcredential),
-                            "OT_API_RevokeSubcredential");
+        theScript.chai->add(fun(&OTAPI_Wrap::AddChildCredentialLegacy),
+                            "OT_API_AddChildCredentialLegacy");
+        theScript.chai->add(fun(&OTAPI_Wrap::RevokeChildCredential),
+                            "OT_API_RevokeChildCredential");
 
         theScript.chai->add(fun(&OTAPI_Wrap::AddServerContract),
                             "OT_API_AddServerContract");
@@ -1998,11 +1999,6 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
                             "OT_API_Wallet_ExportNym");
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_ImportNym),
                             "OT_API_Wallet_ImportNym");
-        theScript.chai->add(fun(&OTAPI_Wrap::Wallet_ImportCert),
-                            "OT_API_Wallet_ImportCert");
-        theScript.chai->add(fun(&OTAPI_Wrap::Wallet_ExportCert),
-                            "OT_API_Wallet_ExportCert");
-
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetNymIDFromPartial),
                             "OT_API_Wallet_GetNymIDFromPartial");
         theScript.chai->add(fun(&OTAPI_Wrap::Wallet_GetNotaryIDFromPartial),

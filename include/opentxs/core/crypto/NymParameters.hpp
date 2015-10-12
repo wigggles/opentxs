@@ -36,34 +36,64 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_CLIENTCONNECTION_HPP
-#define OPENTXS_SERVER_CLIENTCONNECTION_HPP
+#ifndef OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
+#define OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 
+#include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 
 namespace opentxs
 {
 
-class OTAsymmetricKey;
-class Message;
-class String;
-class OTEnvelope;
-
-class ClientConnection
+class NymParameters
 {
 public:
-    ClientConnection();
-    ~ClientConnection();
+    enum NymParameterType: int32_t {
+      ERROR,
+      LEGACY
+    };
 
-    void SetPublicKey(const String& publicKey, OTAsymmetricKey::KeyType keyType);
-    void SetPublicKey(const OTAsymmetricKey& publicKey);
+    NymParameterType nymParameterType();
 
-    bool SealMessageForRecipient(Message& msg, OTEnvelope& envelope);
+    OTAsymmetricKey::KeyType AsymmetricKeyType();
+
+    void setNymParameterType(NymParameterType theKeytype);
+
+    Credential::CredentialType credentialType() const;
+
+    void setCredentialType(Credential::CredentialType theCredentialtype);
+
+#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+    int32_t keySize();
+
+    void setKeySize(int32_t keySize);
+    NymParameters(const int32_t keySize);
+#endif
+
+    NymParameters();
+    ~NymParameters();
 
 private:
-    OTAsymmetricKey* publicKey_ = nullptr;
+    NymParameters(const NymParameters&);
+    NymParameters& operator=(const NymParameters&);
+
+#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+    NymParameterType nymType_ = NymParameterType::LEGACY;
+    Credential::CredentialType credentialType_ = Credential::RSA_PUBKEY;
+#else
+    NymParameterType nymType_ = NymParameterType::ERROR;
+    Credential::CredentialType credentialType_ = Credential::ERROR_TYPE;
+#endif
+
+//----------------------------------------
+// CRYPTO ALGORITHMS
+//----------------------------------------
+#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+  int32_t nBits_ = 1024;
+#endif
+
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_SERVER_CLIENTCONNECTION_HPP
+#endif // OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP

@@ -87,7 +87,7 @@ char const* Ledger::_GetTypeString(ledgerType theType)
 // But first, this OTLedger version also loads the box receipts,
 // if doing so is appropriate. (message ledger == not appropriate.)
 //
-// Use this method instead of OTContract::VerifyContract, which
+// Use this method instead of Contract::VerifyContract, which
 // expects/uses a pubkey from inside the contract in order to verify
 // it.
 //

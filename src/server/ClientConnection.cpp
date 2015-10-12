@@ -38,7 +38,6 @@
 
 #include <opentxs/server/ClientConnection.hpp>
 
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
@@ -50,10 +49,17 @@ namespace opentxs
 // he says he is, he sets the public key onto the connection object for
 // that nym.  That way, if the connection object ever needs to encrypt something
 // being sent to the client, he has access to the public key.
-void ClientConnection::SetPublicKey(const String& publicKey)
+void ClientConnection::SetPublicKey(const String& publicKey, OTAsymmetricKey::KeyType keyType)
 {
+    if (nullptr != publicKey_)
+    {
+        delete publicKey_;
+        publicKey_ = nullptr;
+    }
+    // ----------------------
+    publicKey_ = OTAsymmetricKey::KeyFactory(keyType);
     OT_ASSERT(nullptr != publicKey_);
-
+    // ----------------------
     // SetPublicKey takes the ascii-encoded text, including bookends, and
     // processes it into the OTAssymeticKey object. If successful, the
     // OTAssymetricKey is now fully functional for encrypting and verifying.
@@ -62,8 +68,18 @@ void ClientConnection::SetPublicKey(const String& publicKey)
 
 void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
 {
+    if (nullptr != publicKey_)
+    {
+        delete publicKey_;
+        publicKey_ = nullptr;
+    }
+    // ----------------------
+    publicKey_ = OTAsymmetricKey::KeyFactory(publicKey.keyType());
+//    publicKey_ = publicKey.ClonePubKey(publicKey.getType());
     OT_ASSERT(nullptr != publicKey_);
-
+    // ----------------------
+    // NOTE: CLone above probably allows us to remove this bottom part entirely.
+    // TODO.
     String strNymsPublicKey;
 
     publicKey.GetPublicKey(strNymsPublicKey, true);
@@ -94,7 +110,6 @@ bool ClientConnection::SealMessageForRecipient(Message& msg,
 }
 
 ClientConnection::ClientConnection()
-    : publicKey_(OTAsymmetricKey::KeyFactory())
 {
 }
 

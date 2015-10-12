@@ -187,7 +187,7 @@ OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME)
     SetFilename(strLocalSubdir, strFile_Name);
 }
 
-// This is entirely separate from the OTContract saving methods.  This is
+// This is entirely separate from the Contract saving methods.  This is
 // specifically
 // for saving the internal file payload based on the internal file information,
 // which
@@ -197,9 +197,9 @@ bool OTSignedFile::SaveFile()
     const String strTheFileName(m_strFilename);
     const String strTheFolderName(m_strFoldername);
 
-    // OTContract doesn't natively make it easy to save a contract to its own
+    // Contract doesn't natively make it easy to save a contract to its own
     // filename.
-    // Funny, I know, but OTContract is designed to save either to a specific
+    // Funny, I know, but Contract is designed to save either to a specific
     // filename,
     // or to a string parameter, or to the internal rawfile member. It doesn't
     // normally
@@ -229,7 +229,7 @@ void OTSignedFile::SetFilename(const String& LOCAL_SUBDIR,
     m_strLocalDir = LOCAL_SUBDIR;
     m_strSignedFilename = FILE_NAME;
 
-    // OTContract variables.
+    // Contract variables.
     m_strFoldername = m_strLocalDir;
     m_strFilename = m_strSignedFilename;
 
@@ -267,7 +267,7 @@ void OTSignedFile::Release_SignedFile()
 //  m_strSignedFilename.Release();    // calls Release(), and these are our core values. We
                                       // don't want to lose them when the file is loaded.
 
-    // Note: Additionally, neither does OTContract release m_strFilename here,
+    // Note: Additionally, neither does Contract release m_strFilename here,
     // for the SAME reason.
 
     m_strPurportedLocalDir.Release();

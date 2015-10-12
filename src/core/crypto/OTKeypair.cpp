@@ -36,19 +36,29 @@
  *
  ************************************************************/
 
-// A nym contains a list of credentials
+// A nym contains a list of credential sets.
+// The whole purpose of a Nym is to be an identity, which can have
+// master credentials.
 //
-// Each credential contains a "master" subkey, and a list of subkeys
-// signed by that master.
+// Each CredentialSet contains list of Credentials. One of the
+// Credentials is a MasterCredential, and the rest are ChildCredentials
+// signed by the MasterCredential.
 //
-// The same class (subkey) is used because there are master credentials
-// and subkey credentials, so we're using a single "subkey" class to
-// encapsulate each credential, both for the master credential and
-// for each subkey credential.
+// A Credential may contain keys, in which case it is a KeyCredential.
 //
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
+// Credentials without keys might be an interface to a hardware device
+// or other kind of external encryption and authentication system.
 //
-// Each key pair has 2 OTAsymmetricKeys (public and private.)
+// Non-key Credentials are not yet implemented.
+//
+// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
+// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+//
+// A MasterCredential must be a KeyCredential, and is only used to sign
+// ChildCredentials
+//
+// ChildCredentials are used for all other actions, and never sign other
+// Credentials
 
 #include <opentxs/core/stdafx.hpp>
 
@@ -58,19 +68,20 @@
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Log.hpp>
-#include <opentxs/core/crypto/OTLowLevelKeyData.hpp>
+#include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
+#include <memory>
 // DONE: Add OTKeypair member for m_pMetadata.
 // Add method to set the Metadata. Or instead of a member,
 // just have the method set the public and private keys.
 //
-// Then a Subkey can have a similar function which sets the metadata
+// Then a key credential can have a similar function which sets the metadata
 // for its three keypairs (they are identical except for the A|E|S.)
 //
 // When a Nym is loaded, load up its master credentials and all their
-// subcredentials. Since their metadata was supposedly set properly at
+// child credentials. Since their metadata was supposedly set properly at
 // creation, verify it at load time.
 
 // TODO: on OTNym, change GetPublicKey to GetPublicKeyForVerify or
@@ -87,9 +98,9 @@
 namespace opentxs
 {
 
-OTKeypair::OTKeypair()
-    : m_pkeyPublic(OTAsymmetricKey::KeyFactory())
-    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory())
+OTKeypair::OTKeypair(OTAsymmetricKey::KeyType keyType)
+    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(keyType))
+    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(keyType))
 {
 }
 
@@ -332,24 +343,24 @@ bool OTKeypair::LoadPublicKeyFromCertFile(
                                                    pstrReason, pImportPassword);
 }
 
-bool OTKeypair::MakeNewKeypair(int32_t nBits/*=1024*/)
+bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    OTLowLevelKeyData lowLevelData;
-    
-//    lowLevelData.bits = nBits;
+    if (pKeyData) {
+        LowLevelKeyGenerator lowLevelKeys(pKeyData);//does not take ownership
 
-    if (!lowLevelData.MakeNewKeypair(nBits)) {
-        otErr << "OTKeypair::MakeNewKeypair"
-              << ": Failed in a call to OTLowLevelKeyData::MakeNewKeypair("
-              << nBits << ").\n";
+        if (!lowLevelKeys.MakeNewKeypair()) {
+            otErr << "OTKeypair::MakeNewKeypair"
+                << ": Failed in a call to LowLevelKeyGenerator::MakeNewKeypair.\n";
+            return false;
+        }
+
+        return lowLevelKeys.SetOntoKeypair(*this);
+    } else {
         return false;
     }
-
-    return lowLevelData.SetOntoKeypair(*this);
-
     // If true is returned:
     // Success! At this point, theKeypair's public and private keys have been
     // set.

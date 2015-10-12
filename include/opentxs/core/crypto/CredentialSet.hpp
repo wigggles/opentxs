@@ -36,105 +36,91 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_OTCREDENTIAL_HPP
-#define OPENTXS_CORE_CRYPTO_OTCREDENTIAL_HPP
+#ifndef OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
+#define OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 
-#include "OTMasterkey.hpp"
+#include "MasterCredential.hpp"
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
 
-// A nym contains a list of master credentials, via OTCredential.
+#include <opentxs/core/crypto/Credential.hpp>
+
+#include <memory>
+
+// A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
 // master credentials.
 //
-// Each credential is like a master key for the Nym's identity,
-// which can issue its own subkeys.
+// Each CredentialSet contains list of Credentials. One of the
+// Credentials is a MasterCredential, and the rest are ChildCredentials
+// signed by the MasterCredential.
 //
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
-// Not all subcredentials are a subkey. For example, you might have a
-// subcredential that uses Google Authenticator, and thus doesn't contain
-// any keys, because it uses alternate methods for its own authentication.
+// A Credential may contain keys, in which case it is a KeyCredential.
 //
-// Each OTCredential contains a "master" subkey, and a list of subcredentials
-// (some of them subkeys) signed by that master.
+// Credentials without keys might be an interface to a hardware device
+// or other kind of external encryption and authentication system.
 //
-// The same class (subcredential/subkey) is used because there are master
-// credentials and subcredentials, so we're using inheritance for
-// "subcredential"
-// and "subkey" to encapsulate the credentials, so we don't have to repeat code
-// across both.
-// We're using a "has-a" model here, since the OTCredential "has a" master
-// subkey, and also "has a" list of subcredentials, some of which are subkeys.
+// Non-key Credentials are not yet implemented.
 //
-// Each subcredential must be signed by the subkey that is the master key.
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
+// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
+// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
 //
-// Each key pair has 2 OTAsymmetricKeys (public and private.)
+// A MasterCredential must be a KeyCredential, and is only used to sign
+// ChildCredentials
 //
-// I'm thinking that the Nym should also have a key pair (for whatever is
-// its current key pair, copied from its credentials.)
-//
-// the master should never be able to do any actions except for sign subkeys.
-// the subkeys, meanwhile should only be able to do actions, and not issue
-// any new keys.
+// ChildCredentials are used for all other actions, and never sign other
+// Credentials
 
 namespace opentxs
 {
 
-class OTCredential;
+class CredentialSet;
 class Identifier;
 class OTPassword;
 class OTPasswordData;
-class OTSubcredential;
-class OTSubkey;
+class Credential;
+class ChildKeyCredential;
 class Tag;
 
-typedef std::map<std::string, OTSubcredential*> mapOfSubcredentials;
+typedef std::map<std::string, Credential*> mapOfCredentials;
 
-// THE MASTER CREDENTIAL (below -- OTCredential)
+// CredentialSet
 //
-// Contains a "master" subkey,
-// and a list of subcredentials signed by that master.
-// (Some of which are subkeys, since subkey inherits from
-// subcredential.)
-// Each subcredential can generate its own "credential" contract,
-// even the master subcredential, so an OTCredential object
-// actually may include many "credentials." (That is, each may be
-// issued at separate times. Each may be registered on a server at
-// separate times. Etc.)
+// Contains a MasterCredential, and a list of child credentials signed by that master.
+// Each child credential can generate its own Credential contract,
+// even the MasterCredential, so a CredentialSet object
+// includes many Credentials. (That is, each may be issued at separate times,
+// each may be registered on a server at separate times, etc.)
 //
-// Each nym has multiple OTCredentials because there may be
-// several master keys, each with their own subcredentials.
+// Each nym has multiple CredentialSets because there may be
+// several master keys, each with their own child credentials.
 //
-// Two things to verify on a master credential:
+// Two things to verify on a credential set:
 //
 // 1. If you hash m_pstrSourceForNymID, you should get m_pstrNymID.
-// 2. m_pstrSourceForNymID should somehow verify m_Masterkey.GetContents().
+// 2. m_pstrSourceForNymID should somehow verify m_MasterCredential.GetContents().
 //    For example, if m_pstrSourceForNymID contains CA DN info, then GetContents
 //    should contain a verifiable Cert with that same DN info. Another example,
-//    if m_pstrSourceForNymID contains a public key, then
-// m_Masterkey.GetContents
+//    if m_pstrSourceForNymID contains a public key, then m_MasterCredential.GetContents
 //    should contain that same public key, or a cert that contains it. Another
-// example,
-//    if m_pstrSourceForNymID contains a URL, then m_Masterkey.GetContents
-// should contain
-//    a public key found at that URL, or a public key that, when hashed, matches
-// one of
-//    the hashes posted at that URL.
+//    example, if m_pstrSourceForNymID contains a URL, then m_MasterCredential.GetContents
+//    should contain a public key found at that URL, or a public key that, when
+//    hashed, matches one of the hashes posted at that URL.
 //
-class OTCredential
+class CredentialSet
 {
 private:
-    OTMasterkey m_Masterkey;
-    mapOfSubcredentials m_mapSubcredentials;
+    MasterCredential m_MasterCredential;
+    mapOfCredentials m_mapCredentials;
     String m_strNymID;
     String m_strSourceForNymID;
     // --------------------------------------
     String m_strMasterCredID; // This can't be stored in the master itself
                               // since it's a hash of that master. But this
-                              // SHOULD be found in every subcredential signed
+                              // SHOULD be found in every credential signed
                               // by that master.
 
-    const OTPassword* m_pImportPassword; // Not owned. Just here for
+    const OTPassword* m_pImportPassword = nullptr; // Not owned. Just here for
                                          // convenience.
     // Sometimes it will be set, so that when
     // loading something up (and decrypting it)
@@ -145,7 +131,8 @@ private:
     // whoever set it, will immediately set it
     // back to nullptr when he's done.
 private:
-    OTCredential();
+    CredentialSet();
+    CredentialSet(const Credential::CredentialType masterType);
     bool SetPublicContents(const String::Map& mapPublic);    // For master
                                                              // credential.
     bool SetPrivateContents(const String::Map& mapPrivate);  // For master
@@ -162,21 +149,25 @@ private:
                                                              // own source.
     void SetMasterCredID(const String& strID);    // The master credential ID is
                                                   // a hash of the master
-                                                  // credential m_MasterKey
-    bool GenerateMasterkey(int32_t nBits = 1024); // CreateMaster is able to
-                                                  // create keys from scratch
-                                                  // (by calling this function.)
+                                                  // credential m_MasterCredential
     bool SignNewMaster(const OTPasswordData* pPWData = nullptr); // SignMaster
                                                                  // is used
-    // when creating master
-    // credential.
-    bool SignNewSubcredential(OTSubcredential& theSubCred,
-                              Identifier& theSubCredID_out,
+                                                                 // when creating master
+                                                                 // credential.
+    bool SignNewChildCredential(Credential& theChildCred,
+                              Identifier& theChildCredID_out,
                               const OTPasswordData* pPWData = nullptr); // Used
                                                                         // when
-    // creating a new
-    // subcredential.
+                                                                        // creating a new
+                                                                        // child credential.
+    static CredentialSet* CreateMaster(const String& strSourceForNymID,
+                                      const std::shared_ptr<NymParameters>& pKeyData,
+                                      const OTPasswordData* pPWData = nullptr);
 public:
+    EXPORT CredentialSet(
+        const std::shared_ptr<NymParameters>& nymParameters,
+        const OTPasswordData* pPWData = nullptr, const String* psourceForNymID = nullptr
+    );
     EXPORT const OTPassword* GetImportPassword() const
     {
         return m_pImportPassword;
@@ -185,81 +176,85 @@ public:
     {
         m_pImportPassword = pImportPassword;
     }
-    static OTCredential* CreateMaster(const String& strSourceForNymID,
-                                      int32_t nBits = 1024, // Ignored unless
-                                                            // pmapPrivate is
-                                                            // nullptr
-                                      const String::Map* pmapPrivate = nullptr,
-                                      const String::Map* pmapPublic = nullptr,
-                                      const OTPasswordData* pPWData = nullptr);
-    static OTCredential* LoadMaster(const String& strNymID, // Caller is
+    static CredentialSet* LoadMaster(const String& strNymID, // Caller is
                                                             // responsible to
                                                             // delete, in both
                                     // CreateMaster and LoadMaster.
                                     const String& strMasterCredID,
+                                    const Credential::CredentialType theType,
                                     const OTPasswordData* pPWData = nullptr);
-    static OTCredential* LoadMasterFromString(
+    static CredentialSet* LoadMasterFromString(
         const String& strInput,
         const String& strNymID, // Caller is responsible to delete, in both
                                 // CreateMaster and LoadMaster.
-        const String& strMasterCredID, OTPasswordData* pPWData = nullptr,
+        const String& strMasterCredID,
+        const Credential::CredentialType theType,
+        OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
     EXPORT bool Load_Master(const String& strNymID,
                             const String& strMasterCredID,
+                            const Credential::CredentialType theType,
                             const OTPasswordData* pPWData = nullptr);
     EXPORT bool Load_MasterFromString(
         const String& strInput, const String& strNymID,
-        const String& strMasterCredID, const OTPasswordData* pPWData = nullptr,
+        const String& strMasterCredID,
+        Credential::CredentialType theType,
+        const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    // For subcredentials that are specifically *subkeys*. Meaning it will
+    // For credentials that are specifically KeyCredentials. Meaning it will
     // contain 3 keypairs: signing, authentication, and encryption.
     //
-    EXPORT bool AddNewSubkey(
-        int32_t nBits = 1024, // Ignored unless pmapPrivate is nullptr
-        const String::Map* pmapPrivate = nullptr, // Public keys are derived
-                                                  // from the private.
-        const OTPasswordData* pPWData = nullptr, // The master key will sign the
-                                                 // subkey.
-        OTSubkey* *ppSubkey = nullptr);          // output
+    EXPORT bool AddNewChildKeyCredential(
+        const std::shared_ptr<NymParameters>& pKeyData,
+        const OTPasswordData* pPWData = nullptr, // The master credential will sign the
+                                                 // child key credential.
+        ChildKeyCredential* *ppChildKeyCredential = nullptr);          // output
     // For non-key credentials, such as for 3rd-party authentication.
     //
-    EXPORT bool AddNewSubcredential(
-        const String::Map& mapPrivate, const String::Map& mapPublic,
+    EXPORT bool AddNewChildCredential(
+        const String::Map& mapPrivate,
+        const String::Map& mapPublic,
         const OTPasswordData* pPWData = nullptr, // The master key will sign the
-                                                 // subcredential.
-        OTSubcredential* *ppSubcred = nullptr);  // output
+                                                 // child credential.
+        Credential* *ppChildCred = nullptr);  // output
     EXPORT bool ReEncryptPrivateCredentials(const OTPassword& theExportPassword,
                                             bool bImporting); // Like for when
                                                               // you are
                                                               // exporting a Nym
                                                               // from the
                                                               // wallet.
-    EXPORT bool LoadSubkey(const String& strSubID);
-    EXPORT bool LoadSubcredential(const String& strSubID);
-    EXPORT bool LoadSubkeyFromString(
+    EXPORT bool LoadChildKeyCredential(const String& strSubID, const Credential::CredentialType theType);
+    EXPORT bool LoadCredential(const String& strSubID);
+    EXPORT bool LoadChildKeyCredentialFromString(
+        const String& strInput,
+        const String& strSubID,
+        const Credential::CredentialType theType,
+        const OTPassword* pImportPassword = nullptr);
+    EXPORT bool LoadCredentialFromString(
         const String& strInput, const String& strSubID,
         const OTPassword* pImportPassword = nullptr);
-    EXPORT bool LoadSubcredentialFromString(
-        const String& strInput, const String& strSubID,
-        const OTPassword* pImportPassword = nullptr);
-    EXPORT size_t GetSubcredentialCount() const;
-    EXPORT const OTSubcredential* GetSubcredential(
+    EXPORT size_t GetChildCredentialCount() const;
+    EXPORT const Credential* GetChildCredential(
         const String& strSubID,
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTSubcredential* GetSubcredentialByIndex(int32_t nIndex) const;
-    EXPORT const std::string GetSubcredentialIDByIndex(size_t nIndex) const;
-    EXPORT const String& GetPubCredential() const; // Returns: m_Masterkey's
+    EXPORT const Credential* GetChildCredentialByIndex(int32_t nIndex) const;
+    EXPORT const std::string GetChildCredentialIDByIndex(size_t nIndex) const;
+    EXPORT const String& GetPubCredential() const; // Returns: m_MasterCredential's
                                                    // public credential
                                                    // string.
-    EXPORT const String& GetPriCredential() const; // Returns: m_Masterkey's
+    EXPORT const String& GetPriCredential() const; // Returns: m_MasterCredential's
                                                    // private credential
                                                    // string.
     EXPORT const String& GetMasterCredID() const;  // Returns: Master
                                                    // Credential ID!
     EXPORT const String& GetNymID() const;
     EXPORT const String& GetSourceForNymID() const;
+
+    EXPORT bool HasPublic() const;
+    EXPORT bool HasPrivate() const;
+
     // listRevokedIDs should contain a list of std::strings for IDs of
-    // already-revoked subcredentials.
+    // already-revoked credentials.
     // That way, SerializeIDs will know whether to mark them as valid while
     // serializing them.
     // bShowRevoked allows us to include/exclude the revoked credentials from
@@ -274,9 +269,9 @@ public:
                              bool bValid = true) const;
     EXPORT bool VerifyInternally() const;
     EXPORT bool VerifyAgainstSource() const;
-    EXPORT const OTMasterkey& GetMasterkey() const
+    EXPORT const MasterCredential& GetMasterCredential() const
     {
-        return m_Masterkey;
+        return m_MasterCredential;
     }
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
@@ -302,10 +297,10 @@ public:
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const OTKeypair& GetSignKeypair(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT void ClearSubcredentials();
-    EXPORT ~OTCredential();
+    EXPORT void ClearChildCredentials();
+    EXPORT ~CredentialSet();
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTCREDENTIAL_HPP
+#endif // OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP

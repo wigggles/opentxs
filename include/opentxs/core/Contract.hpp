@@ -36,8 +36,8 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_OTCONTRACT_HPP
-#define OPENTXS_CORE_OTCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_HPP
+#define OPENTXS_CORE_CONTRACT_HPP
 
 #include "Identifier.hpp"
 #include "OTStringXML.hpp"
@@ -147,7 +147,7 @@ public:
                                       String& strFirstLine);
 
     // The Method "RewriteContract" calls this. I put the meat into a static
-    // method so I could use it from outside OTContract as well.
+    // method so I could use it from outside Contract as well.
     //
     static bool AddBookendsAroundContent(
         String& strOutput, const String& strContents,
@@ -251,7 +251,7 @@ public:
     // instantiate
     // and have already done so. Otherwise this function will take ANY flat text
     // and use
-    // a generic OTContract instance to sign it and then write it to strOutput.
+    // a generic Contract instance to sign it and then write it to strOutput.
     // This is
     // due to the fact that OT was never really designed for signing flat text,
     // only contracts.
@@ -261,8 +261,6 @@ public:
                                                                    // or "PURSE"
                                                                    // etc.
                                     const Nym& theSigner, String& strOutput);
-
-    EXPORT bool InsertNym(const String& strKeyName, const String& strKeyValue);
 
     EXPORT inline void GetName(String& strName) const
     {
@@ -452,4 +450,4 @@ public:
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_OTCONTRACT_HPP
+#endif // OPENTXS_CORE_CONTRACT_HPP

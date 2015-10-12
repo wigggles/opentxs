@@ -806,7 +806,7 @@ void AssetContract::CreateContents()
         tag.add_tag(pTag);
     }
 
-    // This is where OTContract scribes tag with its keys,
+    // This is where Contract scribes tag with its keys,
     // conditions, etc.
     CreateInnerContents(tag);
 

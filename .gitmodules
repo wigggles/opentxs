@@ -12,7 +12,7 @@
 	url = https://github.com/ChaiScript/ChaiScript.git
 [submodule "deps/libzmq_4"]
 	path = deps/libzmq_4
-	url = https://github.com/zeromq/zeromq4-x.git
+	url = https://github.com/zeromq/zeromq4-1.git
 [submodule "deps/bitcoin-base58"]
 	path = deps/bitcoin-base58
 	url = https://github.com/Open-Transactions/bitcoin-core-base58.git

@@ -187,6 +187,45 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
     return false;
 }
 
+// No need to delete Nym returned by this function.
+// (Wallet stores it in RAM and will delete when it destructs.)
+Nym * OTWallet::CreateNym(const std::shared_ptr<NymParameters>& pKeyData,
+                                    const std::string str_id_source,
+                                    const std::string str_alt_location)
+{
+    Nym* pNym = new Nym;
+    OT_ASSERT(nullptr != pNym);
+
+    if (false ==
+        pNym->GenerateNym(pKeyData, true, str_id_source, str_alt_location)) {
+        otErr << __FUNCTION__ << ": Failed trying to generate Nym.\n";
+        delete pNym;
+        pNym = nullptr;
+        return nullptr;
+    }
+    this->AddNym(*pNym); // Add our new nym to the wallet, who "owns" it hereafter.
+
+    // Note: It's already on the master key. To prevent that, we would have had
+    // to PAUSE the master key before calling GenerateNym above. So the below
+    // call
+    // is less about the Nym's encryption, and more about the wallet KNOWING.
+    // Because
+    // OTWallet::ConvertNymToCachedKey is what adds this nym to the wallet's
+    // list of
+    // "master key nyms". Until that happens, the wallet has no idea.
+    //
+    if (!this->ConvertNymToCachedKey(*pNym))
+       otErr << __FUNCTION__
+          << ": Error: Failed in OTWallet::ConvertNymToCachedKey.\n";
+
+    this->SaveWallet(); // Since it just changed.
+
+    // By this point, pNym is a good pointer, and is on the wallet.
+    //  (No need to cleanup.)
+    return pNym;
+
+}
+
 Nym* OTWallet::GetNymByID(const Identifier& NYM_ID)
 {
     Nym* p = GetPrivateNymByID(NYM_ID);
@@ -1301,12 +1340,12 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
         // Thus, to create a new extra symmetrical key, we need to get the
         // master key from OTCachedKey...
         //
-        std::shared_ptr<OTCachedKey> pMasterKey(OTCachedKey::It());
+        std::shared_ptr<OTCachedKey> pMasterCredential(OTCachedKey::It());
 
-        if (pMasterKey) {
+        if (pMasterCredential) {
             OTPassword master_password;
-            const bool bGotMasterPW = pMasterKey->GetMasterPassword(
-                pMasterKey, master_password,
+            const bool bGotMasterPW = pMasterCredential->GetMasterPassword(
+                pMasterCredential, master_password,
                 (nullptr == pReason) ? "" : pReason->c_str());
             String strNewKeyOutput;
 
@@ -1325,7 +1364,7 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
                     SaveWallet();
                 }
             } // if (bGotMasterPW)
-        }     // if (pMasterKey)
+        }     // if (pMasterCredential)
     }
 
     // Then:
@@ -1407,12 +1446,12 @@ bool OTWallet::Encrypt_ByKeyID(const std::string& key_id,
         OTWallet::getOrCreateExtraKey(key_id, &str_Reason);
 
     if (pKey) {
-        std::shared_ptr<OTCachedKey> pMasterKey(OTCachedKey::It());
+        std::shared_ptr<OTCachedKey> pMasterCredential(OTCachedKey::It());
 
-        if (pMasterKey) {
+        if (pMasterCredential) {
             OTPassword master_password;
 
-            if (pMasterKey->GetMasterPassword(pMasterKey, master_password))
+            if (pMasterCredential->GetMasterPassword(pMasterCredential, master_password))
                 return OTSymmetricKey::Encrypt(*pKey, strPlaintext, strOutput,
                                                pstrDisplay, bBookends,
                                                &master_password);
@@ -1429,12 +1468,12 @@ bool OTWallet::Decrypt_ByKeyID(const std::string& key_id,
     std::shared_ptr<OTSymmetricKey> pKey = OTWallet::getExtraKey(key_id);
 
     if (pKey) {
-        std::shared_ptr<OTCachedKey> pMasterKey(OTCachedKey::It());
+        std::shared_ptr<OTCachedKey> pMasterCredential(OTCachedKey::It());
 
-        if (pMasterKey) {
+        if (pMasterCredential) {
             OTPassword master_password;
 
-            if (pMasterKey->GetMasterPassword(pMasterKey, master_password))
+            if (pMasterCredential->GetMasterPassword(pMasterCredential, master_password))
                 return OTSymmetricKey::Decrypt(*pKey, strCiphertext, strOutput,
                                                pstrDisplay, &master_password);
         }
@@ -1638,12 +1677,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     otWarn << "\nLoading wallet: " << m_strName
                            << ", version: " << m_strVersion << "\n";
                 }
-
-                // todo: Remove the masterKey after a while. It's here for now
-                // so people's data files can get
-                // converted over. After a while, just remove it.
-                else if (strNodeName.Compare("masterKey") ||
-                         strNodeName.Compare("cachedKey")) {
+                else if (strNodeName.Compare("cachedKey")) {
                     OTASCIIArmor ascCachedKey;
 
                     if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
@@ -1669,12 +1703,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                     otWarn << "Loading cachedKey:\n" << ascCachedKey << "\n";
                 }
-
-                // todo: Remove the nymUsingMasterKey after a while. It's here
-                // for now so people's data files can get
-                // converted over. After a while, just remove it.
-                else if (strNodeName.Compare("nymUsingMasterKey") ||
-                         strNodeName.Compare("nymUsingCachedKey")) {
+                else if (strNodeName.Compare("nymUsingCachedKey")) {
                     NymID = xml->getAttributeValue("id"); // message digest from
                                                           // hash of x.509 cert
                                                           // or public key.
@@ -1994,62 +2023,57 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
         bool bConverted = false;
         // The Nym has credentials.
         //
-        if (theNym.GetMasterCredentialCount() > 0) {
-            String strNymID, strCredList, strOutput;
-            String::Map mapCredFiles;
+        OT_ASSERT(theNym.GetMasterCredentialCount() > 0);
 
-            theNym.GetIdentifier(strNymID);
-            theNym.GetPrivateCredentials(strCredList, &mapCredFiles);
+        String strNymID, strCredList, strOutput;
+        String::Map mapCredFiles;
 
-            String strFilename;
-            strFilename.Format("%s.cred", strNymID.Get());
+        theNym.GetIdentifier(strNymID);
+        theNym.GetPrivateCredentials(strCredList, &mapCredFiles);
 
-            OTASCIIArmor ascArmor(strCredList);
-            if (ascArmor.Exists() &&
-                ascArmor.WriteArmoredString(
+        String strFilename;
+        strFilename.Format("%s.cred", strNymID.Get());
+
+        OTASCIIArmor ascArmor(strCredList);
+        if (ascArmor.Exists() &&
+            ascArmor.WriteArmoredString(
+                strOutput,
+                "CREDENTIAL LIST") && // bEscaped=false by default.
+            strOutput.Exists()) {
+            if (!OTDB::StorePlainString(strOutput.Get(),
+                                        OTFolders::Credential().Get(),
+                                        strNymID.Get(), strFilename.Get())) {
+                otErr << __FUNCTION__ << ": Failure trying to store "
+                      << (theNym.HasPrivateKey() ? "private" : "public")
+                      << " credential list for Nym: " << strNymID << "\n";
+                return false;
+            }
+        }
+
+        // Here we do the actual credentials.
+        for (auto& it : mapCredFiles) {
+            std::string str_cred_id = it.first;
+            String strCredential(it.second);
+
+            strOutput.Release();
+            OTASCIIArmor ascLoopArmor(strCredential);
+            if (ascLoopArmor.Exists() &&
+                ascLoopArmor.WriteArmoredString(
                     strOutput,
-                    "CREDENTIAL LIST") && // bEscaped=false by default.
+                    "CREDENTIAL") && // bEscaped=false by default.
                 strOutput.Exists()) {
-                if (!OTDB::StorePlainString(strOutput.Get(),
+                if (false ==
+                    OTDB::StorePlainString(strOutput.Get(),
                                             OTFolders::Credential().Get(),
-                                            strNymID.Get(), strFilename.Get())) {
+                                            strNymID.Get(), str_cred_id)) {
                     otErr << __FUNCTION__ << ": Failure trying to store "
                           << (theNym.HasPrivateKey() ? "private" : "public")
-                          << " credential list for Nym: " << strNymID << "\n";
+                          << " credential for Nym: " << strNymID << "\n";
                     return false;
                 }
             }
-
-            // Here we do the actual credentials.
-            for (auto& it : mapCredFiles) {
-                std::string str_cred_id = it.first;
-                String strCredential(it.second);
-
-                strOutput.Release();
-                OTASCIIArmor ascLoopArmor(strCredential);
-                if (ascLoopArmor.Exists() &&
-                    ascLoopArmor.WriteArmoredString(
-                        strOutput,
-                        "CREDENTIAL") && // bEscaped=false by default.
-                    strOutput.Exists()) {
-                    if (false ==
-                        OTDB::StorePlainString(strOutput.Get(),
-                                               OTFolders::Credential().Get(),
-                                               strNymID.Get(), str_cred_id)) {
-                        otErr << __FUNCTION__ << ": Failure trying to store "
-                              << (theNym.HasPrivateKey() ? "private" : "public")
-                              << " credential for Nym: " << strNymID << "\n";
-                        return false;
-                    }
-                }
-            }
-            bConverted = true;
         }
-        else // Kicking it old-school. (No credentials.)
-        {
-            String strReason("Converting Nym to cached master key.");
-            bConverted = theNym.Savex509CertAndPrivateKey(true, &strReason);
-        }
+        bConverted = true;
 
         if (bConverted) {
             m_setNymsOnCachedKey.insert(theNym.GetConstID());

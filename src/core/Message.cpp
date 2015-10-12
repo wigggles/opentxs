@@ -51,6 +51,8 @@
 
 #include <irrxml/irrXML.hpp>
 
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+
 // PROTOCOL DOCUMENT
 
 // --- This is the file that implements the entire message protocol.
@@ -196,11 +198,11 @@ void Message::SetAcknowledgments(Nym& theNym)
     } // for
 }
 
-// The framework (OTContract) will call this function at the appropriate time.
+// The framework (Contract) will call this function at the appropriate time.
 // OTMessage is special because it actually does something here, when most
 // contracts are read-only and thus never update their contents.
 // Messages, obviously, are different every time, and this function will be
-// called just prior to the signing of the message, in OTContract::SignContract.
+// called just prior to the signing of the message, in Contract::SignContract.
 void Message::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
@@ -277,7 +279,7 @@ int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
     //
-    // if (nReturnVal = OTContract::ProcessXMLNode(xml))
+    // if (nReturnVal = Contract::ProcessXMLNode(xml))
     //      return nReturnVal;
 
     const String strNodeName(xml->getNodeName());
@@ -358,7 +360,7 @@ int32_t Message::processXmlNodeNotaryMessage(Message& m,
 // actual signing occurs. (Presumably this is the whole reason why the account
 // is being re-signed.)
 //
-// Normally, in other OTContract and derived classes, m_xmlUnsigned is read
+// Normally, in other Contract and derived classes, m_xmlUnsigned is read
 // from the file and then kept read-only, since contracts do not normally
 // change.
 // But as new messages are sent, they must be signed. This function insures that
@@ -398,7 +400,7 @@ bool Message::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
     return m_bIsSigned;
 }
 
-// virtual (OTContract)
+// virtual (Contract)
 bool Message::VerifySignature(const Nym& theNym,
                               const OTPasswordData* pPWData) const
 {
@@ -840,8 +842,16 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
 
-        pTag->add_tag("publicAuthentKey", m.m_strNymPublicKey.Get());
-        pTag->add_tag("publicEncryptionKey", m.m_strNymID2.Get());
+        TagPtr pAuthentKeyTag(new Tag("publicAuthentKey",    m.m_strNymPublicKey.Get()));
+        TagPtr pEncryptKeyTag(new Tag("publicEncryptionKey", m.m_strNymID2.Get()));
+
+        pAuthentKeyTag->add_attribute("type",
+                                      OTAsymmetricKey::KeyTypeToString(static_cast<OTAsymmetricKey::KeyType>(m.keytypeAuthent_)).Get());
+        pEncryptKeyTag->add_attribute("type",
+                                      OTAsymmetricKey::KeyTypeToString(static_cast<OTAsymmetricKey::KeyType>(m.keytypeEncrypt_)).Get());
+
+        pTag->add_tag(pAuthentKeyTag);
+        pTag->add_tag(pEncryptKeyTag);
 
         parent.add_tag(pTag);
     }
@@ -852,35 +862,77 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-
+        // -------------------------------------------------
         const char* pElementExpected = "publicAuthentKey";
         OTASCIIArmor ascTextExpected;
 
+        String::Map temp_MapAttributesAuthent;
+        temp_MapAttributesAuthent.insert(std::pair<std::string, std::string>(
+            "type",
+            "")); // Value should be "RSA" after reading.
+        // -----------------------------------------------
         if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+                                                  pElementExpected,
+                                                  &temp_MapAttributesAuthent)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
                      "Expected " << pElementExpected
                   << " element with text field, for " << m.m_strCommand
                   << ".\n";
             return (-1); // error condition
         }
+        {
+            // -----------------------------------------------
+            auto it = temp_MapAttributesAuthent.find("type");
 
+            if ((it != temp_MapAttributesAuthent.end())) // We expected this much.
+            {
+                std::string& str_type = it->second;
+
+                if (str_type.size() >
+                    0) // Success finding key type.
+                {
+                    m.keytypeAuthent_ = OTAsymmetricKey::StringToKeyType(str_type);
+                }
+            }
+            // -----------------------------------------------
+        }
         m.m_strNymPublicKey.Set(ascTextExpected);
-
+        // -------------------------------------------------
         pElementExpected = "publicEncryptionKey";
         ascTextExpected.Release();
 
+        String::Map temp_MapAttributesEncrypt;
+        temp_MapAttributesEncrypt.insert(std::pair<std::string, std::string>(
+            "type",
+            "")); // Value should be "RSA" after reading.
+        // -----------------------------------------------
         if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
+                                                pElementExpected,
+                                                &temp_MapAttributesEncrypt)) {
             otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
+                    "Expected " << pElementExpected
+                << " element with text field, for " << m.m_strCommand
+                << ".\n";
             return (-1); // error condition
         }
+        {
+            // -----------------------------------------------
+            auto it = temp_MapAttributesEncrypt.find("type");
 
+            if ((it != temp_MapAttributesEncrypt.end())) // We expected this much.
+            {
+                std::string& str_type = it->second;
+
+                if (str_type.size() >
+                    0) // Success finding key type.
+                {
+                    m.keytypeEncrypt_ = OTAsymmetricKey::StringToKeyType(str_type);
+                }
+            }
+        }
+        // -----------------------------------------------
         m.m_strNymID2.Set(ascTextExpected);
-
+        // -------------------------------------------------
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
                << "\nNotaryID: " << m.m_strNotaryID

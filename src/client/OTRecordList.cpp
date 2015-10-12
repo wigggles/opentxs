@@ -64,7 +64,7 @@ namespace
 const std::string Instrument_TypeStrings[] = {
     // OTCheque is derived from OTTrackable, which is derived from OTInstrument,
     // which is
-    // derived from OTScriptable, which is derived from OTContract.
+    // derived from OTScriptable, which is derived from Contract.
     "cheque",  // A cheque drawn on a user's account.
     "voucher", // A cheque drawn on a server account (cashier's cheque aka
                // banker's cheque)
@@ -74,7 +74,7 @@ const std::string Instrument_TypeStrings[] = {
                       // recurring payment plan.
     "smart contract", // An OTCronItem-derived OTSmartContract, related to a
                       // smart contract.
-    "cash", // An OTContract-derived OTPurse containing a list of cash OTTokens.
+    "cash", // An Contract-derived OTPurse containing a list of cash OTTokens.
     "ERROR_STATE"};
 
 const std::string& GetTypeString(int theType)

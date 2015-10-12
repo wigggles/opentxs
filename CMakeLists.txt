@@ -51,6 +51,10 @@ option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
 option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 
+option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" ON)
+
+option(OT_CRYPTO_USING_OPENSSL       "Use OpenSSL crypto implementation" ON)
+
 # SWIG Bindings
 option(JAVA    "Build with Java binding" OFF)
 option(PERL    "Build with Perl binding" OFF)
@@ -97,6 +101,12 @@ message(STATUS "Keyring iOS:            ${KEYRING_IOS}")
 message(STATUS "Keyring Gnome:          ${KEYRING_GNOME}")
 message(STATUS "Keyring KWallet:        ${KEYRING_KWALLET}")
 message(STATUS "Keyring flatfile:       ${KEYRING_FLATFILE}")
+
+message(STATUS "Key algorithms-------------------------------")
+message(STATUS "RSA:                    ${OT_CRYPTO_SUPPORTED_KEY_RSA}")
+
+message(STATUS "Crypto library providers---------------------")
+message(STATUS "OpenSSL:                ${OT_CRYPTO_USING_OPENSSL}")
 
 message(STATUS "Bindings ------------------------------------")
 message(STATUS "Java binding:           ${JAVA}")
@@ -291,7 +301,17 @@ endif()
 
 add_definitions(-DCHAISCRIPT_NO_THREADS)
 
+#Key types
+
+if(OT_CRYPTO_SUPPORTED_KEY_RSA)
+  add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_RSA)
+endif()
+
+#Crypto libraries
+
+if(OT_CRYPTO_USING_OPENSSL)
 add_definitions(-DOT_CRYPTO_USING_OPENSSL)
+endif()
 
 add_definitions(-DOT_CASH_USING_LUCRE)
 

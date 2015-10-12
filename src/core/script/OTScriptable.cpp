@@ -2437,7 +2437,7 @@ void OTScriptable::UpdateContents() // Before transmission or serialization,
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    int32_t nReturnVal = 0; // Unless/until I want to add OTContract::Compare(),
+    int32_t nReturnVal = 0; // Unless/until I want to add Contract::Compare(),
                             // then people would be able to surreptitiously
                             // insert keys and
     //    int32_t nReturnVal = ot_super::ProcessXMLNode(xml); // conditions, and
@@ -3121,7 +3121,7 @@ int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                             //
                             // This map contains values we will also want, when
                             // we read the clause...
-                            // (The OTContract::LoadEncodedTextField call below
+                            // (The Contract::LoadEncodedTextField call below
                             // will read all the values
                             // as specified in this map.)
                             //

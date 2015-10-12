@@ -55,7 +55,7 @@ public:
     }
 
     bool SetMetadata(char metaKeyType, char metaNymID, char metaMasterCredID,
-                     char metaSubCredID);
+                     char metaChildCredID);
 
     inline bool HasMetadata() const
     {
@@ -77,9 +77,9 @@ public:
         return metaMasterCredID_;
     }
 
-    inline char FirstCharSubCredID() const
+    inline char FirstCharChildCredID() const
     {
-        return metaSubCredID_;
+        return metaChildCredID_;
     }
 
 private:
@@ -96,8 +96,8 @@ private:
     // ID (for that Nym.)
     char metaMasterCredID_;
     // Can be any letter from base62 alphabet. Represents
-    // first letter of a SubCredential ID (signed by that Master.)
-    char metaSubCredID_;
+    // first letter of a Credential ID (signed by that Master.)
+    char metaChildCredID_;
 };
 
 } // namespace opentxs

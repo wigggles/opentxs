@@ -267,11 +267,11 @@ int32_t OTAPI_Wrap::NumList_Count(const std::string& strNumList)
     return Exec()->NumList_Count(strNumList);
 }
 
-std::string OTAPI_Wrap::CreateNym(const int32_t& nKeySize,
+std::string OTAPI_Wrap::CreateNymLegacy(const int32_t& nKeySize,
                                   const std::string& NYM_ID_SOURCE,
                                   const std::string& ALT_LOCATION)
 {
-    return Exec()->CreateNym(nKeySize, NYM_ID_SOURCE, ALT_LOCATION);
+    return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE, ALT_LOCATION);
 }
 
 std::string OTAPI_Wrap::GetNym_ActiveCronItemIDs(const std::string& NYM_ID,
@@ -295,21 +295,21 @@ std::string OTAPI_Wrap::GetNym_AltSourceLocation(const std::string& NYM_ID)
     return Exec()->GetNym_AltSourceLocation(NYM_ID);
 }
 
-int32_t OTAPI_Wrap::GetNym_CredentialCount(const std::string& NYM_ID)
+int32_t OTAPI_Wrap::GetNym_MasterCredentialCount(const std::string& NYM_ID)
 {
-    return Exec()->GetNym_CredentialCount(NYM_ID);
+    return Exec()->GetNym_MasterCredentialCount(NYM_ID);
 }
 
-std::string OTAPI_Wrap::GetNym_CredentialID(const std::string& NYM_ID,
+std::string OTAPI_Wrap::GetNym_MasterCredentialID(const std::string& NYM_ID,
                                             const int32_t& nIndex)
 {
-    return Exec()->GetNym_CredentialID(NYM_ID, nIndex);
+    return Exec()->GetNym_MasterCredentialID(NYM_ID, nIndex);
 }
 
-std::string OTAPI_Wrap::GetNym_CredentialContents(
+std::string OTAPI_Wrap::GetNym_MasterCredentialContents(
     const std::string& NYM_ID, const std::string& CREDENTIAL_ID)
 {
-    return Exec()->GetNym_CredentialContents(NYM_ID, CREDENTIAL_ID);
+    return Exec()->GetNym_MasterCredentialContents(NYM_ID, CREDENTIAL_ID);
 }
 
 int32_t OTAPI_Wrap::GetNym_RevokedCredCount(const std::string& NYM_ID)
@@ -329,39 +329,39 @@ std::string OTAPI_Wrap::GetNym_RevokedCredContents(
     return Exec()->GetNym_RevokedCredContents(NYM_ID, CREDENTIAL_ID);
 }
 
-int32_t OTAPI_Wrap::GetNym_SubcredentialCount(const std::string& NYM_ID,
+int32_t OTAPI_Wrap::GetNym_ChildCredentialCount(const std::string& NYM_ID,
                                               const std::string& MASTER_CRED_ID)
 {
-    return Exec()->GetNym_SubcredentialCount(NYM_ID, MASTER_CRED_ID);
+    return Exec()->GetNym_ChildCredentialCount(NYM_ID, MASTER_CRED_ID);
 }
 
-std::string OTAPI_Wrap::GetNym_SubCredentialID(
+std::string OTAPI_Wrap::GetNym_ChildCredentialID(
     const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
     const int32_t& nIndex)
 {
-    return Exec()->GetNym_SubCredentialID(NYM_ID, MASTER_CRED_ID, nIndex);
+    return Exec()->GetNym_ChildCredentialID(NYM_ID, MASTER_CRED_ID, nIndex);
 }
 
-std::string OTAPI_Wrap::GetNym_SubCredentialContents(
+std::string OTAPI_Wrap::GetNym_ChildCredentialContents(
     const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
     const std::string& SUB_CRED_ID)
 {
-    return Exec()->GetNym_SubCredentialContents(NYM_ID, MASTER_CRED_ID,
+    return Exec()->GetNym_ChildCredentialContents(NYM_ID, MASTER_CRED_ID,
                                                 SUB_CRED_ID);
 }
 
-std::string OTAPI_Wrap::AddSubcredential(const std::string& NYM_ID,
+std::string OTAPI_Wrap::AddChildCredentialLegacy(const std::string& NYM_ID,
                                          const std::string& MASTER_CRED_ID,
                                          const int32_t& nKeySize)
 {
-    return Exec()->AddSubcredential(NYM_ID, MASTER_CRED_ID, nKeySize);
+    return Exec()->AddChildCredentialLegacy(NYM_ID, MASTER_CRED_ID, nKeySize);
 }
 
-bool OTAPI_Wrap::RevokeSubcredential(const std::string& NYM_ID,
+bool OTAPI_Wrap::RevokeChildCredential(const std::string& NYM_ID,
                                      const std::string& MASTER_CRED_ID,
                                      const std::string& SUB_CRED_ID)
 {
-    return Exec()->RevokeSubcredential(NYM_ID, MASTER_CRED_ID, SUB_CRED_ID);
+    return Exec()->RevokeChildCredential(NYM_ID, MASTER_CRED_ID, SUB_CRED_ID);
 }
     
 std::string OTAPI_Wrap::GetSignerNymID(const std::string& str_Contract)
@@ -576,20 +576,9 @@ std::string OTAPI_Wrap::Wallet_ExportNym(const std::string& NYM_ID)
     return Exec()->Wallet_ExportNym(NYM_ID);
 }
 
-std::string OTAPI_Wrap::Wallet_ExportCert(const std::string& NYM_ID)
-{
-    return Exec()->Wallet_ExportCert(NYM_ID);
-}
-
 std::string OTAPI_Wrap::Wallet_ImportNym(const std::string& FILE_CONTENTS)
 {
     return Exec()->Wallet_ImportNym(FILE_CONTENTS);
-}
-
-std::string OTAPI_Wrap::Wallet_ImportCert(const std::string& DISPLAY_NAME,
-                                          const std::string& FILE_CONTENTS)
-{
-    return Exec()->Wallet_ImportCert(DISPLAY_NAME, FILE_CONTENTS);
 }
 
 bool OTAPI_Wrap::Wallet_ChangePassphrase()
@@ -2134,22 +2123,20 @@ int32_t OTAPI_Wrap::checkNym(const std::string& NOTARY_ID,
 int32_t OTAPI_Wrap::sendNymMessage(const std::string& NOTARY_ID,
                                    const std::string& NYM_ID,
                                    const std::string& NYM_ID_RECIPIENT,
-                                   const std::string& RECIPIENT_PUBKEY,
                                    const std::string& THE_MESSAGE)
 {
     return Exec()->sendNymMessage(NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT,
-                                  RECIPIENT_PUBKEY, THE_MESSAGE);
+                                  THE_MESSAGE);
 }
 
 int32_t OTAPI_Wrap::sendNymInstrument(const std::string& NOTARY_ID,
                                       const std::string& NYM_ID,
                                       const std::string& NYM_ID_RECIPIENT,
-                                      const std::string& RECIPIENT_PUBKEY,
                                       const std::string& THE_INSTRUMENT,
                                       const std::string& INSTRUMENT_FOR_SENDER)
 {
     return Exec()->sendNymInstrument(NOTARY_ID, NYM_ID, NYM_ID_RECIPIENT,
-                                     RECIPIENT_PUBKEY, THE_INSTRUMENT,
+                                     THE_INSTRUMENT,
                                      INSTRUMENT_FOR_SENDER);
 }
 

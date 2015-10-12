@@ -140,18 +140,32 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
     String strMsgNymID;
     pNym->GetIdentifier(strMsgNymID);
 
-    if (theMessage.m_strCommand.Compare("pingNotary")) {
+    if (theMessage.m_strCommand.Compare("pingNotary"))
+    {
         Log::vOutput(0, "\n==> Received a pingNotary message. Nym: %s ...\n",
                      strMsgNymID.Get());
+
         OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_notary_id);
+
+        OTAsymmetricKey::KeyType keytypeAuthent =
+        (OTAsymmetricKey::ERROR_TYPE == theMessage.keytypeAuthent_) ?
+            OTAsymmetricKey::RSA : static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeAuthent_);   // TODO HARDCODING
+
+        OTAsymmetricKey::KeyType keytypeEncrypt =
+        (OTAsymmetricKey::ERROR_TYPE == theMessage.keytypeEncrypt_) ?
+            OTAsymmetricKey::RSA : static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeEncrypt_);   // TODO HARDCODING
+
         std::unique_ptr<OTAsymmetricKey> pNymAuthentKey(
-            OTAsymmetricKey::KeyFactory());
+            OTAsymmetricKey::KeyFactory(keytypeAuthent));
         std::unique_ptr<OTAsymmetricKey> pNymEncryptKey(
-            OTAsymmetricKey::KeyFactory());
+            OTAsymmetricKey::KeyFactory(keytypeEncrypt));
+
         OT_ASSERT(nullptr != pNymAuthentKey);
         OT_ASSERT(nullptr != pNymEncryptKey);
+
         OTAsymmetricKey& nymAuthentKey = *pNymAuthentKey;
         OTAsymmetricKey& nymEncryptionKey = *pNymEncryptKey;
+
         bool bIfNymPublicKey =
             (nymAuthentKey.SetPublicKey(theMessage.m_strNymPublicKey, true) &&
              nymEncryptionKey.SetPublicKey(theMessage.m_strNymID2, true));
@@ -177,7 +191,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         // client's public key that we set here.)
         if (nullptr != pConnection)
             pConnection->SetPublicKey(
-                theMessage.m_strNymID2); // theMessage.m_strNymID2
+                theMessage.m_strNymID2, keytypeEncrypt); // theMessage.m_strNymID2
                                          // contains the public
                                          // encryption key for sending
                                          // an encrypted reply.
@@ -215,7 +229,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
             // credentials into the
             // actual folder locations BEFORE they have been verified...
             // SO I had to add "LoadFromString" functions to
-            // OTCredential (which I have done.)
+            // CredentialSet (which I have done.)
             // So now I should be able to continue here, load the
             // credentials up from string,
             // verify them, and if verified, THEN save them to disk...
@@ -338,13 +352,6 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
                 thePublicEncrKey.GetPublicKey(strPublicEncrKey, false);
                 thePublicSignKey.GetPublicKey(strPublicSignKey, false);
-
-                // We also (for now) set the Nym's keypair (which is
-                // being phased out entirely,
-                // and being replaced with credentials.)
-                //
-                if (strPublicSignKey.Exists())
-                    pNym->SetPublicKey(strPublicSignKey, false);
 
                 // This is only for verified Nyms, (and we're
                 // verified in here!) We do this so that

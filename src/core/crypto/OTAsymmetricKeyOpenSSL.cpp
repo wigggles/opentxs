@@ -263,6 +263,8 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
 
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
+
+    m_keyType = OTAsymmetricKey::RSA;
 }
 
 OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()

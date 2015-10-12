@@ -315,9 +315,9 @@ represents a registered piece of property)
 SmartContract, except you are registering an
     OTTitle for a static piece of property, versus activating an OTCronItem that
 processes and triggers repeatedly
-    over time. OTTitle will probably derive from OTContract, in the same way
+    over time. OTTitle will probably derive from Contract, in the same way
 that OTAssetContract derives from
-    OTContract. You will be able to register title on a server similar to
+    Contract. You will be able to register title on a server similar to
 registering an asset contract. Except,
     instead of getting an issuer acct, you get a deed...
 
@@ -335,7 +335,7 @@ NOT code this "deed" piece anytime soon...
  -- (Upcoming) ...HOWEVER, ANOTHER WAY to own title (WITHOUT A DEED) is through
 SHAREHOLDING. That is where my interest currently
     lies. Therefore I will add the OTEntity class. Instead of being derived from
-OTContract like OTTitle, it will be derived from
+Contract like OTTitle, it will be derived from
     OTScriptable (similar to the smart contracts.)  This will enable it to have
 parties and bylaws.
     Similar to cron items, which save the original copy but also save updated
@@ -421,7 +421,7 @@ have proven the first SMART CONTRACT (Escrow!!!!!)
 
 
 ===> NEW THOUGHT:  I think OTAssetContract should be derived from OTScriptable
-instead of OTContract. There's no reason why an
+instead of Contract. There's no reason why an
      issuer shouldn't be able to attach scripts to certain aspects of a
 currency, right? Hooks could trigger at various currency-related
      events.  There's also no reason why an issued currency shouldn't be able to

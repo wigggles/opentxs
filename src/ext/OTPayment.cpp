@@ -60,7 +60,7 @@ char const* const __TypeStringsPayment[] = {
 
     // OTCheque is derived from OTTrackable, which is derived from OTInstrument,
     // which is
-    // derived from OTScriptable, which is derived from OTContract.
+    // derived from OTScriptable, which is derived from Contract.
     "CHEQUE",  // A cheque drawn on a user's account.
     "VOUCHER", // A cheque drawn on a server account (cashier's cheque aka
                // banker's cheque)
@@ -70,7 +70,7 @@ char const* const __TypeStringsPayment[] = {
                      // recurring payment plan.
     "SMARTCONTRACT", // An OTCronItem-derived OTSmartContract, related to a
                      // smart contract.
-    "PURSE",         // An OTContract-derived OTPurse containing a list of cash
+    "PURSE",         // An Contract-derived OTPurse containing a list of cash
                      // OTTokens.
     "ERROR_STATE"};
 

@@ -372,7 +372,7 @@ public:
     //
     // Pass in a contract and a user ID, and this function will:
     // -- Load the contract up and verify it. (Most classes in OT
-    // are derived in some way from OTContract.)
+    // are derived in some way from Contract.)
     // -- Verify the user's signature on it.
     // -- Remove the PGP-style bookends (the signatures, etc)
     // and return the XML contents of the contract in string form. <==
@@ -413,7 +413,7 @@ public:
     // source is just a public key, then the only verification requirement
     // is that master credentials be signed by the corresponding private key.
     */
-    EXPORT std::string CreateNym(const int32_t& nKeySize,
+    EXPORT std::string CreateNymLegacy(const int32_t& nKeySize,
                                  const std::string& NYM_ID_SOURCE,
                                  const std::string& ALT_LOCATION)
         const; // source and location can be empty.
@@ -429,10 +429,10 @@ public:
     EXPORT std::string GetNym_AltSourceLocation(
         const std::string& NYM_ID) const;
 
-    EXPORT int32_t GetNym_CredentialCount(const std::string& NYM_ID) const;
-    EXPORT std::string GetNym_CredentialID(const std::string& NYM_ID,
+    EXPORT int32_t GetNym_MasterCredentialCount(const std::string& NYM_ID) const;
+    EXPORT std::string GetNym_MasterCredentialID(const std::string& NYM_ID,
                                            const int32_t& nIndex) const;
-    EXPORT std::string GetNym_CredentialContents(
+    EXPORT std::string GetNym_MasterCredentialContents(
         const std::string& NYM_ID, const std::string& CREDENTIAL_ID) const;
 
     EXPORT int32_t GetNym_RevokedCredCount(const std::string& NYM_ID) const;
@@ -442,19 +442,19 @@ public:
         const std::string& NYM_ID, const std::string& CREDENTIAL_ID) const;
 
     EXPORT int32_t
-        GetNym_SubcredentialCount(const std::string& NYM_ID,
+        GetNym_ChildCredentialCount(const std::string& NYM_ID,
                                   const std::string& MASTER_CRED_ID) const;
-    EXPORT std::string GetNym_SubCredentialID(const std::string& NYM_ID,
+    EXPORT std::string GetNym_ChildCredentialID(const std::string& NYM_ID,
                                               const std::string& MASTER_CRED_ID,
                                               const int32_t& nIndex) const;
-    EXPORT std::string GetNym_SubCredentialContents(
+    EXPORT std::string GetNym_ChildCredentialContents(
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
         const std::string& SUB_CRED_ID) const;
 
-    EXPORT std::string AddSubcredential(const std::string& NYM_ID,
+    EXPORT std::string AddChildCredentialLegacy(const std::string& NYM_ID,
                                         const std::string& MASTER_CRED_ID,
                                         const int32_t& nKeySize) const;
-    EXPORT bool RevokeSubcredential(const std::string& NYM_ID,
+    EXPORT bool RevokeChildCredential(const std::string& NYM_ID,
                                     const std::string& MASTER_CRED_ID,
                                     const std::string& SUB_CRED_ID) const;
 
@@ -996,14 +996,6 @@ public:
 
     //! returns NymID if success, else nullptr.
     EXPORT std::string Wallet_ImportNym(const std::string& FILE_CONTENTS) const;
-
-    //! Returns the imported cert's NymID, if successful. Else nullptr.
-    EXPORT std::string Wallet_ImportCert(
-        const std::string& DISPLAY_NAME,
-        const std::string& FILE_CONTENTS) const;
-
-    //! Returns the exported cert, if successful. Else nullptr.
-    EXPORT std::string Wallet_ExportCert(const std::string& NYM_ID) const;
 
     //! Attempts to find a full ID in the wallet, based on a partial of the same
     // ID.
@@ -2889,7 +2881,6 @@ public:
     EXPORT int32_t sendNymMessage(const std::string& NOTARY_ID,
                                   const std::string& NYM_ID,
                                   const std::string& NYM_ID_RECIPIENT,
-                                  const std::string& RECIPIENT_PUBKEY,
                                   const std::string& THE_MESSAGE) const;
     /**
     sendNymMessage does this:
@@ -2935,7 +2926,7 @@ public:
     EXPORT int32_t sendNymInstrument(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& NYM_ID_RECIPIENT,
-        const std::string& RECIPIENT_PUBKEY, const std::string& THE_INSTRUMENT,
+        const std::string& THE_INSTRUMENT,
         const std::string& INSTRUMENT_FOR_SENDER // Can be empty. Optional. Only
                                                  // used in the case of cash
                                                  // purses.
