@@ -25,3 +25,7 @@ Moneychanger.cc
 
 # CLion IDE noise
 .idea
+
+# KDevelop noise
+.kdev4
+opentxs.kdev4

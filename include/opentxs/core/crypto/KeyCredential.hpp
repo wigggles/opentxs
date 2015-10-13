@@ -36,52 +36,44 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_OTKEYCREDENTIAL_HPP
-#define OPENTXS_CORE_CRYPTO_OTKEYCREDENTIAL_HPP
+#ifndef OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
+#define OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
 
 #include "OTKeypair.hpp"
-#include "OTSubcredential.hpp"
+#include "Credential.hpp"
+#include <opentxs/core/crypto/NymParameters.hpp>
 
-// A nym contains a list of master credentials, via OTCredential.
+#include <memory>
+
+// A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
 // master credentials.
 //
-// Each credential is like a master key for the Nym's identity,
-// which can issue its own subkeys.
+// Each CredentialSet contains list of Credentials. One of the
+// Credentials is a MasterCredential, and the rest are ChildCredentials
+// signed by the MasterCredential.
 //
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
-// Not all subcredentials are a subkey. For example, you might have a
-// subcredential that uses Google Authenticator, and thus doesn't contain
-// any keys, because it uses alternate methods for its own authentication.
+// A Credential may contain keys, in which case it is a KeyCredential.
 //
-// Each OTCredential contains a "master" subkey, and a list of subcredentials
-// (some of them subkeys) signed by that master.
+// Credentials without keys might be an interface to a hardware device
+// or other kind of external encryption and authentication system.
 //
-// The same class (subcredential/subkey) is used because there are master
-// credentials and subcredentials, so we're using inheritance for
-// "subcredential"
-// and "subkey" to encapsulate the credentials, so we don't have to repeat code
-// across both.
-// We're using a "has-a" model here, since the OTCredential "has a" master
-// subkey, and also "has a" list of subcredentials, some of which are subkeys.
+// Non-key Credentials are not yet implemented.
 //
-// Each subcredential must be signed by the subkey that is the master key.
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
+// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
+// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
 //
-// Each key pair has 2 OTAsymmetricKeys (public and private.)
+// A MasterCredential must be a KeyCredential, and is only used to sign
+// ChildCredentials
 //
-// I'm thinking that the Nym should also have a key pair (for whatever is
-// its current key pair, copied from its credentials.)
-//
-// the master should never be able to do any actions except for sign subkeys.
-// the subkeys, meanwhile should only be able to do actions, and not issue
-// any new keys.
+// ChildCredentials are used for all other actions, and never sign other
+// Credentials
 
 namespace opentxs
 {
 
 class OTAsymmetricKey;
-class OTCredential;
+class CredentialSet;
 class OTPassword;
 class OTPasswordData;
 
@@ -103,16 +95,16 @@ typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 // the public version is hashed to form my credential ID. So once signed, we
 // can't be signing it again later.
 //
-// So I think OTCredential will store a string containing the signed public
+// So I think CredentialSet will store a string containing the signed public
 // version. Then it can include a copy
 // of this string in the signed private version. (That way it always has both
 // versions safe and signed, and it can
 // always pull out its public version and send it to servers or whoever when it
 // needs to.
 //
-// A subcredential can store its own signed public version, which must contain
+// A credential can store its own signed public version, which must contain
 // the master credential ID and be
-// signed by that master key. If a subcredential is a subkey, then it must also
+// signed by that master key. If a credential is a key credential, then it must also
 // be signed by itself.
 //
 // This is packaged up and attached to the signed private version, which
@@ -122,40 +114,38 @@ typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 // Might want also a version with IDs only.
 //
 // When creating a new credential, I want the ability to specify the public and
-// private key information.
-// But what if I don't specify? I should be able to pass nullptr, and OT should
-// be
-// smart enough to generate
-// the three certs and the three private keys, without me having to pass
-// anything at all.
+// private key information.But what if I don't specify? I should be able to pass nullptr, and
+// OT should be smart enough to generate the three certs and the three private keys, without
+// me having to pass anything at all.
 //
-// If it's a master, this subcredential should be signed with itself.
-// If it's a normal subcredential (not master) then it should be signed with
+// If it's a master, this credential should be signed with itself.
+// If it's a normal credential (not master) then it should be signed with
 // its master, but not signed by itself since it may have no key.
-// If it's a subkey (a form of subcredential) then it should be signed by itself
+// If it's a child key credential (a form of credential) then it should be signed by itself
 // AND by its master. And it must contain its master's ID.
 // But if it's a master, it cannot contain its master's ID except maybe its own
-// ID,
-// but it is impossible for a contract to contain its own ID when its ID is a
-// hash
-// of the signed contract!
+// ID, but it is impossible for a contract to contain its own ID when its ID is a
+// hash of the signed contract!
 //
-// I might make OTKeycredential and then have OTSubkey and OTMasterkey both
+// I might make KeyCredential and then have ChildKeyCredential and MasterCredential both
 // derive from that.
-// That way the master key doesn't have to contain its own ID, while the subkey
+// That way the master key doesn't have to contain its own ID, while the child key credential
 // can still contain
 // its master's ID.
 
-/// OTKeyCredential
-/// A form of OTSubcredential that contains 3 key pairs: signing,
+/// KeyCredential
+/// A form of Credential that contains 3 key pairs: signing,
 /// authentication, and encryption.
-/// We won't use OTKeyCredential directly but only as a common base class for
-/// OTSubkey and OTMasterkey.
+/// We won't use KeyCredential directly but only as a common base class for
+/// ChildKeyCredential and MasterCredential.
 ///
-class OTKeyCredential : public OTSubcredential
+class KeyCredential : public Credential
 {
 private: // Private prevents erroneous use by other classes.
-    typedef OTSubcredential ot_super;
+    typedef Credential ot_super;
+    friend class CredentialSet;
+    bool GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData); // Gotta start somewhere.
+    KeyCredential() = delete;
 
 protected:
     virtual bool SetPublicContents(const String::Map& mapPublic);
@@ -166,26 +156,26 @@ protected:
                                                       // use
     // this password by default.
 public:
-    OTKeypair m_SigningKey; // Signing keys, for signing/verifying a "legal
+    std::shared_ptr<OTKeypair> m_SigningKey; // Signing keys, for signing/verifying a "legal
                             // signature".
-    OTKeypair m_AuthentKey; // Authentication keys, used for signing/verifying
+    std::shared_ptr<OTKeypair> m_AuthentKey; // Authentication keys, used for signing/verifying
                             // transmissions and stored files.
-    OTKeypair m_EncryptKey; // Encryption keys, used for sealing/opening
+    std::shared_ptr<OTKeypair>  m_EncryptKey; // Encryption keys, used for sealing/opening
                             // OTEnvelopes.
-    bool GenerateKeys(int32_t nBits = 1024); // Gotta start somewhere.
     bool ReEncryptKeys(const OTPassword& theExportPassword,
                        bool bImporting); // Used when importing/exporting a Nym
                                          // to/from the wallet.
     virtual bool VerifyInternally(); // Verify that m_strNymID is the same as
                                      // the hash of m_strSourceForNymID. Also
                                      // verify that *this ==
-                                     // m_pOwner->m_MasterKey (the master
+                                     // m_pOwner->m_MasterCredential (the master
                                      // credential.) Then verify the
                                      // (self-signed) signature on *this.
     bool VerifySignedBySelf();
     virtual void SetMetadata();
-    OTKeyCredential();
-    OTKeyCredential(OTCredential& theOwner);
+    KeyCredential(CredentialSet& theOwner);
+    KeyCredential(CredentialSet& theOwner, const Credential::CredentialType credentialType);
+    KeyCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters);
     bool Sign(Contract& theContract, const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
@@ -193,11 +183,11 @@ public:
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
-    virtual ~OTKeyCredential();
+    virtual ~KeyCredential();
     virtual void Release();
-    void Release_Subkey();
+    void Release_KeyCredential();
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_OTKEYCREDENTIAL_HPP
+#endif // OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP

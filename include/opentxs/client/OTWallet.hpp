@@ -40,6 +40,7 @@
 #define OPENTXS_CLIENT_OTWALLET_HPP
 
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
 
 #include <map>
 #include <memory>
@@ -106,7 +107,11 @@ public:
     EXPORT int32_t GetServerCount();
     EXPORT int32_t GetAssetTypeCount();
     EXPORT int32_t GetAccountCount();
-
+    EXPORT Nym * CreateNym(
+        const std::shared_ptr<NymParameters>& pKeyData,
+        const std::string str_id_source = "",
+        const std::string str_alt_location = ""
+        );
     EXPORT bool GetNym(int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME);
     EXPORT bool GetServer(int32_t iIndex, Identifier& THE_ID, String& THE_NAME);
     EXPORT bool GetAssetType(int32_t iIndex, Identifier& THE_ID,

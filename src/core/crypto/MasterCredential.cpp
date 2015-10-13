@@ -36,26 +36,37 @@
  *
  ************************************************************/
 
-// A nym contains a list of credentials
+// A nym contains a list of credential sets.
+// The whole purpose of a Nym is to be an identity, which can have
+// master credentials.
 //
-// Each credential contains a "master" subkey, and a list of subkeys
-// signed by that master.
+// Each CredentialSet contains list of Credentials. One of the
+// Credentials is a MasterCredential, and the rest are ChildCredentials
+// signed by the MasterCredential.
 //
-// The same class (subkey) is used because there are master credentials
-// and subkey credentials, so we're using a single "subkey" class to
-// encapsulate each credential, both for the master credential and
-// for each subkey credential.
+// A Credential may contain keys, in which case it is a KeyCredential.
 //
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
+// Credentials without keys might be an interface to a hardware device
+// or other kind of external encryption and authentication system.
 //
-// Each key pair has 2 OTAsymmetricKeys (public and private.)
+// Non-key Credentials are not yet implemented.
+//
+// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
+// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+//
+// A MasterCredential must be a KeyCredential, and is only used to sign
+// ChildCredentials
+//
+// ChildCredentials are used for all other actions, and never sign other
+// Credentials
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/crypto/OTMasterkey.hpp>
+#include <opentxs/core/crypto/MasterCredential.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/crypto/CredentialSet.hpp>
+#include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
@@ -67,7 +78,7 @@
 namespace opentxs
 {
 
-int32_t OTMasterkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+int32_t MasterCredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     int32_t nReturnVal = ot_super::ProcessXMLNode(xml);
 
@@ -88,6 +99,31 @@ int32_t OTMasterkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (strNodeName.Compare("masterCredential")) {
         m_strNymID = xml->getAttributeValue("nymID");
 
+        String masterType = xml->getAttributeValue("type");
+
+        Credential::CredentialType actualCredentialType = Credential::ERROR_TYPE;
+
+        if (masterType.Exists()) {
+            actualCredentialType = StringToCredentialType(masterType.Get());
+        } else {
+            actualCredentialType = Credential::RSA_PUBKEY; //backward compatibility
+        }
+
+        OT_ASSERT(!m_AuthentKey);
+        OT_ASSERT(!m_EncryptKey);
+        OT_ASSERT(!m_SigningKey);
+
+        if (Credential::ERROR_TYPE == actualCredentialType) {
+            otErr << "Invalid master credential type.\n";
+            return -1;
+        } else {
+            m_Type = actualCredentialType;
+            OTAsymmetricKey::KeyType actualKeyType = Credential::CredentialTypeToKeyType(actualCredentialType);
+            m_AuthentKey = std::make_shared<OTKeypair>(actualKeyType);
+            m_EncryptKey = std::make_shared<OTKeypair>(actualKeyType);
+            m_SigningKey = std::make_shared<OTKeypair>(actualKeyType);
+        }
+
         m_strMasterCredID.Release();
 
         otWarn << "Loading masterCredential...\n";
@@ -98,7 +134,7 @@ int32_t OTMasterkey::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-void OTMasterkey::UpdateContents()
+void MasterCredential::UpdateContents()
 {
     m_xmlUnsigned.Release();
 
@@ -106,6 +142,14 @@ void OTMasterkey::UpdateContents()
 
     // a hash of the nymIDSource
     tag.add_attribute("nymID", GetNymID().Get());
+
+    String masterType = CredentialTypeToString(this->GetType());
+
+    if (masterType.Exists()) {
+        tag.add_attribute("type", masterType.Get());
+    } else {
+        tag.add_attribute("type", CredentialTypeToString(Credential::RSA_PUBKEY).Get()); //backward compatibility
+    }
 
     if (GetNymIDSource().Exists()) {
         OTASCIIArmor ascSource;
@@ -118,7 +162,7 @@ void OTMasterkey::UpdateContents()
 
     // PUBLIC INFO
     //
-    //  if (OTSubcredential::credPublicInfo == m_StoreAs)   // PUBLIC INFO
+    //  if (Credential::credPublicInfo == m_StoreAs)   // PUBLIC INFO
     // (Always save this in every state.)
     {
         UpdatePublicContentsToTag(tag);
@@ -128,7 +172,7 @@ void OTMasterkey::UpdateContents()
     //
     // If we're saving the private credential info...
     //
-    if (OTSubcredential::credPrivateInfo == m_StoreAs) // PRIVATE INFO
+    if (Credential::credPrivateInfo == m_StoreAs) // PRIVATE INFO
     {
         UpdatePublicCredentialToTag(tag);
         UpdatePrivateContentsToTag(tag);
@@ -139,7 +183,7 @@ void OTMasterkey::UpdateContents()
 
     m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 
-    m_StoreAs = OTSubcredential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
+    m_StoreAs = Credential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
                                                   // BEHAVIOR. Any other state
                                                   // processes ONCE, and then
                                                   // goes back to this again.
@@ -147,44 +191,44 @@ void OTMasterkey::UpdateContents()
 
 // Verify that m_strNymID is the same as the hash of m_strSourceForNymID. Also
 // verify that
-// *this == m_pOwner->GetMasterkey() (the master credential.) Verify the
+// *this == m_pOwner->GetMasterCredential() (the master credential.) Verify the
 // (self-signed)
 // signature on *this.
 //
-bool OTMasterkey::VerifyInternally()
+bool MasterCredential::VerifyInternally()
 {
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
     //
-    // We can't use super here, since OTSubcredential::VerifyInternally will
+    // We can't use super here, since Credential::VerifyInternally will
     // verify
     // m_strMasterCredID against the actual Master, which is not relevant to us
     // in
-    // OTMasterkey. But this means if we need anything else that
-    // OTKeyCredential::VerifyInternally
+    // MasterCredential. But this means if we need anything else that
+    // KeyCredential::VerifyInternally
     // was doing, we will have to duplicate that here as well...
     //  if (!ot_super::VerifyInternally())
     //      return false;
     if (!VerifyNymID()) return false;
 
     OT_ASSERT(nullptr != m_pOwner);
-    // Verify that *this == m_pOwner->GetMasterkey() (the master credential.)
+    // Verify that *this == m_pOwner->GetMasterCredential() (the master credential.)
     //
-    if (this != &(m_pOwner->GetMasterkey())) {
+    if (this != &(m_pOwner->GetMasterCredential())) {
         otOut << __FUNCTION__ << ": Failure: Expected *this object to be the "
-                                 "same as m_pOwner->GetMasterkey(), "
+                                 "same as m_pOwner->GetMasterCredential(), "
                                  "but it wasn't.\n";
         return false;
     }
 
     // Remember this note above: ...if we need anything else that
-    // OTKeyCredential::VerifyInternally
+    // KeyCredential::VerifyInternally
     // was doing, we will have to duplicate that here as well...
-    // Since we aren't calling OTKeyCredential::VerifyInternally (the super) and
+    // Since we aren't calling KeyCredential::VerifyInternally (the super) and
     // since that function
     // verifies that the credential is self-signed, we must do the same
     // verification here:
     //
-    // Any OTKeyCredential (both master and subkeys, but no other credentials)
+    // Any KeyCredential (both master and child, but no other credentials)
     // must ** sign itself.**
     //
     if (!VerifySignedBySelf()) {
@@ -203,7 +247,7 @@ bool OTMasterkey::VerifyInternally()
 // eventually make
 // a separate identity verification server.
 //
-bool OTMasterkey::VerifyAgainstSource() const
+bool MasterCredential::VerifyAgainstSource() const
 {
     // RULE: *Any* source except for a public key, will begin with a
     // protocol specifier. Such as:
@@ -225,7 +269,7 @@ bool OTMasterkey::VerifyAgainstSource() const
     // also allowing other sources such as Namecoin, Freenet, etc. As int64_t
     // as a Nym's source hashes to its correct ID, and as long as its master
     // credentials can be verified from that same source, then all master
-    // credentials can be verified (as well as subcredentials) from any source
+    // credentials can be verified (as well as child credentials) from any source
     // the user prefers.
     //
 
@@ -291,11 +335,11 @@ bool OTMasterkey::VerifyAgainstSource() const
     return bVerified;
 }
 
-bool OTMasterkey::VerifySource_HTTP(const String) const
+bool MasterCredential::VerifySource_HTTP(const String) const
 {
     /*
      The source is a URL, http://blah.com/folder
-     If I download files from there, will I find my own masterkey inside?
+     If I download files from there, will I find my own master credential inside?
      If so, then I verify.
      */
 
@@ -312,11 +356,11 @@ bool OTMasterkey::VerifySource_HTTP(const String) const
     return true;
 }
 
-bool OTMasterkey::VerifySource_HTTPS(const String) const
+bool MasterCredential::VerifySource_HTTPS(const String) const
 {
     /*
      The source is a URL, https://blah.com/folder
-     If I download files from there, will I find my own masterkey inside?
+     If I download files from there, will I find my own master credential inside?
      If so, then I verify.
      */
 
@@ -333,7 +377,7 @@ bool OTMasterkey::VerifySource_HTTPS(const String) const
     return true;
 }
 
-bool OTMasterkey::VerifySource_Bitcoin(const String) const
+bool MasterCredential::VerifySource_Bitcoin(const String) const
 {
     /*
      The source is a Bitcoin address
@@ -360,11 +404,11 @@ bool OTMasterkey::VerifySource_Bitcoin(const String) const
     return true;
 }
 
-bool OTMasterkey::VerifySource_Namecoin(const String) const
+bool MasterCredential::VerifySource_Namecoin(const String) const
 {
     /*
      The source is a URL, http://blah.bit/folder
-     If I download files from there, will I find my own masterkey inside?
+     If I download files from there, will I find my own master credential inside?
      If so, then I verify.
      */
 
@@ -381,7 +425,7 @@ bool OTMasterkey::VerifySource_Namecoin(const String) const
     return true;
 }
 
-bool OTMasterkey::VerifySource_Freenet(const String) const
+bool MasterCredential::VerifySource_Freenet(const String) const
 {
     otErr << __FUNCTION__ << ": Failure: this function has not yet been "
                              "written, so this Freenet source cannot be "
@@ -389,7 +433,7 @@ bool OTMasterkey::VerifySource_Freenet(const String) const
     return false;
 }
 
-bool OTMasterkey::VerifySource_TOR(const String) const
+bool MasterCredential::VerifySource_TOR(const String) const
 {
     otErr << __FUNCTION__ << ": Failure: this function has not yet been "
                              "written, so this Tor source cannot be "
@@ -397,7 +441,7 @@ bool OTMasterkey::VerifySource_TOR(const String) const
     return false;
 }
 
-bool OTMasterkey::VerifySource_I2P(const String) const
+bool MasterCredential::VerifySource_I2P(const String) const
 {
     otErr << __FUNCTION__ << ": Failure: this function has not yet been "
                              "written, so this I2P source cannot be "
@@ -405,12 +449,12 @@ bool OTMasterkey::VerifySource_I2P(const String) const
     return false;
 }
 
-bool OTMasterkey::VerifySource_CA(const String) const
+bool MasterCredential::VerifySource_CA(const String) const
 {
 
     /*
      The Source is the DN info on the Cert.
-     Therefore look at the Cert being used in this Masterkey.
+     Therefore look at the Cert being used in this master credential.
      Does it have the same DN info? Does it verify through its CA ?
      Then it verifies.
      */
@@ -420,13 +464,13 @@ bool OTMasterkey::VerifySource_CA(const String) const
     return false;
 }
 
-bool OTMasterkey::VerifySource_Pubkey(const String) const
+bool MasterCredential::VerifySource_Pubkey(const String) const
 {
     // Verify signed by self.
     //
     // Note: Whenever VerifyAgainstSource is called, VerifyInternally is also
     // called.
-    // And VerifyInternally, for all OTKeyCredentials, verifies already that the
+    // And VerifyInternally, for all KeyCredentials, verifies already that the
     // credential has been signed by its own private signing key.
     // Since the credential is already verified as having signed itself, there's
     // no
@@ -435,19 +479,34 @@ bool OTMasterkey::VerifySource_Pubkey(const String) const
     return true;
 }
 
-OTMasterkey::OTMasterkey()
-    : ot_super()
-{
-    m_strContractType = "MASTER KEY CREDENTIAL";
-}
-
-OTMasterkey::OTMasterkey(OTCredential& theOwner)
+MasterCredential::MasterCredential(CredentialSet& theOwner)
     : ot_super(theOwner)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
 }
 
-OTMasterkey::~OTMasterkey()
+MasterCredential::MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType)
+    : ot_super(theOwner, masterType)
+{
+    m_strContractType = "MASTER KEY CREDENTIAL";
+}
+
+MasterCredential::MasterCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters, const String* psourceForNymID)
+    : ot_super(theOwner, nymParameters)
+{
+    m_strContractType = "MASTER KEY CREDENTIAL";
+
+    if (nullptr != psourceForNymID) {
+        m_strSourceForNymID = *psourceForNymID;
+    }
+    else {
+        String sourceForNymID;
+        m_SigningKey->GetPublicKey(sourceForNymID);
+        m_strSourceForNymID = sourceForNymID;
+    }
+}
+
+MasterCredential::~MasterCredential()
 {
 }
 

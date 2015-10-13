@@ -34,7 +34,7 @@ set(cxx-sources
   crypto/OTCaller.cpp
   Cheque.cpp
   Contract.cpp
-  crypto/OTCredential.cpp
+  crypto/CredentialSet.cpp
   crypto/OTCrypto.cpp
   crypto/OTCryptoOpenSSL.cpp
   OTData.cpp
@@ -42,13 +42,14 @@ set(cxx-sources
   Identifier.cpp
   Instrument.cpp
   Item.cpp
-  crypto/OTKeyCredential.cpp
+  crypto/KeyCredential.cpp
   crypto/OTKeypair.cpp
   crypto/OTKeyring.cpp
   Ledger.cpp
   Log.cpp
-  crypto/OTLowLevelKeyData.cpp
-  crypto/OTMasterkey.cpp
+  crypto/NymParameters.cpp
+  crypto/LowLevelKeyGenerator.cpp
+  crypto/MasterCredential.cpp
   Message.cpp
   NumList.cpp
   crypto/OTNymOrSymmetricKey.cpp
@@ -62,8 +63,8 @@ set(cxx-sources
   OTStorage.cpp
   String.cpp
   OTStringXML.cpp
-  crypto/OTSubcredential.cpp
-  crypto/OTSubkey.cpp
+  crypto/Credential.cpp
+  crypto/ChildKeyCredential.cpp
   crypto/OTSymmetricKey.cpp
   OTTrackable.cpp
   OTTransaction.cpp

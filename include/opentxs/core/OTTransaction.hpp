@@ -173,7 +173,7 @@ actual box receipt.
  DOES NOT SAVE:
  listOfItems    m_listItems;        // the various items in this transaction.
  OTASCIIArmor   m_ascCancellationRequest; // used by finalReceipt
-//    OTIdentifier    m_ID;            // Account ID. This is in OTContract
+//    OTIdentifier    m_ID;            // Account ID. This is in Contract
 (parent class). Here we use it for the REAL ACCOUNT ID (set before loading.)
  OTIdentifier    m_AcctID;        // Compare m_AcctID to m_ID after loading it
 from string or file. They should match, and signature should verify.
@@ -458,7 +458,7 @@ public:
     EXPORT virtual void CalculateNumberOfOrigin();
 
     // This calls VerifyContractID() as well as VerifySignature()
-    // Use this instead of OTContract::VerifyContract, which expects/uses a
+    // Use this instead of Contract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
     virtual bool VerifyAccount(const Nym& theNym);
 

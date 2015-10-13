@@ -191,7 +191,7 @@ void Contract::Release()
 {
     Release_Contract();
 
-    // No call to ot_super::Release() here, since OTContract
+    // No call to ot_super::Release() here, since Contract
     // is the base class.
 }
 
@@ -211,7 +211,7 @@ bool Contract::SaveToContractFolder()
     //    m_strFoldername    = strFoldername;
     //    m_strFilename    = strFilename;
 
-    otInfo << "OTContract::SaveToContractFolder: Saving asset contract to "
+    otInfo << "Contract::SaveToContractFolder: Saving asset contract to "
               "disk...\n";
 
     return SaveContract(strFoldername.Get(), strFilename.Get());
@@ -301,7 +301,7 @@ bool Contract::VerifyContractID() const
     if (!(m_ID == newID)) {
         String str1(m_ID), str2(newID);
 
-        otOut << "\nHashes do NOT match in OTContract::VerifyContractID.\n "
+        otOut << "\nHashes do NOT match in Contract::VerifyContractID.\n "
                  "Expected: " << str1 << "\n   Actual: " << str2
               << "\n"
                  //                "\nRAW FILE:\n--->" << m_strRawFile << "<---"
@@ -324,7 +324,7 @@ const Nym* Contract::GetContractPublicNym() const
         Nym* pNym = it.second;
         OT_ASSERT_MSG(
             nullptr != pNym,
-            "nullptr pseudonym pointer in OTContract::GetContractPublicNym.\n");
+            "nullptr pseudonym pointer in Contract::GetContractPublicNym.\n");
 
         // We favor the new "credential" system over the old "public key"
         // system.
@@ -357,7 +357,7 @@ bool Contract::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
         nullptr != pSig,
-        "OTContract::SignContract: Error allocating memory for Signature.\n");
+        "Contract::SignContract: Error allocating memory for Signature.\n");
 
     bool bSigned = SignContract(theNym, *pSig, pPWData);
 
@@ -379,7 +379,7 @@ bool Contract::SignContractAuthent(const Nym& theNym,
                                    const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature();
-    OT_ASSERT_MSG(nullptr != pSig, "OTContract::SignContractAuthent: Error "
+    OT_ASSERT_MSG(nullptr != pSig, "Contract::SignContractAuthent: Error "
                                    "allocating memory for Signature.\n");
 
     bool bSigned = SignContractAuthent(theNym, *pSig, pPWData);
@@ -414,7 +414,7 @@ bool Contract::SignContractAuthent(const Nym& theNym, OTSignature& theSignature,
                         m_strSigHashType, pPWData);
 }
 
-// Normally you'd use OTContract::SignContract(const OTPseudonym& theNym)...
+// Normally you'd use Contract::SignContract(const OTPseudonym& theNym)...
 // Normally you WOULDN'T use this function SignWithKey.
 // But this is here anyway for those peculiar places where you need it. For
 // example,
@@ -432,7 +432,7 @@ bool Contract::SignWithKey(const OTAsymmetricKey& theKey,
     OTSignature* pSig = new OTSignature();
     OT_ASSERT_MSG(
         nullptr != pSig,
-        "OTContract::SignWithKey: Error allocating memory for Signature.\n");
+        "Contract::SignWithKey: Error allocating memory for Signature.\n");
 
     bool bSigned = SignContract(theKey, *pSig, m_strSigHashType, pPWData);
 
@@ -484,8 +484,8 @@ bool Contract::SignWithKey(const OTAsymmetricKey& theKey,
 // (Simple.) So I will put the Signature Metadata into its own class, so not
 // only a signature
 // can use it, but also the OTAsymmetricKey class can use it and also
-// OTSubcredential can use it.
-// Then OTContract just uses it if it's there. Also we don't have to pass it in
+// Credential can use it.
+// Then Contract just uses it if it's there. Also we don't have to pass it in
 // here as separate
 // parameters. At most we have to figure out which private key to get above, in
 // theNym.GetPrivateKey()
@@ -523,7 +523,7 @@ bool Contract::SignContract(const OTAsymmetricKey& theKey,
     // This is where we provide an overridable function for the child classes
     // that
     // need to update their contents at this point.
-    // But the OTContract version of this function is actually empty, since the
+    // But the Contract version of this function is actually empty, since the
     // default behavior is that contract contents don't change.
     // (Accounts and Messages being two big exceptions.)
     //
@@ -532,7 +532,7 @@ bool Contract::SignContract(const OTAsymmetricKey& theKey,
     if (false ==
         OTCrypto::It()->SignContract(trim(m_xmlUnsigned), theKey, theSignature,
                                      strHashType, pPWData)) {
-        otErr << "OTContract::SignContract: "
+        otErr << "Contract::SignContract: "
                  "OTCrypto::It()->SignContract returned false.\n";
         return false;
     }
@@ -555,7 +555,7 @@ bool Contract::SignContract(const char* szFoldername,
     OT_ASSERT(nullptr != szFoldername);
     OT_ASSERT(nullptr != szFilename);
 
-    const char* szFunc = "OTContract::SignContract";
+    const char* szFunc = "Contract::SignContract";
 
     if (!OTDB::Exists(szFoldername, szFilename)) {
         otErr << szFunc << ": File does not exist: " << szFoldername
@@ -573,14 +573,14 @@ bool Contract::SignContract(const char* szFoldername,
     }
 
     OTPasswordData thePWData(
-        "(OTContract::SignContract is trying to read the private key...)");
+        "(Contract::SignContract is trying to read the private key...)");
     if (nullptr == pPWData) pPWData = &thePWData;
 
     // Update the contents, (not always necessary, many contracts are read-only)
     // This is where we provide an overridable function for the child classes
     // that
     // need to update their contents at this point.
-    // But the OTContract version of this function is actually empty, since the
+    // But the Contract version of this function is actually empty, since the
     // default behavior is that contract contents don't change.
     // (Accounts and Messages being two big exceptions.)
     //
@@ -611,10 +611,10 @@ bool Contract::VerifySignature(const char* szFoldername,
 {
     OT_ASSERT_MSG(
         nullptr != szFoldername,
-        "Null foldername pointer passed to OTContract::VerifySignature");
+        "Null foldername pointer passed to Contract::VerifySignature");
     OT_ASSERT_MSG(
         nullptr != szFilename,
-        "Null filename pointer passed to OTContract::VerifySignature");
+        "Null filename pointer passed to Contract::VerifySignature");
 
     const char* szFunc = __FUNCTION__;
 
@@ -728,7 +728,7 @@ bool Contract::VerifyWithKey(const OTAsymmetricKey& theKey,
             if (pSig->getMetaData() != *(theKey.m_pMetadata)) continue;
         }
 
-        OTPasswordData thePWData("OTContract::VerifyWithKey");
+        OTPasswordData thePWData("Contract::VerifyWithKey");
         if (VerifySignature(theKey, *pSig, m_strSigHashType,
                             (nullptr != pPWData) ? pPWData : &thePWData))
             return true;
@@ -748,7 +748,7 @@ bool Contract::VerifySigAuthent(const Nym& theNym,
                                 const OTPasswordData* pPWData) const
 {
 
-    OTPasswordData thePWData("OTContract::VerifySigAuthent 1");
+    OTPasswordData thePWData("Contract::VerifySigAuthent 1");
     listOfAsymmetricKeys listOutput;
 
     const int32_t nCount = theNym.GetPublicKeysBySignature(
@@ -793,7 +793,7 @@ bool Contract::VerifySignature(const Nym& theNym,
                                const OTPasswordData* pPWData) const
 {
 
-    OTPasswordData thePWData("OTContract::VerifySignature 1");
+    OTPasswordData thePWData("Contract::VerifySignature 1");
     listOfAsymmetricKeys listOutput;
 
     const int32_t nCount = theNym.GetPublicKeysBySignature(
@@ -840,7 +840,7 @@ bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
         if (theSignature.getMetaData() != *(theKey.m_pMetadata)) return false;
     }
 
-    OTPasswordData thePWData("OTContract::VerifySignature 2");
+    OTPasswordData thePWData("Contract::VerifySignature 2");
 
     if (false ==
         OTCrypto::It()->VerifySignature(
@@ -868,7 +868,7 @@ bool Contract::DisplayStatistics(String& strContents) const
 {
     // Subclasses may override this.
     strContents.Concatenate(
-        const_cast<char*>("ERROR:  OTContract::DisplayStatistics was called "
+        const_cast<char*>("ERROR:  Contract::DisplayStatistics was called "
                           "instead of a subclass...\n"));
 
     return false;
@@ -935,7 +935,7 @@ void Contract::UpdateContents()
 // instantiate
 // and have already done so. Otherwise this function will take ANY flat text and
 // use
-// a generic OTContract instance to sign it and then write it to strOutput. This
+// a generic Contract instance to sign it and then write it to strOutput. This
 // is
 // due to the fact that OT was never really designed for signing flat text, only
 // contracts.
@@ -944,7 +944,7 @@ void Contract::UpdateContents()
 bool Contract::SignFlatText(String& strFlatText, const String& strContractType,
                             const Nym& theSigner, String& strOutput)
 {
-    const char* szFunc = "OTContract::SignFlatText";
+    const char* szFunc = "Contract::SignFlatText";
 
     // Trim the input to remove any extraneous whitespace
     //
@@ -1041,7 +1041,7 @@ bool Contract::AddBookendsAroundContent(String& strOutput,
                                 pSig->getMetaData().GetKeyType(),
                                 pSig->getMetaData().FirstCharNymID(),
                                 pSig->getMetaData().FirstCharMasterCredID(),
-                                pSig->getMetaData().FirstCharSubCredID());
+                                pSig->getMetaData().FirstCharChildCredID());
 
         strTemp.Concatenate("\n%s",
                             pSig->Get()); // <=== *** THE SIGNATURE ITSELF ***
@@ -1074,9 +1074,9 @@ bool Contract::RewriteContract(String& strOutput) const
 bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
 {
     OT_ASSERT_MSG(nullptr != szFilename,
-                  "Null filename sent to OTContract::SaveContract\n");
+                  "Null filename sent to Contract::SaveContract\n");
     OT_ASSERT_MSG(nullptr != szFoldername,
-                  "Null foldername sent to OTContract::SaveContract\n");
+                  "Null foldername sent to Contract::SaveContract\n");
 
     m_strFoldername.Set(szFoldername);
     m_strFilename.Set(szFilename);
@@ -1085,7 +1085,7 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
     OT_ASSERT(m_strFilename.GetLength() > 2);
 
     if (!m_strRawFile.Exists()) {
-        otErr << "OTContract::SaveContract: Error saving file (contract "
+        otErr << "Contract::SaveContract: Error saving file (contract "
                  "contents are empty): " << szFoldername << Log::PathSeparator()
               << szFilename << "\n";
         return false;
@@ -1097,7 +1097,7 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
-        otErr << "OTContract::SaveContract: Error saving file (failed writing "
+        otErr << "Contract::SaveContract: Error saving file (failed writing "
                  "armored string): " << szFoldername << Log::PathSeparator()
               << szFilename << "\n";
         return false;
@@ -1107,7 +1107,7 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
         OTDB::StorePlainString(strFinal.Get(), szFoldername, szFilename);
 
     if (!bSaved) {
-        otErr << "OTContract::SaveContract: Error saving file: " << szFoldername
+        otErr << "Contract::SaveContract: Error saving file: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
@@ -1251,7 +1251,7 @@ bool Contract::ParseRawFile()
     bool bHaveEnteredContentMode = false; // "have yet to enter content mode"
 
     if (!m_strRawFile.GetLength()) {
-        otErr << "Empty m_strRawFile in OTContract::ParseRawFile. Filename: "
+        otErr << "Empty m_strRawFile in Contract::ParseRawFile. Filename: "
               << m_strFoldername << Log::PathSeparator() << m_strFilename
               << ".\n";
         return false;
@@ -1334,7 +1334,7 @@ bool Contract::ParseRawFile()
 
                 OT_ASSERT_MSG(nullptr != pSig, "Error allocating memory for "
                                                "Signature in "
-                                               "OTContract::ParseRawFile\n");
+                                               "Contract::ParseRawFile\n");
 
                 m_listSignatures.push_back(pSig);
 
@@ -1406,7 +1406,7 @@ bool Contract::ParseRawFile()
                             13) // "Meta:    knms" (It will always be exactly 13
                                 // characters int64_t.) knms represents the
                                 // first characters of the Key type, NymID,
-                                // Master Cred ID, and Subcred ID. Key type is
+                                // Master Cred ID, and ChildCred ID. Key type is
                                 // (A|E|S) and the others are base62.
                         {
                             otOut << "Error in signature for contract "
@@ -1462,7 +1462,7 @@ bool Contract::ParseRawFile()
             OT_ASSERT_MSG(nullptr != pSig,
                           "Error: Null Signature pointer WHILE "
                           "processing signature, in "
-                          "OTContract::ParseRawFile");
+                          "Contract::ParseRawFile");
 
             pSig->Concatenate("%s\n", pBuf);
         }
@@ -1473,29 +1473,29 @@ bool Contract::ParseRawFile()
     // bSignatureMode));
 
     if (!bHaveEnteredContentMode) {
-        otErr << "Error in OTContract::ParseRawFile: Found no BEGIN for signed "
+        otErr << "Error in Contract::ParseRawFile: Found no BEGIN for signed "
                  "content.\n";
         return false;
     }
     else if (bContentMode) {
-        otErr << "Error in OTContract::ParseRawFile: EOF while reading xml "
+        otErr << "Error in Contract::ParseRawFile: EOF while reading xml "
                  "content.\n";
         return false;
     }
     else if (bSignatureMode) {
-        otErr << "Error in OTContract::ParseRawFile: EOF while reading "
+        otErr << "Error in Contract::ParseRawFile: EOF while reading "
                  "signature.\n";
         return false;
     }
     else if (!LoadContractXML()) {
-        otErr << "Error in OTContract::ParseRawFile: unable to load XML "
+        otErr << "Error in Contract::ParseRawFile: unable to load XML "
                  "portion of contract into memory.\n";
         return false;
     }
     // Verification code and loading code are now called separately.
     //    else if (!VerifyContractID())
     //    {
-    //        otErr << "Error in OTContract::ParseRawFile: Contract ID does not
+    //        otErr << "Error in Contract::ParseRawFile: Contract ID does not
     // match hashed contract file.\n";
     //        return false;
     //    }
@@ -1518,7 +1518,7 @@ bool Contract::LoadContractXML()
 
     IrrXMLReader* xml = irr::io::createIrrXMLReader(m_xmlUnsigned);
     OT_ASSERT_MSG(nullptr != xml, "Memory allocation issue with xml reader in "
-                                  "OTContract::LoadContractXML()\n");
+                                  "Contract::LoadContractXML()\n");
     std::unique_ptr<IrrXMLReader> xmlAngel(xml);
 
     // parse the file until end reached
@@ -1541,7 +1541,7 @@ bool Contract::LoadContractXML()
 
         switch_log:
             //                otErr << "SKIPPING %s element in
-            // OTContract::LoadContractXML: "
+            // Contract::LoadContractXML: "
             //                              "type: %d, name: %s, value: %s\n",
             //                              strNodeType.Get(),
             // xml->getNodeType(), xml->getNodeName(), xml->getNodeData());
@@ -1551,7 +1551,7 @@ bool Contract::LoadContractXML()
         case EXN_TEXT: {
             // unknown element type
             //                otErr << "SKIPPING unknown text element type in
-            // OTContract::LoadContractXML: %s, value: %s\n",
+            // Contract::LoadContractXML: %s, value: %s\n",
             //                              xml->getNodeName(),
             // xml->getNodeData());
         } break;
@@ -1560,14 +1560,14 @@ bool Contract::LoadContractXML()
 
             // an error was returned. file format or whatever.
             if ((-1) == retProcess) {
-                otErr << "OTContract::LoadContractXML: (Cancelling this "
+                otErr << "Contract::LoadContractXML: (Cancelling this "
                          "contract load; an error occurred.)\n";
                 return false;
             }
             // No error, but also the node wasn't found...
             else if (0 == retProcess) {
                 // unknown element type
-                otErr << "UNKNOWN element type in OTContract::LoadContractXML: "
+                otErr << "UNKNOWN element type in Contract::LoadContractXML: "
                       << xml->getNodeName() << ", value: " << xml->getNodeData()
                       << "\n";
             }
@@ -1575,7 +1575,7 @@ bool Contract::LoadContractXML()
         } break;
         default: {
             //                otErr << "SKIPPING (default case) element in
-            // OTContract::LoadContractXML: %d, value: %s\n",
+            // Contract::LoadContractXML: %d, value: %s\n",
             //                              xml->getNodeType(),
             // xml->getNodeData());
         }
@@ -1590,9 +1590,9 @@ bool Contract::LoadContractXML()
 bool Contract::SkipToElement(IrrXMLReader*& xml)
 {
     OT_ASSERT_MSG(nullptr != xml,
-                  "OTContract::SkipToElement -- assert: nullptr != xml");
+                  "Contract::SkipToElement -- assert: nullptr != xml");
 
-    const char* szFunc = "OTContract::SkipToElement";
+    const char* szFunc = "Contract::SkipToElement";
 
     while (xml->read() && (xml->getNodeType() != EXN_ELEMENT)) {
         //      otOut << szFunc << ": Looping to skip non-elements: currently
@@ -1607,7 +1607,7 @@ bool Contract::SkipToElement(IrrXMLReader*& xml)
             continue;
         } // SKIP
         else if (xml->getNodeType() == EXN_ELEMENT_END)
-        //        { otOut << "*** OTContract::SkipToElement: EXN_ELEMENT_END
+        //        { otOut << "*** Contract::SkipToElement: EXN_ELEMENT_END
         // (ERROR)\n";  return false; }
         {
             otWarn << "*** " << szFunc << ": EXN_ELEMENT_END  (skipping "
@@ -1642,9 +1642,9 @@ bool Contract::SkipToElement(IrrXMLReader*& xml)
 bool Contract::SkipToTextField(IrrXMLReader*& xml)
 {
     OT_ASSERT_MSG(nullptr != xml,
-                  "OTContract::SkipToTextField -- assert: nullptr != xml");
+                  "Contract::SkipToTextField -- assert: nullptr != xml");
 
-    const char* szFunc = "OTContract::SkipToTextField";
+    const char* szFunc = "Contract::SkipToTextField";
 
     while (xml->read() && (xml->getNodeType() != EXN_TEXT)) {
         if (xml->getNodeType() == EXN_NONE) {
@@ -1656,7 +1656,7 @@ bool Contract::SkipToTextField(IrrXMLReader*& xml)
             continue;
         } // SKIP
         else if (xml->getNodeType() == EXN_ELEMENT_END)
-        //        { otOut << "*** OTContract::SkipToTextField:
+        //        { otOut << "*** Contract::SkipToTextField:
         // EXN_ELEMENT_END  (skipping)\n";  continue; }     // SKIP
         // (debugging...)
         {
@@ -1697,12 +1697,12 @@ bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
 {
     OT_ASSERT_MSG(
         nullptr != xml,
-        "OTContract::SkipAfterLoadingField -- assert: nullptr != xml");
+        "Contract::SkipAfterLoadingField -- assert: nullptr != xml");
 
     if (EXN_ELEMENT_END != xml->getNodeType()) // If we're not ALREADY on the
                                                // ending element, then go there.
     {
-        const char* szFunc = "OTContract::SkipAfterLoadingField";
+        const char* szFunc = "Contract::SkipAfterLoadingField";
         // move to the next node which SHOULD be the expected element_end.
         //
         while (xml->read()) {
@@ -1763,9 +1763,9 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
 bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, OTASCIIArmor& ascOutput)
 {
     OT_ASSERT_MSG(nullptr != xml,
-                  "OTContract::LoadEncodedTextField -- assert: nullptr != xml");
+                  "Contract::LoadEncodedTextField -- assert: nullptr != xml");
 
-    const char* szFunc = "OTContract::LoadEncodedTextField";
+    const char* szFunc = "Contract::LoadEncodedTextField";
 
     // If we're not ALREADY on a text field, maybe there is some whitespace, so
     // let's skip ahead...
@@ -1916,7 +1916,7 @@ bool Contract::LoadEncodedTextFieldByName(IrrXMLReader*& xml,
 // NOTE: This function also assumes you already instantiated a contract
 // of the proper type. For example, if it's an OTServerContract, then you
 // INSTANTIATED an OTServerContract. Because if you tried to do this using
-// an OTContract but then the strContract was for an OTServerContract, then
+// an Contract but then the strContract was for an OTServerContract, then
 // this function will fail when it tries to "LoadContractFromString()" since it
 // is not actually the proper type to handle those data members.
 //
@@ -1969,12 +1969,9 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
                 (theSigner.GetMasterCredentialCount() > 0);
 
             if (!bHasCredentials) {
-                String strPubkey;
-                if (theSigner.GetPublicSignKey().GetPublicKey(
-                        strPubkey) && // bEscaped=true by default.
-                    strPubkey.Exists()) {
-                    InsertNym("contract", strPubkey);
-                }
+                otErr
+                    << __FUNCTION__ << ": Signing nym has no credentials.\n";
+                return false;
             }
             else // theSigner has Credentials, so we'll add him to the
                    // contract.
@@ -2023,7 +2020,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         //
         CreateContents();
 
-        OTPasswordData thePWData("OTContract::CreateContract needs the private "
+        OTPasswordData thePWData("Contract::CreateContract needs the private "
                                  "key to sign the contract...");
 
         if (!SignContract(theSigner, &thePWData)) {
@@ -2082,7 +2079,7 @@ void Contract::CreateInnerContents(Tag& parent)
             Nym* pNym = it.second;
             OT_ASSERT_MSG(nullptr != pNym,
                           "2: nullptr pseudonym pointer in "
-                          "OTContract::CreateInnerContents.\n");
+                          "Contract::CreateInnerContents.\n");
 
             if ("signer" == str_name) {
                 const bool bHasCredentials =
@@ -2137,7 +2134,7 @@ void Contract::CreateInnerContents(Tag& parent)
 //
 void Contract::CreateContents()
 {
-    OT_FAIL_MSG("ASSERT: OTContract::CreateContents should never be called, "
+    OT_FAIL_MSG("ASSERT: Contract::CreateContents should never be called, "
                 "but should be overrided. (In this case, it wasn't.)");
 }
 
@@ -2174,7 +2171,7 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         strConditionName = xml->getAttributeValue("name");
 
         if (!SkipToTextField(xml)) {
-            otOut << "OTContract::ProcessXMLNode: Failure: Unable to find "
+            otOut << "Contract::ProcessXMLNode: Failure: Unable to find "
                      "expected text field for xml node named: "
                   << xml->getNodeName() << "\n";
             return (-1); // error condition
@@ -2184,7 +2181,7 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
             strConditionValue = xml->getNodeData();
         }
         else {
-            otErr << "Error in OTContract::ProcessXMLNode: Condition without "
+            otErr << "Error in Contract::ProcessXMLNode: Condition without "
                      "value: " << strConditionName << "\n";
             return (-1); // error condition
         }
@@ -2410,56 +2407,6 @@ bool Contract::loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
     }
 
     return true;
-}
-
-// If you have a Public Key or Cert that you would like to add as one of the
-// keys on this contract,
-// just call this function. Usually you'd never want to do that because you
-// would never want to actually
-// change the text of the contract (or the signatures will stop verifying.)
-// But in unique situations, for example when first creating a contract, you
-// might want to insert some
-// keys into it. You might also call this function when LOADING the contract, to
-// populate it.
-//
-bool Contract::InsertNym(const String& strKeyName, const String& strKeyValue)
-{
-    bool bResult = false;
-    Nym* pNym = new Nym;
-
-    OT_ASSERT_MSG(
-        nullptr != pNym,
-        "Error allocating memory for new Nym in OTContract::InsertNym\n");
-
-    // This is the version of SetCertificate that handles escaped bookends. ( -
-    // -----BEGIN CERTIFICATE-----)
-    if (strKeyValue.Contains("CERTIFICATE") &&
-        pNym->SetCertificate(strKeyValue,
-                             true)) // it also defaults to true, FYI.
-    {
-        m_mapNyms[strKeyName.Get()] = pNym;
-        pNym->SetIdentifierByPubkey();
-        otWarn << "---- Loaded certificate \"" << strKeyName << "\"\n";
-        bResult = true;
-    }
-    else if (strKeyValue.Contains("PUBLIC KEY") &&
-               pNym->SetPublicKey(strKeyValue,
-                                  true)) // it also defaults to true, FYI.
-    {
-        m_mapNyms[strKeyName.Get()] = pNym;
-        pNym->SetIdentifierByPubkey();
-        otWarn << "---- Loaded public key \"" << strKeyName << "\"\n";
-        bResult = true;
-    }
-    else {
-        delete pNym;
-        pNym = nullptr;
-        otOut << "\nLoaded key \"" << strKeyName
-              << "\" but FAILED adding the"
-                 " Nym to the Contract:\n--->" << strKeyValue << "<---\n";
-    }
-
-    return bResult;
 }
 
 } // namespace opentxs

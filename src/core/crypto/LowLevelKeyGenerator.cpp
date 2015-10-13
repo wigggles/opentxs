@@ -39,7 +39,8 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/mkcert.hpp>
-#include <opentxs/core/crypto/OTLowLevelKeyData.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
 
 #include <opentxs/core/crypto/OTKeypair.hpp>
 #include <opentxs/core/Log.hpp>
@@ -55,11 +56,11 @@
 namespace opentxs
 {
 
-class OTLowLevelKeyData::OTLowLevelKeyDataOpenSSLdp
+class LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp
 {
 public:
-    X509* m_pX509=nullptr;
-    EVP_PKEY* m_pKey=nullptr; // Instantiated form of key. (For private keys especially,
+    X509* m_pX509 = nullptr;
+    EVP_PKEY* m_pKey = nullptr; // Instantiated form of key. (For private keys especially,
                       // we don't want it instantiated for any longer than
                       // absolutely necessary.)
 };
@@ -71,47 +72,67 @@ public:
 namespace opentxs
 {
 
-OTLowLevelKeyData::~OTLowLevelKeyData()
+LowLevelKeyGenerator::~LowLevelKeyGenerator()
 {
     if (m_bCleanup) Cleanup();
     if (nullptr != dp) delete (dp);
 }
 
+LowLevelKeyGenerator::LowLevelKeyGenerator(const std::shared_ptr<NymParameters>& pkeyData)
+    : pkeyData_(pkeyData), m_bCleanup(true)
+{
+
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
-OTLowLevelKeyData::OTLowLevelKeyData()
-    : m_bCleanup(true)
-{
-    dp = new OTLowLevelKeyDataOpenSSLdp();
-    dp->m_pX509 = nullptr;
-    dp->m_pKey = nullptr;
+    dp = new LowLevelKeyGeneratorOpenSSLdp;
+
+#endif
+//-------------------------
+#if defined(OT_CRYPTO_USING_GPG)
+
+#endif
+
 }
 
 // Don't force things by explicitly calling this function, unless you are SURE
 // there's no one else cleaning up the same objects. Notice the if (m_bCleanup)
 // just above in the destructor, for that very reason.
 //
-void OTLowLevelKeyData::Cleanup()
+void LowLevelKeyGenerator::Cleanup()
 {
+
+#if defined(OT_CRYPTO_USING_OPENSSL)
+
     if (nullptr != dp->m_pKey) EVP_PKEY_free(dp->m_pKey);
     dp->m_pKey = nullptr;
     if (nullptr != dp->m_pX509) X509_free(dp->m_pX509);
     dp->m_pX509 = nullptr;
+
+#endif
+//-------------------------
+#if defined(OT_CRYPTO_USING_GPG)
+
+#endif
+
 }
 
-bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits)
+bool LowLevelKeyGenerator::MakeNewKeypair()
 {
 
-    //    OpenSSL_BIO        bio_err    =    nullptr;
-    X509* x509 = nullptr;
-    EVP_PKEY* pNewKey = nullptr;
+// pkeyData can not be null if LowLevelkeyGenerator has been constructed
+if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
+#if defined(OT_CRYPTO_USING_OPENSSL)
 
-    //    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON); // memory leak detection.
+//  OpenSSL_BIO bio_err = nullptr;
+    X509* x509          = nullptr;
+    EVP_PKEY* pNewKey   = nullptr;
+
+//  CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON); // memory leak detection.
     // Leaving this for now.
-    //    bio_err    =    BIO_new_fp(stderr, BIO_NOCLOSE);
+//  bio_err    =    BIO_new_fp(stderr, BIO_NOCLOSE);
 
     // actually generate the things. // TODO THESE PARAMETERS...(mkcert)
-    mkcert(&x509, &pNewKey, nBits, 0, 3650); // 3650=10 years. Todo hardcoded.
+    mkcert(&x509, &pNewKey, pkeyData_->keySize(), 0, 3650); // 3650=10 years. Todo hardcoded.
     // Note: 512 bit key CRASHES
     // 1024 is apparently a minimum requirement, if not an only requirement.
     // Will need to go over just what sorts of keys are involved here... todo.
@@ -161,10 +182,20 @@ bool OTLowLevelKeyData::MakeNewKeypair(int32_t nBits)
     //    PEM_write_X509(stdout, x509);
 
     return true;
+#endif
+}
+//-------------------------
+#if defined(OT_CRYPTO_USING_GPG)
+
+#endif
+//-------------------------
+    return false; //unsupported keyType
 }
 
-bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair& theKeypair)
+bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair)
 {
+#if defined(OT_CRYPTO_USING_OPENSSL)
+
     OT_ASSERT(nullptr != dp->m_pKey);
     OT_ASSERT(nullptr != dp->m_pX509);
 
@@ -230,12 +261,13 @@ bool OTLowLevelKeyData::SetOntoKeypair(OTKeypair& theKeypair)
     // performed in OTPseudonym::GenerateNym().
     //
     return true;
-}
-
-#elif defined(OT_CRYPTO_USING_GPG)
-
-#else
 
 #endif
+//-------------------------
+#if defined(OT_CRYPTO_USING_GPG)
+
+#endif
+
+}
 
 } // namespace opentxs

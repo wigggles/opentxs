@@ -3233,7 +3233,7 @@ bool OTCrypto_OpenSSL::OTCrypto_OpenSSLdp::VerifyContractDefaultHash(
      though there might be a stopgap measure now, good enough to keep data until
      all the above fixes are made
      ok see if this fixes it for you......
-     knotwork, go into OTLib/OTContract.cpp
+     knotwork, go into OTLib/Contract.cpp
      Find the first line that begins with status = RSA_public_decrypt
 
      4:46

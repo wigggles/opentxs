@@ -259,7 +259,7 @@ public:
                    const Identifier& CURRENCY_ID, const int64_t& MARKET_SCALE);
     EXPORT virtual ~OTOffer();
 
-    // Overridden from OTContract.
+    // Overridden from Contract.
     virtual void GetIdentifier(Identifier& theIdentifier) const;
 
     void InitOffer();

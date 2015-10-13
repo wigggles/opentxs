@@ -39,43 +39,12 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 #define OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP
 
+#include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+
 #include <list>
 #include <cstdint>
-
-// A nym contains a list of master credentials, via OTCredential.
-// The whole purpose of a Nym is to be an identity, which can have
-// master credentials.
-//
-// Each credential is like a master key for the Nym's identity,
-// which can issue its own subkeys.
-//
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
-// Not all subcredentials are a subkey. For example, you might have a
-// subcredential that uses Google Authenticator, and thus doesn't contain
-// any keys, because it uses alternate methods for its own authentication.
-//
-// Each OTCredential contains a "master" subkey, and a list of subcredentials
-// (some of them subkeys) signed by that master.
-//
-// The same class (subcredential/subkey) is used because there are master
-// credentials and subcredentials, so we're using inheritance for
-// "subcredential"
-// and "subkey" to encapsulate the credentials, so we don't have to repeat code
-// across both.
-// We're using a "has-a" model here, since the OTCredential "has a" master
-// subkey, and also "has a" list of subcredentials, some of which are subkeys.
-//
-// Each subcredential must be signed by the subkey that is the master key.
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
-//
-// Each key pair has 2 OTAsymmetricKeys (public and private.)
-//
-// I'm thinking that the Nym should also have a key pair (for whatever is
-// its current key pair, copied from its credentials.)
-//
-// the master should never be able to do any actions except for sign subkeys.
-// the subkeys, meanwhile should only be able to do actions, and not issue
-// any new keys.
+#include <memory>
 
 namespace opentxs
 {
@@ -97,13 +66,14 @@ typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 //
 class OTKeypair
 {
-    friend class OTLowLevelKeyData;
-
-    OTAsymmetricKey* m_pkeyPublic;  // This nym's public key
-    OTAsymmetricKey* m_pkeyPrivate; // This nym's private key
+    friend class LowLevelKeyGenerator;
+private:
+    EXPORT OTKeypair() {};
+    OTAsymmetricKey* m_pkeyPublic = nullptr;  // This nym's public key
+    OTAsymmetricKey* m_pkeyPrivate = nullptr; // This nym's private key
 
 public:
-    EXPORT bool MakeNewKeypair(int32_t nBits = 1024);
+    EXPORT bool MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData);
     EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
                           String& strOutput); // Used when importing/exporting
                                               // a Nym to/from the wallet.
@@ -206,7 +176,7 @@ public:
         listOfAsymmetricKeys& listOutput, // inclusive means, return keys when
                                           // theSignature has no metadata.
         const OTSignature& theSignature, bool bInclusive = false) const;
-    EXPORT OTKeypair();
+    EXPORT OTKeypair(OTAsymmetricKey::KeyType keyType);
     EXPORT ~OTKeypair();
 };
 

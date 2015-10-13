@@ -90,7 +90,7 @@ void BasketContract::CreateContents()
     OTASCIIArmor theBasketArmor(m_strBasketInfo);
     tag.add_tag("basketInfo", theBasketArmor.Get());
 
-    // This is where OTContract scribes tag with its keys,
+    // This is where Contract scribes tag with its keys,
     // conditions, etc.
     CreateInnerContents(tag);
 

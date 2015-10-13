@@ -296,12 +296,6 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         return false;
     }
 
-    // If, for example, the server user Nym is in old format (no master key)
-    // then we will set this to true while loading. Then at the BOTTOM of this
-    // function, we'll convert the Nym to the new format and re-save the notary
-    // file.
-    //
-    bool bNeedToConvertUser = false;
     bool bNeedToSaveAgain = false;
 
     bool bFailure = false;
@@ -364,24 +358,6 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         server_->m_strNotaryID.Get(),
                         server_->m_strServerNymID.Get());
 
-                    // This means this Nym has not been converted yet
-                    // to master password.
-                    if (version_ == "1.0") {
-                        bNeedToConvertUser = true;
-
-                        if (!(OTCachedKey::It()->isPaused()))
-                            OTCachedKey::It()->Pause();
-
-                        if (!LoadServerUserAndContract()) {
-                            Log::vError("%s: Failed calling "
-                                        "LoadServerUserAndContract.\n",
-                                        __FUNCTION__);
-                            bFailure = true;
-                        }
-
-                        if (OTCachedKey::It()->isPaused())
-                            OTCachedKey::It()->Unpause();
-                    }
                 }
                 // todo in the future just remove masterkey. I'm leaving it for
                 // now so people's
@@ -536,17 +512,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
     }
     if (!bReadOnly) {
         {
-            String strReason("Converting Server Nym to master key.");
-            if (bNeedToConvertUser &&
-                server_->m_nymServer.Savex509CertAndPrivateKey(true,
-                                                               &strReason))
-                SaveMainFile();
-        }
-        {
-            String strReason("Creating a Hash Check for the master key.");
-            if (bNeedToSaveAgain &&
-                server_->m_nymServer.Savex509CertAndPrivateKey(true,
-                                                               &strReason))
+            if (bNeedToSaveAgain)
                 SaveMainFile();
         }
     }

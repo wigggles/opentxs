@@ -228,7 +228,7 @@ public:
 
     virtual ~OTMarket();
 
-    // Overridden from OTContract.
+    // Overridden from Contract.
     virtual void GetIdentifier(Identifier& theIdentifier) const;
 
     inline void SetCronPointer(OTCron& theCron)

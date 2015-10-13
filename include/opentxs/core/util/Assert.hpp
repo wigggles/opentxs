@@ -53,16 +53,32 @@
         std::terminate();                                                      \
     };
 
+#if defined(__clang__)
+#define OT_ASSERT(x)                                                           \
+    if (false == static_cast<bool>(x)) {                                       \
+        Assert::doAssert(__FILE__, __LINE__, nullptr);                         \
+        std::terminate();                                                      \
+    };
+#else
 #define OT_ASSERT(x)                                                           \
     if (false == (x)) {                                                        \
         Assert::doAssert(__FILE__, __LINE__, nullptr);                         \
         std::terminate();                                                      \
     };
+#endif
+#if defined(__clang__)
+#define OT_ASSERT_MSG(x, s)                                                    \
+    if (false == static_cast<bool>(x)) {                                       \
+        Assert::doAssert(__FILE__, __LINE__, (s));                             \
+        std::terminate();                                                      \
+    };
+#else
 #define OT_ASSERT_MSG(x, s)                                                    \
     if (false == (x)) {                                                        \
         Assert::doAssert(__FILE__, __LINE__, (s));                             \
         std::terminate();                                                      \
     };
+#endif
 
 class Assert
 {

@@ -112,10 +112,26 @@ private:
     OTAsymmetricKey(const OTAsymmetricKey&);
     OTAsymmetricKey& operator=(const OTAsymmetricKey&);
 
+public:
+    enum KeyType: int32_t {
+        ERROR_TYPE,
+        NULL_TYPE,
+        RSA
+    };
+
+    static String KeyTypeToString(const KeyType keyType);
+
+    static KeyType StringToKeyType(const String& keyType);
+
+    KeyType keyType() const;
+
+protected:
+    KeyType m_keyType = ERROR_TYPE;
+
 public:                                           // INSTANTIATION
-    EXPORT static OTAsymmetricKey* KeyFactory();  // Caller IS responsible to
+    EXPORT static OTAsymmetricKey* KeyFactory(KeyType keyType);  // Caller IS responsible to
                                                   // delete!
-    virtual OTAsymmetricKey* ClonePubKey() const; // Caller IS responsible to
+    virtual OTAsymmetricKey* ClonePubKey(KeyType keyType) const; // Caller IS responsible to
                                                   // delete!
 public:                                           // PASSWORD CALLBACK
     static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
@@ -153,8 +169,8 @@ public:
     //    char m_metadata::FirstCharMasterCredID()  // Can be any letter from
     // base62 alphabet. Represents first letter of a Master Credential ID (for
     // that Nym.)
-    //    char m_metadata::FirstCharSubCredID()     // Can be any letter from
-    // base62 alphabet. Represents first letter of a SubCredential ID (signed by
+    //    char m_metadata::FirstCharChildCredID()     // Can be any letter from
+    // base62 alphabet. Represents first letter of a Credential ID (signed by
     // that Master.)
     //
     // Here's how metadata works: It's optional. You can set it, or not. If it's
@@ -163,7 +179,7 @@ public:
     // (OTSignature has the same OTSignatureMetadata
     // struct.) Later on when verifying the signature, the metadata is used to
     // speed up the lookup/verification process
-    // so we don't have to verify the signature against every single subkey
+    // so we don't have to verify the signature against every single child key credential
     // available for that Nym.
     // In practice, however, we are adding metadata to every single signature
     // (except possibly cash...)

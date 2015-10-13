@@ -190,6 +190,9 @@ public:
     int64_t m_lTransactionNum; // For Market-related messages... Also used by
                                // getBoxReceipt
 
+    int32_t keytypeAuthent_ = 0;
+    int32_t keytypeEncrypt_ = 0;
+
     bool m_bSuccess; // When the server replies to the client, this may be true
                      // or false
     bool m_bBool;    // Some commands need to send a bool. This variable is for

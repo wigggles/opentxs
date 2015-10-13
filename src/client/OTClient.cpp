@@ -2948,25 +2948,12 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
                 }
             }
         } // credential list exists, after base64-decoding.
+        return true;
     }     // Has Credentials.
-    // Old-style (deprecated.)
-    //
-    else if (strPubkey.Exists()) {
-        String strPath = strNymID2.Get();
-        // Next we save the public key in the pubkeys folder...
-        //
-        Nym thePubkeyNym(strNymID2);
-
-        if (thePubkeyNym.SetPublicKey(strPubkey) &&
-            thePubkeyNym.VerifyPseudonym()) {
-            if (thePubkeyNym.SavePublicKey(strPath))
-                otOut
-                    << "checkNymResponse: (Deprecated.) Success saving public "
-                       "key file for Nym: " << strNymID2 << "\n";
-        }
+    else {
+        otErr << "Nym is missing credentials: " << strNymID2 << "\n";
+        return false;
     }
-
-    return true;
 }
 
 bool OTClient::processServerReplyNotarizeTransaction(
@@ -7639,83 +7626,60 @@ int32_t OTClient::ProcessUserCommand(
         String::Map theMap;
 
         // Credentials exist already.
-        if (theNym.GetMasterCredentialCount() > 0) {
-            theNym.GetPublicCredentials(strCredList, &theMap);
-        }
-        else // No credentials? Create them, then.
-        {
-            String strMasterCredID;
-            const bool bAddedMaster =
-                theNym.AddNewMasterCredential(strMasterCredID);
-
-            if (bAddedMaster && strMasterCredID.Exists() &&
-                (theNym.GetMasterCredentialCount() > 0)) {
-                otOut << __FUNCTION__
-                      << ": Adding new keyCredential to master credential: "
-                      << strMasterCredID << "\n";
-
-                const Identifier theMasterCredID(strMasterCredID);
-
-                const bool bAddedSubkey = theNym.AddNewSubkey(theMasterCredID);
-
-                if (bAddedSubkey) {
-                    theNym.SaveCredentialIDs();
-                    theNym.GetPublicCredentials(strCredList, &theMap);
-                }
-                else
-                    otErr << __FUNCTION__ << ": Failed trying to add new "
-                                             "keyCredential to new Master "
-                                             "credential.\n";
-            }
-            else
-                otErr << __FUNCTION__ << ": Failed trying to add new "
-                                         "master credential (for Nym who "
-                                         "doesn't have one yet.)\n";
-        }
-
-        // Won't bother if there are zero credentials somehow.
-        if (strCredList.Exists() && (!theMap.empty())) {
-            theMessage.m_ascPayload.SetString(strCredList);
-            theMessage.credentials.swap(theMap);
-        }
-        if (!theMessage.m_ascPayload.Exists() ||
-            theMessage.credentials.empty()) {
-            otErr << __FUNCTION__ << ": Failed trying to assemble a "
-                                     "registerNym message: This Nym has "
-                                     "no credentials to use for registration. "
-                                     "Convert this Nym first to the new "
-                                     "credential system, then try again.\n";
+        if (theNym.GetMasterCredentialCount() <= 0) {
+            otErr << __FUNCTION__ << ": (1) Failed trying to assemble a "
+                "registerNym message: This Nym has "
+                "no credentials to use for registration. "
+                "Convert this Nym first to the new "
+                "credential system, then try again.\n";
         }
         else {
-            // (1) set up member variables
-            theMessage.m_strCommand = "registerNym";
-            theMessage.m_strNymID = strNymID;
-            theMessage.m_strNotaryID = strNotaryID;
+            theNym.GetPublicCredentials(strCredList, &theMap);
 
-            //          theNym.GetPublicKey().GetPublicKey(strNymPublicKey);
-            //          theMessage.m_strNymPublicKey    = strNymPublicKey; //
-            // Deprecated. (Credentials are new.)
+            // Won't bother if there are zero credentials somehow.
+            if (strCredList.Exists() && (!theMap.empty())) {
+                theMessage.m_ascPayload.SetString(strCredList);
+                theMessage.credentials.swap(theMap);
+            }
+            if (!theMessage.m_ascPayload.Exists() ||
+                theMessage.credentials.empty()) {
+                otErr << __FUNCTION__ << ": (2) Failed trying to assemble a "
+                                         "registerNym message: This Nym has "
+                                         "no credentials to use for registration. "
+                                         "Convert this Nym first to the new "
+                                         "credential system, then try again.\n";
+            }
+            else {
+                // (1) set up member variables
+                theMessage.m_strCommand = "registerNym";
+                theMessage.m_strNymID = strNymID;
+                theMessage.m_strNotaryID = strNotaryID;
 
-            // THIS APPEARS SLIGHTLY ABOVE. Just leaving as a comment
-            // here so it's not forgotten that this is also happening.
-            //
-            //          theMessage.m_ascPayload.SetString(strCredList);   //
-            // <========== Success
-            //          theMessage.m_ascPayload2.Set(str_Encoded.c_str());  //
-            // Payload contains credentials list, payload2 contains actual
-            // credentials.
+                //          theNym.GetPublicKey().GetPublicKey(strNymPublicKey);
+                //          theMessage.m_strNymPublicKey    = strNymPublicKey; //
+                // Deprecated. (Credentials are new.)
 
-            theMessage.m_strRequestNum.Format(
-                "%d", 1); // Request Number, if unused, should be set to 1.
+                // THIS APPEARS SLIGHTLY ABOVE. Just leaving as a comment
+                // here so it's not forgotten that this is also happening.
+                //
+                //          theMessage.m_ascPayload.SetString(strCredList);   //
+                // <========== Success
+                //          theMessage.m_ascPayload2.Set(str_Encoded.c_str());  //
+                // Payload contains credentials list, payload2 contains actual
+                // credentials.
 
-            // (2) Sign the Message
-            theMessage.SignContract(theNym);
+                theMessage.m_strRequestNum.Format(
+                    "%d", 1); // Request Number, if unused, should be set to 1.
 
-            // (3) Save the Message (with signatures and all, back to its
-            // internal member m_strRawFile.)
-            theMessage.SaveContract();
+                // (2) Sign the Message
+                theMessage.SignContract(theNym);
 
-            lReturnValue = 1;
+                // (3) Save the Message (with signatures and all, back to its
+                // internal member m_strRawFile.)
+                theMessage.SaveContract();
+
+                lReturnValue = 1;
+            }
         }
     } break;
     case (OTClient::getRequestNumber): {

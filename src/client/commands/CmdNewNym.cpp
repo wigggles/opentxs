@@ -99,7 +99,7 @@ int32_t CmdNewNym::run(string keybits, string label, string source,
     }
 
     OT_ME ot_me;
-    string mynym = ot_me.create_nym(bits, source, location);
+    string mynym = ot_me.create_nym_legacy(bits, source, location);
     if ("" == mynym) {
         otOut << "Error: cannot create new nym.\n";
         return -1;

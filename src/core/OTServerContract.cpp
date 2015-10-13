@@ -186,7 +186,7 @@ void OTServerContract::CreateContents()
     tag.add_tag("transportKey", OTCrypto::It()->Base64Encode(
                                     transportKey, TRANSPORT_KEY_SIZE, false));
 
-    // This is where OTContract scribes tag with its keys,
+    // This is where Contract scribes tag with its keys,
     // conditions, etc.
     CreateInnerContents(tag);
 

@@ -69,7 +69,7 @@ protected:
     //
     // So I need the SERVER ID and the ACCOUNT ID stored here.
     //
-    // Fortunately, OTContract already handles the ID, which is the Account ID
+    // Fortunately, Contract already handles the ID, which is the Account ID
     // in
     // the context of all transaction objects. If your "bank account" is acct
     // #350, then
@@ -626,7 +626,7 @@ protected:
     // verifying
     // signatures.
 
-    //    OTIdentifier    m_ID;            // Account ID. This is in OTContract
+    //    OTIdentifier    m_ID;            // Account ID. This is in Contract
     // (parent class). Here we use it for the REAL ACCOUNT ID (set before
     // loading.)
     Identifier m_AcctID; // Compare m_AcctID to m_ID after loading it from
@@ -793,7 +793,7 @@ public:
     EXPORT virtual bool VerifyContractID() const;
 
     // This calls VerifyContractID() as well as VerifySignature()
-    // Use this instead of OTContract::VerifyContract, which expects/uses a
+    // Use this instead of Contract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
     virtual bool VerifyAccount(const Nym& theNym);
 
@@ -804,7 +804,7 @@ public:
     // own member variables. When that happens, they can then be compared to the
     // ones that were
     // already passed in HERE to see if anything is fishy.
-    // Thus, while OTContract instituted a constructor with an ID,
+    // Thus, while Contract instituted a constructor with an ID,
     // OTTransactionType will require
     // both the Account ID and the NotaryID.
     OTTransactionType(const Identifier& theNymID,

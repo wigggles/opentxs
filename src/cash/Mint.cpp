@@ -188,15 +188,6 @@ void Mint::Release()
 Mint::~Mint()
 {
     Release_Mint();
-
-    if (nullptr != m_pKeyPublic) {
-        delete m_pKeyPublic;
-        m_pKeyPublic = nullptr;
-    }
-    else
-        otErr << __FUNCTION__ << ": the logic: if (nullptr != m_pKeyPublic) "
-                                 "failed, though it NEVER should. "
-                                 "(That pointer should never be nullptr.)\n";
 }
 
 void Mint::InitMint()
@@ -224,7 +215,6 @@ Mint::Mint(const String& strNotaryID, const String& strServerNymID,
     : Contract(strInstrumentDefinitionID)
     , m_NotaryID(strNotaryID)
     , m_ServerNymID(strServerNymID)
-    , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
     , m_InstrumentDefinitionID(strInstrumentDefinitionID)
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
@@ -244,7 +234,6 @@ Mint::Mint(const String& strNotaryID, const String& strServerNymID,
 Mint::Mint(const String& strNotaryID, const String& strInstrumentDefinitionID)
     : Contract(strInstrumentDefinitionID)
     , m_NotaryID(strNotaryID)
-    , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
     , m_InstrumentDefinitionID(strInstrumentDefinitionID)
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
@@ -263,7 +252,6 @@ Mint::Mint(const String& strNotaryID, const String& strInstrumentDefinitionID)
 
 Mint::Mint()
     : Contract()
-    , m_pKeyPublic(OTAsymmetricKey::KeyFactory())
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
@@ -545,8 +533,6 @@ int64_t Mint::GetDenomination(int32_t nIndex)
 // first.
 void Mint::UpdateContents()
 {
-    OT_ASSERT(nullptr != m_pKeyPublic);
-
     String NOTARY_ID(m_NotaryID), NOTARY_NYM_ID(m_ServerNymID),
         INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
         CASH_ACCOUNT_ID(m_CashAccountID);
@@ -565,10 +551,6 @@ void Mint::UpdateContents()
     tag.add_attribute("expiration", formatTimestamp(m_EXPIRATION));
     tag.add_attribute("validFrom", formatTimestamp(m_VALID_FROM));
     tag.add_attribute("validTo", formatTimestamp(m_VALID_TO));
-
-    OTASCIIArmor armorPublicKey;
-    m_pKeyPublic->GetPublicKey(armorPublicKey);
-    tag.add_tag("mintPublicKey", armorPublicKey.Get());
 
     if (m_nDenominationCount) {
         if (m_bSavePrivateKeys) {
@@ -609,8 +591,6 @@ void Mint::UpdateContents()
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    OT_ASSERT(nullptr != m_pKeyPublic);
-
     int32_t nReturnVal = 0;
 
     const String strNodeName(xml->getNodeName());
@@ -678,22 +658,6 @@ int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n";
 
         nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("mintPublicKey")) {
-        OTASCIIArmor armorPublicKey;
-
-        if (!Contract::LoadEncodedTextField(xml, armorPublicKey) ||
-            !armorPublicKey.Exists()) {
-            otErr << "Error in Mint::ProcessXMLNode: mintPublicKey field "
-                     "without value.\n";
-            return (-1); // error condition
-        }
-        else {
-            m_pKeyPublic->SetPublicKey(
-                armorPublicKey); // todo check this for failure.
-        }
-
-        return 1;
     }
     else if (strNodeName.Compare("mintPrivateInfo")) {
         int64_t lDenomination =

@@ -41,6 +41,7 @@
 
 #include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
 
 #include <memory>
 
@@ -220,12 +221,13 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
-    EXPORT Nym* CreateNym(int32_t nKeySize = 1024,
-                          const std::string str_id_source = "",
-                          const std::string str_alt_location =
-                              "") const; // returns a new nym (with key pair)
-    // and files created. (Or nullptr.) Adds
-    // to wallet.
+    /// Returns a new nym (with key pair) and files created.
+    /// (Or nullptr.)
+    /// Adds to wallet. (No need to delete.)
+    EXPORT Nym * CreateNym(const std::shared_ptr<NymParameters> & pKeyData,
+                           const std::string str_id_source = "",
+                           const std::string str_alt_location =
+                             "") const;
 
     // This works by checking to see if the Nym has a request number for the
     // given server.
@@ -266,26 +268,6 @@ public:
     // then it will be set to the ID that was already there.
     EXPORT bool Wallet_ImportNym(const String& FILE_CONTENTS,
                                  Identifier* pNymID = nullptr) const;
-    // In this case, instead of importing a special "OT Nym all-in-one exported"
-    // file format,
-    // we are importing the public/private keys only, from their Cert file
-    // contents, and then
-    // creating a blank Nymfile to go along with it. This is for when people
-    // wish to import
-    // pre-existing keys to create a new Nym.
-    //
-    // Returns bool on success, and if pNymID is passed in, will set it to the
-    // new NymID.
-    // Also on failure, if the Nym was already there with that ID, and if pNymID
-    // is passed,
-    // then it will be set to the ID that was already there.
-    EXPORT bool Wallet_ImportCert(const String& DISPLAY_NAME,
-                                  const String& FILE_CONTENTS,
-                                  Identifier* pNymID = nullptr) const;
-    // Removes master key and sets a normal passphrase on the Cert.
-    // Similar to ExportNym except it only exports the Cert portion.
-    EXPORT bool Wallet_ExportCert(const Identifier& NYM_ID,
-                                  String& strOutput) const;
     // First three arguments denote the existing purse.
     // Fourth argument is the NEW purse being imported.
     // (Which may have a different owner Nym, or be protected
@@ -677,12 +659,11 @@ public:
     EXPORT int32_t sendNymMessage(const Identifier& NOTARY_ID,
                                   const Identifier& NYM_ID,
                                   const Identifier& NYM_ID_RECIPIENT,
-                                  const String& RECIPIENT_PUBKEY,
                                   const String& THE_MESSAGE) const;
 
     EXPORT int32_t sendNymInstrument(
         const Identifier& NOTARY_ID, const Identifier& NYM_ID,
-        const Identifier& NYM_ID_RECIPIENT, const String& RECIPIENT_PUBKEY,
+        const Identifier& NYM_ID_RECIPIENT,
         const OTPayment& THE_INSTRUMENT,
         const OTPayment* pINSTRUMENT_FOR_SENDER = nullptr) const;
 

@@ -183,7 +183,7 @@ OTTransactionType::OTTransactionType(const Identifier& theNymID,
 {
     //    InitTransactionType();
 
-    //  m_ID            = theAccountID  -- This happens in OTContract, no need
+    //  m_ID            = theAccountID  -- This happens in Contract, no need
     // to do it twice.
 
     // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes LOAD
@@ -206,7 +206,7 @@ OTTransactionType::OTTransactionType(const Identifier& theNymID,
     // In fact, that's the general rule with this function.
     //    InitTransactionType();
 
-    //  m_ID                = theAccountID  -- This happens in OTContract, no
+    //  m_ID                = theAccountID  -- This happens in Contract, no
     // need to do it twice.
 
     // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes LOAD

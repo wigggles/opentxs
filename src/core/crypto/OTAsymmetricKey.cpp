@@ -59,12 +59,19 @@ namespace opentxs
 {
 
 // static
-OTAsymmetricKey* OTAsymmetricKey::KeyFactory() // Caller IS responsible to
-                                               // delete!
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(OTAsymmetricKey::KeyType keyType) // Caller IS responsible to
+                                                                                         // delete!
 {
     OTAsymmetricKey* pKey = nullptr;
+    String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
+    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    keyTypeError += keyTypeName.Get();
+    bool validType = false;
+
+    if (keyType == OTAsymmetricKey::RSA) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
-    pKey = new OTAsymmetricKey_OpenSSL;
+        pKey = new OTAsymmetricKey_OpenSSL;
+        validType = true;
 #elif defined(OT_CRYPTO_USING_GPG)
     //  pKey = new OTAsymmetricKey_GPG;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
@@ -74,14 +81,16 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory() // Caller IS responsible to
           << ": Open-Transactions isn't built with any crypto engine, "
              "so it's impossible to instantiate a key.\n";
 #endif
+    }
+    OT_ASSERT_MSG(validType, keyTypeError.c_str());
     return pKey;
 }
 
 // virtual
-OTAsymmetricKey* OTAsymmetricKey::ClonePubKey() const // Caller IS responsible
+OTAsymmetricKey* OTAsymmetricKey::ClonePubKey(KeyType keyType) const // Caller IS responsible
                                                       // to delete!
 {
-    OTAsymmetricKey* pKey = OTAsymmetricKey::KeyFactory();
+    OTAsymmetricKey* pKey = OTAsymmetricKey::KeyFactory(keyType);
     OT_ASSERT(nullptr != pKey);
     OT_ASSERT(nullptr != m_pMetadata);
     OT_ASSERT(nullptr != pKey->m_pMetadata);
@@ -1200,6 +1209,28 @@ bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
         strCert, false, pstrReason,
         pImportPassword); // bEscaped=false; "escaped" means pre-pended with "-
                           // " as in:   - -----BEGIN CER....
+}
+
+String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
+
+{
+    if (keyType == OTAsymmetricKey::RSA)
+        return "rsa";
+    return "error";
+}
+
+OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
+
+{
+    if (keyType.Compare("rsa"))
+        return OTAsymmetricKey::RSA;
+    return OTAsymmetricKey::ERROR_TYPE;
+}
+
+OTAsymmetricKey::KeyType OTAsymmetricKey::keyType() const
+
+{
+    return m_keyType;
 }
 
 } // namespace opentxs

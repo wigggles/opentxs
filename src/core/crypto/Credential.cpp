@@ -36,26 +36,36 @@
  *
  ************************************************************/
 
-// A nym contains a list of credentials
+// A nym contains a list of credential sets.
+// The whole purpose of a Nym is to be an identity, which can have
+// master credentials.
 //
-// Each credential contains a "master" subkey, and a list of subkeys
-// signed by that master.
+// Each CredentialSet contains list of Credentials. One of the
+// Credentials is a MasterCredential, and the rest are ChildCredentials
+// signed by the MasterCredential.
 //
-// The same class (subkey) is used because there are master credentials
-// and subkey credentials, so we're using a single "subkey" class to
-// encapsulate each credential, both for the master credential and
-// for each subkey credential.
+// A Credential may contain keys, in which case it is a KeyCredential.
 //
-// Each subkey has 3 key pairs: encryption, signing, and authentication.
+// Credentials without keys might be an interface to a hardware device
+// or other kind of external encryption and authentication system.
 //
-// Each key pair has 2 OTAsymmetricKeys (public and private.)
+// Non-key Credentials are not yet implemented.
+//
+// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
+// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+//
+// A MasterCredential must be a KeyCredential, and is only used to sign
+// ChildCredentials
+//
+// ChildCredentials are used for all other actions, and never sign other
+// Credentials
 
 #include <opentxs/core/stdafx.hpp>
 
-#include <opentxs/core/crypto/OTSubcredential.hpp>
+#include <opentxs/core/crypto/Credential.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTCredential.hpp>
+#include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -63,63 +73,65 @@
 #include <irrxml/irrXML.hpp>
 
 // Contains 3 key pairs: signing, authentication, and encryption.
-// This is stored as an OTContract, and it must be signed by the
-// master key. (which is also an OTSubcredential.)
+// This is stored as an Contract, and it must be signed by the
+// master key. (which is also an Credential.)
 //
 
 namespace opentxs
 {
 
-void OTSubcredential::SetOwner(OTCredential& theOwner)
+void Credential::SetOwner(CredentialSet& theOwner)
 {
     m_pOwner = &theOwner;
 }
 
-OTSubcredential::OTSubcredential()
+Credential::Credential(CredentialSet& theOwner)
     : Contract()
-    , m_StoreAs(OTSubcredential::credPrivateInfo)
-    , m_pOwner(nullptr)
-{
-    m_strContractType = "CREDENTIAL";
-}
-
-OTSubcredential::OTSubcredential(OTCredential& theOwner)
-    : Contract()
-    , m_StoreAs(OTSubcredential::credPrivateInfo)
+    , m_StoreAs(Credential::credPrivateInfo)
+    , m_Type(Credential::ERROR_TYPE)
     , m_pOwner(&theOwner)
 {
     m_strContractType = "CREDENTIAL";
 }
 
-OTSubcredential::~OTSubcredential()
+Credential::Credential(CredentialSet& theOwner, Credential::CredentialType type)
+    : Contract()
+    , m_StoreAs(Credential::credPrivateInfo)
+    , m_Type(type)
+    , m_pOwner(&theOwner)
 {
-    Release_Subcredential();
+    m_strContractType = "CREDENTIAL";
+}
+
+Credential::~Credential()
+{
+    Release_Credential();
 }
 
 // virtual
-void OTSubcredential::Release()
+void Credential::Release()
 {
-    Release_Subcredential(); // My own cleanup is done here.
+    Release_Credential(); // My own cleanup is done here.
 
     // Next give the base class a chance to do the same...
     Contract::Release(); // since I've overridden the base class, I call it
                          // now...
 }
 
-void OTSubcredential::Release_Subcredential()
+void Credential::Release_Credential()
 {
     // Release any dynamically allocated members here. (Normally.)
 }
 
 // virtual
-bool OTSubcredential::SetPublicContents(const String::Map& mapPublic)
+bool Credential::SetPublicContents(const String::Map& mapPublic)
 {
     m_mapPublicInfo = mapPublic;
     return true;
 }
 
 // virtual
-bool OTSubcredential::SetPrivateContents(const String::Map& mapPrivate,
+bool Credential::SetPrivateContents(const String::Map& mapPrivate,
                                          const OTPassword*) // if not nullptr,
                                                             // it means to
                                                             // use this
@@ -130,19 +142,19 @@ bool OTSubcredential::SetPrivateContents(const String::Map& mapPrivate,
     return true;
 }
 
-void OTSubcredential::SetMasterCredID(const String& strMasterCredID)
+void Credential::SetMasterCredID(const String& strMasterCredID)
 {
     m_strMasterCredID = strMasterCredID;
 }
 
-void OTSubcredential::SetNymIDandSource(const String& strNymID,
+void Credential::SetNymIDandSource(const String& strNymID,
                                         const String& strSourceForNymID)
 {
     m_strNymID = strNymID;
     m_strSourceForNymID = strSourceForNymID;
 }
 
-void OTSubcredential::UpdatePublicContentsToTag(Tag& parent) // Used in
+void Credential::UpdatePublicContentsToTag(Tag& parent) // Used in
                                                              // UpdateContents.
 {
     if (!m_mapPublicInfo.empty()) {
@@ -164,7 +176,7 @@ void OTSubcredential::UpdatePublicContentsToTag(Tag& parent) // Used in
     }
 }
 
-void OTSubcredential::UpdatePublicCredentialToTag(
+void Credential::UpdatePublicCredentialToTag(
     Tag& parent) // Used in UpdateContents.
 {
     if (GetContents().Exists()) {
@@ -175,7 +187,7 @@ void OTSubcredential::UpdatePublicCredentialToTag(
     }
 }
 
-void OTSubcredential::UpdatePrivateContentsToTag(Tag& parent) // Used in
+void Credential::UpdatePrivateContentsToTag(Tag& parent) // Used in
                                                               // UpdateContents.
 {
     if (!m_mapPrivateInfo.empty()) {
@@ -197,16 +209,16 @@ void OTSubcredential::UpdatePrivateContentsToTag(Tag& parent) // Used in
     }
 }
 
-void OTSubcredential::UpdateContents()
+void Credential::UpdateContents()
 {
     m_xmlUnsigned.Release();
 
-    Tag tag("subCredential");
+    Tag tag(CredentialObjectName);
 
     // a hash of the nymIDSource
     tag.add_attribute("nymID", GetNymID().Get());
     // Hash of the master credential that signed
-    // this subcredential.
+    // this child credential.
     tag.add_attribute("masterID", GetMasterCredID().Get());
 
     if (GetNymIDSource().Exists()) {
@@ -218,7 +230,7 @@ void OTSubcredential::UpdateContents()
         tag.add_tag("nymIDSource", ascSource.Get());
     }
 
-    //  if (OTSubcredential::credPublicInfo == m_StoreAs)  // (Always saving
+    //  if (Credential::credPublicInfo == m_StoreAs)  // (Always saving
     // public info.)
     {
         // PUBLIC INFO
@@ -227,7 +239,7 @@ void OTSubcredential::UpdateContents()
 
     // If we're saving the private credential info...
     //
-    if (OTSubcredential::credPrivateInfo == m_StoreAs) {
+    if (Credential::credPrivateInfo == m_StoreAs) {
         UpdatePublicCredentialToTag(tag);
         UpdatePrivateContentsToTag(tag);
     }
@@ -237,7 +249,7 @@ void OTSubcredential::UpdateContents()
 
     m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 
-    m_StoreAs = OTSubcredential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
+    m_StoreAs = Credential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
                                                   // BEHAVIOR. Any other state
                                                   // processes ONCE, and then
                                                   // goes back to this again.
@@ -245,7 +257,7 @@ void OTSubcredential::UpdateContents()
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 //
-int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+int32_t Credential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     int32_t nReturnVal = 0;
 
@@ -260,14 +272,14 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // you don't want to use any of those xml tags.
     // As I do in the case of OTAccount.
     //
-    // if (nReturnVal = OTContract::ProcessXMLNode(xml))
+    // if (nReturnVal = Contract::ProcessXMLNode(xml))
     //      return nReturnVal;
 
-    if (strNodeName.Compare("subCredential")) {
+    if (strNodeName.Compare(CredentialObjectName) || strNodeName.Compare(CredentialObjectNameOld)) {
         m_strNymID = xml->getAttributeValue("nymID");
         m_strMasterCredID = xml->getAttributeValue("masterID");
 
-        otWarn << "Loading subcredential...\n";
+        otWarn << "Loading child credential...\n";
 
         nReturnVal = 1;
     }
@@ -299,7 +311,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                 // This map contains values we will also want, when we read the
                 // info...
-                // (The OTContract::LoadEncodedTextField call below will read
+                // (The Contract::LoadEncodedTextField call below will read
                 // all the values
                 // as specified in this map.)
                 //
@@ -349,7 +361,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             if (static_cast<int64_t>(mapPublic.size()) != nCount) {
                 otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
-                      << ": Subcredential expected to load " << nCount
+                      << ": Child credential expected to load " << nCount
                       << " publicInfo objects, "
                          "but actually loaded " << mapPublic.size()
                       << ". (Mismatch, failure loading.)\n";
@@ -360,14 +372,14 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 SetPublicContents(mapPublic)) // <==============  Success.
             {
                 otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
-                      << ": Subcredential failed setting public contents while "
+                      << ": Child credential failed setting public contents while "
                          "loading.\n";
                 return (-1); // error condition
             }
 
         } // if strCount.Exists() && nCount > 0
 
-        otInfo << "Loaded publicContents for subcredential.\n";
+        otInfo << "Loaded publicContents for child credential.\n";
 
         nReturnVal = 1;
     }
@@ -377,7 +389,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         {
             otErr << "Error in " << __FILE__ << " line " << __LINE__
                   << ": failed loading expected public credential while "
-                     "loading private subcredential.\n";
+                     "loading private child credential.\n";
             return (-1); // error condition
         }
 
@@ -398,7 +410,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                 // This map contains values we will also want, when we read the
                 // info...
-                // (The OTContract::LoadEncodedTextField call below will read
+                // (The Contract::LoadEncodedTextField call below will read
                 // all the values
                 // as specified in this map.)
                 //
@@ -448,7 +460,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             if (static_cast<int64_t>(mapPrivate.size()) != nCount) {
                 otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
-                      << ": Subcredential expected to load " << nCount
+                      << ": Child credential expected to load " << nCount
                       << " privateInfo objects, "
                          "but actually loaded " << mapPrivate.size()
                       << ". (Mismatch, failure loading.)\n";
@@ -488,14 +500,14 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             if (false ==
                 SetPrivateContents(mapPrivate, m_pOwner->GetImportPassword())) {
                 otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
-                      << ": Subcredential failed setting private contents "
+                      << ": Child credential failed setting private contents "
                          "while loading.\n";
                 return (-1); // error condition
             }
 
         } // if strCount.Exists() && nCount > 0
 
-        otInfo << "Loaded privateContents for subcredential.\n";
+        otInfo << "Loaded privateContents for child credential.\n";
 
         nReturnVal = 1;
     }
@@ -507,7 +519,7 @@ int32_t OTSubcredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
 //
-bool OTSubcredential::VerifyNymID() const
+bool Credential::VerifyNymID() const
 {
 
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
@@ -530,12 +542,12 @@ bool OTSubcredential::VerifyNymID() const
 }
 
 // Call VerifyNymID. Then verify m_strMasterCredID against the hash of
-// m_pOwner->GetMasterkey().GetPubCredential() (the master credential.) Verify
+// m_pOwner->GetMasterCredential().GetPubCredential() (the master credential.) Verify
 // that
-// m_pOwner->GetMasterkey() and *this have the same NymID. Then verify the
-// signature of m_pOwner->GetMasterkey().
+// m_pOwner->GetMasterCredential() and *this have the same NymID. Then verify the
+// signature of m_pOwner->GetMasterCredential().
 //
-bool OTSubcredential::VerifyInternally()
+bool Credential::VerifyInternally()
 {
     OT_ASSERT(nullptr != m_pOwner);
 
@@ -543,20 +555,20 @@ bool OTSubcredential::VerifyInternally()
     //
     if (!VerifyNymID()) return false;
 
-    // Verify that m_pOwner->GetMasterkey() and *this have the same NymID.
+    // Verify that m_pOwner->GetMasterCredential() and *this have the same NymID.
     //
-    if (!m_strNymID.Compare(m_pOwner->GetMasterkey().GetNymID())) {
+    if (!m_strNymID.Compare(m_pOwner->GetMasterCredential().GetNymID())) {
         otOut << __FUNCTION__
               << ": Failure: The actual master credential's NymID doesn't "
-                 "match the NymID on this subcredential.\n"
+                 "match the NymID on this child credential.\n"
                  "    This NymID: " << m_strNymID
-              << "\nMaster's NymID: " << m_pOwner->GetMasterkey().GetNymID()
+              << "\nMaster's NymID: " << m_pOwner->GetMasterCredential().GetNymID()
               << "\n My Master Cred ID: " << m_strMasterCredID << "\n";
         return false;
     }
 
     // Verify m_strMasterCredID against the hash of
-    // m_pOwner->GetMasterkey().GetPubCredential()
+    // m_pOwner->GetMasterCredential().GetPubCredential()
     // (the master credentialID is a hash of the master credential.)
     //
     Identifier theActualMasterID;
@@ -575,31 +587,31 @@ bool OTSubcredential::VerifyInternally()
         return false;
     }
 
-    // Then verify the signature of m_pOwner->GetMasterkey()...
+    // Then verify the signature of m_pOwner->GetMasterCredential()...
     // Let's get a few things straight:
-    // * OTMasterkey is a key (derived from OTKeyCredential, derived from
-    // OTSubcredential) and it can only sign itself.
-    // * The only further verification a Masterkey can get is if its hash is
+    // * MasterCredential is a key (derived from KeyCredential, derived from
+    // Credential) and it can only sign itself.
+    // * The only further verification a master credential can get is if its hash is
     // posted at the source. Or, if the source
     //   is a public key, then the master key must be signed by the
     // corresponding private key. (Again: itself.)
-    // * Conversely to a master key which can ONLY sign itself, all subkeys must
+    // * Conversely to a master credential which can ONLY sign itself, all key credentials must
     // ALSO sign themselves.
     //
-    // * Thus: Any OTKeyCredential (both master and subkeys, but no other
+    // * Thus: Any KeyCredential (both master and child, but no other
     // credentials) must ** sign itself.**
-    // * Whereas m_strMasterSigned is only used by OTSubkey, and thus only must
+    // * Whereas m_strMasterSigned is only used by ChildKeyCredential, and thus only must
     // be verified there.
-    // * Any OTSubcredential must also be signed by its master. (Except masters,
+    // * Any Credential must also be signed by its master. (Except masters,
     // which already sign themselves.)
-    // * Any OTMasterkey must (at some point, and/or regularly) verify against
+    // * Any MasterCredential must (at some point, and/or regularly) verify against
     // its own source.
 
-    // * Any OTSubcredential must also be signed by its master. (Except masters,
+    // * Any Credential must also be signed by its master. (Except masters,
     // which already sign themselves.)
     //
     if (!VerifySignedByMaster()) {
-        otOut << __FUNCTION__ << ": Failure: This subcredential hasn't been "
+        otOut << __FUNCTION__ << ": Failure: This child credential hasn't been "
                                  "signed by its master credential.\n";
         return false;
     }
@@ -607,13 +619,14 @@ bool OTSubcredential::VerifyInternally()
     return true;
 }
 
-bool OTSubcredential::VerifySignedByMaster()
+bool Credential::VerifySignedByMaster()
 {
     OT_ASSERT(nullptr != m_pOwner);
-    return VerifyWithKey(m_pOwner->GetMasterkey().m_SigningKey.GetPublicKey());
+    OT_ASSERT(m_pOwner->GetMasterCredential().m_SigningKey);
+    return VerifyWithKey(m_pOwner->GetMasterCredential().m_SigningKey->GetPublicKey());
 }
 
-bool OTSubcredential::VerifyContract()
+bool Credential::VerifyContract()
 {
     if (!VerifyContractID()) {
         otWarn << __FUNCTION__ << ": Failed verifying credential ID against "
@@ -627,19 +640,19 @@ bool OTSubcredential::VerifyContract()
     return true;
 }
 
-// Overriding from OTContract.
-void OTSubcredential::CalculateContractID(Identifier& newID) const
+// Overriding from Contract.
+void Credential::CalculateContractID(Identifier& newID) const
 {
     if (!newID.CalculateDigest(GetPubCredential()))
         otErr << __FUNCTION__ << ": Error calculating credential digest.\n";
 }
 
 // I needed this for exporting a Nym (with credentials) from the wallet.
-const String& OTSubcredential::GetPriCredential() const
+const String& Credential::GetPriCredential() const
 {
     OT_ASSERT_MSG(!m_mapPrivateInfo.empty(), "ASSERT: GetPriCredential can "
                                              "only be called on private "
-                                             "subcredentials.");
+                                             "child credentials.");
 
     return m_strRawFile;
 }
@@ -648,7 +661,7 @@ const String& OTSubcredential::GetPriCredential() const
 // credential, so we just
 // call this function wherever we need to get the public credential.
 //
-const String& OTSubcredential::GetPubCredential() const // More intelligent
+const String& Credential::GetPubCredential() const // More intelligent
                                                         // version of
                                                         // GetContents. Higher
                                                         // level.
@@ -669,6 +682,50 @@ const String& OTSubcredential::GetPubCredential() const // More intelligent
     // normal location, m_strRawFile.
     //
     return m_strRawFile;
+}
+
+String Credential::CredentialTypeToString(Credential::CredentialType credentialType)
+
+{
+    if (credentialType == Credential::RSA_PUBKEY)
+        return "rsa";
+    else if (credentialType == Credential::URL)
+        return "url";
+    return "error";
+}
+
+Credential::CredentialType Credential::StringToCredentialType(const String & credentialType)
+
+{
+    if (credentialType.Compare("rsa"))
+        return Credential::RSA_PUBKEY;
+    else if (credentialType.Compare("url"))
+        return Credential::URL;
+    return Credential::ERROR_TYPE;
+}
+
+OTAsymmetricKey::KeyType Credential::CredentialTypeToKeyType(Credential::CredentialType credentialType)
+
+{
+    OTAsymmetricKey::KeyType newKeyType;
+
+    switch (credentialType) {
+        case Credential::RSA_PUBKEY :
+            newKeyType = OTAsymmetricKey::RSA;
+            break;
+        case Credential::URL :
+            newKeyType = OTAsymmetricKey::NULL_TYPE;
+            break;
+        default :
+            newKeyType = OTAsymmetricKey::ERROR_TYPE;
+    }
+    return newKeyType;
+}
+
+Credential::CredentialType Credential::GetType() const
+
+{
+    return m_Type;
 }
 
 } // namespace opentxs
