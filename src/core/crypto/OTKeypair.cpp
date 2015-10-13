@@ -449,25 +449,9 @@ bool OTKeypair::SetPublicKey(const String& strKey, bool bEscaped)
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    if (strKey.Contains("PGP PUBLIC KEY")) {
-        OTASCIIArmor theArmor;
-
-        if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped)) {
-            // This function expects that the bookends are already removed.
-            // The ascii-armor loading code removes them and handles the escapes
-            // also.
-            return m_pkeyPublic->LoadPublicKeyFromPGPKey(theArmor);
-        }
-        else {
-            otInfo << "OTKeypair::SetPublicKey: Failed extracting PGP public "
-                      "key from ascii-armored text.\n";
-            return false;
-        }
-    }
-    else // the below function SetPublicKey (in the return call) expects the
-        // bookends to still be there, and it will handle removing them. (Unlike
-        // PGP code above.)
-        return m_pkeyPublic->SetPublicKey(strKey, bEscaped);
+    // the below function SetPublicKey (in the return call) expects the
+    // bookends to still be there, and it will handle removing them.
+    return m_pkeyPublic->SetPublicKey(strKey, bEscaped);
 }
 
 // PRIVATE KEY

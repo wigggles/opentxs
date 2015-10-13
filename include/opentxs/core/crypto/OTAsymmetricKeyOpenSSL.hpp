@@ -114,9 +114,6 @@ public:
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
-    virtual bool LoadPublicKeyFromPGPKey(
-        const OTASCIIArmor& strKey); // does NOT handle bookends.
-
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const;
 

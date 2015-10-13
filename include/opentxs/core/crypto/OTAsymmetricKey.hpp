@@ -298,8 +298,6 @@ public: // DESTRUCTION
                         const OTPassword* pImportPassword = nullptr);
     bool LoadPublicKey(const String& strFoldername, const String& strFilename);
 
-    virtual bool LoadPublicKeyFromPGPKey(
-        const OTASCIIArmor& strKey) = 0; // does NOT handle bookends.
     // LoadPrivateKeyFromCertString
     //
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN
