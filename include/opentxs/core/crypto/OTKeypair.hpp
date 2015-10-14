@@ -125,8 +125,15 @@ public:
 
 // PUBLIC KEY functions
     EXPORT bool HasPublicKey() const;
+    // Return the public key as an OTAsymmetricKey object
+    // TODO this violates encapsulation and should be deprecated
     EXPORT const OTAsymmetricKey& GetPublicKey() const;
+    // Get a public key as a opentxs::FormattedKey string.
+    // This form is only used by self-signed MasterCredentials
     EXPORT bool GetPublicKey(FormattedKey& strKey) const;
+    // Get a public key as an opentxs::String.
+    // This form is used in all cases except for the NymIDSource
+    // of a self-signed MasterCredential
     EXPORT bool GetPublicKey(String& strKey) const;
 
     EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);

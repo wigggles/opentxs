@@ -108,10 +108,10 @@ OTKeypair::OTKeypair(OTAsymmetricKey::KeyType keyType)
 OTKeypair::~OTKeypair()
 {
 
-    if (nullptr != m_pkeyPublic) delete m_pkeyPublic; // todo: else error
+    if (nullptr != m_pkeyPublic) delete m_pkeyPublic;
     m_pkeyPublic = nullptr;
 
-    if (nullptr != m_pkeyPrivate) delete m_pkeyPrivate; // todo: else error
+    if (nullptr != m_pkeyPrivate) delete m_pkeyPrivate;
     m_pkeyPrivate = nullptr;
 }
 
@@ -144,6 +144,8 @@ bool OTKeypair::HasPrivateKey() const
                                        // key in it, or tried to.
 }
 
+// Return the public key as an OTAsymmetricKey object
+// TODO this violates encapsulation and should be deprecated
 const OTAsymmetricKey& OTKeypair::GetPublicKey() const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
@@ -235,16 +237,17 @@ bool OTKeypair::SignContract(Contract& theContract,
 
 // PUBLIC KEY
 
-// * Get the public key in ASCII-armored format WITH bookends   -- OTString
-//       - ------- BEGIN PUBLIC KEY --------
-//       Notice the "- " before the rest of the bookend starts.
-//
+// Get a public key as a opentxs::FormattedKey string.
+// This form is only used by self-signed MasterCredentials
 bool OTKeypair::GetPublicKey(FormattedKey& strKey) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
     return m_pkeyPublic->GetPublicKey(strKey, true);
 }
+// Get a public key as an opentxs::String.
+// This form is used in all cases except for the NymIDSource
+// of a self-signed MasterCredential
 bool OTKeypair::GetPublicKey(String& strKey) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
