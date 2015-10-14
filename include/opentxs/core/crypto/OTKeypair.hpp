@@ -101,26 +101,44 @@ public:
     EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
                           String& strOutput); // Used when importing/exporting
                                               // a Nym to/from the wallet.
-    EXPORT bool HasPublicKey() const;
-    EXPORT bool HasPrivateKey() const;
-    EXPORT const OTAsymmetricKey& GetPublicKey() const;
-    EXPORT const OTAsymmetricKey& GetPrivateKey() const;
     EXPORT bool CalculateID(Identifier& theOutput) const;
+
+// PRIVATE KEY functions
+    EXPORT bool HasPrivateKey() const;
+    EXPORT const OTAsymmetricKey& GetPrivateKey() const;
+
     EXPORT bool SavePrivateKeyToString(
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
     EXPORT bool SaveCertAndPrivateKeyToString(
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    // LoadPrivateKeyFromCertString
-    //
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN
-    // CERTIFICATE....
-    //
+    // Get the private key in ASCII-armored format with bookends
+    EXPORT bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
+
+    // Decodes a private key from ASCII armor into an actual key pointer
+    // and sets that as the m_pPrivateKey on this object.
+    // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
+    // PRIVATE KEY-----)
+    EXPORT bool SetPrivateKey(const String& strKey, bool bEscaped = false);
     EXPORT bool LoadPrivateKeyFromCertString(
         const String& strCert, bool bEscaped = true,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
+
+// PUBLIC KEY functions
+    EXPORT bool HasPublicKey() const;
+    EXPORT const OTAsymmetricKey& GetPublicKey() const;
+    // * Get the public key in ASCII-armored format WITH bookends   -- OTString
+    //       - ------- BEGIN PUBLIC KEY --------
+    //       Notice the "- " before the rest of the bookend starts.
+    EXPORT bool GetPublicKey(String& strKey, bool bEscaped = true) const;
+
+    EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);
+    // (Above) Decodes a public key from bookended key string into an actual key
+    // pointer, and sets that as the m_pPublicKey on this object.
+    // This is the version that will handle the bookends ( -----BEGIN PUBLIC
+    // KEY-----)
     // Load Public Key from Cert (file or string)
     //
     EXPORT bool LoadPublicKeyFromCertString(
@@ -129,30 +147,6 @@ public:
         const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
                                                       // AND escapes.
 
-    // PUBLIC KEY
-
-    // * Get the public key in ASCII-armored format WITH bookends   -- OTString
-    //       - ------- BEGIN PUBLIC KEY --------
-    //       Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPublicKey(String& strKey, bool bEscaped = true) const;
-    // (Below) Decodes a public key from ASCII armor into an actual key pointer
-    // and sets that as the m_pKey on this object.
-    EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);
-    // (Above) Decodes a public key from bookended key string into an actual key
-    // pointer, and sets that as the m_pPublicKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN PUBLIC
-    // KEY-----)
-
-    // PRIVATE KEY
-    // Get the private key in ASCII-armored format with bookends
-    // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
-    // Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
-    // Decodes a private key from ASCII armor into an actual key pointer
-    // and sets that as the m_pPrivateKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
-    // PRIVATE KEY-----)
-    EXPORT bool SetPrivateKey(const String& strKey, bool bEscaped = false);
     // Only works if a private key is present.
     //
     EXPORT bool SignContract(Contract& theContract,
