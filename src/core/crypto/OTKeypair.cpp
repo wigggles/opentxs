@@ -195,27 +195,24 @@ bool OTKeypair::SaveCertAndPrivateKeyToString(String& strOutput,
 //
 // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
 //
+// This function sets both keys
 bool OTKeypair::LoadPrivateKeyFromCertString(const String& strCert,
                                              bool bEscaped,
                                              const String* pstrReason,
                                              const OTPassword* pImportPassword)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->LoadPrivateKeyFromCertString(
-        strCert, bEscaped, pstrReason, pImportPassword);
-}
-
-// Load Public Key from Cert (file or string)
-//
-bool OTKeypair::LoadPublicKeyFromCertString(
-    const String& strCert, bool bEscaped, const String* pstrReason,
-    const OTPassword* pImportPassword) // DOES handle bookends, AND escapes.
-{
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    return m_pkeyPublic->LoadPublicKeyFromCertString(
+    bool privateSuccess, publicSuccess;
+
+    privateSuccess = m_pkeyPrivate->LoadPrivateKeyFromCertString(
         strCert, bEscaped, pstrReason, pImportPassword);
+
+    publicSuccess = m_pkeyPublic->LoadPublicKeyFromCertString(
+        strCert, bEscaped, pstrReason, pImportPassword);
+
+    return (privateSuccess && publicSuccess);
 }
 
 bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData)

@@ -139,13 +139,6 @@ public:
     // pointer, and sets that as the m_pPublicKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN PUBLIC
     // KEY-----)
-    // Load Public Key from Cert (file or string)
-    //
-    EXPORT bool LoadPublicKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
-                                                      // AND escapes.
 
     // Only works if a private key is present.
     //

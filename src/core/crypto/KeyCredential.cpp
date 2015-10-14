@@ -493,19 +493,11 @@ bool KeyCredential::SetPrivateContents(
             String strPublic;
 
             if ((false ==
-                 m_AuthentKey->LoadPublicKeyFromCertString(
-                     strPrivate, false /* bEscaped true by default */,
-                     &strReason, pImportPassword)) ||
-                (false ==
                  m_AuthentKey->GetPublicKey(
                      strPublic, false /* bEscaped true by default */))) {
                 otErr << __FILE__ << " line " << __LINE__
                       << ": Failure: Unable to set public authentication key "
                          "based on private string.\n";
-                //              otErr << __FILE__ << " line " << __LINE__ <<
-                //                ": Failure: Unable to set public
-                // authentication key based on private string:\n" << strPrivate
-                // << "\n";
                 return false;
             }
             mapPublic.insert(
@@ -533,18 +525,11 @@ bool KeyCredential::SetPrivateContents(
             String strPublic;
 
             if ((false ==
-                 m_EncryptKey->LoadPublicKeyFromCertString(
-                     strPrivate, false /* bEscaped true by default */,
-                     &strReason, pImportPassword)) ||
-                (false ==
                  m_EncryptKey->GetPublicKey(
                      strPublic, false /* bEscaped true by default */))) {
                 otErr << __FILE__ << " line " << __LINE__
                       << ": Failure: Unable to set public encryption key based "
                          "on private string.\n";
-                //              otErr << __FILE__ << " line " << __LINE__ <<
-                //                ": Failure: Unable to set public encryption
-                // key based on private string:\n" << strPrivate << "\n";
                 return false;
             }
             mapPublic.insert(
@@ -572,18 +557,11 @@ bool KeyCredential::SetPrivateContents(
             String strPublic;
 
             if ((false ==
-                 m_SigningKey->LoadPublicKeyFromCertString(
-                     strPrivate, false /* bEscaped true by default */,
-                     &strReason, pImportPassword)) ||
-                (false ==
                  m_SigningKey->GetPublicKey(
                      strPublic, false /* bEscaped true by default */))) {
                 otErr << __FILE__ << " line " << __LINE__
                       << ": Failure: Unable to set public signing key based on "
                          "private string.\n";
-                //              otErr << __FILE__ << " line " << __LINE__ <<
-                //                ": Failure: Unable to set public signing key
-                // based on private string:\n" << strPrivate << "\n";
                 return false;
             }
             mapPublic.insert(
