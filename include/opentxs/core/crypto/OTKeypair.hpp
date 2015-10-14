@@ -135,12 +135,10 @@ public:
     // This form is used in all cases except for the NymIDSource
     // of a self-signed MasterCredential
     EXPORT bool GetPublicKey(String& strKey) const;
-
-    EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);
-    // (Above) Decodes a public key from bookended key string into an actual key
-    // pointer, and sets that as the m_pPublicKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN PUBLIC
-    // KEY-----)
+    // Set a public key from an opentxs::String.
+    // It is the responsibility of OTAsymmetricKey subclasses to perform any needed
+    // decoding of the string.
+    EXPORT bool SetPublicKey(const String& strKey);
 
     // Only works if a private key is present.
     //

@@ -255,18 +255,16 @@ bool OTKeypair::GetPublicKey(String& strKey) const
     return m_pkeyPublic->GetPublicKey(strKey, false);
 }
 
-// Decodes a public key from bookended key string into an actual key
-// pointer, and sets that as the m_pkeyPublic on this object.
-// This is the version that will handle the bookends ( -----BEGIN PUBLIC
-// KEY-----)
-//
-bool OTKeypair::SetPublicKey(const String& strKey, bool bEscaped)
+// Set a public key from an opentxs::String.
+// It is the responsibility of OTAsymmetricKey subclasses to perform any needed
+// decoding of the string.
+bool OTKeypair::SetPublicKey(const String& strKey)
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
     // the below function SetPublicKey (in the return call) expects the
     // bookends to still be there, and it will handle removing them.
-    return m_pkeyPublic->SetPublicKey(strKey, bEscaped);
+    return m_pkeyPublic->SetPublicKey(strKey, false);
 }
 
 // PRIVATE KEY
