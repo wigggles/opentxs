@@ -126,10 +126,8 @@ public:
 // PUBLIC KEY functions
     EXPORT bool HasPublicKey() const;
     EXPORT const OTAsymmetricKey& GetPublicKey() const;
-    // * Get the public key in ASCII-armored format WITH bookends   -- OTString
-    //       - ------- BEGIN PUBLIC KEY --------
-    //       Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPublicKey(String& strKey, bool bEscaped = true) const;
+    EXPORT bool GetPublicKey(FormattedKey& strKey) const;
+    EXPORT bool GetPublicKey(String& strKey) const;
 
     EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);
     // (Above) Decodes a public key from bookended key string into an actual key

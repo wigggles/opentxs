@@ -239,11 +239,17 @@ bool OTKeypair::SignContract(Contract& theContract,
 //       - ------- BEGIN PUBLIC KEY --------
 //       Notice the "- " before the rest of the bookend starts.
 //
-bool OTKeypair::GetPublicKey(String& strKey, bool bEscaped) const
+bool OTKeypair::GetPublicKey(FormattedKey& strKey) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    return m_pkeyPublic->GetPublicKey(strKey, bEscaped);
+    return m_pkeyPublic->GetPublicKey(strKey, true);
+}
+bool OTKeypair::GetPublicKey(String& strKey) const
+{
+    OT_ASSERT(nullptr != m_pkeyPublic);
+
+    return m_pkeyPublic->GetPublicKey(strKey, false);
 }
 
 // Decodes a public key from bookended key string into an actual key

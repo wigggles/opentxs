@@ -501,7 +501,7 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const std::shared_pt
         m_strSourceForNymID = *psourceForNymID;
     }
     else {
-        String sourceForNymID;
+        FormattedKey sourceForNymID;
         m_SigningKey->GetPublicKey(sourceForNymID);
         m_strSourceForNymID = sourceForNymID;
     }

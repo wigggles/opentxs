@@ -274,7 +274,7 @@ bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData)
         const String strReason("Generating keys for new credential...");
 
         const bool b1 = m_SigningKey->GetPublicKey(
-            strPublicKey, false); // bEscaped=true by default.
+            strPublicKey);
         const bool b2 =
             m_SigningKey->GetPrivateKey(strPrivateCert, &strReason);
 
@@ -288,7 +288,7 @@ bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData)
         strPublicKey.Release();
         strPrivateCert.Release();
         const bool b3 = m_AuthentKey->GetPublicKey(
-            strPublicKey, false); // bEscaped=true by default.
+            strPublicKey);
         const bool b4 =
             m_AuthentKey->GetPrivateKey(strPrivateCert, &strReason);
 
@@ -302,7 +302,7 @@ bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData)
         strPublicKey.Release();
         strPrivateCert.Release();
         const bool b5 = m_EncryptKey->GetPublicKey(
-            strPublicKey, false); // bEscaped=true by default.
+            strPublicKey);
         const bool b6 =
             m_EncryptKey->GetPrivateKey(strPrivateCert, &strReason);
 
@@ -492,7 +492,7 @@ bool KeyCredential::SetPrivateContents(
 
             if ((false ==
                  m_AuthentKey->GetPublicKey(
-                     strPublic, false /* bEscaped true by default */))) {
+                     strPublic))) {
                 otErr << __FILE__ << " line " << __LINE__
                       << ": Failure: Unable to set public authentication key "
                          "based on private string.\n";
@@ -521,7 +521,7 @@ bool KeyCredential::SetPrivateContents(
 
             if ((false ==
                  m_EncryptKey->GetPublicKey(
-                     strPublic, false /* bEscaped true by default */))) {
+                     strPublic))) {
                 otErr << __FILE__ << " line " << __LINE__
                       << ": Failure: Unable to set public encryption key based "
                          "on private string.\n";
@@ -550,7 +550,7 @@ bool KeyCredential::SetPrivateContents(
 
             if ((false ==
                  m_SigningKey->GetPublicKey(
-                     strPublic, false /* bEscaped true by default */))) {
+                     strPublic))) {
                 otErr << __FILE__ << " line " << __LINE__
                       << ": Failure: Unable to set public signing key based on "
                          "private string.\n";
