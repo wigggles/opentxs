@@ -230,26 +230,6 @@ bool OTKeypair::LoadCertAndPrivateKeyFromString(
     return true;
 }
 
-// Load from local storage.
-bool OTKeypair::LoadPrivateKey(const String& strFoldername,
-                               const String& strFilename,
-                               const String* pstrReason,
-                               const OTPassword* pImportPassword)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->LoadPrivateKey(strFoldername, strFilename, pstrReason,
-                                         pImportPassword);
-}
-
-bool OTKeypair::LoadPublicKey(const String& strFoldername,
-                              const String& strFilename)
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    return m_pkeyPublic->LoadPublicKey(strFoldername, strFilename);
-}
-
 // LoadPrivateKeyFromCertString
 //
 // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....

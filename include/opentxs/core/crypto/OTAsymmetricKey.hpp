@@ -292,13 +292,6 @@ public: // DESTRUCTION
     virtual bool CalculateID(Identifier& theOutput) const; // Only works for
                                                            // public keys.
 
-    // Load private or public key from local storage.
-    //
-    bool LoadPrivateKey(const String& strFoldername, const String& strFilename,
-                        const String* pstrReason = nullptr,
-                        const OTPassword* pImportPassword = nullptr);
-    bool LoadPublicKey(const String& strFoldername, const String& strFilename);
-
     // LoadPrivateKeyFromCertString
     //
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN

@@ -112,13 +112,6 @@ public:
     EXPORT bool SaveCertAndPrivateKeyToString(
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    // Load from local storage.
-    EXPORT bool LoadPrivateKey(const String& strFoldername,
-                               const String& strFilename,
-                               const String* pstrReason = nullptr,
-                               const OTPassword* pImportPassword = nullptr);
-    EXPORT bool LoadPublicKey(const String& strFoldername,
-                              const String& strFilename);
     // LoadPrivateKeyFromCertString
     //
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN
