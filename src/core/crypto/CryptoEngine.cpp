@@ -57,19 +57,28 @@ void CryptoEngine::Init()
 
 CryptoUtil& CryptoEngine::Util()
 {
-    return *(static_cast<CryptoUtil*>(pSSL_));
+    OT_ASSERT(nullptr != pSSL_);
+
+    return *pSSL_;
 }
 
+#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
 CryptoAsymmetric& CryptoEngine::RSA()
 {
-    return *(static_cast<CryptoAsymmetric*>(pSSL_));
+    OT_ASSERT(nullptr != pSSL_);
+
+    return *pSSL_;
 }
 
+#endif
+#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
 CryptoSymmetric& CryptoEngine::AES()
 {
-    return *(static_cast<CryptoSymmetric*>(pSSL_));
-}
+    OT_ASSERT(nullptr != pSSL_);
 
+    return *pSSL_;
+}
+#endif
 CryptoEngine& CryptoEngine::Instance()
 {
     if (nullptr == pInstance_)

@@ -68,16 +68,20 @@ private:
     CryptoEngine(CryptoEngine const&) = delete;
     CryptoEngine& operator=(CryptoEngine const&) = delete;
     void Init();
-    SSLImplementation* pSSL_;
+    SSLImplementation* pSSL_ = nullptr;
     static CryptoEngine* pInstance_;
 
 public:
     //Utility class for misc OpenSSL-provided functions
     EXPORT CryptoUtil& Util();
     //Asymmetric encryption engines
+#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoAsymmetric& RSA();
+#endif
     //Symmetric encryption engines
+#ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoSymmetric& AES();
+#endif
 
     EXPORT static CryptoEngine& Instance();
     void Cleanup();
