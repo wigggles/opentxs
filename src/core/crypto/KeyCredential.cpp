@@ -262,12 +262,6 @@ bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData)
 
         OT_ASSERT(bSign && bAuth && bEncr);
 
-        m_SigningKey->SaveAndReloadBothKeysFromTempFile(); // Keys won't be right
-                                                        // until this happens.
-        m_AuthentKey->SaveAndReloadBothKeysFromTempFile(); // (Necessary evil until
-                                                        // better fix.)
-        m_EncryptKey->SaveAndReloadBothKeysFromTempFile();
-
         // Since the keys were all generated successfully, we need to copy their
         // certificate data into the m_mapPublicInfo and m_mapPrivateInfo (string
         // maps.)

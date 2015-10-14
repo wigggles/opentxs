@@ -128,9 +128,6 @@ public:
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
-    EXPORT bool SaveAndReloadBothKeysFromTempFile(
-        String* pstrOutputCert = nullptr, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr);
     // PUBLIC KEY
 
     // * Get the public key in ASCII-armored format WITH bookends   -- OTString

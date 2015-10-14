@@ -246,45 +246,6 @@ bool OTKeypair::LoadCertAndPrivateKeyFromString(
     return true;
 }
 
-bool OTKeypair::SaveAndReloadBothKeysFromTempFile(
-    String* pstrOutputCert, const String* pstrReason,
-    const OTPassword* pImportPassword)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    String strOutput;
-    const bool bSuccess =
-        SaveCertAndPrivateKeyToString(strOutput, pstrReason, pImportPassword);
-
-    if (bSuccess) {
-        // todo security. Revisit this part during security audit.
-        //
-        const String strFilename("temp.nym"); // todo stop hardcoding. Plus
-                                              // this maybe should select a
-                                              // random number too.
-
-        if (!OTDB::StorePlainString(strOutput.Get(), OTFolders::Cert().Get(),
-                                    strFilename.Get())) // temp.nym
-        {
-            otErr << __FUNCTION__
-                  << ": Failure storing new cert in temp file: " << strFilename
-                  << "\n";
-            return false;
-        }
-
-        if (!LoadBothKeysFromCertFile(OTFolders::Cert().Get(), strFilename,
-                                      pstrReason, pImportPassword))
-            return false; // LoadBothKeysFromCertFile already has error logs, no
-                          // need to log twice at this point.
-
-        if (nullptr != pstrOutputCert)
-            pstrOutputCert->Set(strOutput); // Success!
-    }
-
-    return bSuccess;
-}
-
 // Load from local storage.
 bool OTKeypair::LoadPrivateKey(const String& strFoldername,
                                const String& strFilename,
@@ -364,11 +325,6 @@ bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData)
     // If true is returned:
     // Success! At this point, theKeypair's public and private keys have been
     // set.
-    // Keep in mind though, they still won't be "quite right" until saved and
-    // loaded
-    // again, at least according to existing logic. That saving/reloading is
-    // currently
-    // performed in OTPseudonym::GenerateNym().
 }
 
 bool OTKeypair::LoadBothKeysFromCertFile(const String& strFoldername,
@@ -641,14 +597,6 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
     const bool bReEncrypted = m_pkeyPrivate->ReEncryptPrivateKey(
         theExportPassword, bImporting); // <==== IMPORT or EXPORT occurs here.
     bool bGotCert = false;
-
-    if (bReEncrypted) {
-
-        // Keys won't be right until this happens. Todo: eliminate this need.
-        bGotCert = SaveAndReloadBothKeysFromTempFile(
-            &strOutput, &strReasonBelow,
-            bImporting ? nullptr : &theExportPassword);
-    }
 
     const bool bSuccess = (bReEncrypted && bGotCert);
 
