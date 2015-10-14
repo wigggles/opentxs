@@ -153,6 +153,8 @@ const OTAsymmetricKey& OTKeypair::GetPublicKey() const
     return (*m_pkeyPublic);
 }
 
+// Return the private key as an OTAsymmetricKey object
+// TODO this violates encapsulation and should be deprecated
 const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
@@ -160,6 +162,7 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
     return (*m_pkeyPrivate);
 }
 
+// Get a private key as an opentxs::FormattedKey string
 bool OTKeypair::GetPrivateKey(FormattedKey& strOutput,
                                               const String* pstrReason,
                                               const OTPassword* pImportPassword)
@@ -265,18 +268,6 @@ bool OTKeypair::SetPublicKey(const String& strKey)
     // the below function SetPublicKey (in the return call) expects the
     // bookends to still be there, and it will handle removing them.
     return m_pkeyPublic->SetPublicKey(strKey, false);
-}
-
-// PRIVATE KEY
-// Get the private key in ASCII-armored format with bookends
-// - ------- BEGIN ENCRYPTED PRIVATE KEY --------
-// Notice the "- " before the rest of the bookend starts.
-//
-bool OTKeypair::GetPrivateKey(String& strKey, bool bEscaped) const
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->GetPrivateKey(strKey, bEscaped);
 }
 
 // Decodes a private key from ASCII armor into an actual key pointer

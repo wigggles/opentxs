@@ -105,13 +105,14 @@ public:
 
 // PRIVATE KEY functions
     EXPORT bool HasPrivateKey() const;
-    EXPORT const OTAsymmetricKey& GetPrivateKey() const;
 
+    // Return the private key as an OTAsymmetricKey object
+    // TODO this violates encapsulation and should be deprecated
+    EXPORT const OTAsymmetricKey& GetPrivateKey() const;
+    // Get a private key as an opentxs::FormattedKey string
     EXPORT bool GetPrivateKey(
         FormattedKey& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    // Get the private key in ASCII-armored format with bookends
-    EXPORT bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
 
     // Decodes a private key from ASCII armor into an actual key pointer
     // and sets that as the m_pPrivateKey on this object.
@@ -128,7 +129,7 @@ public:
     // Return the public key as an OTAsymmetricKey object
     // TODO this violates encapsulation and should be deprecated
     EXPORT const OTAsymmetricKey& GetPublicKey() const;
-    // Get a public key as a opentxs::FormattedKey string.
+    // Get a public key as an opentxs::FormattedKey string.
     // This form is only used by self-signed MasterCredentials
     EXPORT bool GetPublicKey(FormattedKey& strKey) const;
     // Get a public key as an opentxs::String.
