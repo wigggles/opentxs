@@ -477,7 +477,7 @@ bool KeyCredential::SetPrivateContents(
                                                 // private Cert string.
 
         if (false ==
-            m_AuthentKey->LoadPrivateKeyFromCertString(
+            m_AuthentKey->SetPrivateKey(
                 strPrivate, false /*bEscaped true by default*/, &strReason,
                 pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__
@@ -506,7 +506,7 @@ bool KeyCredential::SetPrivateContents(
         strPrivate.Set(itEncr->second.c_str());
 
         if (false ==
-            m_EncryptKey->LoadPrivateKeyFromCertString(
+            m_EncryptKey->SetPrivateKey(
                 strPrivate, false /*bEscaped true by default*/, &strReason,
                 pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__
@@ -535,7 +535,7 @@ bool KeyCredential::SetPrivateContents(
         strPrivate.Set(itSign->second.c_str());
 
         if (false ==
-            m_SigningKey->LoadPrivateKeyFromCertString(
+            m_SigningKey->SetPrivateKey(
                 strPrivate, false /*bEscaped true by default*/, &strReason,
                 pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__

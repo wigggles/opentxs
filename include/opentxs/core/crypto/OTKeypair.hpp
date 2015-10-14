@@ -118,7 +118,7 @@ public:
     // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
     // PRIVATE KEY-----)
     EXPORT bool SetPrivateKey(const String& strKey, bool bEscaped = false);
-    EXPORT bool LoadPrivateKeyFromCertString(
+    EXPORT bool SetPrivateKey(
         const FormattedKey& strCert, bool bEscaped = true,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
