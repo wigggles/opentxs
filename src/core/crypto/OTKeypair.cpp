@@ -262,16 +262,6 @@ bool OTKeypair::GetPublicKey(String& strKey, bool bEscaped) const
     return m_pkeyPublic->GetPublicKey(strKey, bEscaped);
 }
 
-// (Below) Decodes a public key from ASCII armor into an actual key pointer
-// and sets that as the m_pKey on this object.
-//
-bool OTKeypair::SetPublicKey(const OTASCIIArmor& strKey)
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    return m_pkeyPublic->SetPublicKey(strKey);
-}
-
 // Decodes a public key from bookended key string into an actual key
 // pointer, and sets that as the m_pkeyPublic on this object.
 // This is the version that will handle the bookends ( -----BEGIN PUBLIC
@@ -296,15 +286,6 @@ bool OTKeypair::GetPrivateKey(String& strKey, bool bEscaped) const
     OT_ASSERT(nullptr != m_pkeyPrivate);
 
     return m_pkeyPrivate->GetPrivateKey(strKey, bEscaped);
-}
-
-bool OTKeypair::GetPrivateKey(OTASCIIArmor& strKey) const // Get the private key
-                                                          // in ASCII-armored
-                                                          // format
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->GetPrivateKey(strKey);
 }
 
 // Decodes a private key from ASCII armor into an actual key pointer
@@ -351,19 +332,6 @@ bool OTKeypair::SetPrivateKey(const String& strKey, bool bEscaped)
         // PGP code above.)
         //
         return m_pkeyPrivate->SetPrivateKey(strKey, bEscaped);
-}
-
-bool OTKeypair::SetPrivateKey(const OTASCIIArmor& strKey) // Decodes a private
-                                                          // key from ASCII
-                                                          // armor into an
-                                                          // actual key pointer
-                                                          // and sets that as
-                                                          // the m_pKey on this
-                                                          // object.
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    return m_pkeyPrivate->SetPrivateKey(strKey);
 }
 
 bool OTKeypair::CalculateID(Identifier& theOutput) const

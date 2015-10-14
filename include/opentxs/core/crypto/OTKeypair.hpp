@@ -137,7 +137,6 @@ public:
     EXPORT bool GetPublicKey(String& strKey, bool bEscaped = true) const;
     // (Below) Decodes a public key from ASCII armor into an actual key pointer
     // and sets that as the m_pKey on this object.
-    EXPORT bool SetPublicKey(const OTASCIIArmor& strKey);
     EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);
     // (Above) Decodes a public key from bookended key string into an actual key
     // pointer, and sets that as the m_pPublicKey on this object.
@@ -149,22 +148,11 @@ public:
     // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
     // Notice the "- " before the rest of the bookend starts.
     EXPORT bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
-    EXPORT bool GetPrivateKey(OTASCIIArmor& strKey) const; // Get the private
-                                                           // key in
-                                                           // ASCII-armored
-                                                           // format
     // Decodes a private key from ASCII armor into an actual key pointer
     // and sets that as the m_pPrivateKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
     // PRIVATE KEY-----)
     EXPORT bool SetPrivateKey(const String& strKey, bool bEscaped = false);
-    EXPORT bool SetPrivateKey(const OTASCIIArmor& strKey); // Decodes a private
-                                                           // key from ASCII
-                                                           // armor into an
-                                                           // actual key pointer
-                                                           // and sets that as
-                                                           // the m_pKey on this
-                                                           // object.
     // Only works if a private key is present.
     //
     EXPORT bool SignContract(Contract& theContract,
