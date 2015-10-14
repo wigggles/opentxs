@@ -158,23 +158,6 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
     return (*m_pkeyPrivate);
 }
 
-bool OTKeypair::SaveCertToString(String& strOutput, const String* pstrReason,
-                                 const OTPassword* pImportPassword) const
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    String strCert,
-        strReason(nullptr == pstrReason ? "OTKeypair::SaveCertToString"
-                                        : pstrReason->Get());
-
-    const bool bSaved =
-        m_pkeyPublic->SaveCertToString(strCert, &strReason, pImportPassword);
-
-    if (bSaved) strOutput = strCert;
-
-    return bSaved;
-}
-
 bool OTKeypair::SavePrivateKeyToString(String& strOutput,
                                        const String* pstrReason,
                                        const OTPassword* pImportPassword) const
@@ -197,7 +180,7 @@ bool OTKeypair::SaveCertAndPrivateKeyToString(String& strOutput,
 {
     String strCert, strPrivateKey;
 
-    const bool bSaved1 = SaveCertToString(strCert, pstrReason, pImportPassword);
+    const bool bSaved1 = m_pkeyPublic->SaveCertToString(strCert, pstrReason, pImportPassword);
     const bool bSaved2 =
         SavePrivateKeyToString(strPrivateKey, pstrReason, pImportPassword);
 

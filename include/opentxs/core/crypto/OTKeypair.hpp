@@ -106,9 +106,6 @@ public:
     EXPORT const OTAsymmetricKey& GetPublicKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
     EXPORT bool CalculateID(Identifier& theOutput) const;
-    EXPORT bool SaveCertToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const;
     EXPORT bool SavePrivateKeyToString(
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
