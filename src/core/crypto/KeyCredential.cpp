@@ -267,7 +267,8 @@ bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData)
         // certificate data into the m_mapPublicInfo and m_mapPrivateInfo (string
         // maps.)
         //
-        String strPublicKey, strPrivateCert;
+        String strPublicKey;
+        FormattedKey strPrivateCert;
         String::Map mapPublic, mapPrivate;
 
         const String strReason("Generating keys for new credential...");
@@ -471,7 +472,7 @@ bool KeyCredential::SetPrivateContents(
         const String strReason("Loading private key from credential.");
         String::Map mapPublic;
 
-        String strPrivate;
+        FormattedKey strPrivate;
         strPrivate.Set(itAuth->second.c_str()); // strPrivate now contains the
                                                 // private Cert string.
 
@@ -482,9 +483,6 @@ bool KeyCredential::SetPrivateContents(
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private authentication key "
                      "based on string.\n";
-            //          otErr << __FILE__ << " line " << __LINE__ <<
-            //            ": Failure: Unable to set private authentication key
-            // based on string:\n" << strPrivate << "\n";
             return false;
         }
         else // Success loading the private key. Let's grab the public key
@@ -514,9 +512,6 @@ bool KeyCredential::SetPrivateContents(
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private encryption key based on "
                      "string.\n";
-            //          otErr << __FILE__ << " line " << __LINE__ <<
-            //            ": Failure: Unable to set private encryption key based
-            // on string:\n" << strPrivate << "\n";
             return false;
         }
         else // Success loading the private key. Let's grab the public key
@@ -546,9 +541,6 @@ bool KeyCredential::SetPrivateContents(
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private signing key based on "
                      "string.\n";
-            //          otErr << __FILE__ << " line " << __LINE__ <<
-            //            ": Failure: Unable to set private signing key based on
-            // string:\n" << strPrivate << "\n";
             return false;
         }
         else // Success loading the private key. Let's grab the public key

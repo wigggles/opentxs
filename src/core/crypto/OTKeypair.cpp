@@ -158,7 +158,7 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
     return (*m_pkeyPrivate);
 }
 
-bool OTKeypair::SaveCertAndPrivateKeyToString(String& strOutput,
+bool OTKeypair::SaveCertAndPrivateKeyToString(FormattedKey& strOutput,
                                               const String* pstrReason,
                                               const OTPassword* pImportPassword)
 {
@@ -183,7 +183,7 @@ bool OTKeypair::SaveCertAndPrivateKeyToString(String& strOutput,
 // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
 //
 // This function sets both keys
-bool OTKeypair::LoadPrivateKeyFromCertString(const String& strCert,
+bool OTKeypair::LoadPrivateKeyFromCertString(const FormattedKey& strCert,
                                              bool bEscaped,
                                              const String* pstrReason,
                                              const OTPassword* pImportPassword)

@@ -108,7 +108,7 @@ public:
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
 
     EXPORT bool SaveCertAndPrivateKeyToString(
-        String& strOutput, const String* pstrReason = nullptr,
+        FormattedKey& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // Get the private key in ASCII-armored format with bookends
     EXPORT bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
@@ -119,7 +119,7 @@ public:
     // PRIVATE KEY-----)
     EXPORT bool SetPrivateKey(const String& strKey, bool bEscaped = false);
     EXPORT bool LoadPrivateKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
+        const FormattedKey& strCert, bool bEscaped = true,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
