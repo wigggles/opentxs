@@ -128,9 +128,6 @@ public:
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
                                                       // AND escapes.
-    EXPORT bool LoadCertAndPrivateKeyFromString(
-        const String& strInput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr);
 
     // PUBLIC KEY
 

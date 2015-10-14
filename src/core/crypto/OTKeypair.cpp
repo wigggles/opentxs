@@ -191,45 +191,6 @@ bool OTKeypair::SaveCertAndPrivateKeyToString(String& strOutput,
     return (bSaved1 && bSaved2);
 }
 
-bool OTKeypair::LoadCertAndPrivateKeyFromString(
-    const String& strInput, const String* pstrReason,
-    const OTPassword* pImportPassword)
-{
-    OT_ASSERT(strInput.Exists());
-
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN CER....
-    //
-    const bool bPublic = LoadPublicKeyFromCertString(
-        strInput, false, // bool bEscaped=true by default
-        pstrReason, pImportPassword);
-    const bool bPrivate = LoadPrivateKeyFromCertString(
-        strInput, false, // bool bEscaped=true by default,
-        pstrReason, pImportPassword);
-    if (!bPublic) {
-        otErr << __FUNCTION__
-              << ": Although the input string apparently exists, "
-                 "LoadPublicKeyFromCertString returned false.\n";
-        return false;
-    }
-    else {
-        otInfo << __FUNCTION__
-               << ": Successfully loaded public key from string.\n";
-    }
-
-    if (!bPrivate) {
-        otErr << __FUNCTION__
-              << ": Although the input string apparently exists, "
-                 "LoadPrivateKeyFromCertString returned false.\n";
-        return false;
-    }
-    else {
-        otInfo << __FUNCTION__
-               << ": Successfully loaded private key from string.\n";
-    }
-
-    return true;
-}
-
 // LoadPrivateKeyFromCertString
 //
 // "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
