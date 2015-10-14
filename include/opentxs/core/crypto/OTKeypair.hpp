@@ -138,18 +138,8 @@ public:
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
                                                       // AND escapes.
-    EXPORT bool LoadPublicKeyFromCertFile(
-        const String& strFoldername, const String& strFilename,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr); // DOES handle bookends.
     EXPORT bool LoadCertAndPrivateKeyFromString(
         const String& strInput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr);
-    // LOAD BOTH KEYS FROM CERT FILE
-    //
-    EXPORT bool LoadBothKeysFromCertFile(
-        const String& strFoldername, const String& strFilename,
-        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
     // PUBLIC KEY

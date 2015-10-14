@@ -1172,46 +1172,6 @@ bool OTAsymmetricKey::LoadPublicKey(const String& strFoldername,
     }
 }
 
-// Load the public key from a x509 stored in a .pem file
-bool OTAsymmetricKey::LoadPublicKeyFromCertFile(
-    const String& strFoldername, const String& strFilename,
-    const String* pstrReason, const OTPassword* pImportPassword)
-{
-    Release();
-
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    const char* szFoldername = strFoldername.Get();
-    const char* szFilename = strFilename.Get();
-
-    OT_ASSERT(strFoldername.Exists());
-    OT_ASSERT(strFilename.Exists());
-
-    if (!OTDB::Exists(szFoldername, szFilename)) {
-        otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
-        return false;
-    }
-
-    //
-    std::string strFileContents(OTDB::QueryPlainString(
-        szFoldername, szFilename)); // <=== LOADING FROM DATA STORE.
-
-    if (strFileContents.length() < 2) {
-        otErr << __FUNCTION__ << ": Error reading file: " << szFoldername
-              << Log::PathSeparator() << szFilename << "\n";
-        return false;
-    }
-
-    const String strCert(strFileContents);
-
-    return LoadPublicKeyFromCertString(
-        strCert, false, pstrReason,
-        pImportPassword); // bEscaped=false; "escaped" means pre-pended with "-
-                          // " as in:   - -----BEGIN CER....
-}
-
 String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
 
 {

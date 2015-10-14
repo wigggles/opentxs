@@ -294,17 +294,6 @@ bool OTKeypair::LoadPublicKeyFromCertString(
         strCert, bEscaped, pstrReason, pImportPassword);
 }
 
-bool OTKeypair::LoadPublicKeyFromCertFile(
-    const String& strFoldername, const String& strFilename,
-    const String* pstrReason,
-    const OTPassword* pImportPassword) // DOES handle bookends.
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    return m_pkeyPublic->LoadPublicKeyFromCertFile(strFoldername, strFilename,
-                                                   pstrReason, pImportPassword);
-}
-
 bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
@@ -326,44 +315,6 @@ bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData)
     // If true is returned:
     // Success! At this point, theKeypair's public and private keys have been
     // set.
-}
-
-bool OTKeypair::LoadBothKeysFromCertFile(const String& strFoldername,
-                                         const String& strFilename,
-                                         const String* pstrReason,
-                                         const OTPassword* pImportPassword)
-{
-    const char* szFunc = "OTKeypair::LoadBothKeysFromCertFile";
-
-    OT_ASSERT(nullptr != m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    bool bPublic = m_pkeyPublic->LoadPublicKeyFromCertFile(
-        strFoldername.Get(), strFilename.Get(), pstrReason, pImportPassword);
-    bool bPrivate = m_pkeyPrivate->LoadPrivateKey(
-        strFoldername.Get(), strFilename.Get(), pstrReason, pImportPassword);
-    if (!bPublic) {
-        otErr << szFunc << ": Although the ascii-armored file (" << strFilename
-              << ") was read, LoadPublicKeyFromCert "
-                 "returned false.\n";
-        return false;
-    }
-    else {
-        otInfo << szFunc << ": Successfully loaded public key from Certfile: "
-               << strFilename << "\n";
-    }
-
-    if (!bPrivate) {
-        otErr << szFunc << ": Although the ascii-armored file (" << strFilename
-              << ") was read, LoadPrivateKey returned false.\n";
-        return false;
-    }
-    else {
-        otInfo << szFunc << ": Successfully loaded private key from certfile: "
-               << strFilename << "\n";
-    }
-
-    return true;
 }
 
 bool OTKeypair::SignContract(Contract& theContract,
