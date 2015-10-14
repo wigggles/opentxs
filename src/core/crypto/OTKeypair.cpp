@@ -64,6 +64,7 @@
 
 #include <opentxs/core/crypto/OTKeypair.hpp>
 
+#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/util/OTFolders.hpp>

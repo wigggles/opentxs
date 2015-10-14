@@ -48,6 +48,7 @@ class OTASCIIArmor;
 class OTCaller;
 class OTPassword;
 class String;
+class FormattedKey;
 
 // Todo:
 // 1. Add this value to the config file so it becomes merely a default value

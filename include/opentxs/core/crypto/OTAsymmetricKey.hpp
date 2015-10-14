@@ -53,6 +53,7 @@ class Identifier;
 class OTPassword;
 class OTSignatureMetadata;
 class String;
+class FormattedKey;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 

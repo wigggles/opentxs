@@ -58,8 +58,32 @@ class OTPasswordData;
 class OTSignature;
 class OTSignatureMetadata;
 class String;
+class FormattedKey;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
+
+// Forms of keys
+//
+// OTKeypair was originally written to ensapsulate RSA keys created by OpenSSL
+// OpenSSL like to put keys in X509 certificates, and has special ASCII-armored
+// representations of RSA keys, which is sometimes demarcated with bookends.
+//
+// Other key types (ECDSA) don't do that.
+//
+// If we want OTKeypair to actually be a generic interface for keys, all the
+// embedded assumptions about certificates and bookends need to be removed.
+//
+// So now there are two possible string representations of a key:
+// opentxs::String or opentxs::FormattedKey (FormattedKey is just a basic
+// subclass of String)
+//
+// Classes that call OTKeypair won't know *why* there's a difference between the
+// two forms, but they will keep track of which form they have so they can
+// call the correct OTKeypair function.
+//
+// Probably every form of key *except* OpenSSL-based keys will only have one
+// string represention of a key, so the FormattedKey versions of the methods
+// below will just be simple wrappers around the String versions.
 
 // Encapsulates public/private key (though often there may only be
 // a public key present, unless the nym belongs to you.)

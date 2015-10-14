@@ -68,6 +68,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/FormattedKey.hpp>
 
 namespace opentxs
 {

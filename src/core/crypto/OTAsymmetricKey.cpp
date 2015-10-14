@@ -48,6 +48,7 @@
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/FormattedKey.hpp>
 
 #include <cstring>
 

@@ -68,6 +68,7 @@
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/util/Tag.hpp>
+#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
 
 #include <irrxml/irrXML.hpp>
