@@ -183,15 +183,15 @@ bool OTKeypair::GetPrivateKey(FormattedKey& strOutput,
     return (bSaved1 && bSaved2);
 }
 
-// SetPrivateKey
-//
-// "escaped" means pre-pended with "- " as in:   - -----BEGIN CERTIFICATE....
-//
-// This function sets both keys
-bool OTKeypair::SetPrivateKey(const FormattedKey& strCert,
-                                             bool bEscaped,
-                                             const String* pstrReason,
-                                             const OTPassword* pImportPassword)
+// Set a private key from an opentxs::String.
+// It is the responsibility of OTAsymmetricKey subclasses to perform any needed
+// decoding of the string.
+// This function sets both strings.
+bool OTKeypair::SetPrivateKey(
+    const FormattedKey& strCert,
+    const String* pstrReason,
+    const OTPassword* pImportPassword
+    )
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic);
@@ -199,10 +199,10 @@ bool OTKeypair::SetPrivateKey(const FormattedKey& strCert,
     bool privateSuccess, publicSuccess;
 
     privateSuccess = m_pkeyPrivate->LoadPrivateKeyFromCertString(
-        strCert, bEscaped, pstrReason, pImportPassword);
+        strCert, false, pstrReason, pImportPassword);
 
     publicSuccess = m_pkeyPublic->LoadPublicKeyFromCertString(
-        strCert, bEscaped, pstrReason, pImportPassword);
+        strCert, false, pstrReason, pImportPassword);
 
     return (privateSuccess && publicSuccess);
 }
@@ -268,52 +268,6 @@ bool OTKeypair::SetPublicKey(const String& strKey)
     // the below function SetPublicKey (in the return call) expects the
     // bookends to still be there, and it will handle removing them.
     return m_pkeyPublic->SetPublicKey(strKey, false);
-}
-
-// Decodes a private key from ASCII armor into an actual key pointer
-// and sets that as the m_pPrivateKey on this object.
-// This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
-// PRIVATE KEY-----)
-bool OTKeypair::SetPrivateKey(const String& strKey, bool bEscaped)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-
-    const char* szOverride = "PGP PRIVATE KEY";
-
-    if (strKey.Contains(szOverride)) {
-        OTASCIIArmor theArmor;
-
-        if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped,
-                                    szOverride)) // szOverride == "PGP PRIVATE
-                                                 // KEY"
-        {
-            // This function expects that the bookends are already removed.
-            // The ascii-armor loading code removes them and handles the escapes
-            // also.
-            //            return
-            // m_pkeyPrivate->LoadPrivateKeyFromPGPKey(theArmor);
-            //
-            otOut << "OTKeypair::SetPrivateKey 1: Failure: PGP private keys "
-                     "are NOT YET SUPPORTED.\n\n";
-            //            otOut << "OTKeypair::SetPrivateKey 1: Failure: PGP
-            // private keys are NOT YET SUPPORTED:\n\n%s\n\n",
-            //                           strKey.Get());
-            return false;
-        }
-        else {
-            otOut << "OTKeypair::SetPrivateKey 2: Failure: PGP private keys "
-                     "are NOT YET SUPPORTED.\n\n";
-            //            otOut << "OTKeypair::SetPrivateKey 2: Failure: PGP
-            // private keys are NOT YET SUPPORTED:\n\n%s\n\n",
-            //                           strKey.Get());
-            return false;
-        }
-    }
-    else // the below function SetPrivateKey (in the return call) expects the
-        // bookends to still be there, and it will handle removing them. (Unlike
-        // PGP code above.)
-        //
-        return m_pkeyPrivate->SetPrivateKey(strKey, bEscaped);
 }
 
 bool OTKeypair::CalculateID(Identifier& theOutput) const

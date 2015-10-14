@@ -113,14 +113,12 @@ public:
     EXPORT bool GetPrivateKey(
         FormattedKey& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
-
-    // Decodes a private key from ASCII armor into an actual key pointer
-    // and sets that as the m_pPrivateKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
-    // PRIVATE KEY-----)
-    EXPORT bool SetPrivateKey(const String& strKey, bool bEscaped = false);
+    // Set a private key from an opentxs::String.
+    // It is the responsibility of OTAsymmetricKey subclasses to perform any needed
+    // decoding of the string.
+    // This function sets both strings.
     EXPORT bool SetPrivateKey(
-        const FormattedKey& strCert, bool bEscaped = true,
+        const FormattedKey& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
 

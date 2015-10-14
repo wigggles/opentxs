@@ -478,7 +478,7 @@ bool KeyCredential::SetPrivateContents(
 
         if (false ==
             m_AuthentKey->SetPrivateKey(
-                strPrivate, false /*bEscaped true by default*/, &strReason,
+                strPrivate, &strReason,
                 pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private authentication key "
@@ -507,7 +507,7 @@ bool KeyCredential::SetPrivateContents(
 
         if (false ==
             m_EncryptKey->SetPrivateKey(
-                strPrivate, false /*bEscaped true by default*/, &strReason,
+                strPrivate, &strReason,
                 pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private encryption key based on "
@@ -536,7 +536,7 @@ bool KeyCredential::SetPrivateContents(
 
         if (false ==
             m_SigningKey->SetPrivateKey(
-                strPrivate, false /*bEscaped true by default*/, &strReason,
+                strPrivate, &strReason,
                 pImportPassword)) {
             otErr << __FILE__ << " line " << __LINE__
                   << ": Failure: Unable to set private signing key based on "
