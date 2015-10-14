@@ -158,7 +158,7 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
     return (*m_pkeyPrivate);
 }
 
-bool OTKeypair::SaveCertAndPrivateKeyToString(FormattedKey& strOutput,
+bool OTKeypair::GetPrivateKey(FormattedKey& strOutput,
                                               const String* pstrReason,
                                               const OTPassword* pImportPassword)
 {

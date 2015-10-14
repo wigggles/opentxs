@@ -276,7 +276,7 @@ bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData)
         const bool b1 = m_SigningKey->GetPublicKey(
             strPublicKey, false); // bEscaped=true by default.
         const bool b2 =
-            m_SigningKey->SaveCertAndPrivateKeyToString(strPrivateCert, &strReason);
+            m_SigningKey->GetPrivateKey(strPrivateCert, &strReason);
 
         if (b1)
             mapPublic.insert(
@@ -290,7 +290,7 @@ bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData)
         const bool b3 = m_AuthentKey->GetPublicKey(
             strPublicKey, false); // bEscaped=true by default.
         const bool b4 =
-            m_AuthentKey->SaveCertAndPrivateKeyToString(strPrivateCert, &strReason);
+            m_AuthentKey->GetPrivateKey(strPrivateCert, &strReason);
 
         if (b3)
             mapPublic.insert(
@@ -304,7 +304,7 @@ bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData)
         const bool b5 = m_EncryptKey->GetPublicKey(
             strPublicKey, false); // bEscaped=true by default.
         const bool b6 =
-            m_EncryptKey->SaveCertAndPrivateKeyToString(strPrivateCert, &strReason);
+            m_EncryptKey->GetPrivateKey(strPrivateCert, &strReason);
 
         if (b5)
             mapPublic.insert(

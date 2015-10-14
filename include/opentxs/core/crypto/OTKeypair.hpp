@@ -107,7 +107,7 @@ public:
     EXPORT bool HasPrivateKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
 
-    EXPORT bool SaveCertAndPrivateKeyToString(
+    EXPORT bool GetPrivateKey(
         FormattedKey& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // Get the private key in ASCII-armored format with bookends
