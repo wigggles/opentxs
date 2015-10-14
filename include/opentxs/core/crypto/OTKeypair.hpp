@@ -107,9 +107,6 @@ public:
     EXPORT bool HasPrivateKey() const;
     EXPORT const OTAsymmetricKey& GetPrivateKey() const;
 
-    EXPORT bool SavePrivateKeyToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const;
     EXPORT bool SaveCertAndPrivateKeyToString(
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
