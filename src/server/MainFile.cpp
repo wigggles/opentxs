@@ -251,7 +251,7 @@ bool MainFile::CreateMainFile(const std::string& strContract,
 
     server_->m_nymServer.SetIdentifier(strServerNymID);
 
-    if (!server_->m_nymServer.Loadx509CertAndPrivateKey()) {
+    if (!server_->m_nymServer.LoadCredentials(true)) {
         Log::vOutput(0, "%s: Error loading server credentials, or "
                         "certificate and private key.\n",
                      __FUNCTION__);
@@ -529,7 +529,7 @@ bool MainFile::LoadServerUserAndContract()
 
     server_->m_nymServer.SetIdentifier(server_->m_strServerNymID);
 
-    if (!server_->m_nymServer.Loadx509CertAndPrivateKey(false)) {
+    if (!server_->m_nymServer.LoadCredentials(true)) {
         Log::vOutput(0, "%s: Error loading server certificate and keys.\n",
                      szFunc);
     }

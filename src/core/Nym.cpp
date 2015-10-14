@@ -215,15 +215,8 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
 
-    bool bLoadedKey = pNym->Loadx509CertAndPrivateKey(
-        bChecking, pPWData,
-        pImportPassword); // old style. (Deprecated.) Eventually remove this.
-    //***  Right now Loadx509CertAndPrivateKey calls LoadCredentials at its top,
-    // which is what we should be calling here. But that function handles
-    // old-style Nyms too, so we keep it around until we lose those.  //
-    //<====================
+    bool bLoadedKey = pNym->LoadCredentials(true, pPWData, pImportPassword);
 
-    // Error loading x509CertAndPrivateKey.
     if (!bLoadedKey)
         Log::vOutput(
             bChecking ? 1 : 0,
@@ -231,7 +224,7 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
             "cert and private key for: %s (maybe this nym doesn't exist?)\n",
             __FUNCTION__, szFunc, "bChecking", bChecking ? "true" : "false",
             strNymID.Get());
-    // success loading x509CertAndPrivateKey,
+    // success loading credentials
     // failure verifying pseudonym public key.
     else if (!pNym->VerifyPseudonym()) // <====================
         otErr << __FUNCTION__ << " " << szFunc
@@ -5012,37 +5005,6 @@ bool Nym::VerifyTransactionStatementNumbersOnNym(Nym& THE_NYM) // THE_NYM is
     // used for the last balance agreement.
 
     return true;
-}
-
-bool Nym::Loadx509CertAndPrivateKey(bool bChecking,
-                                    const OTPasswordData* pPWData,
-                                    const OTPassword* pImportPassword)
-{
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    if (nullptr == pPWData) pPWData = &thePWData;
-    String strReason(pPWData->GetDisplayString());
-
-    // Here we try to load credentials 
-    if (LoadCredentials(true, pPWData, pImportPassword) &&
-        (GetMasterCredentialCount() > 0)) {
-        //      return true;
-        auto it = m_mapCredentialSets.begin();
-        OT_ASSERT(m_mapCredentialSets.end() != it);
-        CredentialSet* pCredential = it->second;
-        OT_ASSERT(nullptr != pCredential);
-
-        String strPubAndPrivCert;
-
-        if (const_cast<OTKeypair&>(
-                pCredential->GetSignKeypair(&m_listRevokedIDs))
-                .SaveCertAndPrivateKeyToString(strPubAndPrivCert, &strReason,
-                                               pImportPassword)) {
-            return true;
-        }
-    }
-
-    otErr << __FUNCTION__ << "LoadCredentials failed.\n";
-    return false;
 }
 
 // static
