@@ -8156,7 +8156,7 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
     if (nullptr == pNym) return "";
     if (false ==
         pNym->GetPublicEncrKey().GetPublicKey(
-            strPubkey, false)) // bEscaped defaults to true. 6/13/12
+            strPubkey)) // bEscaped defaults to true. 6/13/12
     {
         String strNymID(nym_id);
         otOut << __FUNCTION__
@@ -8189,7 +8189,7 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
     if (nullptr == pNym) return "";
     if (false ==
         pNym->GetPublicSignKey().GetPublicKey(
-            strPubkey, false)) // bEscaped defaults to true. 6/13/12
+            strPubkey))
     {
         String strNymID(nym_id);
         otOut << __FUNCTION__

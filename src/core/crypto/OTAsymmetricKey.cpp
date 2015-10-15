@@ -711,11 +711,7 @@ bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const // Only works
     return true;
 }
 
-// Get the public key in ASCII-armored format with bookends  - ------- BEGIN
-// PUBLIC KEY --------
-// This version, so far, is escaped-only. Notice the "- " before the rest of the
-// bookend starts.
-bool OTAsymmetricKey::GetPublicKey(String& strKey, bool bEscaped) const
+bool OTAsymmetricKey::GetPublicKey(String& strKey) const
 {
     OTASCIIArmor theArmor;
 
@@ -730,20 +726,39 @@ bool OTAsymmetricKey::GetPublicKey(String& strKey, bool bEscaped) const
     // as "dirty" when it is changed.
 
     if (GetPublicKey(theArmor)) {
-        if (bEscaped) {
-            strKey.Concatenate(
-                "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
-                "%s"
-                "- -----END PUBLIC KEY-----\n",
-                theArmor.Get());
-        }
-        else {
-            strKey.Concatenate(
-                "-----BEGIN PUBLIC KEY-----\n" // UN-ESCAPED VERSION
-                "%s"
-                "-----END PUBLIC KEY-----\n",
-                theArmor.Get());
-        }
+        strKey.Concatenate(
+            "-----BEGIN PUBLIC KEY-----\n" // UN-ESCAPED VERSION
+            "%s"
+            "-----END PUBLIC KEY-----\n",
+            theArmor.Get());
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey::GetPublicKey: Error: GetPublicKey(armored) "
+                 "returned false. (Returning false.)\n";
+
+    return false;
+}
+bool OTAsymmetricKey::GetPublicKey(FormattedKey& strKey) const
+{
+    OTASCIIArmor theArmor;
+
+    // TODO: optimization: When optimizing for CPU cycles, and willing to
+    // sacrifice a little RAM, we
+    // can save this value the first time it's computed, and then as long as the
+    // armored version (without
+    // bookends) doesn't change, we can save the computed version and pass it
+    // back here, instead of re-generating
+    // it here each time this is called. This implies a need for the armored
+    // version to be able to be flagged
+    // as "dirty" when it is changed.
+
+    if (GetPublicKey(theArmor)) {
+        strKey.Concatenate(
+            "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
+            "%s"
+            "- -----END PUBLIC KEY-----\n",
+            theArmor.Get());
         return true;
     }
     else
@@ -776,7 +791,7 @@ bool OTAsymmetricKey::GetPublicKey(OTASCIIArmor& ascKey) const
 // SetPublicKey
 // (the one that takes an OTASCIIArmor object.)
 //
-bool OTAsymmetricKey::SetPublicKey(const String& strKey, bool bEscaped)
+bool OTAsymmetricKey::SetPublicKey(const String& strKey)
 {
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
@@ -785,7 +800,7 @@ bool OTAsymmetricKey::SetPublicKey(const String& strKey, bool bEscaped)
     // BEGIN ...)
     OTASCIIArmor theArmor;
 
-    if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped)) {
+    if (theArmor.LoadFromString(const_cast<String&>(strKey), false)) {
         return SetPublicKey(theArmor);
     }
     else
@@ -795,6 +810,28 @@ bool OTAsymmetricKey::SetPublicKey(const String& strKey, bool bEscaped)
 
     return false;
 }
+bool OTAsymmetricKey::SetPublicKey(const FormattedKey& strKey)
+{
+    m_bIsPublicKey = true;
+    m_bIsPrivateKey = false;
+
+    // This reads the string into the Armor and removes the bookends. (-----
+    // BEGIN ...)
+    OTASCIIArmor theArmor;
+    String strKeystr = strKey;
+    String& refKeystr = strKeystr;
+
+    if (theArmor.LoadFromString(refKeystr, true)) {
+        return SetPublicKey(theArmor);
+    }
+    else
+        otErr << "OTAsymmetricKey::SetPublicKey: Error: failed loading "
+                 "ascii-armored contents from bookended string:\n\n" << strKey
+              << "\n\n";
+
+    return false;
+}
+
 
 // Copies to internal ascii-armored string, and wipes any key if
 // one is already loaded.

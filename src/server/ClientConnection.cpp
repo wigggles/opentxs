@@ -49,7 +49,7 @@ namespace opentxs
 // he says he is, he sets the public key onto the connection object for
 // that nym.  That way, if the connection object ever needs to encrypt something
 // being sent to the client, he has access to the public key.
-void ClientConnection::SetPublicKey(const String& publicKey, OTAsymmetricKey::KeyType keyType)
+void ClientConnection::SetPublicKey(const FormattedKey& publicKey, OTAsymmetricKey::KeyType keyType)
 {
     if (nullptr != publicKey_)
     {
@@ -63,7 +63,7 @@ void ClientConnection::SetPublicKey(const String& publicKey, OTAsymmetricKey::Ke
     // SetPublicKey takes the ascii-encoded text, including bookends, and
     // processes it into the OTAssymeticKey object. If successful, the
     // OTAssymetricKey is now fully functional for encrypting and verifying.
-    publicKey_->SetPublicKey(publicKey, true);
+    publicKey_->SetPublicKey(publicKey);
 }
 
 void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
@@ -80,10 +80,10 @@ void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
     // ----------------------
     // NOTE: CLone above probably allows us to remove this bottom part entirely.
     // TODO.
-    String strNymsPublicKey;
+    FormattedKey strNymsPublicKey;
 
-    publicKey.GetPublicKey(strNymsPublicKey, true);
-    publicKey_->SetPublicKey(strNymsPublicKey, true);
+    publicKey.GetPublicKey(strNymsPublicKey);
+    publicKey_->SetPublicKey(strNymsPublicKey);
 }
 
 // This function, you pass in a message and it returns true or false to let

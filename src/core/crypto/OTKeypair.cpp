@@ -246,7 +246,7 @@ bool OTKeypair::GetPublicKey(FormattedKey& strKey) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    return m_pkeyPublic->GetPublicKey(strKey, true);
+    return m_pkeyPublic->GetPublicKey(strKey);
 }
 // Get a public key as an opentxs::String.
 // This form is used in all cases except for the NymIDSource
@@ -255,7 +255,7 @@ bool OTKeypair::GetPublicKey(String& strKey) const
 {
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    return m_pkeyPublic->GetPublicKey(strKey, false);
+    return m_pkeyPublic->GetPublicKey(strKey);
 }
 
 // Set a public key from an opentxs::String.
@@ -267,7 +267,7 @@ bool OTKeypair::SetPublicKey(const String& strKey)
 
     // the below function SetPublicKey (in the return call) expects the
     // bookends to still be there, and it will handle removing them.
-    return m_pkeyPublic->SetPublicKey(strKey, false);
+    return m_pkeyPublic->SetPublicKey(strKey);
 }
 
 bool OTKeypair::CalculateID(Identifier& theOutput) const

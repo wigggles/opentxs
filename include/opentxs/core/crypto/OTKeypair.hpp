@@ -144,6 +144,7 @@ public:
     EXPORT bool SignContract(Contract& theContract,
                              const OTPasswordData* pPWData = nullptr);
     EXPORT void SetMetadata(const OTSignatureMetadata& theMetadata);
+    // TODO this violates encapsulation and should be deprecated
     EXPORT int32_t GetPublicKeyBySignature(
         listOfAsymmetricKeys& listOutput, // inclusive means, return keys when
                                           // theSignature has no metadata.
