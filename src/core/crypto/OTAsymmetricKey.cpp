@@ -693,75 +693,35 @@ bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const // Only works
 
 bool OTAsymmetricKey::GetPublicKey(String& strKey) const
 {
-    OTASCIIArmor theArmor;
-
-    // TODO: optimization: When optimizing for CPU cycles, and willing to
-    // sacrifice a little RAM, we
-    // can save this value the first time it's computed, and then as long as the
-    // armored version (without
-    // bookends) doesn't change, we can save the computed version and pass it
-    // back here, instead of re-generating
-    // it here each time this is called. This implies a need for the armored
-    // version to be able to be flagged
-    // as "dirty" when it is changed.
-
-    if (GetPublicKey(theArmor)) {
+    if (nullptr != m_p_ascKey) {
         strKey.Concatenate(
             "-----BEGIN PUBLIC KEY-----\n" // UN-ESCAPED VERSION
             "%s"
             "-----END PUBLIC KEY-----\n",
-            theArmor.Get());
+            m_p_ascKey->Get());
         return true;
     }
     else
-        otErr << "OTAsymmetricKey::GetPublicKey: Error: GetPublicKey(armored) "
-                 "returned false. (Returning false.)\n";
+        otErr << "OTAsymmetricKey::GetPublicKey: Error: no "
+                 "public key.\n";
 
     return false;
 }
 bool OTAsymmetricKey::GetPublicKey(FormattedKey& strKey) const
 {
-    OTASCIIArmor theArmor;
-
-    // TODO: optimization: When optimizing for CPU cycles, and willing to
-    // sacrifice a little RAM, we
-    // can save this value the first time it's computed, and then as long as the
-    // armored version (without
-    // bookends) doesn't change, we can save the computed version and pass it
-    // back here, instead of re-generating
-    // it here each time this is called. This implies a need for the armored
-    // version to be able to be flagged
-    // as "dirty" when it is changed.
-
-    if (GetPublicKey(theArmor)) {
+    if (nullptr != m_p_ascKey) {
         strKey.Concatenate(
             "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
             "%s"
             "- -----END PUBLIC KEY-----\n",
-            theArmor.Get());
+            m_p_ascKey->Get());
         return true;
     }
     else
-        otErr << "OTAsymmetricKey::GetPublicKey: Error: GetPublicKey(armored) "
-                 "returned false. (Returning false.)\n";
+        otErr << "OTAsymmetricKey::GetPublicKey: Error: no "
+                 "public key.\n";
 
     return false;
-}
-
-// Get the public key in ASCII-armored format.
-//
-bool OTAsymmetricKey::GetPublicKey(OTASCIIArmor& ascKey) const
-{
-    OT_ASSERT_MSG(IsPublic(),
-                  "OTAsymmetricKey::GetPublicKey: ASSERT: IsPublic()\n");
-
-    ascKey.Release();
-
-    if (nullptr == m_p_ascKey) return false;
-
-    ascKey.Set(*m_p_ascKey);
-
-    return true;
 }
 
 // High-level.
@@ -773,15 +733,24 @@ bool OTAsymmetricKey::GetPublicKey(OTASCIIArmor& ascKey) const
 //
 bool OTAsymmetricKey::SetPublicKey(const String& strKey)
 {
+    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
+                          // here. (Since it's being replaced, it's now the
+                          // wrong key anyway.)
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
+
+    if (nullptr == m_p_ascKey) {
+        m_p_ascKey = new OTASCIIArmor;
+        OT_ASSERT(nullptr != m_p_ascKey);
+    }
 
     // This reads the string into the Armor and removes the bookends. (-----
     // BEGIN ...)
     OTASCIIArmor theArmor;
 
     if (theArmor.LoadFromString(const_cast<String&>(strKey), false)) {
-        return SetPublicKey(theArmor);
+        m_p_ascKey->Set(theArmor);
+        return true;
     }
     else
         otErr << "OTAsymmetricKey::SetPublicKey: Error: failed loading "
@@ -792,8 +761,16 @@ bool OTAsymmetricKey::SetPublicKey(const String& strKey)
 }
 bool OTAsymmetricKey::SetPublicKey(const FormattedKey& strKey)
 {
+    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
+                          // here. (Since it's being replaced, it's now the
+                          // wrong key anyway.)
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
+
+    if (nullptr == m_p_ascKey) {
+        m_p_ascKey = new OTASCIIArmor;
+        OT_ASSERT(nullptr != m_p_ascKey);
+    }
 
     // This reads the string into the Armor and removes the bookends. (-----
     // BEGIN ...)
@@ -802,7 +779,8 @@ bool OTAsymmetricKey::SetPublicKey(const FormattedKey& strKey)
     String& refKeystr = strKeystr;
 
     if (theArmor.LoadFromString(refKeystr, true)) {
-        return SetPublicKey(theArmor);
+        m_p_ascKey->Set(theArmor);
+        return true;
     }
     else
         otErr << "OTAsymmetricKey::SetPublicKey: Error: failed loading "
@@ -812,29 +790,6 @@ bool OTAsymmetricKey::SetPublicKey(const FormattedKey& strKey)
     return false;
 }
 
-
-// Copies to internal ascii-armored string, and wipes any key if
-// one is already loaded.
-//
-bool OTAsymmetricKey::SetPublicKey(const OTASCIIArmor& ascKey)
-{
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(nullptr != m_p_ascKey);
-    }
-
-    m_p_ascKey->Set(ascKey);
-
-    return true;
-}
-
 // Get the private key in ASCII-armored format with bookends  - ------- BEGIN
 // ENCRYPTED PRIVATE KEY --------
 // This version, so far, is escaped-only. Notice the "- " before the rest of the
@@ -842,20 +797,18 @@ bool OTAsymmetricKey::SetPublicKey(const OTASCIIArmor& ascKey)
 //
 bool OTAsymmetricKey::GetPrivateKey(String& strKey, bool bEscaped) const
 {
-    OTASCIIArmor theArmor;
-
-    if (GetPrivateKey(theArmor)) {
+    if (nullptr != m_p_ascKey) {
         if (bEscaped) {
             strKey.Concatenate("- -----BEGIN ENCRYPTED PRIVATE KEY-----\n"
                                "%s"
                                "- -----END ENCRYPTED PRIVATE KEY-----\n",
-                               theArmor.Get());
+                               m_p_ascKey->Get());
         }
         else {
             strKey.Concatenate("-----BEGIN ENCRYPTED PRIVATE KEY-----\n"
                                "%s"
                                "-----END ENCRYPTED PRIVATE KEY-----\n",
-                               theArmor.Get());
+                               m_p_ascKey->Get());
         }
         return true;
     }
@@ -866,29 +819,21 @@ bool OTAsymmetricKey::GetPrivateKey(String& strKey, bool bEscaped) const
     return false;
 }
 
-// Get the private key in ASCII-armored format
-bool OTAsymmetricKey::GetPrivateKey(OTASCIIArmor& ascKey) const // (ascKey is
-                                                                // the output.)
-{
-    OT_ASSERT(IsPrivate());
-
-    ascKey.Release();
-
-    if (nullptr == m_p_ascKey) return false;
-
-    ascKey.Set(*m_p_ascKey);
-
-    return true;
-}
-
 // Decodes a private key from ASCII armor into an actual key pointer
 // and sets that as the keypointer on this object.
 // This is the version that will handle the bookends ( --------- BEGIN ENCRYPTED
 // PRIVATE KEY -------)
 bool OTAsymmetricKey::SetPrivateKey(const String& strKey)
 {
+    ReleaseKeyLowLevel();
+
     m_bIsPublicKey = false;
     m_bIsPrivateKey = true;
+
+    if (nullptr == m_p_ascKey) {
+        m_p_ascKey = new OTASCIIArmor;
+        OT_ASSERT(nullptr != m_p_ascKey);
+    }
 
     // This reads the string into the Armor and removes the bookends. (-----
     // BEGIN ...)
@@ -901,29 +846,11 @@ bool OTAsymmetricKey::SetPrivateKey(const String& strKey)
                                                      // "start loading" when it
                                                      // reaches the private key.
     {
-        return SetPrivateKey(theArmor);
+        m_p_ascKey->Set(theArmor);
+        return true;
     }
 
     return false;
-}
-
-// Copies to the internal ascii-armored storage. Wipes the internal
-// private key, if one is loaded.
-bool OTAsymmetricKey::SetPrivateKey(const OTASCIIArmor& ascKey)
-{
-    ReleaseKeyLowLevel();
-
-    m_bIsPublicKey = false;
-    m_bIsPrivateKey = true; // PRIVATE KEY
-
-    if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(nullptr != m_p_ascKey);
-    }
-
-    m_p_ascKey->Set(ascKey);
-
-    return true;
 }
 
 OTAsymmetricKey::OTAsymmetricKey()

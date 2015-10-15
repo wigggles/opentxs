@@ -335,29 +335,12 @@ public: // DESTRUCTION
     // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
     // Notice the "- " before the rest of the bookend starts.
 private:
-    // * Get the public key in ASCII-armored format                 --
-    // OTASCIIArmor
-    // * Get the public key in ASCII-armored format WITH bookends   -- OTString
-    //       - ------- BEGIN PUBLIC KEY --------
-    //       Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPublicKey(OTASCIIArmor& strKey) const;
-    // (Below) Decodes a public key from ASCII armor into an actual key pointer
-    // and sets that as the m_pKey on this object.
-    EXPORT bool SetPublicKey(const OTASCIIArmor& strKey);
     bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
-    bool GetPrivateKey(OTASCIIArmor& strKey) const; // Get the private key in
-                                                    // ASCII-armored format
-
     // Decodes a private key from ASCII armor into an actual key pointer
     // and sets that as the m_pKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
     // PRIVATE KEY-----)
     bool SetPrivateKey(const String& strKey);
-    bool SetPrivateKey(const OTASCIIArmor& strKey); // Decodes a private key
-                                                    // from ASCII armor into an
-                                                    // actual key pointer and
-                                                    // sets that as the m_pKey
-                                                    // on this object.
 };
 
 } // namespace opentxs
