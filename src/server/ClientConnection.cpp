@@ -75,11 +75,8 @@ void ClientConnection::SetPublicKey(const OTAsymmetricKey& publicKey)
     }
     // ----------------------
     publicKey_ = OTAsymmetricKey::KeyFactory(publicKey.keyType());
-//    publicKey_ = publicKey.ClonePubKey(publicKey.getType());
     OT_ASSERT(nullptr != publicKey_);
-    // ----------------------
-    // NOTE: CLone above probably allows us to remove this bottom part entirely.
-    // TODO.
+
     FormattedKey strNymsPublicKey;
 
     publicKey.GetPublicKey(strNymsPublicKey);

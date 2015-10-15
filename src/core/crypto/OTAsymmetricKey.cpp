@@ -87,26 +87,6 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(OTAsymmetricKey::KeyType keyType) /
     return pKey;
 }
 
-// virtual
-OTAsymmetricKey* OTAsymmetricKey::ClonePubKey(KeyType keyType) const // Caller IS responsible
-                                                      // to delete!
-{
-    OTAsymmetricKey* pKey = OTAsymmetricKey::KeyFactory(keyType);
-    OT_ASSERT(nullptr != pKey);
-    OT_ASSERT(nullptr != m_pMetadata);
-    OT_ASSERT(nullptr != pKey->m_pMetadata);
-
-    OTASCIIArmor ascTransfer;
-    GetPublicKey(ascTransfer); // Get this's public key in ASCII-armored format
-    pKey->SetPublicKey(
-        ascTransfer); // Decodes that public key from ASCII armor into pKey
-
-    *(pKey->m_pMetadata) = *(m_pMetadata); // Metadata will be attached to
-                                           // signatures, if set.
-
-    return pKey;
-}
-
 // static
 OT_OPENSSL_CALLBACK* OTAsymmetricKey::s_pwCallback = nullptr;
 
@@ -905,7 +885,7 @@ bool OTAsymmetricKey::GetPrivateKey(OTASCIIArmor& ascKey) const // (ascKey is
 // and sets that as the keypointer on this object.
 // This is the version that will handle the bookends ( --------- BEGIN ENCRYPTED
 // PRIVATE KEY -------)
-bool OTAsymmetricKey::SetPrivateKey(const String& strKey, bool bEscaped)
+bool OTAsymmetricKey::SetPrivateKey(const String& strKey)
 {
     m_bIsPublicKey = false;
     m_bIsPrivateKey = true;
@@ -915,7 +895,7 @@ bool OTAsymmetricKey::SetPrivateKey(const String& strKey, bool bEscaped)
     //
     OTASCIIArmor theArmor;
     const char* szPrivateKeyStarts = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
-    if (theArmor.LoadFromString(const_cast<String&>(strKey), bEscaped,
+    if (theArmor.LoadFromString(const_cast<String&>(strKey), false,
                                 szPrivateKeyStarts)) // This last param causes
                                                      // OTASCIIArmor to only
                                                      // "start loading" when it

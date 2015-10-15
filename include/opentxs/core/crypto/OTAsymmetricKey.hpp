@@ -135,9 +135,7 @@ protected:
 public:                                           // INSTANTIATION
     EXPORT static OTAsymmetricKey* KeyFactory(KeyType keyType);  // Caller IS responsible to
                                                   // delete!
-    virtual OTAsymmetricKey* ClonePubKey(KeyType keyType) const; // Caller IS responsible to
-                                                  // delete!
-public:                                           // PASSWORD CALLBACK
+public:
     static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
     EXPORT static OT_OPENSSL_CALLBACK* GetPasswordCallback();
     static bool IsPasswordCallbackSet()
@@ -321,19 +319,10 @@ public: // DESTRUCTION
                                      bool bImporting) const = 0;
     // PUBLIC KEY
 
-    // * Get the public key in ASCII-armored format                 --
-    // OTASCIIArmor
-    // * Get the public key in ASCII-armored format WITH bookends   -- OTString
-    //       - ------- BEGIN PUBLIC KEY --------
-    //       Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPublicKey(OTASCIIArmor& strKey) const;
 
     EXPORT bool GetPublicKey(String& strKey) const;
     EXPORT bool GetPublicKey(FormattedKey& strKey) const;
 
-    // (Below) Decodes a public key from ASCII armor into an actual key pointer
-    // and sets that as the m_pKey on this object.
-    EXPORT bool SetPublicKey(const OTASCIIArmor& strKey);
     EXPORT bool SetPublicKey(const String& strKey);
     EXPORT bool SetPublicKey(const FormattedKey& strKey);
     // (Above) Decodes a public key from bookended key string into an actual key
@@ -345,6 +334,16 @@ public: // DESTRUCTION
     // Get the private key in ASCII-armored format with bookends
     // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
     // Notice the "- " before the rest of the bookend starts.
+private:
+    // * Get the public key in ASCII-armored format                 --
+    // OTASCIIArmor
+    // * Get the public key in ASCII-armored format WITH bookends   -- OTString
+    //       - ------- BEGIN PUBLIC KEY --------
+    //       Notice the "- " before the rest of the bookend starts.
+    EXPORT bool GetPublicKey(OTASCIIArmor& strKey) const;
+    // (Below) Decodes a public key from ASCII armor into an actual key pointer
+    // and sets that as the m_pKey on this object.
+    EXPORT bool SetPublicKey(const OTASCIIArmor& strKey);
     bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
     bool GetPrivateKey(OTASCIIArmor& strKey) const; // Get the private key in
                                                     // ASCII-armored format
@@ -353,7 +352,7 @@ public: // DESTRUCTION
     // and sets that as the m_pKey on this object.
     // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
     // PRIVATE KEY-----)
-    bool SetPrivateKey(const String& strKey, bool bEscaped = false);
+    bool SetPrivateKey(const String& strKey);
     bool SetPrivateKey(const OTASCIIArmor& strKey); // Decodes a private key
                                                     // from ASCII armor into an
                                                     // actual key pointer and

@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
+#include <opentxs/core/FormattedKey.hpp>
 #include "Contract.hpp"
 #include "NumList.hpp"
 
