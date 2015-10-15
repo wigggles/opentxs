@@ -198,8 +198,8 @@ bool OTKeypair::SetPrivateKey(
 
     bool privateSuccess, publicSuccess;
 
-    privateSuccess = m_pkeyPrivate->LoadPrivateKeyFromCertString(
-        strCert, false, pstrReason, pImportPassword);
+    privateSuccess = m_pkeyPrivate->SetPrivateKey(
+        strCert, pstrReason, pImportPassword);
 
     publicSuccess = m_pkeyPublic->LoadPublicKeyFromCertString(
         strCert, false, pstrReason, pImportPassword);

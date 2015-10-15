@@ -290,13 +290,9 @@ public: // DESTRUCTION
     virtual bool CalculateID(Identifier& theOutput) const; // Only works for
                                                            // public keys.
 
-    // LoadPrivateKeyFromCertString
-    //
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN
-    // CERTIFICATE....
-    //
-    virtual bool LoadPrivateKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
+    // SetPrivateKey
+    virtual bool SetPrivateKey(
+        const String& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) = 0; // Used when importing
                                                           // an

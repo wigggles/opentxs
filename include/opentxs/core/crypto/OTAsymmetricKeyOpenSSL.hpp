@@ -95,8 +95,8 @@ public:
     // "escaped" means pre-pended with "- " as in:   - -----BEGIN
     // CERTIFICATE....
     //
-    virtual bool LoadPrivateKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
+    virtual bool SetPrivateKey(
+        const String& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // Load Public Key from Cert String

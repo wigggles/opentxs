@@ -141,10 +141,8 @@ void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook() const
 
 // Load the private key from a .pem formatted cert string
 //
-bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
+bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
     const String& strCert,    // Contains certificate and private key.
-    bool bEscaped,            // "escaped" means pre-pended with "- " as in:   -
-                              // -----BEGIN CER....
     const String* pstrReason, // This reason is what displays on the
                               // passphrase dialog.
     const OTPassword* pImportPassword) // Used when importing an exported
@@ -166,36 +164,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
     otLog3 << __FUNCTION__ << ": FYI, Reading private key from x509 stored in "
                               "bookended string...\n";
 
-    if (bEscaped) {
-        OTASCIIArmor theArmor;
-
-        // I only have a CERTIFICATE 'if' here, not a PUBLIC KEY 'if'.
-        // That's because this function is called
-        // "LoadPublicKeyFrom*CERT*String"
-        // If you want to load a public key from a public key string, then call
-        // the
-        // other function that does that.
-        if (theArmor.LoadFromString(
-                const_cast<String&>(strCert),
-                true, // passing bEscaped in as true explicitly here.
-                "-----BEGIN ENCRYPTED PRIVATE")) // It will start loading from
-                                                 // THIS substring...
-            strWithBookends.Format("-----BEGIN ENCRYPTED PRIVATE "
-                                   "KEY-----\n%s-----END ENCRYPTED PRIVATE "
-                                   "KEY-----\n",
-                                   theArmor.Get());
-        else {
-            otErr
-                << __FUNCTION__
-                << ": Error extracting ASCII-Armored text from Cert String.\n";
-            return false;
-        }
-    }
-    else // It's not escaped already, so no need to remove the escaping, in
-           // this case.
-    {
-        strWithBookends = strCert;
-    }
+    strWithBookends = strCert;
 
     // Create a new memory buffer on the OpenSSL side.
     //
@@ -207,7 +176,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
         static_cast<void*>(const_cast<char*>(strWithBookends.Get())), -1);
     OT_ASSERT_MSG(nullptr != bio,
                   "OTAsymmetricKey_OpenSSL::"
-                  "LoadPrivateKeyFromCertString: Assert: nullptr != "
+                  "SetPrivateKey: Assert: nullptr != "
                   "bio \n");
 
     {
@@ -227,7 +196,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
             (nullptr == pstrReason)
                 ? (nullptr == pImportPassword
                        ? "Enter the master passphrase. "
-                         "(LoadPrivateKeyFromCertString)"
+                         "(SetPrivateKey)"
                        : "Enter the passphrase for this exported nym.")
                 : pstrReason->Get());
 
