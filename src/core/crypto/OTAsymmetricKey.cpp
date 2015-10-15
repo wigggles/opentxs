@@ -39,7 +39,6 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
@@ -691,108 +690,8 @@ bool OTAsymmetricKey::CalculateID(Identifier& theOutput) const // Only works
     return true;
 }
 
-bool OTAsymmetricKey::GetPublicKey(String& strKey) const
-{
-    if (nullptr != m_p_ascKey) {
-        strKey.Concatenate(
-            "-----BEGIN PUBLIC KEY-----\n" // UN-ESCAPED VERSION
-            "%s"
-            "-----END PUBLIC KEY-----\n",
-            m_p_ascKey->Get());
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey::GetPublicKey: Error: no "
-                 "public key.\n";
-
-    return false;
-}
-bool OTAsymmetricKey::GetPublicKey(FormattedKey& strKey) const
-{
-    if (nullptr != m_p_ascKey) {
-        strKey.Concatenate(
-            "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
-            "%s"
-            "- -----END PUBLIC KEY-----\n",
-            m_p_ascKey->Get());
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey::GetPublicKey: Error: no "
-                 "public key.\n";
-
-    return false;
-}
-
-// High-level.
-// This is the version that will handle the bookends ( --------- BEGIN PUBLIC
-// KEY -------)
-// You can pass it an OTString, and it will then call the lower-level version of
-// SetPublicKey
-// (the one that takes an OTASCIIArmor object.)
-//
-bool OTAsymmetricKey::SetPublicKey(const String& strKey)
-{
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(nullptr != m_p_ascKey);
-    }
-
-    // This reads the string into the Armor and removes the bookends. (-----
-    // BEGIN ...)
-    OTASCIIArmor theArmor;
-
-    if (theArmor.LoadFromString(const_cast<String&>(strKey), false)) {
-        m_p_ascKey->Set(theArmor);
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey::SetPublicKey: Error: failed loading "
-                 "ascii-armored contents from bookended string:\n\n" << strKey
-              << "\n\n";
-
-    return false;
-}
-bool OTAsymmetricKey::SetPublicKey(const FormattedKey& strKey)
-{
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(nullptr != m_p_ascKey);
-    }
-
-    // This reads the string into the Armor and removes the bookends. (-----
-    // BEGIN ...)
-    OTASCIIArmor theArmor;
-    String strKeystr = strKey;
-    String& refKeystr = strKeystr;
-
-    if (theArmor.LoadFromString(refKeystr, true)) {
-        m_p_ascKey->Set(theArmor);
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey::SetPublicKey: Error: failed loading "
-                 "ascii-armored contents from bookended string:\n\n" << strKey
-              << "\n\n";
-
-    return false;
-}
-
 OTAsymmetricKey::OTAsymmetricKey()
-    : m_p_ascKey(nullptr)
-    , m_bIsPublicKey(false)
+    : m_bIsPublicKey(false)
     , m_bIsPrivateKey(false)
     , m_pMetadata(new OTSignatureMetadata)
 {
@@ -857,12 +756,6 @@ OTAsymmetricKey::~OTAsymmetricKey()
     // NaCl implementation can
     // someday be added.
 
-    // Release the ascii-armored version of the key (safe to store in this
-    // form.)
-    //
-    if (nullptr != m_p_ascKey) delete m_p_ascKey;
-    m_p_ascKey = nullptr;
-
     if (nullptr != m_pMetadata) delete m_pMetadata;
     m_pMetadata = nullptr;
 }
@@ -873,17 +766,11 @@ void OTAsymmetricKey::Release_AsymmetricKey()
     // Release the ascii-armored version of the key (safe to store in this
     // form.)
     //
-    // Moving this to the destructor. Shouldn't be going nullptr here IMO.
-    //    if (nullptr != m_p_ascKey)
-    //        delete m_p_ascKey;
-    //    m_p_ascKey = nullptr;
 
-    // Release the instantiated OpenSSL key (unsafe to store in this form.)
+    // Release the instantiated key (unsafe to store in this form.)
     //
     ReleaseKeyLowLevel();
 
-    //    m_bIsPrivateKey = false;  // Every time this Releases, I don't want to
-    // lose what kind of key it was. (Once we know, we know.)
 }
 
 void OTAsymmetricKey::ReleaseKeyLowLevel()

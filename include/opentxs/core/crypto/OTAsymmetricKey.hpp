@@ -46,7 +46,6 @@
 namespace opentxs
 {
 
-class OTASCIIArmor;
 class OTAsymmetricKey;
 class OTCaller;
 class Identifier;
@@ -150,9 +149,6 @@ protected: // PASSWORD CALLBACK
     static OTCaller* s_pCaller;
 
 protected:                    // PROTECTED MEMBER DATA
-    OTASCIIArmor* m_p_ascKey; // base64-encoded, string form of key. (Encrypted
-                              // too, for private keys. Should store it in this
-                              // form most of the time.)
     bool m_bIsPublicKey;
     bool m_bIsPrivateKey;
     Timer m_timer; // Useful for keeping track how long since I last entered my
@@ -200,11 +196,7 @@ public: // DESTRUCTION
     void ReleaseKey();
 
     // PUBLIC METHODS
-    inline bool IsEmpty() const
-    {
-        return (nullptr == m_p_ascKey);
-    } // m_p_ascKey is the most basic value. m_pKey is derived from it, for
-      // example.
+    virtual bool IsEmpty() const = 0;
     inline bool IsPublic() const
     {
         return m_bIsPublicKey;
@@ -300,10 +292,10 @@ public: // DESTRUCTION
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) = 0;
 
-    EXPORT bool GetPublicKey(String& strKey) const;
-    EXPORT bool GetPublicKey(FormattedKey& strKey) const;
-    EXPORT bool SetPublicKey(const String& strKey);
-    EXPORT bool SetPublicKey(const FormattedKey& strKey);
+    virtual bool GetPublicKey(String& strKey) const = 0;
+    virtual bool GetPublicKey(FormattedKey& strKey) const = 0;
+    virtual bool SetPublicKey(const String& strKey) = 0;
+    virtual bool SetPublicKey(const FormattedKey& strKey) = 0;
 
     virtual bool SetPublicKeyFromPrivateKey(
         const FormattedKey& strCert,

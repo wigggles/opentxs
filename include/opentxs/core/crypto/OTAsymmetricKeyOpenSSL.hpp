@@ -40,11 +40,11 @@
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 
 namespace opentxs
 {
 
-class OTASCIIArmor;
 class OTCaller;
 class OTPassword;
 class String;
@@ -89,7 +89,13 @@ class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
 private:
     typedef OTAsymmetricKey ot_super;
     friend class OTAsymmetricKey; // For the factory.
+    OTASCIIArmor* m_p_ascKey; // base64-encoded, string form of key. (Encrypted
+                              // too, for private keys. Should store it in this
+                              // form most of the time.)
 public:
+    virtual bool IsEmpty() const;
+    // m_p_ascKey is the most basic value. m_pKey is derived from it, for
+      // example.
     // Don't ever call this. It's only here because it's impossible to get rid of
     // unless and until RSA key support is removed entirely.
     bool SaveCertToString(
@@ -109,6 +115,11 @@ public:
         const OTAsymmetricKey* pPubkey,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
+
+    virtual bool GetPublicKey(String& strKey) const;
+    virtual bool GetPublicKey(FormattedKey& strKey) const;
+    virtual bool SetPublicKey(const String& strKey);
+    virtual bool SetPublicKey(const FormattedKey& strKey);
 
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const;

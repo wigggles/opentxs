@@ -72,6 +72,7 @@ namespace opentxs
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
     : OTAsymmetricKey()
+    , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
 {
     dp->backlink = this;
@@ -84,6 +85,12 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
 
 OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
 {
+    // Release the ascii-armored version of the key (safe to store in this
+    // form.)
+    //
+    if (nullptr != m_p_ascKey) delete m_p_ascKey;
+    m_p_ascKey = nullptr;
+
     Release_AsymmetricKey_OpenSSL();
 
     ReleaseKeyLowLevel_Hook();
@@ -114,6 +121,110 @@ OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
     // into OTAsymmetricKey's destructor and
     // make sure the full call path through there doesn't involve any virtual
     // functions.
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::IsEmpty() const
+{
+    return (nullptr == m_p_ascKey);
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::GetPublicKey(String& strKey) const
+{
+    if (nullptr != m_p_ascKey) {
+        strKey.Concatenate(
+            "-----BEGIN PUBLIC KEY-----\n" // UN-ESCAPED VERSION
+            "%s"
+            "-----END PUBLIC KEY-----\n",
+            m_p_ascKey->Get());
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey_OpenSSL::GetPublicKey: Error: no "
+                 "public key.\n";
+
+    return false;
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::GetPublicKey(FormattedKey& strKey) const
+{
+    if (nullptr != m_p_ascKey) {
+        strKey.Concatenate(
+            "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
+            "%s"
+            "- -----END PUBLIC KEY-----\n",
+            m_p_ascKey->Get());
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey_OpenSSL::GetPublicKey: Error: no "
+                 "public key.\n";
+
+    return false;
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::SetPublicKey(const String& strKey)
+{
+    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
+                          // here. (Since it's being replaced, it's now the
+                          // wrong key anyway.)
+    m_bIsPublicKey = true;
+    m_bIsPrivateKey = false;
+
+    if (nullptr == m_p_ascKey) {
+        m_p_ascKey = new OTASCIIArmor;
+        OT_ASSERT(nullptr != m_p_ascKey);
+    }
+
+    // This reads the string into the Armor and removes the bookends. (-----
+    // BEGIN ...)
+    OTASCIIArmor theArmor;
+
+    if (theArmor.LoadFromString(const_cast<String&>(strKey), false)) {
+        m_p_ascKey->Set(theArmor);
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey_OpenSSL::SetPublicKey: Error: failed loading "
+                 "ascii-armored contents from bookended string:\n\n" << strKey
+              << "\n\n";
+
+    return false;
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::SetPublicKey(const FormattedKey& strKey)
+{
+    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
+                          // here. (Since it's being replaced, it's now the
+                          // wrong key anyway.)
+    m_bIsPublicKey = true;
+    m_bIsPrivateKey = false;
+
+    if (nullptr == m_p_ascKey) {
+        m_p_ascKey = new OTASCIIArmor;
+        OT_ASSERT(nullptr != m_p_ascKey);
+    }
+
+    // This reads the string into the Armor and removes the bookends. (-----
+    // BEGIN ...)
+    OTASCIIArmor theArmor;
+    String strKeystr = strKey;
+    String& refKeystr = strKeystr;
+
+    if (theArmor.LoadFromString(refKeystr, true)) {
+        m_p_ascKey->Set(theArmor);
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey_OpenSSL::SetPublicKey: Error: failed loading "
+                 "ascii-armored contents from bookended string:\n\n" << strKey
+              << "\n\n";
+
+    return false;
 }
 
 // virtual
