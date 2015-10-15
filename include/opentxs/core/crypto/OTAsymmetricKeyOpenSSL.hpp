@@ -92,11 +92,11 @@ private:
 public:
 
     virtual bool SetPrivateKey(
-        const String& strCert,
+        const FormattedKey& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     virtual bool SetPublicKeyFromPrivateKey(
-        const String& strCert,
+        const FormattedKey& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
 

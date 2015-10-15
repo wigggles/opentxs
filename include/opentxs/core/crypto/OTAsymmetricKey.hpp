@@ -291,14 +291,13 @@ public: // DESTRUCTION
                                                            // public keys.
 
     virtual bool SetPrivateKey(
-        const String& strCert,
+        const FormattedKey& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) = 0;
     virtual bool SetPublicKeyFromPrivateKey(
-        const String& strCert,
+        const FormattedKey& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) = 0;
-
     virtual bool SaveCertToString(
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const = 0;

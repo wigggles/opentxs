@@ -142,7 +142,7 @@ void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook() const
 // Load the private key from a .pem formatted cert string
 //
 bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
-    const String& strCert,    // Contains certificate and private key.
+    const FormattedKey& strCert,    // Contains certificate and private key.
     const String* pstrReason, // This reason is what displays on the
                               // passphrase dialog.
     const OTPassword* pImportPassword) // Used when importing an exported
@@ -243,7 +243,7 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
 }
 
 bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
-    const String& strCert, const String* pstrReason,
+    const FormattedKey& strCert, const String* pstrReason,
     const OTPassword* pImportPassword)
 {
     Release();
