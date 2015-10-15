@@ -790,69 +790,6 @@ bool OTAsymmetricKey::SetPublicKey(const FormattedKey& strKey)
     return false;
 }
 
-// Get the private key in ASCII-armored format with bookends  - ------- BEGIN
-// ENCRYPTED PRIVATE KEY --------
-// This version, so far, is escaped-only. Notice the "- " before the rest of the
-// bookend starts.
-//
-bool OTAsymmetricKey::GetPrivateKey(String& strKey, bool bEscaped) const
-{
-    if (nullptr != m_p_ascKey) {
-        if (bEscaped) {
-            strKey.Concatenate("- -----BEGIN ENCRYPTED PRIVATE KEY-----\n"
-                               "%s"
-                               "- -----END ENCRYPTED PRIVATE KEY-----\n",
-                               m_p_ascKey->Get());
-        }
-        else {
-            strKey.Concatenate("-----BEGIN ENCRYPTED PRIVATE KEY-----\n"
-                               "%s"
-                               "-----END ENCRYPTED PRIVATE KEY-----\n",
-                               m_p_ascKey->Get());
-        }
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey::GetPrivateKey: Error: "
-                 "GetPrivateKey(armored) returned false. (Returning false.)\n";
-
-    return false;
-}
-
-// Decodes a private key from ASCII armor into an actual key pointer
-// and sets that as the keypointer on this object.
-// This is the version that will handle the bookends ( --------- BEGIN ENCRYPTED
-// PRIVATE KEY -------)
-bool OTAsymmetricKey::SetPrivateKey(const String& strKey)
-{
-    ReleaseKeyLowLevel();
-
-    m_bIsPublicKey = false;
-    m_bIsPrivateKey = true;
-
-    if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(nullptr != m_p_ascKey);
-    }
-
-    // This reads the string into the Armor and removes the bookends. (-----
-    // BEGIN ...)
-    //
-    OTASCIIArmor theArmor;
-    const char* szPrivateKeyStarts = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
-    if (theArmor.LoadFromString(const_cast<String&>(strKey), false,
-                                szPrivateKeyStarts)) // This last param causes
-                                                     // OTASCIIArmor to only
-                                                     // "start loading" when it
-                                                     // reaches the private key.
-    {
-        m_p_ascKey->Set(theArmor);
-        return true;
-    }
-
-    return false;
-}
-
 OTAsymmetricKey::OTAsymmetricKey()
     : m_p_ascKey(nullptr)
     , m_bIsPublicKey(false)

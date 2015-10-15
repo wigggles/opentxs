@@ -330,17 +330,6 @@ public: // DESTRUCTION
     // This is the version that will handle the bookends ( -----BEGIN PUBLIC
     // KEY-----)
 
-    // PRIVATE KEY
-    // Get the private key in ASCII-armored format with bookends
-    // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
-    // Notice the "- " before the rest of the bookend starts.
-private:
-    bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
-    // Decodes a private key from ASCII armor into an actual key pointer
-    // and sets that as the m_pKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
-    // PRIVATE KEY-----)
-    bool SetPrivateKey(const String& strKey);
 };
 
 } // namespace opentxs
