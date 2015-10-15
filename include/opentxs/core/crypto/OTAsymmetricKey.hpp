@@ -290,34 +290,28 @@ public: // DESTRUCTION
     virtual bool CalculateID(Identifier& theOutput) const; // Only works for
                                                            // public keys.
 
-    virtual bool SetPrivateKey(
-        const FormattedKey& strCert,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0;
-    virtual bool SetPublicKeyFromPrivateKey(
-        const FormattedKey& strCert,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0;
     virtual bool GetPrivateKey(
         FormattedKey& strOutput,
         const OTAsymmetricKey* pPubkey, //I wish this wasn't necessary
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const = 0;
-    virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
-                                     bool bImporting) const = 0;
-    // PUBLIC KEY
-
+    virtual bool SetPrivateKey(
+        const FormattedKey& strCert,
+        const String* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) = 0;
 
     EXPORT bool GetPublicKey(String& strKey) const;
     EXPORT bool GetPublicKey(FormattedKey& strKey) const;
-
     EXPORT bool SetPublicKey(const String& strKey);
     EXPORT bool SetPublicKey(const FormattedKey& strKey);
-    // (Above) Decodes a public key from bookended key string into an actual key
-    // pointer, and sets that as the m_pKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN PUBLIC
-    // KEY-----)
 
+    virtual bool SetPublicKeyFromPrivateKey(
+        const FormattedKey& strCert,
+        const String* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) = 0;
+
+    virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
+                                     bool bImporting) const = 0;
 };
 
 } // namespace opentxs
