@@ -90,23 +90,15 @@ private:
     typedef OTAsymmetricKey ot_super;
     friend class OTAsymmetricKey; // For the factory.
 public:
-    // Load Private Key From Cert String
-    //
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN
-    // CERTIFICATE....
-    //
+
     virtual bool SetPrivateKey(
         const String& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    // Load Public Key from Cert String
-    //
-    virtual bool LoadPublicKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
+    virtual bool SetPublicKeyFromPrivateKey(
+        const String& strCert,
         const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr); // DOES handle bookends,
-                                                      // AND
-                                                      // escapes.
+        const OTPassword* pImportPassword = nullptr);
 
     virtual bool SaveCertToString(
         String& strOutput, const String* pstrReason = nullptr,

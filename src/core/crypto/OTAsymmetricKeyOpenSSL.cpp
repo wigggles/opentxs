@@ -242,15 +242,8 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
     }
 }
 
-// Load the public key from a x509 stored in a bookended string
-// If the string is escaped (- ----BEGIN is prefixed with dash space: "- ") then
-// make
-// sure to pass true.  (Keys that appear inside contracts are escaped after
-// signing.)
-// This function will remove the escapes.
-//
-bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
-    const String& strCert, bool bEscaped, const String* pstrReason,
+bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
+    const String& strCert, const String* pstrReason,
     const OTPassword* pImportPassword)
 {
     Release();
@@ -266,35 +259,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
 
     String strWithBookends;
 
-    if (bEscaped) {
-        OTASCIIArmor theArmor;
-
-        // I only have a CERTIFICATE 'if' here, not a PUBLIC KEY 'if'.
-        // That's because this function is called
-        // "LoadPublicKeyFrom*CERT*String"
-        // If you want to load a public key from a public key string, then call
-        // the
-        // other function that does that.
-        //
-        if (theArmor.LoadFromString(
-                const_cast<String&>(strCert),
-                true, // passing bEscaped in as true explicitly here.
-                "-----BEGIN CERTIFICATE")) // Overrides "-----BEGIN"
-            strWithBookends.Format(
-                "-----BEGIN CERTIFICATE-----\n%s-----END CERTIFICATE-----\n",
-                theArmor.Get());
-        else {
-            otErr
-                << __FUNCTION__
-                << ": Error extracting ASCII-Armored text from Cert String.\n";
-            return false;
-        }
-    }
-    else // It's not escaped already, so no need to remove the escaping, in
-           // this case.
-    {
-        strWithBookends = strCert;
-    }
+    strWithBookends = strCert;
 
     // took out the +1 on the length since null terminater only
     // needed in string form, not binary form as OpenSSL treats it.
@@ -310,12 +275,12 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
 
     OTPasswordData thePWData(
         nullptr == pImportPassword ? "Enter your wallet master passphrase. "
-                                     "(LoadPublicKeyFromCertString)"
+                                     "(SetPublicKeyFromPrivateKey)"
                                    :
                                    // pImportPassword exists:
             (nullptr == pstrReason
                  ? "Enter the passphrase for your exported Nym. "
-                   "(LoadPublicKeyFromCertString)"
+                   "(SetPublicKeyFromPrivateKey)"
                  : pstrReason->Get()));
 
     X509* x509 = nullptr;

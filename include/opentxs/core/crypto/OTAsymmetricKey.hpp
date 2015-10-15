@@ -290,21 +290,15 @@ public: // DESTRUCTION
     virtual bool CalculateID(Identifier& theOutput) const; // Only works for
                                                            // public keys.
 
-    // SetPrivateKey
     virtual bool SetPrivateKey(
         const String& strCert,
         const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0; // Used when importing
-                                                          // an
-    // exported Nym into a wallet.
-    // Load Public Key from Cert (file or string)
-    //
-    virtual bool LoadPublicKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
+        const OTPassword* pImportPassword = nullptr) = 0;
+    virtual bool SetPublicKeyFromPrivateKey(
+        const String& strCert,
         const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0; // DOES handle
-                                                          // bookends, AND
-                                                          // escapes.
+        const OTPassword* pImportPassword = nullptr) = 0;
+
     virtual bool SaveCertToString(
         String& strOutput, const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const = 0;
