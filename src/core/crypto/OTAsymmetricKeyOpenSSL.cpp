@@ -574,8 +574,8 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
 }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
-    String& strOutput, const String* pstrReason,
+bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
+    FormattedKey& strOutput, const OTAsymmetricKey* pPubkey, const String* pstrReason,
     const OTPassword* pImportPassword) const
 {
     const EVP_CIPHER* pCipher =
@@ -601,7 +601,7 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
     OTPasswordData thePWData((nullptr != pstrReason)
                                  ? pstrReason->Get()
                                  : "OTAsymmetricKey_OpenSSL::"
-                                   "SavePrivateKeyToString is calling "
+                                   "GetPrivateKey is calling "
                                    "PEM_write_bio_PrivateKey...");
 
     if (nullptr == pImportPassword)
@@ -614,10 +614,12 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
 
-    bool bSuccess = false;
+    bool privateSuccess = false;
+    bool publicSuccess = false;
 
     int32_t len = 0;
     uint8_t buffer_pri[4096] = ""; // todo hardcoded
+    String privateKey, publicKey;
 
     // todo hardcoded 4080 (see array above.)
     if (0 < (len = BIO_read(bio_out_pri, buffer_pri, 4080))) // returns number
@@ -626,13 +628,22 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
                                                              // read.
     {
         buffer_pri[len] = '\0';
-        strOutput.Set(reinterpret_cast<const char*>(buffer_pri));
-        bSuccess = true;
+        privateKey.Set(reinterpret_cast<const char*>(buffer_pri));
+        privateSuccess = true;
     }
     else
+    {
         otErr << __FUNCTION__ << ": Error : key length is not 1 or more!";
+    }
 
-    return bSuccess;
+    publicSuccess = dynamic_cast<const OTAsymmetricKey_OpenSSL*>(pPubkey)->SaveCertToString(publicKey, pstrReason, pImportPassword);
+
+    if (publicSuccess)
+    {
+        strOutput.Format(const_cast<char*>("%s%s"), privateKey.Get(),
+                         publicKey.Get());
+    }
+    return privateSuccess && publicSuccess;
 }
 
 CryptoAsymmetric& OTAsymmetricKey::engine() const

@@ -167,20 +167,13 @@ bool OTKeypair::GetPrivateKey(FormattedKey& strOutput,
                                               const String* pstrReason,
                                               const OTPassword* pImportPassword)
 {
-    String strCert, strPrivateKey;
-
-    OT_ASSERT(nullptr != m_pkeyPublic);
     OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(nullptr != m_pkeyPublic);
 
-    const bool bSaved1 = m_pkeyPublic->SaveCertToString(strCert, pstrReason, pImportPassword);
-    const bool bSaved2 =
-        m_pkeyPrivate->SavePrivateKeyToString(strPrivateKey, pstrReason, pImportPassword);
+    const bool bSaved =
+        m_pkeyPrivate->GetPrivateKey(strOutput, m_pkeyPublic, pstrReason, pImportPassword);
 
-    if (bSaved1 && bSaved2)
-        strOutput.Format(const_cast<char*>("%s%s"), strPrivateKey.Get(),
-                         strCert.Get());
-
-    return (bSaved1 && bSaved2);
+    return bSaved;
 }
 
 // Set a private key from an opentxs::String.

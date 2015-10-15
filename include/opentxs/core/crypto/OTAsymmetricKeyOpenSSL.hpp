@@ -90,6 +90,11 @@ private:
     typedef OTAsymmetricKey ot_super;
     friend class OTAsymmetricKey; // For the factory.
 public:
+    // Don't ever call this. It's only here because it's impossible to get rid of
+    // unless and until RSA key support is removed entirely.
+    bool SaveCertToString(
+        String& strOutput, const String* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) const;
 
     virtual bool SetPrivateKey(
         const FormattedKey& strCert,
@@ -99,12 +104,10 @@ public:
         const FormattedKey& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
-
-    virtual bool SaveCertToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const;
-    virtual bool SavePrivateKeyToString(
-        String& strOutput, const String* pstrReason = nullptr,
+    virtual bool GetPrivateKey(
+        FormattedKey& strOutput,
+        const OTAsymmetricKey* pPubkey,
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,

@@ -298,11 +298,10 @@ public: // DESTRUCTION
         const FormattedKey& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) = 0;
-    virtual bool SaveCertToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const = 0;
-    virtual bool SavePrivateKeyToString(
-        String& strOutput, const String* pstrReason = nullptr,
+    virtual bool GetPrivateKey(
+        FormattedKey& strOutput,
+        const OTAsymmetricKey* pPubkey, //I wish this wasn't necessary
+        const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const = 0;
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const = 0;
