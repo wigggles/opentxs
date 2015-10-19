@@ -39,7 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 #define OPENTXS_CORE_CRYPTO_OTCRYPTOOPENSSL_HPP
 
-#include "OTCrypto.hpp"
+#include <opentxs/core/crypto/Crypto.hpp>
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
+#include <opentxs/core/crypto/CryptoSymmetric.hpp>
+#include <opentxs/core/crypto/CryptoUtil.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
@@ -61,38 +64,38 @@ class Nym;
 class OTSettings;
 class OTSignature;
 
-// OTCrypto (OTCrypto.hpp) is the abstract base class which is used as an
+// Crypto (Crypto.hpp) is the abstract base class which is used as an
 // interface by the rest of OT.
 //
-// Whereas OTCrypto_OpenSSL (below) is the actual implementation, written using
+// Whereas OpenSSL (below) is the actual implementation, written using
 // the OpenSSL library. Theoretically, a new implementation could someday be
 // "swapped in" -- for example, using GPG or NaCl or Crypto++, etc.
 
 #if defined(OT_CRYPTO_USING_GPG)
 
-// Someday    }:-)        OTCrypto_GPG
+// Someday    }:-)        GPG
 
 #elif defined(OT_CRYPTO_USING_OPENSSL)
 
-class OTCrypto_OpenSSL : public OTCrypto
+class OpenSSL : public Crypto, public CryptoAsymmetric, public CryptoSymmetric, public CryptoUtil
 {
-    friend class OTCrypto;
+    friend class CryptoEngine;
 
 protected:
-    OTCrypto_OpenSSL();
+    OpenSSL();
     virtual void Init_Override() const;
     virtual void Cleanup_Override() const;
 
-    class OTCrypto_OpenSSLdp;
-    OTCrypto_OpenSSLdp* dp;
+    class OpenSSLdp;
+    OpenSSLdp* dp;
+
+    virtual bool GetPasswordFromConsole(OTPassword& theOutput,
+                                                const char* szPrompt) const;
 
 public:
     static std::mutex* s_arrayMutex;
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     virtual OTPassword* InstantiateBinarySecret() const;
-
-    virtual bool GetPasswordFromConsoleLowLevel(OTPassword& theOutput,
-                                                const char* szPrompt) const;
 
     // RANDOM NUMBERS
     virtual bool RandomizeMemory(uint8_t* szDestination,
@@ -134,7 +137,7 @@ public:
                          const OTData& theIV, // (We assume this IV is
                                               // already generated and passed
                                               // in.)
-                         OTCrypto_Decrypt_Output theDecryptedOutput)
+                         CryptoSymmetricDecryptOutput theDecryptedOutput)
         const; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
                // OTData& here (either will work.)
     // SEAL / OPEN
@@ -158,22 +161,10 @@ public:
                                  const OTSignature& theSignature,
                                  const String& strHashType,
                                  const OTPasswordData* pPWData = nullptr) const;
-    // Sign or verify using the contents of a Certfile.
-    virtual bool SignContract(const String& strContractUnsigned,
-                              const String& strSigHashType,
-                              const std::string& strCertFileContents,
-                              OTSignature& theSignature, // output
-                              const OTPasswordData* pPWData = nullptr);
-
-    virtual bool VerifySignature(const String& strContractToVerify,
-                                 const String& strSigHashType,
-                                 const std::string& strCertFileContents,
-                                 const OTSignature& theSignature,
-                                 const OTPasswordData* pPWData = nullptr) const;
     void thread_setup() const;
     void thread_cleanup() const;
 
-    virtual ~OTCrypto_OpenSSL();
+    virtual ~OpenSSL();
 };
 
 #else // Apparently NO crypto engine is defined!

@@ -83,18 +83,10 @@ public:
     EXPORT bool Seal(const Nym& theRecipient,
                      const String& theInput); // Put data into this object
                                               // with Seal().
+
     EXPORT bool Seal(const OTAsymmetricKey& RecipPubKey,
                      const String& theInput); // Currently supports strings
                                               // only.
-
-    // Multiple recipients:
-    //
-    EXPORT bool Seal(setOfNyms& theRecipients,
-                     const String& theInput); // Same as above, except
-                                              // supports multiple recipients.
-    EXPORT bool Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                     const String& theInput); // Same as above, except
-                                              // supports multiple recipients.
 
     // (Opposite of Seal.)
     //

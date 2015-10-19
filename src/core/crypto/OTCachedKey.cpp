@@ -41,7 +41,7 @@
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/crypto/OTKeyring.hpp>
 #include <opentxs/core/Log.hpp>
@@ -559,7 +559,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
     LowLevelReleaseThread();
 
     m_pMasterPassword =
-        OTCrypto::It()->InstantiateBinarySecret(); // already asserts.
+        CryptoEngine::Instance().AES().InstantiateBinarySecret(); // already asserts.
 
     /*
     How does this work?
@@ -652,7 +652,7 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
         //      m_pSymmetricKey->GetIdentifier(strCachedKeyHash);
 
         pDerivedKey =
-            OTCrypto::It()->InstantiateBinarySecret(); // pDerivedKey is
+            CryptoEngine::Instance().AES().InstantiateBinarySecret(); // pDerivedKey is
                                                        // instantiated here to
                                                        // use as output argument
                                                        // below.

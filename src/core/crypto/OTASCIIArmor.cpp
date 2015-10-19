@@ -39,7 +39,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -275,7 +275,7 @@ bool OTASCIIArmor::GetData(OTData& theData,
     if (GetLength() < 1) return true;
 
     size_t outSize = 0;
-    uint8_t* pData = OTCrypto::It()->Base64Decode(Get(), &outSize, bLineBreaks);
+    uint8_t* pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
     if (!pData) {
         otErr << __FUNCTION__ << "Base64Decode fail\n";
@@ -294,7 +294,7 @@ bool OTASCIIArmor::SetData(const OTData& theData, bool bLineBreaks)
 
     if (theData.GetSize() < 1) return true;
 
-    char* pString = OTCrypto::It()->Base64Encode(
+    char* pString = CryptoEngine::Instance().Util().Base64Encode(
         static_cast<const uint8_t*>(theData.GetPointer()), theData.GetSize(),
         bLineBreaks);
 
@@ -319,7 +319,7 @@ bool OTASCIIArmor::GetString(String& strData,
     }
 
     size_t outSize = 0;
-    uint8_t* pData = OTCrypto::It()->Base64Decode(Get(), &outSize, bLineBreaks);
+    uint8_t* pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
     if (!pData) {
         otErr << __FUNCTION__ << "Base64Decode fail\n";
@@ -360,7 +360,7 @@ bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks) //=true
         return false;
     }
 
-    char* pString = OTCrypto::It()->Base64Encode(
+    char* pString = CryptoEngine::Instance().Util().Base64Encode(
         reinterpret_cast<const uint8_t*>((str_compressed.data())),
         static_cast<int32_t>(str_compressed.size()), bLineBreaks);
 

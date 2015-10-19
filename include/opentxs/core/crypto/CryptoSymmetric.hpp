@@ -36,61 +36,21 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
-#define OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+#ifndef OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
+#define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/String.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
 #include <mutex>
 
-#include <set>
-
 namespace opentxs
 {
 
-class OTAsymmetricKey;
 class OTData;
-class Identifier;
 class OTPassword;
 class OTPasswordData;
 class OTData;
-class Nym;
-class OTSettings;
-class OTSignature;
-
-typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
-
-class OTCryptoConfig
-{
-private:
-    static bool GetSetAll();
-
-    static bool GetSetValue(OTSettings& config, std::string strKeyName,
-                            int32_t nDefaultValue, const int32_t*& out_nValue);
-
-    static const int32_t& GetValue(const int32_t*& pValue);
-
-    static const int32_t* sp_nIterationCount;
-    static const int32_t* sp_nSymmetricSaltSize;
-    static const int32_t* sp_nSymmetricKeySize;
-    static const int32_t* sp_nSymmetricKeySizeMax;
-    static const int32_t* sp_nSymmetricIvSize;
-    static const int32_t* sp_nSymmetricBufferSize;
-    static const int32_t* sp_nPublicKeysize;
-    static const int32_t* sp_nPublicKeysizeMax;
-
-public:
-    EXPORT static uint32_t IterationCount();
-    EXPORT static uint32_t SymmetricSaltSize();
-    EXPORT static uint32_t SymmetricKeySize();
-    EXPORT static uint32_t SymmetricKeySizeMax();
-    EXPORT static uint32_t SymmetricIvSize();
-    EXPORT static uint32_t SymmetricBufferSize();
-    EXPORT static uint32_t PublicKeysize();
-    EXPORT static uint32_t PublicKeysizeMax();
-};
 
 // Sometimes I want to decrypt into an OTPassword (for encrypted symmetric
 // keys being decrypted) and sometimes I want to decrypt into an OTData
@@ -98,26 +58,26 @@ public:
 // without duplicating the static Decrypt() function, by wrapping both
 // types.
 //
-class OTCrypto_Decrypt_Output
+class CryptoSymmetricDecryptOutput
 {
 private:
     OTPassword* m_pPassword;
     OTData* m_pPayload;
 
-    OTCrypto_Decrypt_Output();
+    CryptoSymmetricDecryptOutput();
 
 public:
-    EXPORT ~OTCrypto_Decrypt_Output();
+    EXPORT ~CryptoSymmetricDecryptOutput();
 
-    EXPORT OTCrypto_Decrypt_Output(const OTCrypto_Decrypt_Output& rhs);
+    EXPORT CryptoSymmetricDecryptOutput(const CryptoSymmetricDecryptOutput& rhs);
 
-    EXPORT OTCrypto_Decrypt_Output(OTPassword& thePassword);
-    EXPORT OTCrypto_Decrypt_Output(OTData& thePayload);
+    EXPORT CryptoSymmetricDecryptOutput(OTPassword& thePassword);
+    EXPORT CryptoSymmetricDecryptOutput(OTData& thePayload);
 
-    EXPORT void swap(OTCrypto_Decrypt_Output& other);
+    EXPORT void swap(CryptoSymmetricDecryptOutput& other);
 
-    EXPORT OTCrypto_Decrypt_Output& operator=(
-        OTCrypto_Decrypt_Output other); // passed by value.
+    EXPORT CryptoSymmetricDecryptOutput& operator=(
+        CryptoSymmetricDecryptOutput other); // passed by value.
 
     EXPORT bool Concatenate(const void* pAppendData,
                             uint32_t lAppendSize) const;
@@ -126,59 +86,13 @@ public:
     EXPORT void Release_Envelope_Decrypt_Output() const;
 };
 
-// OT CRYPTO -- ABSTRACT INTERFACE
-//
-// We are now officially at the point where we can easily swap crypto libs!
-// Just make a subclass of OTCrypto (copy an existing subclass such as
-// OTCrypto_OpenSSL)
-class OTCrypto
+class CryptoSymmetric
 {
-private:
-    static int32_t s_nCount; // Instance count, should never exceed 1.
-protected:
-    OTCrypto();
-
-    virtual void Init_Override() const;
-    virtual void Cleanup_Override() const;
-
 public:
-    virtual ~OTCrypto();
     // InstantiateBinarySecret
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     //
     virtual OTPassword* InstantiateBinarySecret() const = 0;
-    // GET PASSPHRASE FROM CONSOLE
-    //
-    EXPORT bool GetPasswordFromConsole(OTPassword& theOutput,
-                                       bool bRepeat = false) const;
-
-    EXPORT virtual bool GetPasswordFromConsoleLowLevel(
-        OTPassword& theOutput, const char* szPrompt) const = 0;
-    // RANDOM NUMBERS
-    //
-    virtual bool RandomizeMemory(uint8_t* szDestination,
-                                 uint32_t nNewSize) const = 0;
-    // BASE 62 ENCODING  (for IDs)
-    //
-    bool IsBase62(const std::string& str) const;
-
-    virtual void SetIDFromEncoded(const String& strInput,
-                                  Identifier& theOutput) const = 0;
-    virtual void EncodeID(const Identifier& theInput,
-                          String& strOutput) const = 0;
-    // BASE 64 ENCODING
-    // Caller is responsible to delete. Todo: return a unqiue pointer.
-    virtual char* Base64Encode(const uint8_t* input, int32_t in_len,
-                               bool bLineBreaks) const = 0; // NOTE: the
-                                                            // 'int32_t' here is
-                                                            // very worrying to
-                                                            // me. The
-    // reason it's here is because that's what OpenSSL uses. So
-    // we may need to find another way of doing it, so we can use
-    // a safer parameter here than what it currently is. Todo
-    // security.
-    virtual uint8_t* Base64Decode(const char* input, size_t* out_len,
-                                  bool bLineBreaks) const = 0;
     // KEY DERIVATION
     //
     // DeriveNewKey derives a 128-bit symmetric key from a passphrase.
@@ -228,50 +142,12 @@ public:
                          const OTData& theIV, // (We assume this IV is
                                               // already generated and passed
                                               // in.)
-                         OTCrypto_Decrypt_Output theDecryptedOutput)
+                         CryptoSymmetricDecryptOutput theDecryptedOutput)
         const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
                    // OTData& here (either will work.)
-    // SEAL / OPEN (RSA envelopes...)
-    //
-    // Asymmetric (public key) encryption / decryption
-    //
-    virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
-                      OTData& dataOutput) const = 0;
-
-    virtual bool Open(OTData& dataInput, const Nym& theRecipient,
-                      String& theOutput,
-                      const OTPasswordData* pPWData = nullptr) const = 0;
-    // SIGN / VERIFY
-    //
-    // Sign or verify using the Asymmetric Key itself.
-    //
-    virtual bool SignContract(const String& strContractUnsigned,
-                              const OTAsymmetricKey& theKey,
-                              OTSignature& theSignature, // output
-                              const String& strHashType,
-                              const OTPasswordData* pPWData = nullptr) = 0;
-
-    virtual bool VerifySignature(
-        const String& strContractToVerify, const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature, const String& strHashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
-    // Sign or verify using the contents of a Certfile.
-    //
-    virtual bool SignContract(const String& strContractUnsigned,
-                              const String& strSigHashType,
-                              const std::string& strCertFileContents,
-                              OTSignature& theSignature, // output
-                              const OTPasswordData* pPWData = nullptr) = 0;
-
-    virtual bool VerifySignature(
-        const String& strContractToVerify, const String& strSigHashType,
-        const std::string& strCertFileContents, const OTSignature& theSignature,
-        const OTPasswordData* pPWData = nullptr) const = 0;
-    EXPORT static OTCrypto* It();
-
-    EXPORT void Init() const;
-    EXPORT void Cleanup() const;
 };
+
+} // namespace opentxs
 
 /*
  ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-5v2/pkcs5v2_1.pdf
@@ -328,6 +204,4 @@ public:
 )
 */
 
-} // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+#endif // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP

@@ -42,6 +42,7 @@
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/OTData.hpp>
@@ -1066,6 +1067,12 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
                     // pointer to nullptr here just for completeness.
 
     return bReturnValue;
+}
+
+CryptoAsymmetric& OTAsymmetricKey::engine() const
+
+{
+    return CryptoEngine::Instance().RSA();
 }
 
 #elif defined(OT_CRYPTO_USING_GPG)

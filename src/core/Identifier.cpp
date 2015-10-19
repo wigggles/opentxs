@@ -41,7 +41,7 @@
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <bitcoin-base58/hash.h>
@@ -200,7 +200,7 @@ bool Identifier::CalculateDigest(const OTData& dataInput)
 //
 void Identifier::SetString(const String& theStr)
 {
-    OTCrypto::It()->SetIDFromEncoded(theStr, *this);
+    CryptoEngine::Instance().Util().SetIDFromEncoded(theStr, *this);
 }
 
 // This Identifier is stored in binary form.
@@ -209,7 +209,7 @@ void Identifier::SetString(const String& theStr)
 //
 void Identifier::GetString(String& theStr) const
 {
-    OTCrypto::It()->EncodeID(*this, theStr); // *this input, theStr output.
+    CryptoEngine::Instance().Util().EncodeID(*this, theStr); // *this input, theStr output.
 }
 
 } // namespace opentxs

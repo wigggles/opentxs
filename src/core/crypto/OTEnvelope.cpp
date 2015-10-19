@@ -40,7 +40,8 @@
 
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 
-#include <opentxs/core/crypto/OTCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -160,7 +161,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     //
     OTData theIV;
 
-    if (!theIV.Randomize(OTCryptoConfig::SymmetricIvSize())) {
+    if (!theIV.Randomize(CryptoConfig::SymmetricIvSize())) {
         otErr << __FUNCTION__ << ": Failed trying to randomly generate IV.\n";
         return false;
     }
@@ -198,7 +199,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
 
     OTData theCipherText;
 
-    const bool bEncrypted = OTCrypto::It()->Encrypt(
+    const bool bEncrypted = CryptoEngine::Instance().AES().Encrypt(
         theRawSymmetricKey,       // The symmetric key, in clear form.
         theInput.Get(),           // This is the Plaintext.
         theInput.GetLength() + 1, // for null terminator
@@ -239,7 +240,7 @@ bool OTEnvelope::Encrypt(const String& theInput, OTSymmetricKey& theKey,
     // Write IV size (in network-order)
     //
     uint32_t ivlen =
-        OTCryptoConfig::SymmetricIvSize(); // Length of IV for this cipher...
+        CryptoConfig::SymmetricIvSize(); // Length of IV for this cipher...
     OT_ASSERT(ivlen >= theIV.GetSize());
     uint32_t ivlen_n = htonl(
         theIV.GetSize()); // Calculate "network-order" version of iv length.
@@ -327,7 +328,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     // Read network-order IV size (and convert to host version)
     //
     const uint32_t max_iv_length =
-        OTCryptoConfig::SymmetricIvSize(); // I believe this is a max length, so
+        CryptoConfig::SymmetricIvSize(); // I believe this is a max length, so
                                            // it may not match the actual length
                                            // of the IV.
 
@@ -390,7 +391,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     //
     OTData thePlaintext; // for output.
 
-    const bool bDecrypted = OTCrypto::It()->Decrypt(
+    const bool bDecrypted = CryptoEngine::Instance().AES().Decrypt(
         theRawSymmetricKey, // The symmetric key, in clear form.
         static_cast<const char*>(
             theCipherText.GetPointer()), // This is the Ciphertext.
@@ -419,63 +420,26 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     return bDecrypted;
 }
 
-// RSA / AES
-
 bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 {
-    String strNymID;
-    mapOfAsymmetricKeys theKeys;
-    theRecipient.GetIdentifier(strNymID);
-    theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-        strNymID.Get(),
-        const_cast<OTAsymmetricKey*>(&(theRecipient.GetPublicEncrKey()))));
-
-    return Seal(theKeys, theInput);
-}
-
-bool OTEnvelope::Seal(setOfNyms& theRecipients, const String& theInput)
-{
-    mapOfAsymmetricKeys RecipPubKeys;
-
-    // Loop through theRecipients, and add the public key of each one to a set
-    // of keys.
-    for (auto& it : theRecipients) {
-        Nym* pNym = it;
-        OT_ASSERT_MSG(nullptr != pNym,
-                      "OTEnvelope::Seal: Assert: nullptr pseudonym pointer.");
-
-        String strNymID;
-        pNym->GetIdentifier(strNymID);
-        RecipPubKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-            strNymID.Get(),
-            const_cast<OTAsymmetricKey*>(&(pNym->GetPublicEncrKey()))));
-    }
-
-    if (RecipPubKeys.empty()) return false;
-
-    return Seal(RecipPubKeys, theInput);
+    return Seal(theRecipient.GetPublicEncrKey(), theInput);
 }
 
 bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
                       const String& theInput)
 {
-    mapOfAsymmetricKeys theKeys;
+  CryptoAsymmetric& engine = RecipPubKey.engine();
+
+  mapOfAsymmetricKeys theKeys;
     theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
         "", // Normally the NymID goes here, but we don't know what it is, in
             // this case.
         const_cast<OTAsymmetricKey*>(&RecipPubKey)));
 
-    return Seal(theKeys, theInput);
-}
-
-// Seal up as envelope (Asymmetric, using public key and then AES key.)
-
-bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput)
-{
-    OT_ASSERT_MSG(!RecipPubKeys.empty(),
+    OT_ASSERT_MSG(!theKeys.empty(),
                   "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
 
-    return OTCrypto::It()->Seal(RecipPubKeys, theInput, m_dataContents);
+    return engine.Seal(theKeys, theInput, m_dataContents);
 }
 
 // RSA / AES
@@ -483,17 +447,19 @@ bool OTEnvelope::Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput)
 bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
                       const OTPasswordData* pPWData)
 {
-    return OTCrypto::It()->Open(m_dataContents, theRecipient, theOutput,
+  CryptoAsymmetric& engine = theRecipient.GetPublicEncrKey().engine();
+
+  return engine.Open(m_dataContents, theRecipient, theOutput,
                                 pPWData);
 }
 
-// DONE: Fix OTEnvelope so we can seal to multiple recipients simultaneously.
+// TODO: Fix OTEnvelope so we can seal to multiple recipients simultaneously.
 // DONE: Fix OTEnvelope so it supports symmetric crypto as well as asymmetric.
 
 // DONE: Remove the Nym stored inside the purse, and replace with a
 // session key, just as envelopes will support a session key.
 
-// TODO: Make sure OTEnvelope / OTCrypto_OpenSSL is safe with zeroing memory
+// TODO: Make sure OTEnvelope / OpenSSL is safe with zeroing memory
 // wherever needed.
 
 // Todo: Once envelopes support multiple recipient Nyms, then make a habit of
