@@ -38,23 +38,23 @@
 
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 
-#include <opentxs/core/OTData.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/CryptoUtil.hpp>
 
 namespace opentxs
 {
 
-Libsecp256k1::Libsecp256k1()
+Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
     : Crypto(),
-    context_(secp256k1_context_create(SECP256K1_CONTEXT_SIGN & SECP256K1_CONTEXT_VERIFY))
+    context_(secp256k1_context_create(SECP256K1_CONTEXT_SIGN))
 {
-    OTData randomSeed;
-    randomSeed.Randomize(32);
-    OTASCIIArmor randomSeedArmored(randomSeed);
+    uint8_t randomSeed [32] = {0};
+
+    ssl.RandomizeMemory(&randomSeed[0], 32);
 
     int __attribute__((unused)) randomize = secp256k1_context_randomize(
         context_,
-        reinterpret_cast<const unsigned char*>(randomSeedArmored.Get()));
+        randomSeed);
 }
 
 bool Libsecp256k1::Seal(

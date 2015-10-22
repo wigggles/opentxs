@@ -54,16 +54,18 @@ class OTData;
 class OTPasswordData;
 class Nym;
 class OTSignature;
+class CryptoUtil;
 
 class Libsecp256k1 : public Crypto, public CryptoAsymmetric
 {
     friend class CryptoEngine;
 
 private:
+    Libsecp256k1() = delete;
     secp256k1_context_t* context_ = nullptr;
 
 protected:
-    Libsecp256k1();
+    Libsecp256k1(CryptoUtil& ssl);
     void Init_Override() const;
     void Cleanup_Override() const;
 

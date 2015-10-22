@@ -45,10 +45,10 @@ CryptoEngine* CryptoEngine::pInstance_ = nullptr;
 
 CryptoEngine::CryptoEngine()
     : pSSL_(new SSLImplementation)
-#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    , psecp256k1_ (new secp256k1)
-#endif
 {
+#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    psecp256k1_ = new Libsecp256k1(*pSSL_);
+#endif
     Init();
 }
 
@@ -89,7 +89,7 @@ CryptoSymmetric& CryptoEngine::AES()
 {
     OT_ASSERT(nullptr != pSSL_);
 
-    return *pSSL_);
+    return *pSSL_;
 }
 #endif
 CryptoEngine& CryptoEngine::Instance()

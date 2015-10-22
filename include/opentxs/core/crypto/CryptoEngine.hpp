@@ -78,7 +78,7 @@ private:
     void Init();
     SSLImplementation* pSSL_ = nullptr;
 #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    secp256k1* psecp256k1_;
+    secp256k1* psecp256k1_ = nullptr;
 #endif
 
     static CryptoEngine* pInstance_;
