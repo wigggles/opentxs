@@ -87,38 +87,28 @@ class NymParameters;
 class LowLevelKeyGenerator
 {
 private:
+    class LowLevelKeyGeneratordp;
 
     std::shared_ptr<NymParameters> pkeyData_;
 
-    LowLevelKeyGenerator();
-    LowLevelKeyGenerator(const LowLevelKeyGenerator&);
-    LowLevelKeyGenerator& operator=(const LowLevelKeyGenerator&);
+    LowLevelKeyGenerator() = delete;
+    LowLevelKeyGenerator(const LowLevelKeyGenerator&) = delete;
+    LowLevelKeyGenerator& operator=(const LowLevelKeyGenerator&) = delete;
     void Cleanup();
+    LowLevelKeyGeneratordp* dp = nullptr;
+
+#if defined(OT_CRYPTO_USING_OPENSSL)
+    class LowLevelKeyGeneratorOpenSSLdp;
+#endif
 
 public:
     bool m_bCleanup = true; // By default, LowLevelKeyGenerator cleans up the members. But
                      // if you set this to false, it will NOT cleanup.
     bool MakeNewKeypair();
-//    void Cleanup();
     bool SetOntoKeypair(OTKeypair& theKeypair);
 
     LowLevelKeyGenerator(const std::shared_ptr<NymParameters>& pkeyData);
     ~LowLevelKeyGenerator();
-
-//----------------------------------------
-// CRYPTO LIBRARIES
-//----------------------------------------
-#if defined(OT_CRYPTO_USING_OPENSSL)
-    class LowLevelKeyGeneratorOpenSSLdp;
-    LowLevelKeyGeneratorOpenSSLdp* dp = nullptr;
-#endif
-
-//----------------------------------------
-// CRYPTO ALGORITHMS
-//----------------------------------------
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
-
-#endif
 
 };
 

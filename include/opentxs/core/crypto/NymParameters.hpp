@@ -50,7 +50,8 @@ class NymParameters
 public:
     enum NymParameterType: int32_t {
       ERROR,
-      LEGACY
+      LEGACY,
+      SECP256K1
     };
 
     NymParameterType nymParameterType();
