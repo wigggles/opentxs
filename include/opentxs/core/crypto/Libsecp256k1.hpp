@@ -87,6 +87,10 @@ public:
         const String& strContractToVerify, const OTAsymmetricKey& theKey,
         const OTSignature& theSignature, const String& strHashType,
         const OTPasswordData* pPWData = nullptr) const;
+
+    bool secp256k1_privkey_tweak_add(
+        uint8_t key [32],
+        const uint8_t tweak [32]) const;
 };
 
 } // namespace opentxs

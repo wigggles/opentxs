@@ -93,6 +93,17 @@ bool Libsecp256k1::VerifySignature(
     return false;
 }
 
+bool Libsecp256k1::secp256k1_privkey_tweak_add(
+    uint8_t key [32],
+        const uint8_t tweak [32]) const
+{
+    if (nullptr != context_) {
+        return secp256k1_ec_privkey_tweak_add(context_, key, tweak);
+    } else {
+        return false;
+    }
+}
+
 Libsecp256k1::~Libsecp256k1()
 {
     OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::~Libsecp256k1: context_ should never be nullptr, yet it was.")

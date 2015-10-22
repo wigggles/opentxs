@@ -84,6 +84,26 @@ public:
 
 #endif
 
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/Libsecp256k1.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+
+namespace opentxs
+{
+
+class LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp : public LowLevelKeyGeneratordp
+{
+public:
+    virtual void Cleanup();
+    OTPassword privateKey_;
+};
+
+} // namespace opentxs
+
+#endif
+
 namespace opentxs
 {
 
@@ -93,17 +113,7 @@ LowLevelKeyGenerator::~LowLevelKeyGenerator()
         Cleanup();
     }
     if (nullptr != dp) {
-        if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
-            #if defined(OT_CRYPTO_USING_OPENSSL)
-                delete dp;
-            #endif
-            //-------------------------
-            #if defined(OT_CRYPTO_USING_GPG)
-            #endif
-        } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
-            #if defined(OT_CRYPTO_USING_LIBSECP256K1)
-            #endif
-        }
+        delete dp;
     }
 }
 
@@ -114,12 +124,16 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(const std::shared_ptr<NymParameters>&
     #if defined(OT_CRYPTO_USING_OPENSSL)
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
         dp = new LowLevelKeyGeneratorOpenSSLdp;
-    }
-    #endif
-    //-------------------------
-    #if defined(OT_CRYPTO_USING_GPG)
+        #endif
+        //-------------------------
+        #if defined(OT_CRYPTO_USING_GPG)
 
-    #endif
+        #endif
+    } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
+        #if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        dp = new LowLevelKeyGeneratorSecp256k1dp;
+        #endif
+    }
 
 }
 
@@ -151,6 +165,10 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
     //-------------------------
     #if defined(OT_CRYPTO_USING_GPG)
     #endif
+}
+
+void LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp::Cleanup()
+{
 }
 
 bool LowLevelKeyGenerator::MakeNewKeypair()
@@ -212,7 +230,28 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
         #endif
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
         #if defined(OT_CRYPTO_USING_LIBSECP256K1)
-        return false;
+
+        bool validKey = false;
+        uint8_t candidateKey [32]{};
+        uint8_t nullKey [32]{};
+        Libsecp256k1& engine = static_cast<Libsecp256k1&>(CryptoEngine::Instance().SECP256K1());
+
+        LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
+            static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
+
+        while (!validKey) {
+            ldp->privateKey_.randomizeMemory_uint8(candidateKey, 32);
+            // We add the random key to a zero value key because secp256k1_privkey_tweak_add
+            // checks the result to make sure it's in the correct range for secp256k1.
+            //
+            // This loop should almost always run exactly one time (about 1/(2^128) chance of
+            // randomly generating an invalid key thus requiring a second attempt)
+            if (engine.secp256k1_privkey_tweak_add(candidateKey, nullKey)) {
+                ldp->privateKey_.setMemory(candidateKey, 32);
+                validKey = true;
+            };
+        }
+        return validKey;
         #endif
     }
 //-------------------------
