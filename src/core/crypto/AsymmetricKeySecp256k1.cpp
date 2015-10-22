@@ -56,6 +56,15 @@ void AsymmetricKeySecp256k1::ReleaseKeyLowLevel_Hook() const
 {
 }
 
+bool AsymmetricKeySecp256k1::SetKey(const OTPassword& key)
+{
+    const uint8_t* keyStart = static_cast<const uint8_t*>(key.getMemory());
+    const uint8_t* keyEnd = keyStart + key.getMemorySize();
+
+    String base58Key = EncodeBase58Check(keyStart, keyEnd);
+    return false;
+}
+
 CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 {

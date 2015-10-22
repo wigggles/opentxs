@@ -40,6 +40,9 @@
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
+
+#include <bitcoin-base58/base58.h>
 
 namespace opentxs
 {
@@ -54,9 +57,13 @@ class AsymmetricKeySecp256k1 : public OTAsymmetricKey
 private:
     typedef OTAsymmetricKey ot_super;
     friend class OTAsymmetricKey; // For the factory.
+    friend class LowLevelKeyGenerator;
 
     AsymmetricKeySecp256k1();
     virtual void ReleaseKeyLowLevel_Hook() const;
+    // used by LowLevelKeyGenerator
+    virtual bool SetKey(
+        const OTPassword& key);
 
 public:
     virtual CryptoAsymmetric& engine() const;

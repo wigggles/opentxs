@@ -86,6 +86,7 @@ public:
 
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 
+#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -170,6 +171,9 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
 
 void LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp::Cleanup()
 {
+    privateKey_.zeroMemory();
+    publicKey_.zeroMemory();
+
 }
 
 bool LowLevelKeyGenerator::MakeNewKeypair()
@@ -335,19 +339,45 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair)
 
         // Success! At this point, theKeypair's public and private keys have been
         // set.
-        // Keep in mind though, they still won't be "quite right" until saved and
-        // loaded
-        // again, at least according to existing logic. That saving/reloading is
-        // currently
-        // performed in OTPseudonym::GenerateNym().
-        //
         return true;
         #elif defined(OT_CRYPTO_USING_GPG)
 
         #endif
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
         #if defined(OT_CRYPTO_USING_LIBSECP256K1)
-        return false;
+
+        LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
+            static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
+
+        OT_ASSERT(nullptr != theKeypair.m_pkeyPublic);
+        OT_ASSERT(nullptr != theKeypair.m_pkeyPrivate);
+
+        // Since we are in secp256k1-specific code, we have to make sure these are
+        // secp256k1-specific keys.
+        //
+        AsymmetricKeySecp256k1* pPublicKey =
+            dynamic_cast<AsymmetricKeySecp256k1*>(theKeypair.m_pkeyPublic);
+        AsymmetricKeySecp256k1* pPrivateKey =
+            dynamic_cast<AsymmetricKeySecp256k1*>(theKeypair.m_pkeyPrivate);
+
+        if (nullptr == pPublicKey) {
+            otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKeySecp256k1 "
+                                        "failed. (theKeypair.m_pkeyPublic)\n";
+            return false;
+        }
+        if (nullptr == pPrivateKey) {
+            otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKeySecp256k1 "
+                                        "failed. (theKeypair.m_pkeyPrivate)\n";
+            return false;
+        }
+
+        pPublicKey->SetAsPublic();
+        pPrivateKey->SetAsPrivate();
+
+        bool pubkeySet = pPublicKey->SetKey(ldp->publicKey_);
+        bool privkeySet = pPrivateKey->SetKey(ldp->privateKey_);
+
+        return (pubkeySet && privkeySet);
         #endif
     }
 //-------------------------
