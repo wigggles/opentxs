@@ -7,8 +7,10 @@ include_directories(SYSTEM
 
 if(OT_CRYPTO_USING_LIBSECP256K1)
   set(LIBSECP256K1 "crypto/Libsecp256k1.cpp")
+  set(KEYSECP256K1 "crypto/AsymmetricKeySecp256k1.cpp")
 else()
   set(LIBSECP256K1 "")
+  set(KEYSECP256K1 "")
 endif()
 
 add_subdirectory(otprotob)
@@ -35,6 +37,7 @@ set(cxx-sources
   crypto/OTAsymmetricKey.cpp
   crypto/OTAsymmetricKeyOpenSSL.cpp
   crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp
+  ${KEYSECP256K1}
   crypto/OTCachedKey.cpp
   crypto/OTCallback.cpp
   crypto/OTCaller.cpp

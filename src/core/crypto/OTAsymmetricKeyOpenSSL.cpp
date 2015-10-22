@@ -756,7 +756,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
     return privateSuccess && publicSuccess;
 }
 
-CryptoAsymmetric& OTAsymmetricKey::engine() const
+CryptoAsymmetric& OTAsymmetricKey_OpenSSL::engine() const
 
 {
     return CryptoEngine::Instance().RSA();

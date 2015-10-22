@@ -117,7 +117,8 @@ public:
     enum KeyType: int32_t {
         ERROR_TYPE,
         NULL_TYPE,
-        RSA
+        RSA,
+        SECP256K1
     };
 
     static String KeyTypeToString(const KeyType keyType);
@@ -126,7 +127,7 @@ public:
 
     KeyType keyType() const;
 
-    virtual CryptoAsymmetric& engine() const;
+    virtual CryptoAsymmetric& engine() const = 0;
 
 protected:
     KeyType m_keyType = ERROR_TYPE;

@@ -55,6 +55,10 @@
 #include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
 #endif
 
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
+#endif
+
 namespace opentxs
 {
 
@@ -75,11 +79,19 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(OTAsymmetricKey::KeyType keyType) /
 #elif defined(OT_CRYPTO_USING_GPG)
     //  pKey = new OTAsymmetricKey_GPG;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
-                             "so it's impossible to instantiate a key.\n";
+                             "so it's impossible to instantiate the key.\n";
 #else
     otErr << __FUNCTION__
           << ": Open-Transactions isn't built with any crypto engine, "
-             "so it's impossible to instantiate a key.\n";
+             "so it's impossible to instantiate the key.\n";
+#endif
+    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        pKey = new AsymmetricKeySecp256k1;
+        validType = true;
+    otErr << __FUNCTION__
+          << ": Open-Transactions isn't built with libsecp256k1 support, "
+             "so it's impossible to instantiate the key.\n";
 #endif
     }
     OT_ASSERT_MSG(validType, keyTypeError.c_str());
