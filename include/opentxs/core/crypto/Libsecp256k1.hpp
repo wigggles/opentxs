@@ -51,6 +51,7 @@ namespace opentxs
 
 class OTAsymmetricKey;
 class OTData;
+class OTPassword;
 class OTPasswordData;
 class Nym;
 class OTSignature;
@@ -91,6 +92,12 @@ public:
     bool secp256k1_privkey_tweak_add(
         uint8_t key [32],
         const uint8_t tweak [32]) const;
+    bool secp256k1_pubkey_create(
+        secp256k1_pubkey_t& pubkey,
+        const OTPassword& privkey) const;
+    bool secp256k1_pubkey_serialize(
+        OTPassword& serializedPubkey,
+        const secp256k1_pubkey_t& pubkey) const;
 };
 
 } // namespace opentxs

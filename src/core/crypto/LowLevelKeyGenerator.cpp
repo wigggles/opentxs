@@ -98,6 +98,7 @@ class LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp : public LowLevelKey
 public:
     virtual void Cleanup();
     OTPassword privateKey_;
+    OTPassword publicKey_;
 };
 
 } // namespace opentxs
@@ -231,7 +232,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
         #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 
-        bool validKey = false;
+        bool validPrivkey = false;
         uint8_t candidateKey [32]{};
         uint8_t nullKey [32]{};
         Libsecp256k1& engine = static_cast<Libsecp256k1&>(CryptoEngine::Instance().SECP256K1());
@@ -239,7 +240,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
         LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
 
-        while (!validKey) {
+        while (!validPrivkey) {
             ldp->privateKey_.randomizeMemory_uint8(candidateKey, 32);
             // We add the random key to a zero value key because secp256k1_privkey_tweak_add
             // checks the result to make sure it's in the correct range for secp256k1.
@@ -248,10 +249,19 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
             // randomly generating an invalid key thus requiring a second attempt)
             if (engine.secp256k1_privkey_tweak_add(candidateKey, nullKey)) {
                 ldp->privateKey_.setMemory(candidateKey, 32);
-                validKey = true;
+                validPrivkey = true;
             };
         }
-        return validKey;
+
+        secp256k1_pubkey_t pubkey;
+        bool validPubkey = engine.secp256k1_pubkey_create(pubkey, ldp->privateKey_);
+        bool serializedKey = false;
+
+        if (validPubkey) {
+            serializedKey = engine.secp256k1_pubkey_serialize(ldp->publicKey_, pubkey);
+        }
+
+        return (validPrivkey & serializedKey);
         #endif
     }
 //-------------------------
