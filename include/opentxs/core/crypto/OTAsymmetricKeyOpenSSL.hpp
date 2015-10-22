@@ -89,7 +89,7 @@ class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
 private:
     typedef OTAsymmetricKey ot_super;
     friend class OTAsymmetricKey; // For the factory.
-    OTASCIIArmor* m_p_ascKey; // base64-encoded, string form of key. (Encrypted
+    OTASCIIArmor* m_p_ascKey = nullptr; // base64-encoded, string form of key. (Encrypted
                               // too, for private keys. Should store it in this
                               // form most of the time.)
 public:

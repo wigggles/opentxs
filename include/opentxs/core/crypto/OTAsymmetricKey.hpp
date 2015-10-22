@@ -149,8 +149,8 @@ protected: // PASSWORD CALLBACK
     static OTCaller* s_pCaller;
 
 protected:                    // PROTECTED MEMBER DATA
-    bool m_bIsPublicKey;
-    bool m_bIsPrivateKey;
+    bool m_bIsPublicKey = false;
+    bool m_bIsPrivateKey = false;
     Timer m_timer; // Useful for keeping track how long since I last entered my
                    // passphrase...
 public:

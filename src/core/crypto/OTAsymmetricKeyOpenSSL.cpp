@@ -213,9 +213,8 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKey(const FormattedKey& strKey)
     // BEGIN ...)
     OTASCIIArmor theArmor;
     String strKeystr = strKey;
-    String& refKeystr = strKeystr;
 
-    if (theArmor.LoadFromString(refKeystr, true)) {
+    if (theArmor.LoadFromString(strKeystr, true)) {
         m_p_ascKey->Set(theArmor);
         return true;
     }
