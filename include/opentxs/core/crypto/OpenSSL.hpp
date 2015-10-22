@@ -87,7 +87,7 @@ protected:
     virtual void Cleanup_Override() const;
 
     class OpenSSLdp;
-    OpenSSLdp* dp;
+    OpenSSLdp* dp=nullptr;
 
     virtual bool GetPasswordFromConsole(OTPassword& theOutput,
                                                 const char* szPrompt) const;

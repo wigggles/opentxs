@@ -46,15 +46,10 @@ namespace opentxs
 
 Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
     : Crypto(),
-    context_(secp256k1_context_create(SECP256K1_CONTEXT_SIGN))
+    context_(secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY)),
+    ssl_(ssl)
 {
-    uint8_t randomSeed [32] = {0};
-
-    ssl.RandomizeMemory(&randomSeed[0], 32);
-
-    int __attribute__((unused)) randomize = secp256k1_context_randomize(
-        context_,
-        randomSeed);
+    OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::Libsecp256k1: secp256k1_context_create failed.");
 }
 
 bool Libsecp256k1::Seal(
@@ -100,15 +95,28 @@ bool Libsecp256k1::VerifySignature(
 
 Libsecp256k1::~Libsecp256k1()
 {
+    OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::~Libsecp256k1: context_ should never be nullptr, yet it was.")
+    secp256k1_context_destroy(context_);
+    context_ = nullptr;
 }
 
 void Libsecp256k1::Init_Override() const
 {
+    static bool bNotAlreadyInitialized = true;
+    OT_ASSERT_MSG(bNotAlreadyInitialized, "Libsecp256k1::Init_Override: Tried to initialize twice.");
+    bNotAlreadyInitialized = false;
+    // --------------------------------
+    uint8_t randomSeed [32]{};
+    ssl_.RandomizeMemory(randomSeed, 32);
+
+    OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::Libsecp256k1: secp256k1_context_create failed.");
+
+    int __attribute__((unused)) randomize = secp256k1_context_randomize(context_,
+                                                                        randomSeed);
 }
 
 void Libsecp256k1::Cleanup_Override() const
 {
-    secp256k1_context_destroy(context_);
 }
 
 } // namespace opentxs

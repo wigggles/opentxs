@@ -38,6 +38,17 @@
 
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 
+#include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/Log.hpp>
+
+extern "C" {
+#ifdef _WIN32
+#else
+#include <sys/resource.h>
+#endif
+}
+
+
 namespace opentxs
 {
 
@@ -45,17 +56,34 @@ CryptoEngine* CryptoEngine::pInstance_ = nullptr;
 
 CryptoEngine::CryptoEngine()
     : pSSL_(new SSLImplementation)
-{
 #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    psecp256k1_ = new Libsecp256k1(*pSSL_);
+    , psecp256k1_(new Libsecp256k1(*pSSL_))
 #endif
+{
     Init();
 }
 
 void CryptoEngine::Init()
 {
+    otWarn << "CryptoEngine::Init: Setting up rlimits, and crypto libraries...\n";
+
+    // Here is a security measure intended to make it more difficult to
+    // capture a core dump. (Not used in debug mode, obviously.)
+    //
+#if !defined(PREDEF_MODE_DEBUG) && defined(PREDEF_PLATFORM_UNIX)
+    struct rlimit rlim;
+    getrlimit(RLIMIT_CORE, &rlim);
+    rlim.rlim_max = rlim.rlim_cur = 0;
+    if (setrlimit(RLIMIT_CORE, &rlim)) {
+        OT_FAIL_MSG("Crypto::Init: ASSERT: setrlimit failed. (Used for "
+                    "preventing core dumps.)\n");
+    }
+#endif
+
     pSSL_->Init();
 #if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    // WARNING: The below call to psecp256k1_->Init() DEPENDS on the fact
+    // that the above call to pSSL_->Init() happened FIRST.
     psecp256k1_->Init();
 #endif
 
@@ -104,10 +132,11 @@ CryptoEngine& CryptoEngine::Instance()
 
 void CryptoEngine::Cleanup()
 {
-    pSSL_->Cleanup();
 #if defined OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     psecp256k1_->Cleanup();
 #endif
+
+    pSSL_->Cleanup();
 }
 
 CryptoEngine::~CryptoEngine()

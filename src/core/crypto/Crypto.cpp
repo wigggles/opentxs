@@ -42,13 +42,6 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 
-extern "C" {
-#ifdef _WIN32
-#else
-#include <sys/resource.h>
-#endif
-}
-
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
@@ -203,60 +196,18 @@ uint32_t CryptoConfig::PublicKeysizeMax()
     return GetValue(sp_nPublicKeysizeMax);
 }
 
-// static
-int32_t Crypto::s_nCount =
-    0; // Instance count, should never exceed 1. (At this point, anyway.)
-
-// Currently called by OTLog::OT_Init();
-
 void Crypto::Init() const
 {
-    // This is only supposed to happen once per run.
-    //
-    if (0 == Crypto::s_nCount) {
-        ++(Crypto::s_nCount);
-
-        otWarn << "OT_Init: Setting up rlimits, and crypto library...\n";
-
-// Here is a security measure intended to make it more difficult to capture a
-// core
-// dump. (Not used in debug mode, obviously.)
-//
-#if !defined(PREDEF_MODE_DEBUG) && defined(PREDEF_PLATFORM_UNIX)
-        struct rlimit rlim;
-        getrlimit(RLIMIT_CORE, &rlim);
-        rlim.rlim_max = rlim.rlim_cur = 0;
-        if (setrlimit(RLIMIT_CORE, &rlim)) {
-            OT_FAIL_MSG("Crypto::Init: ASSERT: setrlimit failed. (Used for "
-                        "preventing core dumps.)\n");
-        }
-#endif
-
-        Init_Override();
-    }
-    else
-        otErr << "Crypto::Init: ERROR: Somehow this erroneously got called "
-                 "more than once! (Doing nothing.)\n";
+    Init_Override();
 }
 
-// Currently called by OTLog::OT_Cleanup();
 
 void Crypto::Cleanup() const
 {
-    // This is only supposed to happen once per run.
+    // Any crypto-related cleanup code NOT specific to OpenSSL (which is
+    // handled in OpenSSL, a subclass) would go here.
     //
-    if (1 == Crypto::s_nCount) {
-        --(Crypto::s_nCount);
-
-        // Any crypto-related cleanup code NOT specific to OpenSSL (which is
-        // handled in OpenSSL, a subclass) would go here.
-        //
-
-        Cleanup_Override();
-    }
-    else
-        otErr << "Crypto::Cleanup: ERROR: Somehow this erroneously got "
-                 "called more than once! (Doing nothing.)\n";
+    Cleanup_Override();
 }
 
 // virtual (Should never get called.)

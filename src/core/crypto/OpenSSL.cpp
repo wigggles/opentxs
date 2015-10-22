@@ -168,7 +168,6 @@ extern "C" {
 
 OpenSSL::OpenSSL()
     : Crypto()
-    , dp(nullptr)
 {
 }
 
@@ -514,7 +513,7 @@ void OpenSSL::EncodeID(const Identifier& theInput,
 }
 
 bool OpenSSL::RandomizeMemory(uint8_t* szDestination,
-                                       uint32_t nNewSize) const
+                              uint32_t nNewSize) const
 {
     OT_ASSERT(nullptr != szDestination);
     OT_ASSERT(nNewSize > 0);
@@ -830,10 +829,14 @@ void OpenSSL::thread_cleanup() const
 
 void OpenSSL::Init_Override() const
 {
-    const char* szFunc = "OpenSSL::Init_Override";
-
-    otWarn << szFunc << ": Setting up OpenSSL:  SSL_library_init, error "
+    otWarn << __FUNCTION__ << ": Setting up OpenSSL:  SSL_library_init, error "
                         "strings and algorithms, and OpenSSL config...\n";
+
+    static bool bNotAlreadyInitialized = true;
+
+    OT_ASSERT_MSG(bNotAlreadyInitialized, "OpenSSL::Init_Override: Tried to initialize twice.");
+
+    bNotAlreadyInitialized = false;
 
 /*
  OPENSSL_VERSION_NUMBER is a numeric release version identifier:
@@ -1094,7 +1097,7 @@ void OpenSSL::Init_Override() const
 #if defined(OPENSSL_THREADS)
     // thread support enabled
 
-    otWarn << szFunc << ": OpenSSL WAS compiled with thread support, FYI. "
+    otWarn << __FUNCTION__ << ": OpenSSL WAS compiled with thread support, FYI. "
                         "Setting up mutexes...\n";
 
     this->thread_setup();
@@ -1138,9 +1141,7 @@ void OpenSSL::Init_Override() const
 
 void OpenSSL::Cleanup_Override() const
 {
-    const char* szFunc = "OpenSSL::Cleanup_Override";
-
-    otLog4 << szFunc << ": Cleaning up OpenSSL...\n";
+    otLog4 << __FUNCTION__ << ": Cleaning up OpenSSL...\n";
 
 // In the future if we start using ENGINEs, then do the cleanup here:
 //#ifndef OPENSSL_NO_ENGINE

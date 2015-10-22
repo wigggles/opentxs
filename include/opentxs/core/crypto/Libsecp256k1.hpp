@@ -64,13 +64,15 @@ private:
     Libsecp256k1() = delete;
     secp256k1_context_t* context_ = nullptr;
 
+    CryptoUtil& ssl_;
+
 protected:
     Libsecp256k1(CryptoUtil& ssl);
-    void Init_Override() const;
-    void Cleanup_Override() const;
+    virtual void Init_Override() const;
+    virtual void Cleanup_Override() const;
 
 public:
-    ~Libsecp256k1();
+    virtual ~Libsecp256k1();
     bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
                       OTData& dataOutput) const;
     bool Open(OTData& dataInput, const Nym& theRecipient,
