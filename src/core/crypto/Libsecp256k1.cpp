@@ -136,6 +136,22 @@ bool Libsecp256k1::secp256k1_pubkey_serialize(
     return false;
 }
 
+bool Libsecp256k1::secp256k1_pubkey_parse(
+        secp256k1_pubkey_t& pubkey,
+        const OTPassword& serializedPubkey) const
+{
+    if (nullptr != context_) {
+
+        const uint8_t* inputStart = static_cast<const uint8_t*>(serializedPubkey.getMemory());
+
+        bool parsed = secp256k1_ec_pubkey_parse(context_, &pubkey, inputStart, serializedPubkey.getMemorySize());
+
+        return parsed;
+    }
+
+    return false;
+}
+
 Libsecp256k1::~Libsecp256k1()
 {
     OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::~Libsecp256k1: context_ should never be nullptr, yet it was.")

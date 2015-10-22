@@ -42,6 +42,7 @@
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/Libsecp256k1.hpp>
 
 namespace opentxs
 {
@@ -58,11 +59,16 @@ void AsymmetricKeySecp256k1::ReleaseKeyLowLevel_Hook() const
 
 bool AsymmetricKeySecp256k1::SetKey(const OTPassword& key)
 {
+    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
+                          // here. (Since it's being replaced, it's now the
+                          // wrong key anyway.)
+
     const uint8_t* keyStart = static_cast<const uint8_t*>(key.getMemory());
     const uint8_t* keyEnd = keyStart + key.getMemorySize();
 
-    String base58Key = EncodeBase58Check(keyStart, keyEnd);
-    return false;
+    key_ = EncodeBase58Check(keyStart, keyEnd);
+
+    return true;
 }
 
 CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
@@ -73,11 +79,11 @@ CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 bool AsymmetricKeySecp256k1::IsEmpty() const
 {
-    return true;
+    return key_.empty();
 }
 
 bool AsymmetricKeySecp256k1::SetPrivateKey(
-    __attribute__((unused)) const FormattedKey& strCert,
+    const FormattedKey& strCert,
     __attribute__((unused)) const String* pstrReason, // This reason is what displays on the
                               // passphrase dialog.
     __attribute__((unused)) const OTPassword* pImportPassword) // Used when importing an exported
@@ -89,46 +95,81 @@ bool AsymmetricKeySecp256k1::SetPrivateKey(
     m_bIsPublicKey = false;
     m_bIsPrivateKey = true;
 
-    return false;
+    key_.reset();
+    key_.Set(strCert.Get());
+
+    return true;
 }
 
 bool AsymmetricKeySecp256k1::SetPublicKeyFromPrivateKey(
-    __attribute__((unused)) const FormattedKey& strCert,
+    const FormattedKey& strCert,
     __attribute__((unused)) const String* pstrReason,
     __attribute__((unused)) const OTPassword* pImportPassword)
 {
     ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
                           // here. (Since it's being replaced, it's now the
                           // wrong key anyway.)
-    m_bIsPublicKey = false;
-    m_bIsPrivateKey = true;
+    m_bIsPublicKey = true;
+    m_bIsPrivateKey = false;
+
+    Libsecp256k1& engine = static_cast<Libsecp256k1&>(this->engine());
+
+    std::vector<unsigned char> decodedPrivateKey;
+    bool privkeydecoded = DecodeBase58(strCert.Get(), decodedPrivateKey);
+
+    if (privkeydecoded) {
+        secp256k1_pubkey_t pubKey;
+
+        OTPassword privKey;
+        privKey.setMemory(&decodedPrivateKey.front(), decodedPrivateKey.size());
+
+        bool validPubkey = engine.secp256k1_pubkey_create(pubKey, privKey);
+
+        if (validPubkey) {
+            OTPassword publicKey;
+
+            __attribute__((unused)) bool serializedKey =
+                engine.secp256k1_pubkey_serialize(publicKey, pubKey);
+
+            return SetKey(publicKey);
+        }
+    }
 
     return false;
 }
 
 bool AsymmetricKeySecp256k1::GetPrivateKey(
-    __attribute__((unused)) FormattedKey& strOutput,
+    FormattedKey& strOutput,
     __attribute__((unused)) const OTAsymmetricKey* pPubkey,
     __attribute__((unused)) const String* pstrReason,
     __attribute__((unused)) const OTPassword* pImportPassword) const
 {
-    return false;
+    strOutput.reset();
+    strOutput.Set(key_.Get());
+
+    return true;
 }
 
 bool AsymmetricKeySecp256k1::GetPublicKey(
     __attribute__((unused)) String& strKey) const
 {
-    return false;
+    strKey.reset();
+    strKey.Set(key_.Get());
+
+    return true;
 }
 
 bool AsymmetricKeySecp256k1::GetPublicKey(
     __attribute__((unused)) FormattedKey& strKey) const
 {
-    return false;
+    strKey.reset();
+    strKey.Set(key_.Get());
+
+    return true;
 }
 
 bool AsymmetricKeySecp256k1::SetPublicKey(
-    __attribute__((unused)) const String& strKey)
+    const String& strKey)
 {
     ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
                           // here. (Since it's being replaced, it's now the
@@ -136,11 +177,14 @@ bool AsymmetricKeySecp256k1::SetPublicKey(
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
 
-    return false;
+    key_.reset();
+    key_.Set(strKey.Get());
+
+    return true;
 }
 
 bool AsymmetricKeySecp256k1::SetPublicKey(
-    __attribute__((unused)) const FormattedKey& strKey)
+    const FormattedKey& strKey)
 {
     ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
                           // here. (Since it's being replaced, it's now the
@@ -148,14 +192,17 @@ bool AsymmetricKeySecp256k1::SetPublicKey(
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
 
-    return false;
+    key_.reset();
+    key_.Set(strKey.Get());
+
+    return true;
 }
 
 bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
     __attribute__((unused)) const OTPassword& theExportPassword,
     __attribute__((unused)) bool bImporting) const
 {
-    return false;
+    return true;
 }
 
 void AsymmetricKeySecp256k1::Release_AsymmetricKeySecp256k1()

@@ -98,6 +98,9 @@ public:
     bool secp256k1_pubkey_serialize(
         OTPassword& serializedPubkey,
         const secp256k1_pubkey_t& pubkey) const;
+    bool secp256k1_pubkey_parse(
+        secp256k1_pubkey_t& pubkey,
+        const OTPassword& serializedPubkey) const;
 };
 
 } // namespace opentxs

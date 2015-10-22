@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 
+#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
 
@@ -50,7 +51,6 @@ namespace opentxs
 class OTCaller;
 class OTPassword;
 class String;
-class FormattedKey;
 
 class AsymmetricKeySecp256k1 : public OTAsymmetricKey
 {
@@ -62,8 +62,9 @@ private:
     AsymmetricKeySecp256k1();
     virtual void ReleaseKeyLowLevel_Hook() const;
     // used by LowLevelKeyGenerator
-    virtual bool SetKey(
+    bool SetKey(
         const OTPassword& key);
+    FormattedKey key_;
 
 public:
     virtual CryptoAsymmetric& engine() const;
