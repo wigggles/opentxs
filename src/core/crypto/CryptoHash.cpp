@@ -43,6 +43,16 @@
 namespace opentxs
 {
 
+bool CryptoHash::Hash(
+    const HashType hashType,
+    const String& data,
+    OTData& digest)
+{
+    OTData plaintext(data.Get(), data.GetLength());
+
+    return Hash(hashType, plaintext, digest);
+}
+
 CryptoHash::HashType CryptoHash::StringToHashType(String& inputString)
 {
     if (inputString.Compare("HASH256"))

@@ -2595,7 +2595,6 @@ bool OpenSSL::Hash(
 
         return true;
     } else if (CryptoHash::HASH160 == hashType) {
-
         const uint8_t* dataStart = static_cast<const uint8_t*>(data.GetPointer());
         const uint8_t* dataEnd = dataStart + data.GetSize();
 
@@ -2639,8 +2638,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
     OTData hash;
-    OTData plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength());
-    CryptoEngine::Instance().Hash().Hash(CryptoHash::HASH256, plaintext, hash);
+    CryptoEngine::Instance().Hash().Hash(CryptoHash::HASH256, strContractUnsigned, hash);
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
@@ -2796,8 +2794,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     // 32 bytes, double sha256
     OTData hash;
-    OTData plaintext(strContractToVerify.Get(), strContractToVerify.GetLength());
-    CryptoEngine::Instance().Hash().Hash(CryptoHash::HASH256, plaintext, hash);
+    CryptoEngine::Instance().Hash().Hash(CryptoHash::HASH256, strContractToVerify, hash);
 
     std::vector<uint8_t> vDecrypted(
         CryptoConfig::PublicKeysizeMax()); // Contains the decrypted

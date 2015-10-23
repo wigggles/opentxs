@@ -173,10 +173,10 @@ const CryptoHash::HashType Identifier::DefaultHashAlgorithm = CryptoHash::SHA256
 
 bool Identifier::CalculateDigest(const String& strInput)
 {
-    OTData input(strInput.Get(), strInput.GetLength());
-
-    return CalculateDigest(input);
-}
+    return CryptoEngine::Instance().Hash().Hash(
+        CryptoHash::HASH160,
+        strInput,
+        *this);}
 
 bool Identifier::CalculateDigest(const OTData& dataInput)
 {

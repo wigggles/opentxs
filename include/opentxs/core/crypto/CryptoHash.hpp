@@ -67,6 +67,10 @@ public:
         const HashType hashType,
         const OTData& data,
         OTData& digest) const = 0;
+    bool Hash(
+        const HashType hashType,
+        const String& data,
+        OTData& digest);
 
     static HashType StringToHashType(String& inputString);
     static String HashTypeToString(HashType hashType);

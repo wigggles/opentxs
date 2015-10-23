@@ -88,8 +88,7 @@ bool Libsecp256k1::SignContract(
     __attribute__((unused)) const OTPasswordData* pPWData)
 {
     OTData hash;
-    OTData plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength());
-    bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, plaintext, hash);
+    bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, strContractUnsigned, hash);
 
     if (haveDigest) {
         OTPassword privKey;
@@ -138,8 +137,7 @@ bool Libsecp256k1::VerifySignature(
     ) const
 {
     OTData hash;
-    OTData plaintext(strContractToVerify.Get(), strContractToVerify.GetLength());
-    bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, plaintext, hash);
+    bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, strContractToVerify, hash);
 
     if (haveDigest) {
         secp256k1_pubkey_t ecdsaPubkey;
