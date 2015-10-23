@@ -51,6 +51,7 @@
 #include <opentxs/core/crypto/OpenSSL.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/Nym.hpp>
@@ -2593,7 +2594,15 @@ bool OpenSSL::Hash(
         digest.Assign(vDigest, 32);
 
         return true;
+    } else if (CryptoHash::HASH160 == hashType) {
 
+        const uint8_t* dataStart = static_cast<const uint8_t*>(data.GetPointer());
+        const uint8_t* dataEnd = dataStart + data.GetSize();
+
+        unsigned char* vDigest = ::Hash160(dataStart, dataEnd);
+        digest.Assign(vDigest, 20);
+
+        return true;
     } else {
         EVP_MD_CTX* context = EVP_MD_CTX_create();
         const EVP_MD* algorithm = dp->HashTypeToOpenSSLType(hashType);
@@ -2629,9 +2638,9 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // 32 bytes, double sha256
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
-    unsigned char* vDigest =
-        ::Hash(strContractUnsigned.Get(),
-             strContractUnsigned.Get() + strContractUnsigned.GetLength());
+    OTData hash;
+    OTData plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength());
+    CryptoEngine::Instance().Hash().Hash(CryptoHash::HASH256, plaintext, hash);
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
@@ -2693,7 +2702,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     //      in    OUT      IN        in        in
     const EVP_MD* md_sha256 = EVP_sha256();
     int32_t status =
-        RSA_padding_add_PKCS1_PSS(pRsaKey, &vEM.at(0), vDigest, md_sha256,
+        RSA_padding_add_PKCS1_PSS(pRsaKey, &vEM.at(0), static_cast<const unsigned char*>(hash.GetPointer()), md_sha256,
                                   -2); // maximum salt length
 
     // Above, pDigest is the input, but its length is not needed, since it is
@@ -2786,9 +2795,9 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     const char* szFunc = "OpenSSL::VerifyContractDefaultHash";
 
     // 32 bytes, double sha256
-    unsigned char* vDigest =
-        ::Hash(strContractToVerify.Get(),
-             strContractToVerify.Get() + strContractToVerify.GetLength());
+    OTData hash;
+    OTData plaintext(strContractToVerify.Get(), strContractToVerify.GetLength());
+    CryptoEngine::Instance().Hash().Hash(CryptoHash::HASH256, plaintext, hash);
 
     std::vector<uint8_t> vDecrypted(
         CryptoConfig::PublicKeysizeMax()); // Contains the decrypted
@@ -2901,7 +2910,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     const EVP_MD* md_sha256 = EVP_sha256();
     status =
-        RSA_verify_PKCS1_PSS(pRsaKey, vDigest, md_sha256, &vDecrypted.at(0),
+        RSA_verify_PKCS1_PSS(pRsaKey, static_cast<const unsigned char*>(hash.GetPointer()), md_sha256, &vDecrypted.at(0),
                              -2); // salt length recovered from signature
 
     if (!status) {
@@ -3358,7 +3367,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
 
     EVP_MD* md = nullptr;
 
-    if (Identifier::DefaultHashAlgorithm == hashType) {
+    if (CryptoHash::HASH256 == hashType) {
         return SignContractDefaultHash(strContractUnsigned, pkey, theSignature,
                                        pPWData);
     }
@@ -3493,7 +3502,7 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
 
     EVP_MD* md = nullptr;
 
-    if (Identifier::DefaultHashAlgorithm == hashType) {
+    if (CryptoHash::HASH256 == hashType) {
         return VerifyContractDefaultHash(strContractToVerify, pkey,
                                          theSignature, pPWData);
     }
