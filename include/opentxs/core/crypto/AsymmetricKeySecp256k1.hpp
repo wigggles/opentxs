@@ -79,7 +79,7 @@ public:
         const OTPassword* pImportPassword = nullptr);
     virtual bool GetPrivateKey(
         FormattedKey& strOutput,
-        const OTAsymmetricKey* pPubkey,
+        const OTAsymmetricKey* pPubkey = nullptr,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
     virtual bool GetPublicKey(String& strKey) const;

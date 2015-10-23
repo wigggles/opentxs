@@ -40,9 +40,12 @@
 
 #include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
+
+#include <vector>
 
 namespace opentxs
 {
@@ -115,7 +118,7 @@ bool AsymmetricKeySecp256k1::SetPublicKeyFromPrivateKey(
     Libsecp256k1& engine = static_cast<Libsecp256k1&>(this->engine());
 
     std::vector<unsigned char> decodedPrivateKey;
-    bool privkeydecoded = DecodeBase58(strCert.Get(), decodedPrivateKey);
+    bool privkeydecoded = DecodeBase58Check(strCert.Get(), decodedPrivateKey);
 
     if (privkeydecoded) {
         secp256k1_pubkey_t pubKey;

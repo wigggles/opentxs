@@ -285,7 +285,7 @@ public: // DESTRUCTION
 
     virtual bool GetPrivateKey(
         FormattedKey& strOutput,
-        const OTAsymmetricKey* pPubkey, //I wish this wasn't necessary
+        const OTAsymmetricKey* pPubkey = nullptr, //I wish this wasn't necessary
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const = 0;
     virtual bool SetPrivateKey(

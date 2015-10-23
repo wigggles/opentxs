@@ -38,9 +38,15 @@
 
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 
+#include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTSignature.hpp>
+
+#include <vector>
 
 namespace opentxs
 {
@@ -73,13 +79,49 @@ bool Libsecp256k1::Open(
 }
 
 bool Libsecp256k1::SignContract(
-    __attribute__((unused)) const String& strContractUnsigned,
-    __attribute__((unused)) const OTAsymmetricKey& theKey,
-    __attribute__((unused)) OTSignature& theSignature, // output
-    __attribute__((unused)) const CryptoHash::HashType hashType,
+    const String& strContractUnsigned,
+    const OTAsymmetricKey& theKey,
+    OTSignature& theSignature, // output
+    CryptoHash::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData
     )
 {
+    String hash;
+    OTData plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength());
+    bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, plaintext, hash);
+
+    if (haveDigest) {
+        FormattedKey encodedPrivateKey;
+        bool havePrivateKey = theKey.GetPrivateKey(encodedPrivateKey);
+
+        if (havePrivateKey) {
+            std::vector<unsigned char> decodedPrivateKey;
+            bool privkeydecoded = DecodeBase58Check(encodedPrivateKey.Get(), decodedPrivateKey);
+
+            if (privkeydecoded) {
+                OTPassword privKey;
+                privKey.setMemory(&decodedPrivateKey.front(), decodedPrivateKey.size());
+                secp256k1_ecdsa_signature_t ecdsaSignature;
+
+                bool signatureCreated = secp256k1_ecdsa_sign(
+                    context_,
+                    &ecdsaSignature,
+                    reinterpret_cast<const unsigned char*>(hash.Get()),
+                    reinterpret_cast<const unsigned char*>(privKey.getMemory()),
+                    nullptr,
+                    nullptr);
+
+                if (signatureCreated) {
+                    OTData signature;
+                    signature.Assign(ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature_t));
+
+                    theSignature.SetData(signature);
+
+                    return signatureCreated;
+                }
+            }
+        }
+    }
     return false;
 }
 
