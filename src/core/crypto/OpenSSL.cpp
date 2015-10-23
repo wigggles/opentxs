@@ -2583,25 +2583,37 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
 bool OpenSSL::Hash(
     const CryptoHash::HashType hashType,
     const OTData& data,
-    String& digest) const
+    OTData& digest) const
 {
-    EVP_MD_CTX* context = EVP_MD_CTX_create();
-    const EVP_MD* algorithm = dp->HashTypeToOpenSSLType(hashType);
-    unsigned char hash_value[EVP_MAX_MD_SIZE]{};
-    unsigned int hash_length = 0;
+    if (CryptoHash::HASH256 == hashType) {
+        const uint8_t* dataStart = static_cast<const uint8_t*>(data.GetPointer());
+        const uint8_t* dataEnd = dataStart + data.GetSize();
 
-    if (nullptr != algorithm) {
-        EVP_DigestInit_ex(context, algorithm, NULL);
-        EVP_DigestUpdate(context, data.GetPointer(), data.GetSize());
-        EVP_DigestFinal_ex(context, hash_value, &hash_length);
-        EVP_MD_CTX_destroy(context);
-
-        digest.Set(reinterpret_cast<const char*>(&hash_value[0]), hash_length);
+        unsigned char* vDigest = ::Hash(dataStart, dataEnd);
+        digest.Assign(vDigest, 32);
 
         return true;
-    }
 
-    return false;
+    } else {
+        EVP_MD_CTX* context = EVP_MD_CTX_create();
+        const EVP_MD* algorithm = dp->HashTypeToOpenSSLType(hashType);
+        unsigned char hash_value[EVP_MAX_MD_SIZE]{};
+        unsigned int hash_length = 0;
+
+        if (nullptr != algorithm) {
+            EVP_DigestInit_ex(context, algorithm, NULL);
+            EVP_DigestUpdate(context, data.GetPointer(), data.GetSize());
+            EVP_DigestFinal_ex(context, hash_value, &hash_length);
+            EVP_MD_CTX_destroy(context);
+
+            digest.Assign(hash_value, hash_length);
+
+            return true;
+        } else {
+            otErr << __FUNCTION__ << ": Error: invalid hash type.\n";
+            return false;
+        }
+    }
 }
 
 /*

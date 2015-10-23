@@ -65,7 +65,7 @@ public:
     virtual bool Hash(
         const HashType hashType,
         const OTData& data,
-        String& digest) const = 0;
+        OTData& digest) const = 0;
 
     static HashType StringToHashType(String& inputString);
     static String HashTypeToString(HashType hashType);

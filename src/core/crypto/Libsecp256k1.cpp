@@ -39,6 +39,7 @@
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 
 #include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
@@ -86,7 +87,7 @@ bool Libsecp256k1::SignContract(
     CryptoHash::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData)
 {
-    String hash;
+    OTData hash;
     OTData plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength());
     bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, plaintext, hash);
 
@@ -100,7 +101,7 @@ bool Libsecp256k1::SignContract(
             bool signatureCreated = secp256k1_ecdsa_sign(
                 context_,
                 &ecdsaSignature,
-                reinterpret_cast<const unsigned char*>(hash.Get()),
+                reinterpret_cast<const unsigned char*>(hash.GetPointer()),
                 reinterpret_cast<const unsigned char*>(privKey.getMemory()),
                 nullptr,
                 nullptr);
@@ -108,10 +109,24 @@ bool Libsecp256k1::SignContract(
             if (signatureCreated) {
                 bool signatureSet = ECDSASignatureToOTSignature(ecdsaSignature, theSignature);
                 return signatureSet;
+            } else {
+                    otErr << __FUNCTION__ << ": "
+                    << "Call to secp256k1_ecdsa_sign() failed.\n";
+
+                    return false;
             }
+        } else {
+                otErr << __FUNCTION__ << ": "
+                << "Can not extract ecdsa private key from OTAsymmetricKey.\n";
+
+                return false;
         }
+    } else {
+        otErr << __FUNCTION__ << ": "
+        << "Failed to obtain the contract hash.\n";
+
+        return false;
     }
-    return false;
 }
 
 bool Libsecp256k1::VerifySignature(
@@ -122,7 +137,7 @@ bool Libsecp256k1::VerifySignature(
     __attribute__((unused)) const OTPasswordData* pPWData
     ) const
 {
-    String hash;
+    OTData hash;
     OTData plaintext(strContractToVerify.Get(), strContractToVerify.GetLength());
     bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, plaintext, hash);
 
@@ -139,7 +154,7 @@ bool Libsecp256k1::VerifySignature(
                 bool signatureVerified = secp256k1_ecdsa_verify(
                     context_,
                     &ecdsaSignature,
-                    reinterpret_cast<const unsigned char*>(hash.Get()),
+                    reinterpret_cast<const unsigned char*>(hash.GetPointer()),
                     &ecdsaPubkey);
 
                 return signatureVerified;

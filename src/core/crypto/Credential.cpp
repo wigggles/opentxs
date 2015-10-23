@@ -687,11 +687,22 @@ const String& Credential::GetPubCredential() const // More intelligent
 String Credential::CredentialTypeToString(Credential::CredentialType credentialType)
 
 {
-    if (credentialType == Credential::RSA_PUBKEY)
-        return "rsa";
-    else if (credentialType == Credential::URL)
-        return "url";
-    return "error";
+    String credentialString;
+
+    switch (credentialType) {
+        case Credential::RSA_PUBKEY :
+            credentialString="rsa";
+            break;
+        case Credential::SECP256K1_PUBKEY :
+            credentialString="secp256k1";
+            break;
+        case Credential::URL :
+            credentialString="url";
+            break;
+        default :
+            credentialString="error";
+    }
+    return credentialString;
 }
 
 Credential::CredentialType Credential::StringToCredentialType(const String & credentialType)
@@ -699,6 +710,8 @@ Credential::CredentialType Credential::StringToCredentialType(const String & cre
 {
     if (credentialType.Compare("rsa"))
         return Credential::RSA_PUBKEY;
+    else if (credentialType.Compare("secp256k1"))
+        return Credential::SECP256K1_PUBKEY;
     else if (credentialType.Compare("url"))
         return Credential::URL;
     return Credential::ERROR_TYPE;
@@ -712,6 +725,9 @@ OTAsymmetricKey::KeyType Credential::CredentialTypeToKeyType(Credential::Credent
     switch (credentialType) {
         case Credential::RSA_PUBKEY :
             newKeyType = OTAsymmetricKey::RSA;
+            break;
+        case Credential::SECP256K1_PUBKEY :
+            newKeyType = OTAsymmetricKey::SECP256K1;
             break;
         case Credential::URL :
             newKeyType = OTAsymmetricKey::NULL_TYPE;

@@ -308,6 +308,24 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
 // CREATE NYM
 // returns new Nym ID
 //
+std::string OT_ME::create_nym_ecdsa(
+                              const std::string& strNymIDSource,
+                              const std::string& strAltLocation) const
+{
+    std::string strNymID =
+        OTAPI_Wrap::CreateNymECDSA(strNymIDSource, strAltLocation);
+
+    if (!VerifyStringVal(strNymID)) {
+        otOut << "OT_ME_create_nym_ecdsa: Failed in "
+              << "OT_API_CreateNymECDSA\n";
+    }
+
+    return strNymID;
+}
+
+// CREATE NYM
+// returns new Nym ID
+//
 std::string OT_ME::create_nym_legacy(int32_t nKeybits,
                               const std::string& strNymIDSource,
                               const std::string& strAltLocation) const

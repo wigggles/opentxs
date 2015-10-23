@@ -274,6 +274,13 @@ std::string OTAPI_Wrap::CreateNymLegacy(const int32_t& nKeySize,
     return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE, ALT_LOCATION);
 }
 
+std::string OTAPI_Wrap::CreateNymECDSA(
+                                  const std::string& NYM_ID_SOURCE,
+                                  const std::string& ALT_LOCATION)
+{
+    return Exec()->CreateNymECDSA(NYM_ID_SOURCE, ALT_LOCATION);
+}
+
 std::string OTAPI_Wrap::GetNym_ActiveCronItemIDs(const std::string& NYM_ID,
                                                  const std::string& NOTARY_ID)
 {

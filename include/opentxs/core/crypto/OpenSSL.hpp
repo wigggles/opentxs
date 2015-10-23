@@ -167,7 +167,7 @@ public:
     virtual bool Hash(
         const CryptoHash::HashType hashType,
         const OTData& data,
-        String& digest) const;
+        OTData& digest) const;
 
     void thread_setup() const;
     void thread_cleanup() const;

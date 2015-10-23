@@ -417,6 +417,11 @@ public:
         const std::string& ALT_LOCATION); // source and location can be empty.
                                           // (OT will generate a Nym with a
                                           // public key as the source.)
+    EXPORT static std::string CreateNymECDSA(
+        const std::string& NYM_ID_SOURCE,
+        const std::string& ALT_LOCATION); // source and location can be empty.
+                                          // (OT will generate a Nym with a
+                                          // public key as the source.)
 
     EXPORT static std::string GetNym_ActiveCronItemIDs(
         const std::string& NYM_ID, const std::string& NOTARY_ID);

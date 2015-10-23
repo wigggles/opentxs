@@ -109,6 +109,10 @@ public:
                                  const std::string& NYM_ID,
                                  const std::string& TARGET_NYM_ID) const;
 
+    EXPORT std::string create_nym_ecdsa(
+                                  const std::string& NYM_ID_SOURCE,
+                                  const std::string& ALT_LOCATION) const;
+
     EXPORT std::string create_nym_legacy(int32_t nKeybits,
                                   const std::string& NYM_ID_SOURCE,
                                   const std::string& ALT_LOCATION) const;

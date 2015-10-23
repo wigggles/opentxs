@@ -87,7 +87,8 @@ public:
     enum CredentialType: int32_t {
         ERROR_TYPE,
         RSA_PUBKEY,
-        URL
+        URL,
+        SECP256K1_PUBKEY
     };
 
     static String CredentialTypeToString(CredentialType credentialType);

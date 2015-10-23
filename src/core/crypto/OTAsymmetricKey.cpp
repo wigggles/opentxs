@@ -89,6 +89,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(OTAsymmetricKey::KeyType keyType) /
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         pKey = new AsymmetricKeySecp256k1;
         validType = true;
+#else
     otErr << __FUNCTION__
           << ": Open-Transactions isn't built with libsecp256k1 support, "
              "so it's impossible to instantiate the key.\n";
@@ -871,9 +872,19 @@ void OTAsymmetricKey::Release()
 String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
 
 {
-    if (keyType == OTAsymmetricKey::RSA)
-        return "rsa";
-    return "error";
+    String keytypeString;
+
+    switch (keyType) {
+        case OTAsymmetricKey::RSA :
+            keytypeString="rsa";
+            break;
+        case OTAsymmetricKey::SECP256K1 :
+            keytypeString="secp256k1";
+            break;
+        default :
+            keytypeString="error";
+    }
+    return keytypeString;
 }
 
 OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
@@ -881,6 +892,8 @@ OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
 {
     if (keyType.Compare("rsa"))
         return OTAsymmetricKey::RSA;
+    if (keyType.Compare("secp256k1"))
+        return OTAsymmetricKey::SECP256K1;
     return OTAsymmetricKey::ERROR_TYPE;
 }
 
