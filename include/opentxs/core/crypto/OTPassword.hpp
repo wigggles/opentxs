@@ -105,9 +105,12 @@ namespace opentxs
 // This is basically just to save me from duplicating work that's already
 // done here in OTPassword.
 //
+class OTData;
+
 class OTPassword
 {
 public:
+
     enum BlockSize {
         // (128 bytes max length for a password.)
         DEFAULT_SIZE = OT_DEFAULT_BLOCKSIZE,
@@ -150,6 +153,7 @@ public:
     EXPORT const uint8_t* getMemory_uint8() const;
     EXPORT void* getMemoryWritable();
     // (FYI, truncates if size larger than getBlockSize.)
+    EXPORT int32_t setMemory(const OTData& data);
     EXPORT int32_t setMemory(const void* input, uint32_t size);
     // (FYI, truncates if size + getPasswordSize() is larger than
     // getBlockSize.)

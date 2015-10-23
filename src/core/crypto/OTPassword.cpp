@@ -38,6 +38,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <opentxs/core/OTData.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
 #include <opentxs/core/crypto/CryptoEngine.hpp>
@@ -904,6 +905,16 @@ int32_t OTPassword::addMemory(const void* vAppend, uint32_t nAppendSize)
     size_ += nAppendSize;
 
     return nAppendSize;
+}
+
+int32_t OTPassword::setMemory(const OTData& data)
+{
+    const uint32_t dataSize = data.GetSize();
+    uint32_t returnedSize = dataSize;
+
+    bool memorySet = setMemory(data.GetPointer(), returnedSize);
+    // TODO maybe we should check for truncation?
+    return memorySet;
 }
 
 // Returns size of memory (in case truncation is necessary.)

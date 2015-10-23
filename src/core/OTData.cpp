@@ -66,6 +66,13 @@ OTData::OTData(const void* data, uint32_t size)
     Assign(data, size);
 }
 
+OTData::OTData(const std::vector<unsigned char> sourceVector)
+{
+    for (auto i: sourceVector) {
+        Concatenate(&i, sizeof(i));
+    }
+}
+
 OTData::~OTData()
 {
     Release();
@@ -234,35 +241,39 @@ void OTData::Concatenate(const void* data, uint32_t size)
         return;
     }
 
-    void* newData = nullptr;
-    uint32_t newSize = GetSize() + size;
+    if (GetSize()>0) {
+        void* newData = nullptr;
+        uint32_t newSize = GetSize() + size;
 
-    if (newSize > 0) {
-        newData = static_cast<void*>(new uint8_t[newSize]);
-        OT_ASSERT(newData != nullptr);
-        OTPassword::zeroMemory(newData, newSize);
-    }
-    // If there's a new memory buffer (for the combined..)
-    if (newData != nullptr) {
-        // if THIS object has data inside of it...
-        if (!IsEmpty()) {
-            // Copy THIS object into the new
-            // buffer, starting at the
-            // beginning.
-            OTPassword::safe_memcpy(newData, newSize, data_, GetSize());
+        if (newSize > 0) {
+            newData = static_cast<void*>(new uint8_t[newSize]);
+            OT_ASSERT(newData != nullptr);
+            OTPassword::zeroMemory(newData, newSize);
+        }
+        // If there's a new memory buffer (for the combined..)
+        if (newData != nullptr) {
+            // if THIS object has data inside of it...
+            if (!IsEmpty()) {
+                // Copy THIS object into the new
+                // buffer, starting at the
+                // beginning.
+                OTPassword::safe_memcpy(newData, newSize, data_, GetSize());
+            }
+
+            // Next we copy the data being appended...
+            OTPassword::safe_memcpy(static_cast<uint8_t*>(newData) + GetSize(),
+                                    newSize - GetSize(), data, size);
         }
 
-        // Next we copy the data being appended...
-        OTPassword::safe_memcpy(static_cast<uint8_t*>(newData) + GetSize(),
-                                newSize - GetSize(), data, size);
-    }
+        if (data_ != nullptr) {
+            delete[] static_cast<uint8_t*>(data_);
+        }
 
-    if (data_ != nullptr) {
-        delete[] static_cast<uint8_t*>(data_);
+        data_ = newData;
+        size_ = newSize;
+    } else {
+        Assign(data, size);
     }
-
-    data_ = newData;
-    size_ = newSize;
 }
 
 OTData& OTData::operator+=(const OTData& rhs)

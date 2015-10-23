@@ -99,7 +99,7 @@ class LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp : public LowLevelKey
 public:
     virtual void Cleanup();
     OTPassword privateKey_;
-    OTPassword publicKey_;
+    secp256k1_pubkey_t publicKey_;
 };
 
 } // namespace opentxs
@@ -172,7 +172,6 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
 void LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp::Cleanup()
 {
     privateKey_.zeroMemory();
-    publicKey_.zeroMemory();
 
 }
 
@@ -257,15 +256,9 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
             };
         }
 
-        secp256k1_pubkey_t pubkey;
-        bool validPubkey = engine.secp256k1_pubkey_create(pubkey, ldp->privateKey_);
-        bool serializedKey = false;
+        bool validPubkey = engine.secp256k1_pubkey_create(ldp->publicKey_, ldp->privateKey_);
 
-        if (validPubkey) {
-            serializedKey = engine.secp256k1_pubkey_serialize(ldp->publicKey_, pubkey);
-        }
-
-        return (validPrivkey & serializedKey);
+        return (validPrivkey & validPubkey);
         #endif
     }
 //-------------------------
@@ -346,6 +339,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair)
     } else if (pkeyData_->nymParameterType() == NymParameters::SECP256K1) {
         #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 
+        Libsecp256k1& engine = static_cast<Libsecp256k1&>(CryptoEngine::Instance().SECP256K1());
         LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
 
@@ -374,8 +368,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair)
         pPublicKey->SetAsPublic();
         pPrivateKey->SetAsPrivate();
 
-        bool pubkeySet = pPublicKey->SetKey(ldp->publicKey_);
-        bool privkeySet = pPrivateKey->SetKey(ldp->privateKey_);
+        bool pubkeySet = engine.ECDSAPubkeyToAsymmetricKey(ldp->publicKey_, *pPublicKey);
+        bool privkeySet = engine.ECDSAPrivkeyToAsymmetricKey(ldp->privateKey_, *pPrivateKey);
 
         return (pubkeySet && privkeySet);
         #endif

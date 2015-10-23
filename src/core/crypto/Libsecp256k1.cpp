@@ -45,6 +45,7 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
+#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
 
 #include <vector>
 
@@ -83,42 +84,30 @@ bool Libsecp256k1::SignContract(
     const OTAsymmetricKey& theKey,
     OTSignature& theSignature, // output
     CryptoHash::HashType hashType,
-    __attribute__((unused)) const OTPasswordData* pPWData
-    )
+    __attribute__((unused)) const OTPasswordData* pPWData)
 {
     String hash;
     OTData plaintext(strContractUnsigned.Get(), strContractUnsigned.GetLength());
     bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, plaintext, hash);
 
     if (haveDigest) {
-        FormattedKey encodedPrivateKey;
-        bool havePrivateKey = theKey.GetPrivateKey(encodedPrivateKey);
+        OTPassword privKey;
+        bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, privKey);
 
         if (havePrivateKey) {
-            std::vector<unsigned char> decodedPrivateKey;
-            bool privkeydecoded = DecodeBase58Check(encodedPrivateKey.Get(), decodedPrivateKey);
+            secp256k1_ecdsa_signature_t ecdsaSignature;
 
-            if (privkeydecoded) {
-                OTPassword privKey;
-                privKey.setMemory(&decodedPrivateKey.front(), decodedPrivateKey.size());
-                secp256k1_ecdsa_signature_t ecdsaSignature;
+            bool signatureCreated = secp256k1_ecdsa_sign(
+                context_,
+                &ecdsaSignature,
+                reinterpret_cast<const unsigned char*>(hash.Get()),
+                reinterpret_cast<const unsigned char*>(privKey.getMemory()),
+                nullptr,
+                nullptr);
 
-                bool signatureCreated = secp256k1_ecdsa_sign(
-                    context_,
-                    &ecdsaSignature,
-                    reinterpret_cast<const unsigned char*>(hash.Get()),
-                    reinterpret_cast<const unsigned char*>(privKey.getMemory()),
-                    nullptr,
-                    nullptr);
-
-                if (signatureCreated) {
-                    OTData signature;
-                    signature.Assign(ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature_t));
-
-                    theSignature.SetData(signature);
-
-                    return signatureCreated;
-                }
+            if (signatureCreated) {
+                bool signatureSet = ECDSASignatureToOTSignature(ecdsaSignature, theSignature);
+                return signatureSet;
             }
         }
     }
@@ -126,19 +115,165 @@ bool Libsecp256k1::SignContract(
 }
 
 bool Libsecp256k1::VerifySignature(
-    __attribute__((unused)) const String& strContractToVerify,
-    __attribute__((unused)) const OTAsymmetricKey& theKey,
-    __attribute__((unused)) const OTSignature& theSignature,
-    __attribute__((unused)) const CryptoHash::HashType hashType,
+    const String& strContractToVerify,
+    const OTAsymmetricKey& theKey,
+    const OTSignature& theSignature,
+    const CryptoHash::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData
     ) const
 {
+    String hash;
+    OTData plaintext(strContractToVerify.Get(), strContractToVerify.GetLength());
+    bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, plaintext, hash);
+
+    if (haveDigest) {
+        secp256k1_pubkey_t ecdsaPubkey;
+        bool havePublicKey = AsymmetricKeyToECDSAPubkey(theKey, ecdsaPubkey);
+
+        if (havePublicKey) {
+            secp256k1_ecdsa_signature_t ecdsaSignature;
+
+            bool haveSignature = OTSignatureToECDSASignature(theSignature, ecdsaSignature);
+
+            if (haveSignature) {
+                bool signatureVerified = secp256k1_ecdsa_verify(
+                    context_,
+                    &ecdsaSignature,
+                    reinterpret_cast<const unsigned char*>(hash.Get()),
+                    &ecdsaPubkey);
+
+                return signatureVerified;
+            }
+        }
+    }
     return false;
 }
 
+bool Libsecp256k1::OTSignatureToECDSASignature(
+    const OTSignature& inSignature,
+    secp256k1_ecdsa_signature_t& outSignature) const
+{
+    OTData signature;
+
+    bool hasSignature = inSignature.GetData(signature);
+
+    if (hasSignature) {
+        const uint8_t* sigStart = static_cast<const uint8_t*>(signature.GetPointer());
+
+        if (nullptr != sigStart) {
+
+            if (sizeof(secp256k1_ecdsa_signature_t) == signature.GetSize()) {
+                secp256k1_ecdsa_signature_t ecdsaSignature;
+
+                for(uint32_t i=0; i < signature.GetSize(); i++) {
+                    ecdsaSignature.data[i] = *(sigStart + i);
+                }
+
+                outSignature = ecdsaSignature;
+
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Libsecp256k1::ECDSASignatureToOTSignature(
+    const secp256k1_ecdsa_signature_t& inSignature,
+    OTSignature& outSignature) const
+{
+    OTData signature;
+
+    signature.Assign(inSignature.data, sizeof(secp256k1_ecdsa_signature_t));
+    bool signatureSet = outSignature.SetData(signature);
+
+    return signatureSet;
+}
+
+bool Libsecp256k1::AsymmetricKeyToECDSAPubkey(
+        const OTAsymmetricKey& asymmetricKey,
+        secp256k1_pubkey_t& pubkey) const
+{
+    String encodedPubkey;
+    bool havePublicKey = asymmetricKey.GetPublicKey(encodedPubkey);
+
+    if (havePublicKey) {
+        std::vector<unsigned char> decodedPublicKey;
+        bool pubkeydecoded = DecodeBase58Check(encodedPubkey.Get(), decodedPublicKey);
+
+        if (pubkeydecoded) {
+            OTData serializedPubkey(decodedPublicKey);
+            secp256k1_pubkey_t parsedPubkey;
+
+            bool pubkeyParsed = secp256k1_ec_pubkey_parse(
+                context_,
+                &parsedPubkey,
+                reinterpret_cast<const unsigned char*>(serializedPubkey.GetPointer()),
+                serializedPubkey.GetSize());
+
+            if (pubkeyParsed) {
+                pubkey = parsedPubkey;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Libsecp256k1::ECDSAPubkeyToAsymmetricKey(
+        const secp256k1_pubkey_t& pubkey,
+        OTAsymmetricKey& asymmetricKey) const
+{
+    OTData serializedPubkey;
+
+    bool keySerialized = secp256k1_pubkey_serialize(serializedPubkey, pubkey);
+
+    if (keySerialized) {
+        const uint8_t* keyStart = static_cast<const uint8_t*>(serializedPubkey.GetPointer());
+        const uint8_t* keyEnd = keyStart + serializedPubkey.GetSize();
+
+        FormattedKey encodedPublicKey(EncodeBase58Check(keyStart, keyEnd));
+
+        return asymmetricKey.SetPublicKey(encodedPublicKey);
+    }
+    return false;
+}
+
+bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
+        const OTAsymmetricKey& asymmetricKey,
+        OTPassword& privkey) const
+{
+    FormattedKey encodedPrivkey;
+    bool havePrivateKey = asymmetricKey.GetPrivateKey(encodedPrivkey);
+
+    if (havePrivateKey) {
+        std::vector<unsigned char> decodedPrivateKey;
+        bool privkeydecoded = DecodeBase58Check(encodedPrivkey.Get(), decodedPrivateKey);
+
+        if (privkeydecoded) {
+            OTData serializedPubkey(decodedPrivateKey);
+
+            return privkey.setMemory(serializedPubkey);
+        }
+    }
+    return false;
+}
+
+bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
+        const OTPassword& privkey,
+        OTAsymmetricKey& asymmetricKey) const
+{
+    const uint8_t* keyStart = static_cast<const uint8_t*>(privkey.getMemory());
+    const uint8_t* keyEnd = keyStart + privkey.getMemorySize();
+
+    FormattedKey encodedPrivateKey(EncodeBase58Check(keyStart, keyEnd));
+
+    return asymmetricKey.SetPrivateKey(encodedPrivateKey);
+}
+
 bool Libsecp256k1::secp256k1_privkey_tweak_add(
-    uint8_t key [32],
-    const uint8_t tweak [32]) const
+    uint8_t key [PrivateKeySize],
+    const uint8_t tweak [PrivateKeySize]) const
 {
     if (nullptr != context_) {
         return secp256k1_ec_privkey_tweak_add(context_, key, tweak);
@@ -159,7 +294,7 @@ bool Libsecp256k1::secp256k1_pubkey_create(
 }
 
 bool Libsecp256k1::secp256k1_pubkey_serialize(
-        OTPassword& serializedPubkey,
+        OTData& serializedPubkey,
         const secp256k1_pubkey_t& pubkey) const
 {
     if (nullptr != context_) {
@@ -169,10 +304,9 @@ bool Libsecp256k1::secp256k1_pubkey_serialize(
         bool serialized = secp256k1_ec_pubkey_serialize(context_, serializedOutput, &serializedSize, &pubkey, false);
 
         if (serialized) {
-            serializedPubkey.setMemory(serializedOutput, serializedSize);
+            serializedPubkey.Assign(serializedOutput, serializedSize);
             return serialized;
         }
-
     }
 
     return false;

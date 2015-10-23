@@ -66,7 +66,6 @@ private:
     secp256k1_context_t* context_ = nullptr;
 
     CryptoUtil& ssl_;
-
 protected:
     Libsecp256k1(CryptoUtil& ssl);
     virtual void Init_Override() const;
@@ -74,6 +73,8 @@ protected:
 
 public:
     virtual ~Libsecp256k1();
+
+    EXPORT static const int PrivateKeySize = 32;
     bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
                       OTData& dataOutput) const;
     bool Open(OTData& dataInput, const Nym& theRecipient,
@@ -92,14 +93,33 @@ public:
         const CryptoHash::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
 
+    bool OTSignatureToECDSASignature(
+        const OTSignature& inSignature,
+        secp256k1_ecdsa_signature_t& outSignature) const;
+    bool ECDSASignatureToOTSignature(
+        const secp256k1_ecdsa_signature_t& inSignature,
+        OTSignature& outSignature) const;
+    bool AsymmetricKeyToECDSAPubkey(
+        const OTAsymmetricKey& asymmetricKey,
+        secp256k1_pubkey_t& pubkey) const;
+    bool ECDSAPubkeyToAsymmetricKey(
+        const secp256k1_pubkey_t& pubkey,
+        OTAsymmetricKey& asymmetricKey) const;
+    bool AsymmetricKeyToECDSAPrivkey(
+        const OTAsymmetricKey& asymmetricKey,
+        OTPassword& privkey) const;
+    bool ECDSAPrivkeyToAsymmetricKey(
+        const OTPassword& privkey,
+        OTAsymmetricKey& asymmetricKey) const;
+
     bool secp256k1_privkey_tweak_add(
-        uint8_t key [32],
-        const uint8_t tweak [32]) const;
+        uint8_t key [PrivateKeySize],
+        const uint8_t tweak [PrivateKeySize]) const;
     bool secp256k1_pubkey_create(
         secp256k1_pubkey_t& pubkey,
         const OTPassword& privkey) const;
     bool secp256k1_pubkey_serialize(
-        OTPassword& serializedPubkey,
+        OTData& serializedPubkey,
         const secp256k1_pubkey_t& pubkey) const;
     bool secp256k1_pubkey_parse(
         secp256k1_pubkey_t& pubkey,

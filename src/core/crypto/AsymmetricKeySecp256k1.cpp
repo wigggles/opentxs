@@ -60,20 +60,6 @@ void AsymmetricKeySecp256k1::ReleaseKeyLowLevel_Hook() const
 {
 }
 
-bool AsymmetricKeySecp256k1::SetKey(const OTPassword& key)
-{
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-
-    const uint8_t* keyStart = static_cast<const uint8_t*>(key.getMemory());
-    const uint8_t* keyEnd = keyStart + key.getMemorySize();
-
-    key_ = EncodeBase58Check(keyStart, keyEnd);
-
-    return true;
-}
-
 CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 {
@@ -129,12 +115,7 @@ bool AsymmetricKeySecp256k1::SetPublicKeyFromPrivateKey(
         bool validPubkey = engine.secp256k1_pubkey_create(pubKey, privKey);
 
         if (validPubkey) {
-            OTPassword publicKey;
-
-            __attribute__((unused)) bool serializedKey =
-                engine.secp256k1_pubkey_serialize(publicKey, pubKey);
-
-            return SetKey(publicKey);
+            return engine.ECDSAPubkeyToAsymmetricKey(pubKey, *this);
         }
     }
 

@@ -62,8 +62,6 @@ private:
     AsymmetricKeySecp256k1();
     virtual void ReleaseKeyLowLevel_Hook() const;
     // used by LowLevelKeyGenerator
-    bool SetKey(
-        const OTPassword& key);
     FormattedKey key_;
 
 public:
