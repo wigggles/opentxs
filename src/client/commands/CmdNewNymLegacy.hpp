@@ -1,6 +1,6 @@
 /************************************************************
  *
- *  CmdNewNym.hpp
+ *  CmdNewNymLegacy.hpp
  *
  */
 
@@ -130,19 +130,19 @@
  -----END PGP SIGNATURE-----
  **************************************************************/
 
-#ifndef OPENTXS_CLIENT_CMDNEWNYM_HPP
-#define OPENTXS_CLIENT_CMDNEWNYM_HPP
+#ifndef OPENTXS_CLIENT_CMDNEWNYMLEGACY_HPP
+#define OPENTXS_CLIENT_CMDNEWNYMLEGACY_HPP
 
 #include "CmdBase.hpp"
 
 namespace opentxs
 {
 
-class CmdNewNym : public CmdBase
+class CmdNewNymLegacy : public CmdBase
 {
 public:
-    EXPORT CmdNewNym();
-    virtual ~CmdNewNym();
+    EXPORT CmdNewNymLegacy();
+    virtual ~CmdNewNymLegacy();
 
     EXPORT int32_t run(std::string keybits, std::string label,
                        std::string source, std::string location);
@@ -153,4 +153,4 @@ protected:
 
 } // namespace opentxs
 
-#endif // OPENTXS_CLIENT_CMDNEWNYM_HPP
+#endif // OPENTXS_CLIENT_CMDNEWNYMLEGACY_HPP

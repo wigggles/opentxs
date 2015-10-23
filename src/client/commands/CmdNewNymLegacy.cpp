@@ -36,7 +36,7 @@
  *
  ************************************************************/
 
-#include "CmdNewNym.hpp"
+#include "CmdNewNymLegacy.hpp"
 
 #include <opentxs/client/OTAPI.hpp>
 #include <opentxs/client/OT_ME.hpp>
@@ -45,22 +45,22 @@
 using namespace opentxs;
 using namespace std;
 
-CmdNewNym::CmdNewNym()
+CmdNewNymLegacy::CmdNewNymLegacy()
 {
-    command = "newnym";
+    command = "newnymlegacy";
     args[0] = "--label <label>";
     args[1] = "[--keybits <1024|2048|4096|8192>]";
     args[2] = "[--source <source>]";
     args[3] = "[--location <location>]";
     category = catNyms;
-    help = "create a new nym.";
+    help = "create a new OpenSSL-based RSA nym.";
 }
 
-CmdNewNym::~CmdNewNym()
+CmdNewNymLegacy::~CmdNewNymLegacy()
 {
 }
 
-int32_t CmdNewNym::runWithOptions()
+int32_t CmdNewNymLegacy::runWithOptions()
 {
     return run(getOption("keybits"), getOption("label"), getOption("source"),
                getOption("location"));
@@ -81,7 +81,7 @@ int32_t CmdNewNym::runWithOptions()
 // corresponding private key. That's the only way they can be 'verified by
 // their source.'
 
-int32_t CmdNewNym::run(string keybits, string label, string source,
+int32_t CmdNewNymLegacy::run(string keybits, string label, string source,
                        string location)
 {
     if (!checkMandatory("label", label)) {
