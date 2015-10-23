@@ -96,6 +96,13 @@ CryptoUtil& CryptoEngine::Util()
     return *pSSL_;
 }
 
+CryptoHash& CryptoEngine::Hash()
+{
+    OT_ASSERT(nullptr != pSSL_);
+
+    return *pSSL_;
+}
+
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
 CryptoAsymmetric& CryptoEngine::RSA()
 {

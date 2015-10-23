@@ -137,6 +137,7 @@ public:
                          const OTPasswordData* pPWData = nullptr) const;
 
     static const EVP_MD* GetOpenSSLDigestByName(const String& theName);
+    static const EVP_MD* HashTypeToOpenSSLType(const CryptoHash::HashType hashType);
 };
 
 #else // Apparently NO crypto engine is defined!
@@ -673,6 +674,33 @@ const EVP_MD* OpenSSL::OpenSSLdp::GetOpenSSLDigestByName(
     return nullptr;
 }
 
+const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
+    const CryptoHash::HashType hashType)
+{
+    const EVP_MD* OpenSSLType;
+
+    switch (hashType) {
+        case CryptoHash::SHA1 :
+            OpenSSLType = EVP_sha1();
+            break;
+        case CryptoHash::SHA224 :
+            OpenSSLType = EVP_sha224();
+            break;
+        case CryptoHash::SHA256 :
+            OpenSSLType = EVP_sha256();
+            break;
+        case CryptoHash::SHA384 :
+            OpenSSLType = EVP_sha384();
+            break;
+        case CryptoHash::SHA512 :
+            OpenSSLType = EVP_sha512();
+            break;
+        default :
+            OpenSSLType = nullptr;
+    }
+    return OpenSSLType;
+}
+
 /*
  SHA256_CTX context;
  uint8_t md[SHA256_DIGEST_LENGTH];
@@ -1013,7 +1041,7 @@ void OpenSSL::Init_Override() const
 
     OpenSSL_add_all_algorithms(); // DONE -- corresponds to EVP_cleanup() in
                                   // OT_Cleanup().    #2
-
+    OpenSSL_add_all_digests();
 //
 //
 // RAND
@@ -2570,6 +2598,30 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
     return bSetMem;
 }
 
+bool OpenSSL::Hash(
+    const CryptoHash::HashType hashType,
+    const OTData& data,
+    String& digest) const
+{
+    EVP_MD_CTX* context = EVP_MD_CTX_create();
+    const EVP_MD* algorithm = dp->HashTypeToOpenSSLType(hashType);
+    unsigned char hash_value[EVP_MAX_MD_SIZE]{};
+    unsigned int hash_length = 0;
+
+    if (nullptr != algorithm) {
+        EVP_DigestInit_ex(context, algorithm, NULL);
+        EVP_DigestUpdate(context, data.GetPointer(), data.GetSize());
+        EVP_DigestFinal_ex(context, hash_value, &hash_length);
+        EVP_MD_CTX_destroy(context);
+
+        digest.Set(reinterpret_cast<const char*>(&hash_value[0]), hash_length);
+
+        return true;
+    }
+
+    return false;
+}
+
 /*
  128 bytes * 8 bits == 1024 bits key.  (RSA)
 
@@ -2584,7 +2636,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
     unsigned char* vDigest =
-        Hash(strContractUnsigned.Get(),
+        ::Hash(strContractUnsigned.Get(),
              strContractUnsigned.Get() + strContractUnsigned.GetLength());
 
     // This stores the final signature, when the EM value has been signed by RSA
@@ -2741,7 +2793,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     // 32 bytes, double sha256
     unsigned char* vDigest =
-        Hash(strContractToVerify.Get(),
+        ::Hash(strContractToVerify.Get(),
              strContractToVerify.Get() + strContractToVerify.GetLength());
 
     std::vector<uint8_t> vDecrypted(

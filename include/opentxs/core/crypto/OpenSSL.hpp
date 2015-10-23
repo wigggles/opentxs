@@ -41,6 +41,7 @@
 
 #include <opentxs/core/crypto/Crypto.hpp>
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
+#include <opentxs/core/crypto/CryptoHash.hpp>
 #include <opentxs/core/crypto/CryptoSymmetric.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 #include <opentxs/core/OTData.hpp>
@@ -77,7 +78,7 @@ class OTSignature;
 
 #elif defined(OT_CRYPTO_USING_OPENSSL)
 
-class OpenSSL : public Crypto, public CryptoAsymmetric, public CryptoSymmetric, public CryptoUtil
+class OpenSSL : public Crypto, public CryptoAsymmetric, public CryptoSymmetric, public CryptoUtil, public CryptoHash
 {
     friend class CryptoEngine;
 
@@ -161,6 +162,11 @@ public:
                                  const OTSignature& theSignature,
                                  const String& strHashType,
                                  const OTPasswordData* pPWData = nullptr) const;
+    virtual bool Hash(
+        const CryptoHash::HashType hashType,
+        const OTData& data,
+        String& digest) const;
+
     void thread_setup() const;
     void thread_cleanup() const;
 

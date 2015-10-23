@@ -45,6 +45,7 @@ set(cxx-sources
   Contract.cpp
   crypto/CredentialSet.cpp
   crypto/Crypto.cpp
+  crypto/CryptoHash.cpp
   crypto/CryptoUtil.cpp
   crypto/CryptoSymmetric.cpp
   crypto/OpenSSL.cpp

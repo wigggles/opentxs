@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
+#include <opentxs/core/crypto/CryptoHash.hpp>
 #include <opentxs/core/crypto/CryptoSymmetric.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 
@@ -86,6 +87,8 @@ private:
 public:
     //Utility class for misc OpenSSL-provided functions
     EXPORT CryptoUtil& Util();
+    //Hash function interface
+    EXPORT CryptoHash& Hash();
     //Asymmetric encryption engines
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoAsymmetric& RSA();
