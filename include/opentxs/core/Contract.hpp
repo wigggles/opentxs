@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CONTRACT_HPP
 #define OPENTXS_CORE_CONTRACT_HPP
 
+#include <opentxs/core/crypto/CryptoHash.hpp>
+
 #include "Identifier.hpp"
 #include "OTStringXML.hpp"
 #include "util/Common.hpp" // TODO: remove this when feasible
@@ -82,7 +84,7 @@ protected:
     OTStringXML m_xmlUnsigned; // The Unsigned Clear Text (XML contents without
                                // signatures.)
     String m_strRawFile;       // The complete raw file including signatures.
-    String m_strSigHashType;   // The Hash algorithm used for the signature
+    CryptoHash::HashType m_strSigHashType;   // The Hash algorithm used for the signature
     String m_strContractType;  // CONTRACT, MESSAGE, TRANSACTION, LEDGER,
                                // TRANSACTION ITEM
 
@@ -151,7 +153,7 @@ public:
     //
     static bool AddBookendsAroundContent(
         String& strOutput, const String& strContents,
-        const String& strContractType, const String& strHashType,
+        const String& strContractType, const CryptoHash::HashType hashType,
         const listOfSignatures& listSignatures);
 
     EXPORT static bool LoadEncodedTextField(irr::io::IrrXMLReader*& xml,
@@ -168,10 +170,6 @@ public:
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
-    inline const char* GetHashType() const
-    {
-        return m_strSigHashType.Get();
-    }
     inline void SetIdentifier(const Identifier& theID)
     {
         m_ID = theID;
@@ -369,7 +367,7 @@ public:
                                     const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(const OTAsymmetricKey& theKey,
                              OTSignature& theSignature,
-                             const String& strHashType,
+                             const CryptoHash::HashType hashType,
                              const OTPasswordData* pPWData = nullptr);
 
     // Calculates a hash of m_strRawFile (the xml portion of the contract plus
@@ -418,7 +416,7 @@ public:
 
     EXPORT bool VerifySignature(const OTAsymmetricKey& theKey,
                                 const OTSignature& theSignature,
-                                const String& strHashType,
+                                const CryptoHash::HashType hashType,
                                 const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT const Nym* GetContractPublicNym() const;

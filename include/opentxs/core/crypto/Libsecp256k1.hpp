@@ -79,14 +79,17 @@ public:
     bool Open(OTData& dataInput, const Nym& theRecipient,
                       String& theOutput,
                       const OTPasswordData* pPWData = nullptr) const;
-    bool SignContract(const String& strContractUnsigned,
-                              const OTAsymmetricKey& theKey,
-                              OTSignature& theSignature, // output
-                              const String& strHashType,
-                              const OTPasswordData* pPWData = nullptr);
+    bool SignContract(
+        const String& strContractUnsigned,
+        const OTAsymmetricKey& theKey,
+        OTSignature& theSignature, // output
+        const CryptoHash::HashType hashType,
+        const OTPasswordData* pPWData = nullptr);
     bool VerifySignature(
-        const String& strContractToVerify, const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature, const String& strHashType,
+        const String& strContractToVerify,
+        const OTAsymmetricKey& theKey,
+        const OTSignature& theSignature,
+        const CryptoHash::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
 
     bool secp256k1_privkey_tweak_add(

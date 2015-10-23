@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
 #define OPENTXS_CORE_OTIDENTIFIER_HPP
 
+#include <opentxs/core/crypto/CryptoHash.hpp>
 #include "OTData.hpp"
 
 #include <string>
@@ -63,7 +64,7 @@ private:
 public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
-    EXPORT static const String DefaultHashAlgorithm;
+    EXPORT static const CryptoHash::HashType DefaultHashAlgorithm;
     EXPORT Identifier();
 
     EXPORT Identifier(const Identifier& theID);

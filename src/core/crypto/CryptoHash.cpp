@@ -45,7 +45,9 @@ namespace opentxs
 
 CryptoHash::HashType CryptoHash::StringToHashType(String& inputString)
 {
-    if (inputString.Compare("SHA1"))
+    if (inputString.Compare("HASH256"))
+        return CryptoHash::HASH256;
+    else if (inputString.Compare("SHA1"))
         return CryptoHash::SHA1;
     else if (inputString.Compare("SHA224"))
         return CryptoHash::SHA224;
@@ -64,6 +66,9 @@ String CryptoHash::HashTypeToString(CryptoHash::HashType hashType)
     String hashTypeString;
 
     switch (hashType) {
+        case CryptoHash::HASH256 :
+            hashTypeString = "HASH256";
+            break;
         case CryptoHash::SHA1 :
             hashTypeString = "SHA1";
             break;

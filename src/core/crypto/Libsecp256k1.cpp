@@ -76,7 +76,7 @@ bool Libsecp256k1::SignContract(
     __attribute__((unused)) const String& strContractUnsigned,
     __attribute__((unused)) const OTAsymmetricKey& theKey,
     __attribute__((unused)) OTSignature& theSignature, // output
-    __attribute__((unused)) const String& strHashType,
+    __attribute__((unused)) const CryptoHash::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData
     )
 {
@@ -87,7 +87,7 @@ bool Libsecp256k1::VerifySignature(
     __attribute__((unused)) const String& strContractToVerify,
     __attribute__((unused)) const OTAsymmetricKey& theKey,
     __attribute__((unused)) const OTSignature& theSignature,
-    __attribute__((unused)) const String& strHashType,
+    __attribute__((unused)) const CryptoHash::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData
     ) const
 {

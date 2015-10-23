@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
 
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/CryptoHash.hpp>
 #include <set>
 
 namespace opentxs
@@ -66,11 +67,13 @@ public:
     virtual bool SignContract(const String& strContractUnsigned,
                               const OTAsymmetricKey& theKey,
                               OTSignature& theSignature, // output
-                              const String& strHashType,
+                              const CryptoHash::HashType hashType,
                               const OTPasswordData* pPWData = nullptr) = 0;
     virtual bool VerifySignature(
-        const String& strContractToVerify, const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature, const String& strHashType,
+        const String& strContractToVerify,
+        const OTAsymmetricKey& theKey,
+        const OTSignature& theSignature,
+        const CryptoHash::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const = 0;
 };
 

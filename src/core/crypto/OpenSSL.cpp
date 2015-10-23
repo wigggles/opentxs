@@ -128,15 +128,14 @@ public:
     //
     bool SignContract(const String& strContractUnsigned, const EVP_PKEY* pkey,
                       OTSignature& theSignature, // output
-                      const String& strHashType,
+                      const CryptoHash::HashType hashType,
                       const OTPasswordData* pPWData = nullptr) const;
 
     bool VerifySignature(const String& strContractToVerify,
                          const EVP_PKEY* pkey, const OTSignature& theSignature,
-                         const String& strHashType,
+                         const CryptoHash::HashType hashType,
                          const OTPasswordData* pPWData = nullptr) const;
 
-    static const EVP_MD* GetOpenSSLDigestByName(const String& theName);
     static const EVP_MD* HashTypeToOpenSSLType(const CryptoHash::HashType hashType);
 };
 
@@ -656,23 +655,6 @@ openssl dgst -sha1 -verify clientpub.pem -signature cheesy2.sig  cheesy2.xml
  openssl enc -base64 -out cheesy2.b64 cheesy2.sig
 
  */
-
-// static
-const EVP_MD* OpenSSL::OpenSSLdp::GetOpenSSLDigestByName(
-    const String& theName)
-{
-    if (theName.Compare("SHA1"))
-        return EVP_sha1();
-    else if (theName.Compare("SHA224"))
-        return EVP_sha224();
-    else if (theName.Compare("SHA256"))
-        return EVP_sha256();
-    else if (theName.Compare("SHA384"))
-        return EVP_sha384();
-    else if (theName.Compare("SHA512"))
-        return EVP_sha512();
-    return nullptr;
-}
 
 const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
     const CryptoHash::HashType hashType)
@@ -3330,7 +3312,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 // work is done.
 bool OpenSSL::OpenSSLdp::SignContract(
     const String& strContractUnsigned, const EVP_PKEY* pkey,
-    OTSignature& theSignature, const String& strHashType,
+    OTSignature& theSignature, const CryptoHash::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(nullptr != pkey,
@@ -3360,20 +3342,18 @@ bool OpenSSL::OpenSSLdp::SignContract(
         }
     };
 
-    const bool bUsesDefaultHashAlgorithm =
-        strHashType.Compare(Identifier::DefaultHashAlgorithm);
+    String strHashType = CryptoHash::HashTypeToString(hashType);
+
     EVP_MD* md = nullptr;
 
-    if (bUsesDefaultHashAlgorithm) {
+    if (Identifier::DefaultHashAlgorithm == hashType) {
         return SignContractDefaultHash(strContractUnsigned, pkey, theSignature,
                                        pPWData);
     }
 
     //    else
     {
-        md = const_cast<EVP_MD*>(
-            OpenSSL::OpenSSLdp::GetOpenSSLDigestByName(
-                strHashType));
+        md = const_cast<EVP_MD*>(OpenSSLdp::HashTypeToOpenSSLType(hashType));
     }
 
     // If it's not the default hash, then it's just a normal hash.
@@ -3429,11 +3409,12 @@ bool OpenSSL::OpenSSLdp::SignContract(
     }
 }
 
-bool OpenSSL::SignContract(const String& strContractUnsigned,
-                                    const OTAsymmetricKey& theKey,
-                                    OTSignature& theSignature, // output
-                                    const String& strHashType,
-                                    const OTPasswordData* pPWData)
+bool OpenSSL::SignContract(
+        const String& strContractUnsigned,
+        const OTAsymmetricKey& theKey,
+        OTSignature& theSignature, // output
+        const CryptoHash::HashType hashType,
+        const OTPasswordData* pPWData)
 {
 
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
@@ -3445,7 +3426,7 @@ bool OpenSSL::SignContract(const String& strContractUnsigned,
     OT_ASSERT(nullptr != pkey);
 
     if (false ==
-        dp->SignContract(strContractUnsigned, pkey, theSignature, strHashType,
+        dp->SignContract(strContractUnsigned, pkey, theSignature, hashType,
                          pPWData)) {
         otErr << "OpenSSL::SignContract: "
               << "SignContract returned false.\n";
@@ -3455,11 +3436,12 @@ bool OpenSSL::SignContract(const String& strContractUnsigned,
     return true;
 }
 
-bool OpenSSL::VerifySignature(const String& strContractToVerify,
-                                       const OTAsymmetricKey& theKey,
-                                       const OTSignature& theSignature,
-                                       const String& strHashType,
-                                       const OTPasswordData* pPWData) const
+bool OpenSSL::VerifySignature(
+        const String& strContractToVerify,
+        const OTAsymmetricKey& theKey,
+        const OTSignature& theSignature,
+        const CryptoHash::HashType hashType,
+        const OTPasswordData* pPWData) const
 {
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
     OTAsymmetricKey_OpenSSL* pTempOpenSSLKey =
@@ -3471,7 +3453,7 @@ bool OpenSSL::VerifySignature(const String& strContractToVerify,
 
     if (false ==
         dp->VerifySignature(strContractToVerify, pkey, theSignature,
-                            strHashType, pPWData)) {
+                            hashType, pPWData)) {
         otLog3 << "OpenSSL::VerifySignature: "
                << "VerifySignature returned false.\n";
         return false;
@@ -3484,7 +3466,7 @@ bool OpenSSL::VerifySignature(const String& strContractToVerify,
 // work is done.
 bool OpenSSL::OpenSSLdp::VerifySignature(
     const String& strContractToVerify, const EVP_PKEY* pkey,
-    const OTSignature& theSignature, const String& strHashType,
+    const OTSignature& theSignature, const CryptoHash::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(strContractToVerify.Exists(),
@@ -3495,20 +3477,18 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
 
     const char* szFunc = "OpenSSL::VerifySignature";
 
-    const bool bUsesDefaultHashAlgorithm =
-        strHashType.Compare(Identifier::DefaultHashAlgorithm);
+    String strHashType = CryptoHash::HashTypeToString(hashType);
+
     EVP_MD* md = nullptr;
 
-    if (bUsesDefaultHashAlgorithm) {
+    if (Identifier::DefaultHashAlgorithm == hashType) {
         return VerifyContractDefaultHash(strContractToVerify, pkey,
                                          theSignature, pPWData);
     }
 
     //    else
     {
-        md = const_cast<EVP_MD*>(
-            OpenSSL::OpenSSLdp::GetOpenSSLDigestByName(
-                strHashType));
+        md = const_cast<EVP_MD*>(OpenSSLdp::HashTypeToOpenSSLType(hashType));
     }
 
     if (!md) {

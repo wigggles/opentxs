@@ -169,7 +169,7 @@ Identifier::~Identifier()
 // which resort to low level calls to accomplish non standard message digests.
 // Otherwise, it will use whatever OpenSSL provides by that name (see
 // GetOpenSSLDigestByName).
-const String Identifier::DefaultHashAlgorithm("HASH256");
+const CryptoHash::HashType Identifier::DefaultHashAlgorithm = CryptoHash::HASH256;
 
 // This method implements the (ripemd160 . sha256) hash,
 // so the result is 20 bytes long.
