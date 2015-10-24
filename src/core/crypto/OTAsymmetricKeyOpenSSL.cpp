@@ -46,6 +46,7 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/OTData.hpp>
+#include <opentxs/core/FormattedKey.hpp>
 
 #include <cstring>
 
@@ -64,193 +65,6 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-namespace
-{
-
-/*
- * An implementation of convertion from PGP public key format to OpenSSL
- *equivalent
- * Support of RSA, DSA and Elgamal public keys
- *
- * Copyright (c) 2010 Mounir IDRASSI <mounir.idrassi@idrix.fr>. All rights
- *reserved.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
- *
- */
-
-typedef struct
-{
-    BIGNUM* p;
-    BIGNUM* g;
-    BIGNUM* pub_key;
-    BIGNUM* priv_key;
-} ELGAMAL;
-
-typedef struct
-{
-    RSA* pRsa;
-    DSA* pDsa;
-    ELGAMAL* pElgamal;
-} PgpKeys;
-
-PgpKeys ExportRsaKey(uint8_t* pbData, int32_t dataLength)
-{
-    PgpKeys pgpKeys;
-    int32_t i;
-
-    OT_ASSERT(nullptr != pbData);
-
-    memset(&pgpKeys, 0, sizeof(pgpKeys));
-    for (i = 0; i < dataLength;) {
-        int32_t packetLength;
-        uint8_t packetTag = pbData[i++];
-        if ((packetTag & 0x80) == 0) break;
-        if ((packetTag & 0x40)) {
-            packetTag &= 0x3F;
-            packetLength = pbData[i++];
-            if ((packetLength > 191) && (packetLength < 224))
-                packetLength = ((packetLength - 192) << 8) + pbData[i++];
-            else if ((packetLength > 223) && (packetLength < 255))
-                packetLength = (1 << (packetLength & 0x1f));
-            else if (packetLength == 255) {
-                packetLength = (pbData[i] << 24) + (pbData[i + 1] << 16) +
-                               (pbData[i + 2] << 8) + pbData[i + 3];
-                i += 4;
-            }
-        }
-        else {
-            packetLength = packetTag & 3;
-            packetTag = (packetTag >> 2) & 15;
-            if (packetLength == 0)
-                packetLength = pbData[i++];
-            else if (packetLength == 1) {
-                packetLength = (pbData[i] << 8) + pbData[i + 1];
-                i += 2;
-            }
-            else if (packetLength == 2) {
-                packetLength = (pbData[i] << 24) + (pbData[i + 1] << 16) +
-                               (pbData[i + 2] << 8) + pbData[i + 3];
-                i += 4;
-            }
-            else
-                packetLength = dataLength - 1;
-        }
-
-        if ((packetTag == 6) || (packetTag == 14)) //  a public key
-        {
-            int32_t algorithm;
-            int32_t version = pbData[i++];
-
-            // skip time over 4 bytes
-            i += 4;
-
-            if ((version == 2) || (version == 3)) {
-                // skip validity over 2 bytes
-                i += 2;
-            }
-
-            algorithm = pbData[i++];
-
-            if ((algorithm == 1) || (algorithm == 2) ||
-                (algorithm == 3)) // an RSA key
-            {
-                int32_t modulusLength, exponentLength;
-                RSA* pKey = RSA_new();
-
-                // Get the modulus
-                modulusLength = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->n = BN_bin2bn(pbData + i + 2, modulusLength, nullptr);
-                i += modulusLength + 2;
-
-                // Get the exponent
-                exponentLength = (pbData[i] * 256 + pbData[i + 1] + 7) / 8;
-                pKey->e = BN_bin2bn(pbData + i + 2, exponentLength, nullptr);
-                i += exponentLength + 2;
-
-                pgpKeys.pRsa = pKey;
-
-                continue;
-            }
-            else if (algorithm == 17) // a DSA key
-            {
-                int32_t pLen, qLen, gLen, yLen;
-                DSA* pKey = DSA_new();
-
-                // Get Prime P
-                pLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->p = BN_bin2bn(pbData + i + 2, pLen, nullptr);
-                i += pLen + 2;
-
-                // Get Prime Q
-                qLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->q = BN_bin2bn(pbData + i + 2, qLen, nullptr);
-                i += qLen + 2;
-
-                // Get Prime G
-                gLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->g = BN_bin2bn(pbData + i + 2, gLen, nullptr);
-                i += gLen + 2;
-
-                // Get Prime Y
-                yLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, nullptr);
-                i += yLen + 2;
-
-                pgpKeys.pDsa = pKey;
-
-                continue;
-            }
-            else if ((algorithm == 16) || (algorithm == 20)) // Elgamal key
-                                                               // (not supported
-                                                               // by OpenSSL
-            {
-                int32_t pLen, gLen, yLen;
-                ELGAMAL* pKey = static_cast<ELGAMAL*>(malloc(sizeof(ELGAMAL)));
-                if (nullptr == pKey) {
-                    opentxs::otErr << __FUNCTION__
-                                   << ": Error: pKey is nullptr!";
-                    OT_FAIL;
-                }
-
-                // Get Prime P
-                pLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-
-                pKey->p = BN_bin2bn(pbData + i + 2, pLen, nullptr);
-
-                i += pLen + 2;
-
-                // Get Prime G
-                gLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->g = BN_bin2bn(pbData + i + 2, gLen, nullptr);
-                i += gLen + 2;
-
-                // Get Prime Y
-                yLen = ((pbData[i] * 256 + pbData[i + 1] + 7) / 8);
-                pKey->pub_key = BN_bin2bn(pbData + i + 2, yLen, nullptr);
-                i += yLen + 2;
-
-                pgpKeys.pElgamal = pKey;
-
-                continue;
-            }
-            else {
-                i -= 6;
-                if (version == 2 || version == 3) i -= 2;
-            }
-        }
-
-        i += packetLength;
-    }
-
-    return pgpKeys;
-}
-
-} // namespace
-
 namespace opentxs
 {
 
@@ -258,6 +72,7 @@ namespace opentxs
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
     : OTAsymmetricKey()
+    , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
 {
     dp->backlink = this;
@@ -270,6 +85,12 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
 
 OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
 {
+    // Release the ascii-armored version of the key (safe to store in this
+    // form.)
+    //
+    if (nullptr != m_p_ascKey) delete m_p_ascKey;
+    m_p_ascKey = nullptr;
+
     Release_AsymmetricKey_OpenSSL();
 
     ReleaseKeyLowLevel_Hook();
@@ -303,6 +124,109 @@ OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
 }
 
 // virtual
+bool OTAsymmetricKey_OpenSSL::IsEmpty() const
+{
+    return (nullptr == m_p_ascKey);
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::GetPublicKey(String& strKey) const
+{
+    if (nullptr != m_p_ascKey) {
+        strKey.Concatenate(
+            "-----BEGIN PUBLIC KEY-----\n" // UN-ESCAPED VERSION
+            "%s"
+            "-----END PUBLIC KEY-----\n",
+            m_p_ascKey->Get());
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey_OpenSSL::GetPublicKey: Error: no "
+                 "public key.\n";
+
+    return false;
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::GetPublicKey(FormattedKey& strKey) const
+{
+    if (nullptr != m_p_ascKey) {
+        strKey.Concatenate(
+            "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
+            "%s"
+            "- -----END PUBLIC KEY-----\n",
+            m_p_ascKey->Get());
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey_OpenSSL::GetPublicKey: Error: no "
+                 "public key.\n";
+
+    return false;
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::SetPublicKey(const String& strKey)
+{
+    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
+                          // here. (Since it's being replaced, it's now the
+                          // wrong key anyway.)
+    m_bIsPublicKey = true;
+    m_bIsPrivateKey = false;
+
+    if (nullptr == m_p_ascKey) {
+        m_p_ascKey = new OTASCIIArmor;
+        OT_ASSERT(nullptr != m_p_ascKey);
+    }
+
+    // This reads the string into the Armor and removes the bookends. (-----
+    // BEGIN ...)
+    OTASCIIArmor theArmor;
+
+    if (theArmor.LoadFromString(const_cast<String&>(strKey), false)) {
+        m_p_ascKey->Set(theArmor);
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey_OpenSSL::SetPublicKey: Error: failed loading "
+                 "ascii-armored contents from bookended string:\n\n" << strKey
+              << "\n\n";
+
+    return false;
+}
+
+// virtual
+bool OTAsymmetricKey_OpenSSL::SetPublicKey(const FormattedKey& strKey)
+{
+    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
+                          // here. (Since it's being replaced, it's now the
+                          // wrong key anyway.)
+    m_bIsPublicKey = true;
+    m_bIsPrivateKey = false;
+
+    if (nullptr == m_p_ascKey) {
+        m_p_ascKey = new OTASCIIArmor;
+        OT_ASSERT(nullptr != m_p_ascKey);
+    }
+
+    // This reads the string into the Armor and removes the bookends. (-----
+    // BEGIN ...)
+    OTASCIIArmor theArmor;
+    String strKeystr = strKey;
+
+    if (theArmor.LoadFromString(strKeystr, true)) {
+        m_p_ascKey->Set(theArmor);
+        return true;
+    }
+    else
+        otErr << "OTAsymmetricKey_OpenSSL::SetPublicKey: Error: failed loading "
+                 "ascii-armored contents from bookended string:\n\n" << strKey
+              << "\n\n";
+
+    return false;
+}
+
+// virtual
 void OTAsymmetricKey_OpenSSL::Release()
 {
     Release_AsymmetricKey_OpenSSL(); // My own cleanup is performed here.
@@ -327,10 +251,8 @@ void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook() const
 
 // Load the private key from a .pem formatted cert string
 //
-bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
-    const String& strCert,    // Contains certificate and private key.
-    bool bEscaped,            // "escaped" means pre-pended with "- " as in:   -
-                              // -----BEGIN CER....
+bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
+    const FormattedKey& strCert,    // Contains certificate and private key.
     const String* pstrReason, // This reason is what displays on the
                               // passphrase dialog.
     const OTPassword* pImportPassword) // Used when importing an exported
@@ -352,36 +274,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
     otLog3 << __FUNCTION__ << ": FYI, Reading private key from x509 stored in "
                               "bookended string...\n";
 
-    if (bEscaped) {
-        OTASCIIArmor theArmor;
-
-        // I only have a CERTIFICATE 'if' here, not a PUBLIC KEY 'if'.
-        // That's because this function is called
-        // "LoadPublicKeyFrom*CERT*String"
-        // If you want to load a public key from a public key string, then call
-        // the
-        // other function that does that.
-        if (theArmor.LoadFromString(
-                const_cast<String&>(strCert),
-                true, // passing bEscaped in as true explicitly here.
-                "-----BEGIN ENCRYPTED PRIVATE")) // It will start loading from
-                                                 // THIS substring...
-            strWithBookends.Format("-----BEGIN ENCRYPTED PRIVATE "
-                                   "KEY-----\n%s-----END ENCRYPTED PRIVATE "
-                                   "KEY-----\n",
-                                   theArmor.Get());
-        else {
-            otErr
-                << __FUNCTION__
-                << ": Error extracting ASCII-Armored text from Cert String.\n";
-            return false;
-        }
-    }
-    else // It's not escaped already, so no need to remove the escaping, in
-           // this case.
-    {
-        strWithBookends = strCert;
-    }
+    strWithBookends = strCert;
 
     // Create a new memory buffer on the OpenSSL side.
     //
@@ -393,7 +286,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
         static_cast<void*>(const_cast<char*>(strWithBookends.Get())), -1);
     OT_ASSERT_MSG(nullptr != bio,
                   "OTAsymmetricKey_OpenSSL::"
-                  "LoadPrivateKeyFromCertString: Assert: nullptr != "
+                  "SetPrivateKey: Assert: nullptr != "
                   "bio \n");
 
     {
@@ -413,7 +306,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
             (nullptr == pstrReason)
                 ? (nullptr == pImportPassword
                        ? "Enter the master passphrase. "
-                         "(LoadPrivateKeyFromCertString)"
+                         "(SetPrivateKey)"
                        : "Enter the passphrase for this exported nym.")
                 : pstrReason->Get());
 
@@ -459,15 +352,8 @@ bool OTAsymmetricKey_OpenSSL::LoadPrivateKeyFromCertString(
     }
 }
 
-// Load the public key from a x509 stored in a bookended string
-// If the string is escaped (- ----BEGIN is prefixed with dash space: "- ") then
-// make
-// sure to pass true.  (Keys that appear inside contracts are escaped after
-// signing.)
-// This function will remove the escapes.
-//
-bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
-    const String& strCert, bool bEscaped, const String* pstrReason,
+bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
+    const FormattedKey& strCert, const String* pstrReason,
     const OTPassword* pImportPassword)
 {
     Release();
@@ -483,35 +369,7 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
 
     String strWithBookends;
 
-    if (bEscaped) {
-        OTASCIIArmor theArmor;
-
-        // I only have a CERTIFICATE 'if' here, not a PUBLIC KEY 'if'.
-        // That's because this function is called
-        // "LoadPublicKeyFrom*CERT*String"
-        // If you want to load a public key from a public key string, then call
-        // the
-        // other function that does that.
-        //
-        if (theArmor.LoadFromString(
-                const_cast<String&>(strCert),
-                true, // passing bEscaped in as true explicitly here.
-                "-----BEGIN CERTIFICATE")) // Overrides "-----BEGIN"
-            strWithBookends.Format(
-                "-----BEGIN CERTIFICATE-----\n%s-----END CERTIFICATE-----\n",
-                theArmor.Get());
-        else {
-            otErr
-                << __FUNCTION__
-                << ": Error extracting ASCII-Armored text from Cert String.\n";
-            return false;
-        }
-    }
-    else // It's not escaped already, so no need to remove the escaping, in
-           // this case.
-    {
-        strWithBookends = strCert;
-    }
+    strWithBookends = strCert;
 
     // took out the +1 on the length since null terminater only
     // needed in string form, not binary form as OpenSSL treats it.
@@ -527,12 +385,12 @@ bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromCertString(
 
     OTPasswordData thePWData(
         nullptr == pImportPassword ? "Enter your wallet master passphrase. "
-                                     "(LoadPublicKeyFromCertString)"
+                                     "(SetPublicKeyFromPrivateKey)"
                                    :
                                    // pImportPassword exists:
             (nullptr == pstrReason
                  ? "Enter the passphrase for your exported Nym. "
-                   "(LoadPublicKeyFromCertString)"
+                   "(SetPublicKeyFromPrivateKey)"
                  : pstrReason->Get()));
 
     X509* x509 = nullptr;
@@ -826,8 +684,8 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
 }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
-    String& strOutput, const String* pstrReason,
+bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
+    FormattedKey& strOutput, const OTAsymmetricKey* pPubkey, const String* pstrReason,
     const OTPassword* pImportPassword) const
 {
     const EVP_CIPHER* pCipher =
@@ -853,7 +711,7 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
     OTPasswordData thePWData((nullptr != pstrReason)
                                  ? pstrReason->Get()
                                  : "OTAsymmetricKey_OpenSSL::"
-                                   "SavePrivateKeyToString is calling "
+                                   "GetPrivateKey is calling "
                                    "PEM_write_bio_PrivateKey...");
 
     if (nullptr == pImportPassword)
@@ -866,10 +724,12 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
 
-    bool bSuccess = false;
+    bool privateSuccess = false;
+    bool publicSuccess = false;
 
     int32_t len = 0;
     uint8_t buffer_pri[4096] = ""; // todo hardcoded
+    String privateKey, publicKey;
 
     // todo hardcoded 4080 (see array above.)
     if (0 < (len = BIO_read(bio_out_pri, buffer_pri, 4080))) // returns number
@@ -878,195 +738,22 @@ bool OTAsymmetricKey_OpenSSL::SavePrivateKeyToString(
                                                              // read.
     {
         buffer_pri[len] = '\0';
-        strOutput.Set(reinterpret_cast<const char*>(buffer_pri));
-        bSuccess = true;
+        privateKey.Set(reinterpret_cast<const char*>(buffer_pri));
+        privateSuccess = true;
     }
     else
-        otErr << __FUNCTION__ << ": Error : key length is not 1 or more!";
-
-    return bSuccess;
-}
-
-// Decodes a PGP public key from ASCII armor into an actual key pointer
-// and sets that as the keypointer on this object.
-// This function expects the bookends to be GONE already
-// It just wants the base64 encoded data which is why we have ascii-armor
-// object coming in instead of a string.
-bool OTAsymmetricKey_OpenSSL::LoadPublicKeyFromPGPKey(
-    const OTASCIIArmor& strKey)
-{
-    Release();
-
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    /*
-     * An implementation of convertion from PGP public key format to OpenSSL
-     *equivalent
-     * Support of RSA, DSA and Elgamal public keys
-     *
-     * Copyright (c) 2010 Mounir IDRASSI <mounir.idrassi@idrix.fr>. All rights
-     *reserved.
-     *
-     * This program is distributed in the hope that it will be useful,
-     * but WITHOUT ANY WARRANTY; without even the implied warranty of
-     *MERCHANTABILITY
-     * or FITNESS FOR A PARTICULAR PURPOSE.
-     *
-     */
-    int32_t len;
-    uint8_t buffer[520]; // Making it a bit bigger than 512 for safety reasons.
-    BUF_MEM* bptr;
-    PgpKeys pgpKeys;
-
-    OpenSSL_BIO b64 = BIO_new(BIO_f_base64());
-    OpenSSL_BIO bio = BIO_new_mem_buf(
-        reinterpret_cast<void*>(const_cast<char*>(strKey.Get())), -1);
-    OpenSSL_BIO bio_out = BIO_new(BIO_s_mem());
-    OpenSSL_BIO bioJoin = BIO_push(b64, bio);
-    b64.release();
-    bio.release();
-
-    while ((len = BIO_read(bioJoin, buffer, 512)) > 0)
-        BIO_write(bio_out, buffer, len);
-
-    BIO_get_mem_ptr(bio_out, &bptr);
-    bio_out.setFreeOnly();
-
-    pgpKeys = ExportRsaKey(reinterpret_cast<uint8_t*>(bptr->data),
-                           static_cast<int32_t>(bptr->length));
-
-    if (!pgpKeys.pRsa) {
-        otLog5 << "\nNo RSA public key found.\n\n";
-    }
-    else {
-        char* szModulusHex = BN_bn2hex(pgpKeys.pRsa->n);
-        char* szExponentHex = BN_bn2hex(pgpKeys.pRsa->e);
-        otLog5 << "RSA public key found : \n  Modulus ("
-               << BN_num_bits(pgpKeys.pRsa->n) << " bits)\n";
-        otLog5 << "  Exponent : 0x" << szExponentHex << "\n\n";
-        otLog5 << "RSA public key found : \nModulus ("
-               << BN_num_bits(pgpKeys.pRsa->n) << " bits) : 0x" << szModulusHex
-               << "\n";
-        otLog5 << "Exponent : 0x" << szExponentHex << "\n\n";
-
-        CRYPTO_free(szModulusHex);
-        CRYPTO_free(szExponentHex);
-    }
-
-    if (!pgpKeys.pDsa) {
-        otLog5 << "No DSA public key found.\n\n";
-    }
-    else {
-        char* szPHex = BN_bn2hex(pgpKeys.pDsa->p);
-        char* szQHex = BN_bn2hex(pgpKeys.pDsa->q);
-        char* szGHex = BN_bn2hex(pgpKeys.pDsa->g);
-        char* szYHex = BN_bn2hex(pgpKeys.pDsa->pub_key);
-        otLog5 << "DSA public key found : \n  p ("
-               << BN_num_bits(pgpKeys.pDsa->p) << " bits)\n";
-        otLog5 << "  q (" << BN_num_bits(pgpKeys.pDsa->q) << " bits)\n";
-        otLog5 << "  g (" << BN_num_bits(pgpKeys.pDsa->g) << " bits)\n";
-        otLog5 << "public key (" << BN_num_bits(pgpKeys.pDsa->pub_key)
-               << " bits)\n\n";
-        otLog5 << "DSA public key found : \np (" << BN_num_bits(pgpKeys.pDsa->p)
-               << " bits) : 0x" << szPHex << "\n";
-        otLog5 << "q (" << BN_num_bits(pgpKeys.pDsa->q) << " bits) : 0x"
-               << szQHex << "\n";
-        otLog5 << "g (" << BN_num_bits(pgpKeys.pDsa->g) << " bits) : 0x"
-               << szGHex << "\n";
-        otLog5 << "public key (" << BN_num_bits(pgpKeys.pDsa->pub_key)
-               << " bits) : 0x" << szYHex << "\n\n";
-
-        CRYPTO_free(szPHex);
-        CRYPTO_free(szQHex);
-        CRYPTO_free(szGHex);
-        CRYPTO_free(szYHex);
-    }
-
-    if (!pgpKeys.pElgamal) {
-        otLog5 << "No Elgamal public key found.\n\n";
-    }
-    else {
-        char* szPHex = BN_bn2hex(pgpKeys.pElgamal->p);
-        char* szGHex = BN_bn2hex(pgpKeys.pElgamal->g);
-        char* szYHex = BN_bn2hex(pgpKeys.pElgamal->pub_key);
-        otLog5 << "Elgamal public key found : \n  p ("
-               << BN_num_bits(pgpKeys.pElgamal->p) << " bits) : 0x" << szPHex
-               << "\n";
-        otLog5 << "  g (" << BN_num_bits(pgpKeys.pElgamal->g) << " bits) : 0x"
-               << szGHex << "\n";
-        otLog5 << "  public key (" << BN_num_bits(pgpKeys.pElgamal->pub_key)
-               << " bits) : 0x" << szYHex << "\n\n";
-
-        CRYPTO_free(szPHex);
-        CRYPTO_free(szGHex);
-        CRYPTO_free(szYHex);
-    }
-
-    bool bReturnValue = false;
-    EVP_PKEY* pkey = EVP_PKEY_new();
-    OT_ASSERT(nullptr != pkey);
-
-    if (pgpKeys.pRsa) {
-        if (EVP_PKEY_assign_RSA(pkey, pgpKeys.pRsa)) {
-            bReturnValue = true;
-            // todo: make sure the lack of RSA_free here is not a memory leak.
-            otLog4 << "Successfully extracted RSA public key from PGP public "
-                      "key block.\n";
-        }
-        else {
-            RSA_free(pgpKeys.pRsa);
-            otOut << "Extracted RSA public key from PGP public key block, but "
-                     "unable to convert to EVP_PKEY.\n";
-        }
-
-        pgpKeys.pRsa = nullptr;
-    }
-    else if (pgpKeys.pDsa) {
-        if (EVP_PKEY_assign_DSA(pkey, pgpKeys.pDsa)) {
-            bReturnValue = true;
-            // todo: make sure the lack of DSA_free here is not a memory leak.
-            otLog4 << "Successfully extracted DSA public key from PGP public "
-                      "key block.\n";
-        }
-        else {
-            DSA_free(pgpKeys.pDsa);
-            otOut << "Extracted DSA public key from PGP public key block, but "
-                     "unable to convert to EVP_PKEY.\n";
-        }
-
-        pgpKeys.pDsa = nullptr;
-    }
-    else if (pgpKeys.pElgamal) {
-        otOut << "Extracted ElGamal Key from PGP public key block, but "
-                 "currently do not support it (sorry))\n";
-        //
-        // int32_t EVP_PKEY_assign_EC_KEY(EVP_PKEY* pkey, EC_KEY* key); // Here
-        // is the assign function for El Gamal
-        // (assuming that "EC" stands for eliptical curve... kind of hard to
-        // tell with the OpenSSL docs...)
-        //
-        free(pgpKeys.pElgamal);
-        pgpKeys.pElgamal = nullptr;
-    }
-
-    // FT: Adding some fixes here...
-    //
-    if (bReturnValue) {
-        dp->SetKeyAsCopyOf(*pkey, false); // bIsPrivateKey=false. PUBLIC KEY.
-        EVP_PKEY_free(pkey); // We have our own copy already. It's set nullptr
-                             // just below...
-    }
-    else if (nullptr !=
-               pkey) // we failed, but pkey is NOT null (need to free it.)
     {
-        EVP_PKEY_free(pkey); // Set nullptr just below...
+        otErr << __FUNCTION__ << ": Error : key length is not 1 or more!";
     }
 
-    pkey = nullptr; // This is either stored on m_pKey, or deleted. I'm setting
-                    // pointer to nullptr here just for completeness.
+    publicSuccess = dynamic_cast<const OTAsymmetricKey_OpenSSL*>(pPubkey)->SaveCertToString(publicKey, pstrReason, pImportPassword);
 
-    return bReturnValue;
+    if (publicSuccess)
+    {
+        strOutput.Format(const_cast<char*>("%s%s"), privateKey.Get(),
+                         publicKey.Get());
+    }
+    return privateSuccess && publicSuccess;
 }
 
 CryptoAsymmetric& OTAsymmetricKey::engine() const

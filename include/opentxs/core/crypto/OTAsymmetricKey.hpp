@@ -46,13 +46,13 @@
 namespace opentxs
 {
 
-class OTASCIIArmor;
 class OTAsymmetricKey;
 class OTCaller;
 class Identifier;
 class OTPassword;
 class OTSignatureMetadata;
 class String;
+class FormattedKey;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 
@@ -134,9 +134,7 @@ protected:
 public:                                           // INSTANTIATION
     EXPORT static OTAsymmetricKey* KeyFactory(KeyType keyType);  // Caller IS responsible to
                                                   // delete!
-    virtual OTAsymmetricKey* ClonePubKey(KeyType keyType) const; // Caller IS responsible to
-                                                  // delete!
-public:                                           // PASSWORD CALLBACK
+public:
     static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
     EXPORT static OT_OPENSSL_CALLBACK* GetPasswordCallback();
     static bool IsPasswordCallbackSet()
@@ -151,11 +149,8 @@ protected: // PASSWORD CALLBACK
     static OTCaller* s_pCaller;
 
 protected:                    // PROTECTED MEMBER DATA
-    OTASCIIArmor* m_p_ascKey; // base64-encoded, string form of key. (Encrypted
-                              // too, for private keys. Should store it in this
-                              // form most of the time.)
-    bool m_bIsPublicKey;
-    bool m_bIsPrivateKey;
+    bool m_bIsPublicKey = false;
+    bool m_bIsPrivateKey = false;
     Timer m_timer; // Useful for keeping track how long since I last entered my
                    // passphrase...
 public:
@@ -201,11 +196,7 @@ public: // DESTRUCTION
     void ReleaseKey();
 
     // PUBLIC METHODS
-    inline bool IsEmpty() const
-    {
-        return (nullptr == m_p_ascKey);
-    } // m_p_ascKey is the most basic value. m_pKey is derived from it, for
-      // example.
+    virtual bool IsEmpty() const = 0;
     inline bool IsPublic() const
     {
         return m_bIsPublicKey;
@@ -291,82 +282,28 @@ public: // DESTRUCTION
     virtual bool CalculateID(Identifier& theOutput) const; // Only works for
                                                            // public keys.
 
-    // Load private or public key from local storage.
-    //
-    bool LoadPrivateKey(const String& strFoldername, const String& strFilename,
-                        const String* pstrReason = nullptr,
-                        const OTPassword* pImportPassword = nullptr);
-    bool LoadPublicKey(const String& strFoldername, const String& strFilename);
+    virtual bool GetPrivateKey(
+        FormattedKey& strOutput,
+        const OTAsymmetricKey* pPubkey, //I wish this wasn't necessary
+        const String* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) const = 0;
+    virtual bool SetPrivateKey(
+        const FormattedKey& strCert,
+        const String* pstrReason = nullptr,
+        const OTPassword* pImportPassword = nullptr) = 0;
 
-    virtual bool LoadPublicKeyFromPGPKey(
-        const OTASCIIArmor& strKey) = 0; // does NOT handle bookends.
-    // LoadPrivateKeyFromCertString
-    //
-    // "escaped" means pre-pended with "- " as in:   - -----BEGIN
-    // CERTIFICATE....
-    //
-    virtual bool LoadPrivateKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
+    virtual bool GetPublicKey(String& strKey) const = 0;
+    virtual bool GetPublicKey(FormattedKey& strKey) const = 0;
+    virtual bool SetPublicKey(const String& strKey) = 0;
+    virtual bool SetPublicKey(const FormattedKey& strKey) = 0;
+
+    virtual bool SetPublicKeyFromPrivateKey(
+        const FormattedKey& strCert,
         const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0; // Used when importing
-                                                          // an
-    // exported Nym into a wallet.
-    // Load Public Key from Cert (file or string)
-    //
-    virtual bool LoadPublicKeyFromCertString(
-        const String& strCert, bool bEscaped = true,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0; // DOES handle
-                                                          // bookends, AND
-                                                          // escapes.
-    bool LoadPublicKeyFromCertFile(
-        const String& strFoldername, const String& strFilename,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr); // DOES handle bookends.
-    virtual bool SaveCertToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const = 0;
-    virtual bool SavePrivateKeyToString(
-        String& strOutput, const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const = 0;
+        const OTPassword* pImportPassword = nullptr) = 0;
+
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const = 0;
-    // PUBLIC KEY
-
-    // * Get the public key in ASCII-armored format                 --
-    // OTASCIIArmor
-    // * Get the public key in ASCII-armored format WITH bookends   -- OTString
-    //       - ------- BEGIN PUBLIC KEY --------
-    //       Notice the "- " before the rest of the bookend starts.
-    EXPORT bool GetPublicKey(OTASCIIArmor& strKey) const;
-    EXPORT bool GetPublicKey(String& strKey, bool bEscaped = true) const;
-    // (Below) Decodes a public key from ASCII armor into an actual key pointer
-    // and sets that as the m_pKey on this object.
-    EXPORT bool SetPublicKey(const OTASCIIArmor& strKey);
-    EXPORT bool SetPublicKey(const String& strKey, bool bEscaped = false);
-    // (Above) Decodes a public key from bookended key string into an actual key
-    // pointer, and sets that as the m_pKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN PUBLIC
-    // KEY-----)
-
-    // PRIVATE KEY
-    // Get the private key in ASCII-armored format with bookends
-    // - ------- BEGIN ENCRYPTED PRIVATE KEY --------
-    // Notice the "- " before the rest of the bookend starts.
-    bool GetPrivateKey(String& strKey, bool bEscaped = true) const;
-    bool GetPrivateKey(OTASCIIArmor& strKey) const; // Get the private key in
-                                                    // ASCII-armored format
-
-    // Decodes a private key from ASCII armor into an actual key pointer
-    // and sets that as the m_pKey on this object.
-    // This is the version that will handle the bookends ( -----BEGIN ENCRYPTED
-    // PRIVATE KEY-----)
-    bool SetPrivateKey(const String& strKey, bool bEscaped = false);
-    bool SetPrivateKey(const OTASCIIArmor& strKey); // Decodes a private key
-                                                    // from ASCII armor into an
-                                                    // actual key pointer and
-                                                    // sets that as the m_pKey
-                                                    // on this object.
 };
 
 } // namespace opentxs

@@ -459,9 +459,6 @@ public:
                                                                   // of the
                                                                   // next
                                                                   // function.
-    EXPORT bool Loadx509CertAndPrivateKey(
-        bool bChecking = false, const OTPasswordData* pPWData = nullptr,
-        const OTPassword* pImportPassword = nullptr);
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
     EXPORT bool SavePseudonym(); // saves to filename m_strNymfile
 protected: // Use SaveSignedNymfile if you want to save the Nym to local storage.

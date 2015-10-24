@@ -68,6 +68,7 @@
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/util/Tag.hpp>
+#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
 
 #include <irrxml/irrXML.hpp>
@@ -500,7 +501,7 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const std::shared_pt
         m_strSourceForNymID = *psourceForNymID;
     }
     else {
-        String sourceForNymID;
+        FormattedKey sourceForNymID;
         m_SigningKey->GetPublicKey(sourceForNymID);
         m_strSourceForNymID = sourceForNymID;
     }

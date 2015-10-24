@@ -36,35 +36,19 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_CLIENTCONNECTION_HPP
-#define OPENTXS_SERVER_CLIENTCONNECTION_HPP
-
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/FormattedKey.hpp>
 
 namespace opentxs
 {
 
-class OTAsymmetricKey;
-class Message;
-class String;
-class OTEnvelope;
-
-class ClientConnection
+FormattedKey::FormattedKey()
+    : ot_super()
 {
-public:
-    ClientConnection();
-    ~ClientConnection();
+}
 
-    void SetPublicKey(const FormattedKey& publicKey, OTAsymmetricKey::KeyType keyType);
-    void SetPublicKey(const OTAsymmetricKey& publicKey);
-
-    bool SealMessageForRecipient(Message& msg, OTEnvelope& envelope);
-
-private:
-    OTAsymmetricKey* publicKey_ = nullptr;
-};
+FormattedKey::FormattedKey(const std::string& value)
+    : ot_super(value)
+{
+}
 
 } // namespace opentxs
-
-#endif // OPENTXS_SERVER_CLIENTCONNECTION_HPP

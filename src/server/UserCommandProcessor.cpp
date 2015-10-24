@@ -50,6 +50,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -165,10 +166,11 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         OTAsymmetricKey& nymAuthentKey = *pNymAuthentKey;
         OTAsymmetricKey& nymEncryptionKey = *pNymEncryptKey;
+        FormattedKey encryptKey = static_cast<FormattedKey&>(theMessage.m_strNymID2);
 
         bool bIfNymPublicKey =
-            (nymAuthentKey.SetPublicKey(theMessage.m_strNymPublicKey, true) &&
-             nymEncryptionKey.SetPublicKey(theMessage.m_strNymID2, true));
+            (nymAuthentKey.SetPublicKey(theMessage.m_strNymPublicKey) &&
+             nymEncryptionKey.SetPublicKey(encryptKey));
 
         if (!bIfNymPublicKey) {
             Log::Error("Failure reading Nym's signing and/or encryption keys "
@@ -189,9 +191,10 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         // we have the option later to encrypt the replies back to the
         // client...(using the
         // client's public key that we set here.)
+
         if (nullptr != pConnection)
             pConnection->SetPublicKey(
-                theMessage.m_strNymID2, keytypeEncrypt); // theMessage.m_strNymID2
+                encryptKey, keytypeEncrypt); // theMessage.m_strNymID2
                                          // contains the public
                                          // encryption key for sending
                                          // an encrypted reply.
@@ -350,8 +353,8 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                 OTAsymmetricKey& thePublicSignKey =
                     const_cast<OTAsymmetricKey&>(pNym->GetPublicSignKey());
 
-                thePublicEncrKey.GetPublicKey(strPublicEncrKey, false);
-                thePublicSignKey.GetPublicKey(strPublicSignKey, false);
+                thePublicEncrKey.GetPublicKey(strPublicEncrKey);
+                thePublicSignKey.GetPublicKey(strPublicSignKey);
 
                 // This is only for verified Nyms, (and we're
                 // verified in here!) We do this so that
@@ -1883,7 +1886,7 @@ void UserCommandProcessor::UserCmdCheckNym(Nym&, Message& MsgIn,
 
     // If success, we send the Nym2's public key back to the user.
     if (msgOut.m_bSuccess) {
-        nym2.GetPublicEncrKey().GetPublicKey(msgOut.m_strNymPublicKey, true);
+        nym2.GetPublicEncrKey().GetPublicKey(msgOut.m_strNymPublicKey);
 
         // NEW: Also attach the public credentials to the response
         //      (not just a public key.)

@@ -65,6 +65,7 @@ set(cxx-sources
   crypto/OTSignedFile.cpp
   OTStorage.cpp
   String.cpp
+  FormattedKey.cpp
   OTStringXML.cpp
   crypto/Credential.cpp
   crypto/ChildKeyCredential.cpp

@@ -36,35 +36,30 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_SERVER_CLIENTCONNECTION_HPP
-#define OPENTXS_SERVER_CLIENTCONNECTION_HPP
+#ifndef OPENTXS_CORE_FORMATTEDKEY_HPP
+#define OPENTXS_CORE_FORMATTEDKEY_HPP
 
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/String.hpp>
 
 namespace opentxs
 {
 
-class OTAsymmetricKey;
-class Message;
-class String;
-class OTEnvelope;
-
-class ClientConnection
+/// This class is identical to opentxs::String.
+///
+/// The reason it exists is to allow crypto key implementations
+/// which have more than one way to represent a key as a String
+/// to use function overloading on key handling functions which
+/// must act differently based on which representation is being
+/// used.
+class FormattedKey : public String
 {
+typedef String ot_super;
+
 public:
-    ClientConnection();
-    ~ClientConnection();
-
-    void SetPublicKey(const FormattedKey& publicKey, OTAsymmetricKey::KeyType keyType);
-    void SetPublicKey(const OTAsymmetricKey& publicKey);
-
-    bool SealMessageForRecipient(Message& msg, OTEnvelope& envelope);
-
-private:
-    OTAsymmetricKey* publicKey_ = nullptr;
+    FormattedKey();
+    EXPORT FormattedKey(const std::string& value);
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_SERVER_CLIENTCONNECTION_HPP
+#endif // OPENTXS_CORE_FORMATTEDKEY_HPP

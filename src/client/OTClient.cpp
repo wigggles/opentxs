@@ -7582,7 +7582,7 @@ int32_t OTClient::ProcessUserCommand(
     switch (requestedCommand) {
 
     case (OTClient::pingNotary): {
-        String strAuthentKey, strEncryptionKey;
+        FormattedKey strAuthentKey, strEncryptionKey;
 
         theNym.GetPublicAuthKey().GetPublicKey(strAuthentKey);
         theNym.GetPublicEncrKey().GetPublicKey(strEncryptionKey);
