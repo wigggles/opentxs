@@ -60,7 +60,7 @@ if(ANDROID)
 endif()
 
 # FT: I added this.
-set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
+#set(ZEROMQ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libzmq_4/include)
 
 
 # Disable czmq tests. They also cause trouble on Android MIPS

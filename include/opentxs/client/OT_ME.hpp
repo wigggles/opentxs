@@ -336,8 +336,8 @@ public:
         const std::string& NOTARY_ID, const std::string& USER_NYM_ID,
         const std::string& TARGET_NYM_ID, const std::string& ADJUSTMENT) const;
 
-    EXPORT bool networkFailureRaw(); // This returns m_bNetworkFailure
-    EXPORT bool networkFailure();    // This returns m_bNetworkFailure but also resets it back to false.
+//    EXPORT bool networkFailureRaw(); // This returns m_bNetworkFailure
+//    EXPORT bool networkFailure();    // This returns m_bNetworkFailure but also resets it back to false.
     
 private:
     OT_ME(const OT_ME&);
