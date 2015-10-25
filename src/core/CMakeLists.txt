@@ -52,6 +52,7 @@ set(cxx-sources
   ${LIBSECP256K1}
   crypto/CryptoEngine.cpp
   OTData.cpp
+  crypto/Letter.cpp
   crypto/OTEnvelope.cpp
   Identifier.cpp
   Instrument.cpp

@@ -1234,11 +1234,11 @@ bool OpenSSL::Encrypt(
 {
     const char* szFunc = "OpenSSL::Encrypt";
 
-    OT_ASSERT(CryptoConfig::SymmetricIvSize() == theIV.GetSize());
-    OT_ASSERT(CryptoConfig::SymmetricKeySize() ==
-              theRawSymmetricKey.getMemorySize());
-    OT_ASSERT(nullptr != szInput);
-    OT_ASSERT(lInputLength > 0);
+    OT_ASSERT_MSG((CryptoConfig::SymmetricIvSize() == theIV.GetSize()), "Wrong iv size.\n");
+    OT_ASSERT_MSG((CryptoConfig::SymmetricKeySize() ==
+              theRawSymmetricKey.getMemorySize()), "Wrong symmetric key size.\n");
+    OT_ASSERT_MSG((nullptr != szInput), "Null input.\n");
+    OT_ASSERT_MSG((lInputLength > 0), "Empty input.\n");
 
     EVP_CIPHER_CTX ctx;
 
@@ -1360,11 +1360,11 @@ bool OpenSSL::Decrypt(
 {
     const char* szFunc = "OpenSSL::Decrypt";
 
-    OT_ASSERT(CryptoConfig::SymmetricIvSize() == theIV.GetSize());
-    OT_ASSERT(CryptoConfig::SymmetricKeySize() ==
-              theRawSymmetricKey.getMemorySize());
-    OT_ASSERT(nullptr != szInput);
-    OT_ASSERT(lInputLength > 0);
+    OT_ASSERT_MSG((CryptoConfig::SymmetricIvSize() == theIV.GetSize()), "Wrong iv size.\n");
+    OT_ASSERT_MSG((CryptoConfig::SymmetricKeySize() ==
+              theRawSymmetricKey.getMemorySize()), "Wrong symmetric key size.\n");
+    OT_ASSERT_MSG((nullptr != szInput), "Null input.\n");
+    OT_ASSERT_MSG((lInputLength > 0), "Empty input.\n");
 
     EVP_CIPHER_CTX ctx;
 

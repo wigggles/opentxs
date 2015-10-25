@@ -66,6 +66,7 @@ private:
     secp256k1_context_t* context_ = nullptr;
 
     CryptoUtil& ssl_;
+
 protected:
     Libsecp256k1(CryptoUtil& ssl);
     virtual void Init_Override() const;
@@ -124,6 +125,7 @@ public:
     bool secp256k1_pubkey_parse(
         secp256k1_pubkey_t& pubkey,
         const OTPassword& serializedPubkey) const;
+    String Nonce(uint32_t size) const;
 };
 
 } // namespace opentxs

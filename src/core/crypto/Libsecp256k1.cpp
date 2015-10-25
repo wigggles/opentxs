@@ -43,8 +43,14 @@
 #include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
+#include <opentxs/core/crypto/Letter.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/crypto/OTKeypair.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
 
@@ -63,21 +69,136 @@ Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
 
 bool Libsecp256k1::Seal(
     __attribute__((unused)) mapOfAsymmetricKeys& RecipPubKeys,
-    __attribute__((unused)) const String& theInput,
-    __attribute__((unused)) OTData& dataOutput
+    const String& theInput,
+    OTData& dataOutput
     ) const
 {
-    return false;
+    OTKeypair ephemeralKeypair(OTAsymmetricKey::SECP256K1);
+    std::shared_ptr<NymParameters> pKeyData;
+    pKeyData = std::make_shared<NymParameters>(
+        NymParameters::SECP256K1,
+        Credential::SECP256K1_PUBKEY);
+    ephemeralKeypair.MakeNewKeypair(pKeyData);
+
+    FormattedKey ephemeralPubkey;
+    String nonce = Nonce(64);
+    ephemeralKeypair.GetPublicKey(ephemeralPubkey);
+
+    String examplePassword("this is an example password");
+    OTData passwordHash;
+    CryptoEngine::Instance().Hash().Hash(CryptoHash::SHA512, examplePassword, passwordHash);
+    OTPassword sessionKey;
+    sessionKey.setMemory(passwordHash);
+
+    OTData nonceHash;
+    CryptoEngine::Instance().Hash().Hash(CryptoHash::SHA512, nonce, nonceHash);
+
+    OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
+    OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());
+
+    OTData ciphertext;
+    bool encrypted = CryptoEngine::Instance().AES().Encrypt(
+        truncatedSessionKey,
+        theInput.Get(),
+        theInput.GetLength(),
+        truncatedNonceHash,
+        ciphertext
+    );
+
+    if (encrypted) {
+        OTASCIIArmor encodedCiphertext(ciphertext);
+
+        Letter theLetter(
+            ephemeralPubkey,
+            "SHA512",
+            nonce,
+            "",
+            encodedCiphertext
+        );
+
+        String output;
+        theLetter.UpdateContents();
+        theLetter.SaveContents(output);
+
+        OTASCIIArmor armoredOutput(output);
+        OTData finishedOutput(armoredOutput);
+        dataOutput.Assign(finishedOutput);
+
+        return true;
+    } else {
+        otErr << __FUNCTION__ << ": Encryption failed.\n";
+        return false;
+    }
 }
 
 bool Libsecp256k1::Open(
-    __attribute__((unused)) OTData& dataInput,
+    OTData& dataInput,
     __attribute__((unused)) const Nym& theRecipient,
-    __attribute__((unused)) String& theOutput,
+    String& theOutput,
     __attribute__((unused)) const OTPasswordData* pPWData
     ) const
 {
-    return false;
+    OTASCIIArmor armoredInput(dataInput);
+    String decodedInput;
+    OTData decodedCiphertext;
+    String examplePassword("this is an example password");
+    OTData passwordHash;
+    OTPassword sessionKey;
+    OTData nonceHash;
+    OTData plaintext;
+
+    bool haveDecodedInput = armoredInput.GetString(decodedInput);
+
+    if (haveDecodedInput) {
+        Letter contents(decodedInput);
+
+        OTASCIIArmor ciphertext = contents.Ciphertext();
+
+        if (ciphertext.Exists()) {
+            String nonce = contents.Nonce();
+
+            if (nonce.Exists()) {
+                bool haveDecodedCiphertext = ciphertext.GetData(decodedCiphertext);
+
+                if (haveDecodedCiphertext) {
+                    CryptoEngine::Instance().Hash().Hash(CryptoHash::SHA512, examplePassword, passwordHash);
+                    sessionKey.setMemory(passwordHash);
+                    CryptoEngine::Instance().Hash().Hash(CryptoHash::SHA512, nonce, nonceHash);
+
+                    OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
+                    OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());
+
+                    bool decrypted = CryptoEngine::Instance().AES().Decrypt(
+                        truncatedSessionKey,
+                        static_cast<const char*>(decodedCiphertext.GetPointer()),
+                        decodedCiphertext.GetSize(),
+                        truncatedNonceHash,
+                        plaintext
+                    );
+
+                    if (decrypted) {
+                        theOutput.Set(static_cast<const char*>(plaintext.GetPointer()), plaintext.GetSize());
+                        return true;
+                    } else {
+                        otErr << "Libsecp256k1::" << __FUNCTION__ << " Decryption failed.\n";
+                        return false;
+                    }
+                } else {
+                    otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not decode armored ciphertext.\n";
+                    return false;
+                }
+            } else {
+                otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not retrieving the nonce from the Letter.\n";
+                return false;
+            }
+        } else {
+            otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not retrieving the encoded ciphertext from the Letter.\n";
+            return false;
+        }
+    } else {
+        otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not decode armored input data.\n";
+        return false;
+    }
 }
 
 bool Libsecp256k1::SignContract(
@@ -339,6 +460,19 @@ bool Libsecp256k1::secp256k1_pubkey_parse(
     }
 
     return false;
+}
+
+String Libsecp256k1::Nonce(uint32_t size) const
+{
+    OTPassword source;
+    source.randomizeMemory(size);
+
+    const uint8_t* nonceStart = static_cast<const uint8_t*>(source.getMemory());
+    const uint8_t* nonceEnd = nonceStart + source.getMemorySize();
+
+    String nonce(EncodeBase58Check(nonceStart, nonceEnd));
+
+    return nonce;
 }
 
 Libsecp256k1::~Libsecp256k1()
