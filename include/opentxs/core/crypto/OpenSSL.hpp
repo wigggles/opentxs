@@ -168,6 +168,11 @@ public:
         const CryptoHash::HashType hashType,
         const OTData& data,
         OTData& digest) const;
+    virtual bool HMAC(
+        const CryptoHash::HashType hashType,
+        const OTData& inputKey,
+        const OTData& inputData,
+        OTData& outputDigest) const;
 
     void thread_setup() const;
     void thread_cleanup() const;

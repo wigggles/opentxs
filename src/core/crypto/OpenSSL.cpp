@@ -85,6 +85,7 @@ extern "C" {
 #include <openssl/objects.h>
 #include <openssl/ssl.h>
 #include <openssl/sha.h>
+#include <openssl/hmac.h>
 #include <openssl/conf.h>
 #include <openssl/x509v3.h>
 
@@ -2621,6 +2622,40 @@ bool OpenSSL::Digest(
             otErr << __FUNCTION__ << ": Error: invalid hash type.\n";
             return false;
         }
+    }
+}
+
+// Calculate an HMAC given some input data and a key
+bool OpenSSL::HMAC(
+        const CryptoHash::HashType hashType,
+        const OTData& inputKey,
+        const OTData& inputData,
+        OTData& outputDigest) const
+{
+
+    unsigned int size = 0;
+    const EVP_MD* evp_md = OpenSSLdp::HashTypeToOpenSSLType(hashType);
+
+    if (nullptr != evp_md) {
+        void* data = ::HMAC(
+                        evp_md,
+                        inputKey.GetPointer(),
+                        inputKey.GetSize(),
+                        static_cast <const unsigned char*>(inputData.GetPointer()),
+                        inputData.GetSize(),
+                        nullptr,
+                        &size);
+
+        if (nullptr != data) {
+            outputDigest.Assign(data, size);
+            return true;
+        } else {
+            otErr << __FUNCTION__ << ": Failed to produce a valid HMAC.\n";
+            return false;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": Invalid hash type\n";
+        return false;
     }
 }
 

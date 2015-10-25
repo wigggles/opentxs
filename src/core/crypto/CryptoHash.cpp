@@ -43,6 +43,40 @@
 namespace opentxs
 {
 
+bool CryptoHash::HMAC(
+        const CryptoHash::HashType hashType,
+        const String& inputKey,
+        const String& inputData,
+        OTData& outputDigest) const
+{
+    OTData convertedKey(inputKey.Get(), inputKey.GetLength());
+    OTData convertedData(inputData.Get(), inputData.GetLength());
+
+    return HMAC(hashType, convertedKey, convertedData, outputDigest);
+}
+
+bool CryptoHash::HMAC(
+        const CryptoHash::HashType hashType,
+        const String& inputKey,
+        const OTData& inputData,
+        OTData& outputDigest) const
+{
+    OTData convertedKey(inputKey.Get(), inputKey.GetLength());
+
+    return HMAC(hashType, convertedKey, inputData, outputDigest);
+}
+
+bool CryptoHash::HMAC(
+        const CryptoHash::HashType hashType,
+        const OTData& inputKey,
+        const String& inputData,
+        OTData& outputDigest) const
+{
+    OTData convertedData(inputData.Get(), inputData.GetLength());
+
+    return HMAC(hashType, inputKey, convertedData, outputDigest);
+}
+
 bool CryptoHash::Digest(
     const HashType hashType,
     const String& data,

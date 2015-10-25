@@ -67,6 +67,26 @@ public:
         const HashType hashType,
         const OTData& data,
         OTData& digest) const = 0;
+    virtual bool HMAC(
+        const CryptoHash::HashType hashType,
+        const OTData& inputKey,
+        const OTData& inputData,
+        OTData& outputDigest) const = 0;
+    bool HMAC(
+        const CryptoHash::HashType hashType,
+        const String& inputKey,
+        const String& inputData,
+        OTData& outputDigest) const;
+    bool HMAC(
+        const CryptoHash::HashType hashType,
+        const OTData& inputKey,
+        const String& inputData,
+        OTData& outputDigest) const;
+    bool HMAC(
+        const CryptoHash::HashType hashType,
+        const String& inputKey,
+        const OTData& inputData,
+        OTData& outputDigest) const;
     bool Digest(
         const HashType hashType,
         const String& data,
