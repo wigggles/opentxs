@@ -173,14 +173,14 @@ const CryptoHash::HashType Identifier::DefaultHashAlgorithm = CryptoHash::SHA256
 
 bool Identifier::CalculateDigest(const String& strInput)
 {
-    return CryptoEngine::Instance().Hash().Hash(
+    return CryptoEngine::Instance().Hash().Digest(
         CryptoHash::HASH160,
         strInput,
         *this);}
 
 bool Identifier::CalculateDigest(const OTData& dataInput)
 {
-    return CryptoEngine::Instance().Hash().Hash(
+    return CryptoEngine::Instance().Hash().Digest(
         CryptoHash::HASH160,
         dataInput,
         *this);

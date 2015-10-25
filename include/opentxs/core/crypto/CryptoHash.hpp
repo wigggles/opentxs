@@ -63,11 +63,11 @@ public:
     };
 
     virtual ~CryptoHash() = default;
-    virtual bool Hash(
+    virtual bool Digest(
         const HashType hashType,
         const OTData& data,
         OTData& digest) const = 0;
-    bool Hash(
+    bool Digest(
         const HashType hashType,
         const String& data,
         OTData& digest);

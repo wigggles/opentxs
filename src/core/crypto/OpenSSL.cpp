@@ -2581,7 +2581,7 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
     return bSetMem;
 }
 
-bool OpenSSL::Hash(
+bool OpenSSL::Digest(
     const CryptoHash::HashType hashType,
     const OTData& data,
     OTData& digest) const
@@ -2638,7 +2638,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
     OTData hash;
-    CryptoEngine::Instance().Hash().Hash(CryptoHash::HASH256, strContractUnsigned, hash);
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::HASH256, strContractUnsigned, hash);
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
@@ -2794,7 +2794,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     // 32 bytes, double sha256
     OTData hash;
-    CryptoEngine::Instance().Hash().Hash(CryptoHash::HASH256, strContractToVerify, hash);
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::HASH256, strContractToVerify, hash);
 
     std::vector<uint8_t> vDecrypted(
         CryptoConfig::PublicKeysizeMax()); // Contains the decrypted

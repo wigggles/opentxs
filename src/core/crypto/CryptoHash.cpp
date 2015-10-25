@@ -43,14 +43,14 @@
 namespace opentxs
 {
 
-bool CryptoHash::Hash(
+bool CryptoHash::Digest(
     const HashType hashType,
     const String& data,
     OTData& digest)
 {
     OTData plaintext(data.Get(), data.GetLength());
 
-    return Hash(hashType, plaintext, digest);
+    return Digest(hashType, plaintext, digest);
 }
 
 CryptoHash::HashType CryptoHash::StringToHashType(String& inputString)

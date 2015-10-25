@@ -86,12 +86,12 @@ bool Libsecp256k1::Seal(
 
     String examplePassword("this is an example password");
     OTData passwordHash;
-    CryptoEngine::Instance().Hash().Hash(CryptoHash::SHA512, examplePassword, passwordHash);
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA512, examplePassword, passwordHash);
     OTPassword sessionKey;
     sessionKey.setMemory(passwordHash);
 
     OTData nonceHash;
-    CryptoEngine::Instance().Hash().Hash(CryptoHash::SHA512, nonce, nonceHash);
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA512, nonce, nonceHash);
 
     OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
     OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());
@@ -161,9 +161,9 @@ bool Libsecp256k1::Open(
                 bool haveDecodedCiphertext = ciphertext.GetData(decodedCiphertext);
 
                 if (haveDecodedCiphertext) {
-                    CryptoEngine::Instance().Hash().Hash(CryptoHash::SHA512, examplePassword, passwordHash);
+                    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA512, examplePassword, passwordHash);
                     sessionKey.setMemory(passwordHash);
-                    CryptoEngine::Instance().Hash().Hash(CryptoHash::SHA512, nonce, nonceHash);
+                    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA512, nonce, nonceHash);
 
                     OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
                     OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());
@@ -209,7 +209,7 @@ bool Libsecp256k1::SignContract(
     __attribute__((unused)) const OTPasswordData* pPWData)
 {
     OTData hash;
-    bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, strContractUnsigned, hash);
+    bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, strContractUnsigned, hash);
 
     if (haveDigest) {
         OTPassword privKey;
@@ -258,7 +258,7 @@ bool Libsecp256k1::VerifySignature(
     ) const
 {
     OTData hash;
-    bool haveDigest = CryptoEngine::Instance().Hash().Hash(hashType, strContractToVerify, hash);
+    bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, strContractToVerify, hash);
 
     if (haveDigest) {
         secp256k1_pubkey_t ecdsaPubkey;

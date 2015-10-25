@@ -164,7 +164,7 @@ public:
         const CryptoHash::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
 
-    virtual bool Hash(
+    virtual bool Digest(
         const CryptoHash::HashType hashType,
         const OTData& data,
         OTData& digest) const;
