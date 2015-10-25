@@ -192,7 +192,7 @@ bool Libsecp256k1::Open(
                 return false;
             }
         } else {
-            otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not retrieving the encoded ciphertext from the Letter.\n";
+            otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not retrieve the encoded ciphertext from the Letter.\n";
             return false;
         }
     } else {
@@ -403,6 +403,37 @@ bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
     FormattedKey encodedPrivateKey(EncodeBase58Check(keyStart, keyEnd));
 
     return asymmetricKey.SetPrivateKey(encodedPrivateKey);
+}
+
+bool Libsecp256k1::ECDH(
+    const OTAsymmetricKey& publicKey,
+    const OTAsymmetricKey& privateKey,
+            OTPassword& secret) const
+{
+    OTPassword scalar;
+    secp256k1_pubkey_t point;
+
+    bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(privateKey, scalar);
+
+    if (havePrivateKey) {
+        bool havePublicKey = AsymmetricKeyToECDSAPubkey(publicKey, point);
+
+        if (havePublicKey) {
+            secret.SetSize(PrivateKeySize);
+
+            return secp256k1_ecdh(
+                context_,
+                reinterpret_cast<unsigned char*>(secret.getMemoryWritable()),
+                &point,
+                static_cast<const unsigned char*>(scalar.getMemory()));
+        } else {
+            otErr << "Libsecp256k1::" << __FUNCTION__ << " could not obtain public key.\n.";
+            return false;
+        }
+    } else {
+        otErr << "Libsecp256k1::" << __FUNCTION__ << " could not obtain private key.\n.";
+        return false;
+    }
 }
 
 bool Libsecp256k1::secp256k1_privkey_tweak_add(

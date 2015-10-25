@@ -44,6 +44,7 @@
 
 extern "C" {
 #include "secp256k1.h"
+#include "secp256k1_ecdh.h"
 }
 
 namespace opentxs
@@ -112,6 +113,11 @@ public:
     bool ECDSAPrivkeyToAsymmetricKey(
         const OTPassword& privkey,
         OTAsymmetricKey& asymmetricKey) const;
+
+    bool ECDH(
+        const OTAsymmetricKey& publicKey,
+        const OTAsymmetricKey& privateKey,
+             OTPassword& secret) const;
 
     bool secp256k1_privkey_tweak_add(
         uint8_t key [PrivateKeySize],
