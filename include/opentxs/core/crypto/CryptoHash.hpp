@@ -43,6 +43,7 @@ namespace opentxs
 {
 
 class OTData;
+class OTPassword;
 class String;
 
 class CryptoHash
@@ -69,28 +70,18 @@ public:
         OTData& digest) const = 0;
     virtual bool HMAC(
         const CryptoHash::HashType hashType,
-        const OTData& inputKey,
+        const OTPassword& inputKey,
         const OTData& inputData,
-        OTData& outputDigest) const = 0;
-    bool HMAC(
-        const CryptoHash::HashType hashType,
-        const String& inputKey,
-        const String& inputData,
-        OTData& outputDigest) const;
-    bool HMAC(
-        const CryptoHash::HashType hashType,
-        const OTData& inputKey,
-        const String& inputData,
-        OTData& outputDigest) const;
-    bool HMAC(
-        const CryptoHash::HashType hashType,
-        const String& inputKey,
-        const OTData& inputData,
-        OTData& outputDigest) const;
+        OTPassword& outputDigest) const = 0;
     bool Digest(
         const HashType hashType,
         const String& data,
         OTData& digest);
+    bool HMAC(
+        const CryptoHash::HashType hashType,
+        const OTPassword& inputKey,
+        const String& inputData,
+        OTPassword& outputDigest) const;
 
     static HashType StringToHashType(String& inputString);
     static String HashTypeToString(HashType hashType);

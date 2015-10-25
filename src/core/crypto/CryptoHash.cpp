@@ -37,45 +37,13 @@
  ************************************************************/
 
 #include <opentxs/core/crypto/CryptoHash.hpp>
+
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
 
 namespace opentxs
 {
-
-bool CryptoHash::HMAC(
-        const CryptoHash::HashType hashType,
-        const String& inputKey,
-        const String& inputData,
-        OTData& outputDigest) const
-{
-    OTData convertedKey(inputKey.Get(), inputKey.GetLength());
-    OTData convertedData(inputData.Get(), inputData.GetLength());
-
-    return HMAC(hashType, convertedKey, convertedData, outputDigest);
-}
-
-bool CryptoHash::HMAC(
-        const CryptoHash::HashType hashType,
-        const String& inputKey,
-        const OTData& inputData,
-        OTData& outputDigest) const
-{
-    OTData convertedKey(inputKey.Get(), inputKey.GetLength());
-
-    return HMAC(hashType, convertedKey, inputData, outputDigest);
-}
-
-bool CryptoHash::HMAC(
-        const CryptoHash::HashType hashType,
-        const OTData& inputKey,
-        const String& inputData,
-        OTData& outputDigest) const
-{
-    OTData convertedData(inputData.Get(), inputData.GetLength());
-
-    return HMAC(hashType, inputKey, convertedData, outputDigest);
-}
 
 bool CryptoHash::Digest(
     const HashType hashType,
@@ -85,6 +53,17 @@ bool CryptoHash::Digest(
     OTData plaintext(data.Get(), data.GetLength());
 
     return Digest(hashType, plaintext, digest);
+}
+
+bool CryptoHash::HMAC(
+        const CryptoHash::HashType hashType,
+        const OTPassword& inputKey,
+        const String& inputData,
+        OTPassword& outputDigest) const
+{
+    OTData convertedData(inputData.Get(), inputData.GetLength());
+
+    return HMAC(hashType, inputKey, convertedData, outputDigest);
 }
 
 CryptoHash::HashType CryptoHash::StringToHashType(String& inputString)

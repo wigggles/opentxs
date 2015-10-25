@@ -76,7 +76,9 @@ public:
     virtual void Release();
     virtual void UpdateContents();
 
+    const String& EphemeralKey() const;
     const String& Nonce() const;
+    const String& MACType() const;
     const String& SessionKey() const;
     const OTASCIIArmor& Ciphertext() const;
 };

@@ -77,6 +77,9 @@ public:
     virtual ~Libsecp256k1();
 
     EXPORT static const int PrivateKeySize = 32;
+    EXPORT static const CryptoHash::HashType ECDHDefaultHMAC = CryptoHash::SHA256;
+    EXPORT static const int ECDHDefaultHMACSize = 32;
+
     bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
                       OTData& dataOutput) const;
     bool Open(OTData& dataInput, const Nym& theRecipient,

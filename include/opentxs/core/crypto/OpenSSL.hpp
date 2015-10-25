@@ -170,9 +170,9 @@ public:
         OTData& digest) const;
     virtual bool HMAC(
         const CryptoHash::HashType hashType,
-        const OTData& inputKey,
+        const OTPassword& inputKey,
         const OTData& inputData,
-        OTData& outputDigest) const;
+        OTPassword& outputDigest) const;
 
     void thread_setup() const;
     void thread_cleanup() const;

@@ -40,6 +40,7 @@
 
 #include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
@@ -68,11 +69,14 @@ Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
 }
 
 bool Libsecp256k1::Seal(
-    __attribute__((unused)) mapOfAsymmetricKeys& RecipPubKeys,
+    mapOfAsymmetricKeys& RecipPubKeys,
     const String& theInput,
     OTData& dataOutput
     ) const
 {
+    mapOfAsymmetricKeys::iterator it = RecipPubKeys.begin();
+    OTAsymmetricKey* recipient = it->second;
+
     OTKeypair ephemeralKeypair(OTAsymmetricKey::SECP256K1);
     std::shared_ptr<NymParameters> pKeyData;
     pKeyData = std::make_shared<NymParameters>(
@@ -81,52 +85,64 @@ bool Libsecp256k1::Seal(
     ephemeralKeypair.MakeNewKeypair(pKeyData);
 
     FormattedKey ephemeralPubkey;
-    String nonce = Nonce(64);
+    const OTAsymmetricKey& ephemeralPrivkey = ephemeralKeypair.GetPrivateKey();
+
+    OT_ASSERT_MSG(ECDHDefaultHMACSize>=CryptoConfig::SymmetricIvSize(), "Pick a larger HMAC. This one is too small.\n");
+
+    String nonce = Nonce(ECDHDefaultHMACSize);
     ephemeralKeypair.GetPublicKey(ephemeralPubkey);
 
-    String examplePassword("this is an example password");
-    OTData passwordHash;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA512, examplePassword, passwordHash);
-    OTPassword sessionKey;
-    sessionKey.setMemory(passwordHash);
+    std::unique_ptr<OTPassword> ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecret());
+    bool haveECDH = ECDH(*recipient, ephemeralPrivkey, *ECDHSecret);
 
-    OTData nonceHash;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA512, nonce, nonceHash);
+    if (haveECDH) {
 
-    OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
-    OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());
+        OTPassword sharedSecret;
+        CryptoEngine::Instance().Hash().HMAC(ECDHDefaultHMAC, *ECDHSecret, nonce, sharedSecret);
 
-    OTData ciphertext;
-    bool encrypted = CryptoEngine::Instance().AES().Encrypt(
-        truncatedSessionKey,
-        theInput.Get(),
-        theInput.GetLength(),
-        truncatedNonceHash,
-        ciphertext
-    );
+        OTPassword sessionKey(sharedSecret);
 
-    if (encrypted) {
-        OTASCIIArmor encodedCiphertext(ciphertext);
+        OTData nonceHash;
+        CryptoEngine::Instance().Hash().Digest(ECDHDefaultHMAC, nonce, nonceHash);
 
-        Letter theLetter(
-            ephemeralPubkey,
-            "SHA512",
-            nonce,
-            "",
-            encodedCiphertext
+        OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
+        OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());
+
+        OTData ciphertext;
+        bool encrypted = CryptoEngine::Instance().AES().Encrypt(
+            truncatedSessionKey,
+            theInput.Get(),
+            theInput.GetLength(),
+            truncatedNonceHash,
+            ciphertext
         );
 
-        String output;
-        theLetter.UpdateContents();
-        theLetter.SaveContents(output);
+        if (encrypted) {
+            OTASCIIArmor encodedCiphertext(ciphertext);
 
-        OTASCIIArmor armoredOutput(output);
-        OTData finishedOutput(armoredOutput);
-        dataOutput.Assign(finishedOutput);
+            Letter theLetter(
+                ephemeralPubkey,
+                CryptoHash::HashTypeToString(ECDHDefaultHMAC),
+                nonce,
+                "",
+                encodedCiphertext
+            );
 
-        return true;
+            String output;
+            theLetter.UpdateContents();
+            theLetter.SaveContents(output);
+
+            OTASCIIArmor armoredOutput(output);
+            OTData finishedOutput(armoredOutput);
+            dataOutput.Assign(finishedOutput);
+
+            return true;
+        } else {
+            otErr << "Libsecp256k1::" << __FUNCTION__ << ": Encryption failed.\n";
+            return false;
+        }
     } else {
-        otErr << __FUNCTION__ << ": Encryption failed.\n";
+        otErr << "Libsecp256k1::" << __FUNCTION__ << ": ECDH shared secret negotiation failed.\n";
         return false;
     }
 }
@@ -161,9 +177,23 @@ bool Libsecp256k1::Open(
                 bool haveDecodedCiphertext = ciphertext.GetData(decodedCiphertext);
 
                 if (haveDecodedCiphertext) {
-                    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA512, examplePassword, passwordHash);
-                    sessionKey.setMemory(passwordHash);
-                    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA512, nonce, nonceHash);
+
+                    String macType(contents.MACType());
+                    String ephemeralPubkey(contents.EphemeralKey());
+
+                    const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
+                    OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(OTAsymmetricKey::SECP256K1);
+                    publicKey->SetPublicKey(ephemeralPubkey);
+
+                    std::unique_ptr<OTPassword> ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecret());
+                    ECDH(*publicKey, privateKey, *ECDHSecret);
+
+                    OTPassword sharedSecret;
+                    CryptoEngine::Instance().Hash().HMAC(ECDHDefaultHMAC, *ECDHSecret, nonce, sharedSecret);
+
+                    OTPassword sessionKey(sharedSecret);
+
+                    CryptoEngine::Instance().Hash().Digest(CryptoHash::StringToHashType(macType), nonce, nonceHash);
 
                     OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
                     OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());

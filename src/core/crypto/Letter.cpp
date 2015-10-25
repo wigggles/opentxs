@@ -135,9 +135,19 @@ void Letter::Release()
     m_strContractType.Set("LETTER");
 }
 
+const String& Letter::EphemeralKey() const
+{
+    return ephemeralKey_;
+}
+
 const String& Letter::Nonce() const
 {
     return nonce_;
+}
+
+const String& Letter::MACType() const
+{
+    return macType_;
 }
 
 const String& Letter::SessionKey() const

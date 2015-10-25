@@ -2628,26 +2628,25 @@ bool OpenSSL::Digest(
 // Calculate an HMAC given some input data and a key
 bool OpenSSL::HMAC(
         const CryptoHash::HashType hashType,
-        const OTData& inputKey,
+        const OTPassword& inputKey,
         const OTData& inputData,
-        OTData& outputDigest) const
+        OTPassword& outputDigest) const
 {
-
     unsigned int size = 0;
     const EVP_MD* evp_md = OpenSSLdp::HashTypeToOpenSSLType(hashType);
 
     if (nullptr != evp_md) {
         void* data = ::HMAC(
                         evp_md,
-                        inputKey.GetPointer(),
-                        inputKey.GetSize(),
+                        inputKey.getMemory(),
+                        inputKey.getMemorySize(),
                         static_cast <const unsigned char*>(inputData.GetPointer()),
                         inputData.GetSize(),
                         nullptr,
                         &size);
 
         if (nullptr != data) {
-            outputDigest.Assign(data, size);
+            outputDigest.setMemory(data, size);
             return true;
         } else {
             otErr << __FUNCTION__ << ": Failed to produce a valid HMAC.\n";
