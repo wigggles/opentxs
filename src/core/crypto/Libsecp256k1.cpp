@@ -92,7 +92,7 @@ bool Libsecp256k1::Seal(
     String nonce = Nonce(ECDHDefaultHMACSize);
     ephemeralKeypair.GetPublicKey(ephemeralPubkey);
 
-    std::unique_ptr<OTPassword> ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecret());
+    BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
     bool haveECDH = ECDH(*recipient, ephemeralPrivkey, *ECDHSecret);
 
     if (haveECDH) {
@@ -185,7 +185,7 @@ bool Libsecp256k1::Open(
                     OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(OTAsymmetricKey::SECP256K1);
                     publicKey->SetPublicKey(ephemeralPubkey);
 
-                    std::unique_ptr<OTPassword> ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecret());
+                    BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
                     ECDH(*publicKey, privateKey, *ECDHSecret);
 
                     OTPassword sharedSecret;

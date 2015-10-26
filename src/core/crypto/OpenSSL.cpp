@@ -713,6 +713,13 @@ OTPassword* OpenSSL::InstantiateBinarySecret() const
     return pNewKey;
 }
 
+BinarySecret OpenSSL::InstantiateBinarySecretSP() const
+{
+    BinarySecret binarySecret;
+    binarySecret.reset(InstantiateBinarySecret());
+    return binarySecret;
+}
+
 #ifndef _PASSWORD_LEN
 #define _PASSWORD_LEN 128
 #endif

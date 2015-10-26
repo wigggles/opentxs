@@ -96,6 +96,7 @@ public:
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     //
     virtual OTPassword* InstantiateBinarySecret() const = 0;
+    virtual BinarySecret InstantiateBinarySecretSP() const = 0;
     // KEY DERIVATION
     //
     // DeriveNewKey derives a 128-bit symmetric key from a passphrase.
