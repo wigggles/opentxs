@@ -43,6 +43,7 @@
 
 #include <cstring>
 #include <irrxml/irrXML.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
 
 namespace opentxs
 {
@@ -56,8 +57,22 @@ void Letter::UpdateContents()
 
     rootNode.add_attribute("ephemeralkey", ephemeralKey_.Get());
     rootNode.add_attribute("mac", macType_.Get());
-    rootNode.add_attribute("nonce", nonce_.Get());
-    rootNode.add_attribute("sessionkey", sessionKey_.Get());
+    rootNode.add_attribute("iv", iv_.Get());
+
+    if (!sessionKeys_.empty()) {
+        for (auto& it : sessionKeys_) {
+            TagPtr sessionKeyNode = std::make_shared<Tag>("sessionkey");
+            OTASCIIArmor sessionKey;
+
+            it.second.GetAsciiArmoredData(sessionKey);
+
+            sessionKeyNode->add_attribute("nonce", it.first.Get());
+            sessionKeyNode->set_text(sessionKey.Get());
+
+            rootNode.add_tag(sessionKeyNode);
+        }
+    }
+
     rootNode.add_tag("ciphertext", ciphertext_.Get());
 
     std::string str_result;
@@ -75,17 +90,31 @@ int32_t Letter::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (strNodeName.Compare("letter")) {
         ephemeralKey_ = xml->getAttributeValue("ephemeralkey");
         macType_ = xml->getAttributeValue("mac");
-        nonce_ = xml->getAttributeValue("nonce");
-        sessionKey_ = xml->getAttributeValue("sessionkey");
+        iv_ = xml->getAttributeValue("iv");
         nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("ciphertext")) {
+    } else if (strNodeName.Compare("ciphertext")) {
         if (false ==
             Contract::LoadEncodedTextField(xml, ciphertext_)) {
             otErr << "Error in Letter::ProcessXMLNode: no ciphertext.\n";
             return (-1); // error condition
         }
-        return 1;
+        nReturnVal = 1;
+    } else if (strNodeName.Compare("sessionkey")) {
+        String nonce;
+        OTASCIIArmor armoredText;
+
+        nonce = xml->getAttributeValue("nonce");
+
+        if (false == Contract::LoadEncodedTextField(xml, armoredText)) {
+            otErr << "Error in Letter::ProcessXMLNode: no ciphertext.\n";
+
+            return (-1); // error condition
+        } else {
+            OTEnvelope sessionKey(armoredText);
+            sessionKeys_.insert(std::pair<String, OTEnvelope>(nonce, sessionKey));
+
+            nReturnVal = 1;
+        }
     }
 
     return nReturnVal;
@@ -94,15 +123,15 @@ int32_t Letter::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 Letter::Letter(
         const String& ephemeralKey,
         const String& macType,
-        const String& nonce,
-        const String& sessionKey,
-        const OTASCIIArmor& ciphertext)
+        const String& iv,
+        const OTASCIIArmor& ciphertext,
+        const mapOfSessionKeys& sessionKeys)
     : Contract()
     , ephemeralKey_(ephemeralKey)
     , macType_(macType)
-    , nonce_(nonce)
-    , sessionKey_(sessionKey)
+    , iv_(iv)
     , ciphertext_(ciphertext)
+    , sessionKeys_(sessionKeys)
 
 {
     m_strContractType.Set("LETTER");
@@ -140,9 +169,9 @@ const String& Letter::EphemeralKey() const
     return ephemeralKey_;
 }
 
-const String& Letter::Nonce() const
+const String& Letter::IV() const
 {
-    return nonce_;
+    return iv_;
 }
 
 const String& Letter::MACType() const
@@ -150,9 +179,9 @@ const String& Letter::MACType() const
     return macType_;
 }
 
-const String& Letter::SessionKey() const
+const mapOfSessionKeys& Letter::SessionKeys() const
 {
-    return sessionKey_;
+    return sessionKeys_;
 }
 
 const OTASCIIArmor& Letter::Ciphertext() const

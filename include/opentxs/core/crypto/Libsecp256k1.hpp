@@ -41,6 +41,7 @@
 
 #include <opentxs/core/crypto/Crypto.hpp>
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
 
 extern "C" {
 #include "secp256k1.h"
@@ -121,6 +122,17 @@ public:
         const OTAsymmetricKey& publicKey,
         const OTAsymmetricKey& privateKey,
              OTPassword& secret) const;
+    bool EncryptSessionKeyECDH(
+        const OTPassword& sessionKey,
+        const OTAsymmetricKey& privateKey,
+        const OTAsymmetricKey& publicKey,
+        std::pair<String, OTEnvelope>& encryptedSessionKey) const;
+    bool DecryptSessionKeyECDH(
+        const std::pair<String, OTEnvelope>& encryptedSessionKey,
+        const CryptoHash::HashType macType,
+        const OTAsymmetricKey& privateKey,
+        const OTAsymmetricKey& publicKey,
+        OTPassword& sessionKey) const;
 
     bool secp256k1_privkey_tweak_add(
         uint8_t key [PrivateKeySize],
@@ -134,7 +146,8 @@ public:
     bool secp256k1_pubkey_parse(
         secp256k1_pubkey_t& pubkey,
         const OTPassword& serializedPubkey) const;
-    String Nonce(uint32_t size) const;
+    String Nonce(const uint32_t size) const;
+    String Nonce(const uint32_t size, OTData& rawOutput) const;
 };
 
 } // namespace opentxs

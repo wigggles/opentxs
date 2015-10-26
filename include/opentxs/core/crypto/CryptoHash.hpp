@@ -83,8 +83,8 @@ public:
         const String& inputData,
         OTPassword& outputDigest) const;
 
-    static HashType StringToHashType(String& inputString);
-    static String HashTypeToString(HashType hashType);
+    static HashType StringToHashType(const String& inputString);
+    static String HashTypeToString(const HashType hashType);
 };
 
 } // namespace opentxs

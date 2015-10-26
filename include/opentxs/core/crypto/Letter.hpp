@@ -42,9 +42,12 @@
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
 
 namespace opentxs
 {
+
+typedef std::map<String, OTEnvelope> mapOfSessionKeys;
 
 // A letter is a contract that contains the contents of an OTEnvelope
 // along with some necessary metadata.
@@ -55,9 +58,9 @@ private: // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
     String ephemeralKey_;
     String macType_;
-    String nonce_;
-    String sessionKey_;
+    String iv_;
     OTASCIIArmor ciphertext_;
+    mapOfSessionKeys sessionKeys_;
     Letter() = delete;
 
 protected:
@@ -67,9 +70,9 @@ public:
     Letter(
         const String& ephemeralKey,
         const String& macType,
-        const String& nonce,
-        const String& sessionKey,
-        const OTASCIIArmor& ciphertext);
+        const String& iv,
+        const OTASCIIArmor& ciphertext,
+        const mapOfSessionKeys& sessionKeys);
     Letter(const String& input);
     virtual ~Letter();
     void Release_Letter();
@@ -77,9 +80,9 @@ public:
     virtual void UpdateContents();
 
     const String& EphemeralKey() const;
-    const String& Nonce() const;
+    const String& IV() const;
     const String& MACType() const;
-    const String& SessionKey() const;
+    const mapOfSessionKeys& SessionKeys() const;
     const OTASCIIArmor& Ciphertext() const;
 };
 

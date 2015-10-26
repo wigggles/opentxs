@@ -42,6 +42,7 @@
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/BitcoinCrypto.hpp>
+#include <opentxs/core/crypto/Crypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 #include <opentxs/core/crypto/Letter.hpp>
@@ -54,6 +55,7 @@
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
+#include <opentxs/core/crypto/Letter.hpp>
 
 #include <vector>
 
@@ -68,88 +70,119 @@ Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
     OT_ASSERT_MSG(nullptr != context_, "Libsecp256k1::Libsecp256k1: secp256k1_context_create failed.");
 }
 
+
 bool Libsecp256k1::Seal(
     mapOfAsymmetricKeys& RecipPubKeys,
     const String& theInput,
     OTData& dataOutput
     ) const
 {
-    mapOfAsymmetricKeys::iterator it = RecipPubKeys.begin();
-    OTAsymmetricKey* recipient = it->second;
+    // Eventually, this function will be moved out of Libsecp256k1 and into Letter.
+    // Until that happens, the lines below are redundant.
+    bool haveRecipientsECDSA = false;
+    mapOfAsymmetricKeys secp256k1Recipients;
 
-    OTKeypair ephemeralKeypair(OTAsymmetricKey::SECP256K1);
-    std::shared_ptr<NymParameters> pKeyData;
-    pKeyData = std::make_shared<NymParameters>(
-        NymParameters::SECP256K1,
-        Credential::SECP256K1_PUBKEY);
-    ephemeralKeypair.MakeNewKeypair(pKeyData);
+    for (auto it : RecipPubKeys) {
+        if (it.second->keyType() == OTAsymmetricKey::SECP256K1) {
+            haveRecipientsECDSA = true;
+            secp256k1Recipients.insert(std::pair<std::string, OTAsymmetricKey*>(it.first, it.second));
+        }
+    }
 
-    FormattedKey ephemeralPubkey;
-    const OTAsymmetricKey& ephemeralPrivkey = ephemeralKeypair.GetPrivateKey();
+    // The plaintext will be encrypted to this symmetric key.
+    // The session key will be individually encrypted to every recipient.
+    BinarySecret masterSessionKey = CryptoEngine::Instance().AES().InstantiateBinarySecretSP();
+    // Obtain an iv in both binary form, and base58check String form.
+    OTData iv;
+    String ivReadable = Nonce(CryptoConfig::SymmetricIvSize(), iv);
 
-    OT_ASSERT_MSG(ECDHDefaultHMACSize>=CryptoConfig::SymmetricIvSize(), "Pick a larger HMAC. This one is too small.\n");
+    // Now that we have a session key, encrypt the plaintext
+    OTData ciphertext;
+    bool encrypted = CryptoEngine::Instance().AES().Encrypt(
+        *masterSessionKey,
+        theInput.Get(),
+        theInput.GetLength(),
+        iv,
+        ciphertext
+    );
 
-    String nonce = Nonce(ECDHDefaultHMACSize);
-    ephemeralKeypair.GetPublicKey(ephemeralPubkey);
+    if (encrypted) {
+        OTASCIIArmor encodedCiphertext(ciphertext);
+        FormattedKey ephemeralPubkey;
+        mapOfSessionKeys sessionKeys;
 
-    BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
-    bool haveECDH = ECDH(*recipient, ephemeralPrivkey, *ECDHSecret);
+        if (haveRecipientsECDSA) {
+            #if defined(OT_CRYPTO_USING_LIBSECP256K1)
 
-    if (haveECDH) {
+            // Generate an emphemeral keypair for ECDH shared secret derivation.
+            // Why not use the sender's secp256k1 key for this?
+            // Because maybe the sender only has RSA credentials.
+            OTKeypair ephemeralKeypair(OTAsymmetricKey::SECP256K1);
+            std::shared_ptr<NymParameters> pKeyData;
+            pKeyData = std::make_shared<NymParameters>(
+                NymParameters::SECP256K1,
+                Credential::SECP256K1_PUBKEY);
+            ephemeralKeypair.MakeNewKeypair(pKeyData);
+            ephemeralKeypair.GetPublicKey(ephemeralPubkey);
 
-        OTPassword sharedSecret;
-        CryptoEngine::Instance().Hash().HMAC(ECDHDefaultHMAC, *ECDHSecret, nonce, sharedSecret);
+            const OTAsymmetricKey& ephemeralPrivkey = ephemeralKeypair.GetPrivateKey();
 
-        OTPassword sessionKey(sharedSecret);
+            // Indididually encrypt the session key to each recipient and add the encrypted key
+            // to the global list of session keys for this letter.
+            for (auto it : secp256k1Recipients) {
+                std::pair<String, OTEnvelope> encryptedSessionKey;
 
-        OTData nonceHash;
-        CryptoEngine::Instance().Hash().Digest(ECDHDefaultHMAC, nonce, nonceHash);
+                bool haveSessionKey = EncryptSessionKeyECDH(
+                                        *masterSessionKey,
+                                        ephemeralPrivkey,
+                                        *(it.second),
+                                        encryptedSessionKey);
+                if (haveSessionKey) {
+                    sessionKeys.insert(encryptedSessionKey);
 
-        OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
-        OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());
+                } else {
+                    otErr << "Libsecp256k1::" << __FUNCTION__ << ": Session key encryption failed.\n";
+                    return false;
+                }
+            }
+            #else
 
-        OTData ciphertext;
-        bool encrypted = CryptoEngine::Instance().AES().Encrypt(
-            truncatedSessionKey,
-            theInput.Get(),
-            theInput.GetLength(),
-            truncatedNonceHash,
-            ciphertext
+            otErr << "Libsecp256k1::" << __FUNCTION__ << ": Attempting to Seal to secp256k1 recipients"
+                <<" without libsecp256k1 support.\n";
+            return false;
+            #endif
+        }
+
+        // Construct the Letter
+        Letter theLetter(
+            ephemeralPubkey,
+            CryptoHash::HashTypeToString(ECDHDefaultHMAC),
+            ivReadable,
+            encodedCiphertext,
+            sessionKeys
         );
 
-        if (encrypted) {
-            OTASCIIArmor encodedCiphertext(ciphertext);
+        // Serialize the Letter to a String
+        String output;
+        theLetter.UpdateContents();
+        theLetter.SaveContents(output);
 
-            Letter theLetter(
-                ephemeralPubkey,
-                CryptoHash::HashTypeToString(ECDHDefaultHMAC),
-                nonce,
-                "",
-                encodedCiphertext
-            );
+        //Encode the serialized Letter into OTData and set the output
+        OTASCIIArmor armoredOutput(output);
+        OTData finishedOutput(armoredOutput);
+        dataOutput.Assign(finishedOutput);
 
-            String output;
-            theLetter.UpdateContents();
-            theLetter.SaveContents(output);
-
-            OTASCIIArmor armoredOutput(output);
-            OTData finishedOutput(armoredOutput);
-            dataOutput.Assign(finishedOutput);
-
-            return true;
-        } else {
+        return true;
+    } else {
             otErr << "Libsecp256k1::" << __FUNCTION__ << ": Encryption failed.\n";
             return false;
-        }
-    } else {
-        otErr << "Libsecp256k1::" << __FUNCTION__ << ": ECDH shared secret negotiation failed.\n";
-        return false;
     }
+    return false;
 }
 
 bool Libsecp256k1::Open(
     OTData& dataInput,
-    __attribute__((unused)) const Nym& theRecipient,
+    const Nym& theRecipient,
     String& theOutput,
     __attribute__((unused)) const OTPasswordData* pPWData
     ) const
@@ -157,10 +190,8 @@ bool Libsecp256k1::Open(
     OTASCIIArmor armoredInput(dataInput);
     String decodedInput;
     OTData decodedCiphertext;
-    String examplePassword("this is an example password");
     OTData passwordHash;
     OTPassword sessionKey;
-    OTData nonceHash;
     OTData plaintext;
 
     bool haveDecodedInput = armoredInput.GetString(decodedInput);
@@ -171,46 +202,80 @@ bool Libsecp256k1::Open(
         OTASCIIArmor ciphertext = contents.Ciphertext();
 
         if (ciphertext.Exists()) {
-            String nonce = contents.Nonce();
+            // Extract and decode the nonce
+            std::vector<unsigned char> decodedIV;
+            bool ivDecoded = DecodeBase58Check(contents.IV().Get(), decodedIV);
 
-            if (nonce.Exists()) {
+            if (ivDecoded) {
+                OTData iv(decodedIV);
                 bool haveDecodedCiphertext = ciphertext.GetData(decodedCiphertext);
 
                 if (haveDecodedCiphertext) {
+                    // Decode hmac type
+                    CryptoHash::HashType macType = CryptoHash::StringToHashType(contents.MACType());
 
-                    String macType(contents.MACType());
-                    String ephemeralPubkey(contents.EphemeralKey());
-
+                    bool haveSessionKey = false;
                     const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
-                    OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(OTAsymmetricKey::SECP256K1);
-                    publicKey->SetPublicKey(ephemeralPubkey);
 
-                    BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
-                    ECDH(*publicKey, privateKey, *ECDHSecret);
+                    // This if statement exists so that the function can eventually support
+                    // RSA recipients as well.
+                    if (privateKey.keyType() == OTAsymmetricKey::SECP256K1) {
+                        // Decode ephemeral public key
+                        String ephemeralPubkey(contents.EphemeralKey());
 
-                    OTPassword sharedSecret;
-                    CryptoEngine::Instance().Hash().HMAC(ECDHDefaultHMAC, *ECDHSecret, nonce, sharedSecret);
+                        if(ephemeralPubkey.Exists()) {
+                            OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(OTAsymmetricKey::SECP256K1);
+                            publicKey->SetPublicKey(ephemeralPubkey);
 
-                    OTPassword sessionKey(sharedSecret);
+                            // Get all the session keys
+                            mapOfSessionKeys sessionKeys(contents.SessionKeys());
 
-                    CryptoEngine::Instance().Hash().Digest(CryptoHash::StringToHashType(macType), nonce, nonceHash);
+                            // The only way to know which session key (might) belong to us to try them all
+                            OTPassword sessionKey;
 
-                    OTPassword truncatedSessionKey(sessionKey.getMemory(), CryptoConfig::SymmetricKeySize());
-                    OTData truncatedNonceHash(nonceHash.GetPointer(), CryptoConfig::SymmetricIvSize());
+                            for (auto it : sessionKeys) {
+                                Libsecp256k1& engine = static_cast<Libsecp256k1&>(privateKey.engine());
 
-                    bool decrypted = CryptoEngine::Instance().AES().Decrypt(
-                        truncatedSessionKey,
-                        static_cast<const char*>(decodedCiphertext.GetPointer()),
-                        decodedCiphertext.GetSize(),
-                        truncatedNonceHash,
-                        plaintext
-                    );
+                                haveSessionKey = engine.DecryptSessionKeyECDH(
+                                                        it,
+                                                        macType,
+                                                        privateKey,
+                                                        *publicKey,
+                                                        sessionKey
+                                                    );
+                                if (haveSessionKey) {
+                                    break;
+                                }
+                            }
+                            // We're done with this
+                            if (nullptr != publicKey) {
+                                delete publicKey;
+                                publicKey = nullptr;
+                            }
+                        }
+                        if (haveSessionKey) {
+                            bool decrypted = CryptoEngine::Instance().AES().Decrypt(
+                                sessionKey,
+                                static_cast<const char*>(decodedCiphertext.GetPointer()),
+                                decodedCiphertext.GetSize(),
+                                iv,
+                                plaintext);
 
-                    if (decrypted) {
-                        theOutput.Set(static_cast<const char*>(plaintext.GetPointer()), plaintext.GetSize());
-                        return true;
+                            if (decrypted) {
+                                theOutput.Set(static_cast<const char*>(plaintext.GetPointer()), plaintext.GetSize());
+                                return true;
+                            } else {
+                                otErr << "Libsecp256k1::" << __FUNCTION__ << " Decryption failed.\n";
+                                return false;
+                            }
+                        } else {
+                            otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not decrypt any sessions key. "
+                                << "Was this message intended for us?\n";
+                            return false;
+                        }
                     } else {
-                        otErr << "Libsecp256k1::" << __FUNCTION__ << " Decryption failed.\n";
+                        otErr << "Libsecp256k1::" << __FUNCTION__ << " Need an ephemeral public key for ECDH, but "
+                            << "the letter does not contain one.\n";
                         return false;
                     }
                 } else {
@@ -218,7 +283,7 @@ bool Libsecp256k1::Open(
                     return false;
                 }
             } else {
-                otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not retrieving the nonce from the Letter.\n";
+                otErr << "Libsecp256k1::" << __FUNCTION__ << " Could not retrieve the iv from the Letter.\n";
                 return false;
             }
         } else {
@@ -466,6 +531,127 @@ bool Libsecp256k1::ECDH(
     }
 }
 
+bool Libsecp256k1::EncryptSessionKeyECDH(
+        const OTPassword& sessionKey,
+        const OTAsymmetricKey& privateKey,
+        const OTAsymmetricKey& publicKey,
+        std::pair<String, OTEnvelope>& encryptedSessionKey) const
+{
+    OTData nonce;
+    String nonceReadable = Nonce(ECDHDefaultHMACSize, nonce);
+
+    // Calculate ECDH shared secret
+    BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+    bool haveECDH = ECDH(publicKey, privateKey, *ECDHSecret);
+
+    if (haveECDH) {
+        // In order to make sure the session key is always encrypted to a different key for every Seal() action,
+        // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
+        // an HMAC of the shared secret and a nonce and use that as the AES encryption key.
+        OTPassword sharedSecret;
+        CryptoEngine::Instance().Hash().HMAC(ECDHDefaultHMAC, *ECDHSecret, nonce, sharedSecret);
+
+        // The values calculated above might not be the correct size for the default symmetric encryption
+        // function.
+        if (
+            (sharedSecret.getMemorySize() >= CryptoConfig::SymmetricKeySize()) &&
+            (nonce.GetSize() >= CryptoConfig::SymmetricIvSize())) {
+
+                OTPassword truncatedSharedSecret(sharedSecret.getMemory(), CryptoConfig::SymmetricKeySize());
+                OTData truncatedNonce(nonce.GetPointer(), CryptoConfig::SymmetricIvSize());
+
+                OTData ciphertext;
+                bool encrypted = CryptoEngine::Instance().AES().Encrypt(
+                    truncatedSharedSecret,
+                    static_cast<const char*>(sessionKey.getMemory()),
+                    sessionKey.getMemorySize(),
+                    truncatedNonce,
+                    ciphertext);
+
+                    if (encrypted) {
+                        OTASCIIArmor encodedCiphertext(ciphertext);
+                        OTEnvelope sessionKeyEnvelope(encodedCiphertext);
+
+                        encryptedSessionKey.first = nonceReadable;
+                        encryptedSessionKey.second = sessionKeyEnvelope;
+
+                        return true;
+                    } else {
+                        otErr << "Libsecp256k1::" << __FUNCTION__ << ": Session key encryption failed.\n";
+                        return false;
+                    }
+        } else {
+            otErr << "Libsecp256k1::" << __FUNCTION__ << ": Insufficient nonce or key size.\n";
+            return false;
+        }
+
+    } else {
+        otErr << "Libsecp256k1::" << __FUNCTION__ << ": ECDH shared secret negotiation failed.\n";
+        return false;
+    }
+}
+
+bool Libsecp256k1::DecryptSessionKeyECDH(
+        const std::pair<String, OTEnvelope>& encryptedSessionKey,
+        const CryptoHash::HashType macType,
+        const OTAsymmetricKey& privateKey,
+        const OTAsymmetricKey& publicKey,
+        OTPassword& sessionKey) const
+{
+    // Extract and decode the nonce
+    std::vector<unsigned char> decodedNonce;
+    bool nonceDecoded = DecodeBase58Check(encryptedSessionKey.first.Get(), decodedNonce);
+
+    if (nonceDecoded) {
+        OTData nonce(decodedNonce);
+
+        // Calculate ECDH shared secret
+        BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+        bool haveECDH = ECDH(publicKey, privateKey, *ECDHSecret);
+
+        if (haveECDH) {
+            // In order to make sure the session key is always encrypted to a different key for every Seal() action
+            // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
+            // an HMAC of the shared secret and a nonce and use that as the AES encryption key.
+            OTPassword sharedSecret;
+            CryptoEngine::Instance().Hash().HMAC(macType, *ECDHSecret, nonce, sharedSecret);
+
+            // The values calculated above might not be the correct size for the default symmetric encryption
+            // function.
+            if (
+                (sharedSecret.getMemorySize() >= CryptoConfig::SymmetricKeySize()) &&
+                (nonce.GetSize() >= CryptoConfig::SymmetricIvSize())) {
+
+                    OTPassword truncatedSharedSecret(sharedSecret.getMemory(), CryptoConfig::SymmetricKeySize());
+                    OTData truncatedNonce(nonce.GetPointer(), CryptoConfig::SymmetricIvSize());
+
+                    // Extract and decode the ciphertext from the envelope
+                    OTData ciphertext;
+                    OTASCIIArmor encodedCiphertext;
+                    encryptedSessionKey.second.GetAsciiArmoredData(encodedCiphertext);
+                    encodedCiphertext.GetData(ciphertext);
+
+                    return CryptoEngine::Instance().AES().Decrypt(
+                                                            truncatedSharedSecret,
+                                                            static_cast<const char*>(ciphertext.GetPointer()),
+                                                            ciphertext.GetSize(),
+                                                            truncatedNonce,
+                                                            sessionKey);
+            } else {
+                otErr << "Libsecp256k1::" << __FUNCTION__ << ": Insufficient nonce or key size.\n";
+                return false;
+            }
+
+        } else {
+            otErr << "Libsecp256k1::" << __FUNCTION__ << ": ECDH shared secret negotiation failed.\n";
+            return false;
+        }
+    } else {
+        otErr << "Libsecp256k1::" << __FUNCTION__ << ": Can not decode nonce.\n";
+        return false;
+    }
+}
+
 bool Libsecp256k1::secp256k1_privkey_tweak_add(
     uint8_t key [PrivateKeySize],
     const uint8_t tweak [PrivateKeySize]) const
@@ -523,8 +709,17 @@ bool Libsecp256k1::secp256k1_pubkey_parse(
     return false;
 }
 
-String Libsecp256k1::Nonce(uint32_t size) const
+String Libsecp256k1::Nonce(const uint32_t size) const
 {
+    OTData unusedOutput;
+    return Nonce(size, unusedOutput);
+}
+
+String Libsecp256k1::Nonce(const uint32_t size, OTData& rawOutput) const
+{
+    rawOutput.zeroMemory();
+    rawOutput.SetSize(size);
+
     OTPassword source;
     source.randomizeMemory(size);
 
@@ -533,6 +728,7 @@ String Libsecp256k1::Nonce(uint32_t size) const
 
     String nonce(EncodeBase58Check(nonceStart, nonceEnd));
 
+    rawOutput.Assign(source.getMemory(), source.getMemorySize());
     return nonce;
 }
 
