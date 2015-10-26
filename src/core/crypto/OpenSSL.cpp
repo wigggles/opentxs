@@ -1492,6 +1492,20 @@ bool OpenSSL::Decrypt(
 bool OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
                             const String& theInput, OTData& dataOutput) const
 {
+    // Next we put the plaintext into a data object so we can process it via
+    // EVP_SealUpdate,
+    // in blocks, into encrypted form in dataOutput. Each iteration of the loop
+    // processes
+    // one block.
+    //
+    OTData plaintext(static_cast<const void*>(theInput.Get()),
+                     theInput.GetLength() + 1); // +1 for null terminator
+
+    return Seal(RecipPubKeys, plaintext, dataOutput);
+}
+bool OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
+                            OTData& plaintext, OTData& dataOutput) const
+{
     OT_ASSERT_MSG(!RecipPubKeys.empty(),
                   "OpenSSL::Seal: ASSERT: RecipPubKeys.size() > 0");
 
@@ -1935,15 +1949,6 @@ bool OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
            << "    IV last byte: " << static_cast<int32_t>(iv[ivlen - 1])
            << "   \n";
 
-    // Next we put the plaintext into a data object so we can process it via
-    // EVP_SealUpdate,
-    // in blocks, into encrypted form in dataOutput. Each iteration of the loop
-    // processes
-    // one block.
-    //
-    OTData plaintext(static_cast<const void*>(theInput.Get()),
-                     theInput.GetLength() + 1); // +1 for null terminator
-
     // Now we process the input and write the encrypted data to the
     // output.
     //
@@ -2038,6 +2043,39 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
                             String& theOutput,
                             const OTPasswordData* pPWData) const
 {
+    OTData plaintext;
+
+    bool opened = Open(dataInput, theRecipient, plaintext, pPWData);
+
+    if (opened) {
+        // Set it into theOutput (to return the plaintext to the caller)
+        //
+        // if size is 10, then indices are 0..9 and we pass '10' as the size here.
+        // Since it's an OTData, then the 10th byte (at index 9) is expected to
+        // contain
+        // the null terminator.
+        // Thus the ACTUAL string is only 9 bytes int64_t, and is contained in
+        // indices 0..8.
+        //
+        const bool bSetMem = theOutput.MemSet(
+            static_cast<const char*>(plaintext.GetPointer()), plaintext.GetSize());
+
+        if (bSetMem)
+            otLog5 << __FUNCTION__ << ": Output:\n" << theOutput << "\n\n";
+        else
+            otErr << __FUNCTION__ << ": Error: Failed while trying to memset from "
+                                    "plaintext OTData to output OTString.\n";
+
+        return bSetMem;
+    } else {
+        return false;
+    }
+}
+
+bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
+                            OTData& plaintext,
+                            const OTPasswordData* pPWData) const
+{
     const char* szFunc = "OpenSSL::Open";
 
     uint8_t buffer[4096];
@@ -2054,9 +2092,9 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
     memset(buffer_out, 0, 4096 + EVP_MAX_IV_LENGTH);
     memset(iv, 0, EVP_MAX_IV_LENGTH);
 
-    // theOutput is where we'll put the decrypted result.
+    // plaintext is where we'll put the decrypted result.
     //
-    theOutput.Release();
+    plaintext.empty();
 
     // Grab the NymID of the recipient, so we can find his session
     // key (there might be symmetric keys for several Nyms, not just this
@@ -2070,10 +2108,12 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
 
     OTAsymmetricKey_OpenSSL* pPrivateKey =
         dynamic_cast<OTAsymmetricKey_OpenSSL*>(&theTempPrivateKey);
-    OT_ASSERT(nullptr != pPrivateKey);
 
-    EVP_PKEY* private_key =
-        const_cast<EVP_PKEY*>(pPrivateKey->dp->GetKey(pPWData));
+    EVP_PKEY* private_key = nullptr;
+    if (nullptr != pPrivateKey) {
+        private_key =
+            const_cast<EVP_PKEY*>(pPrivateKey->dp->GetKey(pPWData));
+    }
 
     if (nullptr == private_key) {
         otErr << szFunc
@@ -2524,9 +2564,6 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
     }
 
     // Now we process ciphertext and write the decrypted data to plaintext.
-    //
-    OTData plaintext;
-
     // We loop through the ciphertext and process it in blocks...
     //
     while (0 <
@@ -2568,25 +2605,7 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
     (static_cast<uint8_t*>(const_cast<void*>(plaintext.GetPointer())))[nIndex] =
         '\0';
 
-    // Set it into theOutput (to return the plaintext to the caller)
-    //
-    // if size is 10, then indices are 0..9 and we pass '10' as the size here.
-    // Since it's an OTData, then the 10th byte (at index 9) is expected to
-    // contain
-    // the null terminator.
-    // Thus the ACTUAL string is only 9 bytes int64_t, and is contained in
-    // indices 0..8.
-    //
-    const bool bSetMem = theOutput.MemSet(
-        static_cast<const char*>(plaintext.GetPointer()), plaintext.GetSize());
-
-    if (bSetMem)
-        otLog5 << __FUNCTION__ << ": Output:\n" << theOutput << "\n\n";
-    else
-        otErr << __FUNCTION__ << ": Error: Failed while trying to memset from "
-                                 "plaintext OTData to output OTString.\n";
-
-    return bSetMem;
+    return bFinalized;
 }
 
 bool OpenSSL::Digest(

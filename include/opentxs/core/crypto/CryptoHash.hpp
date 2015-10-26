@@ -54,6 +54,7 @@ protected:
 public:
     enum HashType {
       ERROR,
+      NONE,
       HASH256,
       HASH160,
       SHA1,

@@ -146,8 +146,6 @@ public:
     bool secp256k1_pubkey_parse(
         secp256k1_pubkey_t& pubkey,
         const OTPassword& serializedPubkey) const;
-    String Nonce(const uint32_t size) const;
-    String Nonce(const uint32_t size, OTData& rawOutput) const;
 };
 
 } // namespace opentxs

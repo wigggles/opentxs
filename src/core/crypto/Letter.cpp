@@ -38,12 +38,24 @@
 
 #include <opentxs/core/crypto/Letter.hpp>
 
+#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/Nym.hpp>
+#include <opentxs/core/crypto/BitcoinCrypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/crypto/OTKeypair.hpp>
 #include <opentxs/core/util/Tag.hpp>
+
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include <opentxs/core/crypto/Libsecp256k1.hpp>
+#endif
 
 #include <cstring>
 #include <irrxml/irrXML.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/crypto/OpenSSL.hpp>
 
 namespace opentxs
 {
@@ -162,6 +174,286 @@ void Letter::Release()
     ot_super::Release();
 
     m_strContractType.Set("LETTER");
+}
+
+bool Letter::Seal(
+    const mapOfAsymmetricKeys& RecipPubKeys,
+    const String& theInput,
+    OTData& dataOutput)
+{
+    bool haveRecipientsECDSA = false;
+    bool haveRecipientsRSA = false;
+    mapOfAsymmetricKeys secp256k1Recipients;
+    mapOfAsymmetricKeys RSARecipients;
+
+    for (auto it : RecipPubKeys) {
+        switch (it.second->keyType()) {
+            case OTAsymmetricKey::SECP256K1 :
+                haveRecipientsECDSA = true;
+                secp256k1Recipients.insert(std::pair<std::string, OTAsymmetricKey*>(it.first, it.second));
+                break;
+            case OTAsymmetricKey::RSA :
+                haveRecipientsRSA = true;
+                RSARecipients.insert(std::pair<std::string, OTAsymmetricKey*>(it.first, it.second));
+                break;
+            default :
+                otErr << "Letter::" << __FUNCTION__ << ": Unknown recipient type.\n";
+                return false;
+        }
+    }
+
+    // The plaintext will be encrypted to this symmetric key.
+    // The session key will be individually encrypted to every recipient.
+    BinarySecret masterSessionKey = CryptoEngine::Instance().AES().InstantiateBinarySecretSP();
+    // Obtain an iv in both binary form, and base58check String form.
+    OTData iv;
+    String ivReadable = CryptoEngine::Instance().Util().Nonce(CryptoConfig::SymmetricIvSize(), iv);
+
+    // Now that we have a session key, encrypt the plaintext
+    OTData ciphertext;
+    bool encrypted = CryptoEngine::Instance().AES().Encrypt(
+        *masterSessionKey,
+        theInput.Get(),
+        theInput.GetLength(),
+        iv,
+        ciphertext
+    );
+
+    if (encrypted) {
+        OTASCIIArmor encodedCiphertext(ciphertext);
+        FormattedKey ephemeralPubkey;
+        mapOfSessionKeys sessionKeys;
+        String macType = "null";
+
+        if (haveRecipientsECDSA) {
+            #if defined(OT_CRYPTO_USING_LIBSECP256K1)
+            Libsecp256k1& engine = static_cast<Libsecp256k1&>(CryptoEngine::Instance().SECP256K1());
+            macType = CryptoHash::HashTypeToString(Libsecp256k1::ECDHDefaultHMAC);
+
+            // Generate an emphemeral keypair for ECDH shared secret derivation.
+            // Why not use the sender's secp256k1 key for this?
+            // Because maybe the sender only has RSA credentials.
+            OTKeypair ephemeralKeypair(OTAsymmetricKey::SECP256K1);
+            std::shared_ptr<NymParameters> pKeyData;
+            pKeyData = std::make_shared<NymParameters>(
+                NymParameters::SECP256K1,
+                Credential::SECP256K1_PUBKEY);
+            ephemeralKeypair.MakeNewKeypair(pKeyData);
+            ephemeralKeypair.GetPublicKey(ephemeralPubkey);
+
+            const OTAsymmetricKey& ephemeralPrivkey = ephemeralKeypair.GetPrivateKey();
+
+            // Indididually encrypt the session key to each recipient and add the encrypted key
+            // to the global list of session keys for this letter.
+            for (auto it : secp256k1Recipients) {
+                std::pair<String, OTEnvelope> encryptedSessionKey;
+
+                bool haveSessionKey = engine.EncryptSessionKeyECDH(
+                                        *masterSessionKey,
+                                        ephemeralPrivkey,
+                                        *(it.second),
+                                        encryptedSessionKey);
+                if (haveSessionKey) {
+                    sessionKeys.insert(encryptedSessionKey);
+
+                } else {
+                    otErr << "Letter::" << __FUNCTION__ << ": Session key encryption failed.\n";
+                    return false;
+                }
+            }
+            #else
+
+            otErr << "Letter::" << __FUNCTION__ << ": Attempting to Seal to OpenSSL recipients"
+                <<" without OpenSSL support.\n";
+            return false;
+            #endif
+        }
+
+        if (haveRecipientsRSA) {
+            #if defined(OT_CRYPTO_USING_OPENSSL)
+            OTData plaintextSessionKey(masterSessionKey->getMemory(), masterSessionKey->getMemorySize());
+
+            OpenSSL& engine = static_cast<OpenSSL&>(CryptoEngine::Instance().RSA());
+
+            // Encrypt the session key to all RSA recipients and add the encrypted key
+            // to the global list of session keys for this letter.
+            std::pair<String, OTEnvelope> encryptedSessionKey;
+            OTData ciphertext;
+
+            bool haveSessionKey = engine.Seal(RSARecipients, plaintextSessionKey, ciphertext);
+
+            if (haveSessionKey) {
+                OTEnvelope sessionKey(ciphertext);
+                encryptedSessionKey.second = sessionKey;
+                sessionKeys.insert(encryptedSessionKey);
+
+            } else {
+                otErr << "Letter::" << __FUNCTION__ << ": Session key encryption failed.\n";
+                return false;
+            }
+            #else
+
+            otErr << "Letter::" << __FUNCTION__ << ": Attempting to Seal to OpenSSL recipients"
+                <<" without OpenSSL support.\n";
+            return false;
+            #endif
+        }
+
+        // Construct the Letter
+        Letter theLetter(
+            ephemeralPubkey,
+            macType,
+            ivReadable,
+            encodedCiphertext,
+            sessionKeys
+        );
+
+        // Serialize the Letter to a String
+        String output;
+        theLetter.UpdateContents();
+        theLetter.SaveContents(output);
+
+        //Encode the serialized Letter into OTData and set the output
+        OTASCIIArmor armoredOutput(output);
+        OTData finishedOutput(armoredOutput);
+        dataOutput.Assign(finishedOutput);
+
+        return true;
+    } else {
+            otErr << "Letter::" << __FUNCTION__ << ": Encryption failed.\n";
+            return false;
+    }
+    return false;
+}
+
+bool Letter::Open(
+    const OTData& dataInput,
+    const Nym& theRecipient,
+    String& theOutput,
+    const OTPasswordData* pPWData)
+{
+    OTASCIIArmor armoredInput(dataInput);
+    String decodedInput;
+    OTData decodedCiphertext;
+    OTData passwordHash;
+    BinarySecret sessionKey  = CryptoEngine::Instance().AES().InstantiateBinarySecretSP();;
+    OTData plaintext;
+
+    bool haveDecodedInput = armoredInput.GetString(decodedInput);
+
+    if (haveDecodedInput) {
+        Letter contents(decodedInput);
+
+        OTASCIIArmor ciphertext = contents.Ciphertext();
+
+        if (ciphertext.Exists()) {
+            // Extract and decode the nonce
+            std::vector<unsigned char> decodedIV;
+            bool ivDecoded = DecodeBase58Check(contents.IV().Get(), decodedIV);
+
+            if (ivDecoded) {
+                OTData iv(decodedIV);
+                bool haveDecodedCiphertext = ciphertext.GetData(decodedCiphertext);
+
+                if (haveDecodedCiphertext) {
+                    // Decode hmac type
+                    CryptoHash::HashType macType = CryptoHash::StringToHashType(contents.MACType());
+
+                    bool haveSessionKey = false;
+                    const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
+
+                    if (privateKey.keyType() == OTAsymmetricKey::SECP256K1) {
+                        // Decode ephemeral public key
+                        String ephemeralPubkey(contents.EphemeralKey());
+
+                        if(ephemeralPubkey.Exists()) {
+                            OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(OTAsymmetricKey::SECP256K1);
+                            publicKey->SetPublicKey(ephemeralPubkey);
+
+                            // Get all the session keys
+                            mapOfSessionKeys sessionKeys(contents.SessionKeys());
+
+                            // The only way to know which session key (might) belong to us to try them all
+                            for (auto it : sessionKeys) {
+                                Libsecp256k1& engine = static_cast<Libsecp256k1&>(privateKey.engine());
+
+                                haveSessionKey = engine.DecryptSessionKeyECDH(
+                                                        it,
+                                                        macType,
+                                                        privateKey,
+                                                        *publicKey,
+                                                        *sessionKey
+                                                    );
+                                if (haveSessionKey) {
+                                    break;
+                                }
+                            }
+                            // We're done with this
+                            if (nullptr != publicKey) {
+                                delete publicKey;
+                                publicKey = nullptr;
+                            }
+                        } else {
+                            otErr << "Letter::" << __FUNCTION__ << " Need an ephemeral public key for ECDH, but "
+                                << "the letter does not contain one.\n";
+                            return false;
+                        }
+                    }
+                    if (privateKey.keyType() == OTAsymmetricKey::RSA) {
+
+                        // Get all the session keys
+                        mapOfSessionKeys sessionKeys(contents.SessionKeys());
+
+                        // The only way to know which session key (might) belong to us to try them all
+                        OpenSSL& engine = static_cast<OpenSSL&>(CryptoEngine::Instance().RSA());
+
+                        for (auto it : sessionKeys) {
+                            OTData plaintextSessionKey;
+
+                            haveSessionKey = engine.Open(it.second.m_dataContents, theRecipient, plaintextSessionKey, pPWData);
+
+                            if (haveSessionKey) {
+                                sessionKey->setMemory(plaintextSessionKey);
+                                break;
+                            }
+                        }
+                    }
+                    if (haveSessionKey) {
+                        bool decrypted = CryptoEngine::Instance().AES().Decrypt(
+                                                                            *sessionKey,
+                                                                            static_cast<const char*>(decodedCiphertext.GetPointer()),
+                                                                            decodedCiphertext.GetSize(),
+                                                                            iv,
+                                                                            plaintext);
+
+                        if (decrypted) {
+                            theOutput.Set(static_cast<const char*>(plaintext.GetPointer()), plaintext.GetSize());
+                            return true;
+                        } else {
+                            otErr << "Letter::" << __FUNCTION__ << " Decryption failed.\n";
+                            return false;
+                        }
+                    } else {
+                        otErr << "Letter::" << __FUNCTION__ << " Could not decrypt any sessions key. "
+                            << "Was this message intended for us?\n";
+                        return false;
+                    }
+                } else {
+                    otErr << "Letter::" << __FUNCTION__ << " Could not decode armored ciphertext.\n";
+                    return false;
+                }
+            } else {
+                otErr << "Letter::" << __FUNCTION__ << " Could not retrieve the iv from the Letter.\n";
+                return false;
+            }
+        } else {
+            otErr << "Letter::" << __FUNCTION__ << " Could not retrieve the encoded ciphertext from the Letter.\n";
+            return false;
+        }
+    } else {
+        otErr << "Letter::" << __FUNCTION__ << " Could not decode armored input data.\n";
+        return false;
+    }
 }
 
 const String& Letter::EphemeralKey() const

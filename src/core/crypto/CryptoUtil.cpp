@@ -42,6 +42,8 @@
 
 #include <iostream>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/OTData.hpp>
+#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
 namespace opentxs
@@ -93,6 +95,29 @@ bool CryptoUtil::IsBase62(const std::string& str) const
 {
     return str.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
                                  "JKLMNOPQRSTUVWXYZ") == std::string::npos;
+}
+
+String CryptoUtil::Nonce(const uint32_t size) const
+{
+    OTData unusedOutput;
+    return Nonce(size, unusedOutput);
+}
+
+String CryptoUtil::Nonce(const uint32_t size, OTData& rawOutput) const
+{
+    rawOutput.zeroMemory();
+    rawOutput.SetSize(size);
+
+    OTPassword source;
+    source.randomizeMemory(size);
+
+    const uint8_t* nonceStart = static_cast<const uint8_t*>(source.getMemory());
+    const uint8_t* nonceEnd = nonceStart + source.getMemorySize();
+
+    String nonce(EncodeBase58Check(nonceStart, nonceEnd));
+
+    rawOutput.Assign(source.getMemory(), source.getMemorySize());
+    return nonce;
 }
 
 } // namespace opentxs

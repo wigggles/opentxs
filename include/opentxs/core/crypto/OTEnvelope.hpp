@@ -55,12 +55,14 @@ class OTPasswordData;
 class Nym;
 class String;
 class OTSymmetricKey;
+class Letter;
 
 typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
 typedef std::set<Nym*> setOfNyms;
 
 class OTEnvelope
 {
+    friend Letter;
     OTData m_dataContents; // Stores only encrypted contents.
 
 public:

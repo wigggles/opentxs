@@ -54,6 +54,7 @@ extern "C" {
 #pragma comment(lib, "ws2_32.lib")
 #else
 #include <netinet/in.h>
+#include <opentxs/core/crypto/Letter.hpp>
 #endif
 }
 
@@ -428,8 +429,6 @@ bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
                       const String& theInput)
 {
-  CryptoAsymmetric& engine = RecipPubKey.engine();
-
   mapOfAsymmetricKeys theKeys;
     theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
         "", // Normally the NymID goes here, but we don't know what it is, in
@@ -439,7 +438,7 @@ bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
     OT_ASSERT_MSG(!theKeys.empty(),
                   "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
 
-    return engine.Seal(theKeys, theInput, m_dataContents);
+    return Letter::Seal(theKeys, theInput, m_dataContents);
 }
 
 // RSA / AES
@@ -447,10 +446,13 @@ bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
 bool OTEnvelope::Open(const Nym& theRecipient, String& theOutput,
                       const OTPasswordData* pPWData)
 {
-  CryptoAsymmetric& engine = theRecipient.GetPublicEncrKey().engine();
-
-  return engine.Open(m_dataContents, theRecipient, theOutput,
+    bool opened = Letter::Open(m_dataContents, theRecipient, theOutput,
                                 pPWData);
+    /*if (!opened) {
+        opened = CryptoEngine::Instance().RSA().Open(m_dataContents, theRecipient, theOutput,
+                                pPWData);
+    }*/
+    return opened;
 }
 
 // TODO: Fix OTEnvelope so we can seal to multiple recipients simultaneously.

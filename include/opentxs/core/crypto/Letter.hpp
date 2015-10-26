@@ -45,7 +45,12 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 
 namespace opentxs
+
 {
+
+class Nym;
+class OTData;
+class OTPasswordData;
 
 typedef std::map<String, OTEnvelope> mapOfSessionKeys;
 
@@ -78,6 +83,16 @@ public:
     void Release_Letter();
     virtual void Release();
     virtual void UpdateContents();
+
+    static bool Seal(
+        const mapOfAsymmetricKeys& RecipPubKeys,
+        const String& theInput,
+        OTData& dataOutput);
+    static bool Open(
+        const OTData& dataInput,
+        const Nym& theRecipient,
+        String& theOutput,
+        const OTPasswordData* pPWData = nullptr);
 
     const String& EphemeralKey() const;
     const String& IV() const;

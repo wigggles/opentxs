@@ -68,7 +68,9 @@ bool CryptoHash::HMAC(
 
 CryptoHash::HashType CryptoHash::StringToHashType(const String& inputString)
 {
-    if (inputString.Compare("HASH256"))
+    if (inputString.Compare("null"))
+        return CryptoHash::NONE;
+    else if (inputString.Compare("HASH256"))
         return CryptoHash::HASH256;
     else if (inputString.Compare("HASH160"))
         return CryptoHash::HASH160;
@@ -91,6 +93,9 @@ String CryptoHash::HashTypeToString(const CryptoHash::HashType hashType)
     String hashTypeString;
 
     switch (hashType) {
+        case CryptoHash::NONE :
+            hashTypeString = "null";
+            break;
         case CryptoHash::HASH256 :
             hashTypeString = "HASH256";
             break;

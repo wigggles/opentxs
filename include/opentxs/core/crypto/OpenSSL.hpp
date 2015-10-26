@@ -146,9 +146,14 @@ public:
     // Asymmetric (public key) encryption / decryption
     virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
                       OTData& dataOutput) const;
+    virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys, OTData& theInput,
+                      OTData& dataOutput) const;
 
     virtual bool Open(OTData& dataInput, const Nym& theRecipient,
                       String& theOutput,
+                      const OTPasswordData* pPWData = nullptr) const;
+    virtual bool Open(OTData& dataInput, const Nym& theRecipient,
+                      OTData& plaintext,
                       const OTPasswordData* pPWData = nullptr) const;
     // SIGN / VERIFY
     // Sign or verify using the Asymmetric Key itself.
