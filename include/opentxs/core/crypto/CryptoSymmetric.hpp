@@ -40,8 +40,10 @@
 #define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 
 #include <opentxs/core/OTData.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
+#include <memory>
 #include <mutex>
 
 namespace opentxs
@@ -52,6 +54,7 @@ class OTPassword;
 class OTPasswordData;
 class OTData;
 
+typedef std::shared_ptr<OTPassword> BinarySecret;
 // Sometimes I want to decrypt into an OTPassword (for encrypted symmetric
 // keys being decrypted) and sometimes I want to decrypt into an OTData
 // (For most other types of data.) This class allows me to do it either way
