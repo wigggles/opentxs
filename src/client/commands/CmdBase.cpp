@@ -79,20 +79,30 @@ bool CmdBase::checkAccount(const char* name, string& account) const
         return false;
     }
 
+    Account* pAccount = nullptr;
     OTWallet* wallet = getWallet();
-    Account* theAccount = wallet->GetAccount(account);
-    if (theAccount == nullptr) {
-        theAccount = wallet->GetAccountPartialMatch(account);
-        if (theAccount == nullptr) {
+
+    Identifier theID(account);
+    
+    if (!theID.empty())
+        pAccount = wallet->GetAccount(theID);
+    
+    if (nullptr == pAccount) {
+        pAccount = wallet->GetAccountPartialMatch(account);
+        if (nullptr == pAccount) {
             otOut << "Error: " << name << ": unknown account: " << account
                   << "\n";
             return false;
         }
     }
 
-    String tmp;
-    theAccount->GetPurportedAccountID().GetString(tmp);
-    account = tmp.Get();
+    if (nullptr != pAccount)
+    {
+        String tmp;
+        pAccount->GetPurportedAccountID().GetString(tmp);
+        account = tmp.Get();
+    }
+    
     otOut << "Using " << name << ": " << account << "\n";
     return true;
 }
@@ -210,19 +220,25 @@ bool CmdBase::checkNym(const char* name, string& nym, bool checkExistance) const
         return false;
     }
 
-    OTWallet* wallet = getWallet();
-    Nym* theNym = wallet->GetNymByID(nym);
-    if (theNym == nullptr) {
-        theNym = wallet->GetNymByIDPartialMatch(nym);
-        if (theNym == nullptr && checkExistance) {
-            otOut << "Error: " << name << ": unknown nymm: " << nym << "\n";
+    Nym      * pNym   = nullptr;
+    OTWallet * wallet = getWallet();
+    
+    const Identifier nymID(nym);
+    
+    if (!nymID.empty())
+        pNym = wallet->GetOrLoadNym(nymID);
+    
+    if (nullptr == pNym) {
+        pNym = wallet->GetNymByIDPartialMatch(nym);
+        if (nullptr == pNym && checkExistance) {
+            otOut << "Error: " << name << ": unknown nym: " << nym << "\n";
             return false;
         }
     }
 
-    if (theNym) {
+    if (nullptr != pNym) {
         String tmp;
-        theNym->GetIdentifier(tmp);
+        pNym->GetIdentifier(tmp);
         nym = tmp.Get();
     }
     otOut << "Using " << name << ": " << nym << "\n";
@@ -235,19 +251,28 @@ bool CmdBase::checkPurse(const char* name, string& purse) const
         return false;
     }
 
+    AssetContract* pPurse = nullptr;
     OTWallet* wallet = getWallet();
-    AssetContract* thePurse = wallet->GetAssetContract(purse);
-    if (thePurse == nullptr) {
-        thePurse = wallet->GetAssetContractPartialMatch(purse);
-        if (thePurse == nullptr) {
+    
+    Identifier theID(purse);
+    
+    if (!theID.empty())
+        pPurse = wallet->GetAssetContract(theID);
+    
+    if (nullptr == pPurse) {
+        pPurse = wallet->GetAssetContractPartialMatch(purse);
+        if (nullptr == pPurse) {
             otOut << "Error: " << name << ": unknown purse: " << purse << "\n";
             return false;
         }
     }
 
-    String tmp;
-    thePurse->GetIdentifier(tmp);
-    purse = tmp.Get();
+    if (nullptr != pPurse)
+    {
+        String tmp;
+        pPurse->GetIdentifier(tmp);
+        purse = tmp.Get();
+    }
     otOut << "Using " << name << ": " << purse << "\n";
     return true;
 }
@@ -258,20 +283,29 @@ bool CmdBase::checkServer(const char* name, string& server) const
         return false;
     }
 
+    OTServerContract* pServer = nullptr;
     OTWallet* wallet = getWallet();
-    OTServerContract* theServer = wallet->GetServerContract(server);
-    if (theServer == nullptr) {
-        theServer = wallet->GetServerContractPartialMatch(server);
-        if (theServer == nullptr) {
+    
+    Identifier theID(server);
+    
+    if (!theID.empty())
+        pServer = wallet->GetServerContract(theID);
+    
+    if (nullptr == pServer) {
+        pServer = wallet->GetServerContractPartialMatch(server);
+        if (nullptr == pServer) {
             otOut << "Error: " << name << ": unknown server: " << server
                   << "\n";
             return false;
         }
     }
 
-    String tmp;
-    theServer->GetIdentifier(tmp);
-    server = tmp.Get();
+    if (nullptr != pServer)
+    {
+        String tmp;
+        pServer->GetIdentifier(tmp);
+        server = tmp.Get();
+    }
     otOut << "Using " << name << ": " << server << "\n";
     return true;
 }

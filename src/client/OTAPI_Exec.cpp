@@ -2397,26 +2397,34 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
         return "";
     }
     if (PARTIAL_ID.empty()) {
-        otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
+        otErr << __FUNCTION__ << ": Empty PARTIAL_ID passed in!\n";
         return "";
     }
+    
+    Nym * pObject = nullptr;
+    
     Identifier thePartialID(PARTIAL_ID);
 
-    // In this case, the user passed in the FULL ID.
+    // In this case, the user maybe passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    Nym* pObject =
-        OTAPI()->GetNym(thePartialID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
+    if (!thePartialID.empty())
+    {
+        OTPasswordData thePWData(OT_PW_DISPLAY);
+        pObject =
+            OTAPI()->GetOrLoadNym(thePartialID, false, __FUNCTION__,
+                                  &thePWData); // This tries to get, then tries to load as public,
+                                               // then tries to load as private.
+    }
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
-    // Below this point, it definitely wasn't a FULL ID, so now we can
-    // go ahead and search for it as a PARTIAL ID...
+    // Below this point, it definitely wasn't a FULL ID, at least one that
+    // we know about, so now we can go ahead and search for it as a PARTIAL ID...
     //
     pObject = OTAPI()->GetNymByIDPartialMatch(
         PARTIAL_ID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
@@ -2453,19 +2461,19 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
         otErr << __FUNCTION__ << ": Null: PARTIAL_ID passed in!\n";
         return "";
     }
+    OTServerContract* pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    OTServerContract* pObject = OTAPI()->GetServer(
-        thePartialID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial");
+    if (!thePartialID.empty())
+        pObject = OTAPI()->GetServer(thePartialID, "OTAPI_Exec::Wallet_GetNotaryIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
     // Below this point, it definitely wasn't a FULL ID, so now we can
@@ -2479,7 +2487,6 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
 
@@ -2509,20 +2516,20 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
         return "";
     }
 
+    AssetContract* pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    AssetContract* pObject = OTAPI()->GetAssetType(
-        thePartialID,
+    if (!thePartialID.empty())
+        pObject = OTAPI()->GetAssetType(thePartialID,
         "OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
     // Below this point, it definitely wasn't a FULL ID, so now we can
@@ -2536,7 +2543,6 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
 
@@ -2563,33 +2569,33 @@ std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
         return "";
     }
 
+    Account * pObject = nullptr;
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user passed in the FULL ID.
     // (We STILL confirm whether he's found in the wallet...)
     //
-    Account* pObject = OTAPI()->GetAccount(
-        thePartialID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
+    if (!thePartialID.empty())
+        pObject = OTAPI()->GetAccount(
+        thePartialID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
 
     if (nullptr != pObject) // Found it (as full ID.)
     {
         String strID_Output(thePartialID);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
     // Below this point, it definitely wasn't a FULL ID, so now we can
     // go ahead and search for it as a PARTIAL ID...
     //
     pObject = OTAPI()->GetAccountPartialMatch(
-        PARTIAL_ID, "OTAPI_Exec::Wallet_GetNymIDFromPartial");
+        PARTIAL_ID, "OTAPI_Exec::Wallet_GetAccountIDFromPartial");
 
     if (nullptr != pObject) // Found it (as partial ID.)
     {
         String strID_Output;
         pObject->GetIdentifier(strID_Output);
         std::string pBuf = strID_Output.Get();
-
         return pBuf;
     }
 
