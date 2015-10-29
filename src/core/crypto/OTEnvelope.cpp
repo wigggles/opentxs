@@ -421,6 +421,22 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     return bDecrypted;
 }
 
+EXPORT bool OTEnvelope::Seal(const setOfNyms recipients,
+                 const String& theInput)
+{
+    mapOfAsymmetricKeys recipientKeys;
+
+    if (!recipientKeys.empty()) {
+        for (auto& it : recipients) {
+            recipientKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
+                "",const_cast<OTAsymmetricKey*>(&(it->GetPublicEncrKey()))));
+        }
+        return Seal(recipientKeys, theInput);
+    } else {
+        return false;
+    }
+}
+
 bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 {
     return Seal(theRecipient.GetPublicEncrKey(), theInput);
@@ -429,16 +445,20 @@ bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 bool OTEnvelope::Seal(const OTAsymmetricKey& RecipPubKey,
                       const String& theInput)
 {
-  mapOfAsymmetricKeys theKeys;
-    theKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-        "", // Normally the NymID goes here, but we don't know what it is, in
-            // this case.
-        const_cast<OTAsymmetricKey*>(&RecipPubKey)));
+    mapOfAsymmetricKeys recipientKeys;
+    recipientKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
+        "",const_cast<OTAsymmetricKey*>(&RecipPubKey)));
 
-    OT_ASSERT_MSG(!theKeys.empty(),
+    return Seal(recipientKeys, theInput);
+}
+
+bool OTEnvelope::Seal(const mapOfAsymmetricKeys& recipientKeys,
+                      const String& theInput)
+{
+    OT_ASSERT_MSG(!recipientKeys.empty(),
                   "OTEnvelope::Seal: ASSERT: RecipPubKeys.size() > 0");
 
-    return Letter::Seal(theKeys, theInput, m_dataContents);
+    return Letter::Seal(recipientKeys, theInput, m_dataContents);
 }
 
 // RSA / AES
