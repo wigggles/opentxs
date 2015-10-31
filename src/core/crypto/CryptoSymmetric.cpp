@@ -153,4 +153,39 @@ bool CryptoSymmetricDecryptOutput::Concatenate(const void* pAppendData,
     return false;
 }
 
+String CryptoSymmetric::ModeToString(const Mode Mode)
+{
+    String modeString;
+
+    switch (Mode) {
+        case CryptoSymmetric::AES_128_CBC :
+            modeString="aes-128-cbc";
+            break;
+        case CryptoSymmetric::AES_256_ECB  :
+            modeString="aes-256-ecb";
+            break;
+        case CryptoSymmetric::AES_128_GCM  :
+            modeString="aes-128-gcm";
+            break;
+        case CryptoSymmetric::AES_256_GCM  :
+            modeString="aes-256-gcm";
+            break;
+        default :
+            modeString="error";
+    }
+    return modeString;
+}
+CryptoSymmetric::Mode CryptoSymmetric::StringToMode(const String& Mode)
+{
+    if (Mode.Compare("aes-128-cbc"))
+        return CryptoSymmetric::AES_128_CBC ;
+    if (Mode.Compare("aes-256-ecb"))
+        return CryptoSymmetric::AES_256_ECB ;
+    if (Mode.Compare("aes-128-gcm"))
+        return CryptoSymmetric::AES_128_GCM ;
+    if (Mode.Compare("aes-256-gcm"))
+        return CryptoSymmetric::AES_256_GCM ;
+    return CryptoSymmetric::ERROR_MODE ;
+}
+
 } // namespace opentxs

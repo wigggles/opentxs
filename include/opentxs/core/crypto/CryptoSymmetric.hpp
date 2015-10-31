@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 
 #include <opentxs/core/OTData.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
@@ -92,6 +93,18 @@ public:
 class CryptoSymmetric
 {
 public:
+    enum Mode: int32_t {
+        ERROR_MODE,
+        AES_128_CBC,
+        AES_256_ECB,
+        AES_128_GCM,
+        AES_256_GCM
+    };
+
+    static String ModeToString(const Mode Mode);
+
+    static Mode StringToMode(const String& Mode);
+
     // InstantiateBinarySecret
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     //
@@ -137,6 +150,14 @@ public:
         const OTData& theIV, // (We assume this IV is already generated and
                              // passed in.)
         OTData& theEncryptedOutput) const = 0; // OUTPUT. (Ciphertext.)
+    virtual bool Encrypt(
+        const OTPassword& theRawSymmetricKey,
+        const Mode cipher,
+        const char* szInput,
+        uint32_t lInputLength,
+        OTData& theEncryptedOutput,
+        const OTData* theIV = nullptr,  // For some cipher modes, IV is optional
+        OTData* tag = nullptr) const = 0; // Only used for AEAD
 
     virtual bool Decrypt(const OTPassword& theRawSymmetricKey, // The symmetric
                                                                // key, in clear
@@ -149,6 +170,14 @@ public:
                          CryptoSymmetricDecryptOutput theDecryptedOutput)
         const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
                    // OTData& here (either will work.)
+    virtual bool Decrypt(
+        const OTPassword& theRawSymmetricKey,
+        const Mode cipher,
+        const char* szInput,
+        uint32_t lInputLength,
+        CryptoSymmetricDecryptOutput theDecryptedOutput,
+        const OTData* theIV = nullptr,  // For some cipher modes, IV is optional
+        const OTData* tag = nullptr) const = 0; // Only used for AEAD
 };
 
 } // namespace opentxs

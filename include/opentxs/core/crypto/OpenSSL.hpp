@@ -130,18 +130,34 @@ public:
         const OTData& theIV, // (We assume this IV is already generated and
                              // passed in.)
         OTData& theEncryptedOutput) const; // OUTPUT. (Ciphertext.)
+    virtual bool Encrypt(
+        const OTPassword& theRawSymmetricKey,
+        const CryptoSymmetric::Mode cipher,
+        const char* szInput,
+        uint32_t lInputLength,
+        OTData& theEncryptedOutput,
+        const OTData* theIV = nullptr, // For some cipher modes, IV is optional
+        OTData* tag = nullptr) const; // Only used for AEAD
+    virtual bool Decrypt(
+        const OTPassword& theRawSymmetricKey, // The symmetric key, in clear form.
+        const char* szInput, // This is the Ciphertext.
+        uint32_t lInputLength,
+        const OTData& theIV, // (We assume this IV is
+                            // already generated and passed
+                            // in.)
+        CryptoSymmetricDecryptOutput theDecryptedOutput) const; // OUTPUT. (Recovered
+                                                                // plaintext.) You can pass
+                                                                // OTPassword& OR OTData& here
+                                                                // (either will work.)
+    virtual bool Decrypt(
+        const OTPassword& theRawSymmetricKey,
+        const CryptoSymmetric::Mode cipher,
+        const char* szInput,
+        uint32_t lInputLength,
+        CryptoSymmetricDecryptOutput theDecryptedOutput,
+        const OTData* theIV = nullptr, // For some cipher modes, IV is optional
+        const OTData* tag = nullptr) const; // Only used for AEAD
 
-    virtual bool Decrypt(const OTPassword& theRawSymmetricKey, // The symmetric
-                                                               // key, in clear
-                                                               // form.
-                         const char* szInput, // This is the Ciphertext.
-                         uint32_t lInputLength,
-                         const OTData& theIV, // (We assume this IV is
-                                              // already generated and passed
-                                              // in.)
-                         CryptoSymmetricDecryptOutput theDecryptedOutput)
-        const; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
-               // OTData& here (either will work.)
     // SEAL / OPEN
     // Asymmetric (public key) encryption / decryption
     virtual bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,

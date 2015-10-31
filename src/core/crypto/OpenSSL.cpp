@@ -139,6 +139,7 @@ public:
                          const OTPasswordData* pPWData = nullptr) const;
 
     static const EVP_MD* HashTypeToOpenSSLType(const CryptoHash::HashType hashType);
+    static const EVP_CIPHER* CipherModeToOpenSSLMode(const CryptoSymmetric::Mode cipher);
 };
 
 #else // Apparently NO crypto engine is defined!
@@ -683,6 +684,30 @@ const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
             OpenSSLType = nullptr;
     }
     return OpenSSLType;
+}
+
+const EVP_CIPHER* OpenSSL::OpenSSLdp::CipherModeToOpenSSLMode(
+    const CryptoSymmetric::Mode cipher)
+{
+    const EVP_CIPHER* OpenSSLCipher;
+
+    switch (cipher) {
+        case CryptoSymmetric::AES_128_CBC :
+            OpenSSLCipher = EVP_aes_128_cbc();
+            break;
+        case CryptoSymmetric::AES_256_ECB :
+            OpenSSLCipher = EVP_aes_256_ecb();
+            break;
+        case CryptoSymmetric::AES_128_GCM :
+            OpenSSLCipher = EVP_aes_128_gcm();
+            break;
+        case CryptoSymmetric::AES_256_GCM :
+            OpenSSLCipher = EVP_aes_256_gcm();
+            break;
+        default :
+            OpenSSLCipher = nullptr;
+    }
+    return OpenSSLCipher;
 }
 
 /*
@@ -1240,11 +1265,72 @@ bool OpenSSL::Encrypt(
                                                       // and passed in.)
     OTData& theEncryptedOutput) const                 // OUTPUT. (Ciphertext.)
 {
+    return Encrypt(
+        theRawSymmetricKey,
+        CryptoSymmetric::AES_128_CBC, // What OT was using before
+        szInput,
+        lInputLength,
+        theEncryptedOutput,
+        &theIV
+    );
+}
+
+bool OpenSSL::Encrypt(
+    const OTPassword& theRawSymmetricKey,
+    const CryptoSymmetric::Mode cipher,
+    const char* szInput,
+    uint32_t lInputLength,
+    OTData& theEncryptedOutput,
+    const OTData* theIV,
+    OTData* tag) const
+{
     const char* szFunc = "OpenSSL::Encrypt";
 
-    OT_ASSERT_MSG((CryptoConfig::SymmetricIvSize() == theIV.GetSize()), "Wrong iv size.\n");
-    OT_ASSERT_MSG((CryptoConfig::SymmetricKeySize() ==
-              theRawSymmetricKey.getMemorySize()), "Wrong symmetric key size.\n");
+
+    // Validate input parameters
+    bool ECB = (CryptoSymmetric::AES_256_ECB == cipher);
+    bool AEAD = ((CryptoSymmetric::AES_128_GCM == cipher) || (CryptoSymmetric::AES_256_GCM == cipher));
+    bool KEY256 = ((CryptoSymmetric::AES_256_ECB == cipher) || (CryptoSymmetric::AES_256_GCM == cipher));
+    bool KEY128 = !KEY256;
+
+    if (!ECB && (nullptr == theIV)) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": You must supply an IV with this cipher.\n";
+        return false;
+    }
+
+    if (AEAD && (nullptr == tag)) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": You must supply a tag with this cipher.\n";
+        return false;
+    }
+
+    uint32_t keySize = 0;
+    if (KEY256) {
+        keySize = 32;
+    } else {
+        keySize = 16;
+    }
+
+    if (ECB && (lInputLength != keySize)) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Input size must be exactly one block for ECB mode.\n";
+        return false;
+    }
+
+    if  ((!ECB && KEY256) && (keySize != theIV->GetSize())) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size, IV, or mode.\n";
+    }
+
+    if  ((!ECB && KEY128) && (keySize != theIV->GetSize())) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size, IV, or mode.\n";
+    }
+
+    if  (KEY256 && (keySize != theRawSymmetricKey.getMemorySize())) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size, IV, or mode.\n";
+    }
+
+    if  (KEY128 && (keySize != theRawSymmetricKey.getMemorySize())) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size, IV, or mode.\n";
+    }
+
     OT_ASSERT_MSG((nullptr != szInput), "Null input.\n");
     OT_ASSERT_MSG((lInputLength > 0), "Empty input.\n");
 
@@ -1293,16 +1379,49 @@ bool OpenSSL::Encrypt(
     };
     _OTEnv_Enc_stat theInstance(szFunc, ctx);
 
-    const EVP_CIPHER* cipher_type = EVP_aes_128_cbc(); // todo hardcoding.
+    const EVP_CIPHER* cipher_type = dp->CipherModeToOpenSSLMode(cipher);
 
-    if (!EVP_EncryptInit(
-            &ctx, cipher_type,
+    if (AEAD) {
+
+        if (!EVP_EncryptInit_ex(
+            &ctx,
+            cipher_type,
+            nullptr,
+            nullptr,
+            nullptr)) {
+                otErr << szFunc << ": Could not set cipher type.\n";
+                return false;
+        } // set IV length
+
+        if (!EVP_CIPHER_CTX_ctrl(
+            &ctx,
+            EVP_CTRL_GCM_SET_IVLEN,
+            keySize,
+            nullptr)) {
+                otErr << szFunc << ": Could not set IV length.\n";
+                return false;
+        } // set key and IV
+
+        if (!EVP_EncryptInit_ex(
+            &ctx,
+            nullptr,
+            nullptr,
             const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
-            static_cast<uint8_t*>(const_cast<void*>(theIV.GetPointer())))) {
-        otErr << szFunc << ": EVP_EncryptInit: failed.\n";
-        return false;
-    }
+            static_cast<uint8_t*>(const_cast<void*>(theIV->GetPointer())))) {
+                otErr << szFunc << ": Could not set key or IV.\n";
+                return false;
+        }
+        //TODO: set AAD
+    } else {
 
+        if (!EVP_EncryptInit(
+                &ctx, cipher_type,
+                const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
+                            static_cast<uint8_t*>(const_cast<void*>(theIV->GetPointer())))) {
+            otErr << szFunc << ": EVP_EncryptInit: failed.\n";
+            return false;
+        }
+    }
     // Now we process the input and write the encrypted data to
     // the output.
     //
@@ -1339,9 +1458,30 @@ bool OpenSSL::Encrypt(
                 static_cast<uint32_t>(len_out));
     }
 
-    if (!EVP_EncryptFinal(&ctx, &vBuffer_out.at(0), &len_out)) {
-        otErr << szFunc << ": EVP_EncryptFinal: failed.\n";
-        return false;
+    if (AEAD) {
+
+        if (!EVP_EncryptFinal_ex(&ctx, &vBuffer_out.at(0), &len_out)) {
+            otErr << szFunc << ": EVP_EncryptFinal: failed.\n";
+            return false;
+        }
+        /* Get the tag */
+        tag->SetSize(16);
+
+        if(!EVP_CIPHER_CTX_ctrl(
+            &ctx,
+            EVP_CTRL_GCM_GET_TAG,
+            16,
+            const_cast<void*>(tag->GetPointer()))) {
+                otErr << szFunc << ": Could not extract tag.\n";
+                return false;
+        }
+        EVP_CIPHER_CTX_free(&ctx);
+    } else {
+
+        if (!EVP_EncryptFinal(&ctx, &vBuffer_out.at(0), &len_out)) {
+            otErr << szFunc << ": EVP_EncryptFinal: failed.\n";
+            return false;
+        }
     }
 
     // This is the "final" piece that is added from EncryptFinal just above.
@@ -1363,14 +1503,73 @@ bool OpenSSL::Decrypt(
     CryptoSymmetricDecryptOutput theDecryptedOutput) const // OUTPUT. (Recovered
                                                       // plaintext.) You can
                                                       // pass OTPassword& OR
-// OTData& here (either
-// will work.)
+                                                      // OTData& here (either
+                                                      // will work.)
+{
+    return Decrypt(
+        theRawSymmetricKey,
+        CryptoSymmetric::AES_128_CBC, // What OT was using before
+        szInput,
+        lInputLength,
+        theDecryptedOutput,
+        &theIV);
+}
+
+bool OpenSSL::Decrypt(
+    const OTPassword& theRawSymmetricKey,
+    const CryptoSymmetric::Mode cipher,
+    const char* szInput,
+    uint32_t lInputLength,
+    CryptoSymmetricDecryptOutput theDecryptedOutput,
+    const OTData* theIV,
+    const OTData* tag) const
 {
     const char* szFunc = "OpenSSL::Decrypt";
 
-    OT_ASSERT_MSG((CryptoConfig::SymmetricIvSize() == theIV.GetSize()), "Wrong iv size.\n");
-    OT_ASSERT_MSG((CryptoConfig::SymmetricKeySize() ==
-              theRawSymmetricKey.getMemorySize()), "Wrong symmetric key size.\n");
+    // Validate input parameters
+    bool ECB = (CryptoSymmetric::AES_256_ECB == cipher);
+    bool AEAD = ((CryptoSymmetric::AES_128_GCM == cipher) || (CryptoSymmetric::AES_256_GCM == cipher));
+    bool KEY256 = ((CryptoSymmetric::AES_256_ECB == cipher) || (CryptoSymmetric::AES_256_GCM == cipher));
+    bool KEY128 = !KEY256;
+
+    if (!ECB && (nullptr == theIV)) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": You must supply an IV with this cipher.\n";
+        return false;
+    }
+
+    if (AEAD && (nullptr == tag)) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": You must supply a tag with this cipher.\n";
+        return false;
+    }
+
+    uint32_t keySize = 0;
+    if (KEY256) {
+        keySize = 32;
+    } else {
+        keySize = 16;
+    }
+
+    if (ECB && (lInputLength != keySize)) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Input size must be exactly one block for ECB mode.\n";
+        return false;
+    }
+
+    if  ((!ECB && KEY256) && (keySize != theIV->GetSize())) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size, IV, or mode.\n";
+    }
+
+    if  ((!ECB && KEY128) && (keySize != theIV->GetSize())) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size, IV, or mode.\n";
+    }
+
+    if  (KEY256 && (keySize != theRawSymmetricKey.getMemorySize())) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size, IV, or mode.\n";
+    }
+
+    if  (KEY128 && (keySize != theRawSymmetricKey.getMemorySize())) {
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size, IV, or mode.\n";
+    }
+
     OT_ASSERT_MSG((nullptr != szInput), "Null input.\n");
     OT_ASSERT_MSG((lInputLength > 0), "Empty input.\n");
 
@@ -1419,14 +1618,47 @@ bool OpenSSL::Decrypt(
 
     const EVP_CIPHER* cipher_type = EVP_aes_128_cbc();
 
-    if (!EVP_DecryptInit(
+    if (AEAD) {
+
+        if (!EVP_DecryptInit_ex(
+            &ctx,
+            cipher_type,
+            nullptr,
+            nullptr,
+            nullptr)) {
+                otErr << szFunc << ": Could not set cipher type.\n";
+                return false;
+        } // set IV length
+
+        if (!EVP_CIPHER_CTX_ctrl(
+            &ctx,
+            EVP_CTRL_GCM_SET_IVLEN,
+            keySize,
+            nullptr)) {
+                otErr << szFunc << ": Could not set IV length.\n";
+                return false;
+        } // set key and IV
+
+        if (!EVP_DecryptInit_ex(
+            &ctx,
+            nullptr,
+            nullptr,
+            const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
+            static_cast<uint8_t*>(const_cast<void*>(theIV->GetPointer())))) {
+                otErr << szFunc << ": Could not set key or IV.\n";
+                return false;
+        }
+        //TODO: set AAD
+    } else {
+
+        if (!EVP_DecryptInit(
             &ctx, cipher_type,
             const_cast<uint8_t*>(theRawSymmetricKey.getMemory_uint8()),
-            static_cast<uint8_t*>(const_cast<void*>(theIV.GetPointer())))) {
-        otErr << szFunc << ": EVP_DecryptInit: failed.\n";
-        return false;
+            static_cast<uint8_t*>(const_cast<void*>(theIV->GetPointer())))) {
+                otErr << szFunc << ": EVP_DecryptInit: failed.\n";
+                return false;
+        }
     }
-
     // Now we process the input and write the decrypted data to
     // the output.
     //
@@ -1467,9 +1699,27 @@ bool OpenSSL::Decrypt(
             }
     }
 
-    if (!EVP_DecryptFinal(&ctx, &vBuffer_out.at(0), &len_out)) {
-        otErr << szFunc << ": EVP_DecryptFinal: failed.\n";
-        return false;
+    if (AEAD) {
+
+        if(!EVP_CIPHER_CTX_ctrl(
+            &ctx, EVP_CTRL_GCM_SET_TAG,
+            16,
+            const_cast<void*>(tag->GetPointer()))) {
+                otErr << szFunc << ": Could not set tag.\n";
+                return false;
+        }
+
+        if (1 > EVP_EncryptFinal_ex(&ctx, &vBuffer_out.at(0), &len_out)) {
+            otErr << szFunc << ": EVP_DecryptFinal: failed.\n";
+            return false;
+        }
+        EVP_CIPHER_CTX_free(&ctx);
+    } else {
+
+        if (!EVP_DecryptFinal(&ctx, &vBuffer_out.at(0), &len_out)) {
+            otErr << szFunc << ": EVP_DecryptFinal: failed.\n";
+            return false;
+        }
     }
 
     // This is the "final" piece that is added from DecryptFinal just above.
