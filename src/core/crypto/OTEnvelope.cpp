@@ -426,11 +426,12 @@ EXPORT bool OTEnvelope::Seal(const setOfNyms recipients,
 {
     mapOfAsymmetricKeys recipientKeys;
 
+    for (auto& it : recipients) {
+        recipientKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
+            "",const_cast<OTAsymmetricKey*>(&(it->GetPublicEncrKey()))));
+    }
+
     if (!recipientKeys.empty()) {
-        for (auto& it : recipients) {
-            recipientKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-                "",const_cast<OTAsymmetricKey*>(&(it->GetPublicEncrKey()))));
-        }
         return Seal(recipientKeys, theInput);
     } else {
         return false;
