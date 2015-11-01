@@ -41,8 +41,12 @@
 
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/CryptoSymmetric.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
+
+#include <list>
+#include <tuple>
 
 namespace opentxs
 
@@ -52,7 +56,7 @@ class Nym;
 class OTData;
 class OTPasswordData;
 
-typedef std::map<String, OTEnvelope> mapOfSessionKeys;
+typedef std::list<symmetricEnvelope> listOfSessionKeys;
 
 // A letter is a contract that contains the contents of an OTEnvelope
 // along with some necessary metadata.
@@ -61,11 +65,14 @@ class Letter : public Contract
 {
 private: // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
+    static const CryptoSymmetric::Mode defaultPlaintextMode_ = CryptoSymmetric::AES_256_GCM;
+    static const CryptoSymmetric::Mode defaultSessionKeyMode_ = CryptoSymmetric::AES_256_GCM;
+    static const CryptoHash::HashType defaultHMAC_ = CryptoHash::SHA256;
     String ephemeralKey_;
-    String macType_;
     String iv_;
+    String tag_;
     OTASCIIArmor ciphertext_;
-    mapOfSessionKeys sessionKeys_;
+    listOfSessionKeys sessionKeys_;
     Letter() = delete;
 
 protected:
@@ -74,10 +81,10 @@ protected:
 public:
     Letter(
         const String& ephemeralKey,
-        const String& macType,
         const String& iv,
+        const String& tag,
         const OTASCIIArmor& ciphertext,
-        const mapOfSessionKeys& sessionKeys);
+        const listOfSessionKeys& sessionKeys);
     Letter(const String& input);
     virtual ~Letter();
     void Release_Letter();
@@ -96,8 +103,8 @@ public:
 
     const String& EphemeralKey() const;
     const String& IV() const;
-    const String& MACType() const;
-    const mapOfSessionKeys& SessionKeys() const;
+    const String& AEADTag() const;
+    const listOfSessionKeys& SessionKeys() const;
     const OTASCIIArmor& Ciphertext() const;
 };
 

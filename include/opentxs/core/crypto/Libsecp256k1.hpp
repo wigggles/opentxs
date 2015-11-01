@@ -41,6 +41,7 @@
 
 #include <opentxs/core/crypto/Crypto.hpp>
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
+#include <opentxs/core/crypto/CryptoSymmetric.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 
 extern "C" {
@@ -79,7 +80,7 @@ public:
 
     EXPORT static const int PrivateKeySize = 32;
     EXPORT static const CryptoHash::HashType ECDHDefaultHMAC = CryptoHash::SHA256;
-    EXPORT static const int ECDHDefaultHMACSize = 32;
+    EXPORT static const CryptoSymmetric::Mode ECDHDefaultAlgo = CryptoSymmetric::AES_256_ECB;
 
     bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
                       OTData& dataOutput) const;
@@ -126,10 +127,9 @@ public:
         const OTPassword& sessionKey,
         const OTAsymmetricKey& privateKey,
         const OTAsymmetricKey& publicKey,
-        std::pair<String, OTEnvelope>& encryptedSessionKey) const;
+        symmetricEnvelope& encryptedSessionKey) const;
     bool DecryptSessionKeyECDH(
-        const std::pair<String, OTEnvelope>& encryptedSessionKey,
-        const CryptoHash::HashType macType,
+        const symmetricEnvelope& encryptedSessionKey,
         const OTAsymmetricKey& privateKey,
         const OTAsymmetricKey& publicKey,
         OTPassword& sessionKey) const;

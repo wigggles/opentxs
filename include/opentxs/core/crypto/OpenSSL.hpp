@@ -131,13 +131,27 @@ public:
                              // passed in.)
         OTData& theEncryptedOutput) const; // OUTPUT. (Ciphertext.)
     virtual bool Encrypt(
-        const OTPassword& theRawSymmetricKey,
         const CryptoSymmetric::Mode cipher,
-        const char* szInput,
-        uint32_t lInputLength,
-        OTData& theEncryptedOutput,
-        const OTData* theIV = nullptr, // For some cipher modes, IV is optional
-        OTData* tag = nullptr) const; // Only used for AEAD
+        const OTPassword& key,
+        const char* plaintext,
+        uint32_t plaintextLength,
+        OTData& ciphertext) const;
+    virtual bool Encrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const char* plaintext,
+        uint32_t plaintextLength,
+        OTData& ciphertext) const;
+    virtual bool Encrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const char* plaintext,
+        uint32_t plaintextLength,
+        OTData& ciphertext,
+        OTData& tag) const;
+
     virtual bool Decrypt(
         const OTPassword& theRawSymmetricKey, // The symmetric key, in clear form.
         const char* szInput, // This is the Ciphertext.
@@ -150,13 +164,26 @@ public:
                                                                 // OTPassword& OR OTData& here
                                                                 // (either will work.)
     virtual bool Decrypt(
-        const OTPassword& theRawSymmetricKey,
         const CryptoSymmetric::Mode cipher,
-        const char* szInput,
-        uint32_t lInputLength,
-        CryptoSymmetricDecryptOutput theDecryptedOutput,
-        const OTData* theIV = nullptr, // For some cipher modes, IV is optional
-        const OTData* tag = nullptr) const; // Only used for AEAD
+        const OTPassword& key,
+        const char* ciphertext,
+        uint32_t ciphertextLength,
+        CryptoSymmetricDecryptOutput plaintext) const;
+    virtual bool Decrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const char* ciphertext,
+        uint32_t ciphertextLength,
+        CryptoSymmetricDecryptOutput plaintext) const;
+    virtual bool Decrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const OTData& tag,
+        const char* ciphertext,
+        const uint32_t ciphertextLength,
+        CryptoSymmetricDecryptOutput plaintext) const;
 
     // SEAL / OPEN
     // Asymmetric (public key) encryption / decryption
@@ -200,6 +227,18 @@ public:
     void thread_cleanup() const;
 
     virtual ~OpenSSL();
+
+private:
+    bool ArgumentCheck(
+        const bool encrypt,
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const OTData& tag,
+        const char* input,
+        const uint32_t inputLength,
+        bool& AEAD,
+        bool& ECB) const;
 };
 
 #else // Apparently NO crypto engine is defined!
