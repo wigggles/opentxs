@@ -2928,23 +2928,27 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
 
 bool OpenSSL::Digest(
     const CryptoHash::HashType hashType,
-    const OTData& data,
-    OTData& digest) const
+    const OTPassword& data,
+    OTPassword& digest) const
 {
     if (CryptoHash::HASH256 == hashType) {
-        const uint8_t* dataStart = static_cast<const uint8_t*>(data.GetPointer());
-        const uint8_t* dataEnd = dataStart + data.GetSize();
+        const uint8_t* dataStart = static_cast<const uint8_t*>(data.getMemory());
+        const uint8_t* dataEnd = dataStart + data.getMemorySize();
 
         unsigned char* vDigest = ::Hash(dataStart, dataEnd);
-        digest.Assign(vDigest, 32);
+        digest.setMemory(vDigest, 32);
+        delete vDigest;
+        vDigest = nullptr;
 
         return true;
     } else if (CryptoHash::HASH160 == hashType) {
-        const uint8_t* dataStart = static_cast<const uint8_t*>(data.GetPointer());
-        const uint8_t* dataEnd = dataStart + data.GetSize();
+        const uint8_t* dataStart = static_cast<const uint8_t*>(data.getMemory());
+        const uint8_t* dataEnd = dataStart + data.getMemorySize();
 
         unsigned char* vDigest = ::Hash160(dataStart, dataEnd);
-        digest.Assign(vDigest, 20);
+        digest.setMemory(vDigest, 20);
+        delete vDigest;
+        vDigest = nullptr;
 
         return true;
     } else {
@@ -2955,11 +2959,11 @@ bool OpenSSL::Digest(
 
         if (nullptr != algorithm) {
             EVP_DigestInit_ex(context, algorithm, NULL);
-            EVP_DigestUpdate(context, data.GetPointer(), data.GetSize());
+            EVP_DigestUpdate(context, data.getMemory(), data.getMemorySize());
             EVP_DigestFinal_ex(context, hash_value, &hash_length);
             EVP_MD_CTX_destroy(context);
 
-            digest.Assign(hash_value, hash_length);
+            digest.setMemory(hash_value, hash_length);
 
             return true;
         } else {

@@ -67,8 +67,8 @@ public:
     virtual ~CryptoHash() = default;
     virtual bool Digest(
         const HashType hashType,
-        const OTData& data,
-        OTData& digest) const = 0;
+        const OTPassword& data,
+        OTPassword& digest) const = 0;
     virtual bool HMAC(
         const CryptoHash::HashType hashType,
         const OTPassword& inputKey,
@@ -77,6 +77,10 @@ public:
     bool Digest(
         const HashType hashType,
         const String& data,
+        OTData& digest);
+    bool Digest(
+        const HashType hashType,
+        const OTData& data,
         OTData& digest);
     bool HMAC(
         const CryptoHash::HashType hashType,
