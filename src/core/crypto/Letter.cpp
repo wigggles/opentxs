@@ -41,7 +41,6 @@
 #include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
@@ -235,10 +234,7 @@ bool Letter::Seal(
         listOfSessionKeys sessionKeys;
         String macType = "null";
 
-        const uint8_t* tagStart = static_cast<const uint8_t*>(tag.GetPointer());
-        const uint8_t* tagEnd = tagStart + tag.GetSize();
-
-        String tagReadable(EncodeBase58Check(tagStart, tagEnd));
+        String tagReadable = CryptoUtil::Base58CheckEncode(tag);
 
         if (haveRecipientsECDSA) {
             #if defined(OT_CRYPTO_USING_LIBSECP256K1)
@@ -367,17 +363,15 @@ bool Letter::Open(
 
         if (ciphertext.Exists()) {
             // Extract and decode the nonce
-            std::vector<unsigned char> decodedIV;
-            bool ivDecoded = DecodeBase58Check(contents.IV().Get(), decodedIV);
+            OTData iv;
+            bool ivDecoded = CryptoUtil::Base58CheckDecode(contents.IV().Get(), iv);
 
             if (ivDecoded) {
-                OTData iv(decodedIV);
                 // Extract and decode the AEAD tag
-                std::vector<unsigned char> decodedtag;
-                bool tagDecoded = DecodeBase58Check(contents.AEADTag().Get(), decodedtag);
+                OTData tag;
+                bool tagDecoded = CryptoUtil::Base58CheckDecode(contents.AEADTag().Get(), tag);
 
                 if (tagDecoded) {
-                    OTData tag(decodedtag);
                     bool haveDecodedCiphertext = ciphertext.GetData(decodedCiphertext);
 
                     if (haveDecodedCiphertext) {

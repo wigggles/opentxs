@@ -43,8 +43,6 @@
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
 
-#include <bitcoin-base58/base58.h>
-
 namespace opentxs
 {
 

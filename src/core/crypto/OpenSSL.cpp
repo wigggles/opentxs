@@ -47,9 +47,9 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <bitcoin-base58/hash.h> // for Hash()
-#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/OpenSSL.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -58,8 +58,6 @@
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/util/stacktrace.h>
-
-#include <bitcoin-base58/base58.h>
 
 #include <thread>
 

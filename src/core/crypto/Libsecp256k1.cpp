@@ -41,7 +41,6 @@
 #include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
-#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
@@ -221,11 +220,10 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPubkey(
     bool havePublicKey = asymmetricKey.GetPublicKey(encodedPubkey);
 
     if (havePublicKey) {
-        std::vector<unsigned char> decodedPublicKey;
-        bool pubkeydecoded = DecodeBase58Check(encodedPubkey.Get(), decodedPublicKey);
+        OTData serializedPubkey;
+        bool pubkeydecoded = CryptoUtil::Base58CheckDecode(encodedPubkey.Get(), serializedPubkey);
 
         if (pubkeydecoded) {
-            OTData serializedPubkey(decodedPublicKey);
             secp256k1_pubkey_t parsedPubkey;
 
             bool pubkeyParsed = secp256k1_ec_pubkey_parse(
@@ -252,10 +250,7 @@ bool Libsecp256k1::ECDSAPubkeyToAsymmetricKey(
     bool keySerialized = secp256k1_pubkey_serialize(serializedPubkey, pubkey);
 
     if (keySerialized) {
-        const uint8_t* keyStart = static_cast<const uint8_t*>(serializedPubkey.GetPointer());
-        const uint8_t* keyEnd = keyStart + serializedPubkey.GetSize();
-
-        FormattedKey encodedPublicKey(EncodeBase58Check(keyStart, keyEnd));
+        FormattedKey encodedPublicKey(CryptoUtil::Base58CheckEncode(serializedPubkey).Get());
 
         return asymmetricKey.SetPublicKey(encodedPublicKey);
     }
@@ -280,15 +275,14 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     const FormattedKey& asymmetricKey,
     OTPassword& privkey) const
 {
-    std::vector<unsigned char> decodedPrivateKey;
-    bool privkeydecoded = DecodeBase58Check(asymmetricKey.Get(), decodedPrivateKey);
+    OTData encryptedPrivkey;
+    bool privkeydecoded = CryptoUtil::Base58CheckDecode(asymmetricKey.Get(), encryptedPrivkey);
 
     if (!privkeydecoded) {
         otErr << "Libsecp256k1::" << __FUNCTION__
               << ": Could not decode base58 encrypted private key.\n";
         return false;
     }
-    OTData encryptedPrivkey(decodedPrivateKey);
 
     return privkey.setMemory(encryptedPrivkey);
 }
@@ -388,10 +382,7 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
                         OTASCIIArmor encodedCiphertext(ciphertext);
                         OTEnvelope sessionKeyEnvelope(encodedCiphertext);
 
-                        const uint8_t* tagStart = static_cast<const uint8_t*>(tag.GetPointer());
-                        const uint8_t* tagEnd = tagStart + tag.GetSize();
-
-                        String tagReadable(EncodeBase58Check(tagStart, tagEnd));
+                        String tagReadable(CryptoUtil::Base58CheckEncode(tag));
 
                         std::get<2>(encryptedSessionKey) = nonceReadable;
                         std::get<3>(encryptedSessionKey) = tagReadable;
@@ -433,12 +424,10 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
     }
 
     // Extract and decode the nonce
-    std::vector<unsigned char> decodedNonce;
-    bool nonceDecoded = DecodeBase58Check(std::get<2>(encryptedSessionKey).Get(), decodedNonce);
+    OTData nonce;
+    bool nonceDecoded = CryptoUtil::Base58CheckDecode(std::get<2>(encryptedSessionKey).Get(), nonce);
 
     if (nonceDecoded) {
-        OTData nonce(decodedNonce);
-
         // Calculate ECDH shared secret
         BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
         bool haveECDH = ECDH(publicKey, privateKey, *ECDHSecret);
@@ -460,9 +449,8 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
                     OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
 
                     // Extract and decode the tag from the envelope
-                    std::vector<unsigned char> decodedTag;
-                    DecodeBase58Check(std::get<3>(encryptedSessionKey).Get(), decodedTag);
-                    OTData tag(decodedTag);
+                    OTData tag;
+                    CryptoUtil::Base58CheckDecode(std::get<3>(encryptedSessionKey).Get(), tag);
 
                     // Extract and decode the ciphertext from the envelope
                     OTData ciphertext;

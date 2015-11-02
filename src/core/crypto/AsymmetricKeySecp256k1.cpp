@@ -40,7 +40,6 @@
 
 #include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
