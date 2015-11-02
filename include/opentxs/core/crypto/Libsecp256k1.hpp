@@ -59,6 +59,7 @@ class OTPasswordData;
 class Nym;
 class OTSignature;
 class CryptoUtil;
+class FormattedKey;
 
 class Libsecp256k1 : public Crypto, public CryptoAsymmetric
 {
@@ -115,6 +116,9 @@ public:
     bool AsymmetricKeyToECDSAPrivkey(
         const OTAsymmetricKey& asymmetricKey,
         OTPassword& privkey) const;
+    bool AsymmetricKeyToECDSAPrivkey(
+        const FormattedKey& asymmetricKey,
+        OTPassword& privkey) const;
     bool ECDSAPrivkeyToAsymmetricKey(
         const OTPassword& privkey,
         OTAsymmetricKey& asymmetricKey) const;
@@ -122,7 +126,7 @@ public:
     bool ECDH(
         const OTAsymmetricKey& publicKey,
         const OTAsymmetricKey& privateKey,
-             OTPassword& secret) const;
+        OTPassword& secret) const;
     bool EncryptSessionKeyECDH(
         const OTPassword& sessionKey,
         const OTAsymmetricKey& privateKey,

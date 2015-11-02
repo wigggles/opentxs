@@ -263,35 +263,43 @@ bool Libsecp256k1::ECDSAPubkeyToAsymmetricKey(
 }
 
 bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
-        const OTAsymmetricKey& asymmetricKey,
-        OTPassword& privkey) const
+    const OTAsymmetricKey& asymmetricKey,
+    OTPassword& privkey) const
 {
     FormattedKey encodedPrivkey;
     bool havePrivateKey = asymmetricKey.GetPrivateKey(encodedPrivkey);
 
     if (havePrivateKey) {
-        std::vector<unsigned char> decodedPrivateKey;
-        bool privkeydecoded = DecodeBase58Check(encodedPrivkey.Get(), decodedPrivateKey);
-
-        if (privkeydecoded) {
-            OTData serializedPubkey(decodedPrivateKey);
-
-            return privkey.setMemory(serializedPubkey);
-        }
+        return AsymmetricKeyToECDSAPrivkey(encodedPrivkey, privkey);
+    } else {
+        return false;
     }
-    return false;
+}
+
+bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
+    const FormattedKey& asymmetricKey,
+    OTPassword& privkey) const
+{
+    std::vector<unsigned char> decodedPrivateKey;
+    bool privkeydecoded = DecodeBase58Check(asymmetricKey.Get(), decodedPrivateKey);
+
+    if (!privkeydecoded) {
+        otErr << "Libsecp256k1::" << __FUNCTION__
+              << ": Could not decode base58 encrypted private key.\n";
+        return false;
+    }
+    OTData encryptedPrivkey(decodedPrivateKey);
+
+    return privkey.setMemory(encryptedPrivkey);
 }
 
 bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
         const OTPassword& privkey,
         OTAsymmetricKey& asymmetricKey) const
 {
-    const uint8_t* keyStart = static_cast<const uint8_t*>(privkey.getMemory());
-    const uint8_t* keyEnd = keyStart + privkey.getMemorySize();
+    FormattedKey formattedKey(CryptoUtil::Base58CheckEncode(privkey).Get());
 
-    FormattedKey encodedPrivateKey(EncodeBase58Check(keyStart, keyEnd));
-
-    return asymmetricKey.SetPrivateKey(encodedPrivateKey);
+    return asymmetricKey.SetPrivateKey(formattedKey);
 }
 
 bool Libsecp256k1::ECDH(

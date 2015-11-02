@@ -103,14 +103,12 @@ bool AsymmetricKeySecp256k1::SetPublicKeyFromPrivateKey(
 
     Libsecp256k1& engine = static_cast<Libsecp256k1&>(this->engine());
 
-    std::vector<unsigned char> decodedPrivateKey;
-    bool privkeydecoded = DecodeBase58Check(strCert.Get(), decodedPrivateKey);
+    OTPassword privKey;
 
-    if (privkeydecoded) {
+    bool havePrivkey = engine.AsymmetricKeyToECDSAPrivkey(strCert, privKey);
+
+    if (havePrivkey) {
         secp256k1_pubkey_t pubKey;
-
-        OTPassword privKey;
-        privKey.setMemory(&decodedPrivateKey.front(), decodedPrivateKey.size());
 
         bool validPubkey = engine.secp256k1_pubkey_create(pubKey, privKey);
 
