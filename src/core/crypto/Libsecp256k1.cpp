@@ -380,13 +380,11 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
 
                     if (encrypted) {
                         OTASCIIArmor encodedCiphertext(ciphertext);
-                        OTEnvelope sessionKeyEnvelope(encodedCiphertext);
-
                         String tagReadable(CryptoUtil::Base58CheckEncode(tag));
 
                         std::get<2>(encryptedSessionKey) = nonceReadable;
                         std::get<3>(encryptedSessionKey) = tagReadable;
-                        std::get<4>(encryptedSessionKey) = sessionKeyEnvelope;
+                        std::get<4>(encryptedSessionKey) = std::make_shared<OTEnvelope>(encodedCiphertext);
 
                         return true;
                     } else {
@@ -455,7 +453,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
                     // Extract and decode the ciphertext from the envelope
                     OTData ciphertext;
                     OTASCIIArmor encodedCiphertext;
-                    std::get<4>(encryptedSessionKey).GetAsciiArmoredData(encodedCiphertext);
+                    std::get<4>(encryptedSessionKey)->GetAsciiArmoredData(encodedCiphertext);
                     encodedCiphertext.GetData(ciphertext);
 
                     return CryptoEngine::Instance().AES().Decrypt(

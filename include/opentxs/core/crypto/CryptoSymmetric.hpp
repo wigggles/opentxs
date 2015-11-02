@@ -47,6 +47,7 @@
 
 #include <memory>
 #include <mutex>
+#include <tuple>
 
 namespace opentxs
 {
@@ -56,7 +57,7 @@ class OTPassword;
 class OTPasswordData;
 class OTData;
 
-typedef std::tuple<String, String, String, String, OTEnvelope> symmetricEnvelope;
+typedef std::tuple<String, String, String, String, std::shared_ptr<OTEnvelope> > symmetricEnvelope;
 typedef std::shared_ptr<OTPassword> BinarySecret;
 // Sometimes I want to decrypt into an OTPassword (for encrypted symmetric
 // keys being decrypted) and sometimes I want to decrypt into an OTData

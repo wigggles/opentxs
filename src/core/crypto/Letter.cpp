@@ -75,7 +75,7 @@ void Letter::UpdateContents()
             TagPtr sessionKeyNode = std::make_shared<Tag>("sessionkey");
             OTASCIIArmor sessionKey;
 
-            std::get<4>(it).GetAsciiArmoredData(sessionKey);
+            std::get<4>(it)->GetAsciiArmoredData(sessionKey);
 
             sessionKeyNode->add_attribute("algo", std::get<0>(it).Get());
             sessionKeyNode->add_attribute("hmac", std::get<1>(it).Get());
@@ -127,8 +127,7 @@ int32_t Letter::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             return (-1); // error condition
         } else {
-            OTEnvelope sessionKey(armoredText);
-            sessionKeys_.push_back(symmetricEnvelope(algo, hmac, nonce, tag, sessionKey));
+            sessionKeys_.push_back(symmetricEnvelope(algo, hmac, nonce, tag, std::make_shared<OTEnvelope>(armoredText)));
 
             nReturnVal = 1;
         }
@@ -262,7 +261,7 @@ bool Letter::Seal(
                     CryptoHash::HashTypeToString(defaultHMAC_),
                     "",
                     "",
-                    OTEnvelope());
+                    nullptr);
 
                 bool haveSessionKey = engine.EncryptSessionKeyECDH(
                                         *masterSessionKey,
@@ -298,8 +297,7 @@ bool Letter::Seal(
             bool haveSessionKey = engine.Seal(RSARecipients, plaintextSessionKey, ciphertext);
 
             if (haveSessionKey) {
-                OTEnvelope sessionKey(ciphertext);
-                symmetricEnvelope sessionKeyItem("", "", "", "", sessionKey);
+                symmetricEnvelope sessionKeyItem("", "", "", "", std::make_shared<OTEnvelope>(ciphertext));
                 sessionKeys.push_back(sessionKeyItem);
 
             } else {
@@ -425,14 +423,11 @@ bool Letter::Open(
                             for (auto it : sessionKeys) {
                                 OTData plaintextSessionKey;
 
-                                std::pair<String, OTEnvelope> sessionKeyItem(
-                                    std::get<2>(it),
-                                    std::get<4>(it));
-
-                                haveSessionKey = engine.Open(sessionKeyItem.second.m_dataContents, theRecipient, plaintextSessionKey, pPWData);
+                                haveSessionKey = engine.Open(std::get<4>(it)->m_dataContents, theRecipient, plaintextSessionKey, pPWData);
 
                                 if (haveSessionKey) {
                                     sessionKey->setMemory(plaintextSessionKey);
+                                    plaintextSessionKey.zeroMemory();
                                     break;
                                 }
                             }
