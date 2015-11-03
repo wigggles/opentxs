@@ -84,11 +84,6 @@ public:
     EXPORT static const CryptoHash::HashType ECDHDefaultHMAC = CryptoHash::SHA256;
     EXPORT static const CryptoSymmetric::Mode ECDHDefaultAlgo = CryptoSymmetric::AES_256_ECB;
 
-    bool Seal(mapOfAsymmetricKeys& RecipPubKeys, const String& theInput,
-                      OTData& dataOutput) const;
-    bool Open(OTData& dataInput, const Nym& theRecipient,
-                      String& theOutput,
-                      const OTPasswordData* pPWData = nullptr) const;
     bool SignContract(
         const String& strContractUnsigned,
         const OTAsymmetricKey& theKey,

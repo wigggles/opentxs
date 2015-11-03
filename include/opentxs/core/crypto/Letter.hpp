@@ -71,6 +71,7 @@ private: // Private prevents erroneous use by other classes.
     String ephemeralKey_;
     String iv_;
     String tag_;
+    String plaintextMode_;
     OTASCIIArmor ciphertext_;
     listOfSessionKeys sessionKeys_;
     Letter() = delete;
@@ -83,6 +84,7 @@ public:
         const String& ephemeralKey,
         const String& iv,
         const String& tag,
+        const String& mode,
         const OTASCIIArmor& ciphertext,
         const listOfSessionKeys& sessionKeys);
     Letter(const String& input);
@@ -104,6 +106,7 @@ public:
     const String& EphemeralKey() const;
     const String& IV() const;
     const String& AEADTag() const;
+    CryptoSymmetric::Mode Mode() const;
     const listOfSessionKeys& SessionKeys() const;
     const OTASCIIArmor& Ciphertext() const;
 };

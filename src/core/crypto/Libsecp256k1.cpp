@@ -71,25 +71,6 @@ Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
 }
 
 
-bool Libsecp256k1::Seal(
-    __attribute__((unused)) mapOfAsymmetricKeys& RecipPubKeys,
-    __attribute__((unused)) const String& theInput,
-    __attribute__((unused)) OTData& dataOutput
-    ) const
-{
-    return false;
-}
-
-bool Libsecp256k1::Open(
-    __attribute__((unused)) OTData& dataInput,
-    __attribute__((unused)) const Nym& theRecipient,
-    __attribute__((unused)) String& theOutput,
-    __attribute__((unused)) const OTPasswordData* pPWData
-    ) const
-{
-    return false;
-}
-
 bool Libsecp256k1::SignContract(
     const String& strContractUnsigned,
     const OTAsymmetricKey& theKey,
