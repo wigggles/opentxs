@@ -51,6 +51,7 @@
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTKeypair.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
@@ -94,14 +95,14 @@ bool Libsecp256k1::SignContract(
     const OTAsymmetricKey& theKey,
     OTSignature& theSignature, // output
     CryptoHash::HashType hashType,
-    __attribute__((unused)) const OTPasswordData* pPWData)
+    const OTPasswordData* pPWData)
 {
     OTData hash;
     bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, strContractUnsigned, hash);
 
     if (haveDigest) {
         OTPassword privKey;
-        bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, privKey);
+        bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, *pPWData, privKey);
 
         if (havePrivateKey) {
             secp256k1_ecdsa_signature_t ecdsaSignature;
@@ -259,13 +260,15 @@ bool Libsecp256k1::ECDSAPubkeyToAsymmetricKey(
 
 bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     const OTAsymmetricKey& asymmetricKey,
-    OTPassword& privkey) const
+    const OTPasswordData& passwordData,
+    OTPassword& privkey,
+    bool ephemeral) const
 {
     FormattedKey encodedPrivkey;
     bool havePrivateKey = asymmetricKey.GetPrivateKey(encodedPrivkey);
 
     if (havePrivateKey) {
-        return AsymmetricKeyToECDSAPrivkey(encodedPrivkey, privkey);
+        return AsymmetricKeyToECDSAPrivkey(encodedPrivkey, passwordData, privkey, ephemeral);
     } else {
         return false;
     }
@@ -273,8 +276,22 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
 
 bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     const FormattedKey& asymmetricKey,
-    OTPassword& privkey) const
+    const OTPasswordData& passwordData,
+    OTPassword& privkey,
+    bool ephemeral) const
 {
+
+    BinarySecret masterPassword = std::make_shared<OTPassword>();
+
+    if (ephemeral) {
+        masterPassword->setPassword("test");
+    } else {
+        masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
+    }
+
+    OTPassword keyPassword;
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, *masterPassword, keyPassword);
+
     OTData encryptedPrivkey;
     bool privkeydecoded = CryptoUtil::Base58CheckDecode(asymmetricKey.Get(), encryptedPrivkey);
 
@@ -284,14 +301,43 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
         return false;
     }
 
-    return privkey.setMemory(encryptedPrivkey);
+    OTData decryptedKey;
+    CryptoEngine::Instance().AES().Decrypt(
+        CryptoSymmetric::AES_256_ECB,
+        keyPassword,
+        static_cast<const char*>(encryptedPrivkey.GetPointer()),
+        encryptedPrivkey.GetSize(),
+        decryptedKey);
+
+    return privkey.setMemory(decryptedKey);
 }
 
 bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
         const OTPassword& privkey,
-        OTAsymmetricKey& asymmetricKey) const
+        const OTPasswordData& passwordData,
+        OTAsymmetricKey& asymmetricKey,
+        bool ephemeral) const
 {
-    FormattedKey formattedKey(CryptoUtil::Base58CheckEncode(privkey).Get());
+    BinarySecret masterPassword = std::make_shared<OTPassword>();
+
+    if (ephemeral) {
+        masterPassword->setPassword("test");
+    } else {
+        masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
+    }
+
+    OTPassword keyPassword;
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, *masterPassword, keyPassword);
+
+    OTData encryptedKey;
+    CryptoEngine::Instance().AES().Encrypt(
+        CryptoSymmetric::AES_256_ECB,
+        keyPassword,
+        static_cast<const char*>(privkey.getMemory()),
+        privkey.getMemorySize(),
+        encryptedKey);
+
+    FormattedKey formattedKey(CryptoUtil::Base58CheckEncode(encryptedKey).Get());
 
     return asymmetricKey.SetPrivateKey(formattedKey);
 }
@@ -299,12 +345,14 @@ bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
 bool Libsecp256k1::ECDH(
     const OTAsymmetricKey& publicKey,
     const OTAsymmetricKey& privateKey,
-            OTPassword& secret) const
+    const OTPasswordData passwordData,
+    OTPassword& secret,
+    bool ephemeral) const
 {
     OTPassword scalar;
     secp256k1_pubkey_t point;
 
-    bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(privateKey, scalar);
+    bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(privateKey, passwordData, scalar, ephemeral);
 
     if (havePrivateKey) {
         bool havePublicKey = AsymmetricKeyToECDSAPubkey(publicKey, point);
@@ -331,7 +379,9 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
         const OTPassword& sessionKey,
         const OTAsymmetricKey& privateKey,
         const OTAsymmetricKey& publicKey,
-        symmetricEnvelope& encryptedSessionKey) const
+        const OTPasswordData& passwordData,
+        symmetricEnvelope& encryptedSessionKey,
+        bool ephemeral) const
 {
     CryptoSymmetric::Mode algo = CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
     CryptoHash::HashType hmac = CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
@@ -351,7 +401,7 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
 
     // Calculate ECDH shared secret
     BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
-    bool haveECDH = ECDH(publicKey, privateKey, *ECDHSecret);
+    bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret, ephemeral);
 
     if (haveECDH) {
         // In order to make sure the session key is always encrypted to a different key for every Seal() action,
@@ -406,6 +456,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
     const symmetricEnvelope& encryptedSessionKey,
     const OTAsymmetricKey& privateKey,
     const OTAsymmetricKey& publicKey,
+    const OTPasswordData passwordData,
     OTPassword& sessionKey) const
 {
     CryptoSymmetric::Mode algo = CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
@@ -428,7 +479,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
     if (nonceDecoded) {
         // Calculate ECDH shared secret
         BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
-        bool haveECDH = ECDH(publicKey, privateKey, *ECDHSecret);
+        bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
 
         if (haveECDH) {
             // In order to make sure the session key is always encrypted to a different key for every Seal() action

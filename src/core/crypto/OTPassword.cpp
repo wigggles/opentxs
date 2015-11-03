@@ -568,6 +568,11 @@ bool OTPassword::Compare(OTPassword& rhs) const
     return false;
 }
 
+int32_t OTPassword::setPassword(const std::string& input)
+{
+    return setPassword(input.data(), input.size());
+}
+
 // Returns size of password (in case truncation is necessary.)
 // Returns -1 in case of error.
 //

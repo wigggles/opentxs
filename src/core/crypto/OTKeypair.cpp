@@ -72,6 +72,7 @@
 #include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
 
 #include <memory>
 // DONE: Add OTKeypair member for m_pMetadata.
@@ -200,7 +201,7 @@ bool OTKeypair::SetPrivateKey(
     return (privateSuccess && publicSuccess);
 }
 
-bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData)
+bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData, bool ephemeral)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic);
@@ -214,7 +215,8 @@ bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData)
             return false;
         }
 
-        return lowLevelKeys.SetOntoKeypair(*this);
+        OTPasswordData passwordData("Enter or set the wallet master password.");
+        return lowLevelKeys.SetOntoKeypair(*this, passwordData, ephemeral);
     } else {
         return false;
     }

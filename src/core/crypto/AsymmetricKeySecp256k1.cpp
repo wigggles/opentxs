@@ -91,7 +91,7 @@ bool AsymmetricKeySecp256k1::SetPrivateKey(
 
 bool AsymmetricKeySecp256k1::SetPublicKeyFromPrivateKey(
     const FormattedKey& strCert,
-    __attribute__((unused)) const String* pstrReason,
+    const String* pstrReason,
     __attribute__((unused)) const OTPassword* pImportPassword)
 {
     ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
@@ -101,10 +101,16 @@ bool AsymmetricKeySecp256k1::SetPublicKeyFromPrivateKey(
     m_bIsPrivateKey = false;
 
     Libsecp256k1& engine = static_cast<Libsecp256k1&>(this->engine());
-
+    bool havePrivkey = false;
     OTPassword privKey;
 
-    bool havePrivkey = engine.AsymmetricKeyToECDSAPrivkey(strCert, privKey);
+    if (nullptr != pstrReason) {
+        OTPasswordData passwordData(*pstrReason);
+        havePrivkey = engine.AsymmetricKeyToECDSAPrivkey(strCert, passwordData, privKey);
+    } else {
+        OTPasswordData passwordData("Unlock the nym's private credential.");
+        havePrivkey = engine.AsymmetricKeyToECDSAPrivkey(strCert, passwordData, privKey);
+    }
 
     if (havePrivkey) {
         secp256k1_pubkey_t pubKey;

@@ -97,7 +97,9 @@ private:
     OTAsymmetricKey* m_pkeyPrivate = nullptr; // This nym's private key
 
 public:
-    EXPORT bool MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData);
+    EXPORT bool MakeNewKeypair(
+        const std::shared_ptr<NymParameters>& pKeyData,
+        const bool ephemeral = false);
     EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
                           String& strOutput); // Used when importing/exporting
                                               // a Nym to/from the wallet.

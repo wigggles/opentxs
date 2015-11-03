@@ -265,7 +265,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
     return false; //unsupported keyType
 }
 
-bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair)
+bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData passwordData, bool ephemeral)
 {
     // pkeyData can not be null if LowLevelkeyGenerator has been constructed
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
@@ -369,7 +369,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair)
         pPrivateKey->SetAsPrivate();
 
         bool pubkeySet = engine.ECDSAPubkeyToAsymmetricKey(ldp->publicKey_, *pPublicKey);
-        bool privkeySet = engine.ECDSAPrivkeyToAsymmetricKey(ldp->privateKey_, *pPrivateKey);
+        bool privkeySet = engine.ECDSAPrivkeyToAsymmetricKey(ldp->privateKey_, passwordData, *pPrivateKey, ephemeral);
 
         return (pubkeySet && privkeySet);
         #endif

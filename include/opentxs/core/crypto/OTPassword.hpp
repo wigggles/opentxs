@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
 
 #include <cstddef>
+#include <string>
 
 namespace opentxs
 {
@@ -140,6 +141,7 @@ public:
     EXPORT uint8_t* getPasswordWritable();
     EXPORT char* getPasswordWritable_char();
     // (FYI, truncates if nInputSize larger than getBlockSize.)
+    EXPORT int32_t setPassword(const std::string& input);
     EXPORT int32_t setPassword(const char* input, int32_t size);
     // (FYI, truncates if nInputSize larger than getBlockSize.)
     EXPORT int32_t setPassword_uint8(const uint8_t* input, uint32_t size);

@@ -40,6 +40,8 @@
 
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 
@@ -232,6 +234,27 @@ uint32_t CryptoSymmetric::TagSize(const Mode Mode)
             tagSize= 0;
     }
     return tagSize;
+}
+
+BinarySecret CryptoSymmetric::GetMasterKey(const OTPasswordData& passwordData, bool askTwice)
+
+{
+    BinarySecret masterPassword(std::make_shared<OTPassword>());
+
+    OTPassword* masterPasswordInitial = CryptoEngine::Instance().AES().InstantiateBinarySecret();
+
+    int32_t length_aes_key =
+    souped_up_pass_cb(static_cast<char*>(const_cast<void*>(masterPasswordInitial->getMemory())),
+                      OTPassword::DEFAULT_SIZE,
+                      askTwice,
+                      reinterpret_cast<void*>(const_cast<OTPasswordData*>(&passwordData)));
+
+    masterPassword->setMemory(masterPasswordInitial->getMemory(), length_aes_key);
+
+    delete masterPasswordInitial;
+    masterPasswordInitial = nullptr;
+
+    return masterPassword;
 }
 
 } // namespace opentxs

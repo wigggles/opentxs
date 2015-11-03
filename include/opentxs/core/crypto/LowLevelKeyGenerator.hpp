@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
 #define OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
 
+#include <opentxs/core/crypto/OTPasswordData.hpp>
+
 #include <memory>
 
 namespace opentxs
@@ -109,7 +111,7 @@ public:
     bool m_bCleanup = true; // By default, LowLevelKeyGenerator cleans up the members. But
                      // if you set this to false, it will NOT cleanup.
     bool MakeNewKeypair();
-    bool SetOntoKeypair(OTKeypair& theKeypair);
+    bool SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData passwordData, bool ephemeral = false);
 
     LowLevelKeyGenerator(const std::shared_ptr<NymParameters>& pkeyData);
     ~LowLevelKeyGenerator();

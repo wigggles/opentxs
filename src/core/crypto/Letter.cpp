@@ -248,7 +248,7 @@ bool Letter::Seal(
             pKeyData = std::make_shared<NymParameters>(
                 NymParameters::SECP256K1,
                 Credential::SECP256K1_PUBKEY);
-            ephemeralKeypair.MakeNewKeypair(pKeyData);
+            ephemeralKeypair.MakeNewKeypair(pKeyData, true);
             ephemeralKeypair.GetPublicKey(ephemeralPubkey);
 
             const OTAsymmetricKey& ephemeralPrivkey = ephemeralKeypair.GetPrivateKey();
@@ -263,11 +263,14 @@ bool Letter::Seal(
                     "",
                     nullptr);
 
+                OTPasswordData passwordData("ephemeral");
                 bool haveSessionKey = engine.EncryptSessionKeyECDH(
                                         *masterSessionKey,
                                         ephemeralPrivkey,
                                         *(it.second),
-                                        encryptedSessionKey);
+                                        passwordData,
+                                        encryptedSessionKey,
+                                        true);
                 if (haveSessionKey) {
                     sessionKeys.push_back(encryptedSessionKey);
 
@@ -345,6 +348,8 @@ bool Letter::Open(
     String& theOutput,
     const OTPasswordData* pPWData)
 {
+    OT_ASSERT(nullptr != pPWData);
+
     OTASCIIArmor armoredInput(dataInput);
     String decodedInput;
     OTData decodedCiphertext;
@@ -395,8 +400,8 @@ bool Letter::Open(
                                                             it,
                                                             privateKey,
                                                             *publicKey,
-                                                            *sessionKey
-                                                        );
+                                                            *pPWData,
+                                                            *sessionKey);
                                     if (haveSessionKey) {
                                         break;
                                     }

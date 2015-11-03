@@ -43,6 +43,7 @@
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/crypto/CryptoSymmetric.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
 
 extern "C" {
 #include "secp256k1.h"
@@ -115,27 +116,38 @@ public:
         OTAsymmetricKey& asymmetricKey) const;
     bool AsymmetricKeyToECDSAPrivkey(
         const OTAsymmetricKey& asymmetricKey,
-        OTPassword& privkey) const;
+        const OTPasswordData& passwordData,
+        OTPassword& privkey,
+        bool ephemeral = false) const;
     bool AsymmetricKeyToECDSAPrivkey(
         const FormattedKey& asymmetricKey,
-        OTPassword& privkey) const;
+        const OTPasswordData& passwordData,
+        OTPassword& privkey,
+        bool ephemeral = false) const;
     bool ECDSAPrivkeyToAsymmetricKey(
         const OTPassword& privkey,
-        OTAsymmetricKey& asymmetricKey) const;
+        const OTPasswordData& passwordData,
+        OTAsymmetricKey& asymmetricKey,
+        bool ephemeral = false) const;
 
     bool ECDH(
         const OTAsymmetricKey& publicKey,
         const OTAsymmetricKey& privateKey,
-        OTPassword& secret) const;
+        const OTPasswordData passwordData,
+        OTPassword& secret,
+        bool ephemeral = false) const;
     bool EncryptSessionKeyECDH(
         const OTPassword& sessionKey,
         const OTAsymmetricKey& privateKey,
         const OTAsymmetricKey& publicKey,
-        symmetricEnvelope& encryptedSessionKey) const;
+        const OTPasswordData& passwordData,
+        symmetricEnvelope& encryptedSessionKey,
+        bool ephemeral = false) const;
     bool DecryptSessionKeyECDH(
         const symmetricEnvelope& encryptedSessionKey,
         const OTAsymmetricKey& privateKey,
         const OTAsymmetricKey& publicKey,
+        const OTPasswordData passwordData,
         OTPassword& sessionKey) const;
 
     bool secp256k1_privkey_tweak_add(
