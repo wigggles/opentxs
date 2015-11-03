@@ -2873,22 +2873,30 @@ bool OpenSSL::Digest(
     const CryptoHash::HashType hashType,
     const OTPassword& data,
     OTPassword& digest) const
-{
-    if (CryptoHash::HASH256 == hashType) {
-        const uint8_t* dataStart = static_cast<const uint8_t*>(data.getMemory());
-        const uint8_t* dataEnd = dataStart + data.getMemorySize();
 
-        unsigned char* vDigest = ::Hash(dataStart, dataEnd);
+{
+    const uint8_t* inputStart;
+    uint32_t inputSize;
+
+    if (data.isMemory()) {
+        inputStart = static_cast<const uint8_t*>(data.getMemory());
+        inputSize = data.getMemorySize();
+    } else {
+        inputStart = reinterpret_cast<const uint8_t*>(data.getPassword());
+        inputSize = data.getPasswordSize();
+    }
+
+    if (CryptoHash::HASH256 == hashType) {
+
+        unsigned char* vDigest = ::Hash(inputStart, inputStart+inputSize);
         digest.setMemory(vDigest, 32);
         delete vDigest;
         vDigest = nullptr;
 
         return true;
     } else if (CryptoHash::HASH160 == hashType) {
-        const uint8_t* dataStart = static_cast<const uint8_t*>(data.getMemory());
-        const uint8_t* dataEnd = dataStart + data.getMemorySize();
 
-        unsigned char* vDigest = ::Hash160(dataStart, dataEnd);
+        unsigned char* vDigest = ::Hash160(inputStart, inputStart+inputSize);
         digest.setMemory(vDigest, 20);
         delete vDigest;
         vDigest = nullptr;
@@ -2902,7 +2910,7 @@ bool OpenSSL::Digest(
 
         if (nullptr != algorithm) {
             EVP_DigestInit_ex(context, algorithm, NULL);
-            EVP_DigestUpdate(context, data.getMemory(), data.getMemorySize());
+            EVP_DigestUpdate(context, inputStart, inputSize);
             EVP_DigestFinal_ex(context, hash_value, &hash_length);
             EVP_MD_CTX_destroy(context);
 
