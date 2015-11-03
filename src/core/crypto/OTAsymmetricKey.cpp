@@ -289,7 +289,7 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller) // Caller must have
 // If the password callback isn't set, then it uses the default ("test")
 // password.
 //
-extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
+extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t rwflag,
                                    void* userdata)
 {
     int32_t len = 0;
@@ -301,7 +301,7 @@ extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
     std::string str_userdata;
 
     if (nullptr != userdata) {
-        pPWData = static_cast<OTPasswordData*>(userdata);
+        pPWData = static_cast<const OTPasswordData*>(userdata);
 
         if (nullptr != pPWData) {
             str_userdata = pPWData->GetDisplayString();
@@ -372,7 +372,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
 {
     //  OT_ASSERT(nullptr != buf); // apparently it CAN be nullptr sometimes.
     OT_ASSERT(nullptr != userdata);
-    const OTPasswordData* pPWData = static_cast<OTPasswordData*>(userdata);
+    const OTPasswordData* pPWData = static_cast<const OTPasswordData*>(userdata);
     const std::string str_userdata = pPWData->GetDisplayString();
 
     OTPassword thePassword;

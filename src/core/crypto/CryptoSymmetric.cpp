@@ -236,18 +236,20 @@ uint32_t CryptoSymmetric::TagSize(const Mode Mode)
     return tagSize;
 }
 
-BinarySecret CryptoSymmetric::GetMasterKey(const OTPasswordData& passwordData, bool askTwice)
+BinarySecret CryptoSymmetric::GetMasterKey(const OTPasswordData& passwordData, const bool askTwice)
 
 {
     BinarySecret masterPassword(std::make_shared<OTPassword>());
 
     OTPassword* masterPasswordInitial = CryptoEngine::Instance().AES().InstantiateBinarySecret();
 
+    OTPasswordData tempData(passwordData.GetDisplayString());
+
     int32_t length_aes_key =
     souped_up_pass_cb(static_cast<char*>(const_cast<void*>(masterPasswordInitial->getMemory())),
                       OTPassword::DEFAULT_SIZE,
                       askTwice,
-                      reinterpret_cast<void*>(const_cast<OTPasswordData*>(&passwordData)));
+                      reinterpret_cast<void*>(&tempData));
 
     masterPassword->setMemory(masterPasswordInitial->getMemory(), length_aes_key);
 

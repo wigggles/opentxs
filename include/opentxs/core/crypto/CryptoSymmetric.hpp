@@ -212,7 +212,7 @@ public:
         const uint32_t ciphertextLength,
         CryptoSymmetricDecryptOutput plaintext) const = 0;
 
-    EXPORT static BinarySecret GetMasterKey(const OTPasswordData& passwordData, bool askTwice = false);
+        EXPORT static BinarySecret GetMasterKey(const OTPasswordData& passwordData, const bool askTwice = false);
 };
 
 } // namespace opentxs

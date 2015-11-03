@@ -83,7 +83,14 @@ bool Libsecp256k1::SignContract(
 
     if (haveDigest) {
         OTPassword privKey;
-        bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, *pPWData, privKey);
+        bool havePrivateKey;
+
+        if (nullptr == pPWData) {
+            OTPasswordData passwordData("Libsecp256k1::SignContract(): Please enter your password to sign this document.");
+            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, passwordData, privKey);
+        } else {
+            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, *pPWData, privKey);
+        }
 
         if (havePrivateKey) {
             secp256k1_ecdsa_signature_t ecdsaSignature;
@@ -267,7 +274,7 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     if (ephemeral) {
         masterPassword->setPassword("test");
     } else {
-        masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
+        masterPassword = CryptoSymmetric::GetMasterKey(passwordData);
     }
 
     OTPassword keyPassword;
