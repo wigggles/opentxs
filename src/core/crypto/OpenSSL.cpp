@@ -1303,11 +1303,13 @@ bool OpenSSL::ArgumentCheck(
 
     if  (!ECB && (iv.GetSize() != CryptoSymmetric::IVSize(cipher))) {
         otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect IV size.\n";
+        otErr << "Actual IV bytes: " << iv.GetSize() << "\n";
         return false;
     }
 
     if  (key.getMemorySize() != CryptoSymmetric::KeySize(cipher)) {
         otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size.\n";
+        otErr << "Actual key bytes: " << key.getMemorySize() << "\n";
         return false;
     }
 

@@ -119,11 +119,19 @@ public:
         const OTPasswordData& passwordData,
         OTPassword& privkey,
         bool ephemeral = false) const;
+    bool ImportECDSAPrivkey(
+        const FormattedKey& asymmetricKey,
+        const OTPassword& password,
+        OTPassword& privkey) const;
     bool ECDSAPrivkeyToAsymmetricKey(
         const OTPassword& privkey,
         const OTPasswordData& passwordData,
         OTAsymmetricKey& asymmetricKey,
         bool ephemeral = false) const;
+    bool ExportECDSAPrivkey(
+        const OTPassword& privkey,
+        const OTPassword& password,
+        OTAsymmetricKey& asymmetricKey) const;
 
     bool ECDH(
         const OTAsymmetricKey& publicKey,

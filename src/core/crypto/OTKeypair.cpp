@@ -195,6 +195,8 @@ bool OTKeypair::SetPrivateKey(
     privateSuccess = m_pkeyPrivate->SetPrivateKey(
         strCert, pstrReason, pImportPassword);
 
+    OT_ASSERT(privateSuccess);
+
     publicSuccess = m_pkeyPublic->SetPublicKeyFromPrivateKey(
         strCert, pstrReason, pImportPassword);
 
@@ -315,7 +317,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
 // Used when importing/exporting a Nym to/from the wallet.
 //
 bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
-                          String& strOutput)
+                          FormattedKey& strOutput)
 {
 
     OT_ASSERT(nullptr != m_pkeyPublic);
@@ -371,11 +373,10 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
 
     const bool bReEncrypted = m_pkeyPrivate->ReEncryptPrivateKey(
         theExportPassword, bImporting); // <==== IMPORT or EXPORT occurs here.
-    bool bGotCert = false;
 
-    const bool bSuccess = (bReEncrypted && bGotCert);
+    bool haveNewPrivateKey = m_pkeyPrivate->GetPrivateKey(strOutput);
 
-    if (!bSuccess) {
+    if (!(bReEncrypted && haveNewPrivateKey)) {
         strOutput.Release();
         otErr << __FUNCTION__ << ": Failure, either when re-encrypting, or "
                                  "when subsequently retrieving "
@@ -383,7 +384,7 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
               << (bImporting ? "true" : "false") << "\n";
     }
 
-    return bSuccess;
+    return (bReEncrypted && haveNewPrivateKey);
 }
 
 } // namespace opentxs

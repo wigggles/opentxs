@@ -277,8 +277,16 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
         masterPassword = CryptoSymmetric::GetMasterKey(passwordData);
     }
 
+    return ImportECDSAPrivkey(asymmetricKey, *masterPassword, privkey);
+}
+
+bool Libsecp256k1::ImportECDSAPrivkey(
+    const FormattedKey& asymmetricKey,
+    const OTPassword& password,
+    OTPassword& privkey) const
+{
     OTPassword keyPassword;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, *masterPassword, keyPassword);
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
 
     OTData encryptedPrivkey;
     bool privkeydecoded = CryptoUtil::Base58CheckDecode(asymmetricKey.Get(), encryptedPrivkey);
@@ -314,8 +322,16 @@ bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
         masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
     }
 
+    return ExportECDSAPrivkey(privkey, *masterPassword, asymmetricKey);
+}
+
+bool Libsecp256k1::ExportECDSAPrivkey(
+    const OTPassword& privkey,
+    const OTPassword& password,
+    OTAsymmetricKey& asymmetricKey) const
+{
     OTPassword keyPassword;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, *masterPassword, keyPassword);
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
 
     OTData encryptedKey;
     CryptoEngine::Instance().AES().Encrypt(

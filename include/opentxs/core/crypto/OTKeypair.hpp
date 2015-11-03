@@ -101,7 +101,7 @@ public:
         const std::shared_ptr<NymParameters>& pKeyData,
         const bool ephemeral = false);
     EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
-                          String& strOutput); // Used when importing/exporting
+                          FormattedKey& strOutput); // Used when importing/exporting
                                               // a Nym to/from the wallet.
     EXPORT bool CalculateID(Identifier& theOutput) const;
 

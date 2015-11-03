@@ -39,6 +39,7 @@
 #include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
 
 #include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
@@ -189,7 +190,78 @@ bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
     __attribute__((unused)) const OTPassword& theExportPassword,
     __attribute__((unused)) bool bImporting) const
 {
-    return true;
+    OT_ASSERT(IsPrivate());
+
+    bool bReturnVal = false;
+
+    if (!IsEmpty() > 0) {
+        OTPassword pClearKey;
+        bool haveClearKey = false;
+
+        // Here's thePWData we use if we didn't have anything else:
+        //
+        OTPasswordData thePWData(
+            bImporting ? "(Importing) Enter the exported Nym's passphrase."
+                       : "(Exporting) Enter your wallet's master passphrase.");
+
+        // If we're importing, that means we're currently stored as an EXPORTED
+        // NYM (i.e. with its own
+        // password, independent of the wallet.) So we use theExportedPassword.
+        //
+        if (bImporting) {
+            haveClearKey = static_cast<Libsecp256k1&>(engine()).ImportECDSAPrivkey(key_, theExportPassword, pClearKey);
+        }
+        // Else if we're exporting, that means we're currently stored in the
+        // wallet (i.e. using the wallet's
+        // cached master key.) So we use the normal password callback.
+        //
+        else {
+            haveClearKey = static_cast<Libsecp256k1&>(engine()).AsymmetricKeyToECDSAPrivkey(*this, thePWData, pClearKey);
+        }
+
+        if (haveClearKey) {
+            otLog4
+                << __FUNCTION__
+                << ": Success decrypting private key.\n";
+
+            // Okay, we have loaded up the private key, now let's save it
+            // using the new passphrase.
+
+            // If we're importing, that means we just loaded up the (previously)
+            // exported Nym using theExportedPassphrase, so now we need to save it
+            // again using the normal password callback (for importing it to the
+            // wallet.)
+
+            bool reencrypted = false;
+
+            if (bImporting) {
+                reencrypted = static_cast<Libsecp256k1&>(engine()).ECDSAPrivkeyToAsymmetricKey(pClearKey, thePWData, *const_cast<AsymmetricKeySecp256k1*>(this));
+            }
+
+            // Else if we're exporting, that means we just loaded up the Nym
+            // from the wallet using the normal password callback, and now we
+            // need to save it back again using theExportedPassphrase (for exporting
+            // it outside of the wallet.)
+            else {
+                reencrypted = static_cast<Libsecp256k1&>(engine()).ExportECDSAPrivkey(pClearKey, theExportPassword, *const_cast<AsymmetricKeySecp256k1*>(this));
+            }
+
+            if (!reencrypted) {
+                otErr << __FUNCTION__ << ": Could not encrypt private key:\n\n";
+            }
+
+            bReturnVal = reencrypted;
+
+        }
+        else
+            otErr << __FUNCTION__ << ": Could not decrypt private key:\n\n"
+                  << key_.Get() << "\n\n";
+    }
+    else
+        otErr << __FUNCTION__
+              << ": Key is empty.\n\n";
+
+    return bReturnVal;
 }
 
 void AsymmetricKeySecp256k1::Release_AsymmetricKeySecp256k1()
