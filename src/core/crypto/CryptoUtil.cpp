@@ -111,10 +111,7 @@ String CryptoUtil::Nonce(const uint32_t size, OTData& rawOutput) const
     OTPassword source;
     source.randomizeMemory(size);
 
-    const uint8_t* nonceStart = static_cast<const uint8_t*>(source.getMemory());
-    const uint8_t* nonceEnd = nonceStart + source.getMemorySize();
-
-    String nonce(EncodeBase58Check(nonceStart, nonceEnd));
+    String nonce(Base58CheckEncode(source));
 
     rawOutput.Assign(source.getMemory(), source.getMemorySize());
     return nonce;

@@ -421,7 +421,7 @@ bool OTEnvelope::Decrypt(String& theOutput, const OTSymmetricKey& theKey,
     return bDecrypted;
 }
 
-EXPORT bool OTEnvelope::Seal(const setOfNyms recipients,
+EXPORT bool OTEnvelope::Seal(const setOfNyms& recipients,
                  const String& theInput)
 {
     mapOfAsymmetricKeys recipientKeys;

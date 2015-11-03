@@ -70,21 +70,19 @@ void Letter::UpdateContents()
     rootNode.add_attribute("iv", iv_.Get());
     rootNode.add_attribute("tag", tag_.Get());
 
-    if (!sessionKeys_.empty()) {
-        for (auto& it : sessionKeys_) {
-            TagPtr sessionKeyNode = std::make_shared<Tag>("sessionkey");
-            OTASCIIArmor sessionKey;
+    for (auto& it : sessionKeys_) {
+        TagPtr sessionKeyNode = std::make_shared<Tag>("sessionkey");
+        OTASCIIArmor sessionKey;
 
-            std::get<4>(it)->GetAsciiArmoredData(sessionKey);
+        std::get<4>(it)->GetAsciiArmoredData(sessionKey);
 
-            sessionKeyNode->add_attribute("algo", std::get<0>(it).Get());
-            sessionKeyNode->add_attribute("hmac", std::get<1>(it).Get());
-            sessionKeyNode->add_attribute("nonce", std::get<2>(it).Get());
-            sessionKeyNode->add_attribute("tag", std::get<3>(it).Get());
-            sessionKeyNode->set_text(sessionKey.Get());
+        sessionKeyNode->add_attribute("algo", std::get<0>(it).Get());
+        sessionKeyNode->add_attribute("hmac", std::get<1>(it).Get());
+        sessionKeyNode->add_attribute("nonce", std::get<2>(it).Get());
+        sessionKeyNode->add_attribute("tag", std::get<3>(it).Get());
+        sessionKeyNode->set_text(sessionKey.Get());
 
-            rootNode.add_tag(sessionKeyNode);
-        }
+        rootNode.add_tag(sessionKeyNode);
     }
 
     rootNode.add_tag("ciphertext", ciphertext_.Get());
@@ -190,7 +188,7 @@ bool Letter::Seal(
     mapOfAsymmetricKeys secp256k1Recipients;
     mapOfAsymmetricKeys RSARecipients;
 
-    for (auto it : RecipPubKeys) {
+    for (auto& it : RecipPubKeys) {
         switch (it.second->keyType()) {
             case OTAsymmetricKey::SECP256K1 :
                 haveRecipientsECDSA = true;
@@ -281,8 +279,8 @@ bool Letter::Seal(
             }
             #else
 
-            otErr << "Letter::" << __FUNCTION__ << ": Attempting to Seal to OpenSSL recipients"
-                <<" without OpenSSL support.\n";
+            otErr << "Letter::" << __FUNCTION__ << ": Attempting to Seal to secp256k1 recipients"
+                <<" without Libsecp256k1 support.\n";
             return false;
             #endif
         }
@@ -395,7 +393,7 @@ bool Letter::Open(
                                 Libsecp256k1& engine = static_cast<Libsecp256k1&>(privateKey.engine());
 
                                 // The only way to know which session key (might) belong to us to try them all
-                                for (auto it : sessionKeys) {
+                                for (auto& it : sessionKeys) {
                                     haveSessionKey = engine.DecryptSessionKeyECDH(
                                                             it,
                                                             privateKey,
@@ -425,7 +423,7 @@ bool Letter::Open(
                             OpenSSL& engine = static_cast<OpenSSL&>(CryptoEngine::Instance().RSA());
 
                             // The only way to know which session key (might) belong to us to try them all
-                            for (auto it : sessionKeys) {
+                            for (auto& it : sessionKeys) {
                                 OTData plaintextSessionKey;
 
                                 haveSessionKey = engine.Open(std::get<4>(it)->m_dataContents, theRecipient, plaintextSessionKey, pPWData);

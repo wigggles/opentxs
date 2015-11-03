@@ -68,9 +68,7 @@ OTData::OTData(const void* data, uint32_t size)
 
 OTData::OTData(const std::vector<unsigned char> sourceVector)
 {
-    for (auto i: sourceVector) {
-        Concatenate(&i, sizeof(i));
-    }
+    Assign(sourceVector.data(), sourceVector.size());
 }
 
 OTData::~OTData()

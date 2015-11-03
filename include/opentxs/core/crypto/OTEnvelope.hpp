@@ -80,7 +80,7 @@ public:
 
     // ASYMMETRIC CRYPTO (RSA / AES)
 
-    EXPORT bool Seal(const setOfNyms recipients,
+    EXPORT bool Seal(const setOfNyms& recipients,
                      const String& theInput); // Put data into this object
                                               // with Seal().
 
