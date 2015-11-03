@@ -99,7 +99,7 @@ class LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp : public LowLevelKey
 public:
     virtual void Cleanup();
     OTPassword privateKey_;
-    secp256k1_pubkey_t publicKey_;
+    secp256k1_pubkey publicKey_;
 };
 
 } // namespace opentxs

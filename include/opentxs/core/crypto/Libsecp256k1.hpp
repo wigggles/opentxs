@@ -68,7 +68,7 @@ class Libsecp256k1 : public Crypto, public CryptoAsymmetric
 
 private:
     Libsecp256k1() = delete;
-    secp256k1_context_t* context_ = nullptr;
+    secp256k1_context* context_ = nullptr;
 
     CryptoUtil& ssl_;
 
@@ -99,15 +99,15 @@ public:
 
     bool OTSignatureToECDSASignature(
         const OTSignature& inSignature,
-        secp256k1_ecdsa_signature_t& outSignature) const;
+        secp256k1_ecdsa_signature& outSignature) const;
     bool ECDSASignatureToOTSignature(
-        const secp256k1_ecdsa_signature_t& inSignature,
+        const secp256k1_ecdsa_signature& inSignature,
         OTSignature& outSignature) const;
     bool AsymmetricKeyToECDSAPubkey(
         const OTAsymmetricKey& asymmetricKey,
-        secp256k1_pubkey_t& pubkey) const;
+        secp256k1_pubkey& pubkey) const;
     bool ECDSAPubkeyToAsymmetricKey(
-        const secp256k1_pubkey_t& pubkey,
+        const secp256k1_pubkey& pubkey,
         OTAsymmetricKey& asymmetricKey) const;
     bool AsymmetricKeyToECDSAPrivkey(
         const OTAsymmetricKey& asymmetricKey,
@@ -157,13 +157,13 @@ public:
         uint8_t key [PrivateKeySize],
         const uint8_t tweak [PrivateKeySize]) const;
     bool secp256k1_pubkey_create(
-        secp256k1_pubkey_t& pubkey,
+        secp256k1_pubkey& pubkey,
         const OTPassword& privkey) const;
     bool secp256k1_pubkey_serialize(
         OTData& serializedPubkey,
-        const secp256k1_pubkey_t& pubkey) const;
+        const secp256k1_pubkey& pubkey) const;
     bool secp256k1_pubkey_parse(
-        secp256k1_pubkey_t& pubkey,
+        secp256k1_pubkey& pubkey,
         const OTPassword& serializedPubkey) const;
 };
 

@@ -114,7 +114,7 @@ bool AsymmetricKeySecp256k1::SetPublicKeyFromPrivateKey(
     }
 
     if (havePrivkey) {
-        secp256k1_pubkey_t pubKey;
+        secp256k1_pubkey pubKey;
 
         bool validPubkey = engine.secp256k1_pubkey_create(pubKey, privKey);
 

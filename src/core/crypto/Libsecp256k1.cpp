@@ -93,7 +93,7 @@ bool Libsecp256k1::SignContract(
         }
 
         if (havePrivateKey) {
-            secp256k1_ecdsa_signature_t ecdsaSignature;
+            secp256k1_ecdsa_signature ecdsaSignature;
 
             bool signatureCreated = secp256k1_ecdsa_sign(
                 context_,
@@ -138,11 +138,11 @@ bool Libsecp256k1::VerifySignature(
     bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, strContractToVerify, hash);
 
     if (haveDigest) {
-        secp256k1_pubkey_t ecdsaPubkey;
+        secp256k1_pubkey ecdsaPubkey;
         bool havePublicKey = AsymmetricKeyToECDSAPubkey(theKey, ecdsaPubkey);
 
         if (havePublicKey) {
-            secp256k1_ecdsa_signature_t ecdsaSignature;
+            secp256k1_ecdsa_signature ecdsaSignature;
 
             bool haveSignature = OTSignatureToECDSASignature(theSignature, ecdsaSignature);
 
@@ -162,7 +162,7 @@ bool Libsecp256k1::VerifySignature(
 
 bool Libsecp256k1::OTSignatureToECDSASignature(
     const OTSignature& inSignature,
-    secp256k1_ecdsa_signature_t& outSignature) const
+    secp256k1_ecdsa_signature& outSignature) const
 {
     OTData signature;
 
@@ -173,8 +173,8 @@ bool Libsecp256k1::OTSignatureToECDSASignature(
 
         if (nullptr != sigStart) {
 
-            if (sizeof(secp256k1_ecdsa_signature_t) == signature.GetSize()) {
-                secp256k1_ecdsa_signature_t ecdsaSignature;
+            if (sizeof(secp256k1_ecdsa_signature) == signature.GetSize()) {
+                secp256k1_ecdsa_signature ecdsaSignature;
 
                 for(uint32_t i=0; i < signature.GetSize(); i++) {
                     ecdsaSignature.data[i] = *(sigStart + i);
@@ -190,12 +190,12 @@ bool Libsecp256k1::OTSignatureToECDSASignature(
 }
 
 bool Libsecp256k1::ECDSASignatureToOTSignature(
-    const secp256k1_ecdsa_signature_t& inSignature,
+    const secp256k1_ecdsa_signature& inSignature,
     OTSignature& outSignature) const
 {
     OTData signature;
 
-    signature.Assign(inSignature.data, sizeof(secp256k1_ecdsa_signature_t));
+    signature.Assign(inSignature.data, sizeof(secp256k1_ecdsa_signature));
     bool signatureSet = outSignature.SetData(signature);
 
     return signatureSet;
@@ -203,7 +203,7 @@ bool Libsecp256k1::ECDSASignatureToOTSignature(
 
 bool Libsecp256k1::AsymmetricKeyToECDSAPubkey(
         const OTAsymmetricKey& asymmetricKey,
-        secp256k1_pubkey_t& pubkey) const
+        secp256k1_pubkey& pubkey) const
 {
     String encodedPubkey;
     bool havePublicKey = asymmetricKey.GetPublicKey(encodedPubkey);
@@ -213,7 +213,7 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPubkey(
         bool pubkeydecoded = CryptoUtil::Base58CheckDecode(encodedPubkey.Get(), serializedPubkey);
 
         if (pubkeydecoded) {
-            secp256k1_pubkey_t parsedPubkey;
+            secp256k1_pubkey parsedPubkey;
 
             bool pubkeyParsed = secp256k1_ec_pubkey_parse(
                 context_,
@@ -231,7 +231,7 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPubkey(
 }
 
 bool Libsecp256k1::ECDSAPubkeyToAsymmetricKey(
-        const secp256k1_pubkey_t& pubkey,
+        const secp256k1_pubkey& pubkey,
         OTAsymmetricKey& asymmetricKey) const
 {
     OTData serializedPubkey;
@@ -354,7 +354,7 @@ bool Libsecp256k1::ECDH(
     bool ephemeral) const
 {
     OTPassword scalar;
-    secp256k1_pubkey_t point;
+    secp256k1_pubkey point;
 
     bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(privateKey, passwordData, scalar, ephemeral);
 
@@ -546,7 +546,7 @@ bool Libsecp256k1::secp256k1_privkey_tweak_add(
 }
 
 bool Libsecp256k1::secp256k1_pubkey_create(
-    secp256k1_pubkey_t& pubkey,
+    secp256k1_pubkey& pubkey,
     const OTPassword& privkey) const
 {
     if (nullptr != context_) {
@@ -558,13 +558,13 @@ bool Libsecp256k1::secp256k1_pubkey_create(
 
 bool Libsecp256k1::secp256k1_pubkey_serialize(
         OTData& serializedPubkey,
-        const secp256k1_pubkey_t& pubkey) const
+        const secp256k1_pubkey& pubkey) const
 {
     if (nullptr != context_) {
         uint8_t serializedOutput [65] {};
-        int serializedSize = 0;
+        size_t serializedSize = 0;
 
-        bool serialized = secp256k1_ec_pubkey_serialize(context_, serializedOutput, &serializedSize, &pubkey, false);
+        bool serialized = secp256k1_ec_pubkey_serialize(context_, serializedOutput, &serializedSize, &pubkey, SECP256K1_EC_COMPRESSED);
 
         if (serialized) {
             serializedPubkey.Assign(serializedOutput, serializedSize);
@@ -576,7 +576,7 @@ bool Libsecp256k1::secp256k1_pubkey_serialize(
 }
 
 bool Libsecp256k1::secp256k1_pubkey_parse(
-        secp256k1_pubkey_t& pubkey,
+        secp256k1_pubkey& pubkey,
         const OTPassword& serializedPubkey) const
 {
     if (nullptr != context_) {
