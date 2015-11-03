@@ -349,8 +349,6 @@ bool Letter::Open(
     String& theOutput,
     const OTPasswordData* pPWData)
 {
-    OT_ASSERT(nullptr != pPWData);
-
     OTASCIIArmor armoredInput(dataInput);
     String decodedInput;
     OTData decodedCiphertext;
@@ -402,7 +400,7 @@ bool Letter::Open(
     // Extract and decode the ciphertext
     bool haveDecodedCiphertext = ciphertext.GetData(decodedCiphertext);
 
-    if (haveDecodedCiphertext) {
+    if (!haveDecodedCiphertext) {
         otErr << "Letter::" << __FUNCTION__ << " Could not decode armored ciphertext.\n";
         return false;
     }
@@ -426,12 +424,24 @@ bool Letter::Open(
 
             // The only way to know which session key (might) belong to us to try them all
             for (auto& it : sessionKeys) {
-                haveSessionKey = engine.DecryptSessionKeyECDH(
-                                        it,
-                                        privateKey,
-                                        *publicKey,
-                                        *pPWData,
-                                        *sessionKey);
+
+                if (nullptr == pPWData) {
+                    OTPasswordData passwordData("Letter::Open(): Please enter your password to decrypt this document.");
+                    haveSessionKey = engine.DecryptSessionKeyECDH(
+                        it,
+                        privateKey,
+                        *publicKey,
+                        passwordData,
+                        *sessionKey);
+                } else {
+                    haveSessionKey = engine.DecryptSessionKeyECDH(
+                        it,
+                        privateKey,
+                        *publicKey,
+                        *pPWData,
+                        *sessionKey);
+                }
+
                 if (haveSessionKey) {
                     break;
                 }
