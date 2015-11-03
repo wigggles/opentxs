@@ -173,6 +173,11 @@ public:
     EXPORT static void zeroMemory(void* vMemory, uint32_t size);
     EXPORT static void* safe_memcpy(void* dest, uint32_t dsize, const void* src,
                                     uint32_t ssize, bool zeroSource = false);
+    inline void reset()
+    {
+        position_ = 0;
+    }
+    EXPORT uint32_t OTfread(uint8_t* data, uint32_t size);
 
     // OTPassword thePass; will create a text password.
     // But use the below function if you want one that has
@@ -204,6 +209,7 @@ private:
     bool isBinary_;
     bool isPageLocked_;
     const BlockSize blockSize_;
+    uint32_t position_=0;
 
     bool ot_lockPage(void* addr, size_t len);
     bool ot_unlockPage(void* addr, size_t len);

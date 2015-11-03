@@ -1804,22 +1804,10 @@ bool OpenSSL::Decrypt(
 
 // Seal up as envelope (Asymmetric, using public key and then AES key.)
 
-bool OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                            const String& theInput, OTData& dataOutput) const
-{
-    // Next we put the plaintext into a data object so we can process it via
-    // EVP_SealUpdate,
-    // in blocks, into encrypted form in dataOutput. Each iteration of the loop
-    // processes
-    // one block.
-    //
-    OTData plaintext(static_cast<const void*>(theInput.Get()),
-                     theInput.GetLength() + 1); // +1 for null terminator
-
-    return Seal(RecipPubKeys, plaintext, dataOutput);
-}
-bool OpenSSL::Seal(mapOfAsymmetricKeys& RecipPubKeys,
-                            OTData& plaintext, OTData& dataOutput) const
+bool OpenSSL::EncryptSessionKey(
+    mapOfAsymmetricKeys& RecipPubKeys,
+    OTPassword& plaintext,
+    OTData& dataOutput) const
 {
     OT_ASSERT_MSG(!RecipPubKeys.empty(),
                   "OpenSSL::Seal: ASSERT: RecipPubKeys.size() > 0");
@@ -2354,52 +2342,9 @@ EVP_OpenFinal() returns 0 if the decrypt failed or 1 for success.
 
 // RSA / AES
 
-bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
-                            String& theOutput,
-                            const OTPasswordData* pPWData) const
-{
-    OTData plaintext;
-
-    bool opened = Open(dataInput, theRecipient, plaintext, pPWData);
-
-    if (opened) {
-        // Set it into theOutput (to return the plaintext to the caller)
-        //
-        // if size is 10, then indices are 0..9 and we pass '10' as the size here.
-        // Since it's an OTData, then the 10th byte (at index 9) is expected to
-        // contain
-        // the null terminator.
-        // Thus the ACTUAL string is only 9 bytes int64_t, and is contained in
-        // indices 0..8.
-        //
-        const bool bSetMem = theOutput.MemSet(
-            static_cast<const char*>(plaintext.GetPointer()), plaintext.GetSize());
-
-        if (bSetMem) {
-            // Make sure it's null-terminated...
-            //
-            uint32_t nIndex =
-            plaintext.GetSize() - 1; // null terminator is already part of length
-            // here (it was, or at least should have been,
-            // sealed that way in the first place.)
-            (static_cast<uint8_t*>(const_cast<void*>(plaintext.GetPointer())))[nIndex] =
-            '\0';
-
-            otLog5 << __FUNCTION__ << ": Output:\n" << theOutput << "\n\n";
-        } else {
-            otErr << __FUNCTION__ << ": Error: Failed while trying to memset from "
-                                    "plaintext OTData to output OTString.\n";
-        }
-
-        return bSetMem;
-    } else {
-        return false;
-    }
-}
-
-bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
-                            OTData& plaintext,
-                            const OTPasswordData* pPWData) const
+bool OpenSSL::DecryptSessionKey(OTData& dataInput, const Nym& theRecipient,
+                   OTPassword& plaintext,
+                   const OTPasswordData* pPWData) const
 {
     const char* szFunc = "OpenSSL::Open";
 
@@ -2419,7 +2364,7 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
 
     // plaintext is where we'll put the decrypted result.
     //
-    plaintext.empty();
+    plaintext.zeroMemory();
 
     // Grab the NymID of the recipient, so we can find his session
     // key (there might be symmetric keys for several Nyms, not just this
@@ -2900,7 +2845,7 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
             return false;
         }
         else if (len_out > 0)
-            plaintext.Concatenate(reinterpret_cast<void*>(buffer_out),
+            plaintext.addMemory(reinterpret_cast<void*>(buffer_out),
                                   static_cast<uint32_t>(len_out));
         else
             break;
@@ -2912,7 +2857,7 @@ bool OpenSSL::Open(OTData& dataInput, const Nym& theRecipient,
     }
     else if (len_out > 0) {
         bFinalized = true;
-        plaintext.Concatenate(reinterpret_cast<void*>(buffer_out),
+        plaintext.addMemory(reinterpret_cast<void*>(buffer_out),
                               static_cast<uint32_t>(len_out));
 
     }

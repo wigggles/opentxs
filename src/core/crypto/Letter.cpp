@@ -287,15 +287,13 @@ bool Letter::Seal(
 
         if (haveRecipientsRSA) {
             #if defined(OT_CRYPTO_USING_OPENSSL)
-            OTData plaintextSessionKey(masterSessionKey->getMemory(), masterSessionKey->getMemorySize());
-
             OpenSSL& engine = static_cast<OpenSSL&>(CryptoEngine::Instance().RSA());
 
             // Encrypt the session key to all RSA recipients and add the encrypted key
             // to the global list of session keys for this letter.
             OTData ciphertext;
 
-            bool haveSessionKey = engine.Seal(RSARecipients, plaintextSessionKey, ciphertext);
+            bool haveSessionKey = engine.EncryptSessionKey(RSARecipients, *masterSessionKey, ciphertext);
 
             if (haveSessionKey) {
                 symmetricEnvelope sessionKeyItem("", "", "", "", std::make_shared<OTEnvelope>(ciphertext));
@@ -424,13 +422,9 @@ bool Letter::Open(
 
                             // The only way to know which session key (might) belong to us to try them all
                             for (auto& it : sessionKeys) {
-                                OTData plaintextSessionKey;
-
-                                haveSessionKey = engine.Open(std::get<4>(it)->m_dataContents, theRecipient, plaintextSessionKey, pPWData);
+                                haveSessionKey = engine.DecryptSessionKey(std::get<4>(it)->m_dataContents, theRecipient, *sessionKey, pPWData);
 
                                 if (haveSessionKey) {
-                                    sessionKey->setMemory(plaintextSessionKey);
-                                    plaintextSessionKey.zeroMemory();
                                     break;
                                 }
                             }
