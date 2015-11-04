@@ -2881,10 +2881,10 @@ bool OpenSSL::Digest(
     uint32_t inputSize;
 
     if (data.isMemory()) {
-        inputStart = static_cast<const uint8_t*>(data.getMemory());
+        inputStart = data.getMemory_uint8();
         inputSize = data.getMemorySize();
     } else {
-        inputStart = reinterpret_cast<const uint8_t*>(data.getPassword());
+        inputStart = data.getPassword_uint8();
         inputSize = data.getPasswordSize();
     }
 
