@@ -72,7 +72,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(OTAsymmetricKey::KeyType keyType) /
     keyTypeError += keyTypeName.Get();
     bool validType = false;
 
-    if (keyType == OTAsymmetricKey::RSA) {
+    if (keyType == OTAsymmetricKey::LEGACY) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
         pKey = new OTAsymmetricKey_OpenSSL;
         validType = true;
@@ -875,8 +875,8 @@ String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
     String keytypeString;
 
     switch (keyType) {
-        case OTAsymmetricKey::RSA :
-            keytypeString="rsa";
+        case OTAsymmetricKey::LEGACY :
+            keytypeString="legacy";
             break;
         case OTAsymmetricKey::SECP256K1 :
             keytypeString="secp256k1";
@@ -890,8 +890,8 @@ String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
 OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
 
 {
-    if (keyType.Compare("rsa"))
-        return OTAsymmetricKey::RSA;
+    if (keyType.Compare("legacy"))
+        return OTAsymmetricKey::LEGACY;
     if (keyType.Compare("secp256k1"))
         return OTAsymmetricKey::SECP256K1;
     return OTAsymmetricKey::ERROR_TYPE;

@@ -518,7 +518,7 @@ std::string OTAPI_Exec::CreateNymECDSA(
     std::shared_ptr<NymParameters> pKeyData;
     pKeyData = std::make_shared<NymParameters>(
         NymParameters::SECP256K1,
-        Credential::SECP256K1_PUBKEY);
+        Credential::SECP256K1);
 
     Nym* pNym = OTAPI()->CreateNym(pKeyData, NYM_ID_SOURCE, ALT_LOCATION);
     if (nullptr == pNym) // Creation failed.

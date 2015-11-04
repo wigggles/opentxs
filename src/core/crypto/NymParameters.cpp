@@ -79,7 +79,7 @@ void NymParameters::setCredentialType(Credential::CredentialType theCredentialty
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
 NymParameters::NymParameters(const int32_t keySize)
     : nymType_(NymParameters::LEGACY),
-    credentialType_(Credential::RSA_PUBKEY),
+    credentialType_(Credential::LEGACY),
     nBits_(keySize)
 {
 }

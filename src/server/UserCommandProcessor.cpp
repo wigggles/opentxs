@@ -150,11 +150,11 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
 
         OTAsymmetricKey::KeyType keytypeAuthent =
         (OTAsymmetricKey::ERROR_TYPE == theMessage.keytypeAuthent_) ?
-            OTAsymmetricKey::RSA : static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeAuthent_);   // TODO HARDCODING
+            OTAsymmetricKey::LEGACY : static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeAuthent_);   // TODO HARDCODING
 
         OTAsymmetricKey::KeyType keytypeEncrypt =
         (OTAsymmetricKey::ERROR_TYPE == theMessage.keytypeEncrypt_) ?
-            OTAsymmetricKey::RSA : static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeEncrypt_);   // TODO HARDCODING
+            OTAsymmetricKey::LEGACY : static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeEncrypt_);   // TODO HARDCODING
 
         std::unique_ptr<OTAsymmetricKey> pNymAuthentKey(
             OTAsymmetricKey::KeyFactory(keytypeAuthent));

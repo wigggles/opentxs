@@ -117,7 +117,7 @@ public:
     enum KeyType: int32_t {
         ERROR_TYPE,
         NULL_TYPE,
-        RSA,
+        LEGACY,
         SECP256K1
     };
 

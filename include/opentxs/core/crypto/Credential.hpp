@@ -86,9 +86,9 @@ class Credential : public Contract
 public:
     enum CredentialType: int32_t {
         ERROR_TYPE,
-        RSA_PUBKEY,
+        LEGACY,
         URL,
-        SECP256K1_PUBKEY
+        SECP256K1
     };
 
     static String CredentialTypeToString(CredentialType credentialType);

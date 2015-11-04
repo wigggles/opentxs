@@ -690,10 +690,10 @@ String Credential::CredentialTypeToString(Credential::CredentialType credentialT
     String credentialString;
 
     switch (credentialType) {
-        case Credential::RSA_PUBKEY :
-            credentialString="rsa";
+        case Credential::LEGACY :
+            credentialString="legacy";
             break;
-        case Credential::SECP256K1_PUBKEY :
+        case Credential::SECP256K1 :
             credentialString="secp256k1";
             break;
         case Credential::URL :
@@ -708,10 +708,10 @@ String Credential::CredentialTypeToString(Credential::CredentialType credentialT
 Credential::CredentialType Credential::StringToCredentialType(const String & credentialType)
 
 {
-    if (credentialType.Compare("rsa"))
-        return Credential::RSA_PUBKEY;
+    if (credentialType.Compare("legacy"))
+        return Credential::LEGACY;
     else if (credentialType.Compare("secp256k1"))
-        return Credential::SECP256K1_PUBKEY;
+        return Credential::SECP256K1;
     else if (credentialType.Compare("url"))
         return Credential::URL;
     return Credential::ERROR_TYPE;
@@ -723,10 +723,10 @@ OTAsymmetricKey::KeyType Credential::CredentialTypeToKeyType(Credential::Credent
     OTAsymmetricKey::KeyType newKeyType;
 
     switch (credentialType) {
-        case Credential::RSA_PUBKEY :
-            newKeyType = OTAsymmetricKey::RSA;
+        case Credential::LEGACY :
+            newKeyType = OTAsymmetricKey::LEGACY;
             break;
-        case Credential::SECP256K1_PUBKEY :
+        case Credential::SECP256K1 :
             newKeyType = OTAsymmetricKey::SECP256K1;
             break;
         case Credential::URL :

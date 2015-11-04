@@ -198,7 +198,7 @@ bool Letter::Seal(
                 haveRecipientsECDSA = true;
                 secp256k1Recipients.insert(std::pair<std::string, OTAsymmetricKey*>(it.first, it.second));
                 break;
-            case OTAsymmetricKey::RSA :
+            case OTAsymmetricKey::LEGACY :
                 haveRecipientsRSA = true;
                 RSARecipients.insert(std::pair<std::string, OTAsymmetricKey*>(it.first, it.second));
                 break;
@@ -249,7 +249,7 @@ bool Letter::Seal(
             std::shared_ptr<NymParameters> pKeyData;
             pKeyData = std::make_shared<NymParameters>(
                 NymParameters::SECP256K1,
-                Credential::SECP256K1_PUBKEY);
+                Credential::SECP256K1);
             ephemeralKeypair.MakeNewKeypair(pKeyData, true);
             ephemeralKeypair.GetPublicKey(ephemeralPubkey);
 
@@ -458,7 +458,7 @@ bool Letter::Open(
         }
     }
 
-    if (privateKey.keyType() == OTAsymmetricKey::RSA) {
+    if (privateKey.keyType() == OTAsymmetricKey::LEGACY) {
 
         // Get all the session keys
         listOfSessionKeys sessionKeys(contents.SessionKeys());
