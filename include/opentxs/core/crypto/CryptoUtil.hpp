@@ -45,6 +45,7 @@ namespace opentxs
 {
 
 class Identifier;
+class OTData;
 class OTPassword;
 
 class CryptoUtil
@@ -75,6 +76,13 @@ public:
                                bool bLineBreaks) const = 0;
     virtual uint8_t* Base64Decode(const char* input, size_t* out_len,
                                   bool bLineBreaks) const = 0;
+    String Nonce(const uint32_t size) const;
+    String Nonce(const uint32_t size, OTData& rawOutput) const;
+
+    static String Base58CheckEncode(const OTPassword& input);
+    static String Base58CheckEncode(const OTData& input);
+    static bool Base58CheckDecode(const String& input, OTData& output);
+    static bool Base58CheckDecode(const String& input, OTPassword& output);
 };
 
 } // namespace opentxs

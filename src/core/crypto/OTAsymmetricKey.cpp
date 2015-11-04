@@ -55,6 +55,10 @@
 #include <opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp>
 #endif
 
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+#include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
+#endif
+
 namespace opentxs
 {
 
@@ -68,18 +72,27 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(OTAsymmetricKey::KeyType keyType) /
     keyTypeError += keyTypeName.Get();
     bool validType = false;
 
-    if (keyType == OTAsymmetricKey::RSA) {
+    if (keyType == OTAsymmetricKey::LEGACY) {
 #if defined(OT_CRYPTO_USING_OPENSSL)
         pKey = new OTAsymmetricKey_OpenSSL;
         validType = true;
 #elif defined(OT_CRYPTO_USING_GPG)
     //  pKey = new OTAsymmetricKey_GPG;
     otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
-                             "so it's impossible to instantiate a key.\n";
+                             "so it's impossible to instantiate the key.\n";
 #else
     otErr << __FUNCTION__
           << ": Open-Transactions isn't built with any crypto engine, "
-             "so it's impossible to instantiate a key.\n";
+             "so it's impossible to instantiate the key.\n";
+#endif
+    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        pKey = new AsymmetricKeySecp256k1;
+        validType = true;
+#else
+    otErr << __FUNCTION__
+          << ": Open-Transactions isn't built with libsecp256k1 support, "
+             "so it's impossible to instantiate the key.\n";
 #endif
     }
     OT_ASSERT_MSG(validType, keyTypeError.c_str());
@@ -276,7 +289,7 @@ bool OT_API_Set_PasswordCallback(OTCaller& theCaller) // Caller must have
 // If the password callback isn't set, then it uses the default ("test")
 // password.
 //
-extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
+extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t rwflag,
                                    void* userdata)
 {
     int32_t len = 0;
@@ -288,7 +301,7 @@ extern "C" int32_t default_pass_cb(char* buf, int32_t size, int32_t,
     std::string str_userdata;
 
     if (nullptr != userdata) {
-        pPWData = static_cast<OTPasswordData*>(userdata);
+        pPWData = static_cast<const OTPasswordData*>(userdata);
 
         if (nullptr != pPWData) {
             str_userdata = pPWData->GetDisplayString();
@@ -359,7 +372,7 @@ extern "C" int32_t souped_up_pass_cb(char* buf, int32_t size, int32_t rwflag,
 {
     //  OT_ASSERT(nullptr != buf); // apparently it CAN be nullptr sometimes.
     OT_ASSERT(nullptr != userdata);
-    const OTPasswordData* pPWData = static_cast<OTPasswordData*>(userdata);
+    const OTPasswordData* pPWData = static_cast<const OTPasswordData*>(userdata);
     const std::string str_userdata = pPWData->GetDisplayString();
 
     OTPassword thePassword;
@@ -859,16 +872,28 @@ void OTAsymmetricKey::Release()
 String OTAsymmetricKey::KeyTypeToString(const OTAsymmetricKey::KeyType keyType)
 
 {
-    if (keyType == OTAsymmetricKey::RSA)
-        return "rsa";
-    return "error";
+    String keytypeString;
+
+    switch (keyType) {
+        case OTAsymmetricKey::LEGACY :
+            keytypeString="legacy";
+            break;
+        case OTAsymmetricKey::SECP256K1 :
+            keytypeString="secp256k1";
+            break;
+        default :
+            keytypeString="error";
+    }
+    return keytypeString;
 }
 
 OTAsymmetricKey::KeyType OTAsymmetricKey::StringToKeyType(const String& keyType)
 
 {
-    if (keyType.Compare("rsa"))
-        return OTAsymmetricKey::RSA;
+    if (keyType.Compare("legacy"))
+        return OTAsymmetricKey::LEGACY;
+    if (keyType.Compare("secp256k1"))
+        return OTAsymmetricKey::SECP256K1;
     return OTAsymmetricKey::ERROR_TYPE;
 }
 

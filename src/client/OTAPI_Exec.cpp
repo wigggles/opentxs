@@ -511,6 +511,28 @@ std::string OTAPI_Exec::CreateNymLegacy(
     return "";
 }
 
+std::string OTAPI_Exec::CreateNymECDSA(
+    const std::string& NYM_ID_SOURCE,      // Can be empty.
+    const std::string& ALT_LOCATION) const // Can be empty.
+{
+    std::shared_ptr<NymParameters> pKeyData;
+    pKeyData = std::make_shared<NymParameters>(
+        NymParameters::SECP256K1,
+        Credential::SECP256K1);
+
+    Nym* pNym = OTAPI()->CreateNym(pKeyData, NYM_ID_SOURCE, ALT_LOCATION);
+    if (nullptr == pNym) // Creation failed.
+    {
+        otOut << __FUNCTION__ << ": Failed trying to create Nym.\n";
+        return "";
+    }
+    // -----------------------------------------------------}
+    String strOutput;
+    pNym->GetIdentifier(strOutput); // We're returning the new Nym ID.
+    if (strOutput.Exists()) return strOutput.Get();
+    return "";
+}
+
 std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
     const std::string& NYM_ID, const std::string& NOTARY_ID) const
 {

@@ -40,6 +40,8 @@
 
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 
@@ -151,6 +153,110 @@ bool CryptoSymmetricDecryptOutput::Concatenate(const void* pAppendData,
         return true;
     }
     return false;
+}
+
+String CryptoSymmetric::ModeToString(const Mode Mode)
+{
+    String modeString;
+
+    switch (Mode) {
+        case CryptoSymmetric::AES_128_CBC :
+            modeString="aes-128-cbc";
+            break;
+        case CryptoSymmetric::AES_256_ECB  :
+            modeString="aes-256-ecb";
+            break;
+        case CryptoSymmetric::AES_128_GCM  :
+            modeString="aes-128-gcm";
+            break;
+        case CryptoSymmetric::AES_256_GCM  :
+            modeString="aes-256-gcm";
+            break;
+        default :
+            modeString="error";
+    }
+    return modeString;
+}
+
+CryptoSymmetric::Mode CryptoSymmetric::StringToMode(const String& Mode)
+{
+    if (Mode.Compare("aes-128-cbc"))
+        return CryptoSymmetric::AES_128_CBC ;
+    if (Mode.Compare("aes-256-ecb"))
+        return CryptoSymmetric::AES_256_ECB ;
+    if (Mode.Compare("aes-128-gcm"))
+        return CryptoSymmetric::AES_128_GCM ;
+    if (Mode.Compare("aes-256-gcm"))
+        return CryptoSymmetric::AES_256_GCM ;
+    return CryptoSymmetric::ERROR_MODE ;
+}
+
+uint32_t CryptoSymmetric::KeySize(const Mode Mode)
+{
+    uint32_t keySize;
+
+    switch (Mode) {
+        case CryptoSymmetric::AES_128_CBC :
+            keySize= 16;
+            break;
+        case CryptoSymmetric::AES_256_ECB  :
+            keySize= 32;
+            break;
+        case CryptoSymmetric::AES_128_GCM  :
+            keySize= 16;
+            break;
+        case CryptoSymmetric::AES_256_GCM  :
+            keySize= 32;
+            break;
+        default :
+            keySize= 0;
+    }
+    return keySize;
+}
+
+uint32_t CryptoSymmetric::IVSize(const Mode Mode)
+{
+    return KeySize(Mode);
+}
+
+uint32_t CryptoSymmetric::TagSize(const Mode Mode)
+{
+    uint32_t tagSize;
+
+    switch (Mode) {
+        case CryptoSymmetric::AES_128_GCM  :
+            tagSize= 16;
+            break;
+        case CryptoSymmetric::AES_256_GCM  :
+            tagSize= 16;
+            break;
+        default :
+            tagSize= 0;
+    }
+    return tagSize;
+}
+
+BinarySecret CryptoSymmetric::GetMasterKey(const OTPasswordData& passwordData, const bool askTwice)
+
+{
+    BinarySecret masterPassword(std::make_shared<OTPassword>());
+
+    OTPassword* masterPasswordInitial = CryptoEngine::Instance().AES().InstantiateBinarySecret();
+
+    OTPasswordData tempData(passwordData.GetDisplayString());
+
+    int32_t length_aes_key =
+    souped_up_pass_cb(static_cast<char*>(const_cast<void*>(masterPasswordInitial->getMemory())),
+                      OTPassword::DEFAULT_SIZE,
+                      askTwice,
+                      reinterpret_cast<void*>(&tempData));
+
+    masterPassword->setMemory(masterPasswordInitial->getMemory(), length_aes_key);
+
+    delete masterPasswordInitial;
+    masterPasswordInitial = nullptr;
+
+    return masterPassword;
 }
 
 } // namespace opentxs

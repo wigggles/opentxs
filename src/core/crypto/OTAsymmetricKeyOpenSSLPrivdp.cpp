@@ -258,7 +258,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
                         keyBio, nullptr, OTAsymmetricKey::GetPasswordCallback(),
                         nullptr == pPWData
                             ? &thePWData
-                            : const_cast<OTPasswordData*>(pPWData));
+                            :  const_cast<OTPasswordData*>(pPWData));
                 else
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio, nullptr, 0,

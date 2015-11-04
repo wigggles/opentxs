@@ -95,3 +95,31 @@ if (NOT WIN32)
           EXPORT opentxsTargets
           COMPONENT main)
 endif()
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+    include(ExternalProject)
+    ExternalProject_Add(
+        libsecp256k1
+        EP_BASE ${CMAKE_CURRENT_BINARY_DIR}
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1
+        CONFIGURE_COMMAND CFLAGS=-fpic ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1/configure --prefix ${CMAKE_CURRENT_BINARY_DIR} --enable-shared=no --enable-static=yes --enable-module-ecdh
+        BUILD_COMMAND make
+        BUILD_IN_SOURCE 0
+    )
+
+    ExternalProject_Add_Step(
+        libsecp256k1
+        generate
+        COMMAND autoreconf -if --warnings=all ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1
+        DEPENDERS configure
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libsecp256k1
+    )
+
+    ExternalProject_Add_Step(
+        libsecp256k1
+        make_build
+        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/libsecp256k1
+        DEPENDERS generate
+    )
+    set_property(TARGET libsecp256k1 PROPERTY EXCLUDE_FROM_ALL TRUE)
+endif()

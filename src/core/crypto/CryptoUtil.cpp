@@ -42,6 +42,8 @@
 
 #include <iostream>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/OTData.hpp>
+#include <opentxs/core/crypto/BitcoinCrypto.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
 namespace opentxs
@@ -94,5 +96,74 @@ bool CryptoUtil::IsBase62(const std::string& str) const
     return str.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHI"
                                  "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
+
+String CryptoUtil::Nonce(const uint32_t size) const
+{
+    OTData unusedOutput;
+    return Nonce(size, unusedOutput);
+}
+
+String CryptoUtil::Nonce(const uint32_t size, OTData& rawOutput) const
+{
+    rawOutput.zeroMemory();
+    rawOutput.SetSize(size);
+
+    OTPassword source;
+    source.randomizeMemory(size);
+
+    String nonce(Base58CheckEncode(source));
+
+    rawOutput.Assign(source.getMemory(), source.getMemorySize());
+    return nonce;
+}
+
+String CryptoUtil::Base58CheckEncode(const OTData& input)
+{
+    OTPassword transformedInput;
+    transformedInput.setMemory(input);
+
+    return Base58CheckEncode(transformedInput);
+}
+
+String CryptoUtil::Base58CheckEncode(const OTPassword& input)
+{
+    const uint8_t* inputStart = static_cast<const uint8_t*>(input.getMemory());
+    const uint8_t* inputEnd = inputStart + input.getMemorySize();
+
+    String encodedInput = ::EncodeBase58Check(inputStart, inputEnd);
+    return encodedInput;
+}
+
+bool CryptoUtil::Base58CheckDecode(const String& input, OTPassword& output)
+{
+    OTData decodedOutput;
+    bool decoded = Base58CheckDecode(input, decodedOutput);
+
+    if (decoded) {
+        output.setMemory(decodedOutput);
+
+        return true;
+    } else {
+
+        return false;
+    }
+}
+
+bool CryptoUtil::Base58CheckDecode(const String& input, OTData& output)
+{
+    std::vector<unsigned char> decodedInput;
+    bool decoded = DecodeBase58Check(input.Get(), decodedInput);
+
+    if (decoded) {
+        OTData dataOutput(decodedInput);
+        output = dataOutput;
+
+        return true;
+    } else {
+
+        return false;
+    }
+}
+
 
 } // namespace opentxs

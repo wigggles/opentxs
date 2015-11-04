@@ -40,13 +40,18 @@
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
+#include <opentxs/core/crypto/CryptoHash.hpp>
 #include <opentxs/core/crypto/CryptoSymmetric.hpp>
 #include <opentxs/core/crypto/CryptoUtil.hpp>
 
 #ifdef OT_CRYPTO_USING_OPENSSL
 #include <opentxs/core/crypto/OpenSSL.hpp>
-#else // Apparently NO crypto engine is defined!
+#else //No SSL library defined
 // Perhaps error out here...
+#endif
+
+#ifdef OT_CRYPTO_USING_LIBSECP256K1
+#include <opentxs/core/crypto/Libsecp256k1.hpp>
 #endif
 
 namespace opentxs
@@ -55,8 +60,12 @@ namespace opentxs
 // Choose your OpenSSL-compatible library here.
 #ifdef OT_CRYPTO_USING_OPENSSL
 typedef OpenSSL SSLImplementation;
-#else // Apparently NO crypto engine is defined!
+#else //No SSL library defined
 // Perhaps error out here...
+#endif
+
+#if defined OT_CRYPTO_USING_LIBSECP256K1
+typedef Libsecp256k1 secp256k1;
 #endif
 
 //Singlton class for providing an interface to external crypto libraries
@@ -69,14 +78,23 @@ private:
     CryptoEngine& operator=(CryptoEngine const&) = delete;
     void Init();
     SSLImplementation* pSSL_ = nullptr;
+#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    secp256k1* psecp256k1_ = nullptr;
+#endif
+
     static CryptoEngine* pInstance_;
 
 public:
     //Utility class for misc OpenSSL-provided functions
     EXPORT CryptoUtil& Util();
+    //Hash function interface
+    EXPORT CryptoHash& Hash();
     //Asymmetric encryption engines
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoAsymmetric& RSA();
+#endif
+#ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    EXPORT CryptoAsymmetric& SECP256K1();
 #endif
     //Symmetric encryption engines
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA

@@ -117,7 +117,8 @@ public:
     enum KeyType: int32_t {
         ERROR_TYPE,
         NULL_TYPE,
-        RSA
+        LEGACY,
+        SECP256K1
     };
 
     static String KeyTypeToString(const KeyType keyType);
@@ -126,7 +127,7 @@ public:
 
     KeyType keyType() const;
 
-    virtual CryptoAsymmetric& engine() const;
+    virtual CryptoAsymmetric& engine() const = 0;
 
 protected:
     KeyType m_keyType = ERROR_TYPE;
@@ -284,7 +285,7 @@ public: // DESTRUCTION
 
     virtual bool GetPrivateKey(
         FormattedKey& strOutput,
-        const OTAsymmetricKey* pPubkey, //I wish this wasn't necessary
+        const OTAsymmetricKey* pPubkey = nullptr, //I wish this wasn't necessary
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const = 0;
     virtual bool SetPrivateKey(

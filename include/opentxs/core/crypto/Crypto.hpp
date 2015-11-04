@@ -78,18 +78,16 @@ public:
 
 class Crypto
 {
-private:
-    static int32_t s_nCount; // Instance count, should never exceed 1.
 protected:
     Crypto() = default;
 
-    virtual void Init_Override() const;
-    virtual void Cleanup_Override() const;
+    virtual void Init_Override() const=0;
+    virtual void Cleanup_Override() const=0;
 
 public:
     virtual ~Crypto() = default;
-    virtual void Init() const;
-    virtual void Cleanup() const;
+    void Init() const;
+    void Cleanup() const;
 };
 
 } // namespace opentxs

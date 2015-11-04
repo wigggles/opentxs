@@ -169,31 +169,21 @@ Identifier::~Identifier()
 // which resort to low level calls to accomplish non standard message digests.
 // Otherwise, it will use whatever OpenSSL provides by that name (see
 // GetOpenSSLDigestByName).
-const String Identifier::DefaultHashAlgorithm("HASH256");
-
-// This method implements the (ripemd160 . sha256) hash,
-// so the result is 20 bytes long.
-bool Identifier::CalculateDigest(const unsigned char* data, size_t len)
-{
-    // The Hash160 function comes from the Bitcoin reference client, where
-    // it is implemented as RIPEMD160 ( SHA256 ( x ) ) => 20 byte hash
-    auto hash160 = Hash160(data, data + len);
-    SetSize(20);
-    memcpy(const_cast<void*>(GetPointer()), hash160, 20);
-    return true;
-}
+const CryptoHash::HashType Identifier::DefaultHashAlgorithm = CryptoHash::SHA256;
 
 bool Identifier::CalculateDigest(const String& strInput)
 {
-    return CalculateDigest(
-        reinterpret_cast<const unsigned char*>(strInput.Get()),
-        static_cast<size_t>(strInput.GetLength()));
-}
+    return CryptoEngine::Instance().Hash().Digest(
+        CryptoHash::HASH160,
+        strInput,
+        *this);}
 
 bool Identifier::CalculateDigest(const OTData& dataInput)
 {
-    auto dataPtr = static_cast<const unsigned char*>(dataInput.GetPointer());
-    return CalculateDigest(dataPtr, dataInput.GetSize());
+    return CryptoEngine::Instance().Hash().Digest(
+        CryptoHash::HASH160,
+        dataInput,
+        *this);
 }
 
 // SET (binary id) FROM ENCODED STRING

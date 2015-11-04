@@ -107,7 +107,7 @@ int32_t MasterCredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (masterType.Exists()) {
             actualCredentialType = StringToCredentialType(masterType.Get());
         } else {
-            actualCredentialType = Credential::RSA_PUBKEY; //backward compatibility
+            actualCredentialType = Credential::LEGACY; //backward compatibility
         }
 
         OT_ASSERT(!m_AuthentKey);
@@ -149,7 +149,7 @@ void MasterCredential::UpdateContents()
     if (masterType.Exists()) {
         tag.add_attribute("type", masterType.Get());
     } else {
-        tag.add_attribute("type", CredentialTypeToString(Credential::RSA_PUBKEY).Get()); //backward compatibility
+        tag.add_attribute("type", CredentialTypeToString(Credential::LEGACY).Get()); //backward compatibility
     }
 
     if (GetNymIDSource().Exists()) {

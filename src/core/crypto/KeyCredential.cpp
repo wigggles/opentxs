@@ -592,7 +592,7 @@ bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData)
 bool KeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
                                     bool bImporting)
 {
-    String strSign, strAuth, strEncr;
+    FormattedKey strSign, strAuth, strEncr;
 
     OT_ASSERT(m_AuthentKey);
     OT_ASSERT(m_EncryptKey);

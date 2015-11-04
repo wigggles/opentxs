@@ -52,8 +52,10 @@ option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
 option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
 
 option(OT_CRYPTO_SUPPORTED_KEY_RSA     "Enable RSA key support" ON)
+option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
 
 option(OT_CRYPTO_USING_OPENSSL       "Use OpenSSL crypto implementation" ON)
+option(OT_CRYPTO_USING_LIBSECP256K1  "Use libsecp256k1 crypto implementation" ON)
 
 # SWIG Bindings
 option(JAVA    "Build with Java binding" OFF)
@@ -104,9 +106,11 @@ message(STATUS "Keyring flatfile:       ${KEYRING_FLATFILE}")
 
 message(STATUS "Key algorithms-------------------------------")
 message(STATUS "RSA:                    ${OT_CRYPTO_SUPPORTED_KEY_RSA}")
+message(STATUS "secp256k1               ${OT_CRYPTO_SUPPORTED_KEY_SECP256K1}")
 
 message(STATUS "Crypto library providers---------------------")
 message(STATUS "OpenSSL:                ${OT_CRYPTO_USING_OPENSSL}")
+message(STATUS "libsecp256k1:           ${OT_CRYPTO_USING_LIBSECP256K1}")
 
 message(STATUS "Bindings ------------------------------------")
 message(STATUS "Java binding:           ${JAVA}")
@@ -182,6 +186,8 @@ execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_
 #-----------------------------------------------------------------------------
 # Third party libraries
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 if(APPLE)
   find_package(OpenSSL REQUIRED)
 else()
@@ -189,6 +195,9 @@ else()
 endif()
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
+if(OT_CRYPTO_USING_LIBSECP256K1)
+  find_package(GMP REQUIRED)
+endif()
 
 #-----------------------------------------------------------------------------
 # System libraries used for linking.
@@ -307,10 +316,18 @@ if(OT_CRYPTO_SUPPORTED_KEY_RSA)
   add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_RSA)
 endif()
 
+if(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+  add_definitions(-DOT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+endif()
+
 #Crypto libraries
 
 if(OT_CRYPTO_USING_OPENSSL)
-add_definitions(-DOT_CRYPTO_USING_OPENSSL)
+  add_definitions(-DOT_CRYPTO_USING_OPENSSL)
+endif()
+
+if(OT_CRYPTO_USING_LIBSECP256K1)
+  add_definitions(-DOT_CRYPTO_USING_LIBSECP256K1)
 endif()
 
 add_definitions(-DOT_CASH_USING_LUCRE)
@@ -381,8 +398,22 @@ function(set_lib_property lib)
 endfunction(set_lib_property)
 
 add_subdirectory(deps)
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+    include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/include)
+    link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
+endif()
+
 add_subdirectory(src)
 add_subdirectory(wrappers)
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+    add_dependencies(opentxs libsecp256k1)
+    add_dependencies(opentxs-cron libsecp256k1)
+    add_dependencies(opentxs-recurring libsecp256k1)
+    add_dependencies(opentxs-script libsecp256k1)
+    add_dependencies(opentxs-trade libsecp256k1)
+endif()
 
 if (NOT ANDROID)
   add_subdirectory(tests)

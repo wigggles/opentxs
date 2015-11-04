@@ -38,6 +38,7 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <opentxs/core/OTData.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 
 #include <opentxs/core/crypto/CryptoEngine.hpp>
@@ -567,6 +568,11 @@ bool OTPassword::Compare(OTPassword& rhs) const
     return false;
 }
 
+int32_t OTPassword::setPassword(const std::string& input)
+{
+    return setPassword(input.data(), input.size());
+}
+
 // Returns size of password (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
@@ -906,6 +912,16 @@ int32_t OTPassword::addMemory(const void* vAppend, uint32_t nAppendSize)
     return nAppendSize;
 }
 
+int32_t OTPassword::setMemory(const OTData& data)
+{
+    const uint32_t dataSize = data.GetSize();
+    uint32_t returnedSize = dataSize;
+
+    bool memorySet = setMemory(data.GetPointer(), returnedSize);
+    // TODO maybe we should check for truncation?
+    return memorySet;
+}
+
 // Returns size of memory (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
@@ -962,6 +978,35 @@ int32_t OTPassword::setMemory(const void* vInput, uint32_t nInputSize)
 
     size_ = nInputSize;
     return size_;
+}
+
+// First use reset() to set the internal position to 0.
+// Then you pass in the buffer where the results go.
+// You pass in the length of that buffer.
+// It returns how much was actually read.
+// If you start at position 0, and read 100 bytes, then
+// you are now on position 100, and the next OTfread will
+// proceed from that position. (Unless you reset().)
+uint32_t OTPassword::OTfread(uint8_t* data, uint32_t size)
+{
+    OT_ASSERT(data != nullptr && size > 0);
+
+    uint32_t sizeToRead = 0;
+
+    if (position_ < size_) {
+        // If the size is 20, and position is 5 (I've already read the first 5
+        // bytes) then the size remaining to read is 15. That is, GetSize()
+        // minus position_.
+        sizeToRead = size_ - position_;
+
+        if (size < sizeToRead) {
+            sizeToRead = size;
+        }
+        addMemory(data, sizeToRead);
+        position_ += sizeToRead;
+    }
+
+    return sizeToRead;
 }
 
 } // namespace opentxs

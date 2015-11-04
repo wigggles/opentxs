@@ -123,7 +123,7 @@ int32_t ChildKeyCredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (KeyCredentialType.Exists()) {
             actualCredentialType = StringToCredentialType(KeyCredentialType.Get());
         } else {
-            actualCredentialType = Credential::RSA_PUBKEY; //backward compatibility
+            actualCredentialType = Credential::LEGACY; //backward compatibility
         }
 
         OT_ASSERT(!m_AuthentKey);
@@ -172,7 +172,7 @@ void ChildKeyCredential::UpdateContents()
     if (KeyCredentialType.Exists()) {
         tag.add_attribute("type", KeyCredentialType.Get());
     } else {
-        tag.add_attribute("type", CredentialTypeToString(Credential::RSA_PUBKEY).Get()); //backward compatibility
+        tag.add_attribute("type", CredentialTypeToString(Credential::LEGACY).Get()); //backward compatibility
     }
 
     if (GetNymIDSource().Exists()) {

@@ -509,7 +509,7 @@ bool Contract::SignWithKey(const OTAsymmetricKey& theKey,
 //
 bool Contract::SignContract(const OTAsymmetricKey& theKey,
                             OTSignature& theSignature,
-                            const String& strHashType,
+                            const CryptoHash::HashType hashType,
                             const OTPasswordData* pPWData)
 {
     // We assume if there's any important metadata, it will already
@@ -533,7 +533,7 @@ bool Contract::SignContract(const OTAsymmetricKey& theKey,
 
     if (false ==
         engine.SignContract(trim(m_xmlUnsigned), theKey, theSignature,
-                                     strHashType, pPWData)) {
+                                     hashType, pPWData)) {
         otErr << "Contract::SignContract: "
                  "engine.SignContract returned false.\n";
         return false;
@@ -718,7 +718,7 @@ bool Contract::VerifySignature(const Nym& theNym,
 
 bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
                                const OTSignature& theSignature,
-                               const String& strHashType,
+                               const CryptoHash::HashType hashType,
                                const OTPasswordData* pPWData) const
 {
     // See if this key could possibly have even signed this signature.
@@ -735,7 +735,7 @@ bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
 
     if (false ==
         engine.VerifySignature(
-            trim(m_xmlUnsigned), theKey, theSignature, strHashType,
+            trim(m_xmlUnsigned), theKey, theSignature, hashType,
             (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
                << ": engine.VerifySignature returned false.\n";
@@ -908,10 +908,11 @@ bool Contract::SaveContractRaw(String& strOutput) const
 bool Contract::AddBookendsAroundContent(String& strOutput,
                                         const String& strContents,
                                         const String& strContractType,
-                                        const String& strHashType,
+                                        const CryptoHash::HashType hashType,
                                         const listOfSignatures& listSignatures)
 {
     String strTemp;
+    String strHashType = CryptoHash::HashTypeToString(hashType);
 
     strTemp.Concatenate("-----BEGIN SIGNED %s-----\nHash: %s\n\n",
                         strContractType.Get(), strHashType.Get());
@@ -1337,8 +1338,10 @@ bool Contract::ParseRawFile()
                                   "contract header...\n";
 
                         std::string strTemp = line.substr(6);
-                        m_strSigHashType = strTemp.c_str();
-                        m_strSigHashType.ConvertToUpperCase();
+                        String strHashType = strTemp.c_str();
+                        strHashType.ConvertToUpperCase();
+
+                        m_strSigHashType = CryptoHash::StringToHashType(strHashType);
 
                         if (bIsEOF || !m_strRawFile.sgets(buffer1, 2048)) {
                             otOut << "Error in contract " << m_strFilename

@@ -36,42 +36,62 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
-
-#include <opentxs/core/String.hpp>
-#include <opentxs/core/crypto/CryptoHash.hpp>
-#include <set>
+#ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
+#define OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
 
 namespace opentxs
 {
 
-class OTAsymmetricKey;
 class OTData;
-class OTPasswordData;
-class Nym;
-class OTSignature;
+class OTPassword;
+class String;
 
-typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
-
-class CryptoAsymmetric
+class CryptoHash
 {
+protected:
+    CryptoHash() = default;
 
 public:
+    enum HashType {
+      ERROR,
+      NONE,
+      HASH256,
+      HASH160,
+      SHA1,
+      SHA224,
+      SHA256,
+      SHA384,
+      SHA512
+    };
 
-    virtual bool SignContract(const String& strContractUnsigned,
-                              const OTAsymmetricKey& theKey,
-                              OTSignature& theSignature, // output
-                              const CryptoHash::HashType hashType,
-                              const OTPasswordData* pPWData = nullptr) = 0;
-    virtual bool VerifySignature(
-        const String& strContractToVerify,
-        const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature,
+    virtual ~CryptoHash() = default;
+    virtual bool Digest(
+        const HashType hashType,
+        const OTPassword& data,
+        OTPassword& digest) const = 0;
+    virtual bool HMAC(
         const CryptoHash::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+        const OTPassword& inputKey,
+        const OTData& inputData,
+        OTPassword& outputDigest) const = 0;
+    bool Digest(
+        const HashType hashType,
+        const String& data,
+        OTData& digest);
+    bool Digest(
+        const HashType hashType,
+        const OTData& data,
+        OTData& digest);
+    bool HMAC(
+        const CryptoHash::HashType hashType,
+        const OTPassword& inputKey,
+        const String& inputData,
+        OTPassword& outputDigest) const;
+
+    static HashType StringToHashType(const String& inputString);
+    static String HashTypeToString(const HashType hashType);
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
+#endif // OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP

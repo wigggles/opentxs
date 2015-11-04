@@ -5,6 +5,14 @@ include_directories(SYSTEM
   ${CZMQ_INCLUDE_DIR}
 )
 
+if(OT_CRYPTO_USING_LIBSECP256K1)
+  set(LIBSECP256K1 "crypto/Libsecp256k1.cpp")
+  set(KEYSECP256K1 "crypto/AsymmetricKeySecp256k1.cpp")
+else()
+  set(LIBSECP256K1 "")
+  set(KEYSECP256K1 "")
+endif()
+
 add_subdirectory(otprotob)
 add_subdirectory(trade)
 add_subdirectory(cron)
@@ -29,6 +37,7 @@ set(cxx-sources
   crypto/OTAsymmetricKey.cpp
   crypto/OTAsymmetricKeyOpenSSL.cpp
   crypto/OTAsymmetricKeyOpenSSLPrivdp.cpp
+  ${KEYSECP256K1}
   crypto/OTCachedKey.cpp
   crypto/OTCallback.cpp
   crypto/OTCaller.cpp
@@ -36,11 +45,14 @@ set(cxx-sources
   Contract.cpp
   crypto/CredentialSet.cpp
   crypto/Crypto.cpp
+  crypto/CryptoHash.cpp
   crypto/CryptoUtil.cpp
   crypto/CryptoSymmetric.cpp
   crypto/OpenSSL.cpp
+  ${LIBSECP256K1}
   crypto/CryptoEngine.cpp
   OTData.cpp
+  crypto/Letter.cpp
   crypto/OTEnvelope.cpp
   Identifier.cpp
   Instrument.cpp
@@ -131,6 +143,14 @@ endif()
 
 target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
 target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+    add_library(staticlibsecp256k1 STATIC IMPORTED)
+    set_property(TARGET staticlibsecp256k1 PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libsecp256k1.a)
+    target_link_libraries(opentxs-core PRIVATE staticlibsecp256k1)
+    target_link_libraries(opentxs-core PUBLIC ${GMP_LIBRARIES})
+endif()
+
 set_lib_property(opentxs-core)
 
 if(WIN32)

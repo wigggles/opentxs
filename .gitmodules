@@ -19,3 +19,6 @@
 [submodule "deps/czmq"]
 	path = deps/czmq
 	url = https://github.com/zeromq/czmq
+[submodule "deps/bitcoin-secp256k1"]
+	path = deps/bitcoin-secp256k1
+	url = https://github.com/bitcoin/secp256k1.git

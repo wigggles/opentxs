@@ -80,7 +80,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 
-    m_keyType = OTAsymmetricKey::RSA;
+    m_keyType = OTAsymmetricKey::LEGACY;
 }
 
 OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
@@ -756,7 +756,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
     return privateSuccess && publicSuccess;
 }
 
-CryptoAsymmetric& OTAsymmetricKey::engine() const
+CryptoAsymmetric& OTAsymmetricKey_OpenSSL::engine() const
 
 {
     return CryptoEngine::Instance().RSA();

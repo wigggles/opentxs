@@ -40,9 +40,14 @@
 #define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRIC_HPP
 
 #include <opentxs/core/OTData.hpp>
+#include <opentxs/core/String.hpp>
+#include <opentxs/core/crypto/OTPassword.hpp>
+#include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/util/Assert.hpp>
 
+#include <memory>
 #include <mutex>
+#include <tuple>
 
 namespace opentxs
 {
@@ -52,6 +57,8 @@ class OTPassword;
 class OTPasswordData;
 class OTData;
 
+typedef std::tuple<String, String, String, String, std::shared_ptr<OTEnvelope> > symmetricEnvelope;
+typedef std::shared_ptr<OTPassword> BinarySecret;
 // Sometimes I want to decrypt into an OTPassword (for encrypted symmetric
 // keys being decrypted) and sometimes I want to decrypt into an OTData
 // (For most other types of data.) This class allows me to do it either way
@@ -89,10 +96,27 @@ public:
 class CryptoSymmetric
 {
 public:
+    enum Mode: int32_t {
+        ERROR_MODE,
+        AES_128_CBC,
+        AES_256_ECB,
+        AES_128_GCM,
+        AES_256_GCM
+    };
+
+    static String ModeToString(const Mode Mode);
+
+    static Mode StringToMode(const String& Mode);
+
+    static uint32_t KeySize(const Mode Mode);
+    static uint32_t IVSize(const Mode Mode);
+    static uint32_t TagSize(const Mode Mode);
+
     // InstantiateBinarySecret
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     //
     virtual OTPassword* InstantiateBinarySecret() const = 0;
+    virtual BinarySecret InstantiateBinarySecretSP() const = 0;
     // KEY DERIVATION
     //
     // DeriveNewKey derives a 128-bit symmetric key from a passphrase.
@@ -133,6 +157,27 @@ public:
         const OTData& theIV, // (We assume this IV is already generated and
                              // passed in.)
         OTData& theEncryptedOutput) const = 0; // OUTPUT. (Ciphertext.)
+    virtual bool Encrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const char* plaintext,
+        uint32_t plaintextLength,
+        OTData& ciphertext) const = 0;
+    virtual bool Encrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const char* plaintext,
+        uint32_t plaintextLength,
+        OTData& ciphertext) const = 0;
+    virtual bool Encrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const char* plaintext,
+        uint32_t plaintextLength,
+        OTData& ciphertext,
+        OTData& tag) const = 0;
 
     virtual bool Decrypt(const OTPassword& theRawSymmetricKey, // The symmetric
                                                                // key, in clear
@@ -145,6 +190,29 @@ public:
                          CryptoSymmetricDecryptOutput theDecryptedOutput)
         const = 0; // OUTPUT. (Recovered plaintext.) You can pass OTPassword& OR
                    // OTData& here (either will work.)
+    virtual bool Decrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const char* ciphertext,
+        uint32_t ciphertextLength,
+        CryptoSymmetricDecryptOutput plaintext) const = 0;
+    virtual bool Decrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const char* ciphertext,
+        uint32_t ciphertextLength,
+        CryptoSymmetricDecryptOutput plaintext) const = 0;
+    virtual bool Decrypt(
+        const CryptoSymmetric::Mode cipher,
+        const OTPassword& key,
+        const OTData& iv,
+        const OTData& tag,
+        const char* ciphertext,
+        const uint32_t ciphertextLength,
+        CryptoSymmetricDecryptOutput plaintext) const = 0;
+
+        EXPORT static BinarySecret GetMasterKey(const OTPasswordData& passwordData, const bool askTwice = false);
 };
 
 } // namespace opentxs

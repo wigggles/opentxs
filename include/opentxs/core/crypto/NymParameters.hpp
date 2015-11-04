@@ -50,7 +50,8 @@ class NymParameters
 public:
     enum NymParameterType: int32_t {
       ERROR,
-      LEGACY
+      LEGACY,
+      SECP256K1
     };
 
     NymParameterType nymParameterType();
@@ -70,16 +71,22 @@ public:
     NymParameters(const int32_t keySize);
 #endif
 
-    NymParameters();
-    ~NymParameters();
+    NymParameters(
+        NymParameterType theKeytype,
+        Credential::CredentialType theCredentialtype);
+    NymParameters() = default;
+    ~NymParameters() = default;
 
 private:
-    NymParameters(const NymParameters&);
-    NymParameters& operator=(const NymParameters&);
+    NymParameters(const NymParameters&) = delete;
+    NymParameters& operator=(const NymParameters&) = delete;
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+#if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+    NymParameterType nymType_ = NymParameterType::SECP256K1;
+    Credential::CredentialType credentialType_ = Credential::SECP256K1;
+#elif defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
     NymParameterType nymType_ = NymParameterType::LEGACY;
-    Credential::CredentialType credentialType_ = Credential::RSA_PUBKEY;
+    Credential::CredentialType credentialType_ = Credential::LEGACY;
 #else
     NymParameterType nymType_ = NymParameterType::ERROR;
     Credential::CredentialType credentialType_ = Credential::ERROR_TYPE;

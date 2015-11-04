@@ -47,27 +47,21 @@
 namespace opentxs
 {
 
-NymParameters::~NymParameters() = default;
-
-NymParameters::NymParameters() = default;
+NymParameters::NymParameters(
+    NymParameters::NymParameterType theKeytype,
+    Credential::CredentialType theCredentialtype)
+{
+        setNymParameterType(theKeytype);
+        setCredentialType(theCredentialtype);
+}
 
 NymParameters::NymParameterType NymParameters::nymParameterType() {
     return nymType_;
 }
 
-OTAsymmetricKey::KeyType NymParameters::AsymmetricKeyType() {
-
-    OTAsymmetricKey::KeyType keyType;
-
-    switch (nymType_) {
-        case NymParameters::LEGACY :
-            keyType = OTAsymmetricKey::RSA;
-            break;
-        default :
-            keyType = OTAsymmetricKey::ERROR_TYPE;
-    }
-
-    return keyType;
+OTAsymmetricKey::KeyType NymParameters::AsymmetricKeyType()
+{
+    return Credential::CredentialTypeToKeyType(credentialType_);
 }
 
 void NymParameters::setNymParameterType(NymParameters::NymParameterType theKeytype) {
@@ -85,7 +79,7 @@ void NymParameters::setCredentialType(Credential::CredentialType theCredentialty
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
 NymParameters::NymParameters(const int32_t keySize)
     : nymType_(NymParameters::LEGACY),
-    credentialType_(Credential::RSA_PUBKEY),
+    credentialType_(Credential::LEGACY),
     nBits_(keySize)
 {
 }
