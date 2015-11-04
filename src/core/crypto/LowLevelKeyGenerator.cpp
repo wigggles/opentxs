@@ -265,7 +265,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
     return false; //unsupported keyType
 }
 
-bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData passwordData, bool ephemeral)
+bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData, bool ephemeral)
 {
     // pkeyData can not be null if LowLevelkeyGenerator has been constructed
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {

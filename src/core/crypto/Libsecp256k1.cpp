@@ -349,7 +349,7 @@ bool Libsecp256k1::ExportECDSAPrivkey(
 bool Libsecp256k1::ECDH(
     const OTAsymmetricKey& publicKey,
     const OTAsymmetricKey& privateKey,
-    const OTPasswordData passwordData,
+    const OTPasswordData& passwordData,
     OTPassword& secret,
     bool ephemeral) const
 {
@@ -460,7 +460,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
     const symmetricEnvelope& encryptedSessionKey,
     const OTAsymmetricKey& privateKey,
     const OTAsymmetricKey& publicKey,
-    const OTPasswordData passwordData,
+    const OTPasswordData& passwordData,
     OTPassword& sessionKey) const
 {
     CryptoSymmetric::Mode algo = CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));

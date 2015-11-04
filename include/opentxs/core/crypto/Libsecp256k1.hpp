@@ -136,7 +136,7 @@ public:
     bool ECDH(
         const OTAsymmetricKey& publicKey,
         const OTAsymmetricKey& privateKey,
-        const OTPasswordData passwordData,
+        const OTPasswordData& passwordData,
         OTPassword& secret,
         bool ephemeral = false) const;
     bool EncryptSessionKeyECDH(
@@ -150,7 +150,7 @@ public:
         const symmetricEnvelope& encryptedSessionKey,
         const OTAsymmetricKey& privateKey,
         const OTAsymmetricKey& publicKey,
-        const OTPasswordData passwordData,
+        const OTPasswordData& passwordData,
         OTPassword& sessionKey) const;
 
     bool secp256k1_privkey_tweak_add(
