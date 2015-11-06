@@ -558,7 +558,7 @@
             case (this.CHECK_USER)
             {	nRetVal = OT_API_checkNym(this.serverID, this.nymID, this.nymID2);	 break;}
             case (this.CREATE_USER_ACCT)
-            {	nRetVal = OT_API_createUserAccount(this.serverID, this.nymID);	 break;}
+            {	nRetVal = OT_API_registerNym(this.serverID, this.nymID);	 break;}
             case (this.DELETE_USER_ACCT)
             {	nRetVal = OT_API_deleteUserAccount(this.serverID, this.nymID);	 break;}
             case (this.SEND_USER_MESSAGE)

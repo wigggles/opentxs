@@ -58,7 +58,6 @@
 
 def resync_nym()
 {
-    var madeEasy = OT_ME()
 	var bSuccess = false;
 
     
@@ -72,7 +71,7 @@ def resync_nym()
 //     number is out of sync.)
 //
 	OT_API_FlushMessageBuffer()
-	var nCheckServerID = OT_API_checkServerID(temp_Server, temp_MyNym) // <===========================  CHECK SERVER ID
+	var nCheckServerID = OT_API_pingNotary(temp_Server, temp_MyNym) // <===========================  CHECK SERVER ID
     
     if (!VerifyIntVal(nCheckServerID))
     {
@@ -117,7 +116,7 @@ def resync_nym()
 //	2. Perform createUserAccount, whether Nym is registered or not, so we can download the Nymfile.
 //		void OT_API_createUserAccount(std::string SERVER_ID, std::string USER_ID)
 //
-		var strCreateUserReply = madeEasy.register_nym(temp_Server, temp_MyNym)
+		var strCreateUserReply = OT_ME_register_nym(temp_Server, temp_MyNym)
         var nCreateUserReply   = VerifyMessageSuccess(strCreateUserReply)
         // ------------------------------------------------
 
