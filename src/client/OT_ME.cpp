@@ -2649,95 +2649,95 @@ bool OT_ME::Register_Headers_With_Script_Chai(
         //  SCRIPT HEADERS
         //
 
-        otWarn << "\n" << __FUNCTION__ << ": Using Script Headers:\n";
-
-        String strHeaderFilePath_01;
-        if (NewScriptExists("ot_utility.ot", true, strHeaderFilePath_01)) {
-            otWarn << " " << strHeaderFilePath_01 << "\n";
-        }
-        else {
-            otErr << __FUNCTION__
-                  << ": Header script not found: " << strHeaderFilePath_01
-                  << "\n";
-            return false;
-        }
-
-        String strHeaderFilePath_02;
-        if (NewScriptExists("otapi.ot", true, strHeaderFilePath_02)) {
-            otWarn << " " << strHeaderFilePath_02 << "\n";
-        }
-        else {
-            otErr << __FUNCTION__
-                  << ": Header script not found: " << strHeaderFilePath_02
-                  << "\n";
-            return false;
-        }
-
-        try {
-            theScript.chai->use(strHeaderFilePath_01.Get());
-            theScript.chai->use(strHeaderFilePath_02.Get());
-        }
-        catch (const chaiscript::exception::eval_error& ee) {
-            // Error in script parsing / execution
-            otErr << __FUNCTION__
-                  << ": Caught chaiscript::exception::eval_error : "
-                  << ee.reason << ". \n"
-                                  "   File: " << ee.filename
-                  << "\n"
-                     "   Start position, line: " << ee.start_position.line
-                  << " column: " << ee.start_position.column
-                  << "\n"
-                     "   End position,   line: " << ee.end_position.line
-                  << " column: " << ee.end_position.column << "\n";
-
-            std::cout << ee.what();
-            if (ee.call_stack.size() > 0) {
-                std::cout << "during evaluation at ("
-                          << ee.call_stack[0]->start.line << ", "
-                          << ee.call_stack[0]->start.column << ")";
-            }
-            std::cout << std::endl << std::endl;
-
-            if (ee.call_stack.size() > 0) {
-                for (size_t j = 1; j < ee.call_stack.size(); ++j) {
-                    if (ee.call_stack[j]->identifier !=
-                            chaiscript::AST_Node_Type::Block &&
-                        ee.call_stack[j]->identifier !=
-                            chaiscript::AST_Node_Type::File) {
-                        std::cout << std::endl;
-                        std::cout << "  from " << *(ee.call_stack[j]->filename)
-                                  << " (" << ee.call_stack[j]->start.line
-                                  << ", " << ee.call_stack[j]->start.column
-                                  << ") : ";
-                        std::cout << ee.call_stack[j]->text << std::endl;
-                    }
-                }
-            }
-            std::cout << std::endl;
-            return false;
-        }
-        catch (const chaiscript::exception::bad_boxed_cast& e) {
-            // Error unboxing return value
-            otErr << __FUNCTION__
-                  << ": Caught chaiscript::exception::bad_boxed_cast : "
-                  << ((e.what() != nullptr) ? e.what()
-                                            : "e.what() returned null, sorry")
-                  << ".\n";
-            return false;
-        }
-        catch (const std::exception& e) {
-            // Error explicitly thrown from script
-            otErr << __FUNCTION__ << ": Caught std::exception exception: "
-                  << ((e.what() != nullptr) ? e.what()
-                                            : "e.what() returned null, sorry")
-                  << "\n";
-            return false;
-        }
-        //          catch (chaiscript::Boxed_Value bv) {}
-        catch (...) {
-            otErr << __FUNCTION__ << ": Caught exception.\n";
-            return false;
-        }
+//        otWarn << "\n" << __FUNCTION__ << ": Using Script Headers:\n";
+//
+//        String strHeaderFilePath_01;
+//        if (NewScriptExists("ot_utility.ot", true, strHeaderFilePath_01)) {
+//            otWarn << " " << strHeaderFilePath_01 << "\n";
+//        }
+//        else {
+//            otErr << __FUNCTION__
+//                  << ": Header script not found: " << strHeaderFilePath_01
+//                  << "\n";
+//            return false;
+//        }
+//
+//        String strHeaderFilePath_02;
+//        if (NewScriptExists("otapi.ot", true, strHeaderFilePath_02)) {
+//            otWarn << " " << strHeaderFilePath_02 << "\n";
+//        }
+//        else {
+//            otErr << __FUNCTION__
+//                  << ": Header script not found: " << strHeaderFilePath_02
+//                  << "\n";
+//            return false;
+//        }
+//
+//        try {
+//            theScript.chai->use(strHeaderFilePath_01.Get());
+//            theScript.chai->use(strHeaderFilePath_02.Get());
+//        }
+//        catch (const chaiscript::exception::eval_error& ee) {
+//            // Error in script parsing / execution
+//            otErr << __FUNCTION__
+//                  << ": Caught chaiscript::exception::eval_error : "
+//                  << ee.reason << ". \n"
+//                                  "   File: " << ee.filename
+//                  << "\n"
+//                     "   Start position, line: " << ee.start_position.line
+//                  << " column: " << ee.start_position.column
+//                  << "\n"
+//                     "   End position,   line: " << ee.end_position.line
+//                  << " column: " << ee.end_position.column << "\n";
+//
+//            std::cout << ee.what();
+//            if (ee.call_stack.size() > 0) {
+//                std::cout << "during evaluation at ("
+//                          << ee.call_stack[0]->start.line << ", "
+//                          << ee.call_stack[0]->start.column << ")";
+//            }
+//            std::cout << std::endl << std::endl;
+//
+//            if (ee.call_stack.size() > 0) {
+//                for (size_t j = 1; j < ee.call_stack.size(); ++j) {
+//                    if (ee.call_stack[j]->identifier !=
+//                            chaiscript::AST_Node_Type::Block &&
+//                        ee.call_stack[j]->identifier !=
+//                            chaiscript::AST_Node_Type::File) {
+//                        std::cout << std::endl;
+//                        std::cout << "  from " << *(ee.call_stack[j]->filename)
+//                                  << " (" << ee.call_stack[j]->start.line
+//                                  << ", " << ee.call_stack[j]->start.column
+//                                  << ") : ";
+//                        std::cout << ee.call_stack[j]->text << std::endl;
+//                    }
+//                }
+//            }
+//            std::cout << std::endl;
+//            return false;
+//        }
+//        catch (const chaiscript::exception::bad_boxed_cast& e) {
+//            // Error unboxing return value
+//            otErr << __FUNCTION__
+//                  << ": Caught chaiscript::exception::bad_boxed_cast : "
+//                  << ((e.what() != nullptr) ? e.what()
+//                                            : "e.what() returned null, sorry")
+//                  << ".\n";
+//            return false;
+//        }
+//        catch (const std::exception& e) {
+//            // Error explicitly thrown from script
+//            otErr << __FUNCTION__ << ": Caught std::exception exception: "
+//                  << ((e.what() != nullptr) ? e.what()
+//                                            : "e.what() returned null, sorry")
+//                  << "\n";
+//            return false;
+//        }
+//        //          catch (chaiscript::Boxed_Value bv) {}
+//        catch (...) {
+//            otErr << __FUNCTION__ << ": Caught exception.\n";
+//            return false;
+//        }
 
         return true; // Success (hopefully!)
     }
