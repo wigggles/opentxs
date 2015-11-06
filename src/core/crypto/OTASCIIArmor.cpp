@@ -277,11 +277,21 @@ bool OTASCIIArmor::GetData(OTData& theData,
     size_t outSize = 0;
     uint8_t* pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, bLineBreaks);
 
-    if (!pData) {
-        otErr << __FUNCTION__ << "Base64Decode fail\n";
-        return false;
+    // Some versions of OpenSSL will handle input without line breaks when bLineBreaks is true,
+    // other versions of OpenSSL will return a zero-length output.
+    //
+    // Functions which call this method do not always know the correct value for bLineBreaks, since
+    // the input may be too short to warrant a line break.
+    //
+    // To make this funciton less fragile, if the first attempt does not result in the expected
+    // output, try again with the opposite value set for bLineBreaks.
+    if (!pData||(0==outSize)) {
+        pData = CryptoEngine::Instance().Util().Base64Decode(Get(), &outSize, !bLineBreaks);
+        if (!pData||(0==outSize)) {
+            otErr << __FUNCTION__ << "Base64Decode fail\n";
+            return false;
+        }
     }
-
     theData.Assign(pData, outSize);
     delete[] pData;
     return true;
