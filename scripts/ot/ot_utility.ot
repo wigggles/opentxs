@@ -1767,7 +1767,7 @@ def Utility::sendProcessNymboxLowLevel(serverID, nymID) // bWasSent is an output
         
         OT_API_FlushMessageBuffer()
         
-        var nResult = OT_API_getRequest(serverID, nymID)
+        var nResult = OT_API_getRequestNumber(serverID, nymID)
         
         if ((-1) == nResult)  // if error (-1), that means it DIDN'T SEND (error)
         {
