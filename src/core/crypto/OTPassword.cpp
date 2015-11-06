@@ -1002,7 +1002,7 @@ uint32_t OTPassword::OTfread(uint8_t* data, uint32_t size)
         if (size < sizeToRead) {
             sizeToRead = size;
         }
-        addMemory(data, sizeToRead);
+        safe_memcpy(data, sizeToRead, getMemory_uint8(), sizeToRead);
         position_ += sizeToRead;
     }
 
