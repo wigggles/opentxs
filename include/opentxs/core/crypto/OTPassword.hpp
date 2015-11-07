@@ -120,15 +120,15 @@ public:
     };
 
 public:
-    EXPORT OTPassword(BlockSize blockSize = DEFAULT_SIZE);
-    EXPORT OTPassword(const OTPassword& rhs);
-    EXPORT OTPassword(const char* input, uint32_t size,
+    EXPORT explicit OTPassword(BlockSize blockSize = DEFAULT_SIZE);
+    EXPORT explicit OTPassword(const OTPassword& rhs);
+    EXPORT explicit OTPassword(const char* input, uint32_t size,
                       BlockSize blockSize = DEFAULT_SIZE); // text   / password
                                                            // stored.
-    EXPORT OTPassword(const uint8_t* input, uint32_t size,
+    EXPORT explicit OTPassword(const uint8_t* input, uint32_t size,
                       BlockSize blockSize = DEFAULT_SIZE); // text   / password
                                                            // stored.
-    EXPORT OTPassword(const void* input, uint32_t size,
+    EXPORT explicit OTPassword(const void* input, uint32_t size,
                       BlockSize blockSize = DEFAULT_SIZE); // binary / symmetric
                                                            // key stored.
     EXPORT ~OTPassword();
