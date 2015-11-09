@@ -39,6 +39,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/core/Nym.hpp>
+#include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/Ledger.hpp>
@@ -3093,19 +3094,24 @@ void Nym::DisplayStatistics(String& strOutput)
     if (nMasterCredCount > 0) {
         for (int32_t iii = 0; iii < static_cast<int64_t>(nMasterCredCount);
              ++iii) {
-            const CredentialSet* pCredential = GetMasterCredentialByIndex(iii);
-            if (nullptr != pCredential) {
-                strOutput.Concatenate("Credential ID: %s \n",
-                                      pCredential->GetMasterCredID().Get());
+            const CredentialSet* pCredentialSet = GetMasterCredentialByIndex(iii);
+            if (nullptr != pCredentialSet) {
+                const String strCredType = Credential::CredentialTypeToString(pCredentialSet->GetMasterCredential().GetType());
+                strOutput.Concatenate("%s Master Credential ID: %s \n",
+                                      strCredType.Get(),
+                                      pCredentialSet->GetMasterCredID().Get());
                 const size_t nChildCredentialCount =
-                    pCredential->GetChildCredentialCount();
+                    pCredentialSet->GetChildCredentialCount();
 
                 if (nChildCredentialCount > 0) {
                     for (size_t vvv = 0; vvv < nChildCredentialCount; ++vvv) {
+                        const Credential * pChild = pCredentialSet->GetChildCredentialByIndex(vvv);
+                        const String strChildCredType = Credential::CredentialTypeToString(pChild->GetType());
                         const std::string str_childcred_id(
-                            pCredential->GetChildCredentialIDByIndex(vvv));
+                            pCredentialSet->GetChildCredentialIDByIndex(vvv));
 
-                        strOutput.Concatenate("   child credential: %s  \n",
+                        strOutput.Concatenate("   %s child credential ID: %s  \n",
+                                              strChildCredType.Get(),
                                               str_childcred_id.c_str());
                     }
                 }

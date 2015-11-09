@@ -399,6 +399,23 @@ std::string OT_ME::create_asset_acct(
                                        INSTRUMENT_DEFINITION_ID);
 }
 
+// DELETE ASSET ACCOUNT
+//
+std::string OT_ME::unregister_account(const std::string& NOTARY_ID,
+                                      const std::string& NYM_ID,
+                                      const std::string& ACCOUNT_ID) const
+{
+    return MadeEasy::unregister_account(NOTARY_ID, NYM_ID, ACCOUNT_ID);
+}
+
+// UNREGISTER NYM FROM SERVER
+//
+std::string OT_ME::unregister_nym(const std::string& NOTARY_ID,
+                                  const std::string& NYM_ID) const
+{
+    return MadeEasy::unregister_nym(NOTARY_ID, NYM_ID);
+}
+    
 std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
     return MadeEasy::stat_asset_account(ACCOUNT_ID);

@@ -926,8 +926,7 @@ bool Contract::AddBookendsAroundContent(String& strOutput,
         strTemp.Concatenate("-----BEGIN %s SIGNATURE-----\n"
                             "Version: Open Transactions %s\n"
                             "Comment: "
-                            "http://github.com/FellowTraveler/"
-                            "Open-Transactions/wiki\n",
+                            "http://opentransactions.org\n",
                             strContractType.Get(), Log::Version());
 
         if (pSig->getMetaData().HasMetadata())
