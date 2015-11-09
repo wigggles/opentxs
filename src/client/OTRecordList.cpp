@@ -499,7 +499,15 @@ bool OTRecordList::PerformAutoAccept()
                 const Identifier theNotaryID(str_notary_id);
                 OTServerContract* pServer =
                     pWallet->GetServerContract(theNotaryID);
-                OT_ASSERT(nullptr != pServer);
+                if (nullptr == pServer)
+                {
+                    // This can happen if the user erases the server contract
+                    // from the wallet. Therefore we just need to skip it.
+                    otInfo << __FUNCTION__ << ": Skipping a notary server ("
+                        << str_notary_id.c_str()
+                        << ") since the contract has disappeared from the wallet. (Probably deleted by the user.)\n";
+                    continue;
+                }
                 const String strNotaryID(theNotaryID);
                 otInfo << __FUNCTION__ << ": Server " << nServerIndex
                       << ", ID: " << strNotaryID.Get() << "\n";
@@ -697,7 +705,15 @@ bool OTRecordList::PerformAutoAccept()
                             const Identifier theAccountID(str_account_id);
                             Account* pAccount =
                                 pWallet->GetAccount(theAccountID);
-                            OT_ASSERT(nullptr != pAccount);
+                            if (nullptr == pAccount)
+                            {
+                                // This can happen if the user erases the account.
+                                // Therefore we just need to skip it.
+                                otInfo << __FUNCTION__ << ": Skipping an account ("
+                                << str_account_id.c_str()
+                                << ") since it has disappeared from the wallet. (Probably deleted by the user.)\n";
+                                continue;
+                            }
                             const Identifier& theAcctNymID =
                                 pAccount->GetNymID();
                             const Identifier& theAcctNotaryID =
@@ -777,7 +793,15 @@ bool OTRecordList::PerformAutoAccept()
             const std::string& str_account_id(it_acct);
             const Identifier theAccountID(str_account_id);
             Account* pAccount = pWallet->GetAccount(theAccountID);
-            OT_ASSERT(nullptr != pAccount);
+            if (nullptr == pAccount)
+            {
+                // This can happen if the user erases the account.
+                // Therefore we just need to skip it.
+                otInfo << __FUNCTION__ << ": Skipping an account ("
+                    << str_account_id.c_str()
+                    << ") since it has disappeared from the wallet. (Probably deleted by the user.)\n";
+                continue;
+            }
             const Identifier& theNymID = pAccount->GetNymID();
             const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
             const Identifier& theInstrumentDefinitionID =
@@ -1459,7 +1483,15 @@ bool OTRecordList::Populate()
             ++nServerIndex;
             const Identifier theNotaryID(it_server);
             OTServerContract* pServer = pWallet->GetServerContract(theNotaryID);
-            OT_ASSERT(nullptr != pServer);
+            if (nullptr == pServer)
+            {
+                // This can happen if the user erases the server contract
+                // from the wallet. Therefore we just need to skip it.
+                otInfo << __FUNCTION__ << ": Skipping a notary server ("
+                    << it_server.c_str()
+                    << ") since the contract has disappeared from the wallet. (Probably deleted by the user.)\n";
+                continue;
+            }
             const String strNotaryID(theNotaryID);
             otInfo << __FUNCTION__ << ": Server " << nServerIndex
                   << ", ID: " << strNotaryID.Get() << "\n";
@@ -2613,7 +2645,15 @@ bool OTRecordList::Populate()
         const std::string& str_account_id(it_acct);
         const Identifier theAccountID(str_account_id);
         Account* pAccount = pWallet->GetAccount(theAccountID);
-        OT_ASSERT(nullptr != pAccount);
+        if (nullptr == pAccount)
+        {
+            // This can happen if the user erases the account.
+            // Therefore we just need to skip it.
+            otInfo << __FUNCTION__ << ": Skipping an account ("
+            << str_account_id.c_str()
+            << ") since it has disappeared from the wallet. (Probably deleted by the user.)\n";
+            continue;
+        }
         const Identifier& theNymID = pAccount->GetNymID();
         const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
         const Identifier& theInstrumentDefinitionID =
