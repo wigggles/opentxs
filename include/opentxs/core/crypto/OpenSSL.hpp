@@ -216,6 +216,10 @@ public:
         const CryptoHash::HashType hashType,
         const OTPassword& data,
         OTPassword& digest) const;
+    virtual bool Digest(
+        const CryptoHash::HashType hashType,
+        const OTData& data,
+        OTData& digest) const;
     virtual bool HMAC(
         const CryptoHash::HashType hashType,
         const OTPassword& inputKey,
