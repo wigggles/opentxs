@@ -2927,6 +2927,53 @@ bool OpenSSL::Digest(
     }
 }
 
+bool OpenSSL::Digest(
+    const CryptoHash::HashType hashType,
+    const OTData& data,
+    OTData& digest) const
+
+{
+    const uint8_t* inputStart = static_cast<const uint8_t*>(data.GetPointer());
+    uint32_t inputSize = data.GetSize();
+
+    if (CryptoHash::HASH256 == hashType) {
+
+        unsigned char* vDigest = ::Hash(inputStart, inputStart+inputSize);
+        digest.Assign(vDigest, 32);
+        delete vDigest;
+        vDigest = nullptr;
+
+        return true;
+    } else if (CryptoHash::HASH160 == hashType) {
+
+        unsigned char* vDigest = ::Hash160(inputStart, inputStart+inputSize);
+        digest.Assign(vDigest, 20);
+        delete vDigest;
+        vDigest = nullptr;
+
+        return true;
+    } else {
+        EVP_MD_CTX* context = EVP_MD_CTX_create();
+        const EVP_MD* algorithm = dp->HashTypeToOpenSSLType(hashType);
+        unsigned char hash_value[EVP_MAX_MD_SIZE]{};
+        unsigned int hash_length = 0;
+
+        if (nullptr != algorithm) {
+            EVP_DigestInit_ex(context, algorithm, NULL);
+            EVP_DigestUpdate(context, inputStart, inputSize);
+            EVP_DigestFinal_ex(context, hash_value, &hash_length);
+            EVP_MD_CTX_destroy(context);
+
+            digest.Assign(hash_value, hash_length);
+
+            return true;
+        } else {
+            otErr << __FUNCTION__ << ": Error: invalid hash type.\n";
+            return false;
+        }
+    }
+}
+
 // Calculate an HMAC given some input data and a key
 bool OpenSSL::HMAC(
         const CryptoHash::HashType hashType,

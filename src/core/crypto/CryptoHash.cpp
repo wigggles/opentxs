@@ -55,25 +55,6 @@ bool CryptoHash::Digest(
     return Digest(hashType, plaintext, digest);
 }
 
-bool CryptoHash::Digest(
-    const HashType hashType,
-    const OTData& data,
-    OTData& digest)
-{
-    OTPassword plaintext, result;
-    plaintext.setMemory(data);
-
-    bool success =  Digest(hashType, plaintext, result);
-
-    if (success) {
-        digest.Assign(result.getMemory(), result.getMemorySize());
-
-        return true;
-    }
-
-    return false;
-}
-
 bool CryptoHash::HMAC(
         const CryptoHash::HashType hashType,
         const OTPassword& inputKey,
