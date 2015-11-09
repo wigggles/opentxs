@@ -105,6 +105,9 @@ public:
     EXPORT std::string register_nym(const std::string& NOTARY_ID,
                                     const std::string& NYM_ID) const;
 
+    EXPORT std::string unregister_nym(const std::string& NOTARY_ID,
+                                      const std::string& NYM_ID) const;
+
     EXPORT std::string check_nym(const std::string& NOTARY_ID,
                                  const std::string& NYM_ID,
                                  const std::string& TARGET_NYM_ID) const;
@@ -143,13 +146,17 @@ public:
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& INSTRUMENT_DEFINITION_ID) const;
 
+    EXPORT std::string unregister_account(const std::string& NOTARY_ID,
+                                          const std::string& NYM_ID,
+                                          const std::string& ACCOUNT_ID) const;
+
     EXPORT std::string stat_asset_account(const std::string& ACCOUNT_ID) const;
 
     EXPORT bool retrieve_account(const std::string& NOTARY_ID,
                                  const std::string& NYM_ID,
                                  const std::string& ACCOUNT_ID,
                                  bool bForceDownload = false) const;
-
+    
     EXPORT bool retrieve_nym(const std::string& NOTARY_ID,
                              const std::string& NYM_ID,
                              bool bForceDownload = true) const;

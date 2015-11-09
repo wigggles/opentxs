@@ -172,7 +172,7 @@ OTAPI_Func::OTAPI_Func(OTAPI_Func_Type theType, const string& p_notaryID,
         accountID = p_strParam;
     }
     else if ((theType == ISSUE_ASSET_TYPE) ||
-               (theType == GET_MARKET_RECENT_TRADES)) {
+             (theType == GET_MARKET_RECENT_TRADES)) {
         strData = p_strParam;
     }
     else {

@@ -197,7 +197,6 @@ void Contract::Release()
 
 Contract::~Contract()
 {
-
     Release_Contract();
 }
 
@@ -304,7 +303,7 @@ bool Contract::VerifyContractID() const
         otOut << "\nHashes do NOT match in Contract::VerifyContractID.\n "
                  "Expected: " << str1 << "\n   Actual: " << str2
               << "\n"
-                 //                "\nRAW FILE:\n--->" << m_strRawFile << "<---"
+//               "\nRAW FILE:\n--->" << m_strRawFile << "<---"
                  "\n";
         return false;
     }
@@ -796,11 +795,11 @@ bool Contract::SaveContract()
     if (bSuccess) {
         m_strRawFile.Set(strTemp);
 
-        // RewriteContract() already does this.
-        //
-        //        std::string str_Trim(strTemp.Get());
-        //        std::string str_Trim2 = OTString::trim(str_Trim);
-        //        m_strRawFile.Set(str_Trim2.c_str());
+// RewriteContract() already does this.
+//
+//        std::string str_Trim(strTemp.Get());
+//        std::string str_Trim2 = OTString::trim(str_Trim);
+//        m_strRawFile.Set(str_Trim2.c_str());
     }
 
     return bSuccess;
@@ -926,8 +925,7 @@ bool Contract::AddBookendsAroundContent(String& strOutput,
         strTemp.Concatenate("-----BEGIN %s SIGNATURE-----\n"
                             "Version: Open Transactions %s\n"
                             "Comment: "
-                            "http://github.com/FellowTraveler/"
-                            "Open-Transactions/wiki\n",
+                            "http://opentransactions.org\n",
                             strContractType.Get(), Log::Version());
 
         if (pSig->getMetaData().HasMetadata())
@@ -1886,6 +1884,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
                 if (!pNym->LoadFromString(strCredList, &mapCredFiles)) {
                     otErr << __FUNCTION__ << ": Failure loading nym "
                           << strSignerNymID << " from credential string.\n";
+                    return false;
                 }
                 // Now that the Nym has been loaded up from the two strings,
                 // including the list of credential IDs, and the map containing
@@ -1898,6 +1897,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
                     otErr
                         << __FUNCTION__ << ": Loaded nym " << strSignerNymID
                         << " from credentials, but then it failed verifying.\n";
+                    return false;
                 }
                 else // Okay, we loaded the Nym up from the credentials, AND
                 {      // verified the Nym (including the credentials.)
@@ -1909,7 +1909,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
             }
         }
         // This re-writes the contract internally based on its data members,
-        // similar to UpdateContents. (Except specifically intended for the
+        // similar to UpdateContents. (Except, specifically intended for the
         // initial creation of the contract.)
         // Since theSigner was just added, he will be included here now as well,
         // just prior to the actual signing below.
@@ -1925,22 +1925,17 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         }
 
         SaveContract();
-
         String strTemp;
         SaveContractRaw(strTemp);
-
-        Release();
-        LoadContractFromString(strTemp); // The ultimate test is, once
-                                         // we've created the serialized
-                                         // string for this contract, is
-                                         // to then load it up from that
-                                         // string.
-
-        Identifier NEW_ID;
-        CalculateContractID(NEW_ID);
-        m_ID = NEW_ID;
-
-        return true;
+        
+        if (LoadContractFromString(strTemp)) // The ultimate test is, once
+        {                                    // we've created the serialized
+            Identifier NEW_ID;               // string for this contract, is
+            CalculateContractID(NEW_ID);     // to then load it up from that string.
+            m_ID = NEW_ID;
+            
+            return true;
+        }
     }
     else
         otErr << __FUNCTION__
@@ -2031,7 +2026,7 @@ void Contract::CreateInnerContents(Tag& parent)
 void Contract::CreateContents()
 {
     OT_FAIL_MSG("ASSERT: Contract::CreateContents should never be called, "
-                "but should be overrided. (In this case, it wasn't.)");
+                "but should be overridden. (In this case, it wasn't.)");
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

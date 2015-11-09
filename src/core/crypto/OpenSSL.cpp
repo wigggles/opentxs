@@ -1308,7 +1308,7 @@ bool OpenSSL::ArgumentCheck(
     }
 
     if  (key.getMemorySize() != CryptoSymmetric::KeySize(cipher)) {
-        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size.\n";
+        otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect key size. Expected: " << CryptoSymmetric::KeySize(cipher) << "\n";
         otErr << "Actual key bytes: " << key.getMemorySize() << "\n";
         return false;
     }
@@ -1803,6 +1803,7 @@ bool OpenSSL::Decrypt(
 
     return true;
 }
+
 
 // Seal up as envelope (Asymmetric, using public key and then AES key.)
 
@@ -2348,7 +2349,7 @@ bool OpenSSL::DecryptSessionKey(OTData& dataInput, const Nym& theRecipient,
                    OTPassword& plaintext,
                    const OTPasswordData* pPWData) const
 {
-    const char* szFunc = "OpenSSL::Open";
+    const char* szFunc = "OpenSSL::DecryptSessionKey";
 
     uint8_t buffer[4096];
     uint8_t buffer_out[4096 + EVP_MAX_IV_LENGTH];

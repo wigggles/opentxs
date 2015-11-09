@@ -159,7 +159,12 @@ public:
         const std::string& TARGET_NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string create_asset_acct(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
-        const std::string& INSTRUMENT_DEFINITION_ID);
+        const std::string& ACCOUNT_ID);
+    EXPORT OT_MADE_EASY_OT static std::string unregister_account(
+        const std::string& NOTARY_ID, const std::string& NYM_ID,
+        const std::string& ACCOUNT_ID);
+    EXPORT OT_MADE_EASY_OT static std::string unregister_nym(
+        const std::string& NOTARY_ID, const std::string& NYM_ID);
     EXPORT OT_MADE_EASY_OT static std::string deposit_payment_plan(
         const std::string& NOTARY_ID, const std::string& NYM_ID,
         const std::string& THE_PAYMENT_PLAN);

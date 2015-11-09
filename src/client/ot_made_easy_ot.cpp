@@ -197,6 +197,36 @@ OT_MADE_EASY_OT string
     return strResponse;
 }
 
+//  UNREGISTER ASSET ACCOUNT
+//
+OT_MADE_EASY_OT string
+    MadeEasy::unregister_account(const string& NOTARY_ID, const string& NYM_ID,
+                                 const string& ACCOUNT_ID)
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(DELETE_ASSET_ACCT, NOTARY_ID, NYM_ID,
+                          ACCOUNT_ID);
+    string strResponse =
+        theRequest.SendRequest(theRequest, "DELETE_ASSET_ACCT");
+
+    return strResponse;
+}
+
+//  UNREGISTER NYM FROM SERVER
+//
+OT_MADE_EASY_OT string
+    MadeEasy::unregister_nym(const string& NOTARY_ID, const string& NYM_ID)
+{
+    OTAPI_Func ot_Msg;
+
+    OTAPI_Func theRequest(DELETE_NYM, NOTARY_ID, NYM_ID);
+    string strResponse =
+        theRequest.SendRequest(theRequest, "DELETE_NYM");
+
+    return strResponse;
+}
+
 OT_MADE_EASY_OT string MadeEasy::stat_asset_account(const string& ACCOUNT_ID)
 {
     string strNymID = OTAPI_Wrap::GetAccountWallet_NymID(ACCOUNT_ID);
@@ -1383,13 +1413,13 @@ cheque.
 
 Need to add functions (like check_nym above) for all of these:
 
-attr OTAPI_Func::REGISTER_NYM (register nym)DONE
+attr OTAPI_Func::REGISTER_NYM (register nym)    DONE
 attr OTAPI_Func::DELETE_NYM
-attr OTAPI_Func::CHECK_NYM DONE
-attr OTAPI_Func::SEND_USER_MESSAGE DONE
+attr OTAPI_Func::CHECK_NYM                      DONE
+attr OTAPI_Func::SEND_USER_MESSAGE              DONE
 attr OTAPI_Func::ISSUE_ASSET_TYPE               DONE
 attr OTAPI_Func::ISSUE_BASKET                   DONE
-attr OTAPI_Func::CREATE_ASSET_ACCT DONE
+attr OTAPI_Func::CREATE_ASSET_ACCT              DONE
 attr OTAPI_Func::DELETE_ASSET_ACCT
 attr OTAPI_Func::EXCHANGE_BASKET                DONE
 attr OTAPI_Func::PROCESS_INBOX                  DONE
@@ -1402,15 +1432,15 @@ attr OTAPI_Func::PAY_DIVIDEND                   DONE
 attr OTAPI_Func::GET_CONTRACT                   DONE
 attr OTAPI_Func::SEND_TRANSFER                  DONE
 attr OTAPI_Func::GET_MARKET_LIST                DONE
-attr OTAPI_Func::CREATE_MARKET_OFFER DONE
+attr OTAPI_Func::CREATE_MARKET_OFFER            DONE
 attr OTAPI_Func::KILL_MARKET_OFFER              DONE
 attr OTAPI_Func::KILL_PAYMENT_PLAN              DONE
 attr OTAPI_Func::GET_NYM_MARKET_OFFERS          DONE
 attr OTAPI_Func::GET_MARKET_OFFERS              DONE
 attr OTAPI_Func::GET_MARKET_RECENT_TRADES
-attr OTAPI_Func::GET_MINT DONE
-attr OTAPI_Func::QUERY_ASSET_TYPES DONE
-attr OTAPI_Func::GET_BOX_RECEIPT DONE
+attr OTAPI_Func::GET_MINT                       DONE
+attr OTAPI_Func::QUERY_ASSET_TYPES              DONE
+attr OTAPI_Func::GET_BOX_RECEIPT                DONE
 
 --- Activate Payment Plan
 

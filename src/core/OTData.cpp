@@ -66,7 +66,7 @@ OTData::OTData(const void* data, uint32_t size)
     Assign(data, size);
 }
 
-OTData::OTData(const std::vector<unsigned char> sourceVector)
+OTData::OTData(const std::vector<unsigned char>& sourceVector)
 {
     Assign(sourceVector.data(), sourceVector.size());
 }

@@ -530,7 +530,7 @@ bool OTASCIIArmor::WriteArmoredString(
         "%s%s %s-----\n" // "%s-----BEGIN OT ARMORED %s-----\n"
         "Version: Open Transactions %s\n"
         "Comment: "
-        "http://github.com/FellowTraveler/Open-Transactions/wiki\n\n" // todo
+        "http://opentransactions.org\n\n" // todo
         // hardcoding.
         "%s"                // Should already have a newline at the bottom.
         "%s%s %s-----\n\n", // "%s-----END OT ARMORED %s-----\n"

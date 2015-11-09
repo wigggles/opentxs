@@ -411,21 +411,22 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
         // In order to make sure the session key is always encrypted to a different key for every Seal() action,
         // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
         // an HMAC of the shared secret and a nonce and use that as the AES encryption key.
-        OTPassword sharedSecret;
-        CryptoEngine::Instance().Hash().HMAC(hmac, *ECDHSecret, nonce, sharedSecret);
+        BinarySecret sharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+        CryptoEngine::Instance().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
 
         // The values calculated above might not be the correct size for the default symmetric encryption
         // function.
-        if ((sharedSecret.getMemorySize() >= CryptoSymmetric::KeySize(algo)) &&
+        if ((sharedSecret->getMemorySize() >= CryptoSymmetric::KeySize(algo)) &&
             (nonce.GetSize() >= CryptoSymmetric::IVSize(algo))) {
 
-            OTPassword truncatedSharedSecret(sharedSecret.getMemory(), CryptoSymmetric::KeySize(algo));
+            BinarySecret truncatedSharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+            truncatedSharedSecret->setMemory(sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
             OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
 
                 OTData ciphertext, tag;
                 bool encrypted = CryptoEngine::Instance().AES().Encrypt(
                     algo,
-                    truncatedSharedSecret,
+                    *truncatedSharedSecret,
                     truncatedNonce,
                     static_cast<const char*>(sessionKey.getMemory()),
                     sessionKey.getMemorySize(),
@@ -456,6 +457,9 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
     }
 }
 
+
+           
+                        
 bool Libsecp256k1::DecryptSessionKeyECDH(
     const symmetricEnvelope& encryptedSessionKey,
     const OTAsymmetricKey& privateKey,
@@ -484,41 +488,38 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
         // Calculate ECDH shared secret
         BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
         bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
-
+                        
         if (haveECDH) {
             // In order to make sure the session key is always encrypted to a different key for every Seal() action
             // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
             // an HMAC of the shared secret and a nonce and use that as the AES encryption key.
-            OTPassword sharedSecret;
-            CryptoEngine::Instance().Hash().HMAC(hmac, *ECDHSecret, nonce, sharedSecret);
+            BinarySecret sharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+            CryptoEngine::Instance().Hash().HMAC(hmac, *ECDHSecret, nonce, *sharedSecret);
 
             // The values calculated above might not be the correct size for the default symmetric encryption
             // function.
             if (
-                (sharedSecret.getMemorySize() >= CryptoConfig::SymmetricKeySize()) &&
+                (sharedSecret->getMemorySize() >= CryptoConfig::SymmetricKeySize()) &&
                 (nonce.GetSize() >= CryptoConfig::SymmetricIvSize())) {
 
-                    OTPassword truncatedSharedSecret(sharedSecret.getMemory(), CryptoSymmetric::KeySize(algo));
-                    OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
+                BinarySecret truncatedSharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
 
-                    // Extract and decode the tag from the envelope
-                    OTData tag;
-                    CryptoUtil::Base58CheckDecode(std::get<3>(encryptedSessionKey).Get(), tag);
+                truncatedSharedSecret->setMemory(sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
+                OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
 
-                    // Extract and decode the ciphertext from the envelope
-                    OTData ciphertext;
-                    OTASCIIArmor encodedCiphertext;
-                    std::get<4>(encryptedSessionKey)->GetAsciiArmoredData(encodedCiphertext);
-                    encodedCiphertext.GetData(ciphertext);
+                // Extract and decode the tag from the envelope
+                OTData tag;
 
-                    return CryptoEngine::Instance().AES().Decrypt(
-                                                            algo,
-                                                            truncatedSharedSecret,
-                                                            truncatedNonce,
-                                                            tag,
-                                                            static_cast<const char*>(ciphertext.GetPointer()),
-                                                            ciphertext.GetSize(),
-                                                            sessionKey);
+                CryptoUtil::Base58CheckDecode(std::get<3>(encryptedSessionKey).Get(), tag);
+
+                // Extract and decode the ciphertext from the envelope
+                OTData ciphertext;
+                OTASCIIArmor encodedCiphertext;
+
+                std::get<4>(encryptedSessionKey)->GetAsciiArmoredData(encodedCiphertext);
+                encodedCiphertext.GetData(ciphertext);
+
+                return CryptoEngine::Instance().AES().Decrypt(algo, *truncatedSharedSecret,truncatedNonce, tag, static_cast<const char*>(ciphertext.GetPointer()), ciphertext.GetSize(), sessionKey);
             } else {
                 otErr << "Libsecp256k1::" << __FUNCTION__ << ": Insufficient nonce or key size.\n";
                 return false;
@@ -528,6 +529,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
             otErr << "Libsecp256k1::" << __FUNCTION__ << ": ECDH shared secret negotiation failed.\n";
             return false;
         }
+                        
     } else {
         otErr << "Libsecp256k1::" << __FUNCTION__ << ": Can not decode nonce.\n";
         return false;

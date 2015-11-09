@@ -176,7 +176,8 @@ bool Identifier::CalculateDigest(const String& strInput)
     return CryptoEngine::Instance().Hash().Digest(
         CryptoHash::HASH160,
         strInput,
-        *this);}
+        *this);
+}
 
 bool Identifier::CalculateDigest(const OTData& dataInput)
 {
