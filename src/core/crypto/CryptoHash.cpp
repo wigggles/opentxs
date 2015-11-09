@@ -69,10 +69,9 @@ bool CryptoHash::Digest(
         digest.Assign(result.getMemory(), result.getMemorySize());
 
         return true;
-    } else {
-
-        return false;
     }
+
+    return false;
 }
 
 bool CryptoHash::HMAC(

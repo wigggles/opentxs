@@ -1133,69 +1133,74 @@ std::string OTAPI_Exec::CreateServerContract(
         return "";
     }
     std::unique_ptr<OTServerContract> pContract(new OTServerContract);
-    pContract->CreateContract(
-        strContract, *pNym); // <==========  **** CREATE CONTRACT!! ****
-    // But does it meet our requirements?
-    //
-    const Nym* pContractKeyNym = pContract->GetContractPublicNym();
-    //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
+    
+    std::string pBuf = "";
 
-    if (nullptr == pContractKeyNym) {
-        otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
-                                 "and text value containing the public cert or "
-                                 "public key of the signer Nym. (Please add it "
-                                 "first. Failure.)\n";
-        return "";
-    }
-    else if (!pNym->CompareID(*pContractKeyNym)) {
-        otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
-                                 "text value, but it apparently does NOT "
-                                 "contain the public cert or public key of the "
-                                 "signer Nym. Please fix that first; see the "
-                                 "sample data. (Failure.)\n";
-        return "";
-    }
-    /*
-    <key name="contract">
-    - -----BEGIN CERTIFICATE-----
-    MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
-    BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
-    A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
-    WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
-    aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
-    Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
-    fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
-    y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
-    9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
-    ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
-    DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
-    l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
-    pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
-    - -----END CERTIFICATE-----
-    </key>
-    */
-    String strHostname;
-    int32_t nPort = 0;
+    // <==========  **** CREATE CONTRACT!! ****
+    if (pContract->CreateContract(strContract, *pNym))
+    {
+        // But does it meet our requirements?
+        //
+        const Nym* pContractKeyNym = pContract->GetContractPublicNym();
+        //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
 
-    if (!pContract->GetConnectInfo(strHostname, nPort)) {
-        otOut << __FUNCTION__ << ": Unable to retrieve connection info from "
-                                 "this contract. Please fix that first; see "
-                                 "the sample data. (Failure.)\n";
-        return "";
-    }
-    // By this point, we know that the "contract" key is properly attached
-    // to the raw XML contents, AND that the NymID for that key matches
-    // the NymID passed into this function.
-    // We also know that the connect info was properly attached to this
-    // server contract.
-    // So we can proceed to add it to the wallet...
-    //
-    Identifier idOutput;
-    pContract->CalculateContractID(idOutput);
-    const String strOutput(idOutput);
+        if (nullptr == pContractKeyNym) {
+            otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
+                                     "and text value containing the public cert or "
+                                     "public key of the signer Nym. (Please add it "
+                                     "first. Failure.)\n";
+            return "";
+        }
+        else if (!pNym->CompareID(*pContractKeyNym)) {
+            otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
+                                     "text value, but it apparently does NOT "
+                                     "contain the public cert or public key of the "
+                                     "signer Nym. Please fix that first; see the "
+                                     "sample data. (Failure.)\n";
+            return "";
+        }
+        /*
+        <key name="contract">
+        - -----BEGIN CERTIFICATE-----
+        MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
+        BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
+        A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
+        WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
+        aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
+        Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
+        fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
+        y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
+        9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
+        ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
+        DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
+        l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
+        pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
+        - -----END CERTIFICATE-----
+        </key>
+        */
+        String strHostname;
+        int32_t nPort = 0;
 
-    pWallet->AddServerContract(*(pContract.release()));
-    std::string pBuf = strOutput.Get();
+        if (!pContract->GetConnectInfo(strHostname, nPort)) {
+            otOut << __FUNCTION__ << ": Unable to retrieve connection info from "
+                                     "this contract. Please fix that first; see "
+                                     "the sample data. (Failure.)\n";
+            return "";
+        }
+        // By this point, we know that the "contract" key is properly attached
+        // to the raw XML contents, AND that the NymID for that key matches
+        // the NymID passed into this function.
+        // We also know that the connect info was properly attached to this
+        // server contract.
+        // So we can proceed to add it to the wallet...
+        //
+        Identifier idOutput;
+        pContract->GetIdentifier(idOutput);
+        const String strOutput(idOutput);
+
+        pWallet->AddServerContract(*(pContract.release()));
+        pBuf = strOutput.Get();
+    }
 
     return pBuf;
 }
@@ -1233,58 +1238,63 @@ std::string OTAPI_Exec::CreateAssetContract(
         return "";
     }
     std::unique_ptr<AssetContract> pContract(new AssetContract);
-    pContract->CreateContract(
-        strContract, *pNym); // <==========  **** CREATE CONTRACT!! ****
-    // But does it meet our requirements?
-    //
-    const Nym* pContractKeyNym = pContract->GetContractPublicNym();
-    //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
+    
+    std::string pBuf = "";
+    
+    // <==========  **** CREATE CONTRACT!! ****
+    if (pContract->CreateContract(strContract, *pNym))
+    {
+        // But does it meet our requirements?
+        //
+        const Nym* pContractKeyNym = pContract->GetContractPublicNym();
+        //  const OTAsymmetricKey * pKey = pContract->GetContractPublicKey();
 
-    if (nullptr == pContractKeyNym) {
-        otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
-                                 "and text value containing the public cert or "
-                                 "public key of the signer Nym. (Please add it "
-                                 "first. Failure.)\n";
-        return "";
-    }
-    else if (!pNym->CompareID(*pContractKeyNym)) {
-        otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
-                                 "text value, but it apparently does NOT "
-                                 "contain the public cert or public key of the "
-                                 "signer Nym. Please fix that first; see the "
-                                 "sample data. (Failure.)\n";
-        return "";
-    }
-    /*
-    <key name="contract">
-    - -----BEGIN CERTIFICATE-----
-    MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
-    BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
-    A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
-    WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
-    aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
-    Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
-    fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
-    y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
-    9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
-    ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
-    DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
-    l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
-    pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
-    - -----END CERTIFICATE-----
-    </key>
-    */
-    // By this point, we know that the "contract" key is properly attached
-    // to the raw XML contents, AND that the NymID for that key matches
-    // the NymID passed into this function.
-    // So we can proceed to add it to the wallet...
-    //
-    Identifier idOutput;
-    pContract->CalculateContractID(idOutput);
-    const String strOutput(idOutput);
+        if (nullptr == pContractKeyNym) {
+            otOut << __FUNCTION__ << ": Missing 'key' tag with name=\"contract\" "
+                                     "and text value containing the public cert or "
+                                     "public key of the signer Nym. (Please add it "
+                                     "first. Failure.)\n";
+            return "";
+        }
+        else if (!pNym->CompareID(*pContractKeyNym)) {
+            otOut << __FUNCTION__ << ": Found 'key' tag with name=\"contract\" and "
+                                     "text value, but it apparently does NOT "
+                                     "contain the public cert or public key of the "
+                                     "signer Nym. Please fix that first; see the "
+                                     "sample data. (Failure.)\n";
+            return "";
+        }
+        /*
+        <key name="contract">
+        - -----BEGIN CERTIFICATE-----
+        MIICZjCCAc+gAwIBAgIJAO14L19TJgzcMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNV
+        BAYTAlVTMREwDwYDVQQIEwhWaXJnaW5pYTEQMA4GA1UEBxMHRmFpcmZheDERMA8G
+        A1UEChMIWm9yay5vcmcxEDAOBgNVBAMTB1Jvb3QgQ0EwHhcNMTAwOTI5MDUyMzAx
+        WhcNMjAwOTI2MDUyMzAxWjBeMQswCQYDVQQGEwJVUzERMA8GA1UECBMIVmlyZ2lu
+        aWExEDAOBgNVBAcTB0ZhaXJmYXgxETAPBgNVBAoTCFpvcmsub3JnMRcwFQYDVQQD
+        Ew5zaGVsbC56b3JrLm9yZzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3vD9
+        fO4ov4854L8wXrgfv2tltDz0ieVrTNSLuy1xuQyb//+MwZ0EYwu8jMMQrqbUaYG6
+        y8zJu32yBKrBNPPwJ+fJE+tfgVg860dGVbwMd4KhpkKtppJXmZaGqLqvELaXa4Uw
+        9N3qg/faj0NMEDIBhv/tD/B5U65vH+U0JlRJ07kCAwEAAaMzMDEwCQYDVR0TBAIw
+        ADAkBgNVHREEHTAbgg5zaGVsbC56b3JrLm9yZ4IJbG9jYWxob3N0MA0GCSqGSIb3
+        DQEBBQUAA4GBALLXPa/naWsiXsw0JwlSiG7aOmvMF2romUkcr6uObhN7sghd38M0
+        l2kKTiptnA8txrri8RhqmQgOgiyKFCKBkxY7/XGot62cE8Y1+lqGXlhu2UHm6NjA
+        pRKvng75J2HTjmmsbCHy+nexn4t44wssfPYlGPD8sGwmO24u9tRfdzJE
+        - -----END CERTIFICATE-----
+        </key>
+        */
+        // By this point, we know that the "contract" key is properly attached
+        // to the raw XML contents, AND that the NymID for that key matches
+        // the NymID passed into this function.
+        // So we can proceed to add it to the wallet...
+        //
+        Identifier idOutput;
+        pContract->CalculateContractID(idOutput);
+        const String strOutput(idOutput);
 
-    pWallet->AddAssetContract(*(pContract.release()));
-    std::string pBuf = strOutput.Get();
+        pWallet->AddAssetContract(*(pContract.release()));
+        pBuf = strOutput.Get();
+    }
 
     return pBuf;
 }
