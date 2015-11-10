@@ -6,6 +6,9 @@ endif()
 
 PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER Generics.proto Bitcoin.proto Markets.proto Moneychanger.proto)
 
+set(ProtobufIncludePath ${CMAKE_CURRENT_BINARY_DIR}
+        CACHE INTERNAL "Path to generated protobuf files.")
+
 if (WIN32)
   # suppress std::_Copy_impl being unsafe warnings 
   add_definitions("/wd4996")

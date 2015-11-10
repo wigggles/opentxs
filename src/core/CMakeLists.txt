@@ -94,9 +94,8 @@ file(GLOB cxx-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/util/*.hpp"
 )
 
-include_directories(
-  ${CMAKE_BINARY_DIR}/src/core/otprotob
-)
+include_directories(${ProtobufIncludePath})
+
 
 if(KEYRING_GNOME)
   include(GNUInstallDirs)
