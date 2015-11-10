@@ -481,7 +481,7 @@ uint8_t* OpenSSL::Base64Decode(const char* input, size_t* out_len,
 
 // Decode formatted OT ID to the binary hash ID.
 void OpenSSL::SetIDFromEncoded(const String& strInput,
-                                        Identifier& theOutput) const
+                                     Identifier& theOutput) const
 {
     theOutput.Release();
 

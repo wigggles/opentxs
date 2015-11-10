@@ -63,6 +63,8 @@ public:
     EXPORT static uint64_t StringToUlong(const std::string& strNumber);
     EXPORT static std::string UlongToString(const uint64_t& lNumber);
 
+    EXPORT static bool IsValidID(const std::string& strPurportedID);
+
     /**
      INITIALIZE the OTAPI library
 

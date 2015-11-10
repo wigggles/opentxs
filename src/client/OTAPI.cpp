@@ -266,7 +266,12 @@ int32_t OTAPI_Wrap::NumList_Count(const std::string& strNumList)
 {
     return Exec()->NumList_Count(strNumList);
 }
-
+    
+bool OTAPI_Wrap::IsValidID(const std::string& strPurportedID)
+{
+    return Exec()->IsValidID(strPurportedID);
+}
+    
 std::string OTAPI_Wrap::CreateNymLegacy(const int32_t& nKeySize,
                                   const std::string& NYM_ID_SOURCE,
                                   const std::string& ALT_LOCATION)
