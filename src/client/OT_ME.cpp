@@ -1828,6 +1828,9 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::NumList_Count),
                             "OT_API_NumList_Count");
 
+        theScript.chai->add(fun(&OTAPI_Wrap::IsValidID),
+                            "OT_API_IsValidID");
+        
         theScript.chai->add(fun(&OTAPI_Wrap::Encode), "OT_API_Encode");
         theScript.chai->add(fun(&OTAPI_Wrap::Decode), "OT_API_Decode");
         theScript.chai->add(fun(&OTAPI_Wrap::Encrypt), "OT_API_Encrypt");

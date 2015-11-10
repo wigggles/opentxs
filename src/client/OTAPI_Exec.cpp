@@ -459,6 +459,13 @@ int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
     return OTAPI()->NumList_Count(theList);
 }
 
+    
+bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
+{
+    return Identifier::validateID(strPurportedID);
+}
+
+    
 // CREATE NYM  -- Create new User
 //
 // Creates a new Nym and adds it to the wallet.
