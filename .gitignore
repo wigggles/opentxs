@@ -29,3 +29,11 @@ Moneychanger.cc
 # KDevelop noise
 .kdev4
 opentxs.kdev4
+
+# Kate noise
+*.kate-swp
+
+# Patch noise
+*.rej
+*.orig
+

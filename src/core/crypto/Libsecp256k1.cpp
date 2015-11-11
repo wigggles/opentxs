@@ -269,7 +269,7 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     bool ephemeral) const
 {
 
-    BinarySecret masterPassword = std::make_shared<OTPassword>();
+    BinarySecret masterPassword(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
 
     if (ephemeral) {
         masterPassword->setPassword("test");
@@ -314,7 +314,7 @@ bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
         OTAsymmetricKey& asymmetricKey,
         bool ephemeral) const
 {
-    BinarySecret masterPassword = std::make_shared<OTPassword>();
+    BinarySecret masterPassword(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
 
     if (ephemeral) {
         masterPassword->setPassword("test");
@@ -502,24 +502,28 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
                 (sharedSecret->getMemorySize() >= CryptoConfig::SymmetricKeySize()) &&
                 (nonce.GetSize() >= CryptoConfig::SymmetricIvSize())) {
 
-                BinarySecret truncatedSharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+                    BinarySecret truncatedSharedSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
+                    truncatedSharedSecret->setMemory(sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
+                    OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
 
-                truncatedSharedSecret->setMemory(sharedSecret->getMemory(), CryptoSymmetric::KeySize(algo));
-                OTData truncatedNonce(nonce.GetPointer(), CryptoSymmetric::IVSize(algo));
+                    // Extract and decode the tag from the envelope
+                    OTData tag;
+                    CryptoUtil::Base58CheckDecode(std::get<3>(encryptedSessionKey).Get(), tag);
 
-                // Extract and decode the tag from the envelope
-                OTData tag;
+                    // Extract and decode the ciphertext from the envelope
+                    OTData ciphertext;
+                    OTASCIIArmor encodedCiphertext;
+                    std::get<4>(encryptedSessionKey)->GetAsciiArmoredData(encodedCiphertext);
+                    encodedCiphertext.GetData(ciphertext);
 
-                CryptoUtil::Base58CheckDecode(std::get<3>(encryptedSessionKey).Get(), tag);
-
-                // Extract and decode the ciphertext from the envelope
-                OTData ciphertext;
-                OTASCIIArmor encodedCiphertext;
-
-                std::get<4>(encryptedSessionKey)->GetAsciiArmoredData(encodedCiphertext);
-                encodedCiphertext.GetData(ciphertext);
-
-                return CryptoEngine::Instance().AES().Decrypt(algo, *truncatedSharedSecret,truncatedNonce, tag, static_cast<const char*>(ciphertext.GetPointer()), ciphertext.GetSize(), sessionKey);
+                    return CryptoEngine::Instance().AES().Decrypt(
+                                                            algo,
+                                                            *truncatedSharedSecret,
+                                                            truncatedNonce,
+                                                            tag,
+                                                            static_cast<const char*>(ciphertext.GetPointer()),
+                                                            ciphertext.GetSize(),
+                                                            sessionKey);
             } else {
                 otErr << "Libsecp256k1::" << __FUNCTION__ << ": Insufficient nonce or key size.\n";
                 return false;
