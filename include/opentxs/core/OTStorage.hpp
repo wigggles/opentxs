@@ -1206,6 +1206,9 @@ public:
                                           // for trade
     std::string currency_id;              // NEW FIELD currency ID for trade
     std::string currency_paid;            // NEW FIELD currency paid for trade
+    
+    std::string asset_acct_id;
+    std::string currency_acct_id;
 
     DEFINE_OT_DYNAMIC_CAST(TradeDataNym)
 };

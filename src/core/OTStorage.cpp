@@ -1965,6 +1965,8 @@ void TradeDataNymPB::hookBeforePack()
     __pb_obj.set_instrument_definition_id(instrument_definition_id);
     __pb_obj.set_currency_id(currency_id);
     __pb_obj.set_currency_paid(currency_paid);
+    __pb_obj.set_asset_acct_id(asset_acct_id);
+    __pb_obj.set_currency_acct_id(currency_acct_id);
 }
 
 template <>
@@ -1982,6 +1984,8 @@ void TradeDataNymPB::hookAfterUnpack()
     instrument_definition_id = __pb_obj.instrument_definition_id();
     currency_id = __pb_obj.currency_id();
     currency_paid = __pb_obj.currency_paid();
+    asset_acct_id = __pb_obj.asset_acct_id();
+    currency_acct_id = __pb_obj.currency_acct_id();
 }
 
 template <>
