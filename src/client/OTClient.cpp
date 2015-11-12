@@ -4100,35 +4100,35 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         ss << theTrade.GetTransactionNum();
                                         pData->transaction_id = ss.str();
                                         ss.str(""); */
-                                        pData->transaction_id = to_string<int64_t>(theTrade.GetTransactionNum()); // TransID
-                                        // for original offer. (Offer may trade many times.)
-                                        pData->updated_id = to_string<int64_t>(pServerItem->GetTransactionNum()); // TransID
-                                        // for BOTH receipts for current trade. (Asset/Currency.)
+                                        pData->transaction_id = to_string<int64_t>(theTrade.GetTransactionNum()); // TransID for original offer. (Offer may trade many times.)
+                                        pData->updated_id = to_string<int64_t>(pServerItem->GetTransactionNum()); // TransID for BOTH receipts for current trade. (Asset/Currency.)
                                         
                                         pData->completed_count = to_string<int32_t>(theTrade.GetCompletedCount());
                                         std::unique_ptr<Account> pAccount(Account::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID));
 
-                                        bool bIsAsset =    (theTrade.GetInstrumentDefinitionID() == pAccount->GetInstrumentDefinitionID());
+                                        bool bIsAsset    = (theTrade.GetInstrumentDefinitionID() == pAccount->GetInstrumentDefinitionID());
                                         bool bIsCurrency = (theTrade.GetCurrencyID()             == pAccount->GetInstrumentDefinitionID());
 
-                                        if (bIsAsset) {
-                                            // pServerItem->GetAmount() contains:  (lAmountSold);
-                                            //asset
+                                        const String strAcctID(ACCOUNT_ID);
 
+                                        if (bIsAsset) {
+                                            // pServerItem->GetAmount() contains:  (lAmountSold); // asset
+
+                                            
                                             const String strInstrumentDefinitionID(theTrade.GetInstrumentDefinitionID());
                                             int64_t lAssetsThisTrade = pServerItem->GetAmount();
                                             pData->instrument_definition_id = strInstrumentDefinitionID.Get();
                                             pData->amount_sold = to_string<int64_t>(lAssetsThisTrade); // The amount of ASSETS moved, this trade.
+                                            pData->asset_acct_id = strAcctID.Get();
                                         }
                                         else if (bIsCurrency) {
-                                            //                                                  pServerItem->GetAmount()
-                                            // contains:  (lTotalPaidOut);
-                                            // // currency
+//                                          pServerItem->GetAmount() contains:  (lTotalPaidOut); // currency
 
                                             const String strCurrencyID(theTrade.GetCurrencyID());
                                             int64_t lCurrencyThisTrade = pServerItem->GetAmount();
                                             pData->currency_id   = strCurrencyID.Get();
                                             pData->currency_paid = to_string<int64_t>(lCurrencyThisTrade);
+                                            pData->currency_acct_id = strAcctID.Get();
                                         }
                                         
                                         // NOTE: Apparently GetLastProcessDate is used internally in OTServer
@@ -4202,10 +4202,12 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 if (pTradeData->instrument_definition_id.empty()) {
                                                     pTradeData->instrument_definition_id = pData->instrument_definition_id;
                                                     pTradeData->amount_sold = pData->amount_sold;
+                                                    pTradeData->asset_acct_id = pData->asset_acct_id;
                                                 }
                                                 if (pTradeData->currency_id.empty()) {
                                                     pTradeData->currency_id = pData->currency_id;
                                                     pTradeData->currency_paid = pData->currency_paid;
+                                                    pTradeData->currency_acct_id = pData->currency_acct_id;
                                                 }
                                                 if (!pTradeData->amount_sold.empty() &&
                                                     !pTradeData->currency_paid.empty()) {
