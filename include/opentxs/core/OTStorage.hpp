@@ -1179,6 +1179,7 @@ protected:
         , offer_price("0")
         , finished_so_far("0")
         , currency_paid("0")
+        , scale("1")
     {
         m_Type = "TradeDataNym";
     }
@@ -1209,6 +1210,8 @@ public:
     
     std::string asset_acct_id;
     std::string currency_acct_id;
+
+    std::string scale;
 
     DEFINE_OT_DYNAMIC_CAST(TradeDataNym)
 };

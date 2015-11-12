@@ -1765,6 +1765,8 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
                             "asset_acct_id");
         theScript.chai->add(fun(&OTDB::TradeDataNym::currency_acct_id),
                             "currency_acct_id");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::scale),
+                            "scale");
 
         OT_CHAI_CONTAINER(TradeListNym, TradeDataNym);
         return true; // Success (hopefully!)

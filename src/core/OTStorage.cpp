@@ -1967,6 +1967,7 @@ void TradeDataNymPB::hookBeforePack()
     __pb_obj.set_currency_paid(currency_paid);
     __pb_obj.set_asset_acct_id(asset_acct_id);
     __pb_obj.set_currency_acct_id(currency_acct_id);
+    __pb_obj.set_scale(scale);
 }
 
 template <>
@@ -1986,6 +1987,7 @@ void TradeDataNymPB::hookAfterUnpack()
     currency_paid = __pb_obj.currency_paid();
     asset_acct_id = __pb_obj.asset_acct_id();
     currency_acct_id = __pb_obj.currency_acct_id();
+    scale = __pb_obj.scale();
 }
 
 template <>
