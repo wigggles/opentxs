@@ -4145,6 +4145,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         pData->offer_price = to_string<int64_t>(lPriceLimit);
                                         const int64_t& lFinishedSoFar = theOffer.GetFinishedSoFar();
                                         pData->finished_so_far = to_string<int64_t>(lFinishedSoFar);
+                                        pData->scale = to_string<int64_t>(lScale);
                                         
                                         // save to local storage...
                                         //

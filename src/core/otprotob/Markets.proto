@@ -156,6 +156,7 @@ message TradeDataNym_InternalPB {
     optional string currency_paid = 12;  // NEW FIELD currency paid for this trade.
     optional string asset_acct_id = 13;  // NEW FIELD asset_acct_id
     optional string currency_acct_id = 14;  // NEW FIELD currency_acct_id
+    optional string scale = 15;             // NEW FIELD scale
 }
 
 // ----------------------------------------------------
