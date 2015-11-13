@@ -157,6 +157,10 @@ message TradeDataNym_InternalPB {
     optional string asset_acct_id = 13;  // NEW FIELD asset_acct_id
     optional string currency_acct_id = 14;  // NEW FIELD currency_acct_id
     optional string scale = 15;             // NEW FIELD scale
+    optional bool   is_bid = 16;            // NEW FIELD is_bid (true for bid, false for ask.)
+    optional string asset_receipt = 17;            // NEW FIELD asset receipt
+    optional string currency_receipt = 18;            // NEW FIELD currency receipt
+    optional string final_receipt = 19;            // NEW FIELD final receipt
 }
 
 // ----------------------------------------------------

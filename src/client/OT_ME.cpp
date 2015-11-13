@@ -1767,6 +1767,14 @@ bool OT_ME::Register_OTDB_With_Script_Chai(const OTScriptChai& theScript) const
                             "currency_acct_id");
         theScript.chai->add(fun(&OTDB::TradeDataNym::scale),
                             "scale");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::is_bid),
+                            "is_bid");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::asset_receipt),
+                            "asset_receipt");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::currency_receipt),
+                            "currency_receipt");
+        theScript.chai->add(fun(&OTDB::TradeDataNym::final_receipt),
+                            "final_receipt");
 
         OT_CHAI_CONTAINER(TradeListNym, TradeDataNym);
         return true; // Success (hopefully!)
