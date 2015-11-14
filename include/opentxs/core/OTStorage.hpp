@@ -1180,6 +1180,7 @@ protected:
         , finished_so_far("0")
         , currency_paid("0")
         , scale("1")
+        , is_bid(true)
     {
         m_Type = "TradeDataNym";
     }
@@ -1212,6 +1213,11 @@ public:
     std::string currency_acct_id;
 
     std::string scale;
+    bool is_bid;
+
+    std::string asset_receipt;      // FYI TradeDataNym is used on the client side.
+    std::string currency_receipt;   // These variables are set on the client side.
+    std::string final_receipt;
 
     DEFINE_OT_DYNAMIC_CAST(TradeDataNym)
 };

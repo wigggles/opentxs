@@ -4110,16 +4110,17 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         bool bIsCurrency = (theTrade.GetCurrencyID()             == pAccount->GetInstrumentDefinitionID());
 
                                         const String strAcctID(ACCOUNT_ID);
-
+                                        const String strServerTransaction(*pServerTransaction);
+                                        
                                         if (bIsAsset) {
                                             // pServerItem->GetAmount() contains:  (lAmountSold); // asset
-
                                             
                                             const String strInstrumentDefinitionID(theTrade.GetInstrumentDefinitionID());
                                             int64_t lAssetsThisTrade = pServerItem->GetAmount();
                                             pData->instrument_definition_id = strInstrumentDefinitionID.Get();
                                             pData->amount_sold = to_string<int64_t>(lAssetsThisTrade); // The amount of ASSETS moved, this trade.
                                             pData->asset_acct_id = strAcctID.Get();
+                                            pData->asset_receipt = strServerTransaction.Get();
                                         }
                                         else if (bIsCurrency) {
 //                                          pServerItem->GetAmount() contains:  (lTotalPaidOut); // currency
@@ -4129,14 +4130,16 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                             pData->currency_id   = strCurrencyID.Get();
                                             pData->currency_paid = to_string<int64_t>(lCurrencyThisTrade);
                                             pData->currency_acct_id = strAcctID.Get();
+                                            pData->currency_receipt = strServerTransaction.Get();
                                         }
                                         
-                                        // NOTE: Apparently GetLastProcessDate is used internally in OTServer
+                                        // NOTE: Apparently CronItem::GetLastProcessDate is used internally in OTServer
                                         // but not actually saved onto the updated Trade object. Therefore it
                                         // contains a zero. Might have to change the server to save this date,
                                         // so we don't display a zero date on the client side.
+                                        // UPDATE: I'll try pServerTransaction->GetDateSigned()
                                         
-                                        const time64_t& tProcessDate = theTrade.GetLastProcessDate();
+                                        const time64_t& tProcessDate = pServerTransaction->GetDateSigned();
                                         pData->date = to_string<time64_t>(tProcessDate);
                                         
                                         // The original offer price. (Might be 0, if it's a market order.)
@@ -4146,6 +4149,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         const int64_t& lFinishedSoFar = theOffer.GetFinishedSoFar();
                                         pData->finished_so_far = to_string<int64_t>(lFinishedSoFar);
                                         pData->scale = to_string<int64_t>(lScale);
+                                        pData->is_bid = theOffer.IsBid();
                                         
                                         // save to local storage...
                                         //
@@ -4204,11 +4208,13 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                     pTradeData->instrument_definition_id = pData->instrument_definition_id;
                                                     pTradeData->amount_sold = pData->amount_sold;
                                                     pTradeData->asset_acct_id = pData->asset_acct_id;
+                                                    pTradeData->asset_receipt = pData->asset_receipt;
                                                 }
                                                 if (pTradeData->currency_id.empty()) {
                                                     pTradeData->currency_id = pData->currency_id;
                                                     pTradeData->currency_paid = pData->currency_paid;
                                                     pTradeData->currency_acct_id = pData->currency_acct_id;
+                                                    pTradeData->currency_receipt = pData->currency_receipt;
                                                 }
                                                 if (!pTradeData->amount_sold.empty() &&
                                                     !pTradeData->currency_paid.empty()) {

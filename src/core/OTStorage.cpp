@@ -1968,6 +1968,10 @@ void TradeDataNymPB::hookBeforePack()
     __pb_obj.set_asset_acct_id(asset_acct_id);
     __pb_obj.set_currency_acct_id(currency_acct_id);
     __pb_obj.set_scale(scale);
+    __pb_obj.set_is_bid(is_bid);
+    __pb_obj.set_asset_receipt(asset_receipt);
+    __pb_obj.set_currency_receipt(currency_receipt);
+    __pb_obj.set_final_receipt(final_receipt);
 }
 
 template <>
@@ -1988,6 +1992,10 @@ void TradeDataNymPB::hookAfterUnpack()
     asset_acct_id = __pb_obj.asset_acct_id();
     currency_acct_id = __pb_obj.currency_acct_id();
     scale = __pb_obj.scale();
+    is_bid = __pb_obj.is_bid();
+    asset_receipt = __pb_obj.asset_receipt();
+    currency_receipt = __pb_obj.currency_receipt();
+    final_receipt = __pb_obj.final_receipt();
 }
 
 template <>
