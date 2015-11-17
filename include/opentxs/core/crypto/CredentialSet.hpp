@@ -110,7 +110,7 @@ typedef std::map<std::string, Credential*> mapOfCredentials;
 class CredentialSet
 {
 private:
-    MasterCredential m_MasterCredential;
+    std::unique_ptr<MasterCredential> m_MasterCredential;
     mapOfCredentials m_mapCredentials;
     String m_strNymID;
     String m_strSourceForNymID;
@@ -271,7 +271,7 @@ public:
     EXPORT bool VerifyAgainstSource() const;
     EXPORT const MasterCredential& GetMasterCredential() const
     {
-        return m_MasterCredential;
+        return *m_MasterCredential;
     }
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,

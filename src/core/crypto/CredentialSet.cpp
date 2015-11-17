@@ -141,12 +141,13 @@ int32_t CredentialSet::GetPublicKeysBySignature(
 
 bool CredentialSet::VerifyInternally() const
 {
+    OT_ASSERT(m_MasterCredential);
 
     Identifier theActualMasterCredID;
-    theActualMasterCredID.CalculateDigest(m_MasterCredential.GetPubCredential());
+    theActualMasterCredID.CalculateDigest(m_MasterCredential->GetPubCredential());
     const String strActualMasterCredID(theActualMasterCredID);
 
-    if (!m_strNymID.Compare(m_MasterCredential.GetNymID())) {
+    if (!m_strNymID.Compare(m_MasterCredential->GetNymID())) {
         otOut << __FUNCTION__
               << ": NymID did not match its "
                  "counterpart in m_MasterCredential (failed to verify): " << GetNymID()
@@ -161,11 +162,11 @@ bool CredentialSet::VerifyInternally() const
               << GetMasterCredID()
               << "\n "
                  "Hash of m_MasterCredential contents: " << strActualMasterCredID
-              << "\nContents:\n" << m_MasterCredential.GetPubCredential() << "\n";
+              << "\nContents:\n" << m_MasterCredential->GetPubCredential() << "\n";
         return false;
     }
 
-    if (!const_cast<MasterCredential&>(m_MasterCredential).VerifyContract()) {
+    if (!(m_MasterCredential->VerifyContract())) {
         otOut << __FUNCTION__
               << ": Master Credential failed to verify: " << GetMasterCredID()
               << "\nNymID: " << GetNymID() << "\n";
@@ -193,7 +194,9 @@ bool CredentialSet::VerifyAgainstSource() const
     // * Any MasterCredential must (at some point, and/or regularly) verify against
     // its own source.
     //
-    if (!m_MasterCredential.VerifyAgainstSource()) {
+    OT_ASSERT(m_MasterCredential);
+
+    if (!m_MasterCredential->VerifyAgainstSource()) {
         otWarn
             << __FUNCTION__
             << ": Failed verifying master credential against its own source.\n";
@@ -240,8 +243,8 @@ void CredentialSet::SetSourceForNymID(const String& strSourceForNymID)
     const bool bCalculate = theTempID.CalculateDigest(m_strSourceForNymID);
     OT_ASSERT(bCalculate);
     theTempID.GetString(m_strNymID);
-
-    m_MasterCredential.SetNymIDandSource(
+    OT_ASSERT(m_MasterCredential)
+    m_MasterCredential->SetNymIDandSource(
         m_strNymID, m_strSourceForNymID); // The key in here must somehow verify
                                           // against its own source.
 
@@ -251,37 +254,42 @@ void CredentialSet::SetSourceForNymID(const String& strSourceForNymID)
 
 const String& CredentialSet::GetPubCredential() const
 {
-    return m_MasterCredential.GetPubCredential();
+    OT_ASSERT(m_MasterCredential)
+    return m_MasterCredential->GetPubCredential();
 }
 
 const String& CredentialSet::GetPriCredential() const
 {
-    return m_MasterCredential.GetPriCredential();
+    OT_ASSERT(m_MasterCredential)
+    return m_MasterCredential->GetPriCredential();
 }
 
 bool CredentialSet::SetPublicContents(const String::Map& mapPublic)
 {
-    return m_MasterCredential.SetPublicContents(mapPublic);
+    OT_ASSERT(m_MasterCredential)
+    return m_MasterCredential->SetPublicContents(mapPublic);
 }
 
 bool CredentialSet::SetPrivateContents(const String::Map& mapPrivate)
 {
-    return m_MasterCredential.SetPrivateContents(mapPrivate);
+    OT_ASSERT(m_MasterCredential)
+    return m_MasterCredential->SetPrivateContents(mapPrivate);
 }
 
 // private
 CredentialSet::CredentialSet()
-    : m_MasterCredential(*this)
 {
+    m_MasterCredential.reset(new MasterCredential(*this));
 }
 
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
     const OTPasswordData* pPWData,
     const String* psourceForNymID)
-    : m_MasterCredential(*this, nymParameters)
 {
-    SetSourceForNymID(m_MasterCredential.GetNymIDSource()); // This also recalculates and sets  ** m_strNymID **
+    m_MasterCredential.reset(new MasterCredential(*this, nymParameters));
+
+    SetSourceForNymID(m_MasterCredential->GetNymIDSource()); // This also recalculates and sets  ** m_strNymID **
 
     OTPasswordData thePWData(
         "Signing new master credential... CredentialSet::CredentialSet()");
@@ -295,8 +303,8 @@ CredentialSet::CredentialSet(
 }
 
 CredentialSet::CredentialSet(Credential::CredentialType masterType)
-    : m_MasterCredential(*this, masterType)
 {
+    m_MasterCredential.reset(new MasterCredential(*this, masterType));
 }
 
 void CredentialSet::SetMasterCredID(const String& strID)
@@ -368,12 +376,12 @@ bool CredentialSet::SignNewMaster(const OTPasswordData* pPWData)
     OTPasswordData thePWData(
         "Signing new master credential... CredentialSet::SignNewMaster");
 
-    m_MasterCredential.StoreAsPublic(); // So the version we create here only contains
+    m_MasterCredential->StoreAsPublic(); // So the version we create here only contains
                                  // public keys, not private.
-    const bool bSignedPublic = m_MasterCredential.Sign(
-        m_MasterCredential, nullptr == pPWData ? &thePWData : pPWData);
+    const bool bSignedPublic = m_MasterCredential->Sign(
+        *m_MasterCredential, nullptr == pPWData ? &thePWData : pPWData);
     if (bSignedPublic) {
-        m_MasterCredential.SaveContract();
+        m_MasterCredential->SaveContract();
         // THE OFFICIAL "PUBLIC CREDENTIAL" FOR THE MASTER KEY
         // (Copied from the raw contents here into a member variable for
         // safe-keeping.)
@@ -382,8 +390,8 @@ bool CredentialSet::SignNewMaster(const OTPasswordData* pPWData)
         //
         String strPublicCredential;
 
-        if (m_MasterCredential.SaveContractRaw(strPublicCredential)) {
-            m_MasterCredential.SetContents(strPublicCredential); // <=== The "master
+        if (m_MasterCredential->SaveContractRaw(strPublicCredential)) {
+            m_MasterCredential->SetContents(strPublicCredential); // <=== The "master
                                                           // public credential"
                                                           // string.
             // NEW MASTER CREDENTIAL ID.
@@ -393,8 +401,8 @@ bool CredentialSet::SignNewMaster(const OTPasswordData* pPWData)
             // the contents.
             //
             Identifier theNewID;
-            m_MasterCredential.CalculateContractID(theNewID);
-            m_MasterCredential.SetIdentifier(theNewID); // Usually this will be set
+            m_MasterCredential->CalculateContractID(theNewID);
+            m_MasterCredential->SetIdentifier(theNewID); // Usually this will be set
                                                  // based on an expected value
                                                  // from above, then loaded from
                                                  // storage, and then verified
@@ -407,25 +415,25 @@ bool CredentialSet::SignNewMaster(const OTPasswordData* pPWData)
         }
         else {
             otErr << "In " << __FILE__ << ", line " << __LINE__
-                  << ": Failed calling m_MasterCredential.SaveContractRaw 1.\n";
+                  << ": Failed calling m_MasterCredential->SaveContractRaw 1.\n";
             return false;
         }
         // THE PRIVATE KEYS
         //
         // Next, we sign / save it again, this time in its private form, and
         // also
-        // m_MasterCredential.m_strContents and m_strIDsOnly will be contained within
+        // m_MasterCredential->m_strContents and m_strIDsOnly will be contained within
         // that
         // private form along with the private keys.
         //
-        m_MasterCredential.ReleaseSignatures(); // This time we'll sign it in private
+        m_MasterCredential->ReleaseSignatures(); // This time we'll sign it in private
                                          // mode.
-        const bool bSignedPrivate = m_MasterCredential.Sign(
-            m_MasterCredential, nullptr == pPWData ? &thePWData : pPWData);
+        const bool bSignedPrivate = m_MasterCredential->Sign(
+            *m_MasterCredential, nullptr == pPWData ? &thePWData : pPWData);
         if (bSignedPrivate) {
-            m_MasterCredential.SaveContract();
+            m_MasterCredential->SaveContract();
 
-            m_MasterCredential.SetMetadata();
+            m_MasterCredential->SetMetadata();
         }
         else {
             otErr << "In " << __FILE__ << ", line " << __LINE__
@@ -457,7 +465,8 @@ bool CredentialSet::SignNewMaster(const OTPasswordData* pPWData)
 bool CredentialSet::ReEncryptPrivateCredentials(
     const OTPassword& theExportPassword, bool bImporting)
 {
-    if (m_MasterCredential.GetPrivateMap().size() > 0) {
+    OT_ASSERT(m_MasterCredential)
+    if (m_MasterCredential->GetPrivateMap().size() > 0) {
         OTPasswordData thePWData(
             bImporting ? "2 Enter passphrase for the Nym being imported."
                        : "2 Enter new passphrase for exported Nym.");
@@ -465,13 +474,13 @@ bool CredentialSet::ReEncryptPrivateCredentials(
         // Re-encrypt the private keys in the master credential. (THEN sign.)
         //
         const bool bReEncryptMaster =
-            m_MasterCredential.ReEncryptKeys(theExportPassword, bImporting);
+            m_MasterCredential->ReEncryptKeys(theExportPassword, bImporting);
         bool bSignedMaster = false;
 
         if (bReEncryptMaster) {
-            m_MasterCredential.ReleaseSignatures(); // This time we'll sign it in
+            m_MasterCredential->ReleaseSignatures(); // This time we'll sign it in
                                              // private mode.
-            bSignedMaster = m_MasterCredential.Sign(m_MasterCredential, &thePWData);
+            bSignedMaster = m_MasterCredential->Sign(*m_MasterCredential, &thePWData);
         }
         else {
             otErr << "In " << __FILE__ << ", line " << __LINE__
@@ -480,8 +489,8 @@ bool CredentialSet::ReEncryptPrivateCredentials(
         }
 
         if (bSignedMaster) {
-            m_MasterCredential.SaveContract();
-            m_MasterCredential.SetMetadata(); // todo: can probably remove this, since
+            m_MasterCredential->SaveContract();
+            m_MasterCredential->SetMetadata(); // todo: can probably remove this, since
                                        // it was set based on public info when
                                        // the key was first created.
 
@@ -578,11 +587,11 @@ bool CredentialSet::SignNewChildCredential(Credential& theChildCred,
         // the "master signed" version in what it stores, since that's what
         // we're creating now.)
 
-        const bool bMasterSigned = m_MasterCredential.Sign(
+        const bool bMasterSigned = m_MasterCredential->Sign(
             *pChildKeyCredential, nullptr == pPWData ? &thePWData : pPWData);
         if (!bMasterSigned) {
             otErr << "In " << __FILE__ << ", line " << __LINE__
-                  << ": Failed calling m_MasterCredential.Sign(*pChildKeyCredential) "
+                  << ": Failed calling m_MasterCredential->Sign(*pChildKeyCredential) "
                      "after StoreAsMasterSigned.\n";
             return false;
         }
@@ -640,7 +649,7 @@ bool CredentialSet::SignNewChildCredential(Credential& theChildCred,
             theChildCred, nullptr == pPWData ? &thePWData : pPWData);
     else // It's not a child key credential, but some other conventional child credential. So we
          // sign with master key, since that's all we've got.
-        bSignedPublic = m_MasterCredential.Sign(
+        bSignedPublic = m_MasterCredential->Sign(
             theChildCred, nullptr == pPWData ? &thePWData : pPWData);
 
     if (!bSignedPublic) {
@@ -698,7 +707,7 @@ bool CredentialSet::SignNewChildCredential(Credential& theChildCred,
         else // It's not a child key credential, but some other conventional child credential. So
              // we sign the private info with the master key, since that's all
              // we've got.
-            bSignedPrivate = m_MasterCredential.Sign(
+            bSignedPrivate = m_MasterCredential->Sign(
                 theChildCred, nullptr == pPWData ? &thePWData : pPWData);
 
         if (bSignedPrivate)
@@ -720,10 +729,11 @@ bool CredentialSet::Load_MasterFromString(const String& strInput,
                                          const OTPasswordData*,
                                          const OTPassword* pImportPassword)
 {
+    OT_ASSERT(m_MasterCredential)
     m_strNymID = strNymID;
     m_strMasterCredID = strMasterCredID;
 
-    m_MasterCredential.SetIdentifier(strMasterCredID);
+    m_MasterCredential->SetIdentifier(strMasterCredID);
 
     // m_MasterCredential and the child key credentials all have a pointer to "owner" (who is *this)
     // and so I can set pImportPassword onto a member variable, perform the
@@ -739,7 +749,7 @@ bool CredentialSet::Load_MasterFromString(const String& strInput,
 
     SetImportPassword(pImportPassword); // might be nullptr.
 
-    const bool bLoaded = m_MasterCredential.LoadContractFromString(strInput);
+    const bool bLoaded = m_MasterCredential->LoadContractFromString(strInput);
     if (!bLoaded) {
         otErr << __FUNCTION__
               << ": Failed trying to load master credential from string.\n";
@@ -747,17 +757,17 @@ bool CredentialSet::Load_MasterFromString(const String& strInput,
     }
 
     SetImportPassword(nullptr); // It was only set during the
-                                // m_MasterCredential.LoadContractFromString (which
+                                // m_MasterCredential->LoadContractFromString (which
                                 // references it.)
 
-    m_strNymID = m_MasterCredential.GetNymID();
-    m_strSourceForNymID = m_MasterCredential.GetNymIDSource();
+    m_strNymID = m_MasterCredential->GetNymID();
+    m_strSourceForNymID = m_MasterCredential->GetNymIDSource();
 
     ClearChildCredentials(); // The master is loaded first, and then any
                            // child credentials. So this is probably already
                            // empty. Just looking ahead.
 
-    m_MasterCredential.SetMetadata();
+    m_MasterCredential->SetMetadata();
 
     return true;
 }
@@ -1285,8 +1295,8 @@ const OTKeypair& CredentialSet::GetAuthKeypair(
     // able to do actions.
     // Capiche?
     //
-    OT_ASSERT(m_MasterCredential.m_AuthentKey);
-    return *(m_MasterCredential.m_AuthentKey);
+    OT_ASSERT(m_MasterCredential->m_AuthentKey);
+    return *(m_MasterCredential->m_AuthentKey);
 }
 
 const OTKeypair& CredentialSet::GetEncrKeypair(
@@ -1325,8 +1335,8 @@ const OTKeypair& CredentialSet::GetEncrKeypair(
     // able to do actions.
     // Capiche?
     //
-    OT_ASSERT(m_MasterCredential.m_EncryptKey);
-    return *(m_MasterCredential.m_EncryptKey);
+    OT_ASSERT(m_MasterCredential->m_EncryptKey);
+    return *(m_MasterCredential->m_EncryptKey);
 }
 
 const OTKeypair& CredentialSet::GetSignKeypair(
@@ -1365,8 +1375,8 @@ const OTKeypair& CredentialSet::GetSignKeypair(
     // able to do actions.
     // Capiche?
     //
-    OT_ASSERT(m_MasterCredential.m_SigningKey);
-    return *(m_MasterCredential.m_SigningKey);
+    OT_ASSERT(m_MasterCredential->m_SigningKey);
+    return *(m_MasterCredential->m_SigningKey);
 }
 
 // NOTE: Until we figure out the rule by which we decide WHICH authentication
@@ -1447,13 +1457,14 @@ void CredentialSet::SerializeIDs(Tag& parent, const String::List& listRevokedIDs
                                 String::Map* pmapPriInfo, bool bShowRevoked,
                                 bool bValid) const
 {
+    OT_ASSERT(m_MasterCredential)
     if (bValid || bShowRevoked) {
         TagPtr pTag(new Tag("masterCredential"));
 
         pTag->add_attribute("ID", GetMasterCredID().Get());
         pTag->add_attribute("valid", formatBool(bValid));
         pTag->add_attribute("type",
-            Credential::CredentialTypeToString(m_MasterCredential.GetType()).Get());
+            Credential::CredentialTypeToString(m_MasterCredential->GetType()).Get());
 
         parent.add_tag(pTag);
 
