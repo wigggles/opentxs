@@ -17,6 +17,8 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/core/otprotob/)
+
 add_subdirectory(core)
 add_subdirectory(cash)
 add_subdirectory(basket)
