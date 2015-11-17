@@ -108,18 +108,12 @@ OTKeypair::OTKeypair(OTAsymmetricKey::KeyType keyType)
 
 OTKeypair::~OTKeypair()
 {
-
-    if (nullptr != m_pkeyPublic) delete m_pkeyPublic;
-    m_pkeyPublic = nullptr;
-
-    if (nullptr != m_pkeyPrivate) delete m_pkeyPrivate;
-    m_pkeyPrivate = nullptr;
 }
 
 void OTKeypair::SetMetadata(const OTSignatureMetadata& theMetadata)
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
     OT_ASSERT(nullptr != m_pkeyPrivate->m_pMetadata);
 
@@ -131,7 +125,7 @@ void OTKeypair::SetMetadata(const OTSignatureMetadata& theMetadata)
 
 bool OTKeypair::HasPublicKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->IsPublic(); // This means it actually has a public key
                                      // in it, or tried to.
@@ -139,7 +133,7 @@ bool OTKeypair::HasPublicKey() const
 
 bool OTKeypair::HasPrivateKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return m_pkeyPrivate->IsPrivate(); // This means it actually has a private
                                        // key in it, or tried to.
@@ -149,7 +143,7 @@ bool OTKeypair::HasPrivateKey() const
 // TODO this violates encapsulation and should be deprecated
 const OTAsymmetricKey& OTKeypair::GetPublicKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return (*m_pkeyPublic);
 }
@@ -158,7 +152,7 @@ const OTAsymmetricKey& OTKeypair::GetPublicKey() const
 // TODO this violates encapsulation and should be deprecated
 const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return (*m_pkeyPrivate);
 }
@@ -168,11 +162,11 @@ bool OTKeypair::GetPrivateKey(FormattedKey& strOutput,
                                               const String* pstrReason,
                                               const OTPassword* pImportPassword)
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPublic);
 
     const bool bSaved =
-        m_pkeyPrivate->GetPrivateKey(strOutput, m_pkeyPublic, pstrReason, pImportPassword);
+        m_pkeyPrivate->GetPrivateKey(strOutput, m_pkeyPublic.get(), pstrReason, pImportPassword);
 
     return bSaved;
 }
@@ -187,8 +181,8 @@ bool OTKeypair::SetPrivateKey(
     const OTPassword* pImportPassword
     )
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPublic);
 
     bool privateSuccess, publicSuccess;
 
@@ -205,8 +199,13 @@ bool OTKeypair::SetPrivateKey(
 
 bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters, bool ephemeral)
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OTAsymmetricKey::KeyType keytype =nymParameters.AsymmetricKeyType();
+
+    m_pkeyPrivate.reset(OTAsymmetricKey::KeyFactory(keytype));
+    m_pkeyPublic.reset(OTAsymmetricKey::KeyFactory(keytype));
+
+    OT_ASSERT(m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPublic);
 
     LowLevelKeyGenerator lowLevelKeys(nymParameters);
 
@@ -227,7 +226,7 @@ bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters, bool ephemera
 bool OTKeypair::SignContract(Contract& theContract,
                              const OTPasswordData* pPWData)
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return theContract.SignWithKey(*m_pkeyPrivate, pPWData);
 }
@@ -238,7 +237,7 @@ bool OTKeypair::SignContract(Contract& theContract,
 // This form is only used by self-signed MasterCredentials
 bool OTKeypair::GetPublicKey(FormattedKey& strKey) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->GetPublicKey(strKey);
 }
@@ -247,7 +246,7 @@ bool OTKeypair::GetPublicKey(FormattedKey& strKey) const
 // of a self-signed MasterCredential
 bool OTKeypair::GetPublicKey(String& strKey) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->GetPublicKey(strKey);
 }
@@ -257,7 +256,7 @@ bool OTKeypair::GetPublicKey(String& strKey) const
 // decoding of the string.
 bool OTKeypair::SetPublicKey(const String& strKey)
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     // the below function SetPublicKey (in the return call) expects the
     // bookends to still be there, and it will handle removing them.
@@ -266,7 +265,7 @@ bool OTKeypair::SetPublicKey(const String& strKey)
 
 bool OTKeypair::CalculateID(Identifier& theOutput) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->CalculateID(theOutput); // Only works for public keys.
 }
@@ -276,7 +275,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
                                       // when theSignature has no metadata.
     const OTSignature& theSignature, bool bInclusive) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
     OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
 
     // We know that EITHER exact metadata matches must occur, and the signature
@@ -305,7 +304,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
          (theSignature.getMetaData() == *(m_pkeyPublic->m_pMetadata)))) {
         // ...Then add m_pkeyPublic as a possible match, to listOutput.
         //
-        listOutput.push_back(m_pkeyPublic);
+        listOutput.push_back(m_pkeyPublic.get());
         return 1;
     }
     return 0;
@@ -317,8 +316,8 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
                           FormattedKey& strOutput)
 {
 
-    OT_ASSERT(nullptr != m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPrivate);
 
     OT_ASSERT(HasPublicKey());
     OT_ASSERT(HasPrivateKey());

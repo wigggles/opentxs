@@ -93,8 +93,8 @@ class OTKeypair
     friend class LowLevelKeyGenerator;
 private:
     EXPORT OTKeypair() {};
-    OTAsymmetricKey* m_pkeyPublic = nullptr;  // This nym's public key
-    OTAsymmetricKey* m_pkeyPrivate = nullptr; // This nym's private key
+    std::shared_ptr<OTAsymmetricKey> m_pkeyPublic;  // This nym's public key
+    std::shared_ptr<OTAsymmetricKey> m_pkeyPrivate; // This nym's private key
 
 public:
     EXPORT bool MakeNewKeypair(

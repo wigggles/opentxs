@@ -287,17 +287,16 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
         // Since we are in OpenSSL-specific code, we have to make sure these are
         // OpenSSL-specific keys.
         //
-        OTAsymmetricKey_OpenSSL* pPublicKey =
-            dynamic_cast<OTAsymmetricKey_OpenSSL*>(theKeypair.m_pkeyPublic);
-        OTAsymmetricKey_OpenSSL* pPrivateKey =
-            dynamic_cast<OTAsymmetricKey_OpenSSL*>(theKeypair.m_pkeyPrivate);
+        std::shared_ptr<OTAsymmetricKey_OpenSSL> pPublicKey = std::dynamic_pointer_cast<OTAsymmetricKey_OpenSSL>(theKeypair.m_pkeyPublic);
 
-        if (nullptr == pPublicKey) {
+        std::shared_ptr<OTAsymmetricKey_OpenSSL> pPrivateKey = std::dynamic_pointer_cast<OTAsymmetricKey_OpenSSL>(theKeypair.m_pkeyPrivate);
+
+        if (!pPublicKey) {
             otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL "
                                         "failed. (theKeypair.m_pkeyPublic)\n";
             return false;
         }
-        if (nullptr == pPrivateKey) {
+        if (!pPrivateKey) {
             otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL "
                                         "failed. (theKeypair.m_pkeyPrivate)\n";
             return false;
@@ -354,17 +353,16 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
         // Since we are in secp256k1-specific code, we have to make sure these are
         // secp256k1-specific keys.
         //
-        AsymmetricKeySecp256k1* pPublicKey =
-            dynamic_cast<AsymmetricKeySecp256k1*>(theKeypair.m_pkeyPublic);
-        AsymmetricKeySecp256k1* pPrivateKey =
-            dynamic_cast<AsymmetricKeySecp256k1*>(theKeypair.m_pkeyPrivate);
+        std::shared_ptr<AsymmetricKeySecp256k1> pPublicKey = std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(theKeypair.m_pkeyPublic);
 
-        if (nullptr == pPublicKey) {
+        std::shared_ptr<AsymmetricKeySecp256k1> pPrivateKey = std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(theKeypair.m_pkeyPrivate);
+
+        if (!pPublicKey) {
             otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKeySecp256k1 "
                                         "failed. (theKeypair.m_pkeyPublic)\n";
             return false;
         }
-        if (nullptr == pPrivateKey) {
+        if (!pPrivateKey) {
             otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKeySecp256k1 "
                                         "failed. (theKeypair.m_pkeyPrivate)\n";
             return false;
