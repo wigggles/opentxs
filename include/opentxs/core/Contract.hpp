@@ -319,12 +319,12 @@ public:
     // signatures along with
     // new signature bookends.
 
-    EXPORT bool SaveContract(); // This saves the Contract to its own internal
+    EXPORT virtual bool SaveContract(); // This saves the Contract to its own internal
                                 // member string, m_strRawFile (and does
                                 // NOT actually save it to a file.)
     //      bool SaveContract(OTString& strContract); // Saves the contract to
     // any string you want to pass in.
-    EXPORT bool SaveContract(const char* szFoldername,
+    EXPORT virtual bool SaveContract(const char* szFoldername,
                              const char* szFilename); // Saves the contract to a
                                                       // specific filename
 
