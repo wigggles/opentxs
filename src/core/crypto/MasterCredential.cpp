@@ -492,13 +492,13 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const Credential::Cr
     m_strContractType = "MASTER KEY CREDENTIAL";
 }
 
-MasterCredential::MasterCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters, const String* psourceForNymID)
+MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : ot_super(theOwner, nymParameters)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
 
-    if (nullptr != psourceForNymID) {
-        m_strSourceForNymID = *psourceForNymID;
+    if (nymParameters.Source().size() > 0) {
+        m_strSourceForNymID = nymParameters.Source();
     }
     else {
         FormattedKey sourceForNymID;

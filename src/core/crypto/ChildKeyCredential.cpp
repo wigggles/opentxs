@@ -87,7 +87,7 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const Credential::C
     m_strContractType = "KEY CREDENTIAL";
 }
 
-ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const std::shared_ptr<NymParameters>& nymParameters)
+ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters)
     : ot_super(other, nymParameters)
 {
     m_strContractType = "KEY CREDENTIAL";

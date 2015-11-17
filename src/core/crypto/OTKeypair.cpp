@@ -203,25 +203,22 @@ bool OTKeypair::SetPrivateKey(
     return (privateSuccess && publicSuccess);
 }
 
-bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData, bool ephemeral)
+bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters, bool ephemeral)
 {
     OT_ASSERT(nullptr != m_pkeyPrivate);
     OT_ASSERT(nullptr != m_pkeyPublic);
 
-    if (pKeyData) {
-        LowLevelKeyGenerator lowLevelKeys(pKeyData);//does not take ownership
+    LowLevelKeyGenerator lowLevelKeys(nymParameters);
 
-        if (!lowLevelKeys.MakeNewKeypair()) {
-            otErr << "OTKeypair::MakeNewKeypair"
-                << ": Failed in a call to LowLevelKeyGenerator::MakeNewKeypair.\n";
-            return false;
-        }
-
-        OTPasswordData passwordData("Enter or set the wallet master password.");
-        return lowLevelKeys.SetOntoKeypair(*this, passwordData, ephemeral);
-    } else {
+    if (!lowLevelKeys.MakeNewKeypair()) {
+        otErr << "OTKeypair::MakeNewKeypair"
+            << ": Failed in a call to LowLevelKeyGenerator::MakeNewKeypair.\n";
         return false;
     }
+
+    OTPasswordData passwordData("Enter or set the wallet master password.");
+    return lowLevelKeys.SetOntoKeypair(*this, passwordData, ephemeral);
+
     // If true is returned:
     // Success! At this point, theKeypair's public and private keys have been
     // set.

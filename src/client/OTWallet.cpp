@@ -189,15 +189,13 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 
 // No need to delete Nym returned by this function.
 // (Wallet stores it in RAM and will delete when it destructs.)
-Nym * OTWallet::CreateNym(const std::shared_ptr<NymParameters>& pKeyData,
-                                    const std::string str_id_source,
-                                    const std::string str_alt_location)
+Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
 {
     Nym* pNym = new Nym;
     OT_ASSERT(nullptr != pNym);
 
     if (false ==
-        pNym->GenerateNym(pKeyData, true, str_id_source, str_alt_location)) {
+        pNym->GenerateNym(nymParameters, true)) {
         otErr << __FUNCTION__ << ": Failed trying to generate Nym.\n";
         delete pNym;
         pNym = nullptr;

@@ -98,7 +98,7 @@ private:
 
 public:
     EXPORT bool MakeNewKeypair(
-        const std::shared_ptr<NymParameters>& pKeyData,
+        const NymParameters& nymParameters,
         const bool ephemeral = false);
     EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
                           FormattedKey& strOutput); // Used when importing/exporting

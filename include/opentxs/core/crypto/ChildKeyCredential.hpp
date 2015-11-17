@@ -84,7 +84,7 @@ private:
 public:
     ChildKeyCredential(CredentialSet& other);
     ChildKeyCredential(CredentialSet& other, const Credential::CredentialType childType);
-    ChildKeyCredential(CredentialSet& other, const std::shared_ptr<NymParameters>& nymParameters);
+    ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
     virtual ~ChildKeyCredential();
 
     virtual bool VerifySignedByMaster();

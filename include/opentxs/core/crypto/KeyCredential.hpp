@@ -144,7 +144,7 @@ class KeyCredential : public Credential
 private: // Private prevents erroneous use by other classes.
     typedef Credential ot_super;
     friend class CredentialSet;
-    bool GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData); // Gotta start somewhere.
+    bool GenerateKeys(const NymParameters& nymParameters); // Gotta start somewhere.
     KeyCredential() = delete;
 
 protected:
@@ -175,7 +175,7 @@ public:
     virtual void SetMetadata();
     KeyCredential(CredentialSet& theOwner);
     KeyCredential(CredentialSet& theOwner, const Credential::CredentialType credentialType);
-    KeyCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters);
+    KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     bool Sign(Contract& theContract, const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,

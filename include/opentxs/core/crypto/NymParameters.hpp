@@ -56,7 +56,7 @@ public:
 
     NymParameterType nymParameterType();
 
-    OTAsymmetricKey::KeyType AsymmetricKeyType();
+    OTAsymmetricKey::KeyType AsymmetricKeyType() const;
 
     void setNymParameterType(NymParameterType theKeytype);
 
@@ -64,7 +64,13 @@ public:
 
     void setCredentialType(Credential::CredentialType theCredentialtype);
 
-#if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
+    std::string Source() const;
+    void SetSource(std::string source);
+
+    std::string AltLocation() const;
+    void SetAltLocation(std::string location);
+
+    #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
     int32_t keySize();
 
     void setKeySize(int32_t keySize);
@@ -80,6 +86,9 @@ public:
 private:
     NymParameters(const NymParameters&) = delete;
     NymParameters& operator=(const NymParameters&) = delete;
+
+    std::string source_ = "";
+    std::string altLocation_ = "";
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
     NymParameterType nymType_ = NymParameterType::SECP256K1;

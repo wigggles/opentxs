@@ -91,7 +91,7 @@ class LowLevelKeyGenerator
 private:
     class LowLevelKeyGeneratordp;
 
-    std::shared_ptr<NymParameters> pkeyData_;
+    std::unique_ptr<NymParameters> pkeyData_;
 
     LowLevelKeyGenerator() = delete;
     LowLevelKeyGenerator(const LowLevelKeyGenerator&) = delete;
@@ -113,7 +113,7 @@ public:
     bool MakeNewKeypair();
     bool SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData, bool ephemeral = false);
 
-    LowLevelKeyGenerator(const std::shared_ptr<NymParameters>& pkeyData);
+    LowLevelKeyGenerator(const NymParameters& pkeyData);
     ~LowLevelKeyGenerator();
 
 };

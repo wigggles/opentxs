@@ -276,10 +276,10 @@ CredentialSet::CredentialSet()
 }
 
 CredentialSet::CredentialSet(
-    const std::shared_ptr<NymParameters>& nymParameters,
+    const NymParameters& nymParameters,
     const OTPasswordData* pPWData,
     const String* psourceForNymID)
-    : m_MasterCredential(*this, nymParameters, psourceForNymID)
+    : m_MasterCredential(*this, nymParameters)
 {
     SetSourceForNymID(m_MasterCredential.GetNymIDSource()); // This also recalculates and sets  ** m_strNymID **
 
@@ -985,66 +985,61 @@ bool CredentialSet::LoadCredential(const String& strSubID)
 // contain 3 keypairs: signing, authentication, and encryption.
 //
 bool CredentialSet::AddNewChildKeyCredential(
-    const std::shared_ptr<NymParameters>& pKeyData,
+    const NymParameters& nymParameters,
     const OTPasswordData* pPWData,  // The master key will sign the child key credential.
     ChildKeyCredential** ppChildKeyCredential)            // output
 {
-    if (pKeyData) {
-        ChildKeyCredential* newChildCredential = new ChildKeyCredential(*this, pKeyData);
-        OT_ASSERT(nullptr != newChildCredential);
+    ChildKeyCredential* newChildCredential = new ChildKeyCredential(*this, nymParameters);
+    OT_ASSERT(nullptr != newChildCredential);
 
-        newChildCredential->SetNymIDandSource(GetNymID(),
-                                GetSourceForNymID()); // Set NymID and source
-                                                    // string that hashes to
-                                                    // it.
-        newChildCredential->SetMasterCredID(GetMasterCredID());     // Set master credential ID
-                                                    // (onto this new
-                                                    // child credential...)
+    newChildCredential->SetNymIDandSource(GetNymID(),
+                            GetSourceForNymID()); // Set NymID and source
+                                                // string that hashes to
+                                                // it.
+    newChildCredential->SetMasterCredID(GetMasterCredID());     // Set master credential ID
+                                                // (onto this new
+                                                // child credential...)
 
-        // By this point we've set up the child key credential with its NymID, the source
-        // string for that NymID,
-        // my master credential ID, and the public and private certs for the
-        // child key credential. Now let's sign it...
-        OTPasswordData thePWData(
-            "Signing new child key credential... CredentialSet::AddNewChildKeyCredential");
-        Identifier theChildCredID;
+    // By this point we've set up the child key credential with its NymID, the source
+    // string for that NymID,
+    // my master credential ID, and the public and private certs for the
+    // child key credential. Now let's sign it...
+    OTPasswordData thePWData(
+        "Signing new child key credential... CredentialSet::AddNewChildKeyCredential");
+    Identifier theChildCredID;
 
-        // SignNewChildCredential uses m_MasterCredential's actual signing key to sign
-        // "pSub the contract."
-        //
-        if (false ==
-            SignNewChildCredential(*newChildCredential, theChildCredID,
-                                nullptr == pPWData ? &thePWData : pPWData)) {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                << ": Failed trying to call SignNewChildCredential\n";
-            delete newChildCredential;
-            newChildCredential = nullptr;
-            return false;
-        }
-
-        const String strChildCredID(
-            theChildCredID); // SignNewChildCredential also generates the ID.
-
-        newChildCredential->SetMetadata();
-
-        // ADD IT TO THE MAP
-        // Only after pSub is signed and saved can we then calculate its ID and
-        // use that ID
-        // as the key in m_mapCredentials (with pSub being the value.)
-        //
-        m_mapCredentials.insert(
-            std::pair<std::string, Credential*>(strChildCredID.Get(), newChildCredential));
-
-        if (nullptr != ppChildKeyCredential) // output
-        {
-            *ppChildKeyCredential = newChildCredential;
-        }
-
-        return true;
-    }
-    else {
+    // SignNewChildCredential uses m_MasterCredential's actual signing key to sign
+    // "pSub the contract."
+    //
+    if (false ==
+        SignNewChildCredential(*newChildCredential, theChildCredID,
+                            nullptr == pPWData ? &thePWData : pPWData)) {
+        otErr << "In " << __FILE__ << ", line " << __LINE__
+            << ": Failed trying to call SignNewChildCredential\n";
+        delete newChildCredential;
+        newChildCredential = nullptr;
         return false;
     }
+
+    const String strChildCredID(
+        theChildCredID); // SignNewChildCredential also generates the ID.
+
+    newChildCredential->SetMetadata();
+
+    // ADD IT TO THE MAP
+    // Only after pSub is signed and saved can we then calculate its ID and
+    // use that ID
+    // as the key in m_mapCredentials (with pSub being the value.)
+    //
+    m_mapCredentials.insert(
+        std::pair<std::string, Credential*>(strChildCredID.Get(), newChildCredential));
+
+    if (nullptr != ppChildKeyCredential) // output
+    {
+        *ppChildKeyCredential = newChildCredential;
+    }
+
+    return true;
 }
 
 // For adding non-key credentials, such as for 3rd-party authentication.
@@ -1123,66 +1118,61 @@ bool CredentialSet::AddNewChildCredential(
 // static
 CredentialSet* CredentialSet::CreateMaster(
     const String& strSourceForNymID,
-    const std::shared_ptr<NymParameters>& pKeyData,
+    const NymParameters& nymParameters,
     const OTPasswordData* pPWData)
 {
-    if (pKeyData) {
-        CredentialSet* pCredential = new CredentialSet(pKeyData);
-        OT_ASSERT(nullptr != pCredential);
+    CredentialSet* pCredential = new CredentialSet(nymParameters);
+    OT_ASSERT(nullptr != pCredential);
 
-        pCredential->SetSourceForNymID(
-            strSourceForNymID); // This also recalculates and sets  ** m_strNymID **
+    pCredential->SetSourceForNymID(
+        strSourceForNymID); // This also recalculates and sets  ** m_strNymID **
 
-        OTPasswordData thePWData(
-            "Signing new master credential... CredentialSet::CreateMaster");
+    OTPasswordData thePWData(
+        "Signing new master credential... CredentialSet::CreateMaster");
 
-        // Using m_MasterCredential's actual signing key to sign "m_MasterCredential the
-        // contract."
-        //
-        if (false ==
-            pCredential->SignNewMaster(nullptr == pPWData ? &thePWData
-                                                        : pPWData)) {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                << ": Failed trying to call pCredential->SignNewMaster\n";
-            delete pCredential;
-            pCredential = nullptr;
-            return nullptr;
-        }
-        // By this point, we have instantiated a new CredentialSet, set the source
-        // string, hashed that
-        // source string to get the NymID for this credential, and set the public
-        // and private info for
-        // this credential (each a map of strings.) Since pCredential->m_MasterCredential
-        // is derived from
-        // KeyCredential, it also loaded up the 3 keypairs (authentication,
-        // encryption, and signing.)
-        // Then we signed that master key with itself, with its signing key. (It's
-        // also an Contract,
-        // so it can be signed.) This also calculated the new master credential ID,
-        // and called
-        // pCredential->SetMasterCredID. That is, the CredentialSet's "master
-        // credential ID" is formed
-        // as a hash of the signed contract that is its MasterCredential.
-        // BUT!!! We don't want to use a hash of the private key information, since
-        // others cannot verify
-        // the hash without seeing our private key. We want MasterCredential to create an
-        // 'official' signed
-        // public version of itself, minus private keys, which is what can be sent
-        // to servers and to
-        // other users, and which can be hashed to form the master credential ID
-        // (and verified later.)
-        // ...Which is exactly what it does. Inside pCredential->SignNewMaster, a
-        // public version is created
-        // and signed, and set onto that master credential as m_strContents. It's then
-        // re-signed as the private
-        // version, which contains m_strContents in encoded form, along with the
-        // private keys.
-        //
-        return pCredential;
-    }
-    else {
+    // Using m_MasterCredential's actual signing key to sign "m_MasterCredential the
+    // contract."
+    //
+    if (false ==
+        pCredential->SignNewMaster(nullptr == pPWData ? &thePWData
+                                                    : pPWData)) {
+        otErr << "In " << __FILE__ << ", line " << __LINE__
+            << ": Failed trying to call pCredential->SignNewMaster\n";
+        delete pCredential;
+        pCredential = nullptr;
         return nullptr;
     }
+    // By this point, we have instantiated a new CredentialSet, set the source
+    // string, hashed that
+    // source string to get the NymID for this credential, and set the public
+    // and private info for
+    // this credential (each a map of strings.) Since pCredential->m_MasterCredential
+    // is derived from
+    // KeyCredential, it also loaded up the 3 keypairs (authentication,
+    // encryption, and signing.)
+    // Then we signed that master key with itself, with its signing key. (It's
+    // also an Contract,
+    // so it can be signed.) This also calculated the new master credential ID,
+    // and called
+    // pCredential->SetMasterCredID. That is, the CredentialSet's "master
+    // credential ID" is formed
+    // as a hash of the signed contract that is its MasterCredential.
+    // BUT!!! We don't want to use a hash of the private key information, since
+    // others cannot verify
+    // the hash without seeing our private key. We want MasterCredential to create an
+    // 'official' signed
+    // public version of itself, minus private keys, which is what can be sent
+    // to servers and to
+    // other users, and which can be hashed to form the master credential ID
+    // (and verified later.)
+    // ...Which is exactly what it does. Inside pCredential->SignNewMaster, a
+    // public version is created
+    // and signed, and set onto that master credential as m_strContents. It's then
+    // re-signed as the private
+    // version, which contains m_strContents in encoded form, along with the
+    // private keys.
+    //
+    return pCredential;
 }
 
 size_t CredentialSet::GetChildCredentialCount() const

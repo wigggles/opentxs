@@ -161,11 +161,11 @@ private:
                                                                         // creating a new
                                                                         // child credential.
     static CredentialSet* CreateMaster(const String& strSourceForNymID,
-                                      const std::shared_ptr<NymParameters>& pKeyData,
-                                      const OTPasswordData* pPWData = nullptr);
+                                       const NymParameters& nymParameters,
+                                       const OTPasswordData* pPWData = nullptr);
 public:
     EXPORT CredentialSet(
-        const std::shared_ptr<NymParameters>& nymParameters,
+        const NymParameters& nymParameters,
         const OTPasswordData* pPWData = nullptr, const String* psourceForNymID = nullptr
     );
     EXPORT const OTPassword* GetImportPassword() const
@@ -205,7 +205,7 @@ public:
     // contain 3 keypairs: signing, authentication, and encryption.
     //
     EXPORT bool AddNewChildKeyCredential(
-        const std::shared_ptr<NymParameters>& pKeyData,
+        const NymParameters& nymParameters,
         const OTPasswordData* pPWData = nullptr, // The master credential will sign the
                                                  // child key credential.
         ChildKeyCredential* *ppChildKeyCredential = nullptr);          // output

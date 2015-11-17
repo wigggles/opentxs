@@ -250,7 +250,7 @@ bool Letter::Seal(
             pKeyData = std::make_shared<NymParameters>(
                 NymParameters::SECP256K1,
                 Credential::SECP256K1);
-            ephemeralKeypair.MakeNewKeypair(pKeyData, true);
+            ephemeralKeypair.MakeNewKeypair(*pKeyData, true);
             ephemeralKeypair.GetPublicKey(ephemeralPubkey);
 
             const OTAsymmetricKey& ephemeralPrivkey = ephemeralKeypair.GetPrivateKey();

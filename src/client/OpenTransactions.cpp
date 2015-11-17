@@ -806,21 +806,21 @@ std::shared_ptr<OTSettings> OT_API::LoadConfigFile()
                                 OTServerConnection::getLinger(), lValue, bIsNewKey);
         OTServerConnection::setLinger(static_cast<int>(lValue));
     }
-    
+
     {
         int64_t lValue; bool bIsNewKey;
         p_Config->CheckSet_long("latency", "send_timeout",
                                 OTServerConnection::getSendTimeout(), lValue, bIsNewKey);
         OTServerConnection::setSendTimeout(static_cast<int>(lValue));
     }
-    
+
     {
         int64_t lValue; bool bIsNewKey;
         p_Config->CheckSet_long("latency", "recv_timeout",
                                 OTServerConnection::getRecvTimeout(), lValue, bIsNewKey);
         OTServerConnection::setRecvTimeout(static_cast<int>(lValue));
     }
-    
+
     // SECURITY (beginnings of..)
 
     // Master Key Timeout
@@ -1219,12 +1219,9 @@ Account* OT_API::GetAccountPartialMatch(const std::string PARTIAL_ID,
 //
 // Adds to wallet. (No need to delete.)
 //
-Nym* OT_API::CreateNym(const std::shared_ptr<NymParameters> & pKeyData,
-                       const std::string str_id_source,
-                       const std::string str_alt_location) const
+Nym* OT_API::CreateNym(const NymParameters& nymParameters) const
 {
     OT_ASSERT_MSG(m_bInitialized, "Not initialized; call OT_API::Init first.");
-    OT_ASSERT_MSG(pKeyData, "pKeyData was NULL.");
 
     OTWallet* pWallet =
         GetWallet(__FUNCTION__); // This logs and ASSERTs already.
@@ -1232,7 +1229,7 @@ Nym* OT_API::CreateNym(const std::shared_ptr<NymParameters> & pKeyData,
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     Nym* pNym = nullptr;
 
-    pNym = pWallet->CreateNym(pKeyData, str_id_source, str_alt_location);
+    pNym = pWallet->CreateNym(nymParameters);
 
     // No need to delete pNym. (Wallet owns.)
     return pNym;
@@ -1300,10 +1297,10 @@ bool OT_API::IsNym_RegisteredAtServer(const Identifier& NYM_ID,
         otErr << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
     }
-    
+
     Nym* pNym = GetNym(NYM_ID, __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pNym) return false;
-    
+
     // Below this point, pNym is a good ptr, and will be cleaned up
     // automatically.
     const String strNotaryID(NOTARY_ID);
@@ -3205,7 +3202,7 @@ bool OT_API::Create_SmartContract(
                  "range.\n";
         return false;
     }
-    
+
     pContract->specifyParties(SPECIFY_PARTIES);
     pContract->specifyAssetTypes(SPECIFY_ASSETS);
 
@@ -3231,7 +3228,7 @@ bool OT_API::SmartContract_SetDates(
     if (nullptr == pNym) return false;
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    
+
     std::unique_ptr<OTCronItem> pContract(
         OTCronItem::NewCronItem(THE_CONTRACT));
     if (!pContract) {
@@ -3291,7 +3288,7 @@ bool OT_API::SmartContract_AddParty(
     // arePartiesSpecified().
     //
     const char * szPartyNymID = nullptr;
-    
+
     if (pContract->arePartiesSpecified())
     {
         if (!PARTY_NYM_ID.Exists())
@@ -3300,7 +3297,7 @@ bool OT_API::SmartContract_AddParty(
             "contract is configured to require a Party's NymID to appear on the contract. \n";
             return false;
         }
-        
+
         szPartyNymID = PARTY_NYM_ID.Get();
     }
     else
@@ -3312,7 +3309,7 @@ bool OT_API::SmartContract_AddParty(
             return false;
         }
     }
-    
+
     pParty = new OTParty(str_party_name.c_str(), true /*bIsOwnerNym*/,
                          szPartyNymID,
                          str_agent_name.c_str(),
@@ -3372,7 +3369,7 @@ bool OT_API::SmartContract_RemoveParty(
         pContract->SaveContractRaw(strOutput);
         return true;
     }
-    
+
     return false;
 }
 
@@ -3425,9 +3422,9 @@ bool OT_API::SmartContract_AddAccount(
     // Need to explicitly check pContract->areAssetTypesSpecified() and then
     // mandate that the instrument definition ID must either be present, or not,
     // based on that.
-    
+
     const char * szAssetTypeID = nullptr;
-    
+
     if (pContract->areAssetTypesSpecified())
     {
         if (str_instrument_definition_id.empty())
@@ -3436,7 +3433,7 @@ bool OT_API::SmartContract_AddAccount(
             "contract is configured to require the Asset Types to appear on the contract. \n";
             return false;
         }
-        
+
         szAssetTypeID = str_instrument_definition_id.c_str();
     }
     else
@@ -3449,10 +3446,10 @@ bool OT_API::SmartContract_AddAccount(
         }
     }
 
-    
+
     const String strAgentName, strAcctName(str_name.c_str()), strAcctID;
     String strInstrumentDefinitionID;
-    
+
     if (nullptr != szAssetTypeID)
         strInstrumentDefinitionID.Set(szAssetTypeID);
 
@@ -3520,7 +3517,7 @@ bool OT_API::SmartContract_RemoveAccount(
         pContract->SaveContractRaw(strOutput);
         return true;
     }
-    
+
     return false;
 }
 
@@ -3615,7 +3612,7 @@ bool OT_API::SmartContract_ConfirmAccount(
               << str_name << " \n";
         return false;
     }
-    
+
     // the actual instrument definition ID
 
     const Identifier theExpectedInstrumentDefinitionID(
@@ -3640,7 +3637,7 @@ bool OT_API::SmartContract_ConfirmAccount(
               << ") according to this contract.\n";
         return false;
     }
-    
+
     // I'm leaving this here for now, since a party can only be a Nym for now
     // anyway (until I code entities.)
     // Therefore this account COULD ONLY be owned by that Nym anyway, and thus
@@ -3723,7 +3720,7 @@ bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 {
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
-    
+
     if (nullptr == pContract) {
         otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
         << THE_CONTRACT << "\n\n";
@@ -3737,7 +3734,7 @@ bool OT_API::Smart_AreAssetTypesSpecified(const String& THE_CONTRACT) const
 {
     std::unique_ptr<OTScriptable> pContract(
         OTScriptable::InstantiateScriptable(THE_CONTRACT));
-    
+
     if (nullptr == pContract) {
         otOut << __FUNCTION__ << ": Error loading smart contract:\n\n"
         << THE_CONTRACT << "\n\n";
@@ -3779,7 +3776,7 @@ bool OT_API::SmartContract_ConfirmParty(
               << ") doesn't exist, so how can you confirm it?\n";
         return false;
     }
-    
+
     if (pContract->arePartiesSpecified())
     {
         bool bSuccessID = false;
@@ -3789,7 +3786,7 @@ bool OT_API::SmartContract_ConfirmParty(
         {
             String strPartyNymID(partyNymID);
             Identifier idParty(strPartyNymID);
-            
+
             if (idParty != NYM_ID)
             {
                 otOut << __FUNCTION__ << ": Failure: Party (" << str_party_name
@@ -3798,7 +3795,7 @@ bool OT_API::SmartContract_ConfirmParty(
             }
         }
     }
-    
+
     OTParty* pNewParty = new OTParty(
         pParty->GetPartyName(),
         *pNym, // party keeps an internal pointer to pNym from here on.
@@ -3919,9 +3916,9 @@ bool OT_API::SmartContract_AddBylaw(
     return true;
 }
 
-    
-    
-    
+
+
+
 bool OT_API::SmartContract_RemoveBylaw(
     const String& THE_CONTRACT, // The contract, about to have the bylaw removed
                                 // from it.
@@ -3957,7 +3954,7 @@ bool OT_API::SmartContract_RemoveBylaw(
         pContract->SaveContractRaw(strOutput);
         return true;
     }
-    
+
     return false;
 }
 
@@ -4045,7 +4042,7 @@ bool OT_API::SmartContract_RemoveHook(
         return false;
     }
     const std::string str_bylaw_name(BYLAW_NAME.Get());
-    
+
     OTBylaw* pBylaw = pContract->GetBylaw(str_bylaw_name);
 
     if (nullptr == pBylaw) {
@@ -4053,7 +4050,7 @@ bool OT_API::SmartContract_RemoveHook(
                  "doesn't exist: " << str_bylaw_name << " \n";
         return false;
     }
-    
+
     const std::string str_name(HOOK_NAME.Get()), str_clause(CLAUSE_NAME.Get());
 
     if (pBylaw->RemoveHook(str_name, str_clause))
@@ -4067,7 +4064,7 @@ bool OT_API::SmartContract_RemoveHook(
         pContract->SaveContractRaw(strOutput);
         return true;
     }
-    
+
     return false;
 }
 
@@ -4177,7 +4174,7 @@ bool OT_API::SmartContract_RemoveCallback(
         pContract->SaveContractRaw(strOutput);
         return true;
     }
-    
+
     return false;
 }
 
@@ -4289,7 +4286,7 @@ bool OT_API::SmartContract_UpdateClause(
         pContract->SaveContractRaw(strOutput);
         return true;
     }
-    
+
     return false;
 }
 
@@ -4498,7 +4495,7 @@ bool OT_API::SmartContract_RemoveVariable(
         pContract->SaveContractRaw(strOutput);
         return true;
     }
-    
+
     return false;
 }
 

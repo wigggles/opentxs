@@ -107,7 +107,7 @@ public:
     bool VerifySource_Pubkey(const String strSource) const;
     MasterCredential(CredentialSet& theOwner);
     MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType);
-    MasterCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters, const String* psourceForNymID = nullptr);
+    MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     virtual ~MasterCredential();
     virtual void UpdateContents();
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);

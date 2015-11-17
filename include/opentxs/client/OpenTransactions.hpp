@@ -224,10 +224,7 @@ public:
     /// Returns a new nym (with key pair) and files created.
     /// (Or nullptr.)
     /// Adds to wallet. (No need to delete.)
-    EXPORT Nym * CreateNym(const std::shared_ptr<NymParameters> & pKeyData,
-                           const std::string str_id_source = "",
-                           const std::string str_alt_location =
-                             "") const;
+    EXPORT Nym * CreateNym(const NymParameters& nymParameters) const;
 
     // This works by checking to see if the Nym has a request number for the
     // given server.
@@ -837,10 +834,10 @@ public:
 
     EXPORT bool Smart_ArePartiesSpecified(
         const String& THE_CONTRACT) const;
-    
+
     EXPORT bool Smart_AreAssetTypesSpecified(
         const String& THE_CONTRACT) const;
-    
+
     EXPORT bool SmartContract_AddBylaw(
         const String& THE_CONTRACT, // The contract, about to have the bylaw
                                     // added to it.
@@ -917,7 +914,7 @@ public:
                                   // "true" or "false" are expected here in
                                   // order to convert to a bool.
         String& strOutput) const;
-    
+
     EXPORT bool SmartContract_RemoveVariable(
         const String& THE_CONTRACT, // The contract, about to have the variable
                                     // removed from it.

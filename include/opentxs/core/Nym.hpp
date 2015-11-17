@@ -225,15 +225,14 @@ public:
     EXPORT bool AddNewMasterCredential(
         String& strOutputMasterCredID, // The new ID, upon success, is
                                        // returned here.
-        const std::shared_ptr<NymParameters>& pKeyData,
-        const String* pstrSourceForNymID = nullptr,
+        const NymParameters& nymParameters,
         const OTPasswordData* pPWData = nullptr,
         bool bChangeNymID = false); // If nullptr, it uses the
                                     // Nym's (presumed) existing pubkey
                                     // as the source.
     EXPORT bool AddNewChildKeyCredential(
         const Identifier& idMasterCredential,
-        const std::shared_ptr<NymParameters> pKeyData, // Ignored unless pmapPrivate is nullptr.
+        const NymParameters& nymParameters, // Ignored unless pmapPrivate is nullptr.
         const String::Map* pmapPrivate = nullptr, // If nullptr, then the keys
                                                   // are generated in here.
         const OTPasswordData* pPWData = nullptr,  // Pass in the string to show
@@ -378,9 +377,7 @@ public:
 
     // Use this to actually generate a new key pair and assorted nym files.
     //
-    EXPORT bool GenerateNym(const std::shared_ptr<NymParameters>& pKeyData, bool bCreateFile = true,
-                            const std::string str_id_source = "",
-                            const std::string str_alt_location = "");
+    EXPORT bool GenerateNym(const NymParameters& pKeyData, bool bCreateFile = true);
 
     // Some messages require "transaction agreement" as opposed to "balance
     // agreement."

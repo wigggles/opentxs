@@ -215,8 +215,8 @@ KeyCredential::KeyCredential(CredentialSet& theOwner, const Credential::Credenti
 {
 }
 
-KeyCredential::KeyCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters)
-    : ot_super(theOwner, nymParameters->credentialType())
+KeyCredential::KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
+    : ot_super(theOwner, nymParameters.credentialType())
 {
     GenerateKeys(nymParameters);
 }
@@ -242,99 +242,94 @@ void KeyCredential::Release_KeyCredential()
 
 }
 
-bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData) // Gotta start
+bool KeyCredential::GenerateKeys(const NymParameters& nymParameters) // Gotta start
                                                   // somewhere.
 {
     OT_ASSERT(!m_AuthentKey);
     OT_ASSERT(!m_EncryptKey);
     OT_ASSERT(!m_SigningKey);
 
-    if (pKeyData) {
+    OTAsymmetricKey::KeyType newKeyType = nymParameters.AsymmetricKeyType();
 
-        OTAsymmetricKey::KeyType newKeyType = pKeyData->AsymmetricKeyType();
+    m_AuthentKey =  std::make_shared<OTKeypair>(newKeyType);
+    m_EncryptKey =  std::make_shared<OTKeypair>(newKeyType);
+    m_SigningKey =  std::make_shared<OTKeypair>(newKeyType);
 
-        m_AuthentKey =  std::make_shared<OTKeypair>(newKeyType);
-        m_EncryptKey =  std::make_shared<OTKeypair>(newKeyType);
-        m_SigningKey =  std::make_shared<OTKeypair>(newKeyType);
+    const bool bAuth = m_AuthentKey->MakeNewKeypair(nymParameters);
+    const bool bEncr = m_EncryptKey->MakeNewKeypair(nymParameters);
+    const bool bSign = m_SigningKey->MakeNewKeypair(nymParameters);
 
-        const bool bAuth = m_AuthentKey->MakeNewKeypair(pKeyData);
-        const bool bEncr = m_EncryptKey->MakeNewKeypair(pKeyData);
-        const bool bSign = m_SigningKey->MakeNewKeypair(pKeyData);
+    OT_ASSERT(bSign && bAuth && bEncr);
 
-        OT_ASSERT(bSign && bAuth && bEncr);
+    // Since the keys were all generated successfully, we need to copy their
+    // certificate data into the m_mapPublicInfo and m_mapPrivateInfo (string
+    // maps.)
+    //
+    String strPublicKey;
+    FormattedKey strPrivateCert;
+    String::Map mapPublic, mapPrivate;
 
-        // Since the keys were all generated successfully, we need to copy their
-        // certificate data into the m_mapPublicInfo and m_mapPrivateInfo (string
-        // maps.)
-        //
-        String strPublicKey;
-        FormattedKey strPrivateCert;
-        String::Map mapPublic, mapPrivate;
+    const String strReason("Generating keys for new credential...");
 
-        const String strReason("Generating keys for new credential...");
+    const bool b1 = m_SigningKey->GetPublicKey(
+        strPublicKey);
+    const bool b2 =
+        m_SigningKey->GetPrivateKey(strPrivateCert, &strReason);
 
-        const bool b1 = m_SigningKey->GetPublicKey(
-            strPublicKey);
-        const bool b2 =
-            m_SigningKey->GetPrivateKey(strPrivateCert, &strReason);
+    if (b1)
+        mapPublic.insert(
+            std::pair<std::string, std::string>("S", strPublicKey.Get()));
+    if (b2)
+        mapPrivate.insert(
+            std::pair<std::string, std::string>("S", strPrivateCert.Get()));
 
-        if (b1)
-            mapPublic.insert(
-                std::pair<std::string, std::string>("S", strPublicKey.Get()));
-        if (b2)
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("S", strPrivateCert.Get()));
+    strPublicKey.Release();
+    strPrivateCert.Release();
+    const bool b3 = m_AuthentKey->GetPublicKey(
+        strPublicKey);
+    const bool b4 =
+        m_AuthentKey->GetPrivateKey(strPrivateCert, &strReason);
 
-        strPublicKey.Release();
-        strPrivateCert.Release();
-        const bool b3 = m_AuthentKey->GetPublicKey(
-            strPublicKey);
-        const bool b4 =
-            m_AuthentKey->GetPrivateKey(strPrivateCert, &strReason);
+    if (b3)
+        mapPublic.insert(
+            std::pair<std::string, std::string>("A", strPublicKey.Get()));
+    if (b4)
+        mapPrivate.insert(
+            std::pair<std::string, std::string>("A", strPrivateCert.Get()));
 
-        if (b3)
-            mapPublic.insert(
-                std::pair<std::string, std::string>("A", strPublicKey.Get()));
-        if (b4)
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("A", strPrivateCert.Get()));
+    strPublicKey.Release();
+    strPrivateCert.Release();
+    const bool b5 = m_EncryptKey->GetPublicKey(
+        strPublicKey);
+    const bool b6 =
+        m_EncryptKey->GetPrivateKey(strPrivateCert, &strReason);
 
-        strPublicKey.Release();
-        strPrivateCert.Release();
-        const bool b5 = m_EncryptKey->GetPublicKey(
-            strPublicKey);
-        const bool b6 =
-            m_EncryptKey->GetPrivateKey(strPrivateCert, &strReason);
+    if (b5)
+        mapPublic.insert(
+            std::pair<std::string, std::string>("E", strPublicKey.Get()));
+    if (b6)
+        mapPrivate.insert(
+            std::pair<std::string, std::string>("E", strPrivateCert.Get()));
 
-        if (b5)
-            mapPublic.insert(
-                std::pair<std::string, std::string>("E", strPublicKey.Get()));
-        if (b6)
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("E", strPrivateCert.Get()));
-
-        if (3 != mapPublic.size()) {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                << ": Failed getting public keys in "
-                    "KeyCredential::GenerateKeys.\n";
-            return false;
-        }
-        else
-            ot_super::SetPublicContents(mapPublic);
-
-        if (3 != mapPrivate.size()) {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                << ": Failed getting private keys in "
-                    "KeyCredential::GenerateKeys.\n";
-            return false;
-        }
-        else
-            ot_super::SetPrivateContents(mapPrivate);
-
-        return true;
-    } else {
+    if (3 != mapPublic.size()) {
+        otErr << "In " << __FILE__ << ", line " << __LINE__
+            << ": Failed getting public keys in "
+                "KeyCredential::GenerateKeys.\n";
         return false;
     }
+    else
+        ot_super::SetPublicContents(mapPublic);
+
+    if (3 != mapPrivate.size()) {
+        otErr << "In " << __FILE__ << ", line " << __LINE__
+            << ": Failed getting private keys in "
+                "KeyCredential::GenerateKeys.\n";
+        return false;
+    }
+    else
+        ot_super::SetPrivateContents(mapPrivate);
+
+    return true;
 }
 
 // virtual

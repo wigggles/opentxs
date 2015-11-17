@@ -300,8 +300,7 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
 //
 bool Nym::AddNewMasterCredential(
     String& strOutputMasterCredID,
-    const std::shared_ptr<NymParameters>& pKeyData,
-    const String* pstrSourceForNymID, // If nullptr, it uses the Nym's
+    const NymParameters& nymParameters, // If nullptr, it uses the Nym's
                                       // (presumed) existing source
                                       // as the source.
     const OTPasswordData* pPWData,    // Pass in the string to show users here,
@@ -331,9 +330,7 @@ bool Nym::AddNewMasterCredential(
     // be able to create new credentials, and should BOTH be able to generate
     // keys on the spot
 
-    OT_ASSERT(pKeyData);
-
-    OTAsymmetricKey::KeyType newKeyType = pKeyData->AsymmetricKeyType();
+    OTAsymmetricKey::KeyType newKeyType = nymParameters.AsymmetricKeyType();
     String newKeyTypeName = OTAsymmetricKey::KeyTypeToString(newKeyType);
 
     otOut << __FUNCTION__
@@ -361,8 +358,9 @@ bool Nym::AddNewMasterCredential(
     const String* pstrSourceToUse = nullptr;
     bool changeNymID = false;
     bool pstrSourceForNymIDValid = false;
+    String pstrSourceForNymID = nymParameters.Source();
 
-    if ((nullptr != pstrSourceForNymID) and pstrSourceForNymID->Exists())
+    if (pstrSourceForNymID.GetLength() > 0)
     {
         pstrSourceForNymIDValid = true;
     }
@@ -377,7 +375,7 @@ bool Nym::AddNewMasterCredential(
         if (pstrSourceForNymIDValid)
         {
             //use the provided source
-            pstrSourceToUse = pstrSourceForNymID;
+            pstrSourceToUse = &pstrSourceForNymID;
         }
     }
     else
@@ -385,7 +383,7 @@ bool Nym::AddNewMasterCredential(
         //Adding a new CredentialSet to an existing nym
         if (pstrSourceForNymIDValid)
         {
-            if (!pstrSourceForNymID->Compare(m_strSourceForNymID))
+            if (!pstrSourceForNymID.Compare(m_strSourceForNymID))
             {
                 otErr << "In " << __FILE__ << ", line " << __LINE__
                     << ", OTPseudonym::" << __FUNCTION__
@@ -421,7 +419,7 @@ bool Nym::AddNewMasterCredential(
 
     // Create a new CredentialSet
 
-    CredentialSet* pNewCredentialSet = new CredentialSet(pKeyData, pPWData, pstrSourceToUse);
+    CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters, pPWData, pstrSourceToUse);
 
     if (nullptr == pNewCredentialSet) // Below this block, pNewCredentialSet must be cleaned up.
     {
@@ -522,7 +520,7 @@ bool Nym::AddNewMasterCredential(
 }
 
 bool Nym::AddNewChildKeyCredential(const Identifier& idMasterCredential,
-                       const std::shared_ptr<NymParameters> pKeyData, // Ignored unless pmapPrivate is nullptr.
+                       const NymParameters& nymParameters, // Ignored unless pmapPrivate is nullptr.
                        const String::Map* pmapPrivate, // If nullptr, then the
                                                        // keys are
                                                        // generated in here.
@@ -544,17 +542,16 @@ bool Nym::AddNewChildKeyCredential(const Identifier& idMasterCredential,
 
     ChildKeyCredential* pChildKeyCredential = nullptr;
 
-    if (pKeyData) {
         const bool bAdded =
-            pMaster->AddNewChildKeyCredential(pKeyData, pPWData, &pChildKeyCredential);
+            pMaster->AddNewChildKeyCredential(nymParameters, pPWData, &pChildKeyCredential);
 
-        if (!bAdded) {
-            otOut
-                << __FUNCTION__
-                << ": Failed trying to add key credential to master credential.\n";
-            return false;
-        }
+    if (!bAdded) {
+        otOut
+            << __FUNCTION__
+            << ": Failed trying to add key credential to master credential.\n";
+        return false;
     }
+
     OT_ASSERT(nullptr != pChildKeyCredential);
 
     if (!pChildKeyCredential->VerifyInternally()) {
@@ -880,19 +877,15 @@ Item* Nym::GenerateTransactionStatement(const OTTransaction& theOwner)
 
 // use this to actually generate a new key pair and assorted nym files.
 //
-bool Nym::GenerateNym(const std::shared_ptr<NymParameters>& pKeyData,
-                      bool bCreateFile, // By default, it
+bool Nym::GenerateNym(const NymParameters& nymParameters,
+                      bool bCreateFile) // By default, it
                                         // creates the various
                                         // nym files
                                         // and certs in local storage. (Pass false when
                                         // creating a temp Nym, like for OTPurse.)
-                      const std::string str_id_source/*=""*/,
-		      const std::string str_alt_location/*=""*/)
 {
-    OT_ASSERT(pKeyData);
-
-    String strSource(str_id_source),
-    strAltLocation(str_alt_location);
+    String strSource(nymParameters.Source()),
+    strAltLocation(nymParameters.AltLocation());
 
     SetAltLocation(strAltLocation);
 
@@ -905,8 +898,7 @@ bool Nym::GenerateNym(const std::shared_ptr<NymParameters>& pKeyData,
 
     const bool bAddedMaster = AddNewMasterCredential(
                                 strMasterCredID,
-                                pKeyData,
-                                &strSource,
+                                nymParameters,
                                 nullptr);
 
     if ( bAddedMaster && strMasterCredID.Exists() &&
@@ -930,7 +922,7 @@ bool Nym::GenerateNym(const std::shared_ptr<NymParameters>& pKeyData,
     if (bCreateFile && !bSaved) {
       otErr << __FUNCTION__
       << ": Failed trying to save new Nym's cert or nymfile.\n";
-      
+
       return false;
     }
 
@@ -1208,7 +1200,7 @@ bool Nym::IsRegisteredAtServer(const String& strNotaryID) const
     // map
     // matches the Notary ID that was passed in, then return TRUE.
     for (auto& it : m_mapRequestNum) {
-        
+
         if (strID == it.first) {
 
             // The call has succeeded

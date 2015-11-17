@@ -117,11 +117,15 @@ LowLevelKeyGenerator::~LowLevelKeyGenerator()
     if (nullptr != dp) {
         delete dp;
     }
+    if (pkeyData_) {
+        pkeyData_.release();
+    }
 }
 
-LowLevelKeyGenerator::LowLevelKeyGenerator(const std::shared_ptr<NymParameters>& pkeyData)
-    : pkeyData_(pkeyData), m_bCleanup(true)
+LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
+    : m_bCleanup(true)
 {
+    pkeyData_.reset(const_cast<NymParameters*>(&pkeyData));
 
     #if defined(OT_CRYPTO_USING_OPENSSL)
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
@@ -332,6 +336,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
 
         // Success! At this point, theKeypair's public and private keys have been
         // set.
+
         return true;
         #elif defined(OT_CRYPTO_USING_GPG)
 
