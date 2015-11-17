@@ -663,9 +663,6 @@ const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
     const EVP_MD* OpenSSLType;
 
     switch (hashType) {
-        case CryptoHash::SHA1 :
-            OpenSSLType = EVP_sha1();
-            break;
         case CryptoHash::SHA224 :
             OpenSSLType = EVP_sha224();
             break;
