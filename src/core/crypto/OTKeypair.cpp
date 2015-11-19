@@ -106,6 +106,21 @@ OTKeypair::OTKeypair(OTAsymmetricKey::KeyType keyType)
 {
 }
 
+
+OTKeypair::OTKeypair(
+    const proto::AsymmetricKey& serializedPubkey,
+    const proto::AsymmetricKey& serializedPrivkey)
+        : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
+        , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(serializedPrivkey))
+{
+}
+
+OTKeypair::OTKeypair(
+    const proto::AsymmetricKey& serializedPubkey)
+        : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
+{
+}
+
 OTKeypair::~OTKeypair()
 {
 }

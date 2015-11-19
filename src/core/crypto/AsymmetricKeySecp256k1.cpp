@@ -51,9 +51,26 @@ namespace opentxs
 {
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1()
-    : OTAsymmetricKey()
+    : OTAsymmetricKey(OTAsymmetricKey::SECP256K1)
+{
+}
+
+AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey)
+    : OTAsymmetricKey(serializedKey)
 {
     m_keyType = OTAsymmetricKey::SECP256K1;
+
+    if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
+        SetAsPublic();
+    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
+        SetAsPrivate();
+    }
+
+    OTData keyBytes;
+    std::string keyString = serializedKey.key();
+
+    keyBytes.Assign(keyString.data(), keyString.size());
+    key_.Set(CryptoEngine::Instance().Util().Base58CheckEncode(keyBytes));
 }
 
 void AsymmetricKeySecp256k1::ReleaseKeyLowLevel_Hook() const

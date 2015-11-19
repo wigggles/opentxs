@@ -215,6 +215,49 @@ KeyCredential::KeyCredential(CredentialSet& theOwner, const Credential::Credenti
 {
 }
 
+KeyCredential::KeyCredential(CredentialSet& theOwner, const serializedCredential serializedCred)
+: ot_super(theOwner, serializedCred)
+{
+    bool hasPrivate = false;
+
+    if (proto::KEYMODE_PRIVATE == serializedCred->mode()) {
+        hasPrivate = true;
+    }
+
+    // Auth key
+    proto::AsymmetricKey publicAuth = serializedCred->publiccredential().key(proto::KEYROLE_AUTH - 1);
+
+    if (hasPrivate) {
+        proto::AsymmetricKey privateAuth = serializedCred->privatecredential().key(proto::KEYROLE_AUTH - 1);
+
+        m_AuthentKey = std::make_shared<OTKeypair>(publicAuth, privateAuth);
+    } else {
+        m_AuthentKey = std::make_shared<OTKeypair>(publicAuth);
+    }
+
+    // Encrypt key
+    proto::AsymmetricKey publicEncrypt = serializedCred->publiccredential().key(proto::KEYROLE_ENCRYPT - 1);
+
+    if (hasPrivate) {
+        proto::AsymmetricKey privateEncrypt = serializedCred->privatecredential().key(proto::KEYROLE_ENCRYPT - 1);
+
+        m_EncryptKey = std::make_shared<OTKeypair>(publicEncrypt, privateEncrypt);
+    } else {
+        m_EncryptKey = std::make_shared<OTKeypair>(publicEncrypt);
+    }
+
+    // Sign key
+    proto::AsymmetricKey publicSign = serializedCred->publiccredential().key(proto::KEYROLE_SIGN - 1);
+
+    if (hasPrivate) {
+        proto::AsymmetricKey privateSign = serializedCred->privatecredential().key(proto::KEYROLE_SIGN - 1);
+
+        m_SigningKey = std::make_shared<OTKeypair>(publicSign, privateSign);
+    } else {
+        m_SigningKey = std::make_shared<OTKeypair>(publicSign);
+    }
+}
+
 KeyCredential::KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : ot_super(theOwner, nymParameters.credentialType(), proto::KEYMODE_PRIVATE)
 {

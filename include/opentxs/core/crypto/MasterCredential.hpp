@@ -41,6 +41,7 @@
 
 #include "KeyCredential.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/verify/Verify.hpp>
 
 #include <memory>
 
@@ -107,6 +108,7 @@ public:
     bool VerifySource_Pubkey(const String strSource) const;
     MasterCredential(CredentialSet& theOwner);
     MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType);
+    MasterCredential(CredentialSet& theOwner, serializedCredential serializedCred);
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     virtual ~MasterCredential();
 

@@ -194,7 +194,9 @@ protected:
         const OTPassword* pImportPassword = nullptr); // if not nullptr, it
                                                       // means to
                                                       // use
-    // this password by default.
+                                                      // this password by default.
+
+    Credential(CredentialSet& theOwner, serializedCredential serializedCred);
     virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
     virtual serializedCredential SerializeForPublicSignature() const;
     virtual serializedCredential SerializeForPrivateSignature() const;

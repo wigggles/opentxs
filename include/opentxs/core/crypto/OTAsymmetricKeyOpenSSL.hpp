@@ -92,6 +92,8 @@ private:
     OTASCIIArmor* m_p_ascKey = nullptr; // base64-encoded, string form of key. (Encrypted
                               // too, for private keys. Should store it in this
                               // form most of the time.)
+    OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& serializedKey);
+
 public:
     virtual CryptoAsymmetric& engine() const;
     virtual bool IsEmpty() const;

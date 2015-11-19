@@ -107,6 +107,14 @@ Credential::Credential(CredentialSet& theOwner, Credential::CredentialType type,
     m_strContractType = "CREDENTIAL";
 }
 
+Credential::Credential(CredentialSet& theOwner, serializedCredential serializedCred)
+    : Credential(theOwner, Credential::LEGACY, serializedCred->mode())
+{
+    m_Role = serializedCred->role();
+    m_strNymID = serializedCred->nymid();
+    SetIdentifier(serializedCred->id());
+}
+
 Credential::~Credential()
 {
     Release_Credential();

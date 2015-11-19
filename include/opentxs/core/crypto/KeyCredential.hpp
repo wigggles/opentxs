@@ -42,6 +42,7 @@
 #include "OTKeypair.hpp"
 #include "Credential.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/verify/Verify.hpp>
 
 #include <memory>
 
@@ -164,6 +165,7 @@ protected:
                                                       // use
                                                       // this password by default.
     virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
+    KeyCredential(CredentialSet& theOwner, const serializedCredential serializedCred);
     // this password by default.
 public:
     std::shared_ptr<OTKeypair> m_SigningKey; // Signing keys, for signing/verifying a "legal

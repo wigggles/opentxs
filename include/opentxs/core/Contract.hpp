@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CONTRACT_HPP
 
 #include <opentxs/core/crypto/CryptoHash.hpp>
+#include <opentxs/core/verify/Verify.hpp>
 
 #include "Identifier.hpp"
 #include "OTStringXML.hpp"

@@ -152,6 +152,11 @@ public:
                                           // theSignature has no metadata.
         const OTSignature& theSignature, bool bInclusive = false) const;
     EXPORT OTKeypair(OTAsymmetricKey::KeyType keyType);
+    EXPORT OTKeypair(
+        const proto::AsymmetricKey& serializedPubkey,
+        const proto::AsymmetricKey& serializedPrivkey);
+    EXPORT OTKeypair(
+        const proto::AsymmetricKey& serializedPubkey);
     EXPORT ~OTKeypair();
 
     serializedAsymmetricKey Serialize(bool privateKey = false) const;

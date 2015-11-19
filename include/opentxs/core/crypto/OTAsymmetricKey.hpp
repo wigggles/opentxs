@@ -135,9 +135,12 @@ public:
 
 protected:
     KeyType m_keyType = ERROR_TYPE;
+    OTAsymmetricKey(const KeyType keyType);
 
 public:                                           // INSTANTIATION
     EXPORT static OTAsymmetricKey* KeyFactory(KeyType keyType);  // Caller IS responsible to
+                                                  // delete!
+    EXPORT static OTAsymmetricKey* KeyFactory(const proto::AsymmetricKey& serializedKey);  // Caller IS responsible to
                                                   // delete!
 public:
     static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
@@ -192,6 +195,7 @@ protected:
     void ReleaseKeyLowLevel();                        // call this.
     virtual void ReleaseKeyLowLevel_Hook() const = 0; // override this.
     // CONSTRUCTION (PROTECTED)
+    OTAsymmetricKey(const proto::AsymmetricKey& serializedKey);
     EXPORT OTAsymmetricKey();
 
 public: // DESTRUCTION

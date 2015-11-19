@@ -48,6 +48,7 @@
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/core/FormattedKey.hpp>
 
+#include <string>
 #include <cstring>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
@@ -71,16 +72,39 @@ namespace opentxs
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
-    : OTAsymmetricKey()
+    : OTAsymmetricKey(OTAsymmetricKey::LEGACY)
     , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
-{
+    {
+
+    dp->backlink = this;
+
+    dp->m_pX509 = nullptr;
+    dp->m_pKey = nullptr;
+}
+
+OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& serializedKey)
+    : OTAsymmetricKey(serializedKey)
+    , m_p_ascKey(nullptr)
+    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    {
+
     dp->backlink = this;
 
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 
     m_keyType = OTAsymmetricKey::LEGACY;
+
+    if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
+        SetAsPublic();
+    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
+        SetAsPrivate();
+    }
+
+    std::string keyString = serializedKey.key();
+    *m_p_ascKey = keyString.c_str();
+
 }
 
 OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()

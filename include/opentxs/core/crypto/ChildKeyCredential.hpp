@@ -87,6 +87,7 @@ public:
     ChildKeyCredential(CredentialSet& other);
     ChildKeyCredential(CredentialSet& other, const Credential::CredentialType childType);
     ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
+    ChildKeyCredential(CredentialSet& other, const serializedCredential serializedCred);
     virtual ~ChildKeyCredential();
 
     virtual bool VerifySignedByMaster();

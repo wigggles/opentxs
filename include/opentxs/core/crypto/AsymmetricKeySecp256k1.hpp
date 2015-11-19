@@ -58,6 +58,7 @@ private:
     friend class LowLevelKeyGenerator;
 
     AsymmetricKeySecp256k1();
+    AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey);
     virtual void ReleaseKeyLowLevel_Hook() const;
     // used by LowLevelKeyGenerator
     FormattedKey key_;

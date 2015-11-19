@@ -89,6 +89,15 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const Credential::C
     m_Role = proto::CREDROLE_CHILDKEY;
 }
 
+ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const serializedCredential serializedCred)
+    : ot_super(other, serializedCred)
+{
+    m_strContractType = "KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_CHILDKEY;
+
+    SetMasterCredID(serializedCred->publiccredential().childdata().masterid());
+}
+
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters)
     : ot_super(other, nymParameters)
 {

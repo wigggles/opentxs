@@ -494,6 +494,15 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const Credential::Cr
     m_Role = proto::CREDROLE_MASTERKEY;
 }
 
+MasterCredential::MasterCredential(CredentialSet& theOwner, serializedCredential serializedCred)
+: ot_super(theOwner, serializedCred)
+{
+    m_strContractType = "MASTER KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_MASTERKEY;
+
+    m_strSourceForNymID = serializedCred->publiccredential().masterdata().source().raw();
+}
+
 MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : ot_super(theOwner, nymParameters)
 {
