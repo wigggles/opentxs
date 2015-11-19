@@ -762,6 +762,26 @@ CryptoAsymmetric& OTAsymmetricKey_OpenSSL::engine() const
     return CryptoEngine::Instance().RSA();
 }
 
+serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
+
+{
+    serializedAsymmetricKey serializedKey = ot_super::Serialize();
+
+    if (IsPrivate()) {
+        serializedKey->set_mode(proto::KEYMODE_PRIVATE);
+    } else {
+        serializedKey->set_mode(proto::KEYMODE_PUBLIC);
+    }
+
+    OTData keyBytes;
+    m_p_ascKey->GetData(keyBytes);
+
+    serializedKey->set_key(keyBytes.GetPointer(), keyBytes.GetSize());
+
+    return serializedKey;
+
+}
+
 #elif defined(OT_CRYPTO_USING_GPG)
 
 #else

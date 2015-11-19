@@ -88,6 +88,7 @@ public:
     virtual void Release();
     virtual ~AsymmetricKeySecp256k1();
 
+    virtual serializedAsymmetricKey Serialize() const;
 };
 
 } // namespace opentxs

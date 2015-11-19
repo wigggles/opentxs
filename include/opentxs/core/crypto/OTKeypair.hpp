@@ -153,6 +153,9 @@ public:
         const OTSignature& theSignature, bool bInclusive = false) const;
     EXPORT OTKeypair(OTAsymmetricKey::KeyType keyType);
     EXPORT ~OTKeypair();
+
+    serializedAsymmetricKey Serialize(bool privateKey = false) const;
+
 };
 
 } // namespace opentxs

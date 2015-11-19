@@ -79,18 +79,21 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other)
     : ot_super(other)
 {
     m_strContractType = "KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_CHILDKEY;
 }
 
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const Credential::CredentialType childType)
     : ot_super(other, childType)
 {
     m_strContractType = "KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_CHILDKEY;
 }
 
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters)
     : ot_super(other, nymParameters)
 {
     m_strContractType = "KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_CHILDKEY;
 }
 
 ChildKeyCredential::~ChildKeyCredential()
@@ -298,6 +301,57 @@ bool ChildKeyCredential::VerifySignedByMaster()
         return verifiedWithKey;
     }
     return false;
+}
+
+serializedSignature ChildKeyCredential::GetMasterSignature() const
+{
+    serializedSignature masterSignature;
+    proto::SignatureRole targetRole = proto::SIGROLE_PUBCREDENTIAL;
+    for (auto& it : m_listSerializedSignatures) {
+
+        if ((it->role() == targetRole) &&
+            (it->credentialid() == GetMasterCredID().Get())) {
+
+            masterSignature = it;
+            break;
+        }
+    }
+
+    return masterSignature;
+}
+
+serializedCredential ChildKeyCredential::Serialize(bool asPrivate, bool asSigned) const
+{
+    serializedCredential serializedCredential =
+        this->ot_super::Serialize(asPrivate, asSigned);
+
+    proto::ChildCredentialParameters* parameters = new proto::ChildCredentialParameters;
+
+    parameters->set_version(1);
+    parameters->set_masterid(GetMasterCredID().Get());
+
+    // Only the public credential gets ChildCredentialParameters
+    if (serializedCredential->has_publiccredential()) {
+        proto::KeyCredential* keyCredential = serializedCredential->mutable_publiccredential();
+        keyCredential->set_allocated_childdata(parameters);
+
+    }
+
+    if (asSigned) {
+        serializedSignature masterSignature = GetMasterSignature();
+
+        if (masterSignature) {
+            // We do not own this pointer.
+            proto::Signature* serializedMasterSignature = serializedCredential->add_signature();
+            *serializedMasterSignature = *masterSignature;
+        } else {
+            otErr << __FUNCTION__ << ": Failed to get master signature.\n";
+        }
+    }
+
+    serializedCredential->set_role(proto::CREDROLE_CHILDKEY);
+
+    return serializedCredential;
 }
 
 } // namespace opentxs

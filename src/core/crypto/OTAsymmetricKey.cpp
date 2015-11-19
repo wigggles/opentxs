@@ -903,4 +903,15 @@ OTAsymmetricKey::KeyType OTAsymmetricKey::keyType() const
     return m_keyType;
 }
 
+serializedAsymmetricKey OTAsymmetricKey::Serialize() const
+
+{
+    serializedAsymmetricKey serializedKey = std::make_shared<proto::AsymmetricKey>();
+
+    serializedKey->set_version(1);
+    serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(m_keyType));
+
+    return serializedKey;
+}
+
 } // namespace opentxs

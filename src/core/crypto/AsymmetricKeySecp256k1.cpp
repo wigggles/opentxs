@@ -284,4 +284,27 @@ AsymmetricKeySecp256k1::~AsymmetricKeySecp256k1()
     ReleaseKeyLowLevel_Hook();
 }
 
+serializedAsymmetricKey AsymmetricKeySecp256k1::Serialize() const
+
+{
+    serializedAsymmetricKey serializedKey = ot_super::Serialize();
+
+    FormattedKey stringKey;
+    if (IsPrivate()) {
+        serializedKey->set_mode(proto::KEYMODE_PRIVATE);
+        GetPrivateKey(stringKey);
+    } else {
+        serializedKey->set_mode(proto::KEYMODE_PUBLIC);
+        GetPublicKey(stringKey);
+    }
+
+    OTData keyBytes;
+    CryptoEngine::Instance().Util().Base58CheckDecode(stringKey, keyBytes);
+
+    serializedKey->set_key(keyBytes.GetPointer(), keyBytes.GetSize());
+
+    return serializedKey;
+
+}
+
 } // namespace opentxs

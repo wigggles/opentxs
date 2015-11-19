@@ -383,4 +383,13 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
     return (bReEncrypted && haveNewPrivateKey);
 }
 
+serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
+{
+    if (privateKey) {
+        return m_pkeyPrivate->Serialize();
+    } else {
+        return m_pkeyPublic->Serialize();
+    }
+}
+
 } // namespace opentxs

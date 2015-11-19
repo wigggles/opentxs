@@ -109,6 +109,8 @@ public:
     MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType);
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     virtual ~MasterCredential();
+
+    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
     virtual void UpdateContents();
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 };

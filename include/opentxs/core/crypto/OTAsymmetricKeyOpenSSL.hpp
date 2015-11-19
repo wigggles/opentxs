@@ -128,6 +128,7 @@ public:
     class OTAsymmetricKey_OpenSSLPrivdp;
     OTAsymmetricKey_OpenSSLPrivdp* dp;
 
+    virtual serializedAsymmetricKey Serialize() const;
 protected: // CONSTRUCTOR
     OTAsymmetricKey_OpenSSL();
 

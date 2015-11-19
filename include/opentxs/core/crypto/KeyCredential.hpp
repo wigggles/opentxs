@@ -146,6 +146,14 @@ private: // Private prevents erroneous use by other classes.
     friend class CredentialSet;
     bool GenerateKeys(const NymParameters& nymParameters); // Gotta start somewhere.
     KeyCredential() = delete;
+    bool addKeytoSerializedKeyCredential(
+        proto::KeyCredential& credential,
+        const bool getPrivate,
+        const proto::KeyRole role) const;
+    bool addKeyCredentialtoSerializedCredential(
+        serializedCredential credential,
+        const bool addPrivate) const;
+
 
 protected:
     virtual bool SetPublicContents(const String::Map& mapPublic);
@@ -154,6 +162,8 @@ protected:
         const OTPassword* pImportPassword = nullptr); // if not nullptr, it
                                                       // means to
                                                       // use
+                                                      // this password by default.
+    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
     // this password by default.
 public:
     std::shared_ptr<OTKeypair> m_SigningKey; // Signing keys, for signing/verifying a "legal

@@ -41,6 +41,9 @@
 
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/util/Timer.hpp>
+#include <opentxs/core/verify/Verify.hpp>
+
+#include <memory>
 #include <list>
 
 namespace opentxs
@@ -55,6 +58,7 @@ class String;
 class FormattedKey;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
+typedef std::shared_ptr<proto::AsymmetricKey> serializedAsymmetricKey;
 
 // Todo:
 // 1. Add this value to the config file so it becomes merely a default value
@@ -115,10 +119,10 @@ private:
 
 public:
     enum KeyType: int32_t {
-        ERROR_TYPE,
-        NULL_TYPE,
-        LEGACY,
-        SECP256K1
+        ERROR_TYPE = proto::AKEYTYPE_ERROR,
+        NULL_TYPE = proto::AKEYTYPE_NULL,
+        LEGACY = proto::AKEYTYPE_LEGACY,
+        SECP256K1 = proto::AKEYTYPE_SECP256K1
     };
 
     static String KeyTypeToString(const KeyType keyType);
@@ -305,6 +309,8 @@ public: // DESTRUCTION
 
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const = 0;
+
+    virtual serializedAsymmetricKey Serialize() const;
 };
 
 } // namespace opentxs

@@ -66,6 +66,16 @@
 namespace opentxs
 {
 
+void Nym::SetAsPrivate(bool isPrivate)
+{
+    m_bPrivate = isPrivate;
+}
+
+bool Nym::isPrivate() const
+{
+    return m_bPrivate;
+}
+
 Nym* Nym::LoadPublicNym(const Identifier& NYM_ID, const String* pstrName,
                         const char* szFuncName)
 {
@@ -212,6 +222,8 @@ Nym* Nym::LoadPrivateNym(const Identifier& NYM_ID, bool bChecking,
                     : (new Nym(*pstrName, strNymID, strNymID));
     OT_ASSERT_MSG(nullptr != pNym,
                   "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
+
+    pNym->SetAsPrivate();
 
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;

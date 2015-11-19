@@ -79,6 +79,7 @@ private:
     Nym(const Nym&);
     Nym& operator=(const Nym&);
 
+    bool m_bPrivate = false;
     bool m_bMarkForDeletion; // Default FALSE. When set to true, saves a
                              // "DELETED" flag with this Nym,
     // for easy cleanup later when the server is doing some maintenance.
@@ -262,6 +263,8 @@ private:
                  Identifier& theOutput) const; // client-side
     bool SetHash(mapOfIdentifiers& the_map, const std::string& str_id,
                  const Identifier& theInput); // client-side
+    void SetAsPrivate(bool isPrivate = true);
+    bool isPrivate() const;
     //    OTIdentifier          m_NymboxHash;       // (Server-side) Hash of the
     // Nymbox
     //  mapOfIdentifiers      m_mapNymboxHash;    // (Client-side) Hash of

@@ -283,6 +283,14 @@ void Contract::CalculateContractID(Identifier& newID) const
         otErr << __FUNCTION__ << ": Error calculating Contract digest.\n";
 }
 
+void Contract::CalculateAndSetContractID(Identifier& newID)
+{
+    Identifier contractID;
+    CalculateContractID(contractID);
+    SetIdentifier(contractID);
+    newID = contractID;
+}
+
 bool Contract::VerifyContractID() const
 {
     Identifier newID;

@@ -61,6 +61,7 @@
 // Credentials
 
 #include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/verify/Verify.hpp>
 
 #include <opentxs/core/crypto/Credential.hpp>
 
@@ -71,6 +72,8 @@
 #include <opentxs/core/OTStorage.hpp>
 
 #include <irrxml/irrXML.hpp>
+
+#include <map>
 
 // Contains 3 key pairs: signing, authentication, and encryption.
 // This is stored as an Contract, and it must be signed by the
@@ -94,10 +97,11 @@ Credential::Credential(CredentialSet& theOwner)
     m_strContractType = "CREDENTIAL";
 }
 
-Credential::Credential(CredentialSet& theOwner, Credential::CredentialType type)
+Credential::Credential(CredentialSet& theOwner, Credential::CredentialType type, proto::KeyMode mode)
     : Contract()
     , m_StoreAs(Credential::credPrivateInfo)
     , m_Type(type)
+    , m_mode(mode)
     , m_pOwner(&theOwner)
 {
     m_strContractType = "CREDENTIAL";
@@ -742,6 +746,116 @@ Credential::CredentialType Credential::GetType() const
 
 {
     return m_Type;
+}
+
+serializedCredential Credential::Serialize(bool asPrivate, bool asSigned) const
+
+{
+    serializedCredential serializedCredential = std::make_shared<proto::Credential>();
+
+    serializedCredential->set_version(1);
+    serializedCredential->set_type(proto::CREDTYPE_LEGACY);
+
+    if (asPrivate) {
+        OT_ASSERT(proto::KEYMODE_PRIVATE == m_mode);
+        serializedCredential->set_mode(m_mode);
+
+    } else {
+        serializedCredential->set_mode(proto::KEYMODE_PUBLIC);
+    }
+
+    if (asSigned) {
+        serializedSignature publicSig;
+        serializedSignature privateSig;
+
+        proto::Signature* pPrivateSig;
+        proto::Signature* pPublicSig;
+
+        if (asPrivate) {
+            privateSig = GetSelfSignature(true);
+
+            OT_ASSERT(nullptr != privateSig);
+            if (nullptr != privateSig) {
+                pPrivateSig = serializedCredential->add_signature();
+                *pPrivateSig = *privateSig;
+            }
+        }
+
+        publicSig = GetSelfSignature(false);
+
+        OT_ASSERT(nullptr != publicSig);
+        if (nullptr != publicSig) {
+            pPublicSig = serializedCredential->add_signature();
+            *pPublicSig = *GetSelfSignature(false);
+        }
+    }
+
+    String credID;
+    GetIdentifier(credID);
+
+    serializedCredential->set_id(credID.Get());
+    serializedCredential->set_nymid(GetNymID().Get());
+
+    return serializedCredential;
+}
+
+serializedCredential Credential::SerializeForPublicSignature() const
+{
+    serializedCredential pubsigVersion = Serialize(false, false);
+
+    return pubsigVersion;
+}
+
+serializedCredential Credential::SerializeForPrivateSignature() const
+{
+    serializedCredential privsigVersion = Serialize(true, false);
+
+    return privsigVersion;
+}
+
+serializedCredential Credential::SerializeForIdentifier() const
+{
+    serializedCredential idVersion = SerializeForPublicSignature();
+
+    if (idVersion->has_id()) {
+        idVersion->clear_id();
+    }
+
+    return idVersion;
+}
+
+OTData Credential::SerializeCredToData(const proto::Credential& serializedCred) const
+{
+    int size = serializedCred.ByteSize();
+    char* protoArray = new char [size];
+    serializedCred.SerializeToArray(protoArray, size);
+
+    OTData serializedData(protoArray, size);
+    delete[] protoArray;
+
+    return serializedData;
+}
+
+
+serializedSignature Credential::GetSelfSignature(bool privateVersion) const
+{
+    proto::SignatureRole targetRole;
+
+    if (privateVersion) {
+        targetRole = proto::SIGROLE_PRIVCREDENTIAL;
+    } else {
+        targetRole = proto::SIGROLE_PUBCREDENTIAL;
+    }
+
+    // Perhaps someday this method will return a list of matching signatures
+    // For now, it only returns the first one.
+    for (auto& it : m_listSerializedSignatures) {
+        if (it->role() == targetRole) {
+            return it;
+        }
+    }
+
+    return nullptr;
 }
 
 } // namespace opentxs

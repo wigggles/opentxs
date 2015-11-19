@@ -41,6 +41,7 @@
 
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/verify/Verify.hpp>
 
 #include <memory>
 
@@ -81,6 +82,9 @@ class Tag;
 // This is stored as an Contract, and it must be signed by the
 // MasterCredential.
 //
+
+typedef std::shared_ptr<proto::Credential> serializedCredential;
+
 class Credential : public Contract
 {
 public:
@@ -119,11 +123,13 @@ protected:
     };
     CredStoreAs m_StoreAs; // Not serialized.
     CredentialType m_Type = Credential::ERROR_TYPE;
+    proto::CredentialRole m_Role = proto::CREDROLE_ERROR;
 
 public:
     CredentialType GetType() const;
 
 protected:
+    proto::KeyMode m_mode = proto::KEYMODE_ERROR;
     CredentialSet* m_pOwner = nullptr;   // a pointer for convenience only. Do not cleanup.
     String m_strMasterCredID; // All credentials within the same
                               // CredentialSet share the same
@@ -189,6 +195,13 @@ protected:
                                                       // means to
                                                       // use
     // this password by default.
+    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
+    virtual serializedCredential SerializeForPublicSignature() const;
+    virtual serializedCredential SerializeForPrivateSignature() const;
+    virtual serializedCredential SerializeForIdentifier() const;
+    OTData SerializeCredToData(const proto::Credential& serializedCred) const;
+    serializedSignature GetSelfSignature(bool privateVersion = false) const;
+
 public:
     const String::Map& GetPublicMap() const
     {
@@ -290,7 +303,7 @@ public:
     {
     } // Only key-based subclasses will use this.
     Credential(CredentialSet& theOwner);
-    Credential(CredentialSet& theOwner, CredentialType type);
+    Credential(CredentialSet& theOwner, CredentialType type, proto::KeyMode mode);
     virtual ~Credential();
     virtual void Release();
     void Release_Credential();

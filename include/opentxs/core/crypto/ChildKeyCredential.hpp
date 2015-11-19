@@ -41,6 +41,7 @@
 
 #include "KeyCredential.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/verify/Verify.hpp>
 
 #include <memory>
 
@@ -81,6 +82,7 @@ private:
     typedef KeyCredential ot_super;
     ChildKeyCredential() = delete;
 
+    serializedSignature GetMasterSignature() const;
 public:
     ChildKeyCredential(CredentialSet& other);
     ChildKeyCredential(CredentialSet& other, const Credential::CredentialType childType);
@@ -88,6 +90,8 @@ public:
     virtual ~ChildKeyCredential();
 
     virtual bool VerifySignedByMaster();
+
+    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
     virtual void UpdateContents();
     virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 };

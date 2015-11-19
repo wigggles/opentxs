@@ -211,12 +211,12 @@ KeyCredential::KeyCredential(CredentialSet& theOwner)
 }
 
 KeyCredential::KeyCredential(CredentialSet& theOwner, const Credential::CredentialType credentialType)
-    : ot_super(theOwner, credentialType)
+    : ot_super(theOwner, credentialType, proto::KEYMODE_ERROR)
 {
 }
 
 KeyCredential::KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
-    : ot_super(theOwner, nymParameters.credentialType())
+    : ot_super(theOwner, nymParameters.credentialType(), proto::KEYMODE_PRIVATE)
 {
     GenerateKeys(nymParameters);
 }
@@ -735,6 +735,86 @@ void KeyCredential::SetMetadata()
     theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID,
                             cMetaChildCredID);
     m_SigningKey->SetMetadata(theMetadata);
+}
+
+serializedCredential KeyCredential::Serialize(bool asPrivate, bool asSigned) const
+{
+    serializedCredential serializedCredential =
+        this->ot_super::Serialize(asPrivate, asSigned);
+
+    addKeyCredentialtoSerializedCredential(serializedCredential, false);
+
+    if (asPrivate) {
+        addKeyCredentialtoSerializedCredential(serializedCredential, true);
+    }
+
+    return serializedCredential;
+}
+
+bool KeyCredential::addKeytoSerializedKeyCredential(
+    proto::KeyCredential& credential,
+    const bool getPrivate,
+    const proto::KeyRole role) const
+{
+    serializedAsymmetricKey key;
+    std::shared_ptr<OTKeypair>(pKey);
+
+    switch (role) {
+        case proto::KEYROLE_AUTH :
+            pKey = m_AuthentKey;
+            break;
+        case proto::KEYROLE_ENCRYPT :
+            pKey = m_EncryptKey;
+            break;
+        case proto::KEYROLE_SIGN :
+            pKey = m_SigningKey;
+            break;
+        default :
+            return false;
+    }
+
+    key = pKey->Serialize(getPrivate);
+    key->set_role(role);
+
+    proto::AsymmetricKey* newKey = credential.add_key();
+    *newKey = *key;
+
+    return true;
+}
+
+bool KeyCredential::addKeyCredentialtoSerializedCredential(
+    serializedCredential credential,
+    const bool addPrivate) const
+{
+    proto::KeyCredential* keyCredential = new proto::KeyCredential;
+
+    if (nullptr == keyCredential) {
+        otErr << "opentxs::KeyCredential" << __FUNCTION__ << "(): failed to allocate keyCredential protobuf.\n";
+        return false;
+    }
+
+    keyCredential->set_version(1);
+
+    // These must be serialized in this order
+    bool auth = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_AUTH);
+    bool encrypt = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_ENCRYPT);
+    bool sign = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_SIGN);
+
+    if (auth && encrypt && sign) {
+        if (addPrivate) {
+            keyCredential->set_mode(proto::KEYMODE_PRIVATE);
+            credential->set_allocated_privatecredential(keyCredential);
+
+            return true;
+        } else  {
+            keyCredential->set_mode(proto::KEYMODE_PUBLIC);
+            credential->set_allocated_publiccredential(keyCredential);
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 } // namespace opentxs

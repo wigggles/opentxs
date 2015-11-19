@@ -484,18 +484,21 @@ MasterCredential::MasterCredential(CredentialSet& theOwner)
     : ot_super(theOwner)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_MASTERKEY;
 }
 
 MasterCredential::MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType)
     : ot_super(theOwner, masterType)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_MASTERKEY;
 }
 
 MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : ot_super(theOwner, nymParameters)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_MASTERKEY;
 
     if (nymParameters.Source().size() > 0) {
         m_strSourceForNymID = nymParameters.Source();
@@ -509,6 +512,36 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
 
 MasterCredential::~MasterCredential()
 {
+}
+
+serializedCredential MasterCredential::Serialize(bool asPrivate, bool asSigned) const
+{
+    serializedCredential serializedCredential =
+        this->ot_super::Serialize(asPrivate, asSigned);
+
+    proto::MasterCredentialParameters* parameters = new proto::MasterCredentialParameters;
+    proto::nymIDSource* source = new proto::nymIDSource;
+
+    std::string* legacySource = new std::string;
+    *legacySource = m_strSourceForNymID.Get();
+
+    source->set_version(1);
+    source->set_type(proto::SOURCETYPE_SELF);
+    source->set_allocated_raw(legacySource);
+
+    parameters->set_version(1);
+    parameters->set_allocated_source(source);
+
+    // Only the public credential gets MasterCredentialParameters
+    if (serializedCredential->has_publiccredential()) {
+        proto::KeyCredential* keyCredential = serializedCredential->mutable_publiccredential();
+        keyCredential->set_allocated_masterdata(parameters);
+
+    }
+
+    serializedCredential->set_role(proto::CREDROLE_MASTERKEY);
+
+    return serializedCredential;
 }
 
 } // namespace opentxs
