@@ -292,17 +292,9 @@ bool KeyCredential::GenerateKeys(const NymParameters& nymParameters) // Gotta st
     OT_ASSERT(!m_EncryptKey);
     OT_ASSERT(!m_SigningKey);
 
-    OTAsymmetricKey::KeyType newKeyType = nymParameters.AsymmetricKeyType();
-
-    m_AuthentKey =  std::make_shared<OTKeypair>(newKeyType);
-    m_EncryptKey =  std::make_shared<OTKeypair>(newKeyType);
-    m_SigningKey =  std::make_shared<OTKeypair>(newKeyType);
-
-    const bool bAuth = m_AuthentKey->MakeNewKeypair(nymParameters);
-    const bool bEncr = m_EncryptKey->MakeNewKeypair(nymParameters);
-    const bool bSign = m_SigningKey->MakeNewKeypair(nymParameters);
-
-    OT_ASSERT(bSign && bAuth && bEncr);
+    m_AuthentKey =  std::make_shared<OTKeypair>(nymParameters);
+    m_EncryptKey =  std::make_shared<OTKeypair>(nymParameters);
+    m_SigningKey =  std::make_shared<OTKeypair>(nymParameters);
 
     // Since the keys were all generated successfully, we need to copy their
     // certificate data into the m_mapPublicInfo and m_mapPrivateInfo (string

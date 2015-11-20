@@ -106,6 +106,12 @@ OTKeypair::OTKeypair(OTAsymmetricKey::KeyType keyType)
 {
 }
 
+OTKeypair::OTKeypair(const NymParameters& nymParameters)
+    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(nymParameters.AsymmetricKeyType()))
+    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(nymParameters.AsymmetricKeyType()))
+{
+    MakeNewKeypair(nymParameters, false);
+}
 
 OTKeypair::OTKeypair(
     const proto::AsymmetricKey& serializedPubkey,
