@@ -9,16 +9,7 @@ PROTOBUF_GENERATE_CPP(
     Generics.proto
     Bitcoin.proto
     Markets.proto
-    Moneychanger.proto
-    Enums.proto
-    Signature.proto
-    AsymmetricKey.proto
-    Credential.proto
-    KeyCredential.proto
-    ChildCredentialParameters.proto
-    NymIDSource.proto
-    SourceProof.proto
-    MasterCredentialParameters.proto)
+    Moneychanger.proto)
 
 set(ProtobufIncludePath ${CMAKE_CURRENT_BINARY_DIR}
         CACHE INTERNAL "Path to generated protobuf files.")

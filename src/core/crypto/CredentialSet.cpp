@@ -69,7 +69,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
 #include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/verify/Verify.hpp>
+#include <opentxs-proto/verify/opentxs-verify.hpp>
 
 #include <memory>
 #include <algorithm>

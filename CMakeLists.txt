@@ -183,6 +183,9 @@ message(STATUS "C++ link flags:  ${CMAKE_CXX_LINK_FLAGS}")
 execute_process(COMMAND git "submodule" "update" "--init" "--recursive" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
+find_library(OPENTXS_PROTO NAMES opentxs-proto)
+find_library(OPENTXS_VERIFY NAMES opentxs-verify)
+
 #-----------------------------------------------------------------------------
 # Third party libraries
 

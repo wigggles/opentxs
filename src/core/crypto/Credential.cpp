@@ -61,7 +61,7 @@
 // Credentials
 
 #include <opentxs/core/stdafx.hpp>
-#include <opentxs/core/verify/Verify.hpp>
+#include <opentxs-proto/verify/opentxs-verify.hpp>
 
 #include <opentxs/core/crypto/Credential.hpp>
 

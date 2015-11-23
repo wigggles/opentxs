@@ -41,7 +41,7 @@
 
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/util/Timer.hpp>
-#include <opentxs/core/verify/Verify.hpp>
+#include <opentxs-proto/verify/opentxs-verify.hpp>
 
 #include <memory>
 #include <list>

@@ -13,7 +13,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/ ${OPENSSL_I
 
 
 if(WIN32)
-  # suppress sscanf/sprintf being unsafe warnings 
+  # suppress sscanf/sprintf being unsafe warnings
   add_definitions("/wd4996")
 
   add_library(lucre
@@ -100,11 +100,11 @@ if (OT_CRYPTO_USING_LIBSECP256K1)
     include(ExternalProject)
     ExternalProject_Add(
         libsecp256k1
+        BUILD_IN_SOURCE 0
         EP_BASE ${CMAKE_CURRENT_BINARY_DIR}
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1
         CONFIGURE_COMMAND CFLAGS=-fpic ${CMAKE_CURRENT_SOURCE_DIR}/bitcoin-secp256k1/configure --prefix ${CMAKE_CURRENT_BINARY_DIR} --enable-shared=no --enable-static=yes --enable-module-ecdh
         BUILD_COMMAND make
-        BUILD_IN_SOURCE 0
     )
 
     ExternalProject_Add_Step(

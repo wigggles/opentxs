@@ -41,7 +41,7 @@
 
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
-#include <opentxs/core/verify/Verify.hpp>
+#include <opentxs-proto/verify/opentxs-verify.hpp>
 
 #include <memory>
 

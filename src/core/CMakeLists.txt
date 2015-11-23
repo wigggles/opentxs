@@ -18,7 +18,6 @@ add_subdirectory(trade)
 add_subdirectory(cron)
 add_subdirectory(script)
 add_subdirectory(recurring)
-add_subdirectory(verify)
 
 set(cxx-sources
   util/Tag.cpp
@@ -142,8 +141,17 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob opentxs-verify irrxml bitcoin-base58 czmq_local)
+target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
 target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+
+add_library(opentxs-proto STATIC IMPORTED)
+add_library(opentxs-verify STATIC IMPORTED)
+
+set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
+set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
+
+target_link_libraries(opentxs-core PRIVATE opentxs-proto)
+target_link_libraries(opentxs-core PRIVATE opentxs-verify)
 
 if (OT_CRYPTO_USING_LIBSECP256K1)
     add_library(staticlibsecp256k1 STATIC IMPORTED)
