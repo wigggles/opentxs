@@ -733,11 +733,11 @@ bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
     CryptoAsymmetric& engine = theKey.engine();
 
     if (false ==
-        engine.VerifySignature(
+        engine.VerifyContractSignature(
             trim(m_xmlUnsigned), theKey, theSignature, hashType,
             (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
-               << ": engine.VerifySignature returned false.\n";
+               << ": engine.VerifyContractSignature returned false.\n";
         return false;
     }
 
@@ -1927,13 +1927,13 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         SaveContract();
         String strTemp;
         SaveContractRaw(strTemp);
-        
+
         if (LoadContractFromString(strTemp)) // The ultimate test is, once
         {                                    // we've created the serialized
             Identifier NEW_ID;               // string for this contract, is
             CalculateContractID(NEW_ID);     // to then load it up from that string.
             m_ID = NEW_ID;
-            
+
             return true;
         }
     }

@@ -84,19 +84,22 @@ public:
     EXPORT static const CryptoHash::HashType ECDHDefaultHMAC = CryptoHash::SHA256;
     EXPORT static const CryptoSymmetric::Mode ECDHDefaultAlgo = CryptoSymmetric::AES_256_ECB;
 
-    bool SignContract(
-        const String& strContractUnsigned,
+    bool Sign(
+        const OTData& plaintext,
         const OTAsymmetricKey& theKey,
-        OTSignature& theSignature, // output
         const CryptoHash::HashType hashType,
-        const OTPasswordData* pPWData = nullptr);
-    bool VerifySignature(
-        const String& strContractToVerify,
+        OTData& signature, // output
+        const OTPasswordData* pPWData = nullptr) const;
+    bool Verify(
+        const OTData& plaintext,
         const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature,
+        const OTData& signature,
         const CryptoHash::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
 
+    bool OTDataToECDSASignature(
+        const OTData& inSignature,
+        secp256k1_ecdsa_signature& outSignature) const;
     bool OTSignatureToECDSASignature(
         const OTSignature& inSignature,
         secp256k1_ecdsa_signature& outSignature) const;

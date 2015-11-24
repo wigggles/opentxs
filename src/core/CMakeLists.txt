@@ -48,6 +48,7 @@ set(cxx-sources
   crypto/Crypto.cpp
   crypto/CryptoHash.cpp
   crypto/CryptoUtil.cpp
+  crypto/CryptoAsymmetric.cpp
   crypto/CryptoSymmetric.cpp
   crypto/OpenSSL.cpp
   ${LIBSECP256K1}

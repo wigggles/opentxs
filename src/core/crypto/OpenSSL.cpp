@@ -114,25 +114,25 @@ class OpenSSL::OpenSSLdp
 public:
     // These are protected because they contain OpenSSL-specific parameters.
 
-    bool SignContractDefaultHash(const String& strContractUnsigned,
+    bool SignContractDefaultHash(const OTData& strContractUnsigned,
                                  const EVP_PKEY* pkey,
-                                 OTSignature& theSignature, // output
+                                 OTData& theSignature, // output
                                  const OTPasswordData* pPWData = nullptr) const;
 
     bool VerifyContractDefaultHash(
-        const String& strContractToVerify, const EVP_PKEY* pkey,
-        const OTSignature& theSignature,
+        const OTData& strContractToVerify, const EVP_PKEY* pkey,
+        const OTData& theSignature,
         const OTPasswordData* pPWData = nullptr) const;
 
     // Sign or verify using the actual OpenSSL EVP_PKEY
     //
-    bool SignContract(const String& strContractUnsigned, const EVP_PKEY* pkey,
-                      OTSignature& theSignature, // output
+    bool SignContract(const OTData& strContractUnsigned, const EVP_PKEY* pkey,
+                      OTData& theSignature, // output
                       const CryptoHash::HashType hashType,
                       const OTPasswordData* pPWData = nullptr) const;
 
-    bool VerifySignature(const String& strContractToVerify,
-                         const EVP_PKEY* pkey, const OTSignature& theSignature,
+    bool VerifySignature(const OTData& strContractToVerify,
+                         const EVP_PKEY* pkey, const OTData& theSignature,
                          const CryptoHash::HashType hashType,
                          const OTPasswordData* pPWData = nullptr) const;
 
@@ -3009,8 +3009,8 @@ bool OpenSSL::HMAC(
 
  */
 bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
-    const String& strContractUnsigned, const EVP_PKEY* pkey,
-    OTSignature& theSignature, const OTPasswordData*) const
+    const OTData& strContractUnsigned, const EVP_PKEY* pkey,
+    OTData& theSignature, const OTPasswordData*) const
 {
     const char* szFunc = "OpenSSL::SignContractDefaultHash";
 
@@ -3150,16 +3150,9 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     OTData binSignature(&vpSignature.at(0), status); // RSA_private_encrypt
                                                      // actually returns the
                                                      // right size.
-    //    OTData binSignature(pSignature, 128);    // stop hardcoding this block
-    // size.
 
-    // theSignature that was passed in, now contains the final signature.
-    // The contents were hashed twice, and the resulting hashes were
-    // XOR'd together, and then padding was added, and then it was signed
-    // with the private key.
-    theSignature.SetData(binSignature, true); // true means, "yes, with newlines
-                                              // in the b64-encoded output,
-                                              // please."
+    theSignature = binSignature;
+
     if (pRsaKey) RSA_free(pRsaKey);
     pRsaKey = nullptr;
 
@@ -3167,8 +3160,8 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
 }
 
 bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
-    const String& strContractToVerify, const EVP_PKEY* pkey,
-    const OTSignature& theSignature, const OTPasswordData*) const
+    const OTData& strContractToVerify, const EVP_PKEY* pkey,
+    const OTData& theSignature, const OTPasswordData*) const
 {
     const char* szFunc = "OpenSSL::VerifyContractDefaultHash";
 
@@ -3193,30 +3186,17 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
         return false;
     }
 
-    OTData binSignature;
-
-    // This will cause binSignature to contain the base64 decoded binary of the
-    // signature that we're verifying. Unless the call fails of course...
-    //
-    if ((theSignature.GetLength() < 10) ||
-        (false == theSignature.GetData(binSignature))) {
-        otErr << szFunc << ": Error decoding base64 data for Signature.\n";
-        RSA_free(pRsaKey);
-        pRsaKey = nullptr;
-        return false;
-    }
-
     const int32_t nSignatureSize = static_cast<int32_t>(
-        binSignature.GetSize()); // converting from unsigned to signed (since
+        theSignature.GetSize()); // converting from unsigned to signed (since
                                  // openssl wants it that way.)
 
-    if ((binSignature.GetSize() < static_cast<uint32_t>(RSA_size(pRsaKey))) ||
+    if ((theSignature.GetSize() < static_cast<uint32_t>(RSA_size(pRsaKey))) ||
         (nSignatureSize < RSA_size(pRsaKey))) // this one probably unnecessary.
     {
         otErr << szFunc << ": Decoded base64-encoded data for signature, but "
                            "resulting size was < RSA_size(pRsaKey): "
                            "Signed: " << nSignatureSize
-              << ". Unsigned: " << binSignature.GetSize() << ".\n";
+              << ". Unsigned: " << theSignature.GetSize() << ".\n";
         RSA_free(pRsaKey);
         pRsaKey = nullptr;
         return false;
@@ -3225,7 +3205,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     // now we will verify the signature
     // Start by a RAW decrypt of the signature
     // output goes to pDecrypted
-    // FYI: const void * binSignature.GetPointer()
+    // FYI: const void * theSignature.GetPointer()
 
     // RSA_PKCS1_OAEP_PADDING
     // RSA_PKCS1_PADDING
@@ -3235,12 +3215,12 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     // Rather, the size of the signature is RSA_size(pRsaKey).  Will have to
     // revisit this likely, elsewhere in the code.
     //    status = RSA_public_decrypt(128, static_cast<const
-    // uint8_t*>(binSignature.GetPointer()), pDecrypted, pRsaKey,
+    // uint8_t*>(theSignature.GetPointer()), pDecrypted, pRsaKey,
     // RSA_NO_PADDING);
     int32_t status = RSA_public_decrypt(
         nSignatureSize, // length of signature, aka RSA_size(rsa)
         static_cast<const uint8_t*>(
-            binSignature.GetPointer()), // location of signature
+            theSignature.GetPointer()), // location of signature
         &vDecrypted.at(0), // Output--must be large enough to hold the md (which
                            // is smaller than RSA_size(rsa) - 11)
         pRsaKey,           // signer's public key
@@ -3683,7 +3663,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
      RSA_size(pRsaKey)
      for now you can change the entire line to this:
      status = RSA_public_decrypt(RSA_size(pRsaKey), static_cast<const
-     uint8_t*>(binSignature.GetPointer()), pDecrypted, pRsaKey, RSA_NO_PADDING);
+     uint8_t*>(theSignature.GetPointer()), pDecrypted, pRsaKey, RSA_NO_PADDING);
      Then see if your bug goes away
      I will still need to make fixes someday though, even if this works, and
      will have to lose or convert data.
@@ -3709,8 +3689,8 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 // All the other various versions eventually call this one, where the actual
 // work is done.
 bool OpenSSL::OpenSSLdp::SignContract(
-    const String& strContractUnsigned, const EVP_PKEY* pkey,
-    OTSignature& theSignature, const CryptoHash::HashType hashType,
+    const OTData& strContractUnsigned, const EVP_PKEY* pkey,
+    OTData& theSignature, const CryptoHash::HashType hashType,
     const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(nullptr != pkey,
@@ -3780,8 +3760,8 @@ bool OpenSSL::OpenSSLdp::SignContract(
     //
     EVP_SignInit_ex(&md_ctx, md, nullptr);
 
-    EVP_SignUpdate(&md_ctx, strContractUnsigned.Get(),
-                   strContractUnsigned.GetLength());
+    EVP_SignUpdate(&md_ctx, strContractUnsigned.GetPointer(),
+                   strContractUnsigned.GetSize());
 
     uint8_t sig_buf[4096]; // Safe since we pass the size when we use it.
 
@@ -3801,18 +3781,18 @@ bool OpenSSL::OpenSSLdp::SignContract(
         // was passed in for that purpose.
         OTData tempData;
         tempData.Assign(sig_buf, sig_len);
-        theSignature.SetData(tempData);
+        theSignature = tempData;
 
         return true;
     }
 }
 
-bool OpenSSL::SignContract(
-        const String& strContractUnsigned,
+bool OpenSSL::Sign(
+        const OTData& plaintext,
         const OTAsymmetricKey& theKey,
-        OTSignature& theSignature, // output
         const CryptoHash::HashType hashType,
-        const OTPasswordData* pPWData)
+        OTData& signature, // output
+        const OTPasswordData* pPWData) const
 {
 
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
@@ -3824,7 +3804,7 @@ bool OpenSSL::SignContract(
     OT_ASSERT(nullptr != pkey);
 
     if (false ==
-        dp->SignContract(strContractUnsigned, pkey, theSignature, hashType,
+        dp->SignContract(plaintext, pkey, signature, hashType,
                          pPWData)) {
         otErr << "OpenSSL::SignContract: "
               << "SignContract returned false.\n";
@@ -3834,10 +3814,10 @@ bool OpenSSL::SignContract(
     return true;
 }
 
-bool OpenSSL::VerifySignature(
-        const String& strContractToVerify,
+bool OpenSSL::Verify(
+        const OTData& plaintext,
         const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature,
+        const OTData& signature,
         const CryptoHash::HashType hashType,
         const OTPasswordData* pPWData) const
 {
@@ -3850,7 +3830,7 @@ bool OpenSSL::VerifySignature(
     OT_ASSERT(nullptr != pkey);
 
     if (false ==
-        dp->VerifySignature(strContractToVerify, pkey, theSignature,
+        dp->VerifySignature(plaintext, pkey, signature,
                             hashType, pPWData)) {
         otLog3 << "OpenSSL::VerifySignature: "
                << "VerifySignature returned false.\n";
@@ -3863,13 +3843,13 @@ bool OpenSSL::VerifySignature(
 // All the other various versions eventually call this one, where the actual
 // work is done.
 bool OpenSSL::OpenSSLdp::VerifySignature(
-    const String& strContractToVerify, const EVP_PKEY* pkey,
-    const OTSignature& theSignature, const CryptoHash::HashType hashType,
+    const OTData& strContractToVerify, const EVP_PKEY* pkey,
+    const OTData& theSignature, const CryptoHash::HashType hashType,
     const OTPasswordData* pPWData) const
 {
-    OT_ASSERT_MSG(strContractToVerify.Exists(),
+    OT_ASSERT_MSG(strContractToVerify.GetSize()>0,
                   "OpenSSL::VerifySignature: ASSERT FAILURE: "
-                  "strContractToVerify.Exists()");
+                  "strContractToVerify.GetSize()>0");
     OT_ASSERT_MSG(nullptr != pkey,
                   "Null pkey in OpenSSL::VerifySignature.\n");
 
@@ -3895,15 +3875,6 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
         return false;
     }
 
-    OTData binSignature;
-
-    // now binSignature contains the base64 decoded binary of the signature.
-    // Unless the call failed of course...
-    if (!theSignature.GetData(binSignature)) {
-        otErr << szFunc << ": Error decoding base64 data for Signature.\n";
-        return false;
-    }
-
     EVP_MD_CTX ctx;
     EVP_MD_CTX_init(&ctx);
 
@@ -3914,16 +3885,16 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
     // Basically we are repeating similarly to the signing process in order to
     // verify.
 
-    EVP_VerifyUpdate(&ctx, strContractToVerify.Get(),
-                     strContractToVerify.GetLength());
+    EVP_VerifyUpdate(&ctx, strContractToVerify.GetPointer(),
+                     strContractToVerify.GetSize());
 
     // Now we pass in the Signature
     // EVP_VerifyFinal() returns 1 for a correct signature,
     // 0 for failure and -1 if some other error occurred.
     //
     int32_t nErr = EVP_VerifyFinal(
-        &ctx, static_cast<const uint8_t*>(binSignature.GetPointer()),
-        binSignature.GetSize(), const_cast<EVP_PKEY*>(pkey));
+        &ctx, static_cast<const uint8_t*>(theSignature.GetPointer()),
+        theSignature.GetSize(), const_cast<EVP_PKEY*>(pkey));
 
     EVP_MD_CTX_cleanup(&ctx);
 

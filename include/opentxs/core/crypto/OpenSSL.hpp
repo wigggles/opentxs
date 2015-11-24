@@ -199,16 +199,16 @@ public:
 
     // SIGN / VERIFY
     // Sign or verify using the Asymmetric Key itself.
-    virtual bool SignContract(
-        const String& strContractUnsigned,
+    virtual bool Sign(
+        const OTData& plaintext,
         const OTAsymmetricKey& theKey,
-        OTSignature& theSignature, // output
         const CryptoHash::HashType hashType,
-        const OTPasswordData* pPWData = nullptr);
-    virtual bool VerifySignature(
-        const String& strContractToVerify,
+        OTData& signature, // output
+        const OTPasswordData* pPWData = nullptr) const;
+    virtual bool Verify(
+        const OTData& plaintext,
         const OTAsymmetricKey& theKey,
-        const OTSignature& theSignature,
+        const OTData& signature,
         const CryptoHash::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
 
