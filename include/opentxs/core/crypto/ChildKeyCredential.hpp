@@ -85,11 +85,9 @@ private:
     virtual bool AddMasterSignature();
     serializedSignature GetMasterSignature() const;
 public:
-    ChildKeyCredential(CredentialSet& other);
     ChildKeyCredential(CredentialSet& other, const String& stringCredential);
-    ChildKeyCredential(CredentialSet& other, const Credential::CredentialType childType);
     ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
-    ChildKeyCredential(CredentialSet& other, const serializedCredential serializedCred);
+    ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred);
     virtual ~ChildKeyCredential();
 
     virtual bool VerifySignedByMaster();

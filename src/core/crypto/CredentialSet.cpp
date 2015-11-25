@@ -263,7 +263,6 @@ const serializedCredential CredentialSet::GetSerializedPubCredential() const
 // private
 CredentialSet::CredentialSet()
 {
-    m_MasterCredential.reset(new MasterCredential(*this));
 }
 
 CredentialSet::CredentialSet(
@@ -396,9 +395,6 @@ bool CredentialSet::ReEncryptPrivateCredentials(
 
         if (bSignedMaster) {
             m_MasterCredential->SaveContract();
-            m_MasterCredential->SetMetadata(); // todo: can probably remove this, since
-                                       // it was set based on public info when
-                                       // the key was first created.
 
             for (auto& it : m_mapCredentials) {
                 Credential* pSub = it.second;
@@ -424,9 +420,6 @@ bool CredentialSet::ReEncryptPrivateCredentials(
 
                 if (bSignedChildCredential) {
                     pKey->SaveContract();
-                    pKey->SetMetadata(); // todo: can probably remove this,
-                                         // since it was set based on public
-                                         // info when the key was first created.
                 }
                 else {
                     otErr << "In " << __FILE__ << ", line " << __LINE__
@@ -487,8 +480,6 @@ bool CredentialSet::Load_MasterFromString(const String& strInput,
                            // child credentials. So this is probably already
                            // empty. Just looking ahead.
 
-    m_MasterCredential->SetMetadata();
-
     return true;
 }
 
@@ -539,7 +530,7 @@ bool CredentialSet::Load_Master(const String& strNymID,
         return false;
     }
 
-    m_MasterCredential.reset(new MasterCredential(*this, serializedCred));
+    m_MasterCredential.reset(new MasterCredential(*this, *serializedCred));
 
     if (!m_MasterCredential) {
         otErr << __FUNCTION__ << ": Failed to construct credential from protobuf.\n";
@@ -582,8 +573,6 @@ bool CredentialSet::LoadChildKeyCredentialFromString(const String& strInput,
 
     SetImportPassword(nullptr); // Only set int64_t enough for
                                 // LoadContractFromString above to use it.
-    pSub->SetMetadata();
-
     m_mapCredentials.insert(std::pair<std::string, Credential*>(
         strSubID.Get(), theSubAngel.release()));
 
@@ -649,7 +638,7 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID, const Credent
         m_mapCredentials.erase(it);
     }
 
-    ChildKeyCredential* pSub = new ChildKeyCredential(*this, serializedCred);
+    ChildKeyCredential* pSub = new ChildKeyCredential(*this, *serializedCred);
     std::unique_ptr<ChildKeyCredential> theSubAngel(pSub);
 
     if (nullptr == pSub) {

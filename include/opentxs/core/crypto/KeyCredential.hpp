@@ -157,8 +157,8 @@ private: // Private prevents erroneous use by other classes.
 
 protected:
     virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
-    KeyCredential(CredentialSet& theOwner, const serializedCredential serializedCred);
-    // this password by default.
+    KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
+    KeyCredential(CredentialSet& theOwner, const proto::Credential& serializedCred);
 public:
     std::shared_ptr<OTKeypair> m_SigningKey; // Signing keys, for signing/verifying a "legal
                             // signature".
@@ -176,9 +176,6 @@ public:
                                      // credential.) Then verify the
                                      // (self-signed) signature on *this.
     bool VerifySignedBySelf();
-    KeyCredential(CredentialSet& theOwner);
-    KeyCredential(CredentialSet& theOwner, const Credential::CredentialType credentialType);
-    KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     bool Sign(Contract& theContract, const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,

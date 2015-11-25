@@ -68,7 +68,6 @@
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/Log.hpp>
 
@@ -365,34 +364,20 @@ bool MasterCredential::VerifySource_Pubkey(const String) const
     return true;
 }
 
-MasterCredential::MasterCredential(CredentialSet& theOwner)
-    : ot_super(theOwner)
-{
-    m_strContractType = "MASTER KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_MASTERKEY;
-}
-
 MasterCredential::MasterCredential(CredentialSet& theOwner, const String& stringCred)
-    : MasterCredential(theOwner, Credential::ExtractArmoredCredential(stringCred))
+    : MasterCredential(theOwner, *Credential::ExtractArmoredCredential(stringCred))
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
     m_Role = proto::CREDROLE_MASTERKEY;
 }
 
-MasterCredential::MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType)
-    : ot_super(theOwner, masterType)
-{
-    m_strContractType = "MASTER KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_MASTERKEY;
-}
-
-MasterCredential::MasterCredential(CredentialSet& theOwner, serializedCredential serializedCred)
+MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
 : ot_super(theOwner, serializedCred)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
     m_Role = proto::CREDROLE_MASTERKEY;
 
-    m_strSourceForNymID = serializedCred->publiccredential().masterdata().source().raw();
+    m_strSourceForNymID = serializedCred.publiccredential().masterdata().source().raw();
 }
 
 MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)

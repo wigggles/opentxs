@@ -66,7 +66,6 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -74,34 +73,20 @@
 namespace opentxs
 {
 
-ChildKeyCredential::ChildKeyCredential(CredentialSet& other)
-    : ot_super(other)
-{
-    m_strContractType = "KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_CHILDKEY;
-}
-
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const String& stringCred)
-    : ChildKeyCredential(other, Credential::ExtractArmoredCredential(stringCred))
+    : ChildKeyCredential(other, *Credential::ExtractArmoredCredential(stringCred))
 {
     m_strContractType = "KEY CREDENTIAL";
     m_Role = proto::CREDROLE_CHILDKEY;
 }
 
-ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const Credential::CredentialType childType)
-    : ot_super(other, childType)
-{
-    m_strContractType = "KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_CHILDKEY;
-}
-
-ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const serializedCredential serializedCred)
+ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred)
     : ot_super(other, serializedCred)
 {
     m_strContractType = "KEY CREDENTIAL";
     m_Role = proto::CREDROLE_CHILDKEY;
 
-    SetMasterCredID(serializedCred->publiccredential().childdata().masterid());
+    SetMasterCredID(serializedCred.publiccredential().childdata().masterid());
 }
 
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters)

@@ -65,15 +65,10 @@
 
 #include <opentxs/core/crypto/Credential.hpp>
 
-#include <opentxs/core/crypto/CryptoEngine.hpp>
-
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
-
-#include <irrxml/irrXML.hpp>
 
 #include <map>
 
@@ -85,37 +80,28 @@
 namespace opentxs
 {
 
-void Credential::SetOwner(CredentialSet& theOwner)
-{
-    m_pOwner = &theOwner;
-}
-
-Credential::Credential(CredentialSet& theOwner)
+Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : Contract()
-    , m_Type(Credential::ERROR_TYPE)
+    , m_Type(nymParameters.credentialType())
+    , m_mode(proto::KEYMODE_PRIVATE)
     , m_pOwner(&theOwner)
 {
     m_strContractType = "CREDENTIAL";
 }
 
-Credential::Credential(CredentialSet& theOwner, Credential::CredentialType type, proto::KeyMode mode)
+Credential::Credential(CredentialSet& theOwner, const proto::Credential& serializedCred)
     : Contract()
-    , m_Type(type)
-    , m_mode(mode)
+    , m_Type(static_cast<Credential::CredentialType>(serializedCred.type()))
+    , m_mode(serializedCred.mode())
     , m_pOwner(&theOwner)
-{
+    {
     m_strContractType = "CREDENTIAL";
-}
-
-Credential::Credential(CredentialSet& theOwner, serializedCredential serializedCred)
-    : Credential(theOwner, static_cast<Credential::CredentialType>(serializedCred->type()), serializedCred->mode())
-{
-    m_Role = serializedCred->role();
-    m_strNymID = serializedCred->nymid();
-    SetIdentifier(serializedCred->id());
+    m_Role = serializedCred.role();
+    m_strNymID = serializedCred.nymid();
+    SetIdentifier(serializedCred.id());
 
     serializedSignature sig;
-    for (auto& it : serializedCred->signature()) {
+    for (auto& it : serializedCred.signature()) {
         sig.reset(new proto::Signature(it));
         m_listSerializedSignatures.push_back(sig);
     }

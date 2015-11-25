@@ -106,10 +106,8 @@ public:
     bool VerifySource_I2P(const String strSource) const;
     bool VerifySource_CA(const String strSource) const;
     bool VerifySource_Pubkey(const String strSource) const;
-    MasterCredential(CredentialSet& theOwner);
     MasterCredential(CredentialSet& theOwner, const String& stringCredential);
-    MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType);
-    MasterCredential(CredentialSet& theOwner, serializedCredential serializedCred);
+    MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred);
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     virtual ~MasterCredential();
 

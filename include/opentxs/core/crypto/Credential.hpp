@@ -150,7 +150,8 @@ protected:
                                                          // contain its own
                                                          // ID.)
 
-    Credential(CredentialSet& theOwner, serializedCredential serializedCred);
+    Credential(CredentialSet& theOwner, const proto::Credential& serializedCred);
+    Credential(CredentialSet& theOwner, const NymParameters& nymParameters);
     virtual serializedCredential Serialize(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const;
@@ -232,12 +233,6 @@ public:
                               // hash of
                               // m_strSourceForNymID.
     virtual bool VerifySignedByMaster();
-    void SetOwner(CredentialSet& theOwner);
-    virtual void SetMetadata()
-    {
-    } // Only key-based subclasses will use this.
-    Credential(CredentialSet& theOwner);
-    Credential(CredentialSet& theOwner, CredentialType type, proto::KeyMode mode);
     virtual ~Credential();
     virtual void Release();
     void Release_Credential();
