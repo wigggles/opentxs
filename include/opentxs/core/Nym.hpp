@@ -231,19 +231,6 @@ public:
         bool bChangeNymID = false); // If nullptr, it uses the
                                     // Nym's (presumed) existing pubkey
                                     // as the source.
-    EXPORT bool AddNewChildKeyCredential(
-        const Identifier& idMasterCredential,
-        const NymParameters& nymParameters, // Ignored unless pmapPrivate is nullptr.
-        const String::Map* pmapPrivate = nullptr, // If nullptr, then the keys
-                                                  // are generated in here.
-        const OTPasswordData* pPWData = nullptr,  // Pass in the string to show
-                                                  // users
-        // here, if/when asking for the
-        // passphrase.
-        String* pstrNewID = nullptr); // Optional -- if success, allows to
-                                      // return
-                                      // the ID for the new child key credential that was
-                                      // created.
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT CredentialSet* GetMasterCredential(const String& strID);
@@ -346,30 +333,8 @@ public:
     {
         m_strName = strName;
     }
-    // Old style: the user enters a passphrase for using the Nym.
-    // New style: the user enters a passphrase which is used to derive a key,
-    // which is used to decrypt the master key, which is used for using the Nym.
-    // To convert an "old style" Nym to a "new style" Nym, just call this
-    // function
-    // after loading "old style" and it will save in the "new style."
-    // THIS WILL OVERWRITE THE CERT (with the new master key passphrase.)
-    // meaning
-    // that you will no longer be able to use the Nym OUTSIDE of OT, since
-    // OpenSSL
-    // will be expecting the master key, not the user's actual passphrase.
-    //
-    // THEREFORE: Nyms will be "imported" into the master key mode, and then if
-    // you want
-    // to use them outside of your wallet, you will have to "export" the Nym,
-    // which will
-    // have to call a function that reverses the one below.
-    // (ConvertBackOutOfCachedKey or
-    // some such thing.)
-    //
-
-    // EXPORT    bool ConvertToCachedKey();  // Replaced by
-    // Savex509CertAndPrivateKey().
     EXPORT Nym();
+    EXPORT Nym(const NymParameters& nymParameters);
     EXPORT Nym(const Identifier& nymID);
     EXPORT Nym(const String& strNymID);
     EXPORT Nym(const String& name, const String& filename, const String& nymID);
@@ -418,11 +383,11 @@ public:
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
-    EXPORT bool SaveCredentialIDs();
-    EXPORT void SaveCredentialIDsToString(String& strOutput);
+    EXPORT bool SaveCredentialIDs() const;
+    EXPORT void SaveCredentialIDsToString(String& strOutput) const;
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
-                                     String::Map* pmapPriInfo = nullptr);
+                                     String::Map* pmapPriInfo = nullptr) const;
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
                                                            // credentials by
                                 // default. For private, pass true.
@@ -440,7 +405,7 @@ public:
     // used as signer.
     EXPORT bool LoadSignedNymfile(Nym& SIGNER_NYM);
     EXPORT bool SaveSignedNymfile(Nym& SIGNER_NYM);
-    EXPORT bool LoadFromString(const String& strNym,
+    EXPORT bool LoadNymFromString(const String& strNym,
                                String::Map* pMapCredentials =
                                    nullptr, // pMapCredentials can be passed, if
                                             // you prefer to use a specific set,
@@ -894,6 +859,8 @@ public:
     void ClearCredentials();
     void ClearAll();
     EXPORT void DisplayStatistics(String& strOutput);
+
+    EXPORT bool WriteCredentials() const;
 };
 
 } // namespace opentxs

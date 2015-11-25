@@ -58,9 +58,7 @@ class OTData;
 class OTPassword;
 class OTPasswordData;
 class Nym;
-class OTSignature;
 class CryptoUtil;
-class FormattedKey;
 
 class Libsecp256k1 : public Crypto, public CryptoAsymmetric
 {
@@ -100,12 +98,6 @@ public:
     bool OTDataToECDSASignature(
         const OTData& inSignature,
         secp256k1_ecdsa_signature& outSignature) const;
-    bool OTSignatureToECDSASignature(
-        const OTSignature& inSignature,
-        secp256k1_ecdsa_signature& outSignature) const;
-    bool ECDSASignatureToOTSignature(
-        const secp256k1_ecdsa_signature& inSignature,
-        OTSignature& outSignature) const;
     bool AsymmetricKeyToECDSAPubkey(
         const OTAsymmetricKey& asymmetricKey,
         secp256k1_pubkey& pubkey) const;
@@ -115,22 +107,19 @@ public:
     bool AsymmetricKeyToECDSAPrivkey(
         const OTAsymmetricKey& asymmetricKey,
         const OTPasswordData& passwordData,
-        OTPassword& privkey,
-        bool ephemeral = false) const;
+        OTPassword& privkey) const;
     bool AsymmetricKeyToECDSAPrivkey(
-        const FormattedKey& asymmetricKey,
+        const OTData& asymmetricKey,
         const OTPasswordData& passwordData,
-        OTPassword& privkey,
-        bool ephemeral = false) const;
+        OTPassword& privkey) const;
     bool ImportECDSAPrivkey(
-        const FormattedKey& asymmetricKey,
+        const OTData& asymmetricKey,
         const OTPassword& password,
         OTPassword& privkey) const;
     bool ECDSAPrivkeyToAsymmetricKey(
         const OTPassword& privkey,
         const OTPasswordData& passwordData,
-        OTAsymmetricKey& asymmetricKey,
-        bool ephemeral = false) const;
+        OTAsymmetricKey& asymmetricKey) const;
     bool ExportECDSAPrivkey(
         const OTPassword& privkey,
         const OTPassword& password,
@@ -140,15 +129,13 @@ public:
         const OTAsymmetricKey& publicKey,
         const OTAsymmetricKey& privateKey,
         const OTPasswordData& passwordData,
-        OTPassword& secret,
-        bool ephemeral = false) const;
+        OTPassword& secret) const;
     bool EncryptSessionKeyECDH(
         const OTPassword& sessionKey,
         const OTAsymmetricKey& privateKey,
         const OTAsymmetricKey& publicKey,
         const OTPasswordData& passwordData,
-        symmetricEnvelope& encryptedSessionKey,
-        bool ephemeral = false) const;
+        symmetricEnvelope& encryptedSessionKey) const;
     bool DecryptSessionKeyECDH(
         const symmetricEnvelope& encryptedSessionKey,
         const OTAsymmetricKey& privateKey,

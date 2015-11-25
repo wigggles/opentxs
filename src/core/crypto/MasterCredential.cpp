@@ -67,128 +67,13 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/util/Tag.hpp>
-#include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/Log.hpp>
-
-#include <irrxml/irrXML.hpp>
-
-// return -1 if error, 0 if nothing, and 1 if the node was processed.
-//
 
 namespace opentxs
 {
-
-int32_t MasterCredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
-{
-    int32_t nReturnVal = ot_super::ProcessXMLNode(xml);
-
-    // Here we call the parent class first.
-    // If the node is found there, or there is some error,
-    // then we just return either way.  But if it comes back
-    // as '0', then nothing happened, and we'll continue executing.
-    //
-    // -- Note you can choose not to call the parent if
-    // you don't want to use any of those xml tags.
-    // As I do in the case of OTAccount.
-    //
-    if (0 != nReturnVal) return nReturnVal;
-    // else it was 0 (continue...)
-
-    const String strNodeName(xml->getNodeName());
-
-    if (strNodeName.Compare("masterCredential")) {
-        m_strNymID = xml->getAttributeValue("nymID");
-
-        String masterType = xml->getAttributeValue("type");
-
-        Credential::CredentialType actualCredentialType = Credential::ERROR_TYPE;
-
-        if (masterType.Exists()) {
-            actualCredentialType = StringToCredentialType(masterType.Get());
-        } else {
-            actualCredentialType = Credential::LEGACY; //backward compatibility
-        }
-
-        OT_ASSERT(!m_AuthentKey);
-        OT_ASSERT(!m_EncryptKey);
-        OT_ASSERT(!m_SigningKey);
-
-        if (Credential::ERROR_TYPE == actualCredentialType) {
-            otErr << "Invalid master credential type.\n";
-            return -1;
-        } else {
-            m_Type = actualCredentialType;
-            OTAsymmetricKey::KeyType actualKeyType = Credential::CredentialTypeToKeyType(actualCredentialType);
-            m_AuthentKey = std::make_shared<OTKeypair>(actualKeyType);
-            m_EncryptKey = std::make_shared<OTKeypair>(actualKeyType);
-            m_SigningKey = std::make_shared<OTKeypair>(actualKeyType);
-        }
-
-        m_strMasterCredID.Release();
-
-        otWarn << "Loading masterCredential...\n";
-
-        nReturnVal = 1;
-    }
-
-    return nReturnVal;
-}
-
-void MasterCredential::UpdateContents()
-{
-    m_xmlUnsigned.Release();
-
-    Tag tag("masterCredential");
-
-    // a hash of the nymIDSource
-    tag.add_attribute("nymID", GetNymID().Get());
-
-    String masterType = CredentialTypeToString(this->GetType());
-
-    if (masterType.Exists()) {
-        tag.add_attribute("type", masterType.Get());
-    } else {
-        tag.add_attribute("type", CredentialTypeToString(Credential::LEGACY).Get()); //backward compatibility
-    }
-
-    if (GetNymIDSource().Exists()) {
-        OTASCIIArmor ascSource;
-        ascSource.SetString(GetNymIDSource()); // A nym should always
-                                               // verify through its own
-                                               // source. (Whatever that
-                                               // may be.)
-        tag.add_tag("nymIDSource", ascSource.Get());
-    }
-
-    // PUBLIC INFO
-    //
-    //  if (Credential::credPublicInfo == m_StoreAs)   // PUBLIC INFO
-    // (Always save this in every state.)
-    {
-        UpdatePublicContentsToTag(tag);
-    }
-
-    // PRIVATE INFO
-    //
-    // If we're saving the private credential info...
-    //
-    if (Credential::credPrivateInfo == m_StoreAs) // PRIVATE INFO
-    {
-        UpdatePublicCredentialToTag(tag);
-        UpdatePrivateContentsToTag(tag);
-    }
-    // -------------------------------------------------
-    std::string str_result;
-    tag.output(str_result);
-
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
-
-    m_StoreAs = Credential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
-                                                  // BEHAVIOR. Any other state
-                                                  // processes ONCE, and then
-                                                  // goes back to this again.
-}
 
 // Verify that m_strNymID is the same as the hash of m_strSourceForNymID. Also
 // verify that
@@ -487,6 +372,13 @@ MasterCredential::MasterCredential(CredentialSet& theOwner)
     m_Role = proto::CREDROLE_MASTERKEY;
 }
 
+MasterCredential::MasterCredential(CredentialSet& theOwner, const String& stringCred)
+    : MasterCredential(theOwner, Credential::ExtractArmoredCredential(stringCred))
+{
+    m_strContractType = "MASTER KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_MASTERKEY;
+}
+
 MasterCredential::MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType)
     : ot_super(theOwner, masterType)
 {
@@ -509,14 +401,34 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
     m_strContractType = "MASTER KEY CREDENTIAL";
     m_Role = proto::CREDROLE_MASTERKEY;
 
-    if (nymParameters.Source().size() > 0) {
-        m_strSourceForNymID = nymParameters.Source();
+    String sourceForNymID;
+
+    if (0 < nymParameters.Source().size()) {
+        sourceForNymID = nymParameters.Source();
     }
     else {
-        FormattedKey sourceForNymID;
         m_SigningKey->GetPublicKey(sourceForNymID);
-        m_strSourceForNymID = sourceForNymID;
     }
+
+    Identifier nymID;
+    nymID.CalculateDigest(sourceForNymID);
+
+    SetNymIDandSource(nymID, sourceForNymID);
+
+    Identifier masterID;
+    CalculateAndSetContractID(masterID);
+
+    SelfSign();
+    VerifySignedBySelf();
+
+    String credID(masterID), nym(nymID);
+
+    String strFoldername, strFilename;
+    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
+                         Log::PathSeparator(), nym.Get());
+    strFilename.Format("%s", credID.Get());
+
+    SaveContract(strFoldername.Get(), strFilename.Get());
 }
 
 MasterCredential::~MasterCredential()

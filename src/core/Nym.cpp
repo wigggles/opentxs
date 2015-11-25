@@ -431,7 +431,7 @@ bool Nym::AddNewMasterCredential(
 
     // Create a new CredentialSet
 
-    CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters, pPWData, pstrSourceToUse);
+    CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters, pPWData);
 
     if (nullptr == pNewCredentialSet) // Below this block, pNewCredentialSet must be cleaned up.
     {
@@ -527,89 +527,6 @@ bool Nym::AddNewMasterCredential(
     // well, since it will be optional whenever there is a source involved.
 
     SaveCredentialIDs();
-
-    return true;
-}
-
-bool Nym::AddNewChildKeyCredential(const Identifier& idMasterCredential,
-                       const NymParameters& nymParameters, // Ignored unless pmapPrivate is nullptr.
-                       const String::Map* pmapPrivate, // If nullptr, then the
-                                                       // keys are
-                                                       // generated in here.
-                       const OTPasswordData* pPWData, String* pstrNewID)
-{
-    const String strMasterCredID(idMasterCredential);
-
-    auto it = m_mapCredentialSets.find(strMasterCredID.Get());
-
-    if (it == m_mapCredentialSets.end()) // Didn't find it.
-    {
-        otOut << __FUNCTION__ << ": Failed trying to add key credential to "
-                                 "nonexistent master credential.\n";
-        return false;
-    }
-
-    CredentialSet* pMaster = it->second;
-    OT_ASSERT(nullptr != pMaster);
-
-    ChildKeyCredential* pChildKeyCredential = nullptr;
-
-        const bool bAdded =
-            pMaster->AddNewChildKeyCredential(nymParameters, pPWData, &pChildKeyCredential);
-
-    if (!bAdded) {
-        otOut
-            << __FUNCTION__
-            << ": Failed trying to add key credential to master credential.\n";
-        return false;
-    }
-
-    OT_ASSERT(nullptr != pChildKeyCredential);
-
-    if (!pChildKeyCredential->VerifyInternally()) {
-
-        otErr << __FUNCTION__
-              << ": Failed trying to verify the new key credential.\n";
-        // todo: remove it again, since it failed to verify.
-        return false;
-    }
-
-    // It's already signed (inside AddNewChildKeyCredential) but it's still not added to the
-    // Nym,
-    // or saved to local storage. So let's do that next...
-    //
-    String strNymID, strChildKeyCredentialID;
-    GetIdentifier(strNymID);
-    pChildKeyCredential->GetIdentifier(strChildKeyCredentialID);
-
-    // OTFolders::Credential() is for private credentials (I've created.)
-    // OTFolders::Pubcred() is for public credentials (I've downloaded.)
-    //
-    if (OTDB::Exists(OTFolders::Credential().Get(), strNymID.Get(),
-                     strChildKeyCredentialID.Get())) {
-        otErr << __FUNCTION__
-              << ": Failure: Apparently there is already a credential stored "
-                 "for this ID (even though this is a new credential, just "
-                 "generated.)\n";
-        return false;
-    }
-
-    String strFoldername, strFilename;
-    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
-                         Log::PathSeparator(), strNymID.Get());
-    strFilename.Format("%s", strChildKeyCredentialID.Get());
-    const bool bSaved =
-        pChildKeyCredential->SaveContract(strFoldername.Get(), strFilename.Get());
-    if (!bSaved) {
-        otErr
-            << __FUNCTION__
-            << ": Failed trying to save new key credential to local storage.\n";
-        return false;
-    }
-
-    SaveCredentialIDs();
-
-    if (nullptr != pstrNewID) *pstrNewID = strChildKeyCredentialID;
 
     return true;
 }
@@ -3308,7 +3225,7 @@ void Nym::SerializeNymIDSource(Tag& parent) const
     }
 }
 
-void Nym::SaveCredentialIDsToString(String& strOutput)
+void Nym::SaveCredentialIDsToString(String& strOutput) const
 {
     Tag tag("nymData");
 
@@ -3329,7 +3246,7 @@ void Nym::SaveCredentialIDsToString(String& strOutput)
     strOutput.Concatenate("%s", str_result.c_str());
 }
 
-bool Nym::SaveCredentialIDs()
+bool Nym::SaveCredentialIDs() const
 {
     String strNymID, strOutput;
     GetIdentifier(strNymID);
@@ -3347,14 +3264,14 @@ bool Nym::SaveCredentialIDs()
             String strFilename;
             strFilename.Format("%s.cred", strNymID.Get());
 
-            std::string str_Folder = HasPrivateKey()
+            std::string str_Folder = isPrivate()
                                          ? OTFolders::Credential().Get()
                                          : OTFolders::Pubcred().Get();
 
             if (!OTDB::StorePlainString(strOutput.Get(), str_Folder,
                                         strNymID.Get(), strFilename.Get())) {
                 otErr << __FUNCTION__ << ": Failure trying to store "
-                      << (HasPrivateKey() ? "private" : "public")
+                      << (isPrivate() ? "private" : "public")
                       << " credential list for Nym: " << strNymID << "\n";
                 return false;
             }
@@ -3419,7 +3336,7 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
         // way.)
         //
         if (strFileContents.Exists() && strFileContents.DecodeIfArmored()) {
-            const bool bLoaded = LoadFromString(
+            const bool bLoaded = LoadNymFromString(
                 strFileContents,
                 nullptr, // map of credentials--if nullptr, it loads
                          // them from local storage.
@@ -3441,7 +3358,7 @@ bool Nym::LoadCredentials(bool bLoadPrivate, // Loads public credentials
 }
 
 void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
-                               String::Map* pmapPriInfo)
+                               String::Map* pmapPriInfo) const
 {
     // IDs for revoked child credentials are saved here.
     for (auto& it : m_listRevokedIDs) {
@@ -3911,7 +3828,7 @@ const Credential* Nym::GetChildCredential(const String& strMasterID,
 
  */
 // todo optimize
-bool Nym::LoadFromString(const String& strNym,
+bool Nym::LoadNymFromString(const String& strNym,
                          String::Map* pMapCredentials, // pMapCredentials can be
                                                        // passed,
                          // if you prefer to use a specific
@@ -4221,85 +4138,6 @@ bool Nym::LoadFromString(const String& strNym,
                         GetIdentifier(strNymID);
                         otErr << __FUNCTION__
                               << ": Failed loading keyCredential " << strID
-                              << " for master credential " << strMasterCredID
-                              << " for Nym " << strNymID << ".\n";
-                        return false;
-                    }
-                }
-            }
-            else if (strNodeName.Compare("child credential")) {
-                const String strID = xml->getAttributeValue("ID");
-                const String strValid = xml->getAttributeValue(
-                    "valid"); // If this is false, the ID is already on
-                              // revokedCredentials list. (FYI.)
-                const String strMasterCredID =
-                    xml->getAttributeValue("masterID");
-                const bool bValid = strValid.Compare("true");
-                otLog3 << "Loading " << (bValid ? "valid" : "invalid")
-                       << " child credential ID: " << strID
-                       << "\n ...For master credential: " << strMasterCredID
-                       << "\n";
-                CredentialSet* pCredential =
-                    GetMasterCredential(strMasterCredID); // no need to cleanup.
-                if (nullptr == pCredential)
-                    pCredential = GetRevokedCredential(strMasterCredID);
-                if (nullptr == pCredential) {
-                    otErr << __FUNCTION__
-                          << ": While loading child credential, failed trying to "
-                             "find expected Master Credential ID: "
-                          << strMasterCredID << "\n";
-                    return false;
-                }
-                else // We found the master credential that this child credential
-                       // belongs to.
-                {
-                    bool bLoaded = false;
-
-                    if (nullptr ==
-                        pMapCredentials) // pMapCredentials is an option
-                                         // that allows you to read
-                                         // credentials from the map
-                                         // instead of from local
-                                         // storage. (While loading the
-                                         // Nym...) In this case, the
-                                         // option isn't being
-                                         // employed...
-                        bLoaded = pCredential->LoadCredential(strID);
-                    else // In this case, it potentially is on the map...
-                    {
-                        auto it_cred = pMapCredentials->find(strID.Get());
-
-                        if (it_cred ==
-                            pMapCredentials->end()) // Nope, didn't find it on
-                                                    // the map. But if a Map was
-                                                    // passed, then it SHOULD
-                                                    // have contained all the
-                                                    // listed credentials
-                                                    // (including the one we're
-                                                    // trying to load now.)
-                            otErr << __FUNCTION__
-                                  << ": Expected child credential (" << strID
-                                  << ") on map of credentials, but couldn't "
-                                     "find it. (Failure.)\n";
-                        else // Found it on the map passed in (so no need to
-                             // load from storage, we'll load from string
-                             // instead.)
-                        {
-                            const String strChildCredential(
-                                it_cred->second.c_str());
-                            if (strChildCredential.Exists())
-                                bLoaded =
-                                    pCredential->LoadCredentialFromString(
-                                        strChildCredential, strID,
-                                        pImportPassword);
-                        }
-                    }
-
-                    if (!bLoaded) {
-                        String strNymID;
-                        GetIdentifier(strNymID);
-                        otErr << __FUNCTION__
-                              << ": Failed loading child credential " << strID
                               << " for master credential " << strMasterCredID
                               << " for Nym " << strNymID << ".\n";
                         return false;
@@ -4823,7 +4661,7 @@ bool Nym::LoadSignedNymfile(Nym& SIGNER_NYM)
             << "Loaded and verified signed nymfile. Reading from string...\n";
 
         if (theNymfile.GetFilePayload().GetLength() > 0)
-            return LoadFromString(
+            return LoadNymFromString(
                 theNymfile.GetFilePayload()); // <====== Success...
         else {
             const int64_t lLength =
@@ -5258,6 +5096,27 @@ Nym::Nym()
     Initialize();
 }
 
+Nym::Nym(const NymParameters& nymParameters)
+    : m_bPrivate(true)
+    , m_bMarkForDeletion(false)
+    , m_lUsageCredits(0)
+{
+    Initialize();
+    String strMasterCredID;
+
+    CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters);
+
+    m_strSourceForNymID = pNewCredentialSet->GetSourceForNymID();
+    m_nymID.CalculateDigest(m_strSourceForNymID);
+
+    m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
+        pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+
+    SaveCredentialIDs();
+    otErr << "CredentialIDs Saved.\n";
+    SaveSignedNymfile(*this);
+}
+
 void Nym::Initialize()
 {
     m_strVersion = "1.0";
@@ -5352,6 +5211,23 @@ Nym::~Nym()
 
     ClearAll();
     ClearCredentials();
+}
+
+bool Nym::WriteCredentials() const
+{
+    if (!SaveCredentialIDs()) {
+        otErr << __FUNCTION__ << ": Failed to save credential lists.\n";
+        return false;
+    }
+
+    for (auto& it: m_mapCredentialSets) {
+        if (!it.second->WriteCredentials()) {
+            otErr << __FUNCTION__ << ": Failed to save credentials.\n";
+            return false;
+        }
+    }
+
+    return true;
 }
 
 } // namespace opentxs

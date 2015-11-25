@@ -40,7 +40,7 @@
 #define OPENTXS_CORE_OTMESSAGE_HPP
 
 #include "crypto/OTASCIIArmor.hpp"
-#include <opentxs/core/FormattedKey.hpp>
+#include "String.hpp"
 #include "Contract.hpp"
 #include "NumList.hpp"
 
@@ -149,7 +149,7 @@ public:
                             // in user message for validation purposes.
     String m_strNymID2;     // If the user requests public key of another user.
                             // ALSO used for MARKET ID sometimes.
-    FormattedKey m_strNymPublicKey; // The user's public key... or x509 cert.
+    String m_strNymPublicKey; // The user's public key... or x509 cert.
     String m_strInstrumentDefinitionID; // The hash of the contract for whatever
                                         // digital
                                         // asset is referenced.

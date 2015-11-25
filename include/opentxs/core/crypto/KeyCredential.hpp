@@ -145,7 +145,6 @@ class KeyCredential : public Credential
 private: // Private prevents erroneous use by other classes.
     typedef Credential ot_super;
     friend class CredentialSet;
-    bool GenerateKeys(const NymParameters& nymParameters); // Gotta start somewhere.
     KeyCredential() = delete;
     bool addKeytoSerializedKeyCredential(
         proto::KeyCredential& credential,
@@ -157,13 +156,6 @@ private: // Private prevents erroneous use by other classes.
 
 
 protected:
-    virtual bool SetPublicContents(const String::Map& mapPublic);
-    virtual bool SetPrivateContents(
-        const String::Map& mapPrivate,
-        const OTPassword* pImportPassword = nullptr); // if not nullptr, it
-                                                      // means to
-                                                      // use
-                                                      // this password by default.
     virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
     KeyCredential(CredentialSet& theOwner, const serializedCredential serializedCred);
     // this password by default.
@@ -184,7 +176,6 @@ public:
                                      // credential.) Then verify the
                                      // (self-signed) signature on *this.
     bool VerifySignedBySelf();
-    virtual void SetMetadata();
     KeyCredential(CredentialSet& theOwner);
     KeyCredential(CredentialSet& theOwner, const Credential::CredentialType credentialType);
     KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
@@ -198,6 +189,21 @@ public:
     virtual ~KeyCredential();
     virtual void Release();
     void Release_KeyCredential();
+
+    virtual bool Sign(
+        const proto::Credential& credential,
+        const CryptoHash::HashType hashType,
+        OTData& signature, // output
+        const OTPasswordData* pPWData = nullptr) const;
+    virtual bool SelfSign(const OTPasswordData* pPWData = nullptr);
+
+    EXPORT virtual bool VerifySig(
+                                const proto::Signature& sig,
+                                const OTAsymmetricKey& theKey,
+                                const bool asPrivate = true,
+                                const OTPasswordData* pPWData = nullptr) const;
+
+
 };
 
 } // namespace opentxs

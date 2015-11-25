@@ -2871,7 +2871,7 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
                 theTargetNym.SetIdentifier(strNymID2);
 
                 if (false ==
-                    theTargetNym.LoadFromString(strCredentialIDs, &theMap)) {
+                    theTargetNym.LoadNymFromString(strCredentialIDs, &theMap)) {
                     otErr << __FUNCTION__
                           << ": checkNymResponse: Failure loading nym "
                           << strNymID2 << " from credential string.\n";
@@ -4094,7 +4094,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         OT_ASSERT(nullptr != pData);
 
                                         int64_t lScale = theOffer.GetScale();
-                                        
+
                                         /*
                                         std::stringstream ss;
                                         ss << theTrade.GetTransactionNum();
@@ -4102,7 +4102,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         ss.str(""); */
                                         pData->transaction_id = to_string<int64_t>(theTrade.GetTransactionNum()); // TransID for original offer. (Offer may trade many times.)
                                         pData->updated_id = to_string<int64_t>(pServerItem->GetTransactionNum()); // TransID for BOTH receipts for current trade. (Asset/Currency.)
-                                        
+
                                         pData->completed_count = to_string<int32_t>(theTrade.GetCompletedCount());
                                         std::unique_ptr<Account> pAccount(Account::LoadExistingAccount(ACCOUNT_ID, NOTARY_ID));
 
@@ -4132,16 +4132,16 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                             pData->currency_acct_id = strAcctID.Get();
                                             pData->currency_receipt = strServerTransaction.Get();
                                         }
-                                        
+
                                         // NOTE: Apparently CronItem::GetLastProcessDate is used internally in OTServer
                                         // but not actually saved onto the updated Trade object. Therefore it
                                         // contains a zero. Might have to change the server to save this date,
                                         // so we don't display a zero date on the client side.
                                         // UPDATE: I'll try pServerTransaction->GetDateSigned()
-                                        
+
                                         const time64_t& tProcessDate = pServerTransaction->GetDateSigned();
                                         pData->date = to_string<time64_t>(tProcessDate);
-                                        
+
                                         // The original offer price. (Might be 0, if it's a market order.)
                                         //
                                         const int64_t& lPriceLimit = theOffer.GetPriceLimit();
@@ -4150,7 +4150,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         pData->finished_so_far = to_string<int64_t>(lFinishedSoFar);
                                         pData->scale = to_string<int64_t>(lScale);
                                         pData->is_bid = theOffer.IsBid();
-                                        
+
                                         // save to local storage...
                                         //
                                         String strNymID(NYM_ID);
@@ -4174,7 +4174,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                         (OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_LIST_NYM)));
                                         }
                                         OT_ASSERT(nullptr != pList);
-                                        
+
                                         // Loop through and see if we can find one that's ALREADY there.
                                         // We can match the asset receipt and currency receipt.
                                         // This way we insure there is only one in the end, which combines
@@ -4188,12 +4188,12 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                         for (size_t nym_count = 0;
                                              nym_count < nTradeDataNymCount;
                                              ++nym_count) {
-                                            
+
                                             OTDB::TradeDataNym* pTradeData = pList->GetTradeDataNym(nym_count);
 
                                             if (nullptr == pTradeData) // Should never happen.
                                                 continue;
-                                            
+
                                             if (0 == pTradeData->updated_id.compare(pData->updated_id)) // Found it!
                                             {
                                                 // It's a repeat of the same one. (Discard.)
@@ -4218,7 +4218,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                                                 }
                                                 if (!pTradeData->amount_sold.empty() &&
                                                     !pTradeData->currency_paid.empty()) {
-                                                    
+
                                                     const int64_t lAmountSold = String::StringToLong(pTradeData->amount_sold);
                                                     const int64_t lCurrencyPaid = String::StringToLong(pTradeData->currency_paid);
 
@@ -4567,7 +4567,7 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
                         pStatementItem->GetAttachment(strMessageNym);
 
                         if (strMessageNym.Exists() &&
-                            theMessageNym.LoadFromString(strMessageNym)) {
+                            theMessageNym.LoadNymFromString(strMessageNym)) {
                             // Success!
                             // Whatever Trans#'s I accepted when I processed
                             // my nymbox, I now
@@ -7591,7 +7591,7 @@ int32_t OTClient::ProcessUserCommand(
     switch (requestedCommand) {
 
     case (OTClient::pingNotary): {
-        FormattedKey strAuthentKey, strEncryptionKey;
+        String strAuthentKey, strEncryptionKey;
 
         theNym.GetPublicAuthKey().GetPublicKey(strAuthentKey);
         theNym.GetPublicEncrKey().GetPublicKey(strEncryptionKey);

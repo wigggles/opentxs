@@ -62,7 +62,7 @@ public:
     EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
     EXPORT static const CryptoHash::HashType DefaultHashAlgorithm;
     EXPORT static bool validateID(const std::string & strPurportedID);
-    
+
     EXPORT Identifier();
 
     EXPORT Identifier(const Identifier& theID);

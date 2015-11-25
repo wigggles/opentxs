@@ -65,6 +65,8 @@
 
 #include <opentxs/core/crypto/Credential.hpp>
 
+#include <opentxs/core/crypto/CryptoEngine.hpp>
+
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/util/Tag.hpp>
@@ -90,7 +92,6 @@ void Credential::SetOwner(CredentialSet& theOwner)
 
 Credential::Credential(CredentialSet& theOwner)
     : Contract()
-    , m_StoreAs(Credential::credPrivateInfo)
     , m_Type(Credential::ERROR_TYPE)
     , m_pOwner(&theOwner)
 {
@@ -99,7 +100,6 @@ Credential::Credential(CredentialSet& theOwner)
 
 Credential::Credential(CredentialSet& theOwner, Credential::CredentialType type, proto::KeyMode mode)
     : Contract()
-    , m_StoreAs(Credential::credPrivateInfo)
     , m_Type(type)
     , m_mode(mode)
     , m_pOwner(&theOwner)
@@ -108,11 +108,17 @@ Credential::Credential(CredentialSet& theOwner, Credential::CredentialType type,
 }
 
 Credential::Credential(CredentialSet& theOwner, serializedCredential serializedCred)
-    : Credential(theOwner, Credential::LEGACY, serializedCred->mode())
+    : Credential(theOwner, static_cast<Credential::CredentialType>(serializedCred->type()), serializedCred->mode())
 {
     m_Role = serializedCred->role();
     m_strNymID = serializedCred->nymid();
     SetIdentifier(serializedCred->id());
+
+    serializedSignature sig;
+    for (auto& it : serializedCred->signature()) {
+        sig.reset(new proto::Signature(it));
+        m_listSerializedSignatures.push_back(sig);
+    }
 }
 
 Credential::~Credential()
@@ -135,25 +141,6 @@ void Credential::Release_Credential()
     // Release any dynamically allocated members here. (Normally.)
 }
 
-// virtual
-bool Credential::SetPublicContents(const String::Map& mapPublic)
-{
-    m_mapPublicInfo = mapPublic;
-    return true;
-}
-
-// virtual
-bool Credential::SetPrivateContents(const String::Map& mapPrivate,
-                                         const OTPassword*) // if not nullptr,
-                                                            // it means to
-                                                            // use this
-                                                            // password by
-                                                            // default.)
-{
-    m_mapPrivateInfo = mapPrivate;
-    return true;
-}
-
 void Credential::SetMasterCredID(const String& strMasterCredID)
 {
     m_strMasterCredID = strMasterCredID;
@@ -166,367 +153,6 @@ void Credential::SetNymIDandSource(const String& strNymID,
     m_strSourceForNymID = strSourceForNymID;
 }
 
-void Credential::UpdatePublicContentsToTag(Tag& parent) // Used in
-                                                             // UpdateContents.
-{
-    if (!m_mapPublicInfo.empty()) {
-        uint64_t theSize = m_mapPublicInfo.size();
-
-        TagPtr tagContents(new Tag("publicContents"));
-        tagContents->add_attribute("count", formatUlong(theSize));
-
-        for (auto& it : m_mapPublicInfo) {
-            String strInfo(it.second);
-            OTASCIIArmor ascInfo(strInfo);
-
-            TagPtr tagInfo(new Tag("publicInfo", ascInfo.Get()));
-            tagInfo->add_attribute("key", it.first);
-
-            tagContents->add_tag(tagInfo);
-        }
-        parent.add_tag(tagContents);
-    }
-}
-
-void Credential::UpdatePublicCredentialToTag(
-    Tag& parent) // Used in UpdateContents.
-{
-    if (GetContents().Exists()) {
-        OTASCIIArmor ascContents(GetContents());
-        if (ascContents.Exists()) {
-            parent.add_tag("publicCredential", ascContents.Get());
-        }
-    }
-}
-
-void Credential::UpdatePrivateContentsToTag(Tag& parent) // Used in
-                                                              // UpdateContents.
-{
-    if (!m_mapPrivateInfo.empty()) {
-        uint64_t theSize = m_mapPrivateInfo.size();
-
-        TagPtr tagContents(new Tag("privateContents"));
-        tagContents->add_attribute("count", formatUlong(theSize));
-
-        for (auto& it : m_mapPrivateInfo) {
-            String strInfo(it.second);
-            OTASCIIArmor ascInfo(strInfo);
-
-            TagPtr tagInfo(new Tag("privateInfo", ascInfo.Get()));
-            tagInfo->add_attribute("key", it.first);
-
-            tagContents->add_tag(tagInfo);
-        }
-        parent.add_tag(tagContents);
-    }
-}
-
-void Credential::UpdateContents()
-{
-    m_xmlUnsigned.Release();
-
-    Tag tag(CredentialObjectName);
-
-    // a hash of the nymIDSource
-    tag.add_attribute("nymID", GetNymID().Get());
-    // Hash of the master credential that signed
-    // this child credential.
-    tag.add_attribute("masterID", GetMasterCredID().Get());
-
-    if (GetNymIDSource().Exists()) {
-        OTASCIIArmor ascSource;
-        ascSource.SetString(GetNymIDSource()); // A nym should always
-                                               // verify through its own
-                                               // source. (Whatever that
-                                               // may be.)
-        tag.add_tag("nymIDSource", ascSource.Get());
-    }
-
-    //  if (Credential::credPublicInfo == m_StoreAs)  // (Always saving
-    // public info.)
-    {
-        // PUBLIC INFO
-        UpdatePublicContentsToTag(tag);
-    }
-
-    // If we're saving the private credential info...
-    //
-    if (Credential::credPrivateInfo == m_StoreAs) {
-        UpdatePublicCredentialToTag(tag);
-        UpdatePrivateContentsToTag(tag);
-    }
-    // -------------------------------------------------
-    std::string str_result;
-    tag.output(str_result);
-
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
-
-    m_StoreAs = Credential::credPrivateInfo; // <=== SET IT BACK TO DEFAULT
-                                                  // BEHAVIOR. Any other state
-                                                  // processes ONCE, and then
-                                                  // goes back to this again.
-}
-
-// return -1 if error, 0 if nothing, and 1 if the node was processed.
-//
-int32_t Credential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
-{
-    int32_t nReturnVal = 0;
-
-    const String strNodeName(xml->getNodeName());
-
-    // Here we call the parent class first.
-    // If the node is found there, or there is some error,
-    // then we just return either way.  But if it comes back
-    // as '0', then nothing happened, and we'll continue executing.
-    //
-    // -- Note you can choose not to call the parent if
-    // you don't want to use any of those xml tags.
-    // As I do in the case of OTAccount.
-    //
-    // if (nReturnVal = Contract::ProcessXMLNode(xml))
-    //      return nReturnVal;
-
-    if (strNodeName.Compare(CredentialObjectName) || strNodeName.Compare(CredentialObjectNameOld)) {
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strMasterCredID = xml->getAttributeValue("masterID");
-
-        otWarn << "Loading child credential...\n";
-
-        nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("nymIDSource")) {
-        otWarn << "Loading nymIDSource...\n";
-
-        OTASCIIArmor ascTemp;
-        if (!Contract::LoadEncodedTextField(xml, ascTemp)) {
-            otErr << "Error in " << __FILE__ << " line " << __LINE__
-                  << ": failed loading expected nymIDSource field.\n";
-            return (-1); // error condition
-        }
-        if (ascTemp.Exists()) ascTemp.GetString(m_strSourceForNymID);
-
-        nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("publicContents")) {
-        String strCount;
-        strCount = xml->getAttributeValue("count");
-        const int32_t nCount = strCount.Exists() ? atoi(strCount.Get()) : 0;
-        if (nCount > 0) {
-            int32_t nTempCount = nCount;
-            String::Map mapPublic;
-
-            while (nTempCount-- > 0) {
-
-                const char* pElementExpected = "publicInfo";
-                String strPublicInfo;
-
-                // This map contains values we will also want, when we read the
-                // info...
-                // (The Contract::LoadEncodedTextField call below will read
-                // all the values
-                // as specified in this map.)
-                //
-                String::Map temp_MapAttributes;
-                temp_MapAttributes.insert(std::pair<std::string, std::string>(
-                    "key",
-                    "")); // Value should be "A" or "E" or "S" after reading.
-
-                if (!Contract::LoadEncodedTextFieldByName(
-                        xml, strPublicInfo, pElementExpected,
-                        &temp_MapAttributes)) // </publicInfo>
-                {
-                    otErr << __FUNCTION__ << ": Error: Expected "
-                          << pElementExpected << " element with text field.\n";
-                    return (-1); // error condition
-                }
-
-                auto it = temp_MapAttributes.find("key");
-                if ((it != temp_MapAttributes.end())) // We expected this much.
-                {
-                    std::string& str_key = it->second;
-
-                    if (str_key.size() >
-                        0) // Success finding key type ('A' 'E' or 'S')
-                    {
-
-                        mapPublic.insert(std::pair<std::string, std::string>(
-                            str_key, strPublicInfo.Get()));
-
-                    }
-                    // else it's empty, which is expected if nothing was there,
-                    // since that's the default value
-                    // that we set above for "name" in temp_MapAttributes.
-                    else {
-                        otErr << __FUNCTION__
-                              << ": Expected key type of 'A' or 'E' or 'S'.\n";
-                        return (-1); // error condition
-                    }
-                }
-                else {
-                    otErr << __FUNCTION__
-                          << ": Strange error: couldn't find key type AT "
-                             "ALL.\n"; // should never happen.
-                    return (-1);       // error condition
-                }
-            } // while
-
-            if (static_cast<int64_t>(mapPublic.size()) != nCount) {
-                otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
-                      << ": Child credential expected to load " << nCount
-                      << " publicInfo objects, "
-                         "but actually loaded " << mapPublic.size()
-                      << ". (Mismatch, failure loading.)\n";
-                return (-1); // error condition
-            }
-
-            if (false ==
-                SetPublicContents(mapPublic)) // <==============  Success.
-            {
-                otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
-                      << ": Child credential failed setting public contents while "
-                         "loading.\n";
-                return (-1); // error condition
-            }
-
-        } // if strCount.Exists() && nCount > 0
-
-        otInfo << "Loaded publicContents for child credential.\n";
-
-        nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("publicCredential")) {
-        if (!Contract::LoadEncodedTextField(
-                xml, m_strContents)) // <========= m_strContents.
-        {
-            otErr << "Error in " << __FILE__ << " line " << __LINE__
-                  << ": failed loading expected public credential while "
-                     "loading private child credential.\n";
-            return (-1); // error condition
-        }
-
-        nReturnVal = 1;
-    }
-    else if (strNodeName.Compare("privateContents")) {
-        String strCount;
-        strCount = xml->getAttributeValue("count");
-        const int32_t nCount = strCount.Exists() ? atoi(strCount.Get()) : 0;
-        if (nCount > 0) {
-            int32_t nTempCount = nCount;
-            String::Map mapPrivate;
-
-            while (nTempCount-- > 0) {
-
-                const char* pElementExpected = "privateInfo";
-                String strPrivateInfo;
-
-                // This map contains values we will also want, when we read the
-                // info...
-                // (The Contract::LoadEncodedTextField call below will read
-                // all the values
-                // as specified in this map.)
-                //
-                String::Map temp_MapAttributes;
-                temp_MapAttributes.insert(std::pair<std::string, std::string>(
-                    "key",
-                    "")); // Value should be "A" or "E" or "S" after reading.
-
-                if (!Contract::LoadEncodedTextFieldByName(
-                        xml, strPrivateInfo, pElementExpected,
-                        &temp_MapAttributes)) // </privateInfo>
-                {
-                    otErr << __FUNCTION__ << ": Error: Expected "
-                          << pElementExpected << " element with text field.\n";
-                    return (-1); // error condition
-                }
-
-                auto it = temp_MapAttributes.find("key");
-                if ((it != temp_MapAttributes.end())) // We expected this much.
-                {
-                    std::string& str_key = it->second;
-
-                    if (str_key.size() >
-                        0) // Success finding key type ('A' 'E' or 'S')
-                    {
-
-                        mapPrivate.insert(std::pair<std::string, std::string>(
-                            str_key, strPrivateInfo.Get()));
-
-                    }
-                    // else it's empty, which is expected if nothing was there,
-                    // since that's the default value
-                    // that we set above for "name" in temp_MapAttributes.
-                    else {
-                        otErr << __FUNCTION__
-                              << ": Expected key type of 'A' or 'E' or 'S'.\n";
-                        return (-1); // error condition
-                    }
-                }
-                else {
-                    otErr << __FUNCTION__
-                          << ": Strange error: couldn't find key type AT "
-                             "ALL.\n"; // should never happen.
-                    return (-1);       // error condition
-                }
-            } // while
-
-            if (static_cast<int64_t>(mapPrivate.size()) != nCount) {
-                otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
-                      << ": Child credential expected to load " << nCount
-                      << " privateInfo objects, "
-                         "but actually loaded " << mapPrivate.size()
-                      << ". (Mismatch, failure loading.)\n";
-                return (-1); // error condition
-            }
-
-            OT_ASSERT(nullptr != m_pOwner);
-
-            // Sometimes we are supposed to use a specific, pre-specified
-            // password (versus just
-            // blindly asking the user to type a password when it's not cached
-            // alrady.) For example,
-            // when importing a Nym, the exported version of the Nym is not
-            // encrypted to the cached
-            // wallet key. It's got its own exported passphrase. So it won't be
-            // cached, and we will have
-            // the wallet's cached key disabled while loading it. This means we
-            // have to enter the same
-            // passphrase many times in a row, while OT loads up all the
-            // credentials and keys for that
-            // Nym. Therefore, instead, we ask the user up front to enter the
-            // special passphrase for that
-            // exported Nym. Then we just pass it in to all the functions that
-            // need it, so none of them have
-            // to ask the user to type it.
-            //
-            // That's what brings us here now... when that happens,
-            // m_pOwner->GetImportPassword() will be set
-            // with the appropriate pointer to the passphrase. Otherwise it will
-            // be nullptr. Meanwhile SetPrivateContents
-            // below accepts an import passphrase, which it defaults to nullptr.
-            //
-            // So we just pass it in either way (sometimes it's nullptr and the
-            // wallet cached master key is used, and
-            // sometimes an actual passphrase is passed in, so we use it.)
-
-            if (false ==
-                SetPrivateContents(mapPrivate, m_pOwner->GetImportPassword())) {
-                otErr << __FUNCTION__ << ", " << __FILE__ << ", " << __LINE__
-                      << ": Child credential failed setting private contents "
-                         "while loading.\n";
-                return (-1); // error condition
-            }
-
-        } // if strCount.Exists() && nCount > 0
-
-        otInfo << "Loaded privateContents for child credential.\n";
-
-        nReturnVal = 1;
-    }
-
-    return nReturnVal;
-}
-
 // VERIFICATION
 
 // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
@@ -537,7 +163,7 @@ bool Credential::VerifyNymID() const
     // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
     //
     Identifier theTempID;
-    const bool bCalculate = theTempID.CalculateDigest(m_strSourceForNymID);
+    const bool bCalculate = theTempID.CalculateDigest(m_pOwner->GetSourceForNymID());
     OT_ASSERT(bCalculate);
 
     const String strNymID(theTempID);
@@ -583,19 +209,15 @@ bool Credential::VerifyInternally()
     // m_pOwner->GetMasterCredential().GetPubCredential()
     // (the master credentialID is a hash of the master credential.)
     //
-    Identifier theActualMasterID;
-    const bool bCalcMasterCredID =
-        theActualMasterID.CalculateDigest(m_pOwner->GetPubCredential());
-    OT_ASSERT(bCalcMasterCredID);
-    const String strActualMasterID(theActualMasterID);
+    String strActualMasterID;
+    m_pOwner->GetMasterCredential().GetIdentifier(strActualMasterID);
 
     if (!m_strMasterCredID.Compare(strActualMasterID)) {
         otOut << __FUNCTION__
               << ": Failure: When the actual Master Credential is hashed, the "
                  "result doesn't match the expected Master Credential ID.\n"
                  "Expected: " << m_strMasterCredID
-              << "\n   Found: " << strActualMasterID << "\nMaster Cred:\n"
-              << m_pOwner->GetPubCredential() << "\n";
+              << "\n   Found: " << strActualMasterID << "\nMaster Cred:\n" << "\n";
         return false;
     }
 
@@ -655,45 +277,17 @@ bool Credential::VerifyContract()
 // Overriding from Contract.
 void Credential::CalculateContractID(Identifier& newID) const
 {
-    if (!newID.CalculateDigest(GetPubCredential()))
+    serializedCredential idVersion = SerializeForIdentifier();
+
+    OTData serializedData = SerializeCredToData(*idVersion);
+
+    if (!newID.CalculateDigest(serializedData))
         otErr << __FUNCTION__ << ": Error calculating credential digest.\n";
 }
 
-// I needed this for exporting a Nym (with credentials) from the wallet.
-const String& Credential::GetPriCredential() const
+const serializedCredential Credential::GetSerializedPubCredential() const
 {
-    OT_ASSERT_MSG(!m_mapPrivateInfo.empty(), "ASSERT: GetPriCredential can "
-                                             "only be called on private "
-                                             "child credentials.");
-
-    return m_strRawFile;
-}
-
-// We don't want to have to figure this out each time we need the public
-// credential, so we just
-// call this function wherever we need to get the public credential.
-//
-const String& Credential::GetPubCredential() const // More intelligent
-                                                        // version of
-                                                        // GetContents. Higher
-                                                        // level.
-{
-    // If this is a private (client-side) credential containing private keys,
-    // then the public version is stored in GetContents(), and return that.
-    if ((!m_mapPrivateInfo.empty()) && GetContents().Exists())
-        return GetContents();
-
-    // Otherwise this is a server-side copy of a Nym's credential, with no
-    // private keys inside it.
-    // In which case public info that would have been in GetContents (making
-    // room so we can have
-    // the private keys in m_strRawFile) is now directly found in m_strRawFile,
-    // since that's all the
-    // server ever loads up. There is only public info and nothing else, so it's
-    // found in the main
-    // normal location, m_strRawFile.
-    //
-    return m_strRawFile;
+    return Serialize(false, true);
 }
 
 String Credential::CredentialTypeToString(Credential::CredentialType credentialType)
@@ -756,7 +350,9 @@ Credential::CredentialType Credential::GetType() const
     return m_Type;
 }
 
-serializedCredential Credential::Serialize(bool asPrivate, bool asSigned) const
+serializedCredential Credential::Serialize(
+    SerializationModeFlag asPrivate,
+    SerializationSignatureFlag asSigned) const
 
 {
     serializedCredential serializedCredential = std::make_shared<proto::Credential>();
@@ -809,14 +405,14 @@ serializedCredential Credential::Serialize(bool asPrivate, bool asSigned) const
 
 serializedCredential Credential::SerializeForPublicSignature() const
 {
-    serializedCredential pubsigVersion = Serialize(false, false);
+    serializedCredential pubsigVersion = Serialize(AS_PUBLIC, WITHOUT_SIGNATURES);
 
     return pubsigVersion;
 }
 
 serializedCredential Credential::SerializeForPrivateSignature() const
 {
-    serializedCredential privsigVersion = Serialize(true, false);
+    serializedCredential privsigVersion = Serialize(AS_PRIVATE, WITHOUT_SIGNATURES);
 
     return privsigVersion;
 }
@@ -844,6 +440,39 @@ OTData Credential::SerializeCredToData(const proto::Credential& serializedCred) 
     return serializedData;
 }
 
+bool Credential::SaveContract()
+{
+    SerializationModeFlag serializationMode = AS_PUBLIC;
+
+    if (proto::KEYMODE_PRIVATE == m_mode) {
+        serializationMode = AS_PRIVATE;
+    }
+
+    serializedCredential serializedProto = Serialize(serializationMode, WITH_SIGNATURES);
+
+
+    bool validProto = proto::Verify(*serializedProto, m_Role, WITH_SIGNATURES);
+
+    if (!validProto) {
+        otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
+        return false;
+    }
+
+    OT_ASSERT(validProto);
+
+    int size = serializedProto->ByteSize();
+    char* protoArray = new char [size];
+    bool serialized = serializedProto->SerializeToArray(protoArray, size);
+
+    if (serialized) {
+        OTData serializedData(protoArray, size);
+        delete[] protoArray;
+        OTASCIIArmor armoredData(serializedData);
+        m_strRawFile.Set(armoredData.Get());
+    }
+
+    return serialized;
+}
 
 serializedSignature Credential::GetSelfSignature(bool privateVersion) const
 {
@@ -864,6 +493,103 @@ serializedSignature Credential::GetSelfSignature(bool privateVersion) const
     }
 
     return nullptr;
+}
+
+bool Credential::SaveContract(const char* szFoldername, const char* szFilename)
+{
+    OT_ASSERT_MSG(nullptr != szFilename,
+                  "Null filename sent to Contract::SaveContract\n");
+    OT_ASSERT_MSG(nullptr != szFoldername,
+                  "Null foldername sent to Contract::SaveContract\n");
+
+    m_strFoldername.Set(szFoldername);
+    m_strFilename.Set(szFilename);
+
+    OT_ASSERT(m_strFoldername.GetLength() > 2);
+    OT_ASSERT(m_strFilename.GetLength() > 2);
+
+    OT_ASSERT(SaveContract());
+
+    if (!m_strRawFile.Exists()) {
+        otErr << "Contract::SaveContract: Error saving file (contract "
+                 "contents are empty): " << szFoldername << Log::PathSeparator()
+              << szFilename << "\n";
+        return false;
+    }
+
+    bool bSaved =
+        OTDB::StorePlainString(m_strRawFile.Get(), szFoldername, szFilename);
+
+    if (!bSaved) {
+        otErr << "Contract::SaveContract: Error saving file: " << szFoldername
+              << Log::PathSeparator() << szFilename << "\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool Credential::isPrivate() const
+{
+    if (proto::KEYMODE_PRIVATE == m_mode) {
+
+        return true;
+    }
+
+    return false;
+}
+
+bool Credential::isPublic() const
+{
+    if (proto::KEYMODE_PRIVATE == m_mode) {
+
+        return true;
+    }
+
+    return false;
+}
+
+std::string Credential::AsString(const bool asPrivate) const
+{
+    serializedCredential credenial;
+    OTData dataCredential;
+    String stringCredential;
+
+    credenial = Serialize(asPrivate, true);
+    dataCredential = SerializeCredToData(*credenial);
+
+    OTASCIIArmor armoredCredential(dataCredential);
+
+    armoredCredential.WriteArmoredString(stringCredential, "Credential");
+
+    return stringCredential.Get();
+}
+
+bool Credential::LoadContractFromString(__attribute__((unused)) const String& theStr)
+{
+    OT_ASSERT_MSG(false, "Error: Any code still calling this function is broken and wrong.\n");
+    return false;
+}
+
+//static
+serializedCredential Credential::ExtractArmoredCredential(const String stringCredential)
+{
+    OTASCIIArmor armoredCredential;
+    String strTemp(stringCredential);
+    armoredCredential.LoadFromString(strTemp);
+    return ExtractArmoredCredential(armoredCredential);
+}
+
+//static
+serializedCredential Credential::ExtractArmoredCredential(const OTASCIIArmor armoredCredential)
+{
+    OTData dataCredential(armoredCredential);
+
+    serializedCredential serializedCred = std::make_shared<proto::Credential>();
+
+    serializedCred->ParseFromArray(dataCredential.GetPointer(), dataCredential.GetSize());
+
+    return serializedCred;
 }
 
 } // namespace opentxs

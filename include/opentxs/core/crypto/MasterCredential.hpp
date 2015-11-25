@@ -107,14 +107,13 @@ public:
     bool VerifySource_CA(const String strSource) const;
     bool VerifySource_Pubkey(const String strSource) const;
     MasterCredential(CredentialSet& theOwner);
+    MasterCredential(CredentialSet& theOwner, const String& stringCredential);
     MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType);
     MasterCredential(CredentialSet& theOwner, serializedCredential serializedCred);
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     virtual ~MasterCredential();
 
     virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
-    virtual void UpdateContents();
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 };
 
 } // namespace opentxs

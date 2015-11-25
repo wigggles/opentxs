@@ -88,7 +88,7 @@ OT_ME::~OT_ME()
 {
     s_pMe = r_pPrev;
 }
-    
+
 typedef std::map<std::string, std::string> mapOfArguments;
 
 // int32_t    OT_CLI_GetArgsCount     (std::string str_Args);
@@ -236,7 +236,7 @@ bool OT_ME::make_sure_enough_trans_nums(int32_t nNumberNeeded,
         bool msgWasSent = false;
         if (0 > MadeEasy::retrieve_nym(strMyNotaryID, strMyNymID, msgWasSent,
                                        false)) {
-            
+
             otOut << "Error: cannot retrieve nym.\n";
             return false;
         }
@@ -415,7 +415,7 @@ std::string OT_ME::unregister_nym(const std::string& NOTARY_ID,
 {
     return MadeEasy::unregister_nym(NOTARY_ID, NYM_ID);
 }
-    
+
 std::string OT_ME::stat_asset_account(const std::string& ACCOUNT_ID) const
 {
     return MadeEasy::stat_asset_account(ACCOUNT_ID);
@@ -1844,7 +1844,7 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 
         theScript.chai->add(fun(&OTAPI_Wrap::IsValidID),
                             "OT_API_IsValidID");
-        
+
         theScript.chai->add(fun(&OTAPI_Wrap::Encode), "OT_API_Encode");
         theScript.chai->add(fun(&OTAPI_Wrap::Decode), "OT_API_Decode");
         theScript.chai->add(fun(&OTAPI_Wrap::Encrypt), "OT_API_Encrypt");
@@ -1867,7 +1867,7 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 
         theScript.chai->add(fun(&OTAPI_Wrap::GetSignerNymID),
                             "OT_API_GetSignerNymID");
-        
+
         theScript.chai->add(fun(&OTAPI_Wrap::FormatAmount),
                             "OT_API_FormatAmount");
         theScript.chai->add(fun(&OTAPI_Wrap::FormatAmountWithoutSymbol),
@@ -1922,8 +1922,6 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_ChildCredentialContents),
                             "OT_API_GetNym_ChildCredentialContents");
 
-        theScript.chai->add(fun(&OTAPI_Wrap::AddChildCredentialLegacy),
-                            "OT_API_AddChildCredentialLegacy");
         theScript.chai->add(fun(&OTAPI_Wrap::RevokeChildCredential),
                             "OT_API_RevokeChildCredential");
 

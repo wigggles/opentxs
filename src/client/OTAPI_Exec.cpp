@@ -683,7 +683,7 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr != pCredential) // Found the master credential...
-        str_return = pCredential->GetPubCredential().Get();
+        str_return = pCredential->MasterAsString().Get();
     return str_return;
 }
 
@@ -745,7 +745,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     const CredentialSet* pCredential = pNym->GetRevokedCredential(strCredID);
 
     if (nullptr != pCredential) // Found the (revoked) master credential...
-        str_return = pCredential->GetPubCredential().Get();
+        str_return = pCredential->MasterAsString().Get();
     return str_return;
 }
 
@@ -838,62 +838,7 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
         const String strSubID(SUB_CRED_ID);
         const Credential* pSub = pCredential->GetChildCredential(strSubID);
 
-        if (nullptr != pSub) return pSub->GetPubCredential().Get();
-    }
-    return "";
-}
-
-/// This function ONLY makes RSA credentials
-/// Deprecated.
-std::string OTAPI_Exec::AddChildCredentialLegacy(const std::string& NYM_ID,
-                                               const std::string& MASTER_CRED_ID,
-                                               const int32_t& nKeySize) const
-{
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return "";
-    }
-    if (MASTER_CRED_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr MASTER_CRED_ID passed in!\n";
-        return "";
-    }
-    if (0 >= nKeySize) {
-        otErr << __FUNCTION__
-              << ": Keysize is 0 or less, will fail! Try 1024.\n";
-        return "";
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    Identifier nym_id(NYM_ID);
-    // This tries to get, then tries to load as public, then tries to load as
-    // private.
-    Nym* pNym =
-        OTAPI()->GetOrLoadPrivateNym(nym_id, false, __FUNCTION__, &thePWData);
-    if (nullptr == pNym) return "";
-    const String strCredID(MASTER_CRED_ID);
-    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
-
-    if (nullptr == pCredential)
-        otOut << __FUNCTION__ << ": Sorry, (Nym " << NYM_ID
-              << ") no master credential found with the ID: " << strCredID
-              << "\n";
-    else // Found the master credential...
-    {
-        const Identifier idMasterCredential(strCredID);
-        String strNewChildCredID;
-
-        std::shared_ptr<NymParameters> nymParameters;
-        nymParameters = std::make_shared<NymParameters>(nKeySize);
-
-        const bool bAdded =
-            pNym->AddNewChildKeyCredential(idMasterCredential, *nymParameters, nullptr,
-                               &thePWData, &strNewChildCredID);
-
-        if (bAdded) {
-            return strNewChildCredID.Get();
-        }
-        else
-            otErr << __FUNCTION__
-                  << ": Failed trying to add new child credential.\n";
+        if (nullptr != pSub) return pSub->AsString();
     }
     return "";
 }
@@ -15640,7 +15585,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
     }
     Nym theMessageNym; // <====================
 
-    if (!theMessageNym.LoadFromString(strMessageNym)) {
+    if (!theMessageNym.LoadNymFromString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed loading theMessageNym from a "
                                  "string. String contents:\n\n" << strMessageNym
               << "\n\n";

@@ -50,7 +50,6 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/String.hpp>
-#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -156,30 +155,15 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
         (OTAsymmetricKey::ERROR_TYPE == theMessage.keytypeEncrypt_) ?
             OTAsymmetricKey::LEGACY : static_cast<OTAsymmetricKey::KeyType>(theMessage.keytypeEncrypt_);   // TODO HARDCODING
 
-        std::unique_ptr<OTAsymmetricKey> pNymAuthentKey(
-            OTAsymmetricKey::KeyFactory(keytypeAuthent));
-        std::unique_ptr<OTAsymmetricKey> pNymEncryptKey(
-            OTAsymmetricKey::KeyFactory(keytypeEncrypt));
+        String encryptKey = theMessage.m_strNymID2;
 
-        OT_ASSERT(nullptr != pNymAuthentKey);
-        OT_ASSERT(nullptr != pNymEncryptKey);
+        OTAsymmetricKey* nymAuthentKey = OTAsymmetricKey::KeyFactory(keytypeAuthent, theMessage.m_strNymPublicKey);
 
-        OTAsymmetricKey& nymAuthentKey = *pNymAuthentKey;
-        OTAsymmetricKey& nymEncryptionKey = *pNymEncryptKey;
-        FormattedKey encryptKey = static_cast<FormattedKey&>(theMessage.m_strNymID2);
+        OT_ASSERT(nullptr != nymAuthentKey);
 
-        bool bIfNymPublicKey =
-            (nymAuthentKey.SetPublicKey(theMessage.m_strNymPublicKey) &&
-             nymEncryptionKey.SetPublicKey(encryptKey));
-
-        if (!bIfNymPublicKey) {
-            Log::Error("Failure reading Nym's signing and/or encryption keys "
-                       "from message.\n");
-            return false;
-        }
         // Not all contracts are signed with the authentication key, but
         // messages are.
-        if (!theMessage.VerifyWithKey(nymAuthentKey)) {
+        if (!theMessage.VerifyWithKey(*nymAuthentKey)) {
             Log::Output(0, "pingNotary: Signature verification failed!\n");
             return false;
         }
@@ -242,7 +226,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
             // storage.
             //
             if (false ==
-                pNym->LoadFromString(strCredentialIDs,
+                pNym->LoadNymFromString(strCredentialIDs,
                                      &theMessage.credentials)) {
                 Log::vError("%s: registerNymResponse: Failure loading nym %s "
                             "from credential string.\n",
@@ -289,62 +273,11 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                 // SAVE the credentials to local storage, now that
                 // things are verified.
                 //
-                std::string str_nym_id = theMessage.m_strNymID.Get();
-                String strFilename;
-                strFilename.Format("%s.cred", str_nym_id.c_str());
 
-                bool bStoredList = false;
-                String strOutput;
-
-                if (ascArmor.Exists() &&
-                    ascArmor.WriteArmoredString(
-                        strOutput,
-                        "CREDENTIAL LIST") && // bEscaped=false by
-                                              // default.
-                    strOutput.Exists())
-                    bStoredList = OTDB::StorePlainString(
-                        strOutput.Get(), OTFolders::Pubcred().Get(),
-                        str_nym_id, strFilename.Get());
-                if (!bStoredList)
-                    Log::vError("%s: registerNymResponse: Failed "
-                                "trying to armor or store: %s\n",
-                                __FUNCTION__, strFilename.Get());
-                else // IF the list saved, then we save the
-                     // credentials themselves...
-                {
-                    Log::vOutput(1, "registerNymResponse: Success "
-                                    "saving public credential "
-                                    "list for Nym: %s\n",
-                                 str_nym_id.c_str());
-                    for (auto& it : theMessage.credentials) {
-                        std::string str_cred_id = it.first;
-                        String strCredential(it.second);
-                        bool bStoredCredential = false;
-                        strOutput.Release();
-                        OTASCIIArmor ascLoopArmor(strCredential);
-                        if (ascLoopArmor.Exists() &&
-                            ascLoopArmor.WriteArmoredString(
-                                strOutput,
-                                "CREDENTIAL") && // bEscaped=false
-                                                 // by default.
-                            strOutput.Exists())
-                            bStoredCredential = OTDB::StorePlainString(
-                                strOutput.Get(), OTFolders::Pubcred().Get(),
-                                str_nym_id, str_cred_id);
-                        if (!bStoredCredential)
-                            Log::vError("%s: registerNymResponse: Failed "
-                                        "trying to store credential %s for "
-                                        "nym %s.\n",
-                                        __FUNCTION__, str_cred_id.c_str(),
-                                        str_nym_id.c_str());
-                        else
-                            Log::vOutput(0, "registerNymResponse: "
-                                            "Success saving "
-                                            "public credential "
-                                            "ID: %s\n",
-                                         str_cred_id.c_str());
-                    }
+                if (!pNym->WriteCredentials()) {
+                    return false;
                 }
+
                 // Make sure we are encrypting the message we send
                 // back, if possible.
                 String strPublicEncrKey, strPublicSignKey;
@@ -899,7 +832,7 @@ bool UserCommandProcessor::ProcessUserCommand(Message& theMessage,
                         bIsDirtyNym = true; // So we don't have to save EACH
                                             // iteration, but instead just
                                             // once at the bottom.
-                        
+
                 } // If server didn't already have a record of this acknowledged
                   // request #.
             }
@@ -1473,7 +1406,7 @@ void UserCommandProcessor::UserCmdGetNymMarketOffers(Nym& theNym,
         server_->m_Cron.GetNym_OfferList(ascOutput, NYM_ID, nOfferCount);
 
     if ((msgOut.m_bSuccess) && (nOfferCount > 0)) {
-        
+
         msgOut.m_ascPayload = ascOutput;
         msgOut.m_lDepth = nOfferCount;
     }

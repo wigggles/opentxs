@@ -48,7 +48,6 @@ namespace opentxs
 class OTCaller;
 class OTPassword;
 class String;
-class FormattedKey;
 
 // Todo:
 // 1. Add this value to the config file so it becomes merely a default value
@@ -93,6 +92,7 @@ private:
                               // too, for private keys. Should store it in this
                               // form most of the time.)
     OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& serializedKey);
+    OTAsymmetricKey_OpenSSL(const String& publicKey);
 
 public:
     virtual CryptoAsymmetric& engine() const;
@@ -106,23 +106,21 @@ public:
         const OTPassword* pImportPassword = nullptr) const;
 
     virtual bool SetPrivateKey(
-        const FormattedKey& strCert,
+        const String& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     virtual bool SetPublicKeyFromPrivateKey(
-        const FormattedKey& strCert,
+        const String& strCert,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr);
     virtual bool GetPrivateKey(
-        FormattedKey& strOutput,
+        String& strOutput,
         const OTAsymmetricKey* pPubkey,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
     virtual bool GetPublicKey(String& strKey) const;
-    virtual bool GetPublicKey(FormattedKey& strKey) const;
     virtual bool SetPublicKey(const String& strKey);
-    virtual bool SetPublicKey(const FormattedKey& strKey);
 
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const;

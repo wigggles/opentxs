@@ -2560,7 +2560,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
                 {
                     String::Map& thePrivateMap = pPrivateMap->the_map;
                     if (false ==
-                        pNym->LoadFromString(strCredList, &thePrivateMap,
+                        pNym->LoadNymFromString(strCredList, &thePrivateMap,
                                              &strReasonToLoad,
                                              pExportPassphrase.get())) {
                         otErr << __FUNCTION__ << ": Failure loading nym "
@@ -2608,7 +2608,7 @@ bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS,
 
         bool bConverted = false;
         const bool bLoaded =
-            (strNymfile.Exists() && pNym->LoadFromString(strNymfile));
+            (strNymfile.Exists() && pNym->LoadNymFromString(strNymfile));
         //      const bool bLoaded    = (strNymfile.Exists() &&
         // pNym->LoadFromString(strNymfile, &thePrivateMap)); // Unnecessary,
         // since pNym has already loaded with this private info, and it will
@@ -4513,8 +4513,15 @@ bool OT_API::SetNym_Name(const Identifier& NYM_ID,
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     // -----------------------------------------------------}
-    Nym* pNym = GetNym(NYM_ID, __FUNCTION__);
+    Nym* pNym;
     Nym* pSignerNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
+
+    if (NYM_ID != SIGNER_NYM_ID) {
+        pNym = GetNym(NYM_ID, __FUNCTION__);
+    } else {
+        pNym = pSignerNym;
+    }
+
     if ((nullptr == pNym) || (nullptr == pSignerNym)) return false;
     // By this point, pNym and pSignerNym are good pointers.  (No need to
     // cleanup.)

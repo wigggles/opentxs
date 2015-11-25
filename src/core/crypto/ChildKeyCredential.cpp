@@ -65,10 +65,9 @@
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Log.hpp>
-
-#include "irrxml/irrXML.hpp"
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 
@@ -77,6 +76,13 @@ namespace opentxs
 
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other)
     : ot_super(other)
+{
+    m_strContractType = "KEY CREDENTIAL";
+    m_Role = proto::CREDROLE_CHILDKEY;
+}
+
+ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const String& stringCred)
+    : ChildKeyCredential(other, Credential::ExtractArmoredCredential(stringCred))
 {
     m_strContractType = "KEY CREDENTIAL";
     m_Role = proto::CREDROLE_CHILDKEY;
@@ -103,213 +109,88 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters
 {
     m_strContractType = "KEY CREDENTIAL";
     m_Role = proto::CREDROLE_CHILDKEY;
+
+    SetNymIDandSource(other.GetNymID(), other.GetSourceForNymID());
+    SetMasterCredID(other.GetMasterCredID());
+
+    Identifier childID;
+    CalculateAndSetContractID(childID);
+
+    OT_ASSERT(SelfSign());
+    OT_ASSERT(AddMasterSignature());
+
+    OT_ASSERT(VerifySignedBySelf());
+    OT_ASSERT(VerifySignedByMaster());
+
+    String credID(childID);
+
+    String strFoldername, strFilename;
+    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
+                         Log::PathSeparator(), other.GetNymID().Get());
+    strFilename.Format("%s", credID.Get());
+
+    SaveContract(strFoldername.Get(), strFilename.Get());
 }
 
 ChildKeyCredential::~ChildKeyCredential()
 {
 }
 
-int32_t ChildKeyCredential::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
-{
-    int32_t retval = ot_super::ProcessXMLNode(xml);
-
-    // Here we call the parent class first.
-    // If the node is found there, or there is some error,
-    // then we just return either way.  But if it comes back
-    // as '0', then nothing happened, and we'll continue executing.
-    //
-    // -- Note you can choose not to call the parent if
-    // you don't want to use any of those xml tags.
-    // As I do in the case of OTAccount.
-    if (retval != 0) return retval;
-
-    String nodeName(xml->getNodeName());
-    if (nodeName.Compare("keyCredential")) {
-        m_strNymID = xml->getAttributeValue("nymID");
-        m_strMasterCredID = xml->getAttributeValue("masterID");
-
-        String KeyCredentialType = xml->getAttributeValue("type");
-
-        Credential::CredentialType actualCredentialType = Credential::ERROR_TYPE;
-
-        if (KeyCredentialType.Exists()) {
-            actualCredentialType = StringToCredentialType(KeyCredentialType.Get());
-        } else {
-            actualCredentialType = Credential::LEGACY; //backward compatibility
-        }
-
-        OT_ASSERT(!m_AuthentKey);
-        OT_ASSERT(!m_SigningKey);
-        OT_ASSERT(!m_EncryptKey);
-
-        if (Credential::ERROR_TYPE == actualCredentialType) {
-            otErr << "Invalid child key credential type.\n";
-            return -1;
-        } else {
-            m_Type = actualCredentialType;
-            OTAsymmetricKey::KeyType actualKeyType = Credential::CredentialTypeToKeyType(actualCredentialType);
-            m_AuthentKey = std::make_shared<OTKeypair>(actualKeyType);
-            m_SigningKey = std::make_shared<OTKeypair>(actualKeyType);
-            m_EncryptKey = std::make_shared<OTKeypair>(actualKeyType);
-        }
-        Log::Output(1, "Loading keyCredential...\n");
-        retval = 1;
-    }
-    else if (nodeName.Compare("masterSigned")) {
-        if (!Contract::LoadEncodedTextField(xml, m_strMasterSigned)) {
-            Log::vError("Error in %s line %d: failed loading expected "
-                        "master-signed version while loading "
-                        "keyCredential.\n",
-                        __FILE__, __LINE__);
-            return -1;
-        }
-        retval = 1;
-    }
-    return retval;
-}
-
-void ChildKeyCredential::UpdateContents()
-{
-    m_xmlUnsigned.Release();
-
-    Tag tag("keyCredential");
-
-    // a hash of the nymIDSource
-    tag.add_attribute("nymID", GetNymID().Get());
-    // Hash of the master credential that signed this credential.
-    tag.add_attribute("masterID", GetMasterCredID().Get());
-
-    String KeyCredentialType = CredentialTypeToString(this->GetType());
-
-    if (KeyCredentialType.Exists()) {
-        tag.add_attribute("type", KeyCredentialType.Get());
-    } else {
-        tag.add_attribute("type", CredentialTypeToString(Credential::LEGACY).Get()); //backward compatibility
-    }
-
-    if (GetNymIDSource().Exists()) {
-        OTASCIIArmor ascSource;
-        // A nym should always verify through its own
-        // source. (Whatever that may be.)
-        ascSource.SetString(GetNymIDSource());
-        tag.add_tag("nymIDSource", ascSource.Get());
-    }
-    // MASTER-SIGNED INFO
-    if (Credential::credMasterSigned == m_StoreAs ||
-        Credential::credPrivateInfo == m_StoreAs) {
-        UpdatePublicContentsToTag(tag);
-    }
-    // PUBLIC INFO (signed by child key credential, contains master signed info.)
-    if (Credential::credPublicInfo == m_StoreAs ||
-        Credential::credPrivateInfo == m_StoreAs) {
-        // GetMasterSigned() returns the contract
-        // containing the master-signed contents
-        // from the above block.
-        OTASCIIArmor ascMasterSigned(GetMasterSigned());
-
-        // Contains all the public info, signed by the master key.
-        // Packaged up here inside a final, child key credential-signed credential.
-        tag.add_tag("masterSigned", ascMasterSigned.Get());
-    }
-    // PRIVATE INFO
-    //
-    // If we're saving the private credential info...
-    if (Credential::credPrivateInfo == m_StoreAs) {
-        UpdatePublicCredentialToTag(tag);
-        UpdatePrivateContentsToTag(tag);
-    }
-
-    // <=== SET IT BACK TO DEFAULT BEHAVIOR. Any other state
-    // processes ONCE, and then goes back to this again.
-    m_StoreAs = Credential::credPrivateInfo;
-
-    std::string str_result;
-    tag.output(str_result);
-
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
-}
-
 bool ChildKeyCredential::VerifySignedByMaster()
 {
-    // See if m_strMasterSigned was signed by my master credential.
-    ChildKeyCredential masterCredential(*m_pOwner);
+    OT_ASSERT(m_pOwner->GetMasterCredential().m_SigningKey);
 
-    if (m_strMasterSigned.Exists() &&
-        masterCredential.LoadContractFromString(m_strMasterSigned)) {
-        // Here we need to MAKE SURE that the "master signed" version contains
-        // the same CONTENTS as the actual version.
-        if (!GetNymID().Compare(masterCredential.GetNymID())) {
-            Log::vOutput(0, "%s: Failure, NymID of this key credential "
-                            "doesn't match NymID of master-signed version of "
-                            "this key credential.\n",
-                         __FUNCTION__);
-            return false;
-        }
+    serializedSignature masterSig = GetMasterSignature();
 
-        if (!GetNymIDSource().Compare(masterCredential.GetNymIDSource())) {
-            Log::vOutput(0, "%s: Failure, NymIDSource of this key credential "
-                            "doesn't match NymIDSource of master-signed "
-                            "version of this key credential.\n",
-                         __FUNCTION__);
-            return false;
-        }
-
-        if (!GetMasterCredID().Compare(masterCredential.GetMasterCredID())) {
-            Log::vOutput(0, "%s: Failure, MasterCredID of this key "
-                            "credential doesn't match MasterCredID of "
-                            "master-signed version of this key credential.\n",
-                         __FUNCTION__);
-            return false;
-        }
-
-        if (GetPublicMap().size() > 0 &&
-            GetPublicMap() != masterCredential.GetPublicMap()) {
-            Log::vOutput(0, "%s: Failure, public info of this key credential "
-                            "doesn't match public info of master-signed "
-                            "version of this key credential.\n",
-                         __FUNCTION__);
-            return false;
-        }
-
-        // Master-signed version of child key credential does not contain the private keys,
-        // since normally the master is signing
-        // the public version of the sub credential (to validate it) and you
-        // don't want the public seeing your private keys.
-        // So we would never expect these to match, since the master signed
-        // version should have no private keys in it.
-        //
-        //        if (GetPrivateMap() != masterCredential.GetPrivateMap())
-        //        {
-        //            OTLog::vOutput(0, "%s: Failure, private info of this key
-        // credential doesn't match private info of master-signed version of
-        // this key credential.\n", __FUNCTION__);
-        //            return false;
-        //        }
-
-        OT_ASSERT(m_pOwner->GetMasterCredential().m_SigningKey);
-        bool verifiedWithKey = masterCredential.VerifyWithKey(
-            m_pOwner->GetMasterCredential().m_SigningKey->GetPublicKey());
-
-        // ON SERVER SIDE, THE ACTUAL CHILD KEY CREDENTIAL doesn't have any public key, only
-        // the master-signed version of it.
-        // (The master-signed version being basically the only contents of the
-        // public version.)
-        // So we need to be able to, after verifying, load up those contents so
-        // they are available on the
-        // child key credential itself, and not just on some master-signed version of itself
-        // hidden inside itself.
-        // Otherwise I would have to load up the master-signed version anytime
-        // the server-side wanted to
-        // mess with any of the keys.
-        // Thus: copy the public info from master signed, to* this, if the above
-        // call was successful
-        if (verifiedWithKey && GetPublicMap().size() == 0) {
-            // For master credential.
-            return SetPublicContents(masterCredential.GetPublicMap());
-        }
-        return verifiedWithKey;
+    if (!masterSig) {
+        otErr << __FUNCTION__ << ": Could not find master signature.\n";
+        return false;
     }
-    return false;
+
+    bool goodSig = VerifySig(*masterSig, m_pOwner->GetMasterCredential().m_SigningKey->GetPublicKey(), false);
+
+    if (!goodSig) {
+        otErr << __FUNCTION__ << ": Could not verify master signature.\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool ChildKeyCredential::AddMasterSignature()
+{
+    if (nullptr == m_pOwner) {
+        otErr << __FUNCTION__ << ": Missing master credential.\n";
+        return false;
+    }
+
+    String credID = m_pOwner->GetMasterCredID();
+    OTData masterSignature;
+    serializedSignature serializedMasterSignature;
+    serializedMasterSignature.reset(new proto::Signature);
+
+    serializedCredential publicVersion = SerializeForPublicSignature();
+    bool havePublicSig = m_pOwner->GetMasterCredential().Sign(
+        *publicVersion,
+        Identifier::DefaultHashAlgorithm,
+        masterSignature);
+
+    if (!havePublicSig) {
+        otErr << __FUNCTION__ << ": Failed to obtain signature from master credential.\n";
+        return false;
+    }
+
+    serializedMasterSignature->set_version(1);
+    serializedMasterSignature->set_credentialid(credID.Get());
+    serializedMasterSignature->set_role(proto::SIGROLE_PUBCREDENTIAL);
+    serializedMasterSignature->set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+    serializedMasterSignature->set_signature(masterSignature.GetPointer(), masterSignature.GetSize());
+
+    m_listSerializedSignatures.push_back(serializedMasterSignature);
+
+    OT_ASSERT(m_listSerializedSignatures.size()==3);
+
+    return true;
 }
 
 serializedSignature ChildKeyCredential::GetMasterSignature() const

@@ -111,7 +111,7 @@ public:
     bool m_bCleanup = true; // By default, LowLevelKeyGenerator cleans up the members. But
                      // if you set this to false, it will NOT cleanup.
     bool MakeNewKeypair();
-    bool SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData, bool ephemeral = false);
+    bool SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData);
 
     LowLevelKeyGenerator(const NymParameters& pkeyData);
     ~LowLevelKeyGenerator();

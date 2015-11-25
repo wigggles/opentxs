@@ -77,7 +77,7 @@ protected:
     String m_strHostname;
     int32_t m_nPort;
     String m_strURL;
-    unsigned char* m_transportKey;
+    unsigned char* m_transportKey = nullptr;
     size_t m_transportKeyLength;
 };
 

@@ -295,7 +295,7 @@ public:
     EXPORT virtual bool LoadContract();
     EXPORT bool LoadContract(const char* szFoldername, const char* szFilename);
 
-    EXPORT bool LoadContractFromString(const String& theStr); // Just like it
+    EXPORT virtual bool LoadContractFromString(const String& theStr); // Just like it
                                                               // says. If you
                                                               // have a
                                                               // contract in
@@ -405,7 +405,7 @@ public:
     EXPORT virtual bool VerifySigAuthent(const Nym& theNym,
                                          const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT bool VerifyWithKey(const OTAsymmetricKey& theKey,
+    EXPORT virtual bool VerifyWithKey(const OTAsymmetricKey& theKey,
                               const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifySignature(const Nym& theNym,

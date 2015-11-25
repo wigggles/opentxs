@@ -1889,7 +1889,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
                 pNym->SetNymIDSource(theSigner.GetNymIDSource());
                 pNym->SetAltLocation(theSigner.GetAltLocation());
 
-                if (!pNym->LoadFromString(strCredList, &mapCredFiles)) {
+                if (!pNym->LoadNymFromString(strCredList, &mapCredFiles)) {
                     otErr << __FUNCTION__ << ": Failure loading nym "
                           << strSignerNymID << " from credential string.\n";
                     return false;
@@ -2216,7 +2216,7 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
                 pNym->SetIdentifier(strSignerNymID);
 
                 if (false ==
-                    pNym->LoadFromString(strCredentialIDs, &credsMap)) {
+                    pNym->LoadNymFromString(strCredentialIDs, &credsMap)) {
                     otErr << __FUNCTION__ << ": Failure loading nym "
                           << strSignerNymID << " from credential string.\n";
                 }

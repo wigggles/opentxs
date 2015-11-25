@@ -82,9 +82,11 @@ private:
     typedef KeyCredential ot_super;
     ChildKeyCredential() = delete;
 
+    virtual bool AddMasterSignature();
     serializedSignature GetMasterSignature() const;
 public:
     ChildKeyCredential(CredentialSet& other);
+    ChildKeyCredential(CredentialSet& other, const String& stringCredential);
     ChildKeyCredential(CredentialSet& other, const Credential::CredentialType childType);
     ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
     ChildKeyCredential(CredentialSet& other, const serializedCredential serializedCred);
@@ -93,8 +95,6 @@ public:
     virtual bool VerifySignedByMaster();
 
     virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
-    virtual void UpdateContents();
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 };
 
 } // namespace opentxs

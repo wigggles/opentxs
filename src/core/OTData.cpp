@@ -206,7 +206,7 @@ bool OTData::Randomize(uint32_t size)
 {
     Release(); // This releases all memory and zeros out all members.
     if (size > 0) {
-        data_ = static_cast<void*>(new uint8_t[size]);
+        data_ = static_cast<void*>(new uint8_t[size]());
         OT_ASSERT(data_ != nullptr);
 
         if (!OTPassword::randomizeMemory_uint8(static_cast<uint8_t*>(data_),

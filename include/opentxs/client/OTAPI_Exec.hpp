@@ -460,9 +460,6 @@ public:
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
         const std::string& SUB_CRED_ID) const;
 
-    EXPORT std::string AddChildCredentialLegacy(const std::string& NYM_ID,
-                                        const std::string& MASTER_CRED_ID,
-                                        const int32_t& nKeySize) const;
     EXPORT bool RevokeChildCredential(const std::string& NYM_ID,
                                     const std::string& MASTER_CRED_ID,
                                     const std::string& SUB_CRED_ID) const;
@@ -484,7 +481,7 @@ public:
         const std::string& str_Contract) const;
     EXPORT std::string CalculateContractID(
         const std::string& str_Contract) const;
-    
+
     EXPORT std::string GetSignerNymID(
         const std::string& str_Contract) const;
 
@@ -1315,10 +1312,10 @@ public:
                                  // anytime
         ) const;
 
-    
+
     EXPORT bool Smart_ArePartiesSpecified(const std::string& THE_CONTRACT) const;
     EXPORT bool Smart_AreAssetTypesSpecified(const std::string& THE_CONTRACT) const;
-    
+
     //
     // todo: Someday add a parameter here BYLAW_LANGUAGE so that people can use
     // custom languages in their scripts. For now I have a default language, so

@@ -191,16 +191,9 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 // (Wallet stores it in RAM and will delete when it destructs.)
 Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
 {
-    Nym* pNym = new Nym;
+    Nym* pNym = new Nym(nymParameters);
     OT_ASSERT(nullptr != pNym);
 
-    if (false ==
-        pNym->GenerateNym(nymParameters, true)) {
-        otErr << __FUNCTION__ << ": Failed trying to generate Nym.\n";
-        delete pNym;
-        pNym = nullptr;
-        return nullptr;
-    }
     this->AddNym(*pNym); // Add our new nym to the wallet, who "owns" it hereafter.
 
     // Note: It's already on the master key. To prevent that, we would have had
@@ -2048,29 +2041,6 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
             }
         }
 
-        // Here we do the actual credentials.
-        for (auto& it : mapCredFiles) {
-            std::string str_cred_id = it.first;
-            String strCredential(it.second);
-
-            strOutput.Release();
-            OTASCIIArmor ascLoopArmor(strCredential);
-            if (ascLoopArmor.Exists() &&
-                ascLoopArmor.WriteArmoredString(
-                    strOutput,
-                    "CREDENTIAL") && // bEscaped=false by default.
-                strOutput.Exists()) {
-                if (false ==
-                    OTDB::StorePlainString(strOutput.Get(),
-                                            OTFolders::Credential().Get(),
-                                            strNymID.Get(), str_cred_id)) {
-                    otErr << __FUNCTION__ << ": Failure trying to store "
-                          << (theNym.HasPrivateKey() ? "private" : "public")
-                          << " credential for Nym: " << strNymID << "\n";
-                    return false;
-                }
-            }
-        }
         bConverted = true;
 
         if (bConverted) {

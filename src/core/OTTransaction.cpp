@@ -1657,7 +1657,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         strMessageNym); // Like right here, for example.
 
     if (!strMessageNym.Exists() ||
-        !theMessageNym.LoadFromString(strMessageNym)) {
+        !theMessageNym.LoadNymFromString(strMessageNym)) {
         otOut << "Unable to load message nym in "
                  "OTTransaction::VerifyBalanceReceipt.\n";
         return false;

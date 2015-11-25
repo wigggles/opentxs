@@ -2889,19 +2889,31 @@ bool OpenSSL::Digest(
     if (CryptoHash::HASH256 == hashType) {
 
         unsigned char* vDigest = ::Hash(inputStart, inputStart+inputSize);
-        digest.setMemory(vDigest, 32);
-        delete vDigest;
-        vDigest = nullptr;
+
+        if (nullptr != vDigest) {
+            digest.setMemory(vDigest, 32);
+            delete vDigest;
+            vDigest = nullptr;
+            return true;
+        } else {
+            otErr << __FUNCTION__ << ": Hashing failed.\n";
+            return false;
+        }
 
         return true;
     } else if (CryptoHash::HASH160 == hashType) {
 
         unsigned char* vDigest = ::Hash160(inputStart, inputStart+inputSize);
-        digest.setMemory(vDigest, 20);
-        delete vDigest;
-        vDigest = nullptr;
 
-        return true;
+        if (nullptr != vDigest) {
+            digest.setMemory(vDigest, 20);
+            delete vDigest;
+            vDigest = nullptr;
+            return true;
+        } else {
+            otErr << __FUNCTION__ << ": Hashing failed.\n";
+            return false;
+        }
     } else {
         EVP_MD_CTX* context = EVP_MD_CTX_create();
         const EVP_MD* algorithm = dp->HashTypeToOpenSSLType(hashType);
@@ -2937,7 +2949,7 @@ bool OpenSSL::Digest(
 
         unsigned char* vDigest = ::Hash(inputStart, inputStart+inputSize);
         digest.Assign(vDigest, 32);
-        delete vDigest;
+        delete[] vDigest;
         vDigest = nullptr;
 
         return true;
@@ -2945,7 +2957,7 @@ bool OpenSSL::Digest(
 
         unsigned char* vDigest = ::Hash160(inputStart, inputStart+inputSize);
         digest.Assign(vDigest, 20);
-        delete vDigest;
+        delete[] vDigest;
         vDigest = nullptr;
 
         return true;

@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 #define OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP
 
-#include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/OTData.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/crypto/LowLevelKeyGenerator.hpp>
 
@@ -59,30 +59,17 @@ private:
 
     AsymmetricKeySecp256k1();
     AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey);
+    AsymmetricKeySecp256k1(const String& publicKey);
     virtual void ReleaseKeyLowLevel_Hook() const;
     // used by LowLevelKeyGenerator
-    FormattedKey key_;
+    std::unique_ptr<OTData> key_;
 
 public:
     virtual CryptoAsymmetric& engine() const;
     virtual bool IsEmpty() const;
-    virtual bool SetPrivateKey(
-        const FormattedKey& strCert,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr);
-    virtual bool SetPublicKeyFromPrivateKey(
-        const FormattedKey& strCert,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr);
-    virtual bool GetPrivateKey(
-        FormattedKey& strOutput,
-        const OTAsymmetricKey* pPubkey = nullptr,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const;
+    virtual bool SetKey(const OTData& key, bool isPrivate);
+    virtual bool GetKey(OTData& key) const;
     virtual bool GetPublicKey(String& strKey) const;
-    virtual bool GetPublicKey(FormattedKey& strKey) const;
-    virtual bool SetPublicKey(const String& strKey);
-    virtual bool SetPublicKey(const FormattedKey& strKey);
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const;
     void Release_AsymmetricKeySecp256k1();

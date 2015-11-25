@@ -55,7 +55,7 @@ bool OTAPI_Wrap::networkFailure()
 {
     return OTServerConnection::networkFailure();
 }
-    
+
 // singleton object !!!
 static OTAPI_Exec singleton;
 static OTAPI_Exec* exec = &singleton;
@@ -266,12 +266,12 @@ int32_t OTAPI_Wrap::NumList_Count(const std::string& strNumList)
 {
     return Exec()->NumList_Count(strNumList);
 }
-    
+
 bool OTAPI_Wrap::IsValidID(const std::string& strPurportedID)
 {
     return Exec()->IsValidID(strPurportedID);
 }
-    
+
 std::string OTAPI_Wrap::CreateNymLegacy(const int32_t& nKeySize,
                                   const std::string& NYM_ID_SOURCE,
                                   const std::string& ALT_LOCATION)
@@ -362,20 +362,13 @@ std::string OTAPI_Wrap::GetNym_ChildCredentialContents(
                                                 SUB_CRED_ID);
 }
 
-std::string OTAPI_Wrap::AddChildCredentialLegacy(const std::string& NYM_ID,
-                                         const std::string& MASTER_CRED_ID,
-                                         const int32_t& nKeySize)
-{
-    return Exec()->AddChildCredentialLegacy(NYM_ID, MASTER_CRED_ID, nKeySize);
-}
-
 bool OTAPI_Wrap::RevokeChildCredential(const std::string& NYM_ID,
                                      const std::string& MASTER_CRED_ID,
                                      const std::string& SUB_CRED_ID)
 {
     return Exec()->RevokeChildCredential(NYM_ID, MASTER_CRED_ID, SUB_CRED_ID);
 }
-    
+
 std::string OTAPI_Wrap::GetSignerNymID(const std::string& str_Contract)
 {
     return Exec()->GetSignerNymID(str_Contract);
@@ -1115,7 +1108,7 @@ std::string OTAPI_Wrap::SmartContract_SetDates(const std::string& THE_CONTRACT,
 {
     return Exec()->SmartContract_SetDates(THE_CONTRACT, SIGNER_NYM_ID, VALID_FROM, VALID_TO);
 }
-    
+
 bool OTAPI_Wrap::Smart_ArePartiesSpecified(const std::string& THE_CONTRACT)
 {
     return Exec()->Smart_ArePartiesSpecified(THE_CONTRACT);
@@ -1125,7 +1118,7 @@ bool OTAPI_Wrap::Smart_AreAssetTypesSpecified(const std::string& THE_CONTRACT)
 {
     return Exec()->Smart_AreAssetTypesSpecified(THE_CONTRACT);
 }
-    
+
 std::string OTAPI_Wrap::SmartContract_AddBylaw(const std::string& THE_CONTRACT,
                                                const std::string& SIGNER_NYM_ID,
                                                const std::string& BYLAW_NAME)
@@ -1192,7 +1185,7 @@ std::string OTAPI_Wrap::SmartContract_AddAccount(
                                             PARTY_NAME, ACCT_NAME,
                                             INSTRUMENT_DEFINITION_ID);
 }
-    
+
 std::string OTAPI_Wrap::SmartContract_RemoveBylaw(const std::string& THE_CONTRACT,
                                                   const std::string& SIGNER_NYM_ID,
                                                   const std::string& BYLAW_NAME)
@@ -1259,7 +1252,7 @@ std::string OTAPI_Wrap::SmartContract_RemoveAccount(
     return Exec()->SmartContract_RemoveAccount(THE_CONTRACT, SIGNER_NYM_ID,
                                                PARTY_NAME, ACCT_NAME);
 }
-    
+
 int32_t OTAPI_Wrap::SmartContract_CountNumsNeeded(
     const std::string& THE_CONTRACT, const std::string& AGENT_NAME)
 {
