@@ -1651,62 +1651,14 @@ bool OT_API::Wallet_ChangePassphrase() const
               if ( bImported ) // Success? Okay, let's Save those credentials we
                 // just imported, to local storage.
                 {
-                  bSavedCredentials = true;
-                  String strNymID, strCredList, strOutput;
-                  String::Map mapCredFiles;
-
-                  pNym->GetIdentifier ( strNymID );
-                  pNym->GetPrivateCredentials ( strCredList, &mapCredFiles );
-                  String strFilename;
-                  strFilename.Format ( "%s.cred", strNymID.Get() );
-                  OTASCIIArmor ascArmor ( strCredList );
-                  if ( ascArmor.Exists() &&
-                       ascArmor.WriteArmoredString (
-                         strOutput,
-                         "CREDENTIAL LIST" ) && // bEscaped=false by default.
-                       strOutput.Exists() )
-                    {
-                      if ( !OTDB::StorePlainString (
-                             strOutput.Get(), OTFolders::Credential().Get(),
-                             strNymID.Get(), strFilename.Get() ) )
-                        {
-                          otErr << __FUNCTION__
-                                << ": After converting credentials to "
-                                "new master key, failure trying to "
-                                "store private "
-                                "credential list for Nym: " << strNymID
-                                << "\n";
-                          bSavedCredentials = false;
-                        }
-                    }
-                  // Here we do the actual credentials.
-                  for ( auto& itCred : mapCredFiles )
-                    {
-                      const std::string& str_cred_id = itCred.first;
-                      String strCredential ( itCred.second );
-                      strOutput.Release();
-                      OTASCIIArmor ascLoopArmor ( strCredential );
-                      if ( ascLoopArmor.Exists() &&
-                           ascLoopArmor.WriteArmoredString (
-                             strOutput,
-                             "CREDENTIAL" ) && // bEscaped=false by default.
-                           strOutput.Exists() )
-                        {
-                          if ( !OTDB::StorePlainString (
-                                 strOutput.Get(),
-                                 OTFolders::Credential().Get(),
-                                 strNymID.Get(), str_cred_id ) )
-                            {
-                              otErr << __FUNCTION__
-                                    << ": After converting "
-                                    "credentials to new master key, "
-                                    "failure trying to store private "
-                                    "credential for Nym: " << strNymID
-                                    << "\n";
-                              bSavedCredentials = false;
-                            }
-                        }
-                    }
+                  bSavedCredentials = pNym->WriteCredentials();
+                  if (!bSavedCredentials) {
+                      otErr << __FUNCTION__
+                      << ": After converting credentials to "
+                      "new master key, failure trying to "
+                      "store private credentials for Nym."
+                      << "\n";
+                  }
                 }
               bSaved = bImported && bSavedCredentials;
             }

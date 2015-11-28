@@ -4861,10 +4861,8 @@ bool Nym::DoesCertfileExist(const String& strNymID)
     String strCredListFile;
     strCredListFile.Format("%s.cred", strNymID.Get());
 
-    return OTDB::Exists(OTFolders::Cert().Get(),
-                        strNymID.Get()) || // Old-school.
-           OTDB::Exists(OTFolders::Credential().Get(),
-                        strNymID.Get(), strCredListFile.Get()); // New-school.
+    return OTDB::Exists(OTFolders::Credential().Get(),
+                        strNymID.Get(), strCredListFile.Get());
 }
 
 bool Nym::HasPublicKey() const

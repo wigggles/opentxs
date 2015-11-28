@@ -2894,57 +2894,18 @@ bool OTClient::processServerReplyCheckNym(const Message& theReply,
                        // the message, AND
                 {      // verified the Nym (including the credentials.)
                     // So let's save it to local storage...
-                    //
-                    std::string str_nym_id = strNymID2.Get();
-                    String strFilename;
-                    strFilename.Format("%s.cred", str_nym_id.c_str());
 
-                    bool bStoredList = false;
-                    String strOutput;
-                    if (ascArmor.Exists() &&
-                        ascArmor.WriteArmoredString(
-                            strOutput,
-                            "CREDENTIAL LIST") && // bEscaped=false by
-                                                  // default.
-                        strOutput.Exists())
-                        bStoredList = OTDB::StorePlainString(
-                            strOutput.Get(), OTFolders::Pubcred().Get(),
-                            str_nym_id, strFilename.Get());
-                    if (!bStoredList)
+                    std::string str_nym_id = strNymID2.Get();
+
+                    if (!theTargetNym.WriteCredentials()) {
                         otErr << __FUNCTION__
-                              << ": Failed trying to armor or store "
-                              << strFilename << ".\n";
-                    else {
-                        otOut << "checkNymResponse: Success saving public "
-                                 "credential list for Nym: " << strNymID2
-                              << "\n";
-                        for (auto& it : theMap) {
-                            std::string str_cred_id = it.first;
-                            String strCredential(it.second);
-                            bool bStoredCredential = false;
-                            strOutput.Release();
-                            OTASCIIArmor ascLoopArmor(strCredential);
-                            if (ascLoopArmor.Exists() &&
-                                ascLoopArmor.WriteArmoredString(
-                                    strOutput,
-                                    "CREDENTIAL") && // bEscaped=false by
-                                                     // default.
-                                strOutput.Exists())
-                                bStoredCredential = OTDB::StorePlainString(
-                                    strOutput.Get(), OTFolders::Pubcred().Get(),
-                                    str_nym_id, str_cred_id);
-                            if (!bStoredCredential)
-                                otErr << __FUNCTION__
-                                      << ": Failed trying to store "
-                                         "credential " << str_cred_id
-                                      << " for nym " << str_nym_id << ".\n";
-                            else
-                                otOut << "checkNymResponse: Success saving "
-                                         "public "
-                                         "credential ID: " << str_cred_id
-                                      << "\n";
-                        }
-                    } // Success decoding string map of credential contents.
+                        << ": Failed trying to store "
+                        "credential files for nym " << str_nym_id << ".\n";
+                    } else {
+                        otOut << "checkNymResponse: Success saving "
+                        "credential files for nym: " << str_nym_id
+                        << "\n";
+                    }
                 }
             }
         } // credential list exists, after base64-decoding.
@@ -4111,10 +4072,10 @@ bool OTClient::processServerReplyProcessInbox(const Message& theReply,
 
                                         const String strAcctID(ACCOUNT_ID);
                                         const String strServerTransaction(*pServerTransaction);
-                                        
+
                                         if (bIsAsset) {
                                             // pServerItem->GetAmount() contains:  (lAmountSold); // asset
-                                            
+
                                             const String strInstrumentDefinitionID(theTrade.GetInstrumentDefinitionID());
                                             int64_t lAssetsThisTrade = pServerItem->GetAmount();
                                             pData->instrument_definition_id = strInstrumentDefinitionID.Get();

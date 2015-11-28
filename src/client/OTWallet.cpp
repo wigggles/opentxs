@@ -2016,35 +2016,18 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
         //
         OT_ASSERT(theNym.GetMasterCredentialCount() > 0);
 
-        String strNymID, strCredList, strOutput;
-        String::Map mapCredFiles;
-
+        String strNymID;
         theNym.GetIdentifier(strNymID);
-        theNym.GetPrivateCredentials(strCredList, &mapCredFiles);
 
-        String strFilename;
-        strFilename.Format("%s.cred", strNymID.Get());
-
-        OTASCIIArmor ascArmor(strCredList);
-        if (ascArmor.Exists() &&
-            ascArmor.WriteArmoredString(
-                strOutput,
-                "CREDENTIAL LIST") && // bEscaped=false by default.
-            strOutput.Exists()) {
-            if (!OTDB::StorePlainString(strOutput.Get(),
-                                        OTFolders::Credential().Get(),
-                                        strNymID.Get(), strFilename.Get())) {
-                otErr << __FUNCTION__ << ": Failure trying to store "
-                      << (theNym.HasPrivateKey() ? "private" : "public")
-                      << " credential list for Nym: " << strNymID << "\n";
-                return false;
-            }
-        }
-
-        bConverted = true;
+        bConverted = theNym.WriteCredentials();
 
         if (bConverted) {
             m_setNymsOnCachedKey.insert(theNym.GetConstID());
+        } else {
+            otErr << __FUNCTION__ << ": Failure trying to store "
+            << (theNym.HasPrivateKey() ? "private" : "public")
+            << " credential list for Nym: " << strNymID << "\n";
+            return false;
         }
 
         return bConverted;
