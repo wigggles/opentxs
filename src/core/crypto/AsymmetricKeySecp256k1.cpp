@@ -50,7 +50,12 @@ namespace opentxs
 {
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1()
-    : OTAsymmetricKey(OTAsymmetricKey::SECP256K1)
+    : OTAsymmetricKey(OTAsymmetricKey::SECP256K1, proto::KEYROLE_ERROR)
+{
+}
+
+AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::KeyRole role)
+: OTAsymmetricKey(OTAsymmetricKey::SECP256K1, role)
 {
 }
 

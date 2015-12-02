@@ -131,6 +131,7 @@ public:
     virtual serializedAsymmetricKey Serialize() const;
 protected: // CONSTRUCTOR
     OTAsymmetricKey_OpenSSL();
+    OTAsymmetricKey_OpenSSL(const proto::KeyRole role);
 
 public: // DERSTRUCTION
     virtual ~OTAsymmetricKey_OpenSSL();

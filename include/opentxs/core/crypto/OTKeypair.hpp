@@ -105,7 +105,9 @@ public:
         listOfAsymmetricKeys& listOutput, // inclusive means, return keys when
                                           // theSignature has no metadata.
         const OTSignature& theSignature, bool bInclusive = false) const;
-    EXPORT OTKeypair(const NymParameters& nymParameters);
+    EXPORT OTKeypair(
+        const NymParameters& nymParameters,
+        const proto::KeyRole role = proto::KEYROLE_ERROR);
     EXPORT OTKeypair(
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey);

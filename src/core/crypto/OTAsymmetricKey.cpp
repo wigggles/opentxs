@@ -63,7 +63,9 @@ namespace opentxs
 {
 
 // static
-OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType)
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
+        const KeyType keyType,
+        const proto::KeyRole role)
 {
     OTAsymmetricKey* pKey = nullptr;
     String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
@@ -136,12 +138,13 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String
 }
 
 // static
-OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const NymParameters& nymParameters) // Caller IS responsible to
-                                                                                         // delete!
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
+    const NymParameters& nymParameters,
+    const proto::KeyRole role) // Caller IS responsible to delete!
 {
     OTAsymmetricKey::KeyType keyType = nymParameters.AsymmetricKeyType();
 
-    return KeyFactory(keyType);
+    return KeyFactory(keyType, role);
 }
 
 OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const proto::AsymmetricKey& serializedKey) // Caller IS responsible to
@@ -793,16 +796,21 @@ OTAsymmetricKey::OTAsymmetricKey()
 {
 }
 
-OTAsymmetricKey::OTAsymmetricKey(const KeyType keyType)
-    : m_keyType(keyType)
-    , m_bIsPublicKey(false)
-    , m_bIsPrivateKey(false)
-    , m_pMetadata(new OTSignatureMetadata)
+OTAsymmetricKey::OTAsymmetricKey(
+    const KeyType keyType,
+    const proto::KeyRole role)
+        : m_keyType(keyType)
+        , role_(role)
+        , m_bIsPublicKey(false)
+        , m_bIsPrivateKey(false)
+        , m_pMetadata(new OTSignatureMetadata)
 {
 }
 
 OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
-    : OTAsymmetricKey(static_cast<OTAsymmetricKey::KeyType>(serializedKey.type()))
+    : OTAsymmetricKey(
+        static_cast<OTAsymmetricKey::KeyType>(serializedKey.type()),
+        serializedKey.role())
 {
     if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
         SetAsPublic();
@@ -1005,9 +1013,32 @@ serializedAsymmetricKey OTAsymmetricKey::Serialize() const
     serializedAsymmetricKey serializedKey = std::make_shared<proto::AsymmetricKey>();
 
     serializedKey->set_version(1);
+    serializedKey->set_role(role_);
     serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(m_keyType));
 
     return serializedKey;
+}
+
+OTData OTAsymmetricKey::SerializeKeyToData(const proto::AsymmetricKey& serializedKey) const
+{
+    int size = serializedKey.ByteSize();
+    char* protoArray = new char [size];
+    serializedKey.SerializeToArray(protoArray, size);
+
+    OTData serializedData(protoArray, size);
+    delete[] protoArray;
+
+    return serializedData;
+}
+
+bool OTAsymmetricKey::operator==(const proto::AsymmetricKey& rhs) const
+{
+    serializedAsymmetricKey tempKey = Serialize();
+
+    OTData LHData = SerializeKeyToData(*tempKey);
+    OTData RHData = SerializeKeyToData(rhs);
+
+    return (LHData == RHData);
 }
 
 } // namespace opentxs

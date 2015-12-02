@@ -132,13 +132,6 @@ void Credential::SetMasterCredID(const String& strMasterCredID)
     m_strMasterCredID = strMasterCredID;
 }
 
-void Credential::SetNymIDandSource(const String& strNymID,
-                                        const String& strSourceForNymID)
-{
-    m_strNymID = strNymID;
-    m_strSourceForNymID = strSourceForNymID;
-}
-
 // VERIFICATION
 
 // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
@@ -146,23 +139,7 @@ void Credential::SetNymIDandSource(const String& strNymID,
 bool Credential::VerifyNymID() const
 {
 
-    // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
-    //
-    Identifier theTempID;
-    const bool bCalculate = theTempID.CalculateDigest(m_pOwner->GetSourceForNymID());
-    OT_ASSERT(bCalculate);
-
-    const String strNymID(theTempID);
-    if (!m_strNymID.Compare(strNymID)) {
-        otOut << __FUNCTION__
-              << ": Failure: When the NymID's source is hashed, the result "
-                 "doesn't match the expected NymID.\n"
-                 "Expected: " << m_strNymID << "\n   Found: " << strNymID
-              << "\n  Source: " << m_strSourceForNymID << "\n";
-        return false;
-    }
-
-    return true;
+    return (m_strNymID == m_pOwner->GetNymID());
 }
 
 // Call VerifyNymID. Then verify m_strMasterCredID against the hash of
@@ -460,11 +437,11 @@ bool Credential::SaveContract()
     return serialized;
 }
 
-serializedSignature Credential::GetSelfSignature(bool privateVersion) const
+serializedSignature Credential::GetSelfSignature(CredentialModeFlag version) const
 {
     proto::SignatureRole targetRole;
 
-    if (privateVersion) {
+    if (Credential::PRIVATE_VERSION == version) {
         targetRole = proto::SIGROLE_PRIVCREDENTIAL;
     } else {
         targetRole = proto::SIGROLE_PUBCREDENTIAL;
@@ -527,7 +504,7 @@ bool Credential::isPrivate() const
 
 bool Credential::isPublic() const
 {
-    if (proto::KEYMODE_PRIVATE == m_mode) {
+    if (proto::KEYMODE_PUBLIC == m_mode) {
 
         return true;
     }

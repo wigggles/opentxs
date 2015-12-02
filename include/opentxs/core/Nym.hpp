@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_OTPSEUDONYM_HPP
 
 #include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/NymIDSource.hpp>
 #include "crypto/OTASCIIArmor.hpp"
 #include "Identifier.hpp"
 
@@ -72,6 +73,7 @@ typedef std::map<std::string, dequeOfTransNums*> mapOfTransNums;
 typedef std::map<std::string, Identifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
+typedef proto::CredentialIndex serializedCredentialIndex;
 
 class Nym
 {
@@ -96,7 +98,8 @@ private:
     String m_strVersion;    // This goes with the Nymfile
     OTASCIIArmor m_ascCert; // Just the ascii-armor portion without BEGIN and
                             // END
-    String m_strSourceForNymID; // Hash this to form the NymID. Can be a
+    std::shared_ptr<NymIDSource> source_; // Hash this to form the NymID. Can
+                                          // be a
                                 // public key, or a URL, or DN info from a
                                 // cert, etc.
     String m_strAltLocation; // If the Nym's credential IDs cannot be directly
@@ -200,11 +203,12 @@ private:
     // (SERVER side.)
     int64_t m_lUsageCredits; // Server-side. The usage credits available for
                              // this Nym. Infinite if negative.
-    mapOfCredentialSets m_mapCredentialSets; // The credentials for this Nym. (Each
-                                          // with a master key credential and various
-                                          // child credentials.)
-    mapOfCredentialSets m_mapRevokedSets; // We keep track of old master credentials
-                                      // after they are revoked.
+    mapOfCredentialSets m_mapCredentialSets; // The credentials for this Nym.
+                                             // (Each with a master key
+                                             // credential and various
+                                             // child credentials.)
+    mapOfCredentialSets m_mapRevokedSets; // We keep track of old master
+                                          // credentials after they are revoked.
     String::List m_listRevokedIDs; // std::string list, any revoked Credential
                                    // IDs. (Mainly for child credentials)
 public:
@@ -223,19 +227,12 @@ public:
     // that URL. (Containing only
     // the valid IDs, not the
     // revoked ones.)
-    EXPORT bool AddNewMasterCredential(
-        String& strOutputMasterCredID, // The new ID, upon success, is
-                                       // returned here.
-        const NymParameters& nymParameters,
-        const OTPasswordData* pPWData = nullptr,
-        bool bChangeNymID = false); // If nullptr, it uses the
-                                    // Nym's (presumed) existing pubkey
-                                    // as the source.
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT CredentialSet* GetMasterCredential(const String& strID);
     EXPORT CredentialSet* GetRevokedCredential(const String& strID);
-    EXPORT const CredentialSet* GetMasterCredentialByIndex(int32_t nIndex) const;
+    EXPORT const CredentialSet* GetMasterCredentialByIndex(int32_t nIndex)
+const;
     EXPORT const CredentialSet* GetRevokedCredentialByIndex(
         int32_t nIndex) const;
     EXPORT const Credential* GetChildCredential(
@@ -343,10 +340,6 @@ public:
     EXPORT void ReleaseTransactionNumbers();
     EXPORT bool VerifyPseudonym() const;
 
-    // Use this to actually generate a new key pair and assorted nym files.
-    //
-    EXPORT bool GenerateNym(const NymParameters& pKeyData, bool bCreateFile = true);
-
     // Some messages require "transaction agreement" as opposed to "balance
     // agreement."
     // That is, cases where only transactions change and not balances.
@@ -383,11 +376,19 @@ public:
                                     // 'E' (encryption key)
                                     // or 'A'
                                     // (authentication key)
+private:
     EXPORT bool SaveCredentialIDs() const;
-    EXPORT void SaveCredentialIDsToString(String& strOutput) const;
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
                                      String::Map* pmapPriInfo = nullptr) const;
+    serializedCredentialIndex SerializeCredentialIndex() const;
+    OTData CredentialIndexAsData() const;
+    String CredentialIndexAsString() const;
+    bool LoadCredentialIndex(String& armoredIndex);
+    static serializedCredentialIndex ExtractArmoredCredentialIndex(const String& StringIndex);
+    static serializedCredentialIndex ExtractArmoredCredentialIndex(const OTASCIIArmor& armoredIndex);
+
+public:
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
                                                            // credentials by
                                 // default. For private, pass true.
@@ -426,7 +427,7 @@ public:
                                                                   // function.
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
     EXPORT bool SavePseudonym(); // saves to filename m_strNymfile
-protected: // Use SaveSignedNymfile if you want to save the Nym to local storage.
+protected:
     EXPORT bool SavePseudonym(const char* szFoldername, const char* szFilename);
 public:
     EXPORT bool SavePseudonym(String& strNym);
@@ -436,9 +437,9 @@ public:
     }
 
     EXPORT bool CompareID(const Nym& RHS) const;
-    EXPORT const String& GetNymIDSource() const
+    EXPORT const NymIDSource& Source() const
     {
-        return m_strSourceForNymID;
+        return *source_;
     } // Source for NymID for this credential. (Hash it to get ID.)
     EXPORT const String& GetAltLocation() const
     {
@@ -446,16 +447,19 @@ public:
     } // Alternate download location for Nym's credential IDs. (Primary location
       // being the source itself, but sometimes that's not feasible.)
 
-    EXPORT void SetNymIDSource(const String& strSource)
+    EXPORT void SetSource(const NymIDSource& source)
     {
-        m_strSourceForNymID = strSource;
+        std::shared_ptr<NymIDSource> pSource =
+        std::make_shared<NymIDSource>(source);
+        source_ = pSource;
     }
     EXPORT void SetAltLocation(const String& strLocation)
     {
         m_strAltLocation = strLocation;
     }
-
+private:
     EXPORT void SerializeNymIDSource(Tag& parent) const;
+public:
     EXPORT const Identifier& GetConstID() const
     {
         return m_nymID;

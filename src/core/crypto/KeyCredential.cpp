@@ -72,7 +72,7 @@
 namespace opentxs
 {
 
-bool KeyCredential::VerifySignedBySelf()
+bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
@@ -282,9 +282,9 @@ KeyCredential::KeyCredential(CredentialSet& theOwner, const proto::Credential& s
 KeyCredential::KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : ot_super(theOwner, nymParameters)
 {
-    m_AuthentKey =  std::make_shared<OTKeypair>(nymParameters);
-    m_EncryptKey =  std::make_shared<OTKeypair>(nymParameters);
-    m_SigningKey =  std::make_shared<OTKeypair>(nymParameters);
+    m_AuthentKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_AUTH);
+    m_EncryptKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_ENCRYPT);
+    m_SigningKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
 }
 
 KeyCredential::~KeyCredential()

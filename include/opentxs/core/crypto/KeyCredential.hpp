@@ -175,7 +175,7 @@ public:
                                      // m_pOwner->m_MasterCredential (the master
                                      // credential.) Then verify the
                                      // (self-signed) signature on *this.
-    bool VerifySignedBySelf();
+    bool VerifySignedBySelf() const;
     bool Sign(Contract& theContract, const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,

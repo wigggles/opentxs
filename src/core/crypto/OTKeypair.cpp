@@ -99,9 +99,11 @@
 
 namespace opentxs
 {
-OTKeypair::OTKeypair(const NymParameters& nymParameters)
-    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(nymParameters))
-    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(nymParameters))
+OTKeypair::OTKeypair(
+    const NymParameters& nymParameters,
+    const proto::KeyRole role)
+    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(nymParameters, role))
+    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(nymParameters, role))
 {
     MakeNewKeypair(nymParameters);
 }
@@ -160,11 +162,16 @@ const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 
 bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters)
 {
-    m_pkeyPrivate.reset(OTAsymmetricKey::KeyFactory(nymParameters));
-    m_pkeyPublic.reset(OTAsymmetricKey::KeyFactory(nymParameters));
-
-    OT_ASSERT(m_pkeyPrivate);
-    OT_ASSERT(m_pkeyPublic);
+    if(!m_pkeyPrivate) {
+        m_pkeyPrivate.reset(OTAsymmetricKey::KeyFactory(
+                                                        nymParameters,
+                                                        proto::KEYROLE_ERROR));
+    }
+    if(!m_pkeyPublic) {
+        m_pkeyPublic.reset(OTAsymmetricKey::KeyFactory(
+            nymParameters,
+            proto::KEYROLE_ERROR));
+    }
 
     LowLevelKeyGenerator lowLevelKeys(nymParameters);
 

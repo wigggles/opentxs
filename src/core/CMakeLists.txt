@@ -85,6 +85,7 @@ set(cxx-sources
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
+  NymIDSource.cpp
 )
 
 file(GLOB cxx-headers

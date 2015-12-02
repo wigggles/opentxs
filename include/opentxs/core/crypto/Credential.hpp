@@ -84,12 +84,16 @@ class Tag;
 //
 
 typedef std::shared_ptr<proto::Credential> serializedCredential;
+typedef bool CredentialModeFlag;
 typedef bool SerializationModeFlag;
 typedef bool SerializationSignatureFlag;
 
 class Credential : public Contract
 {
 public:
+
+    static const CredentialModeFlag PRIVATE_VERSION = true;
+    static const CredentialModeFlag PUBLIC_VERSION = false;
 
     static const SerializationModeFlag AS_PRIVATE = true;
     static const SerializationModeFlag AS_PUBLIC = false;
@@ -135,9 +139,6 @@ protected:
                               // master credential.
     String m_strNymID;        // All credentials within the same CredentialSet
                               // (including m_MasterCredential) must have
-    String m_strSourceForNymID;   // the same NymID and source.
-    void SetNymIDandSource(const String& strNymID,
-                           const String& strSourceForNymID);
     void SetMasterCredID(const String& strMasterCredID); // Used in all
                                                          // subclasses except
                                                          // MasterCredential. (It
@@ -159,9 +160,9 @@ protected:
     virtual serializedCredential SerializeForPrivateSignature() const;
     virtual serializedCredential SerializeForIdentifier() const;
     OTData SerializeCredToData(const proto::Credential& serializedCred) const;
-    serializedSignature GetSelfSignature(bool privateVersion = false) const;
 
 public:
+    serializedSignature GetSelfSignature(CredentialModeFlag version = PUBLIC_VERSION) const;
     EXPORT virtual bool LoadContractFromString(const String& theStr);
 
     static serializedCredential ExtractArmoredCredential(const String stringCredential);
@@ -177,10 +178,6 @@ public:
     {
         return m_strNymID;
     } // NymID for this credential.
-    const String& GetNymIDSource() const
-    {
-        return m_strSourceForNymID;
-    } // Source for NymID for this credential. (Hash it to get ID.)
 
     std::string AsString(const bool asPrivate = false) const;
 

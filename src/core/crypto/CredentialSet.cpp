@@ -75,16 +75,6 @@
 #include <memory>
 #include <algorithm>
 
-// '0' for cKeyType means, theSignature MUST have metadata in order for ANY keys
-// to be returned, and it MUST match.
-// Whereas if you pass 'A', 'E', or 'S' for cKeyType, that means it can ONLY
-// return authentication, encryption, or signing
-// keys. It also means that metadata must match IF it's present, but that
-// otherwise, if theSignature has no metadata at
-// all, then it will still be a "presumed match" and returned as a possibility.
-// (With the 'A', 'E', or 'S' enforced.)
-//
-
 namespace opentxs
 {
 
@@ -98,6 +88,13 @@ bool CredentialSet::HasPublic() const
         bool isPublic = pSub->isPublic();
 
         if (isPublic) {
+            return true;
+        }
+
+        // A private credential is by definition a public one as well.
+        bool isPrivate = pSub->isPrivate();
+
+        if (isPrivate) {
             return true;
         }
     }
@@ -226,32 +223,20 @@ const String& CredentialSet::GetNymID() const
     return m_strNymID;
 }
 
-const String& CredentialSet::GetSourceForNymID() const
+const NymIDSource& CredentialSet::Source() const
 {
-    return m_strSourceForNymID;
+    return *nym_id_source_;
 }
 
-/// This sets m_strSourceForNymID.
-/// This also sets m_strNymID, which is always a hash of strSourceForNymID.
-///
-void CredentialSet::SetSourceForNymID(const String& strSourceForNymID)
+/// This sets nym_id_source_.
+/// This also sets m_strNymID.
+void CredentialSet::SetSource(const std::shared_ptr<NymIDSource>& source)
 {
-    m_strSourceForNymID = strSourceForNymID;
+    nym_id_source_ = source;
 
-    //  Now re-calculate the NymID...
-    //
     m_strNymID.Release();
-    Identifier theTempID;
-    const bool bCalculate = theTempID.CalculateDigest(m_strSourceForNymID);
-    OT_ASSERT(bCalculate);
-    theTempID.GetString(m_strNymID);
-    OT_ASSERT(m_MasterCredential)
-    m_MasterCredential->SetNymIDandSource(
-        m_strNymID, m_strSourceForNymID); // The key in here must somehow verify
-                                          // against its own source.
 
-    // Success! By this point, m_strSourceForNymID and m_strNymID
-    // are both set.
+    m_strNymID = nym_id_source_->NymID();
 }
 
 const serializedCredential CredentialSet::GetSerializedPubCredential() const
@@ -265,18 +250,29 @@ CredentialSet::CredentialSet()
 {
 }
 
+CredentialSet::CredentialSet(const proto::CredentialSet& serializedCredentialSet)
+{
+    version_ = serializedCredentialSet.version();
+    m_strNymID = serializedCredentialSet.nymid();
+    Load_Master(
+        serializedCredentialSet.nymid(),
+        serializedCredentialSet.masterid());
+
+    for (auto& it: serializedCredentialSet.activechildren()) {
+        LoadChildKeyCredential(it);
+    }
+}
+
 CredentialSet::CredentialSet(
     const NymParameters& nymParameters,
     const OTPasswordData* pPWData)
 {
     m_MasterCredential.reset(new MasterCredential(*this, nymParameters));
     OT_ASSERT(m_MasterCredential)
-    SetSourceForNymID(m_MasterCredential->GetNymIDSource()); // This also recalculates and sets  ** m_strNymID **
 
-    m_strNymID = m_MasterCredential->GetNymID();
-    m_strSourceForNymID = m_MasterCredential->GetNymIDSource();
-
-    ChildKeyCredential* newChildCredential = new ChildKeyCredential(*this, nymParameters);
+    ChildKeyCredential* newChildCredential = new ChildKeyCredential(
+                                                                *this,
+                                                                nymParameters);
     OT_ASSERT(nullptr != newChildCredential);
 
     String strChildCredID;
@@ -307,7 +303,6 @@ CredentialSet* CredentialSet::LoadMaster(
     const String& strNymID, // Caller is responsible to delete, in both
                             // CreateMaster and LoadMaster.
     const String& strMasterCredID,
-    const Credential::CredentialType theType,
     const OTPasswordData* pPWData)
 {
     CredentialSet* pCredential = new CredentialSet;
@@ -316,7 +311,7 @@ CredentialSet* CredentialSet::LoadMaster(
 
     OTPasswordData thePWData("Loading master credential. (static 1.)");
     const bool bLoaded = pCredential->Load_Master(
-        strNymID, strMasterCredID, theType, (nullptr == pPWData) ? &thePWData : pPWData);
+        strNymID, strMasterCredID, (nullptr == pPWData) ? &thePWData : pPWData);
     if (!bLoaded) {
         otErr << __FUNCTION__ << ": Failed trying to load master credential "
                                  "from local storage. 1\n";
@@ -473,9 +468,6 @@ bool CredentialSet::Load_MasterFromString(const String& strInput,
                                 // m_MasterCredential->LoadContractFromString (which
                                 // references it.)
 
-    m_strNymID = m_MasterCredential->GetNymID();
-    m_strSourceForNymID = m_MasterCredential->GetNymIDSource();
-
     ClearChildCredentials(); // The master is loaded first, and then any
                            // child credentials. So this is probably already
                            // empty. Just looking ahead.
@@ -485,7 +477,6 @@ bool CredentialSet::Load_MasterFromString(const String& strInput,
 
 bool CredentialSet::Load_Master(const String& strNymID,
                                const String& strMasterCredID,
-                               const Credential::CredentialType theType,
                                const OTPasswordData* pPWData)
 {
 
@@ -537,7 +528,6 @@ bool CredentialSet::Load_Master(const String& strNymID,
         return false;
     }
 
-    SetSourceForNymID(m_MasterCredential->GetNymIDSource());
     return true;
 }
 
@@ -579,7 +569,7 @@ bool CredentialSet::LoadChildKeyCredentialFromString(const String& strInput,
     return true;
 }
 
-bool CredentialSet::LoadChildKeyCredential(const String& strSubID, const Credential::CredentialType theType)
+bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
 {
 
     OT_ASSERT(GetNymID().Exists());
@@ -1037,6 +1027,25 @@ bool CredentialSet::WriteCredentials() const
     }
 
     return true;
+}
+
+SerializedCredentialSet CredentialSet::Serialize() const
+{
+    SerializedCredentialSet credSet = std::make_shared<proto::CredentialSet>();
+
+    credSet->set_version(1);
+    credSet->set_nymid(m_strNymID.Get());
+    credSet->set_masterid(GetMasterCredID().Get());
+
+    for (auto& it: m_mapCredentials) {
+        credSet->add_activechildren(it.first);
+    }
+    //FIXME this list is always empty, because revocation isn't implemented
+    for (auto& it: m_mapRevokedCredentials) {
+        credSet->add_revokedchildren(it.first);
+    }
+
+    return credSet;
 }
 
 } // namespace opentxs

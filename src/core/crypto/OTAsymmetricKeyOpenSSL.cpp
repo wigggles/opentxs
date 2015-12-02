@@ -72,7 +72,19 @@ namespace opentxs
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
-    : OTAsymmetricKey(OTAsymmetricKey::LEGACY)
+    : OTAsymmetricKey(OTAsymmetricKey::LEGACY, proto::KEYROLE_ERROR)
+    , m_p_ascKey(nullptr)
+    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    {
+
+    dp->backlink = this;
+
+    dp->m_pX509 = nullptr;
+    dp->m_pKey = nullptr;
+}
+
+OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::KeyRole role)
+    : OTAsymmetricKey(OTAsymmetricKey::LEGACY, role)
     , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
     {
@@ -85,7 +97,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& serializedKey)
     : OTAsymmetricKey(serializedKey)
-    , m_p_ascKey(nullptr)
+    , m_p_ascKey(new OTASCIIArmor)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
     {
 

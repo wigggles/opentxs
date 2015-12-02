@@ -126,249 +126,18 @@ bool MasterCredential::VerifyInternally()
     return true;
 }
 
-// Should actually curl the URL, or lookup the blockchain value, or verify Cert
-// against
-// Cert Authority, etc. Due to the network slowdown of this step, we will
-// eventually make
-// a separate identity verification server.
-//
 bool MasterCredential::VerifyAgainstSource() const
 {
-    // RULE: *Any* source except for a public key, will begin with a
-    // protocol specifier. Such as:
-    //
-    // http:        (a normal URL)
-    // https:       (a normal URL on https)
-    // bitcoin:     (a bitcoin address)
-    // namecoin:    (a namecoin address)
-    // i2p:         (an i2p address)
-    // tor:         (a tor address)
-    // freenet:     (a freenet address)
-    // cert:        (Subject and Issuer DN from the cert)
-    //
-    // If NO protocol specifier is found, the source is assumed
-    // to be a public key.
-    // Public key is the default because that's the original behavior
-    // of OT anyway: the public key was hashed to form the NymID. We will
-    // continue to support this as a default, but now we are additionally
-    // also allowing other sources such as Namecoin, Freenet, etc. As int64_t
-    // as a Nym's source hashes to its correct ID, and as long as its master
-    // credentials can be verified from that same source, then all master
-    // credentials can be verified (as well as child credentials) from any source
-    // the user prefers.
-    //
-
-    bool bVerified = false;
-
-    const std::string str_raw_source(m_strSourceForNymID.Get());
-    std::string str_source;
-
-    // It's a URL.
-    if (str_raw_source.compare(0, 5, "http:") == 0) {
-        str_source.insert(str_source.begin(), str_raw_source.begin() + 5,
-                          str_raw_source.end());
-        bVerified = VerifySource_HTTP(str_source.c_str());
-    }
-    else if (str_raw_source.compare(0, 6, "https:") == 0) {
-        str_source.insert(str_source.begin(), str_raw_source.begin() + 6,
-                          str_raw_source.end());
-        bVerified = VerifySource_HTTPS(str_source.c_str());
-    }
-    // It's a Bitcoin address.
-    else if (str_raw_source.compare(0, 8, "bitcoin:") == 0) {
-        str_source.insert(str_source.begin(), str_raw_source.begin() + 8,
-                          str_raw_source.end());
-        bVerified = VerifySource_Bitcoin(str_source.c_str());
-    }
-    // It's a Namecoin address.
-    else if (str_raw_source.compare(0, 9, "namecoin:") == 0) {
-        str_source.insert(str_source.begin(), str_raw_source.begin() + 9,
-                          str_raw_source.end());
-        bVerified = VerifySource_Namecoin(str_source.c_str());
-    }
-    // It's a Freenet URL.
-    else if (str_raw_source.compare(0, 8, "freenet:") == 0) {
-        str_source.insert(str_source.begin(), str_raw_source.begin() + 8,
-                          str_raw_source.end());
-        bVerified = VerifySource_Freenet(str_source.c_str());
-    }
-    // It's a Tor URL.
-    else if (str_raw_source.compare(0, 4, "tor:") == 0) {
-        str_source.insert(str_source.begin(), str_raw_source.begin() + 4,
-                          str_raw_source.end());
-        bVerified = VerifySource_TOR(str_source.c_str());
-    }
-    // It's an I2P URL.
-    else if (str_raw_source.compare(0, 4, "i2p:") == 0) {
-        str_source.insert(str_source.begin(), str_raw_source.begin() + 4,
-                          str_raw_source.end());
-        bVerified = VerifySource_I2P(str_source.c_str());
-    }
-    // It's the Issuer/Subject DN info from a cert issued by a traditional
-    // certificate authority.
-    else if (str_raw_source.compare(0, 5, "cert:") == 0) {
-        str_source.insert(str_source.begin(), str_raw_source.begin() + 5,
-                          str_raw_source.end());
-        bVerified = VerifySource_CA(str_source.c_str());
-    }
-    else // It's presumably a public key.
-    {
-        str_source = str_raw_source;
-        bVerified = VerifySource_Pubkey(str_source.c_str());
-    }
-
-    return bVerified;
+    return m_pOwner->Source().Verify(*this);
 }
 
-bool MasterCredential::VerifySource_HTTP(const String) const
-{
-    /*
-     The source is a URL, http://blah.com/folder
-     If I download files from there, will I find my own master credential inside?
-     If so, then I verify.
-     */
-
-    otErr << __FUNCTION__ << ": Failure: this function has not yet been "
-                             "written, so this HTTP source cannot be "
-                             "verified.\n";
-    //    return false;
-
-    // Todo security
-    otErr << "\nNOTE: Returning TRUE for TESTING PURPOSES, as if HTTP source "
-             "had verified."
-             "\n\n\n ----------------------- \n\n";
-
-    return true;
-}
-
-bool MasterCredential::VerifySource_HTTPS(const String) const
-{
-    /*
-     The source is a URL, https://blah.com/folder
-     If I download files from there, will I find my own master credential inside?
-     If so, then I verify.
-     */
-
-    otErr << __FUNCTION__ << ": Failure: this function has not yet been "
-                             "written, so this HTTPS source cannot be "
-                             "verified.\n";
-    //    return false;
-
-    // Todo security
-    otErr << "\nNOTE: Returning TRUE for TESTING PURPOSES, as if HTTPS source "
-             "had verified."
-             "\n\n\n ----------------------- \n\n";
-
-    return true;
-}
-
-bool MasterCredential::VerifySource_Bitcoin(const String) const
-{
-    /*
-     The source is a Bitcoin address
-     The last transfer from that address should have memo data with the hash of
-     the master credential.
-     I compare that to my own ID and they should match.
-     Alternately, to support multiple master credentials, have the last transfer
-     go to multiple addresses,
-     and each should have a memo with the master cred ID for each credential,
-     one of which should match my own.
-     If so, then I verify.
-     */
-
-    otErr << __FUNCTION__ << ": Failure: this function has not yet been "
-                             "written, so this Bitcoin source cannot be "
-                             "verified.\n";
-    //    return false;
-
-    // Todo security
-    otErr << "\nNOTE: Returning TRUE for TESTING PURPOSES, as if Bitcoin had "
-             "verified."
-             "\n\n\n ----------------------- \n\n";
-
-    return true;
-}
-
-bool MasterCredential::VerifySource_Namecoin(const String) const
-{
-    /*
-     The source is a URL, http://blah.bit/folder
-     If I download files from there, will I find my own master credential inside?
-     If so, then I verify.
-     */
-
-    otErr << __FUNCTION__ << ": Failure: this function has not yet been "
-                             "written, so this Namecoin source cannot be "
-                             "verified.\n";
-    //    return false;
-
-    // Todo security
-    otErr << "\nNOTE: Returning TRUE for TESTING PURPOSES, as if Namecoin had "
-             "verified."
-             "\n\n\n ----------------------- \n\n";
-
-    return true;
-}
-
-bool MasterCredential::VerifySource_Freenet(const String) const
-{
-    otErr << __FUNCTION__ << ": Failure: this function has not yet been "
-                             "written, so this Freenet source cannot be "
-                             "verified.\n";
-    return false;
-}
-
-bool MasterCredential::VerifySource_TOR(const String) const
-{
-    otErr << __FUNCTION__ << ": Failure: this function has not yet been "
-                             "written, so this Tor source cannot be "
-                             "verified.\n";
-    return false;
-}
-
-bool MasterCredential::VerifySource_I2P(const String) const
-{
-    otErr << __FUNCTION__ << ": Failure: this function has not yet been "
-                             "written, so this I2P source cannot be "
-                             "verified.\n";
-    return false;
-}
-
-bool MasterCredential::VerifySource_CA(const String) const
-{
-
-    /*
-     The Source is the DN info on the Cert.
-     Therefore look at the Cert being used in this master credential.
-     Does it have the same DN info? Does it verify through its CA ?
-     Then it verifies.
-     */
-
-    otErr << __FUNCTION__ << ": Failure: this function has not yet been "
-                             "written, so this CA source cannot be verified.\n";
-    return false;
-}
-
-bool MasterCredential::VerifySource_Pubkey(const String) const
-{
-    // Verify signed by self.
-    //
-    // Note: Whenever VerifyAgainstSource is called, VerifyInternally is also
-    // called.
-    // And VerifyInternally, for all KeyCredentials, verifies already that the
-    // credential has been signed by its own private signing key.
-    // Since the credential is already verified as having signed itself, there's
-    // no
-    // reason to verify that redundantly here, so we just return true.
-    //
-    return true;
-}
-
-MasterCredential::MasterCredential(CredentialSet& theOwner, const String& stringCred)
+MasterCredential::MasterCredential(CredentialSet& theOwner, const String&
+stringCred)
     : MasterCredential(theOwner, *Credential::ExtractArmoredCredential(stringCred))
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
     m_Role = proto::CREDROLE_MASTERKEY;
+
 }
 
 MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
@@ -377,7 +146,11 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credent
     m_strContractType = "MASTER KEY CREDENTIAL";
     m_Role = proto::CREDROLE_MASTERKEY;
 
-    m_strSourceForNymID = serializedCred.publiccredential().masterdata().source().raw();
+    std::shared_ptr<NymIDSource> source = std::make_shared<NymIDSource>(
+serializedCred.publiccredential().masterdata().source());
+
+    m_pOwner->SetSource(source);
+    source_proof_.reset(new proto::SourceProof(serializedCred.publiccredential().masterdata().sourceproof()));
 }
 
 MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
@@ -386,25 +159,36 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
     m_strContractType = "MASTER KEY CREDENTIAL";
     m_Role = proto::CREDROLE_MASTERKEY;
 
-    String sourceForNymID;
+    std::shared_ptr<NymIDSource> source;
 
-    if (0 < nymParameters.Source().size()) {
-        sourceForNymID = nymParameters.Source();
+    std::unique_ptr<proto::SourceProof> sourceProof;
+    sourceProof.reset(new proto::SourceProof);
+
+    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
+      nymParameters.SourceProofType())  {
+        source = std::make_shared<NymIDSource>(
+            nymParameters,
+            *(m_SigningKey->GetPublicKey().Serialize()));
+        sourceProof->set_version(1);
+        sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
+
     }
     else {
-        m_SigningKey->GetPublicKey(sourceForNymID);
+        // FIXME this master credential will be invalid.
+        // VerifyInternally() will catch the error.
+        // Need to implement non-self signed credentials for real though.
     }
 
-    Identifier nymID;
-    nymID.CalculateDigest(sourceForNymID);
+    source_proof_.reset(sourceProof.release());
+    m_pOwner->SetSource(source);
+    String nymID = m_pOwner->GetNymID();
 
-    SetNymIDandSource(nymID, sourceForNymID);
+    m_strNymID = nymID;
 
     Identifier masterID;
     CalculateAndSetContractID(masterID);
 
     SelfSign();
-    VerifySignedBySelf();
 
     String credID(masterID), nym(nymID);
 
@@ -426,17 +210,9 @@ serializedCredential MasterCredential::Serialize(bool asPrivate, bool asSigned) 
         this->ot_super::Serialize(asPrivate, asSigned);
 
     proto::MasterCredentialParameters* parameters = new proto::MasterCredentialParameters;
-    proto::nymIDSource* source = new proto::nymIDSource;
-
-    std::string* legacySource = new std::string;
-    *legacySource = m_strSourceForNymID.Get();
-
-    source->set_version(1);
-    source->set_type(proto::SOURCETYPE_SELF);
-    source->set_allocated_raw(legacySource);
 
     parameters->set_version(1);
-    parameters->set_allocated_source(source);
+    *(parameters->mutable_source()) = *(m_pOwner->Source().Serialize());
 
     // Only the public credential gets MasterCredentialParameters
     if (serializedCredential->has_publiccredential()) {
@@ -446,6 +222,7 @@ serializedCredential MasterCredential::Serialize(bool asPrivate, bool asSigned) 
     }
 
     serializedCredential->set_role(proto::CREDROLE_MASTERKEY);
+    *(serializedCredential->mutable_publiccredential()->mutable_masterdata()->mutable_sourceproof())=*source_proof_;
 
     return serializedCredential;
 }

@@ -95,7 +95,7 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters
     m_strContractType = "KEY CREDENTIAL";
     m_Role = proto::CREDROLE_CHILDKEY;
 
-    SetNymIDandSource(other.GetNymID(), other.GetSourceForNymID());
+    m_strNymID = other.GetNymID();
     SetMasterCredID(other.GetMasterCredID());
 
     Identifier childID;

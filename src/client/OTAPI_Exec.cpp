@@ -480,7 +480,7 @@ bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
 //
 std::string OTAPI_Exec::CreateNymLegacy(
     const int32_t& nKeySize,               // must be 1024, 2048, 4096, or 8192
-    const std::string& NYM_ID_SOURCE,      // Can be empty.
+    __attribute__((unused)) const std::string& NYM_ID_SOURCE,
     const std::string& ALT_LOCATION) const // Can be empty.
 {
     if (0 >= nKeySize) {
@@ -504,7 +504,7 @@ std::string OTAPI_Exec::CreateNymLegacy(
 
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(nKeySize);
-    nymParameters->SetSource(NYM_ID_SOURCE);
+    //nymParameters->SetSource(NYM_ID_SOURCE);
     nymParameters->SetAltLocation(ALT_LOCATION);
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
@@ -521,14 +521,14 @@ std::string OTAPI_Exec::CreateNymLegacy(
 }
 
 std::string OTAPI_Exec::CreateNymECDSA(
-    const std::string& NYM_ID_SOURCE,      // Can be empty.
+    __attribute__((unused)) const std::string& NYM_ID_SOURCE,
     const std::string& ALT_LOCATION) const // Can be empty.
 {
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(
         NymParameters::SECP256K1,
         Credential::SECP256K1);
-    nymParameters->SetSource(NYM_ID_SOURCE);
+    //nymParameters->SetSource(NYM_ID_SOURCE);
     nymParameters->SetAltLocation(ALT_LOCATION);
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
@@ -605,7 +605,7 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     // private.
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
-    const std::string str_return(pNym->GetNymIDSource().Get());
+    const std::string str_return(pNym->Source().asString().Get());
     return str_return;
 }
 

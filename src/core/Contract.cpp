@@ -1886,7 +1886,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
                 std::unique_ptr<Nym> pNym(new Nym);
 
                 pNym->SetIdentifier(strSignerNymID);
-                pNym->SetNymIDSource(theSigner.GetNymIDSource());
+                pNym->SetSource(theSigner.Source());
                 pNym->SetAltLocation(theSigner.GetAltLocation());
 
                 if (!pNym->LoadNymFromString(strCredList, &mapCredFiles)) {
@@ -2000,10 +2000,7 @@ void Contract::CreateInnerContents(Tag& parent)
                 pTag->add_attribute("nymID", strNymID.Get());
                 pTag->add_attribute("altLocation", ascAltLocation.Get());
 
-                if (pNym->GetNymIDSource().Exists()) {
-                    OTASCIIArmor ascNymIDSource(pNym->GetNymIDSource());
-                    pTag->add_tag("nymIDSource", ascNymIDSource.Get());
-                }
+                pTag->add_tag("nymIDSource", pNym->Source().asString().Get());
 
                 // credentialIDs
                 // credentials
@@ -2103,7 +2100,8 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
             xml->getAttributeValue("hasCredentials");
         const OTASCIIArmor ascAltLocation =
             xml->getAttributeValue("altLocation");
-        String strAltLocation, strSignerSource;
+        String strAltLocation;
+        OTASCIIArmor strSignerSource;
 
         if (ascAltLocation.Exists())
             ascAltLocation.GetString(strAltLocation,

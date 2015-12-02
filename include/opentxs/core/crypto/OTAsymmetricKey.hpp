@@ -134,17 +134,21 @@ public:
     virtual CryptoAsymmetric& engine() const = 0;
 
 private:
-    static OTAsymmetricKey* KeyFactory(const KeyType keyType);
+    static OTAsymmetricKey* KeyFactory(
+        const KeyType keyType,
+        const proto::KeyRole role);
 
 protected:
     KeyType m_keyType = ERROR_TYPE;
-    OTAsymmetricKey(const KeyType keyType);
+    proto::KeyRole role_ = proto::KEYROLE_ERROR;
+    OTAsymmetricKey(const KeyType keyType, const proto::KeyRole role);
 
 public:                                           // INSTANTIATION
     EXPORT static OTAsymmetricKey* KeyFactory(const KeyType keyType, const String pubkey);  // Caller IS responsible to
                                                                                             // delete!
-    EXPORT static OTAsymmetricKey* KeyFactory(const NymParameters& nymParameters);  // Caller IS responsible to
-                                                                                    // delete!
+    EXPORT static OTAsymmetricKey* KeyFactory(
+        const NymParameters& nymParameters,
+        const proto::KeyRole role);  // Caller IS responsible to delete!
     EXPORT static OTAsymmetricKey* KeyFactory(const proto::AsymmetricKey& serializedKey);  // Caller IS responsible to
                                                                                            // delete!
 public:
@@ -203,7 +207,9 @@ protected:
     OTAsymmetricKey(const proto::AsymmetricKey& serializedKey);
     EXPORT OTAsymmetricKey();
 
-public: // DESTRUCTION
+public:
+    OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const;
+    bool operator==(const proto::AsymmetricKey&) const;
     EXPORT virtual ~OTAsymmetricKey();
     virtual void Release();
     void Release_AsymmetricKey();

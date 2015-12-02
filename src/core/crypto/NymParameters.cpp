@@ -76,22 +76,12 @@ void NymParameters::setCredentialType(Credential::CredentialType theCredentialty
     credentialType_ = theCredentialtype;
 }
 
-std::string NymParameters::Source() const
-{
-    return source_;
-}
-
-void NymParameters::SetSource(std::string source)
-{
-    source_ = source;
-}
-
-std::string NymParameters::AltLocation() const
+const std::string& NymParameters::AltLocation() const
 {
     return altLocation_;
 }
 
-void NymParameters::SetAltLocation(std::string location)
+void NymParameters::SetAltLocation(const std::string& location)
 {
     altLocation_ = location;
 }
