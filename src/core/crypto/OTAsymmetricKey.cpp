@@ -45,6 +45,7 @@
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
 #include <opentxs/core/OTStorage.hpp>
@@ -1021,14 +1022,7 @@ serializedAsymmetricKey OTAsymmetricKey::Serialize() const
 
 OTData OTAsymmetricKey::SerializeKeyToData(const proto::AsymmetricKey& serializedKey) const
 {
-    int size = serializedKey.ByteSize();
-    char* protoArray = new char [size];
-    serializedKey.SerializeToArray(protoArray, size);
-
-    OTData serializedData(protoArray, size);
-    delete[] protoArray;
-
-    return serializedData;
+    return proto::ProtoAsData<proto::AsymmetricKey>(serializedKey);
 }
 
 bool OTAsymmetricKey::operator==(const proto::AsymmetricKey& rhs) const

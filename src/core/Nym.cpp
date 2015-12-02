@@ -45,6 +45,7 @@
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Message.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignedFile.hpp>
@@ -3119,14 +3120,7 @@ OTData Nym::CredentialIndexAsData() const
 {
     serializedCredentialIndex index = SerializeCredentialIndex();
 
-    int size = index.ByteSize();
-    char* protoArray = new char [size];
-    index.SerializeToArray(protoArray, size);
-
-    OTData serializedData(protoArray, size);
-    delete[] protoArray;
-
-    return serializedData;
+    return proto::ProtoAsData<proto::CredentialIndex>(index);
 }
 
 String Nym::CredentialIndexAsString() const

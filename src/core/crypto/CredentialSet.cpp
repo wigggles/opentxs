@@ -70,7 +70,7 @@
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
 #include <opentxs/core/util/Tag.hpp>
-#include <opentxs-proto/verify/opentxs-verify.hpp>
+#include <opentxs/core/Proto.hpp>
 
 #include <memory>
 #include <algorithm>

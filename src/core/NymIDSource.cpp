@@ -44,6 +44,7 @@
 #include  <opentxs/core/crypto/NymParameters.hpp>
 #include  <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include  <opentxs/core/crypto/OTASCIIArmor.hpp>
+#include  <opentxs/core/Proto.hpp>
 
 namespace opentxs
 {
@@ -73,14 +74,7 @@ OTData NymIDSource::asData() const
 {
     serializedNymIDSource serializedSource = Serialize();
 
-    int size = serializedSource->ByteSize();
-    char* protoArray = new char [size];
-    serializedSource->SerializeToArray(protoArray, size);
-
-    OTData serializedData(protoArray, size);
-    delete[] protoArray;
-
-    return serializedData;
+    return proto::ProtoAsData<proto::NymIDSource>(*serializedSource);
 }
 
 Identifier NymIDSource::NymID() const

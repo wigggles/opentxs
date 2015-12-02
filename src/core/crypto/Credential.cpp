@@ -61,12 +61,12 @@
 // Credentials
 
 #include <opentxs/core/stdafx.hpp>
-#include <opentxs-proto/verify/opentxs-verify.hpp>
 
 #include <opentxs/core/crypto/Credential.hpp>
 
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
@@ -393,13 +393,7 @@ serializedCredential Credential::SerializeForIdentifier() const
 
 OTData Credential::SerializeCredToData(const proto::Credential& serializedCred) const
 {
-    int size = serializedCred.ByteSize();
-    char* protoArray = new char [size];
-    serializedCred.SerializeToArray(protoArray, size);
-
-    OTData serializedData(protoArray, size);
-    delete[] protoArray;
-    return serializedData;
+    return proto::ProtoAsData<proto::Credential>(serializedCred);
 }
 
 bool Credential::SaveContract()
@@ -422,18 +416,11 @@ bool Credential::SaveContract()
 
     OT_ASSERT(validProto);
 
-    int size = serializedProto->ByteSize();
-    char* protoArray = new char [size];
-    bool serialized = serializedProto->SerializeToArray(protoArray, size);
+    OTData serializedData = proto::ProtoAsData<proto::Credential>(*serializedProto);
+    OTASCIIArmor armoredData(serializedData);
+    m_strRawFile.Set(armoredData.Get());
 
-    if (serialized) {
-        OTData serializedData(protoArray, size);
-        OTASCIIArmor armoredData(serializedData);
-        m_strRawFile.Set(armoredData.Get());
-    }
-    delete[] protoArray;
-
-    return serialized;
+    return true;
 }
 
 serializedSignature Credential::GetSelfSignature(CredentialModeFlag version) const
