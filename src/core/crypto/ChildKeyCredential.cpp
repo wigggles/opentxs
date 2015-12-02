@@ -101,11 +101,8 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters
     Identifier childID;
     CalculateAndSetContractID(childID);
 
-    OT_ASSERT(SelfSign());
-    OT_ASSERT(AddMasterSignature());
-
-    OT_ASSERT(VerifySignedBySelf());
-    OT_ASSERT(VerifySignedByMaster());
+    SelfSign();
+    AddMasterSignature();
 
     String credID(childID);
 
@@ -200,7 +197,8 @@ serializedCredential ChildKeyCredential::Serialize(bool asPrivate, bool asSigned
     serializedCredential serializedCredential =
         this->ot_super::Serialize(asPrivate, asSigned);
 
-    proto::ChildCredentialParameters* parameters = new proto::ChildCredentialParameters;
+    std::unique_ptr<proto::ChildCredentialParameters> parameters;
+    parameters.reset(new proto::ChildCredentialParameters);
 
     parameters->set_version(1);
     parameters->set_masterid(GetMasterCredID().Get());
@@ -208,7 +206,7 @@ serializedCredential ChildKeyCredential::Serialize(bool asPrivate, bool asSigned
     // Only the public credential gets ChildCredentialParameters
     if (serializedCredential->has_publiccredential()) {
         proto::KeyCredential* keyCredential = serializedCredential->mutable_publiccredential();
-        keyCredential->set_allocated_childdata(parameters);
+        keyCredential->set_allocated_childdata(parameters.release());
 
     }
 

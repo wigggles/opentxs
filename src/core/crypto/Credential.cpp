@@ -399,7 +399,6 @@ OTData Credential::SerializeCredToData(const proto::Credential& serializedCred) 
 
     OTData serializedData(protoArray, size);
     delete[] protoArray;
-
     return serializedData;
 }
 
@@ -429,10 +428,10 @@ bool Credential::SaveContract()
 
     if (serialized) {
         OTData serializedData(protoArray, size);
-        delete[] protoArray;
         OTASCIIArmor armoredData(serializedData);
         m_strRawFile.Set(armoredData.Get());
     }
+    delete[] protoArray;
 
     return serialized;
 }
@@ -494,22 +493,12 @@ bool Credential::SaveContract(const char* szFoldername, const char* szFilename)
 
 bool Credential::isPrivate() const
 {
-    if (proto::KEYMODE_PRIVATE == m_mode) {
-
-        return true;
-    }
-
-    return false;
+    return (proto::KEYMODE_PRIVATE == m_mode);
 }
 
 bool Credential::isPublic() const
 {
-    if (proto::KEYMODE_PUBLIC == m_mode) {
-
-        return true;
-    }
-
-    return false;
+    return (proto::KEYMODE_PUBLIC == m_mode);
 }
 
 std::string Credential::AsString(const bool asPrivate) const

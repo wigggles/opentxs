@@ -101,7 +101,7 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
 }
 
 // static
-OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String pubkey) // Caller IS responsible to
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String& pubkey) // Caller IS responsible to
                                                                                          // delete!
 {
     OTAsymmetricKey* pKey = nullptr;

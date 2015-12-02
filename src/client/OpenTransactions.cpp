@@ -4465,7 +4465,7 @@ bool OT_API::SetNym_Name(const Identifier& NYM_ID,
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     // -----------------------------------------------------}
-    Nym* pNym;
+    Nym* pNym = nullptr;
     Nym* pSignerNym = GetOrLoadPrivateNym(SIGNER_NYM_ID, false, __FUNCTION__);
 
     if (NYM_ID != SIGNER_NYM_ID) {

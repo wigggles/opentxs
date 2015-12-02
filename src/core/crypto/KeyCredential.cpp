@@ -239,11 +239,8 @@ bool KeyCredential::VerifyInternally()
 KeyCredential::KeyCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
 : ot_super(theOwner, serializedCred)
 {
-    bool hasPrivate = false;
-
-    if (proto::KEYMODE_PRIVATE == serializedCred.mode()) {
-        hasPrivate = true;
-    }
+    const bool hasPrivate = (proto::KEYMODE_PRIVATE == serializedCred.mode())
+        ? true : false;
 
     // Auth key
     proto::AsymmetricKey publicAuth = serializedCred.publiccredential().key(proto::KEYROLE_AUTH - 1);
@@ -442,10 +439,10 @@ bool KeyCredential::SelfSign(const OTPasswordData* pPWData)
     String credID;
     GetIdentifier(credID);
 
-    std::shared_ptr<proto::Signature> publicSignature;
-    publicSignature.reset(new proto::Signature);
-    std::shared_ptr<proto::Signature> privateSignature;
-    privateSignature.reset(new proto::Signature);
+    serializedSignature publicSignature =
+        std::make_shared<proto::Signature>();
+    serializedSignature privateSignature =
+        std::make_shared<proto::Signature>();
     OTData signature;
 
     serializedCredential publicVersion = SerializeForPublicSignature();

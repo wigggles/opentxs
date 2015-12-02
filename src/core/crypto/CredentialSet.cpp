@@ -628,17 +628,11 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
         m_mapCredentials.erase(it);
     }
 
-    ChildKeyCredential* pSub = new ChildKeyCredential(*this, *serializedCred);
-    std::unique_ptr<ChildKeyCredential> theSubAngel(pSub);
-
-    if (nullptr == pSub) {
-        otErr << __FUNCTION__
-              << ": Failed trying to load keyCredential from protobuf.\n";
-        return false;
-    }
+    std::unique_ptr<ChildKeyCredential> pSub;
+    pSub.reset(new ChildKeyCredential(*this, *serializedCred));
 
     m_mapCredentials.insert(std::pair<std::string, Credential*>(
-        strSubID.Get(), theSubAngel.release()));
+        strSubID.Get(), pSub.release()));
 
     return true;
 }

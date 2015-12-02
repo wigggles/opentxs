@@ -144,7 +144,7 @@ protected:
     OTAsymmetricKey(const KeyType keyType, const proto::KeyRole role);
 
 public:                                           // INSTANTIATION
-    EXPORT static OTAsymmetricKey* KeyFactory(const KeyType keyType, const String pubkey);  // Caller IS responsible to
+    EXPORT static OTAsymmetricKey* KeyFactory(const KeyType keyType, const String& pubkey);  // Caller IS responsible to
                                                                                             // delete!
     EXPORT static OTAsymmetricKey* KeyFactory(
         const NymParameters& nymParameters,
