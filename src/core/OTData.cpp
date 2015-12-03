@@ -76,6 +76,20 @@ OTData::~OTData()
     Release();
 }
 
+OTData::OTData(OTData&& other)
+    : data_(nullptr)
+    , position_(0)
+    , size_(0)
+{
+    data_ = other.data_;
+    position_ = other.position_;
+    size_ = other.size_;
+
+    other.data_ = nullptr;
+    other.position_ = 0;
+    other.size_ = 0;
+}
+
 bool OTData::operator==(const OTData& rhs) const
 {
     if (size_ != rhs.size_) {

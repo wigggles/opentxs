@@ -3100,9 +3100,7 @@ String Nym::CredentialIndexAsString() const
     OTData dataIndex = CredentialIndexAsData();
     OTASCIIArmor armoredSource(dataIndex);
 
-    String stringIndex = armoredSource.Get();
-
-    return stringIndex;
+    return armoredSource.Get();
 }
 
 // Save the Pseudonym to a string...

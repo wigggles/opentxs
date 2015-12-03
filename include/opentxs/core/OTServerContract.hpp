@@ -78,7 +78,7 @@ protected:
     int32_t m_nPort = 0;
     String m_strURL;
     unsigned char* m_transportKey = nullptr;
-    size_t m_transportKeyLength;
+    size_t m_transportKeyLength = 0;
 };
 
 } // namespace opentxs
