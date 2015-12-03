@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 
 #include "MasterCredential.hpp"
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/NymIDSource.hpp>
@@ -185,6 +186,7 @@ public:
                                                               // from the
                                                               // wallet.
     EXPORT bool LoadChildKeyCredential(const String& strSubID);
+    EXPORT bool LoadChildKeyCredential(const proto::Credential& serializedCred);
     EXPORT bool LoadChildKeyCredentialFromString(
         const String& strInput,
         const String& strSubID,
@@ -216,7 +218,7 @@ public:
     // bValid=true means we are saving OTPseudonym::m_mapCredentials. Whereas
     // bValid=false means we're saving m_mapRevoked.
     //
-    SerializedCredentialSet Serialize() const;
+    SerializedCredentialSet Serialize(const CredentialIndexModeFlag mode) const;
     EXPORT void SerializeIDs(Tag& parent, const String::List& listRevokedIDs,
                              String::Map* pmapPubInfo = nullptr,
                              String::Map* pmapPriInfo = nullptr,

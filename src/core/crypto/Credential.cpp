@@ -97,8 +97,11 @@ Credential::Credential(CredentialSet& theOwner, const proto::Credential& seriali
     {
     m_strContractType = "CREDENTIAL";
     m_Role = serializedCred.role();
-    m_strNymID = serializedCred.nymid();
-    SetIdentifier(serializedCred.id());
+
+    if (serializedCred.has_nymid()) {
+        m_strNymID = serializedCred.nymid();
+        SetIdentifier(serializedCred.id());
+    }
 
     serializedSignature sig;
     for (auto& it : serializedCred.signature()) {

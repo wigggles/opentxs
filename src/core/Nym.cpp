@@ -2820,45 +2820,15 @@ bool Nym::ReEncryptPrivateCredentials(bool bImporting, // bImporting=true, or
     return true;
 }
 
-// If the Nym's source is a URL, he needs to post his valid
-// master credential IDs there, so they can be verified against
-// their source. This method is what creates the file which you
-// can post at that URL. (Containing only the valid IDs, not the
-// revoked ones.)
-// Optionally it also returns the contents of the public credential
-// files, mapped by their credential IDs.
-//
-void Nym::GetPublicCredentials(String& strCredList,
-                               String::Map* pmapCredFiles) const
+const String Nym::asPublicNym() const
 {
-    Tag tag("nymData");
+    serializedCredentialIndex credentials = SerializeCredentialIndex(Nym::FULL_CREDS);
 
-    tag.add_attribute("version", m_strVersion.Get());
+    OT_ASSERT(proto::Verify(credentials));
 
-    String strNymID;
-    GetIdentifier(strNymID);
+    OTASCIIArmor armoredPublicNym(proto::ProtoAsData<proto::CredentialIndex>(credentials));
 
-    tag.add_attribute("nymID", strNymID.Get());
-
-    SerializeNymIDSource(tag);
-
-    for (auto& it : m_mapCredentialSets) {
-        CredentialSet* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        pCredential->SerializeIDs(tag, m_listRevokedIDs,
-                                  pmapCredFiles); // bShowRevoked=false by
-                                                  // default, bValid=true by
-                                                  // default. (True since we're
-                                                  // looping m_mapCredentialSets
-                                                  // only, and not
-                                                  // m_mapRevokedSets.)
-    }
-
-    std::string str_result;
-    tag.output(str_result);
-
-    strCredList.Concatenate("%s", str_result.c_str());
+    return armoredPublicNym.Get();
 }
 
 void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
@@ -3031,11 +3001,11 @@ void Nym::SaveCredentialsToTag(Tag& parent, String::Map* pmapPubInfo,
     }
 }
 
-serializedCredentialIndex Nym::SerializeCredentialIndex() const
+serializedCredentialIndex Nym::SerializeCredentialIndex(const CredentialIndexModeFlag mode) const
 {
     serializedCredentialIndex index;
 
-    index.set_version(1);
+    index.set_version(credential_index_version_);
 
     String nymID = m_nymID;
     index.set_nymid(nymID.Get());
@@ -3044,7 +3014,7 @@ serializedCredentialIndex Nym::SerializeCredentialIndex() const
 
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            SerializedCredentialSet credset = it.second->Serialize();
+            SerializedCredentialSet credset = it.second->Serialize(mode);
             auto pCredSet = index.add_activecredentials();
             *pCredSet = *credset;
             pCredSet = nullptr;
@@ -3053,7 +3023,7 @@ serializedCredentialIndex Nym::SerializeCredentialIndex() const
 
     for (auto& it : m_mapRevokedSets) {
         if (nullptr != it.second) {
-            SerializedCredentialSet credset = it.second->Serialize();
+            SerializedCredentialSet credset = it.second->Serialize(mode);
             auto pCredSet = index.add_revokedcredentials();
             *pCredSet = *credset;
             pCredSet = nullptr;
@@ -3069,7 +3039,8 @@ serializedCredentialIndex Nym::ExtractArmoredCredentialIndex(
 {
     OTASCIIArmor armoredIndex;
     String strTemp(stringIndex);
-    armoredIndex.LoadFromString(strTemp);
+    armoredIndex.Set(strTemp.Get());
+
     return ExtractArmoredCredentialIndex(armoredIndex);
 }
 
@@ -3078,15 +3049,13 @@ serializedCredentialIndex Nym::ExtractArmoredCredentialIndex(
                                                const OTASCIIArmor& armoredIndex)
 {
     OTData dataIndex(armoredIndex);
-
     serializedCredentialIndex serializedIndex;
-
     serializedIndex.ParseFromArray(dataIndex.GetPointer(), dataIndex.GetSize());
 
     return serializedIndex;
 }
 
-bool Nym::LoadCredentialIndex(String& armoredIndex)
+bool Nym::LoadCredentialIndex(const String& armoredIndex)
 {
     serializedCredentialIndex index = ExtractArmoredCredentialIndex(
                                                                   armoredIndex);
@@ -3094,7 +3063,10 @@ bool Nym::LoadCredentialIndex(String& armoredIndex)
     if (!proto::Verify(index)) {
         otErr << __FUNCTION__ << ": Unable to load invalid serialized"
                               << " credential index.\n";
+        OT_ASSERT(false);
     }
+
+    credential_index_version_ = index.version();
 
     Identifier nymID(index.nymid());
     m_nymID = nymID;
@@ -3128,8 +3100,7 @@ String Nym::CredentialIndexAsString() const
     OTData dataIndex = CredentialIndexAsData();
     OTASCIIArmor armoredSource(dataIndex);
 
-    String stringIndex;
-    armoredSource.WriteArmoredString(stringIndex, "CREDENTIAL INDEX");
+    String stringIndex = armoredSource.Get();
 
     return stringIndex;
 }
@@ -4848,6 +4819,7 @@ Nym::Nym(const NymParameters& nymParameters)
     Initialize();
     String strMasterCredID;
 
+    credential_index_version_ = 1;
     CredentialSet* pNewCredentialSet = new CredentialSet(nymParameters);
 
     SetSource(pNewCredentialSet->Source());

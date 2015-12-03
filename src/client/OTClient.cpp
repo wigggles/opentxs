@@ -2837,84 +2837,41 @@ bool OTClient::processServerReplyGetRequestNumber(const Message& theReply,
 bool OTClient::processServerReplyCheckNym(const Message& theReply,
                                           ProcessServerReplyArgs& args)
 {
-    const String strNymID2(theReply.m_strNymID2),
-        strPubkey(theReply.m_strNymPublicKey.Get()); // Old style (It's
-                                                     // deprecated to pass a
-                                                     // pubkey directly like
-                                                     // this.)
+    const String publicNym(theReply.m_ascPayload.Get());
+    Nym theTargetNym;
+    theTargetNym.LoadCredentialIndex(publicNym);
 
-    // First try to get Credentials, if there are any.
+    // Now that the Nym has been loaded up from the message
+    // parameters,
+    // including the list of credential IDs, and the map
+    // containing the
+    // credentials themselves, let's try to Verify the
+    // pseudonym. If we
+    // verify, then we're safe to save the credentials to
+    // storage.
     //
-    const OTASCIIArmor& ascArmor =
-        theReply.m_ascPayload; // credentialIDs  (New style! Credentials.)
-    const OTASCIIArmor& ascArmor2 = theReply.m_ascPayload2; // credentials
-    const bool bHasCredentials = (ascArmor.Exists() && ascArmor2.Exists());
-    if (bHasCredentials) // New style of doing things, for Nym keys.
-                         // Credentials!
-    {
-        String strCredentialIDs;
-        ascArmor.GetString(strCredentialIDs);
-
-        if (strCredentialIDs.Exists()) {
-            std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
-                OTDB::STORED_OBJ_STRING_MAP, ascArmor2.Get()));
-            OTDB::StringMap* pMap =
-                dynamic_cast<OTDB::StringMap*>(pStorable.get());
-            if (nullptr == pMap)
-                otOut << __FUNCTION__ << ": Failed decoding StringMap "
-                                         "object in checkNymResponse.\n";
-            else // IF the list saved, then we save the credentials
-                 // themselves...
-            {
-                String::Map& theMap = pMap->the_map;
-                Nym theTargetNym;
-                theTargetNym.SetIdentifier(strNymID2);
-
-                if (false ==
-                    theTargetNym.LoadNymFromString(strCredentialIDs, &theMap)) {
-                    otErr << __FUNCTION__
-                          << ": checkNymResponse: Failure loading nym "
-                          << strNymID2 << " from credential string.\n";
-                }
-                // Now that the Nym has been loaded up from the message
-                // parameters,
-                // including the list of credential IDs, and the map
-                // containing the
-                // credentials themselves, let's try to Verify the
-                // pseudonym. If we
-                // verify, then we're safe to save the credentials to
-                // storage.
-                //
-                else if (!theTargetNym.VerifyPseudonym()) {
-                    otErr << __FUNCTION__ << ": checkNymResponse: Loaded nym "
-                          << strNymID2 << " from credentials, but then it "
-                                          "failed verifying.\n";
-                }
-                else // Okay, we loaded the Nym up from the credentials in
-                       // the message, AND
-                {      // verified the Nym (including the credentials.)
-                    // So let's save it to local storage...
-
-                    std::string str_nym_id = strNymID2.Get();
-
-                    if (!theTargetNym.WriteCredentials()) {
-                        otErr << __FUNCTION__
-                        << ": Failed trying to store "
-                        "credential files for nym " << str_nym_id << ".\n";
-                    } else {
-                        otOut << "checkNymResponse: Success saving "
-                        "credential files for nym: " << str_nym_id
-                        << "\n";
-                    }
-                }
-            }
-        } // credential list exists, after base64-decoding.
-        return true;
-    }     // Has Credentials.
-    else {
-        otErr << "Nym is missing credentials: " << strNymID2 << "\n";
-        return false;
+    String nymID = theTargetNym.GetConstID();
+    if (!theTargetNym.VerifyPseudonym()) {
+        otErr << __FUNCTION__ << ": checkNymResponse: Loaded nym "
+        << nymID << " from credentials, but then it "
+                                "failed verifying.\n";
     }
+    else // Okay, we loaded the Nym up from the credentials in
+            // the message, AND
+    {      // verified the Nym (including the credentials.)
+        // So let's save it to local storage...
+
+        if (!theTargetNym.WriteCredentials()) {
+            otErr << __FUNCTION__
+            << ": Failed trying to store "
+            "credential files for nym " << nymID << ".\n";
+        } else {
+            otOut << "checkNymResponse: Success saving "
+            "credential files for nym: " << nymID
+            << "\n";
+        }
+    }
+    return true;
 }
 
 bool OTClient::processServerReplyNotarizeTransaction(
@@ -7592,9 +7549,6 @@ int32_t OTClient::ProcessUserCommand(
     } break;
 
     case (OTClient::registerNym): {
-        String strCredList;
-        String::Map theMap;
-
         // Credentials exist already.
         if (theNym.GetMasterCredentialCount() <= 0) {
             otErr << __FUNCTION__ << ": (1) Failed trying to assemble a "
@@ -7604,52 +7558,24 @@ int32_t OTClient::ProcessUserCommand(
                 "credential system, then try again.\n";
         }
         else {
-            theNym.GetPublicCredentials(strCredList, &theMap);
+            theMessage.m_ascPayload.Set(theNym.asPublicNym().Get());
 
-            // Won't bother if there are zero credentials somehow.
-            if (strCredList.Exists() && (!theMap.empty())) {
-                theMessage.m_ascPayload.SetString(strCredList);
-                theMessage.credentials.swap(theMap);
-            }
-            if (!theMessage.m_ascPayload.Exists() ||
-                theMessage.credentials.empty()) {
-                otErr << __FUNCTION__ << ": (2) Failed trying to assemble a "
-                                         "registerNym message: This Nym has "
-                                         "no credentials to use for registration. "
-                                         "Convert this Nym first to the new "
-                                         "credential system, then try again.\n";
-            }
-            else {
-                // (1) set up member variables
-                theMessage.m_strCommand = "registerNym";
-                theMessage.m_strNymID = strNymID;
-                theMessage.m_strNotaryID = strNotaryID;
+            // (1) set up member variables
+            theMessage.m_strCommand = "registerNym";
+            theMessage.m_strNymID = strNymID;
+            theMessage.m_strNotaryID = strNotaryID;
 
-                //          theNym.GetPublicKey().GetPublicKey(strNymPublicKey);
-                //          theMessage.m_strNymPublicKey    = strNymPublicKey; //
-                // Deprecated. (Credentials are new.)
+            theMessage.m_strRequestNum.Format(
+                "%d", 1); // Request Number, if unused, should be set to 1.
 
-                // THIS APPEARS SLIGHTLY ABOVE. Just leaving as a comment
-                // here so it's not forgotten that this is also happening.
-                //
-                //          theMessage.m_ascPayload.SetString(strCredList);   //
-                // <========== Success
-                //          theMessage.m_ascPayload2.Set(str_Encoded.c_str());  //
-                // Payload contains credentials list, payload2 contains actual
-                // credentials.
+            // (2) Sign the Message
+            theMessage.SignContract(theNym);
 
-                theMessage.m_strRequestNum.Format(
-                    "%d", 1); // Request Number, if unused, should be set to 1.
+            // (3) Save the Message (with signatures and all, back to its
+            // internal member m_strRawFile.)
+            theMessage.SaveContract();
 
-                // (2) Sign the Message
-                theMessage.SignContract(theNym);
-
-                // (3) Save the Message (with signatures and all, back to its
-                // internal member m_strRawFile.)
-                theMessage.SaveContract();
-
-                lReturnValue = 1;
-            }
+            lReturnValue = 1;
         }
     } break;
     case (OTClient::getRequestNumber): {

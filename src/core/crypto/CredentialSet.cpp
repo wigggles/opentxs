@@ -250,16 +250,26 @@ CredentialSet::CredentialSet()
 {
 }
 
-CredentialSet::CredentialSet(const proto::CredentialSet& serializedCredentialSet)
+CredentialSet::CredentialSet(
+    const proto::CredentialSet& serializedCredentialSet)
 {
     version_ = serializedCredentialSet.version();
     m_strNymID = serializedCredentialSet.nymid();
-    Load_Master(
-        serializedCredentialSet.nymid(),
-        serializedCredentialSet.masterid());
 
-    for (auto& it: serializedCredentialSet.activechildren()) {
-        LoadChildKeyCredential(it);
+    if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
+        Load_Master(
+            serializedCredentialSet.nymid(),
+            serializedCredentialSet.masterid());
+
+        for (auto& it: serializedCredentialSet.activechildids()) {
+            LoadChildKeyCredential(it);
+        }
+    } else {
+        m_MasterCredential.reset(
+            new MasterCredential(*this, serializedCredentialSet.mastercredential()));
+        for (auto& it: serializedCredentialSet.activechildren()) {
+            LoadChildKeyCredential(it);
+        }
     }
 }
 
@@ -605,11 +615,17 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
     serializedCredential serializedCred = Credential::ExtractArmoredCredential(ascFileContents);
 
     if (!serializedCred) {
-        otErr << __FUNCTION__ << ": Could not parse retrieved credential as a protobuf.\n";
+        otErr << __FUNCTION__ << ": Could not parse credential as a protobuf.\n";
         return false;
     }
 
-    bool validProto = proto::Verify(*serializedCred, proto::CREDROLE_CHILDKEY, true);
+    return LoadChildKeyCredential(*serializedCred);
+}
+
+bool CredentialSet::LoadChildKeyCredential(const proto::Credential& serializedCred)
+{
+
+    bool validProto = proto::Verify(serializedCred, proto::CREDROLE_CHILDKEY, true);
     if (!validProto) {
         otErr << __FUNCTION__ << ": Invalid serialized child key credential.\n";
         return false;
@@ -617,7 +633,7 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
 
     // Make sure it's not already there.
     //
-    auto it = m_mapCredentials.find(strSubID.Get());
+    auto it = m_mapCredentials.find(serializedCred.id());
     if (m_mapCredentials.end() != it) // It was already there. (Reload it.)
     {
         otErr << __FUNCTION__ << ": Warning: Deleting and re-loading "
@@ -629,10 +645,10 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
     }
 
     std::unique_ptr<ChildKeyCredential> pSub;
-    pSub.reset(new ChildKeyCredential(*this, *serializedCred));
+    pSub.reset(new ChildKeyCredential(*this, serializedCred));
 
     m_mapCredentials.insert(std::pair<std::string, Credential*>(
-        strSubID.Get(), pSub.release()));
+        serializedCred.id(), pSub.release()));
 
     return true;
 }
@@ -1023,7 +1039,8 @@ bool CredentialSet::WriteCredentials() const
     return true;
 }
 
-SerializedCredentialSet CredentialSet::Serialize() const
+SerializedCredentialSet CredentialSet::Serialize(
+    const CredentialIndexModeFlag mode) const
 {
     SerializedCredentialSet credSet = std::make_shared<proto::CredentialSet>();
 
@@ -1031,12 +1048,38 @@ SerializedCredentialSet CredentialSet::Serialize() const
     credSet->set_nymid(m_strNymID.Get());
     credSet->set_masterid(GetMasterCredID().Get());
 
-    for (auto& it: m_mapCredentials) {
-        credSet->add_activechildren(it.first);
-    }
-    //FIXME this list is always empty, because revocation isn't implemented
-    for (auto& it: m_mapRevokedCredentials) {
-        credSet->add_revokedchildren(it.first);
+    if (Nym::ONLY_IDS == mode) {
+        credSet->set_mode(proto::CREDSETMODE_INDEX);
+
+        for (auto& it: m_mapCredentials) {
+            credSet->add_activechildids(it.first);
+        }
+        //FIXME this list is always empty, because revocation isn't implemented
+        for (auto& it: m_mapRevokedCredentials) {
+            credSet->add_revokedchildids(it.first);
+        }
+    } else {
+        credSet->set_mode(proto::CREDSETMODE_FULL);
+        *(credSet->mutable_mastercredential()) =
+                                            *(m_MasterCredential->Serialize(
+                                                Credential::AS_PUBLIC,
+                                                Credential::WITH_SIGNATURES));
+
+        std::unique_ptr<proto::Credential> pChildCred;
+        for (auto& it: m_mapCredentials) {
+            pChildCred.reset(credSet->add_activechildren());
+            *pChildCred = *(it.second->Serialize(
+                Credential::AS_PUBLIC,
+                Credential::WITH_SIGNATURES));
+            pChildCred.release();
+        }
+        for (auto& it: m_mapRevokedCredentials) {
+            pChildCred.reset(credSet->add_revokedchildren());
+            *pChildCred = *(it.second->Serialize(
+                Credential::AS_PUBLIC,
+                Credential::WITH_SIGNATURES));
+            pChildCred.release();
+        }
     }
 
     return credSet;

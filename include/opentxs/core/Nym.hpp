@@ -74,10 +74,15 @@ typedef std::map<std::string, Identifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef proto::CredentialIndex serializedCredentialIndex;
+typedef bool CredentialIndexModeFlag;
 
 class Nym
 {
+public:
+    static const CredentialIndexModeFlag ONLY_IDS = true;
+    static const CredentialIndexModeFlag FULL_CREDS = false;
 private:
+    uint32_t credential_index_version_ = 0;
     Nym(const Nym&);
     Nym& operator=(const Nym&);
 
@@ -214,19 +219,7 @@ private:
 public:
     EXPORT void GetPrivateCredentials(String& strCredList,
                                       String::Map* pmapCredFiles = nullptr);
-    EXPORT void GetPublicCredentials(
-        String& strCredList,
-        String::Map* pmapCredFiles = nullptr) const; // If the Nym's source is a
-                                                     // URL,
-    // he needs to post his valid
-    // master credential IDs there,
-    // so they can be verified
-    // against their source. This
-    // method is what creates the
-    // file which you can post at
-    // that URL. (Containing only
-    // the valid IDs, not the
-    // revoked ones.)
+    EXPORT const String asPublicNym() const;
     EXPORT size_t GetMasterCredentialCount() const;
     EXPORT size_t GetRevokedCredentialCount() const;
     EXPORT CredentialSet* GetMasterCredential(const String& strID);
@@ -381,14 +374,15 @@ private:
     EXPORT void SaveCredentialsToTag(Tag& parent,
                                      String::Map* pmapPubInfo = nullptr,
                                      String::Map* pmapPriInfo = nullptr) const;
-    serializedCredentialIndex SerializeCredentialIndex() const;
+    serializedCredentialIndex SerializeCredentialIndex(
+        const CredentialIndexModeFlag mode = ONLY_IDS) const;
     OTData CredentialIndexAsData() const;
     String CredentialIndexAsString() const;
-    bool LoadCredentialIndex(String& armoredIndex);
     static serializedCredentialIndex ExtractArmoredCredentialIndex(const String& StringIndex);
     static serializedCredentialIndex ExtractArmoredCredentialIndex(const OTASCIIArmor& armoredIndex);
 
 public:
+    bool LoadCredentialIndex(const String& armoredIndex);
     EXPORT bool LoadCredentials(bool bLoadPrivate = false, // Loads public
                                                            // credentials by
                                 // default. For private, pass true.

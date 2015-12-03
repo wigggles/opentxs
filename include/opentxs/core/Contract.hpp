@@ -425,13 +425,6 @@ public:
                                 const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT const Nym* GetContractPublicNym() const;
-
-    static void saveCredentialsToTag(Tag& parent,
-                                     const OTASCIIArmor& strCredIDList,
-                                     const String::Map& credentials);
-    static bool loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
-                                       OTASCIIArmor& credList,
-                                       String::Map& credentials);
 };
 
 } // namespace opentxs

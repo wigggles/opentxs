@@ -200,7 +200,6 @@ public:
                      // those.
     int64_t m_lTime; // Timestamp when the message was signed.
 
-    String::Map credentials;
     static OTMessageStrategyManager messageStrategyManager;
 };
 
