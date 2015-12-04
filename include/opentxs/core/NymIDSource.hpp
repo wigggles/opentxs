@@ -41,7 +41,7 @@
 
 #include <memory>
 
-#include <opentxs-proto/verify/opentxs-verify.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include "Identifier.hpp"
 #include "OTData.hpp"

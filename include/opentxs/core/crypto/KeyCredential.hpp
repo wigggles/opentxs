@@ -42,7 +42,7 @@
 #include "OTKeypair.hpp"
 #include "Credential.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
-#include <opentxs-proto/verify/opentxs-verify.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
 

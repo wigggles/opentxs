@@ -39,7 +39,7 @@
 #ifndef OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 #define OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 
-#include <opentxs-proto/verify/opentxs-verify.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
