@@ -632,6 +632,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     }
     otErr << __FUNCTION__
           << ": Failed reading private key from ASCII-armored data.\n\n";
+    OT_ASSERT(false);
     //  otErr << __FUNCTION__ << ": Failed reading private key from
     // ASCII-armored data:\n\n" << m_p_ascKey->Get() << "\n\n";
     return nullptr;

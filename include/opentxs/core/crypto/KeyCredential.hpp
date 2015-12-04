@@ -191,8 +191,12 @@ public:
         const proto::Credential& credential,
         const CryptoHash::HashType hashType,
         OTData& signature, // output
+        const OTPassword* exportPassword = nullptr,
         const OTPasswordData* pPWData = nullptr) const;
-    virtual bool SelfSign(const OTPasswordData* pPWData = nullptr);
+    virtual bool SelfSign(
+        const OTPassword* exportPassword = nullptr,
+        const OTPasswordData* pPWData = nullptr,
+        const bool onlyPrivate = false);
 
     EXPORT virtual bool VerifySig(
                                 const proto::Signature& sig,

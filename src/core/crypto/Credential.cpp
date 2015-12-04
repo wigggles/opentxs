@@ -534,4 +534,16 @@ serializedCredential Credential::ExtractArmoredCredential(const OTASCIIArmor arm
     return serializedCred;
 }
 
+void Credential::ReleaseSignatures(const bool onlyPrivate)
+{
+    for (auto i = m_listSerializedSignatures.begin(); i != m_listSerializedSignatures.end();) {
+        if (!onlyPrivate ||
+            (onlyPrivate && (proto::SIGROLE_PRIVCREDENTIAL == (*i)->role()))) {
+            i = m_listSerializedSignatures.erase(i);
+        } else {
+            i++;
+        }
+    }
+}
+
 } // namespace opentxs

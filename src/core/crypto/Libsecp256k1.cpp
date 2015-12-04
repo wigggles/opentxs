@@ -75,7 +75,8 @@ bool Libsecp256k1::Sign(
     const OTAsymmetricKey& theKey,
     const CryptoHash::HashType hashType,
     OTData& signature, // output
-    const OTPasswordData* pPWData) const
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword) const
 {
     OTData hash;
     bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, plaintext, hash);
@@ -86,9 +87,9 @@ bool Libsecp256k1::Sign(
 
         if (nullptr == pPWData) {
             OTPasswordData passwordData("Libsecp256k1::SignContract(): Please enter your password to sign this document.");
-            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, passwordData, privKey);
+            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, passwordData, privKey, exportPassword);
         } else {
-            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, *pPWData, privKey);
+            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, *pPWData, privKey, exportPassword);
         }
 
         if (havePrivateKey) {
@@ -227,7 +228,8 @@ bool Libsecp256k1::ECDSAPubkeyToAsymmetricKey(
 bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     const OTAsymmetricKey& asymmetricKey,
     const OTPasswordData& passwordData,
-    OTPassword& privkey) const
+    OTPassword& privkey,
+    const OTPassword* exportPassword) const
 {
     OTData dataPrivkey;
     bool havePrivateKey = static_cast<const AsymmetricKeySecp256k1&>(asymmetricKey).GetKey(dataPrivkey);
@@ -235,7 +237,7 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     OT_ASSERT(0 < dataPrivkey.GetSize());
 
     if (havePrivateKey) {
-        return AsymmetricKeyToECDSAPrivkey(dataPrivkey, passwordData, privkey);
+        return AsymmetricKeyToECDSAPrivkey(dataPrivkey, passwordData, privkey, exportPassword);
     } else {
         return false;
     }
@@ -244,14 +246,19 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
 bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     const OTData& asymmetricKey,
     const OTPasswordData& passwordData,
-    OTPassword& privkey) const
+    OTPassword& privkey,
+    const OTPassword* exportPassword) const
 {
 
     BinarySecret masterPassword(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
 
-    masterPassword = CryptoSymmetric::GetMasterKey(passwordData);
+    if (nullptr == exportPassword) {
+        masterPassword = CryptoSymmetric::GetMasterKey(passwordData);
+        return ImportECDSAPrivkey(asymmetricKey, *masterPassword, privkey);
+    } else {
+        return ImportECDSAPrivkey(asymmetricKey, *exportPassword, privkey);
+    }
 
-    return ImportECDSAPrivkey(asymmetricKey, *masterPassword, privkey);
 }
 
 bool Libsecp256k1::ImportECDSAPrivkey(

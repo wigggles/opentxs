@@ -117,6 +117,7 @@ public:
     virtual bool SaveContract();
     virtual bool SaveContract(const char* szFoldername,
                              const char* szFilename);
+    virtual void ReleaseSignatures(const bool onlyPrivate);
 
 private: // Private prevents erroneous use by other classes.
     typedef Contract ot_super;

@@ -135,8 +135,8 @@ bool AsymmetricKeySecp256k1::GetPublicKey(
 }
 
 bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
-    __attribute__((unused)) const OTPassword& theExportPassword,
-    __attribute__((unused)) bool bImporting) const
+    const OTPassword& theExportPassword,
+    bool bImporting) const
 {
     OT_ASSERT(IsPrivate());
 

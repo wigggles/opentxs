@@ -3804,7 +3804,8 @@ bool OpenSSL::Sign(
         const OTAsymmetricKey& theKey,
         const CryptoHash::HashType hashType,
         OTData& signature, // output
-        const OTPasswordData* pPWData) const
+        const OTPasswordData* pPWData,
+        const OTPassword* exportPassword) const
 {
 
     OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);

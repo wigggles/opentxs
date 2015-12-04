@@ -87,7 +87,8 @@ public:
         const OTAsymmetricKey& theKey,
         const CryptoHash::HashType hashType,
         OTData& signature, // output
-        const OTPasswordData* pPWData = nullptr) const;
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr) const;
     bool Verify(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
@@ -107,11 +108,13 @@ public:
     bool AsymmetricKeyToECDSAPrivkey(
         const OTAsymmetricKey& asymmetricKey,
         const OTPasswordData& passwordData,
-        OTPassword& privkey) const;
+        OTPassword& privkey,
+        const OTPassword* exportPassword = nullptr) const;
     bool AsymmetricKeyToECDSAPrivkey(
         const OTData& asymmetricKey,
         const OTPasswordData& passwordData,
-        OTPassword& privkey) const;
+        OTPassword& privkey,
+        const OTPassword* exportPassword = nullptr) const;
     bool ImportECDSAPrivkey(
         const OTData& asymmetricKey,
         const OTPassword& password,

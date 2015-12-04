@@ -319,20 +319,12 @@ bool KeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
     OT_ASSERT(m_EncryptKey);
     OT_ASSERT(m_SigningKey);
 
-    const bool bSign =
-        m_SigningKey->ReEncrypt(theExportPassword, bImporting);
-    bool bAuth = false;
-    bool bEncr = false;
-
-    if (bSign) {
-        bAuth = m_AuthentKey->ReEncrypt(theExportPassword, bImporting);
-
-        if (bAuth)
-            bEncr =
-                m_EncryptKey->ReEncrypt(theExportPassword, bImporting);
-    }
+    const bool bSign = m_SigningKey->ReEncrypt(theExportPassword, bImporting);
+    const bool bAuth = m_AuthentKey->ReEncrypt(theExportPassword, bImporting);
+    const bool bEncr = m_EncryptKey->ReEncrypt(theExportPassword, bImporting);
 
     const bool bSuccessReEncrypting = (bSign && bAuth && bEncr);
+    OT_ASSERT(bSuccessReEncrypting);
 
     return bSuccessReEncrypting; // Note: Caller must re-sign credential after doing this,
                      // to keep these changes.
@@ -422,6 +414,7 @@ bool KeyCredential::Sign(
     const proto::Credential& credential,
     const CryptoHash::HashType hashType,
     OTData& signature, // output
+    const OTPassword* exportPassword,
     const OTPasswordData* pPWData) const
 {
     OTData plaintext = SerializeCredToData(credential);
@@ -431,10 +424,14 @@ bool KeyCredential::Sign(
                                                             this->m_SigningKey->GetPrivateKey(),
                                                             hashType,
                                                             signature,
-                                                            pPWData);
+                                                            pPWData,
+                                                            exportPassword);
 }
 
-bool KeyCredential::SelfSign(const OTPasswordData* pPWData)
+bool KeyCredential::SelfSign(
+    const OTPassword* exportPassword,
+    const OTPasswordData* pPWData,
+    const bool onlyPrivate)
 {
     String credID;
     GetIdentifier(credID);
@@ -445,21 +442,34 @@ bool KeyCredential::SelfSign(const OTPasswordData* pPWData)
         std::make_shared<proto::Signature>();
     OTData signature;
 
-    serializedCredential publicVersion = SerializeForPublicSignature();
-    bool havePublicSig = Sign(*publicVersion, Identifier::DefaultHashAlgorithm, signature, pPWData);
+    bool havePublicSig = false;
+    if (!onlyPrivate) {
+        serializedCredential publicVersion = SerializeForPublicSignature();
+        havePublicSig = Sign(
+            *publicVersion,
+            Identifier::DefaultHashAlgorithm,
+            signature,
+            exportPassword,
+            pPWData);
 
-    if (havePublicSig) {
-        publicSignature->set_version(1);
-        publicSignature->set_credentialid(credID.Get());
-        publicSignature->set_role(proto::SIGROLE_PUBCREDENTIAL);
-        publicSignature->set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
-        publicSignature->set_signature(signature.GetPointer(), signature.GetSize());
+        if (havePublicSig) {
+            publicSignature->set_version(1);
+            publicSignature->set_credentialid(credID.Get());
+            publicSignature->set_role(proto::SIGROLE_PUBCREDENTIAL);
+            publicSignature->set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+            publicSignature->set_signature(signature.GetPointer(), signature.GetSize());
 
-        m_listSerializedSignatures.push_back(publicSignature);
+            m_listSerializedSignatures.push_back(publicSignature);
+        }
     }
 
     serializedCredential privateVersion = SerializeForPrivateSignature();
-    bool havePrivateSig = Sign(*privateVersion, Identifier::DefaultHashAlgorithm, signature, pPWData);
+    bool havePrivateSig = Sign(
+        *privateVersion,
+        Identifier::DefaultHashAlgorithm,
+        signature,
+        exportPassword,
+        pPWData);
 
     if (havePrivateSig) {
         privateSignature->set_version(1);
@@ -471,7 +481,7 @@ bool KeyCredential::SelfSign(const OTPasswordData* pPWData)
         m_listSerializedSignatures.push_back(privateSignature);
     }
 
-    return (havePublicSig && havePrivateSig);
+    return ((havePublicSig | onlyPrivate) && havePrivateSig);
 }
 
 bool KeyCredential::VerifySig(

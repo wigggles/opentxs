@@ -381,6 +381,9 @@ bool CredentialSet::ReEncryptPrivateCredentials(
             bImporting ? "2 Enter passphrase for the Nym being imported."
                        : "2 Enter new passphrase for exported Nym.");
 
+        const OTPassword* passwordToUse =
+            bImporting ? nullptr : &theExportPassword;
+
         // Re-encrypt the private keys in the master credential. (THEN sign.)
         //
         const bool bReEncryptMaster =
@@ -388,9 +391,11 @@ bool CredentialSet::ReEncryptPrivateCredentials(
         bool bSignedMaster = false;
 
         if (bReEncryptMaster) {
-            m_MasterCredential->ReleaseSignatures(); // This time we'll sign it in
+            m_MasterCredential->ReleaseSignatures(true); // This time we'll sign it in
                                              // private mode.
-            bSignedMaster = m_MasterCredential->Sign(*m_MasterCredential, &thePWData);
+            bSignedMaster =
+            std::dynamic_pointer_cast<KeyCredential>(m_MasterCredential)->
+                SelfSign(passwordToUse, &thePWData, true);
         }
         else {
             otErr << "In " << __FILE__ << ", line " << __LINE__
@@ -413,8 +418,9 @@ bool CredentialSet::ReEncryptPrivateCredentials(
                 bool bSignedChildCredential = false;
 
                 if (bReEncryptChildKeyCredential) {
-                    pKey->ReleaseSignatures();
-                    bSignedChildCredential = pKey->Sign(*pKey, &thePWData);
+                    pKey->ReleaseSignatures(true);
+                    bSignedChildCredential = pKey->
+                        SelfSign(passwordToUse, &thePWData, true);
                 }
                 else {
                     otErr << "In " << __FILE__ << ", line " << __LINE__

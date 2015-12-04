@@ -204,7 +204,8 @@ public:
         const OTAsymmetricKey& theKey,
         const CryptoHash::HashType hashType,
         OTData& signature, // output
-        const OTPasswordData* pPWData = nullptr) const;
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr) const;
     virtual bool Verify(
         const OTData& plaintext,
         const OTAsymmetricKey& theKey,
