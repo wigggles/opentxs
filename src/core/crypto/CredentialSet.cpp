@@ -390,20 +390,20 @@ bool CredentialSet::ReEncryptPrivateCredentials(
             m_MasterCredential->ReEncryptKeys(theExportPassword, bImporting);
         bool bSignedMaster = false;
 
-        if (bReEncryptMaster) {
+        if (bReEncryptMaster && bImporting) {
             m_MasterCredential->ReleaseSignatures(true); // This time we'll sign it in
                                              // private mode.
             bSignedMaster =
             std::dynamic_pointer_cast<KeyCredential>(m_MasterCredential)->
                 SelfSign(passwordToUse, &thePWData, true);
         }
-        else {
+        if (!bReEncryptMaster) {
             otErr << "In " << __FILE__ << ", line " << __LINE__
                   << ": Failed trying to re-encrypt the private master credential.\n";
             return false;
         }
 
-        if (bSignedMaster) {
+        if (bSignedMaster || !bImporting) {
             m_MasterCredential->SaveContract();
 
             for (auto& it : m_mapCredentials) {
@@ -417,25 +417,26 @@ bool CredentialSet::ReEncryptPrivateCredentials(
                     pKey->ReEncryptKeys(theExportPassword, bImporting);
                 bool bSignedChildCredential = false;
 
-                if (bReEncryptChildKeyCredential) {
+                if (bReEncryptChildKeyCredential && bImporting) {
                     pKey->ReleaseSignatures(true);
                     bSignedChildCredential = pKey->
                         SelfSign(passwordToUse, &thePWData, true);
                 }
-                else {
+                if (!bReEncryptChildKeyCredential) {
                     otErr << "In " << __FILE__ << ", line " << __LINE__
                           << ": Failed trying to re-encrypt the private "
                              "child key credential.\n";
                     return false;
                 }
-
-                if (bSignedChildCredential) {
-                    pKey->SaveContract();
-                }
-                else {
-                    otErr << "In " << __FILE__ << ", line " << __LINE__
-                          << ": Failed trying to re-sign the private child key credential.\n";
-                    return false;
+                if (bImporting) {
+                    if (bSignedChildCredential) {
+                        pKey->SaveContract();
+                    }
+                    else {
+                        otErr << "In " << __FILE__ << ", line " << __LINE__
+                            << ": Failed trying to re-sign the private child key credential.\n";
+                        return false;
+                    }
                 }
             }
 
