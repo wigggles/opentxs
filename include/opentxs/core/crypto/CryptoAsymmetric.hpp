@@ -59,15 +59,30 @@ class CryptoAsymmetric
 
 public:
 
-    virtual bool SignContract(const String& strContractUnsigned,
-                              const OTAsymmetricKey& theKey,
-                              OTSignature& theSignature, // output
-                              const CryptoHash::HashType hashType,
-                              const OTPasswordData* pPWData = nullptr) = 0;
-    virtual bool VerifySignature(
+    bool SignContract(
+        const String& strContractUnsigned,
+        const OTAsymmetricKey& theKey,
+        OTSignature& theSignature, // output
+        const CryptoHash::HashType hashType,
+        const OTPasswordData* pPWData = nullptr) const;
+    virtual bool VerifyContractSignature(
         const String& strContractToVerify,
         const OTAsymmetricKey& theKey,
         const OTSignature& theSignature,
+        const CryptoHash::HashType hashType,
+        const OTPasswordData* pPWData = nullptr) const;
+
+    virtual bool Sign(
+        const OTData& plaintext,
+        const OTAsymmetricKey& theKey,
+        const CryptoHash::HashType hashType,
+        OTData& signature, // output
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr) const = 0;
+    virtual bool Verify(
+        const OTData& plaintext,
+        const OTAsymmetricKey& theKey,
+        const OTData& signature,
         const CryptoHash::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const = 0;
 };

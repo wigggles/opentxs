@@ -40,6 +40,7 @@
 #define OPENTXS_CORE_CONTRACT_HPP
 
 #include <opentxs/core/crypto/CryptoHash.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include "Identifier.hpp"
 #include "OTStringXML.hpp"
@@ -66,7 +67,9 @@ class OTPasswordData;
 class OTSignature;
 class Tag;
 
+typedef std::shared_ptr<proto::Signature> serializedSignature;
 typedef std::list<OTSignature*> listOfSignatures;
+typedef std::list<serializedSignature> listOfSerializedSignatures;
 typedef std::map<std::string, Nym*> mapOfNyms;
 
 String trim(const String& str);
@@ -108,6 +111,7 @@ protected:
     // THAT CONTRACT.
     listOfSignatures m_listSignatures; // The PGP signatures at the bottom of
                                        // the XML file.
+    listOfSerializedSignatures m_listSerializedSignatures;
     String m_strVersion; // The version of this Contract file, in case the
                          // format changes in the future.
     // todo: perhaps move these to a common ancestor for OTServerContract and
@@ -291,7 +295,7 @@ public:
     EXPORT virtual bool LoadContract();
     EXPORT bool LoadContract(const char* szFoldername, const char* szFilename);
 
-    EXPORT bool LoadContractFromString(const String& theStr); // Just like it
+    EXPORT virtual bool LoadContractFromString(const String& theStr); // Just like it
                                                               // says. If you
                                                               // have a
                                                               // contract in
@@ -319,12 +323,12 @@ public:
     // signatures along with
     // new signature bookends.
 
-    EXPORT bool SaveContract(); // This saves the Contract to its own internal
+    EXPORT virtual bool SaveContract(); // This saves the Contract to its own internal
                                 // member string, m_strRawFile (and does
                                 // NOT actually save it to a file.)
     //      bool SaveContract(OTString& strContract); // Saves the contract to
     // any string you want to pass in.
-    EXPORT bool SaveContract(const char* szFoldername,
+    EXPORT virtual bool SaveContract(const char* szFoldername,
                              const char* szFilename); // Saves the contract to a
                                                       // specific filename
 
@@ -393,6 +397,7 @@ public:
     // which is a giant int64_t number.
     EXPORT virtual bool VerifyContractID() const;
     EXPORT virtual void CalculateContractID(Identifier& newID) const;
+    EXPORT virtual void CalculateAndSetContractID(Identifier& newID);
 
     // So far not overridden anywhere (used to be OTTrade.)
     EXPORT virtual bool VerifySignature(const Nym& theNym,
@@ -400,7 +405,7 @@ public:
     EXPORT virtual bool VerifySigAuthent(const Nym& theNym,
                                          const OTPasswordData* pPWData = nullptr) const;
 
-    EXPORT bool VerifyWithKey(const OTAsymmetricKey& theKey,
+    EXPORT virtual bool VerifyWithKey(const OTAsymmetricKey& theKey,
                               const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT bool VerifySignature(const Nym& theNym,
@@ -420,13 +425,6 @@ public:
                                 const OTPasswordData* pPWData = nullptr) const;
 
     EXPORT const Nym* GetContractPublicNym() const;
-
-    static void saveCredentialsToTag(Tag& parent,
-                                     const OTASCIIArmor& strCredIDList,
-                                     const String::Map& credentials);
-    static bool loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
-                                       OTASCIIArmor& credList,
-                                       String::Map& credentials);
 };
 
 } // namespace opentxs

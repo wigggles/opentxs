@@ -38,7 +38,6 @@
 
 #include <opentxs/core/crypto/AsymmetricKeySecp256k1.hpp>
 
-#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
@@ -51,9 +50,37 @@ namespace opentxs
 {
 
 AsymmetricKeySecp256k1::AsymmetricKeySecp256k1()
+    : OTAsymmetricKey(OTAsymmetricKey::SECP256K1, proto::KEYROLE_ERROR)
+{
+}
+
+AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::KeyRole role)
+: OTAsymmetricKey(OTAsymmetricKey::SECP256K1, role)
+{
+}
+
+AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey)
+    : OTAsymmetricKey(serializedKey)
+{
+    m_keyType = OTAsymmetricKey::SECP256K1;
+
+    OTData theKey(serializedKey.key().c_str(), serializedKey.key().size());
+    if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
+        SetKey(theKey, false);
+    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
+        SetKey(theKey, true);
+    }
+}
+
+AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const String& publicKey)
     : OTAsymmetricKey()
 {
     m_keyType = OTAsymmetricKey::SECP256K1;
+
+    OTData dataKey;
+    CryptoEngine::Instance().Util().Base58CheckDecode(publicKey, dataKey);
+
+    SetKey(dataKey, true);
 }
 
 void AsymmetricKeySecp256k1::ReleaseKeyLowLevel_Hook() const
@@ -68,127 +95,48 @@ CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
 
 bool AsymmetricKeySecp256k1::IsEmpty() const
 {
-    return key_.empty();
+    if (!key_) {
+        return true;
+    }
+    return false;
 }
 
-bool AsymmetricKeySecp256k1::SetPrivateKey(
-    const FormattedKey& strCert,
-    __attribute__((unused)) const String* pstrReason, // This reason is what displays on the
-                              // passphrase dialog.
-    __attribute__((unused)) const OTPassword* pImportPassword) // Used when importing an exported
-                                       // Nym into a wallet.
+bool AsymmetricKeySecp256k1::SetKey(const OTData& key, bool isPrivate)
 {
     ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
                           // here. (Since it's being replaced, it's now the
                           // wrong key anyway.)
-    m_bIsPublicKey = false;
-    m_bIsPrivateKey = true;
+    m_bIsPublicKey = !isPrivate;
+    m_bIsPrivateKey = isPrivate;
 
-    key_.reset();
-    key_.Set(strCert.Get());
+    key_.reset(new OTData(key));
 
     return true;
 }
 
-bool AsymmetricKeySecp256k1::SetPublicKeyFromPrivateKey(
-    const FormattedKey& strCert,
-    const String* pstrReason,
-    __attribute__((unused)) const OTPassword* pImportPassword)
+bool AsymmetricKeySecp256k1::GetKey(OTData& key) const
 {
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
+    if (key_) {
+        key.Assign(*key_);
 
-    Libsecp256k1& engine = static_cast<Libsecp256k1&>(this->engine());
-    bool havePrivkey = false;
-    OTPassword privKey;
-
-    if (nullptr != pstrReason) {
-        OTPasswordData passwordData(*pstrReason);
-        havePrivkey = engine.AsymmetricKeyToECDSAPrivkey(strCert, passwordData, privKey);
-    } else {
-        OTPasswordData passwordData("Unlock the nym's private credential.");
-        havePrivkey = engine.AsymmetricKeyToECDSAPrivkey(strCert, passwordData, privKey);
-    }
-
-    if (havePrivkey) {
-        secp256k1_pubkey pubKey;
-
-        bool validPubkey = engine.secp256k1_pubkey_create(pubKey, privKey);
-
-        if (validPubkey) {
-            return engine.ECDSAPubkeyToAsymmetricKey(pubKey, *this);
-        }
+        return true;
     }
 
     return false;
 }
 
-bool AsymmetricKeySecp256k1::GetPrivateKey(
-    FormattedKey& strOutput,
-    __attribute__((unused)) const OTAsymmetricKey* pPubkey,
-    __attribute__((unused)) const String* pstrReason,
-    __attribute__((unused)) const OTPassword* pImportPassword) const
-{
-    strOutput.reset();
-    strOutput.Set(key_.Get());
-
-    return true;
-}
-
 bool AsymmetricKeySecp256k1::GetPublicKey(
-    __attribute__((unused)) String& strKey) const
+    String& strKey) const
 {
     strKey.reset();
-    strKey.Set(key_.Get());
-
-    return true;
-}
-
-bool AsymmetricKeySecp256k1::GetPublicKey(
-    __attribute__((unused)) FormattedKey& strKey) const
-{
-    strKey.reset();
-    strKey.Set(key_.Get());
-
-    return true;
-}
-
-bool AsymmetricKeySecp256k1::SetPublicKey(
-    const String& strKey)
-{
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    key_.reset();
-    key_.Set(strKey.Get());
-
-    return true;
-}
-
-bool AsymmetricKeySecp256k1::SetPublicKey(
-    const FormattedKey& strKey)
-{
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    key_.reset();
-    key_.Set(strKey.Get());
+    strKey.Set(CryptoEngine::Instance().Util().Base58CheckEncode(*key_));
 
     return true;
 }
 
 bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
-    __attribute__((unused)) const OTPassword& theExportPassword,
-    __attribute__((unused)) bool bImporting) const
+    const OTPassword& theExportPassword,
+    bool bImporting) const
 {
     OT_ASSERT(IsPrivate());
 
@@ -209,7 +157,7 @@ bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
         // password, independent of the wallet.) So we use theExportedPassword.
         //
         if (bImporting) {
-            haveClearKey = static_cast<Libsecp256k1&>(engine()).ImportECDSAPrivkey(key_, theExportPassword, pClearKey);
+            haveClearKey = static_cast<Libsecp256k1&>(engine()).ImportECDSAPrivkey(*key_, theExportPassword, pClearKey);
         }
         // Else if we're exporting, that means we're currently stored in the
         // wallet (i.e. using the wallet's
@@ -254,8 +202,7 @@ bool AsymmetricKeySecp256k1::ReEncryptPrivateKey(
 
         }
         else
-            otErr << __FUNCTION__ << ": Could not decrypt private key:\n\n"
-                  << key_.Get() << "\n\n";
+            otErr << __FUNCTION__ << ": Could not decrypt private key:\n\n";
     }
     else
         otErr << __FUNCTION__
@@ -282,6 +229,23 @@ AsymmetricKeySecp256k1::~AsymmetricKeySecp256k1()
     Release_AsymmetricKeySecp256k1();
 
     ReleaseKeyLowLevel_Hook();
+}
+
+serializedAsymmetricKey AsymmetricKeySecp256k1::Serialize() const
+
+{
+    serializedAsymmetricKey serializedKey = ot_super::Serialize();
+
+    if (IsPrivate()) {
+        serializedKey->set_mode(proto::KEYMODE_PRIVATE);
+    } else {
+        serializedKey->set_mode(proto::KEYMODE_PUBLIC);
+    }
+
+    serializedKey->set_key(key_->GetPointer(), key_->GetSize());
+
+    return serializedKey;
+
 }
 
 } // namespace opentxs

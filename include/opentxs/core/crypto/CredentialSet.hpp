@@ -40,8 +40,10 @@
 #define OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
 
 #include "MasterCredential.hpp"
+#include <opentxs/core/Nym.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs/core/NymIDSource.hpp>
 
 #include <opentxs/core/crypto/Credential.hpp>
 
@@ -83,6 +85,7 @@ class ChildKeyCredential;
 class Tag;
 
 typedef std::map<std::string, Credential*> mapOfCredentials;
+typedef std::shared_ptr<proto::CredentialSet> SerializedCredentialSet;
 
 // CredentialSet
 //
@@ -110,64 +113,39 @@ typedef std::map<std::string, Credential*> mapOfCredentials;
 class CredentialSet
 {
 private:
-    MasterCredential m_MasterCredential;
+    std::shared_ptr<MasterCredential> m_MasterCredential;
     mapOfCredentials m_mapCredentials;
+    mapOfCredentials m_mapRevokedCredentials;
     String m_strNymID;
-    String m_strSourceForNymID;
-    // --------------------------------------
-    String m_strMasterCredID; // This can't be stored in the master itself
-                              // since it's a hash of that master. But this
-                              // SHOULD be found in every credential signed
-                              // by that master.
-
+    std::shared_ptr<NymIDSource> nym_id_source_;
     const OTPassword* m_pImportPassword = nullptr; // Not owned. Just here for
                                          // convenience.
-    // Sometimes it will be set, so that when
-    // loading something up (and decrypting it)
-    // the password is already available, so the
-    // user doesn't have to type it a million
-    // times (such as during import.) So we use
-    // it when it's available. And usually
-    // whoever set it, will immediately set it
-    // back to nullptr when he's done.
-private:
+                                    // Sometimes it will be set, so that when
+                                    // loading something up (and decrypting it)
+                                    // the password is already available, so the
+                                    // user doesn't have to type it a million
+                                    // times (such as during import.) So we use
+                                    // it when it's available. And usually
+                                    // whoever set it, will immediately set it
+                                    // back to nullptr when he's done.
     CredentialSet();
-    CredentialSet(const Credential::CredentialType masterType);
-    bool SetPublicContents(const String::Map& mapPublic);    // For master
-                                                             // credential.
-    bool SetPrivateContents(const String::Map& mapPrivate);  // For master
-                                                             // credential.
-    void SetSourceForNymID(const String& strSourceForNymID); // The source is
-                                                             // the
-                                                             // URL/DN/pubkey
-                                                             // that hashes to
-                                                             // form the
-                                                             // NymID. Any
-                                                             // credential
-                                                             // must verify
-                                                             // against its
-                                                             // own source.
-    void SetMasterCredID(const String& strID);    // The master credential ID is
-                                                  // a hash of the master
-                                                  // credential m_MasterCredential
-    bool SignNewMaster(const OTPasswordData* pPWData = nullptr); // SignMaster
-                                                                 // is used
-                                                                 // when creating master
-                                                                 // credential.
-    bool SignNewChildCredential(Credential& theChildCred,
-                              Identifier& theChildCredID_out,
-                              const OTPasswordData* pPWData = nullptr); // Used
-                                                                        // when
-                                                                        // creating a new
-                                                                        // child credential.
-    static CredentialSet* CreateMaster(const String& strSourceForNymID,
-                                      const std::shared_ptr<NymParameters>& pKeyData,
-                                      const OTPasswordData* pPWData = nullptr);
+    uint32_t version_;
 public:
+    void SetSource(const std::shared_ptr<NymIDSource>& source);
+                                                           // The source is
+                                                           // the
+                                                           // URL/DN/pubkey
+                                                           // that hashes to
+                                                           // form the
+                                                           // NymID. Any
+                                                           // credential
+                                                           // must verify
+                                                           // against its
+                                                           // own source.
+    CredentialSet(const proto::CredentialSet& serializedCredentialSet);
     EXPORT CredentialSet(
-        const std::shared_ptr<NymParameters>& nymParameters,
-        const OTPasswordData* pPWData = nullptr, const String* psourceForNymID = nullptr
-    );
+        const NymParameters& nymParameters,
+        const OTPasswordData* pPWData = nullptr);
     EXPORT const OTPassword* GetImportPassword() const
     {
         return m_pImportPassword;
@@ -176,24 +154,23 @@ public:
     {
         m_pImportPassword = pImportPassword;
     }
-    static CredentialSet* LoadMaster(const String& strNymID, // Caller is
-                                                            // responsible to
-                                                            // delete, in both
-                                    // CreateMaster and LoadMaster.
-                                    const String& strMasterCredID,
-                                    const Credential::CredentialType theType,
-                                    const OTPasswordData* pPWData = nullptr);
+
+    EXPORT String MasterAsString() const;
+
+    static CredentialSet* LoadMaster(
+        const String& strNymID, // Caller is responsible to delete.
+        const String& strMasterCredID,
+        const OTPasswordData* pPWData = nullptr);
     static CredentialSet* LoadMasterFromString(
         const String& strInput,
-        const String& strNymID, // Caller is responsible to delete, in both
-                                // CreateMaster and LoadMaster.
+        const String& strNymID, // Caller is responsible to delete.
         const String& strMasterCredID,
         const Credential::CredentialType theType,
         OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
+
     EXPORT bool Load_Master(const String& strNymID,
                             const String& strMasterCredID,
-                            const Credential::CredentialType theType,
                             const OTPasswordData* pPWData = nullptr);
     EXPORT bool Load_MasterFromString(
         const String& strInput, const String& strNymID,
@@ -201,37 +178,19 @@ public:
         Credential::CredentialType theType,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    // For credentials that are specifically KeyCredentials. Meaning it will
-    // contain 3 keypairs: signing, authentication, and encryption.
-    //
-    EXPORT bool AddNewChildKeyCredential(
-        const std::shared_ptr<NymParameters>& pKeyData,
-        const OTPasswordData* pPWData = nullptr, // The master credential will sign the
-                                                 // child key credential.
-        ChildKeyCredential* *ppChildKeyCredential = nullptr);          // output
-    // For non-key credentials, such as for 3rd-party authentication.
-    //
-    EXPORT bool AddNewChildCredential(
-        const String::Map& mapPrivate,
-        const String::Map& mapPublic,
-        const OTPasswordData* pPWData = nullptr, // The master key will sign the
-                                                 // child credential.
-        Credential* *ppChildCred = nullptr);  // output
+
     EXPORT bool ReEncryptPrivateCredentials(const OTPassword& theExportPassword,
                                             bool bImporting); // Like for when
                                                               // you are
                                                               // exporting a Nym
                                                               // from the
                                                               // wallet.
-    EXPORT bool LoadChildKeyCredential(const String& strSubID, const Credential::CredentialType theType);
-    EXPORT bool LoadCredential(const String& strSubID);
+    EXPORT bool LoadChildKeyCredential(const String& strSubID);
+    EXPORT bool LoadChildKeyCredential(const proto::Credential& serializedCred);
     EXPORT bool LoadChildKeyCredentialFromString(
         const String& strInput,
         const String& strSubID,
         const Credential::CredentialType theType,
-        const OTPassword* pImportPassword = nullptr);
-    EXPORT bool LoadCredentialFromString(
-        const String& strInput, const String& strSubID,
         const OTPassword* pImportPassword = nullptr);
     EXPORT size_t GetChildCredentialCount() const;
     EXPORT const Credential* GetChildCredential(
@@ -239,16 +198,13 @@ public:
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const Credential* GetChildCredentialByIndex(int32_t nIndex) const;
     EXPORT const std::string GetChildCredentialIDByIndex(size_t nIndex) const;
-    EXPORT const String& GetPubCredential() const; // Returns: m_MasterCredential's
-                                                   // public credential
-                                                   // string.
-    EXPORT const String& GetPriCredential() const; // Returns: m_MasterCredential's
-                                                   // private credential
-                                                   // string.
-    EXPORT const String& GetMasterCredID() const;  // Returns: Master
+    EXPORT const serializedCredential GetSerializedPubCredential() const; // Returns: m_MasterCredential's
+                                                                          // public credential
+                                                                          // protobuf.
+    EXPORT const String GetMasterCredID() const;   // Returns: Master
                                                    // Credential ID!
     EXPORT const String& GetNymID() const;
-    EXPORT const String& GetSourceForNymID() const;
+    EXPORT const NymIDSource& Source() const;
 
     EXPORT bool HasPublic() const;
     EXPORT bool HasPrivate() const;
@@ -262,6 +218,7 @@ public:
     // bValid=true means we are saving OTPseudonym::m_mapCredentials. Whereas
     // bValid=false means we're saving m_mapRevoked.
     //
+    SerializedCredentialSet Serialize(const CredentialIndexModeFlag mode) const;
     EXPORT void SerializeIDs(Tag& parent, const String::List& listRevokedIDs,
                              String::Map* pmapPubInfo = nullptr,
                              String::Map* pmapPriInfo = nullptr,
@@ -271,7 +228,7 @@ public:
     EXPORT bool VerifyAgainstSource() const;
     EXPORT const MasterCredential& GetMasterCredential() const
     {
-        return m_MasterCredential;
+        return *m_MasterCredential;
     }
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
@@ -299,6 +256,7 @@ public:
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT void ClearChildCredentials();
     EXPORT ~CredentialSet();
+    EXPORT bool WriteCredentials() const;
 };
 
 } // namespace opentxs

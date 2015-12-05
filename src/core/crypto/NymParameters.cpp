@@ -59,7 +59,7 @@ NymParameters::NymParameterType NymParameters::nymParameterType() {
     return nymType_;
 }
 
-OTAsymmetricKey::KeyType NymParameters::AsymmetricKeyType()
+OTAsymmetricKey::KeyType NymParameters::AsymmetricKeyType() const
 {
     return Credential::CredentialTypeToKeyType(credentialType_);
 }
@@ -74,6 +74,16 @@ Credential::CredentialType NymParameters::credentialType() const {
 
 void NymParameters::setCredentialType(Credential::CredentialType theCredentialtype) {
     credentialType_ = theCredentialtype;
+}
+
+const std::string& NymParameters::AltLocation() const
+{
+    return altLocation_;
+}
+
+void NymParameters::SetAltLocation(const std::string& location)
+{
+    altLocation_ = location;
 }
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)

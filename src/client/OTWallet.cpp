@@ -189,20 +189,11 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 
 // No need to delete Nym returned by this function.
 // (Wallet stores it in RAM and will delete when it destructs.)
-Nym * OTWallet::CreateNym(const std::shared_ptr<NymParameters>& pKeyData,
-                                    const std::string str_id_source,
-                                    const std::string str_alt_location)
+Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
 {
-    Nym* pNym = new Nym;
+    Nym* pNym = new Nym(nymParameters);
     OT_ASSERT(nullptr != pNym);
 
-    if (false ==
-        pNym->GenerateNym(pKeyData, true, str_id_source, str_alt_location)) {
-        otErr << __FUNCTION__ << ": Failed trying to generate Nym.\n";
-        delete pNym;
-        pNym = nullptr;
-        return nullptr;
-    }
     this->AddNym(*pNym); // Add our new nym to the wallet, who "owns" it hereafter.
 
     // Note: It's already on the master key. To prevent that, we would have had
@@ -2025,58 +2016,18 @@ bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
         //
         OT_ASSERT(theNym.GetMasterCredentialCount() > 0);
 
-        String strNymID, strCredList, strOutput;
-        String::Map mapCredFiles;
-
+        String strNymID;
         theNym.GetIdentifier(strNymID);
-        theNym.GetPrivateCredentials(strCredList, &mapCredFiles);
 
-        String strFilename;
-        strFilename.Format("%s.cred", strNymID.Get());
-
-        OTASCIIArmor ascArmor(strCredList);
-        if (ascArmor.Exists() &&
-            ascArmor.WriteArmoredString(
-                strOutput,
-                "CREDENTIAL LIST") && // bEscaped=false by default.
-            strOutput.Exists()) {
-            if (!OTDB::StorePlainString(strOutput.Get(),
-                                        OTFolders::Credential().Get(),
-                                        strNymID.Get(), strFilename.Get())) {
-                otErr << __FUNCTION__ << ": Failure trying to store "
-                      << (theNym.HasPrivateKey() ? "private" : "public")
-                      << " credential list for Nym: " << strNymID << "\n";
-                return false;
-            }
-        }
-
-        // Here we do the actual credentials.
-        for (auto& it : mapCredFiles) {
-            std::string str_cred_id = it.first;
-            String strCredential(it.second);
-
-            strOutput.Release();
-            OTASCIIArmor ascLoopArmor(strCredential);
-            if (ascLoopArmor.Exists() &&
-                ascLoopArmor.WriteArmoredString(
-                    strOutput,
-                    "CREDENTIAL") && // bEscaped=false by default.
-                strOutput.Exists()) {
-                if (false ==
-                    OTDB::StorePlainString(strOutput.Get(),
-                                            OTFolders::Credential().Get(),
-                                            strNymID.Get(), str_cred_id)) {
-                    otErr << __FUNCTION__ << ": Failure trying to store "
-                          << (theNym.HasPrivateKey() ? "private" : "public")
-                          << " credential for Nym: " << strNymID << "\n";
-                    return false;
-                }
-            }
-        }
-        bConverted = true;
+        bConverted = theNym.WriteCredentials();
 
         if (bConverted) {
             m_setNymsOnCachedKey.insert(theNym.GetConstID());
+        } else {
+            otErr << __FUNCTION__ << ": Failure trying to store "
+            << (theNym.HasPrivateKey() ? "private" : "public")
+            << " credential list for Nym: " << strNymID << "\n";
+            return false;
         }
 
         return bConverted;

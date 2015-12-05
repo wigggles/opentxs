@@ -65,19 +65,50 @@
 #include <opentxs/core/crypto/KeyCredential.hpp>
 
 #include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/Log.hpp>
+#include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
-#include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/Log.hpp>
 
 namespace opentxs
 {
 
-bool KeyCredential::VerifySignedBySelf()
+bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
-    return VerifyWithKey(m_SigningKey->GetPublicKey());
+    serializedSignature publicSig = GetSelfSignature(false);
+
+    if (!publicSig) {
+        otErr << __FUNCTION__ << ": Could not find public self signature.\n";
+        return false;
+    }
+
+    bool goodPublic = VerifySig(*publicSig, m_SigningKey->GetPublicKey(), false);
+
+    if (!goodPublic) {
+        otErr << __FUNCTION__ << ": Could not verify public self signature.\n";
+        return false;
+    }
+
+    if (isPrivate())
+    {
+        serializedSignature privateSig = GetSelfSignature(true);
+
+        if (!privateSig)
+        {
+            otErr << __FUNCTION__ << ": Could not find private self signature.\n";
+            return false;
+        }
+
+        bool goodPrivate = VerifySig(*privateSig, m_SigningKey->GetPublicKey(), true);
+
+        if (!goodPrivate) {
+            otErr << __FUNCTION__ << ": Could not verify private self signature.\n";
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // NOTE: You might ask, if we are using theSignature's metadata to narrow down
@@ -205,20 +236,52 @@ bool KeyCredential::VerifyInternally()
 
 // otErr << "%s line %d: \n", __FILE__, __LINE__);
 
-KeyCredential::KeyCredential(CredentialSet& theOwner)
-    : ot_super(theOwner)
+KeyCredential::KeyCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
+: ot_super(theOwner, serializedCred)
 {
+    const bool hasPrivate = (proto::KEYMODE_PRIVATE == serializedCred.mode())
+        ? true : false;
+
+    // Auth key
+    proto::AsymmetricKey publicAuth = serializedCred.publiccredential().key(proto::KEYROLE_AUTH - 1);
+
+    if (hasPrivate) {
+        proto::AsymmetricKey privateAuth = serializedCred.privatecredential().key(proto::KEYROLE_AUTH - 1);
+
+        m_AuthentKey = std::make_shared<OTKeypair>(publicAuth, privateAuth);
+    } else {
+        m_AuthentKey = std::make_shared<OTKeypair>(publicAuth);
+    }
+
+    // Encrypt key
+    proto::AsymmetricKey publicEncrypt = serializedCred.publiccredential().key(proto::KEYROLE_ENCRYPT - 1);
+
+    if (hasPrivate) {
+        proto::AsymmetricKey privateEncrypt = serializedCred.privatecredential().key(proto::KEYROLE_ENCRYPT - 1);
+
+        m_EncryptKey = std::make_shared<OTKeypair>(publicEncrypt, privateEncrypt);
+    } else {
+        m_EncryptKey = std::make_shared<OTKeypair>(publicEncrypt);
+    }
+
+    // Sign key
+    proto::AsymmetricKey publicSign = serializedCred.publiccredential().key(proto::KEYROLE_SIGN - 1);
+
+    if (hasPrivate) {
+        proto::AsymmetricKey privateSign = serializedCred.privatecredential().key(proto::KEYROLE_SIGN - 1);
+
+        m_SigningKey = std::make_shared<OTKeypair>(publicSign, privateSign);
+    } else {
+        m_SigningKey = std::make_shared<OTKeypair>(publicSign);
+    }
 }
 
-KeyCredential::KeyCredential(CredentialSet& theOwner, const Credential::CredentialType credentialType)
-    : ot_super(theOwner, credentialType)
+KeyCredential::KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
+    : ot_super(theOwner, nymParameters)
 {
-}
-
-KeyCredential::KeyCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters)
-    : ot_super(theOwner, nymParameters->credentialType())
-{
-    GenerateKeys(nymParameters);
+    m_AuthentKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_AUTH);
+    m_EncryptKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_ENCRYPT);
+    m_SigningKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
 }
 
 KeyCredential::~KeyCredential()
@@ -242,346 +305,6 @@ void KeyCredential::Release_KeyCredential()
 
 }
 
-bool KeyCredential::GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData) // Gotta start
-                                                  // somewhere.
-{
-    OT_ASSERT(!m_AuthentKey);
-    OT_ASSERT(!m_EncryptKey);
-    OT_ASSERT(!m_SigningKey);
-
-    if (pKeyData) {
-
-        OTAsymmetricKey::KeyType newKeyType = pKeyData->AsymmetricKeyType();
-
-        m_AuthentKey =  std::make_shared<OTKeypair>(newKeyType);
-        m_EncryptKey =  std::make_shared<OTKeypair>(newKeyType);
-        m_SigningKey =  std::make_shared<OTKeypair>(newKeyType);
-
-        const bool bAuth = m_AuthentKey->MakeNewKeypair(pKeyData);
-        const bool bEncr = m_EncryptKey->MakeNewKeypair(pKeyData);
-        const bool bSign = m_SigningKey->MakeNewKeypair(pKeyData);
-
-        OT_ASSERT(bSign && bAuth && bEncr);
-
-        // Since the keys were all generated successfully, we need to copy their
-        // certificate data into the m_mapPublicInfo and m_mapPrivateInfo (string
-        // maps.)
-        //
-        String strPublicKey;
-        FormattedKey strPrivateCert;
-        String::Map mapPublic, mapPrivate;
-
-        const String strReason("Generating keys for new credential...");
-
-        const bool b1 = m_SigningKey->GetPublicKey(
-            strPublicKey);
-        const bool b2 =
-            m_SigningKey->GetPrivateKey(strPrivateCert, &strReason);
-
-        if (b1)
-            mapPublic.insert(
-                std::pair<std::string, std::string>("S", strPublicKey.Get()));
-        if (b2)
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("S", strPrivateCert.Get()));
-
-        strPublicKey.Release();
-        strPrivateCert.Release();
-        const bool b3 = m_AuthentKey->GetPublicKey(
-            strPublicKey);
-        const bool b4 =
-            m_AuthentKey->GetPrivateKey(strPrivateCert, &strReason);
-
-        if (b3)
-            mapPublic.insert(
-                std::pair<std::string, std::string>("A", strPublicKey.Get()));
-        if (b4)
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("A", strPrivateCert.Get()));
-
-        strPublicKey.Release();
-        strPrivateCert.Release();
-        const bool b5 = m_EncryptKey->GetPublicKey(
-            strPublicKey);
-        const bool b6 =
-            m_EncryptKey->GetPrivateKey(strPrivateCert, &strReason);
-
-        if (b5)
-            mapPublic.insert(
-                std::pair<std::string, std::string>("E", strPublicKey.Get()));
-        if (b6)
-            mapPrivate.insert(
-                std::pair<std::string, std::string>("E", strPrivateCert.Get()));
-
-        if (3 != mapPublic.size()) {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                << ": Failed getting public keys in "
-                    "KeyCredential::GenerateKeys.\n";
-            return false;
-        }
-        else
-            ot_super::SetPublicContents(mapPublic);
-
-        if (3 != mapPrivate.size()) {
-            otErr << "In " << __FILE__ << ", line " << __LINE__
-                << ": Failed getting private keys in "
-                    "KeyCredential::GenerateKeys.\n";
-            return false;
-        }
-        else
-            ot_super::SetPrivateContents(mapPrivate);
-
-        return true;
-    } else {
-        return false;
-    }
-}
-
-// virtual
-bool KeyCredential::SetPublicContents(const String::Map& mapPublic)
-{
-    // NOTE: We might use this on the server side, we'll see, but so far on the
-    // client
-    // side, we won't need to use this function, since SetPrivateContents
-    // already does
-    // the dirty work of extracting the public keys and setting them.
-    //
-
-    if (mapPublic.size() != 3) {
-        otErr << __FILE__ << " line " << __LINE__
-              << ": Failure: Expected 3 in mapPublic.size(), but the actual "
-                 "value was: " << mapPublic.size() << "\n";
-        return false;
-    }
-
-    auto itAuth = mapPublic.find("A"); // Authentication key
-    if (mapPublic.end() == itAuth) {
-        otErr << __FILE__ << " line " << __LINE__
-              << ": Failure: Unable to find public authentication key.\n";
-        return false;
-    }
-
-    auto itEncr = mapPublic.find("E"); // Encryption key
-    if (mapPublic.end() == itEncr) {
-        otErr << __FILE__ << " line " << __LINE__
-              << ": Failure: Unable to find public encryption key.\n";
-        return false;
-    }
-
-    auto itSign = mapPublic.find("S"); // Signing key
-    if (mapPublic.end() == itSign) {
-        otErr << __FILE__ << " line " << __LINE__
-              << ": Failure: Unable to find public signing key.\n";
-        return false;
-    }
-
-    OT_ASSERT(m_AuthentKey);
-    OT_ASSERT(m_EncryptKey);
-    OT_ASSERT(m_SigningKey);
-
-    if (ot_super::SetPublicContents(mapPublic)) {
-
-        String strKey;
-        strKey.Set(itAuth->second.c_str());
-        if (!m_AuthentKey->SetPublicKey(strKey)) {
-            otErr << __FILE__ << " line " << __LINE__
-                  << ": Failure: Unable to set public authentication key based "
-                     "on string:\n" << strKey << "\n";
-            return false;
-        }
-
-        strKey.Release();
-        strKey.Set(itEncr->second.c_str());
-        if (!m_EncryptKey->SetPublicKey(strKey)) {
-            otErr << __FILE__ << " line " << __LINE__
-                  << ": Failure: Unable to set public encryption key based on "
-                     "string:\n" << strKey << "\n";
-            return false;
-        }
-
-        strKey.Release();
-        strKey.Set(itSign->second.c_str());
-        if (!m_SigningKey->SetPublicKey(strKey)) {
-            otErr << __FILE__ << " line " << __LINE__
-                  << ": Failure: Unable to set public signing key based on "
-                     "string:\n" << strKey << "\n";
-            return false;
-        }
-
-        return true; // SUCCESS! This means the input, mapPublic, actually
-                     // contained an "A" key, an "E"
-        // key, and an "S" key (and nothing else) and that all three of those
-        // public keys actually loaded
-        // from string form into their respective key object members.
-    }
-
-    return false;
-}
-
-// NOTE: With KeyCredential, if you call SetPrivateContents, you don't have to
-// call SetPublicContents,
-// since SetPrivateContents will automatically set the public contents, since
-// the public certs are available
-// from the private certs. Not all credentials do this, but keys do. So you
-// might ask, why did I still
-// provide a version of SetPublicContents for KeyCredential? Just to fit the
-// convention, also also because
-// perhaps on the server side, public contents will be the only ones available,
-// and private ones will never
-// be set.
-
-// virtual
-bool KeyCredential::SetPrivateContents(
-    const String::Map& mapPrivate,
-    const OTPassword* pImportPassword) // if not nullptr, it means to use this
-                                       // password by default.
-{
-    OT_ASSERT(m_AuthentKey);
-    OT_ASSERT(m_EncryptKey);
-    OT_ASSERT(m_SigningKey);
-
-    if (mapPrivate.size() != 3) {
-        otErr << __FILE__ << " line " << __LINE__
-              << ": Failure: Expected 3 in mapPrivate(), but the actual value "
-                 "was: " << mapPrivate.size() << "\n";
-        return false;
-    }
-
-    auto itAuth = mapPrivate.find("A"); // Authentication key
-    if (mapPrivate.end() == itAuth) {
-        otErr << __FILE__ << " line " << __LINE__
-              << ": Failure: Unable to find private authentication key.\n";
-        return false;
-    }
-
-    auto itEncr = mapPrivate.find("E"); // Encryption key
-    if (mapPrivate.end() == itEncr) {
-        otErr << __FILE__ << " line " << __LINE__
-              << ": Failure: Unable to find private encryption key.\n";
-        return false;
-    }
-
-    auto itSign = mapPrivate.find("S"); // Signing key
-    if (mapPrivate.end() == itSign) {
-        otErr << __FILE__ << " line " << __LINE__
-              << ": Failure: Unable to find private signing key.\n";
-        return false;
-    }
-
-    if (ot_super::SetPrivateContents(mapPrivate, pImportPassword)) {
-        const String strReason("Loading private key from credential.");
-        String::Map mapPublic;
-
-        FormattedKey strPrivate;
-        strPrivate.Set(itAuth->second.c_str()); // strPrivate now contains the
-                                                // private Cert string.
-
-        if (false ==
-            m_AuthentKey->SetPrivateKey(
-                strPrivate, &strReason,
-                pImportPassword)) {
-            otErr << __FILE__ << " line " << __LINE__
-                  << ": Failure: Unable to set private authentication key "
-                     "based on string.\n";
-            return false;
-        }
-        else // Success loading the private key. Let's grab the public key
-               // here.
-        {
-            String strPublic;
-
-            if ((false ==
-                 m_AuthentKey->GetPublicKey(
-                     strPublic))) {
-                otErr << __FILE__ << " line " << __LINE__
-                      << ": Failure: Unable to set public authentication key "
-                         "based on private string.\n";
-                return false;
-            }
-            mapPublic.insert(
-                std::pair<std::string, std::string>("A", strPublic.Get()));
-        }
-
-        strPrivate.Release();
-        strPrivate.Set(itEncr->second.c_str());
-
-        if (false ==
-            m_EncryptKey->SetPrivateKey(
-                strPrivate, &strReason,
-                pImportPassword)) {
-            otErr << __FILE__ << " line " << __LINE__
-                  << ": Failure: Unable to set private encryption key based on "
-                     "string.\n";
-            return false;
-        }
-        else // Success loading the private key. Let's grab the public key
-               // here.
-        {
-            String strPublic;
-
-            if ((false ==
-                 m_EncryptKey->GetPublicKey(
-                     strPublic))) {
-                otErr << __FILE__ << " line " << __LINE__
-                      << ": Failure: Unable to set public encryption key based "
-                         "on private string.\n";
-                return false;
-            }
-            mapPublic.insert(
-                std::pair<std::string, std::string>("E", strPublic.Get()));
-        }
-
-        strPrivate.Release();
-        strPrivate.Set(itSign->second.c_str());
-
-        if (false ==
-            m_SigningKey->SetPrivateKey(
-                strPrivate, &strReason,
-                pImportPassword)) {
-            otErr << __FILE__ << " line " << __LINE__
-                  << ": Failure: Unable to set private signing key based on "
-                     "string.\n";
-            return false;
-        }
-        else // Success loading the private key. Let's grab the public key
-               // here.
-        {
-            String strPublic;
-
-            if ((false ==
-                 m_SigningKey->GetPublicKey(
-                     strPublic))) {
-                otErr << __FILE__ << " line " << __LINE__
-                      << ": Failure: Unable to set public signing key based on "
-                         "private string.\n";
-                return false;
-            }
-            mapPublic.insert(
-                std::pair<std::string, std::string>("S", strPublic.Get()));
-        }
-
-        if (!ot_super::SetPublicContents(mapPublic)) {
-            otErr << __FILE__ << " line " << __LINE__
-                  << ": Failure: While trying to call: "
-                     "ot_super::SetPublicContents(mapPublic)\n"; // Should never
-                                                                 // happen (it
-                                                                 // always just
-                                                                 // returns
-                                                                 // true.)
-            return false;
-        }
-
-        return true; // SUCCESS! This means the input, mapPrivate, actually
-                     // contained an "A" key, an "E"
-        // key, and an "S" key (and nothing else) and that all three of those
-        // private keys actually loaded
-        // from string form into their respective key object members. We also
-        // set the public keys in here, FYI.
-    }
-
-    return false;
-}
-
 bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData)
 {
     OT_ASSERT(m_SigningKey);
@@ -592,154 +315,210 @@ bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData)
 bool KeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
                                     bool bImporting)
 {
-    FormattedKey strSign, strAuth, strEncr;
-
     OT_ASSERT(m_AuthentKey);
     OT_ASSERT(m_EncryptKey);
     OT_ASSERT(m_SigningKey);
 
-    const bool bSign =
-        m_SigningKey->ReEncrypt(theExportPassword, bImporting, strSign);
-    bool bAuth = false;
-    bool bEncr = false;
-
-    if (bSign) {
-        bAuth = m_AuthentKey->ReEncrypt(theExportPassword, bImporting, strAuth);
-
-        if (bAuth)
-            bEncr =
-                m_EncryptKey->ReEncrypt(theExportPassword, bImporting, strEncr);
-    }
+    const bool bSign = m_SigningKey->ReEncrypt(theExportPassword, bImporting);
+    const bool bAuth = m_AuthentKey->ReEncrypt(theExportPassword, bImporting);
+    const bool bEncr = m_EncryptKey->ReEncrypt(theExportPassword, bImporting);
 
     const bool bSuccessReEncrypting = (bSign && bAuth && bEncr);
-    bool bSuccess = false;
+    OT_ASSERT(bSuccessReEncrypting);
 
-    // If success, we now have the updated versions of the private certs.
-    //
-    if (bSuccessReEncrypting) {
-        String::Map mapPrivate;
-
-        for (auto& it : m_mapPrivateInfo) {
-            std::string str_key_type = it.first; // A, E, S.
-            std::string str_key_contents = it.second;
-
-            if ("A" == str_key_type) {
-                mapPrivate.insert(
-                    std::pair<std::string, std::string>("A", strAuth.Get()));
-            }
-            else if ("E" == str_key_type)
-                mapPrivate.insert(
-                    std::pair<std::string, std::string>("E", strEncr.Get()));
-            else if ("S" == str_key_type)
-                mapPrivate.insert(
-                    std::pair<std::string, std::string>("S", strSign.Get()));
-
-            else // Should never happen, but if there are other keys here, we'll
-                 // preserve 'em.
-            {
-                mapPrivate.insert(std::pair<std::string, std::string>(
-                    str_key_type, str_key_contents));
-                OT_FAIL; // really this should never happen.
-            }
-        }
-
-        if (3 != mapPrivate.size())
-            otErr << __FUNCTION__ << ": Unexpected, mapPrivate does not have "
-                                     "exactly a size of 3. \n";
-
-        else {
-            // Logic: If I'm IMPORTING, bImporting is true, and that means the
-            // Nym WAS
-            // encrypted to its own external passphrase (whenever it was
-            // exported) and
-            // in order to IMPORT it, I re-encrypted all the keys from the
-            // exported passphrase,
-            // to the wallet master key (this was done above in ReEncrypt.)
-            // So now that I am loading up the private contents again based on
-            // those
-            // re-encrypted keys, I will want to use the normal wallet master
-            // key to load
-            // them. (So I pass nullptr.)
-            //
-            // But if I'm EXPORTING, bImporting is false, and that means the Nym
-            // WAS
-            // encrypted to the wallet's master passphrase, until just above
-            // when I ReEncrypted
-            // it to its own external passphrase. So now that I am attempting to
-            // reload the
-            // keys based on this new external passphrase, I need to pass it in
-            // so it can be
-            // used for that loading. (So I pass &theExportPassword.)
-            //
-            bSuccess = SetPrivateContents(
-                mapPrivate, bImporting ? nullptr : &theExportPassword);
-        }
-    }
-
-    return bSuccess; // Note: Caller must re-sign credential after doing this,
+    return bSuccessReEncrypting; // Note: Caller must re-sign credential after doing this,
                      // to keep these changes.
 }
 
-void KeyCredential::SetMetadata()
+serializedCredential KeyCredential::Serialize(bool asPrivate, bool asSigned) const
 {
-    char cMetaKeyType;     // Can be A, E, or S (authentication, encryption, or
-                           // signing. Also, E would be unusual.)
-    char cMetaNymID = '0'; // Can be any letter from base58 alphabet. Represents
-                           // fourth letter of a Nym's ID.
-    char cMetaMasterCredID = '0'; // Can be any letter from base58 alphabet.
-                                  // Represents fourth letter of a Master
-                                  // Credential ID (for that Nym.)
-    char cMetaChildCredID = '0';    // Can be any letter from base58 alphabet.
-                                  // Represents fourth letter of a Credential
-                                  // ID (signed by that Master.)
+    serializedCredential serializedCredential =
+        this->ot_super::Serialize(asPrivate, asSigned);
 
-    String strChildCredID;
-    GetIdentifier(strChildCredID);
+    addKeyCredentialtoSerializedCredential(serializedCredential, false);
 
-    // If the ID is otxBk69JB8oaGLo8U6UrC4ZxXoYcRBzUSc92
-    // then the character used for metadata would be 'B',
-    // the fourth one. (At index 3.)
-    //
-    const uint32_t uIndex = 3;
-
-    const bool bNymID = GetNymID().At(uIndex, cMetaNymID);
-    const bool bCredID =
-        m_pOwner->GetMasterCredID().At(uIndex, cMetaMasterCredID);
-    const bool bSubID = strChildCredID.At(uIndex, cMetaChildCredID);
-    // In the case of the master
-    // credential, this will repeat the
-    // previous one.
-
-    if (!bNymID || !bCredID || !bSubID) {
-        otWarn << __FUNCTION__ << ": No metadata available:\n "
-               << "bNymID"
-               << " is " << (bNymID ? "True" : "False") << ", "
-               << "bCredID"
-               << " is " << (bNymID ? "True" : "False") << ", "
-               << "bSubID"
-               << " is " << (bNymID ? "True" : "False") << "";
+    if (asPrivate) {
+        addKeyCredentialtoSerializedCredential(serializedCredential, true);
     }
 
-    OTSignatureMetadata theMetadata;
+    return serializedCredential;
+}
 
-    OT_ASSERT(m_AuthentKey);
-    OT_ASSERT(m_EncryptKey);
-    OT_ASSERT(m_SigningKey);
+bool KeyCredential::addKeytoSerializedKeyCredential(
+    proto::KeyCredential& credential,
+    const bool getPrivate,
+    const proto::KeyRole role) const
+{
+    serializedAsymmetricKey key;
+    std::shared_ptr<OTKeypair>(pKey);
 
-    cMetaKeyType = 'A';
-    theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID,
-                            cMetaChildCredID);
-    m_AuthentKey->SetMetadata(theMetadata);
+    switch (role) {
+        case proto::KEYROLE_AUTH :
+            pKey = m_AuthentKey;
+            break;
+        case proto::KEYROLE_ENCRYPT :
+            pKey = m_EncryptKey;
+            break;
+        case proto::KEYROLE_SIGN :
+            pKey = m_SigningKey;
+            break;
+        default :
+            return false;
+    }
 
-    cMetaKeyType = 'E';
-    theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID,
-                            cMetaChildCredID);
-    m_EncryptKey->SetMetadata(theMetadata);
+    key = pKey->Serialize(getPrivate);
+    key->set_role(role);
 
-    cMetaKeyType = 'S';
-    theMetadata.SetMetadata(cMetaKeyType, cMetaNymID, cMetaMasterCredID,
-                            cMetaChildCredID);
-    m_SigningKey->SetMetadata(theMetadata);
+    proto::AsymmetricKey* newKey = credential.add_key();
+    *newKey = *key;
+
+    return true;
+}
+
+bool KeyCredential::addKeyCredentialtoSerializedCredential(
+    serializedCredential credential,
+    const bool addPrivate) const
+{
+    proto::KeyCredential* keyCredential = new proto::KeyCredential;
+
+    if (nullptr == keyCredential) {
+        otErr << "opentxs::KeyCredential" << __FUNCTION__ << "(): failed to allocate keyCredential protobuf.\n";
+        return false;
+    }
+
+    keyCredential->set_version(1);
+
+    // These must be serialized in this order
+    bool auth = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_AUTH);
+    bool encrypt = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_ENCRYPT);
+    bool sign = addKeytoSerializedKeyCredential(*keyCredential, addPrivate, proto::KEYROLE_SIGN);
+
+    if (auth && encrypt && sign) {
+        if (addPrivate) {
+            keyCredential->set_mode(proto::KEYMODE_PRIVATE);
+            credential->set_allocated_privatecredential(keyCredential);
+
+            return true;
+        } else  {
+            keyCredential->set_mode(proto::KEYMODE_PUBLIC);
+            credential->set_allocated_publiccredential(keyCredential);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool KeyCredential::Sign(
+    const proto::Credential& credential,
+    const CryptoHash::HashType hashType,
+    OTData& signature, // output
+    const OTPassword* exportPassword,
+    const OTPasswordData* pPWData) const
+{
+    OTData plaintext = SerializeCredToData(credential);
+
+    return this->m_SigningKey->GetPrivateKey().engine().Sign(
+                                                            plaintext,
+                                                            this->m_SigningKey->GetPrivateKey(),
+                                                            hashType,
+                                                            signature,
+                                                            pPWData,
+                                                            exportPassword);
+}
+
+bool KeyCredential::SelfSign(
+    const OTPassword* exportPassword,
+    const OTPasswordData* pPWData,
+    const bool onlyPrivate)
+{
+    String credID;
+    GetIdentifier(credID);
+
+    serializedSignature publicSignature =
+        std::make_shared<proto::Signature>();
+    serializedSignature privateSignature =
+        std::make_shared<proto::Signature>();
+    OTData signature;
+
+    bool havePublicSig = false;
+    if (!onlyPrivate) {
+        serializedCredential publicVersion = SerializeForPublicSignature();
+        havePublicSig = Sign(
+            *publicVersion,
+            Identifier::DefaultHashAlgorithm,
+            signature,
+            exportPassword,
+            pPWData);
+
+        if (havePublicSig) {
+            publicSignature->set_version(1);
+            publicSignature->set_credentialid(credID.Get());
+            publicSignature->set_role(proto::SIGROLE_PUBCREDENTIAL);
+            publicSignature->set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+            publicSignature->set_signature(signature.GetPointer(), signature.GetSize());
+
+            m_listSerializedSignatures.push_back(publicSignature);
+        }
+    }
+
+    serializedCredential privateVersion = SerializeForPrivateSignature();
+    bool havePrivateSig = Sign(
+        *privateVersion,
+        Identifier::DefaultHashAlgorithm,
+        signature,
+        exportPassword,
+        pPWData);
+
+    if (havePrivateSig) {
+        privateSignature->set_version(1);
+        privateSignature->set_credentialid(credID.Get());
+        privateSignature->set_role(proto::SIGROLE_PRIVCREDENTIAL);
+        privateSignature->set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+        privateSignature->set_signature(signature.GetPointer(), signature.GetSize());
+
+        m_listSerializedSignatures.push_back(privateSignature);
+    }
+
+    return ((havePublicSig | onlyPrivate) && havePrivateSig);
+}
+
+bool KeyCredential::VerifySig(
+                            const proto::Signature& sig,
+                            const OTAsymmetricKey& theKey,
+                            const bool asPrivate,
+                            const OTPasswordData* pPWData) const
+{
+    bool verified = false;
+
+    OTData signature;
+    signature.Assign(sig.signature().c_str(), sig.signature().size());
+
+    OTPasswordData thePWData("KeyCredential::VerifyWithKey");
+
+    serializedCredential serialized;
+
+    if ((proto::KEYMODE_PRIVATE != m_mode) && asPrivate) {
+        otErr << __FUNCTION__ << ": Can not serialize a public credential as a private credential.\n";
+        return false;
+    }
+
+    if (asPrivate) {
+        serialized = SerializeForPrivateSignature();
+    } else {
+        serialized = SerializeForPublicSignature();
+    }
+
+    OTData plaintext = SerializeCredToData(*serialized);
+    verified = theKey.engine().Verify(
+                                plaintext,
+                                theKey,
+                                signature,
+                                static_cast<CryptoHash::HashType>(sig.hashtype()),
+                                pPWData);
+
+    return verified;
 }
 
 } // namespace opentxs

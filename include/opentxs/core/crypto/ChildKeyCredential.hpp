@@ -41,6 +41,7 @@
 
 #include "KeyCredential.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
 
@@ -81,15 +82,17 @@ private:
     typedef KeyCredential ot_super;
     ChildKeyCredential() = delete;
 
+    virtual bool AddMasterSignature();
+    serializedSignature GetMasterSignature() const;
 public:
-    ChildKeyCredential(CredentialSet& other);
-    ChildKeyCredential(CredentialSet& other, const Credential::CredentialType childType);
-    ChildKeyCredential(CredentialSet& other, const std::shared_ptr<NymParameters>& nymParameters);
+    ChildKeyCredential(CredentialSet& other, const String& stringCredential);
+    ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
+    ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred);
     virtual ~ChildKeyCredential();
 
     virtual bool VerifySignedByMaster();
-    virtual void UpdateContents();
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
+    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
 };
 
 } // namespace opentxs

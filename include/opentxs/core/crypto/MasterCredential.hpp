@@ -41,6 +41,7 @@
 
 #include "KeyCredential.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
 
@@ -80,6 +81,7 @@ class MasterCredential : public KeyCredential
 private: // Private prevents erroneous use by other classes.
     typedef KeyCredential ot_super;
     MasterCredential() = delete;
+    std::unique_ptr<proto::SourceProof> source_proof_;
 public:
     virtual bool VerifyInternally();  // Verify that m_strNymID is the same as
                                       // the hash of m_strSourceForNymID. Also
@@ -87,30 +89,13 @@ public:
                                       // m_pOwner->m_MasterCredential (the master
                                       // credential.) Then verify the
                                       // (self-signed) signature on *this.
-    bool VerifyAgainstSource() const; // Should actually curl the URL, or lookup
-                                      // the blockchain value, or verify Cert
-                                      // against Cert Authority, etc. Due to the
-                                      // network slowdown of this step, we will
-                                      // eventually make a separate identity
-                                      // verification server.
-    bool VerifySource_HTTP(const String strSource) const;
-    bool VerifySource_HTTPS(const String strSource) const; // It's deliberate
-                                                           // that strSource
-                                                           // isn't passed by
-                                                           // reference here.
-    bool VerifySource_Bitcoin(const String strSource) const;
-    bool VerifySource_Namecoin(const String strSource) const;
-    bool VerifySource_Freenet(const String strSource) const;
-    bool VerifySource_TOR(const String strSource) const;
-    bool VerifySource_I2P(const String strSource) const;
-    bool VerifySource_CA(const String strSource) const;
-    bool VerifySource_Pubkey(const String strSource) const;
-    MasterCredential(CredentialSet& theOwner);
-    MasterCredential(CredentialSet& theOwner, const Credential::CredentialType masterType);
-    MasterCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters, const String* psourceForNymID = nullptr);
+    bool VerifyAgainstSource() const;
+    MasterCredential(CredentialSet& theOwner, const String& stringCredential);
+    MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred);
+    MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     virtual ~MasterCredential();
-    virtual void UpdateContents();
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
+    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
 };
 
 } // namespace opentxs

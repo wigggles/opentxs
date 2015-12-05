@@ -38,7 +38,6 @@
 
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
 
-#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/Crypto.hpp>
@@ -71,15 +70,16 @@ Libsecp256k1::Libsecp256k1(CryptoUtil& ssl)
 }
 
 
-bool Libsecp256k1::SignContract(
-    const String& strContractUnsigned,
+bool Libsecp256k1::Sign(
+    const OTData& plaintext,
     const OTAsymmetricKey& theKey,
-    OTSignature& theSignature, // output
-    CryptoHash::HashType hashType,
-    const OTPasswordData* pPWData)
+    const CryptoHash::HashType hashType,
+    OTData& signature, // output
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword) const
 {
     OTData hash;
-    bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, strContractUnsigned, hash);
+    bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, plaintext, hash);
 
     if (haveDigest) {
         OTPassword privKey;
@@ -87,9 +87,9 @@ bool Libsecp256k1::SignContract(
 
         if (nullptr == pPWData) {
             OTPasswordData passwordData("Libsecp256k1::SignContract(): Please enter your password to sign this document.");
-            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, passwordData, privKey);
+            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, passwordData, privKey, exportPassword);
         } else {
-            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, *pPWData, privKey);
+            havePrivateKey = AsymmetricKeyToECDSAPrivkey(theKey, *pPWData, privKey, exportPassword);
         }
 
         if (havePrivateKey) {
@@ -104,8 +104,8 @@ bool Libsecp256k1::SignContract(
                 nullptr);
 
             if (signatureCreated) {
-                bool signatureSet = ECDSASignatureToOTSignature(ecdsaSignature, theSignature);
-                return signatureSet;
+                signature.Assign(ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature));
+                return true;
             } else {
                     otErr << __FUNCTION__ << ": "
                     << "Call to secp256k1_ecdsa_sign() failed.\n";
@@ -126,16 +126,15 @@ bool Libsecp256k1::SignContract(
     }
 }
 
-bool Libsecp256k1::VerifySignature(
-    const String& strContractToVerify,
+bool Libsecp256k1::Verify(
+    const OTData& plaintext,
     const OTAsymmetricKey& theKey,
-    const OTSignature& theSignature,
+    const OTData& signature,
     const CryptoHash::HashType hashType,
-    __attribute__((unused)) const OTPasswordData* pPWData
-    ) const
+    __attribute__((unused)) const OTPasswordData* pPWData) const
 {
     OTData hash;
-    bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, strContractToVerify, hash);
+    bool haveDigest = CryptoEngine::Instance().Hash().Digest(hashType, plaintext, hash);
 
     if (haveDigest) {
         secp256k1_pubkey ecdsaPubkey;
@@ -144,7 +143,7 @@ bool Libsecp256k1::VerifySignature(
         if (havePublicKey) {
             secp256k1_ecdsa_signature ecdsaSignature;
 
-            bool haveSignature = OTSignatureToECDSASignature(theSignature, ecdsaSignature);
+            bool haveSignature = OTDataToECDSASignature(signature, ecdsaSignature);
 
             if (haveSignature) {
                 bool signatureVerified = secp256k1_ecdsa_verify(
@@ -160,45 +159,27 @@ bool Libsecp256k1::VerifySignature(
     return false;
 }
 
-bool Libsecp256k1::OTSignatureToECDSASignature(
-    const OTSignature& inSignature,
+bool Libsecp256k1::OTDataToECDSASignature(
+    const OTData& inSignature,
     secp256k1_ecdsa_signature& outSignature) const
 {
-    OTData signature;
+    const uint8_t* sigStart = static_cast<const uint8_t*>(inSignature.GetPointer());
 
-    bool hasSignature = inSignature.GetData(signature);
+    if (nullptr != sigStart) {
 
-    if (hasSignature) {
-        const uint8_t* sigStart = static_cast<const uint8_t*>(signature.GetPointer());
+        if (sizeof(secp256k1_ecdsa_signature) == inSignature.GetSize()) {
+            secp256k1_ecdsa_signature ecdsaSignature;
 
-        if (nullptr != sigStart) {
-
-            if (sizeof(secp256k1_ecdsa_signature) == signature.GetSize()) {
-                secp256k1_ecdsa_signature ecdsaSignature;
-
-                for(uint32_t i=0; i < signature.GetSize(); i++) {
-                    ecdsaSignature.data[i] = *(sigStart + i);
-                }
-
-                outSignature = ecdsaSignature;
-
-                return true;
+            for(uint32_t i=0; i < inSignature.GetSize(); i++) {
+                ecdsaSignature.data[i] = *(sigStart + i);
             }
+
+            outSignature = ecdsaSignature;
+
+            return true;
         }
     }
     return false;
-}
-
-bool Libsecp256k1::ECDSASignatureToOTSignature(
-    const secp256k1_ecdsa_signature& inSignature,
-    OTSignature& outSignature) const
-{
-    OTData signature;
-
-    signature.Assign(inSignature.data, sizeof(secp256k1_ecdsa_signature));
-    bool signatureSet = outSignature.SetData(signature);
-
-    return signatureSet;
 }
 
 bool Libsecp256k1::AsymmetricKeyToECDSAPubkey(
@@ -239,9 +220,7 @@ bool Libsecp256k1::ECDSAPubkeyToAsymmetricKey(
     bool keySerialized = secp256k1_pubkey_serialize(serializedPubkey, pubkey);
 
     if (keySerialized) {
-        FormattedKey encodedPublicKey(CryptoUtil::Base58CheckEncode(serializedPubkey).Get());
-
-        return asymmetricKey.SetPublicKey(encodedPublicKey);
+        return static_cast<AsymmetricKeySecp256k1&>(asymmetricKey).SetKey(serializedPubkey, false);
     }
     return false;
 }
@@ -250,59 +229,52 @@ bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
     const OTAsymmetricKey& asymmetricKey,
     const OTPasswordData& passwordData,
     OTPassword& privkey,
-    bool ephemeral) const
+    const OTPassword* exportPassword) const
 {
-    FormattedKey encodedPrivkey;
-    bool havePrivateKey = asymmetricKey.GetPrivateKey(encodedPrivkey);
+    OTData dataPrivkey;
+    bool havePrivateKey = static_cast<const AsymmetricKeySecp256k1&>(asymmetricKey).GetKey(dataPrivkey);
+
+    OT_ASSERT(0 < dataPrivkey.GetSize());
 
     if (havePrivateKey) {
-        return AsymmetricKeyToECDSAPrivkey(encodedPrivkey, passwordData, privkey, ephemeral);
+        return AsymmetricKeyToECDSAPrivkey(dataPrivkey, passwordData, privkey, exportPassword);
     } else {
         return false;
     }
 }
 
 bool Libsecp256k1::AsymmetricKeyToECDSAPrivkey(
-    const FormattedKey& asymmetricKey,
+    const OTData& asymmetricKey,
     const OTPasswordData& passwordData,
     OTPassword& privkey,
-    bool ephemeral) const
+    const OTPassword* exportPassword) const
 {
 
     BinarySecret masterPassword(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
 
-    if (ephemeral) {
-        masterPassword->setPassword("test");
-    } else {
+    if (nullptr == exportPassword) {
         masterPassword = CryptoSymmetric::GetMasterKey(passwordData);
+        return ImportECDSAPrivkey(asymmetricKey, *masterPassword, privkey);
+    } else {
+        return ImportECDSAPrivkey(asymmetricKey, *exportPassword, privkey);
     }
 
-    return ImportECDSAPrivkey(asymmetricKey, *masterPassword, privkey);
 }
 
 bool Libsecp256k1::ImportECDSAPrivkey(
-    const FormattedKey& asymmetricKey,
+    const OTData& asymmetricKey,
     const OTPassword& password,
     OTPassword& privkey) const
 {
     OTPassword keyPassword;
     CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
 
-    OTData encryptedPrivkey;
-    bool privkeydecoded = CryptoUtil::Base58CheckDecode(asymmetricKey.Get(), encryptedPrivkey);
-
-    if (!privkeydecoded) {
-        otErr << "Libsecp256k1::" << __FUNCTION__
-              << ": Could not decode base58 encrypted private key.\n";
-        return false;
-    }
-
     OTData decryptedKey;
     CryptoEngine::Instance().AES().Decrypt(
         CryptoSymmetric::AES_256_ECB,
         keyPassword,
-        static_cast<const char*>(encryptedPrivkey.GetPointer()),
-        encryptedPrivkey.GetSize(),
+        static_cast<const char*>(asymmetricKey.GetPointer()),
+        asymmetricKey.GetSize(),
         decryptedKey);
 
     return privkey.setMemory(decryptedKey);
@@ -311,16 +283,11 @@ bool Libsecp256k1::ImportECDSAPrivkey(
 bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
         const OTPassword& privkey,
         const OTPasswordData& passwordData,
-        OTAsymmetricKey& asymmetricKey,
-        bool ephemeral) const
+        OTAsymmetricKey& asymmetricKey) const
 {
     BinarySecret masterPassword(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
 
-    if (ephemeral) {
-        masterPassword->setPassword("test");
-    } else {
-        masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
-    }
+    masterPassword = CryptoSymmetric::GetMasterKey(passwordData, true);
 
     return ExportECDSAPrivkey(privkey, *masterPassword, asymmetricKey);
 }
@@ -341,22 +308,19 @@ bool Libsecp256k1::ExportECDSAPrivkey(
         privkey.getMemorySize(),
         encryptedKey);
 
-    FormattedKey formattedKey(CryptoUtil::Base58CheckEncode(encryptedKey).Get());
-
-    return asymmetricKey.SetPrivateKey(formattedKey);
+    return static_cast<AsymmetricKeySecp256k1&>(asymmetricKey).SetKey(encryptedKey, true);
 }
 
 bool Libsecp256k1::ECDH(
     const OTAsymmetricKey& publicKey,
     const OTAsymmetricKey& privateKey,
     const OTPasswordData& passwordData,
-    OTPassword& secret,
-    bool ephemeral) const
+    OTPassword& secret) const
 {
     OTPassword scalar;
     secp256k1_pubkey point;
 
-    bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(privateKey, passwordData, scalar, ephemeral);
+    bool havePrivateKey = AsymmetricKeyToECDSAPrivkey(privateKey, passwordData, scalar);
 
     if (havePrivateKey) {
         bool havePublicKey = AsymmetricKeyToECDSAPubkey(publicKey, point);
@@ -384,8 +348,7 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
         const OTAsymmetricKey& privateKey,
         const OTAsymmetricKey& publicKey,
         const OTPasswordData& passwordData,
-        symmetricEnvelope& encryptedSessionKey,
-        bool ephemeral) const
+        symmetricEnvelope& encryptedSessionKey) const
 {
     CryptoSymmetric::Mode algo = CryptoSymmetric::StringToMode(std::get<0>(encryptedSessionKey));
     CryptoHash::HashType hmac = CryptoHash::StringToHashType(std::get<1>(encryptedSessionKey));
@@ -405,7 +368,7 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
 
     // Calculate ECDH shared secret
     BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
-    bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret, ephemeral);
+    bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
 
     if (haveECDH) {
         // In order to make sure the session key is always encrypted to a different key for every Seal() action,
@@ -458,8 +421,8 @@ bool Libsecp256k1::EncryptSessionKeyECDH(
 }
 
 
-           
-                        
+
+
 bool Libsecp256k1::DecryptSessionKeyECDH(
     const symmetricEnvelope& encryptedSessionKey,
     const OTAsymmetricKey& privateKey,
@@ -488,7 +451,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
         // Calculate ECDH shared secret
         BinarySecret ECDHSecret(CryptoEngine::Instance().AES().InstantiateBinarySecretSP());
         bool haveECDH = ECDH(publicKey, privateKey, passwordData, *ECDHSecret);
-                        
+
         if (haveECDH) {
             // In order to make sure the session key is always encrypted to a different key for every Seal() action
             // even if the sender and recipient are the same, don't use the ECDH secret directly. Instead, calculate
@@ -533,7 +496,7 @@ bool Libsecp256k1::DecryptSessionKeyECDH(
             otErr << "Libsecp256k1::" << __FUNCTION__ << ": ECDH shared secret negotiation failed.\n";
             return false;
         }
-                        
+
     } else {
         otErr << "Libsecp256k1::" << __FUNCTION__ << ": Can not decode nonce.\n";
         return false;

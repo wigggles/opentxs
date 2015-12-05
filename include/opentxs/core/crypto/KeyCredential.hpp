@@ -42,6 +42,7 @@
 #include "OTKeypair.hpp"
 #include "Credential.hpp"
 #include <opentxs/core/crypto/NymParameters.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
 
@@ -144,17 +145,20 @@ class KeyCredential : public Credential
 private: // Private prevents erroneous use by other classes.
     typedef Credential ot_super;
     friend class CredentialSet;
-    bool GenerateKeys(const std::shared_ptr<NymParameters>& pKeyData); // Gotta start somewhere.
     KeyCredential() = delete;
+    bool addKeytoSerializedKeyCredential(
+        proto::KeyCredential& credential,
+        const bool getPrivate,
+        const proto::KeyRole role) const;
+    bool addKeyCredentialtoSerializedCredential(
+        serializedCredential credential,
+        const bool addPrivate) const;
+
 
 protected:
-    virtual bool SetPublicContents(const String::Map& mapPublic);
-    virtual bool SetPrivateContents(
-        const String::Map& mapPrivate,
-        const OTPassword* pImportPassword = nullptr); // if not nullptr, it
-                                                      // means to
-                                                      // use
-    // this password by default.
+    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
+    KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
+    KeyCredential(CredentialSet& theOwner, const proto::Credential& serializedCred);
 public:
     std::shared_ptr<OTKeypair> m_SigningKey; // Signing keys, for signing/verifying a "legal
                             // signature".
@@ -171,11 +175,7 @@ public:
                                      // m_pOwner->m_MasterCredential (the master
                                      // credential.) Then verify the
                                      // (self-signed) signature on *this.
-    bool VerifySignedBySelf();
-    virtual void SetMetadata();
-    KeyCredential(CredentialSet& theOwner);
-    KeyCredential(CredentialSet& theOwner, const Credential::CredentialType credentialType);
-    KeyCredential(CredentialSet& theOwner, const std::shared_ptr<NymParameters>& nymParameters);
+    bool VerifySignedBySelf() const;
     bool Sign(Contract& theContract, const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t GetPublicKeysBySignature(
         listOfAsymmetricKeys& listOutput, const OTSignature& theSignature,
@@ -186,6 +186,25 @@ public:
     virtual ~KeyCredential();
     virtual void Release();
     void Release_KeyCredential();
+
+    virtual bool Sign(
+        const proto::Credential& credential,
+        const CryptoHash::HashType hashType,
+        OTData& signature, // output
+        const OTPassword* exportPassword = nullptr,
+        const OTPasswordData* pPWData = nullptr) const;
+    virtual bool SelfSign(
+        const OTPassword* exportPassword = nullptr,
+        const OTPasswordData* pPWData = nullptr,
+        const bool onlyPrivate = false);
+
+    EXPORT virtual bool VerifySig(
+                                const proto::Signature& sig,
+                                const OTAsymmetricKey& theKey,
+                                const bool asPrivate = true,
+                                const OTPasswordData* pPWData = nullptr) const;
+
+
 };
 
 } // namespace opentxs

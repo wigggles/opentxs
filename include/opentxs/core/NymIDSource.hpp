@@ -36,30 +36,55 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_FORMATTEDKEY_HPP
-#define OPENTXS_CORE_FORMATTEDKEY_HPP
+#ifndef OPENTXS_CORE_NYMIDSOURCE_HPP
+#define OPENTXS_CORE_NYMIDSOURCE_HPP
 
-#include <opentxs/core/String.hpp>
+#include <memory>
+
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
+
+#include "Identifier.hpp"
+#include "OTData.hpp"
+#include "String.hpp"
 
 namespace opentxs
 {
 
-/// This class is identical to opentxs::String.
-///
-/// The reason it exists is to allow crypto key implementations
-/// which have more than one way to represent a key as a String
-/// to use function overloading on key handling functions which
-/// must act differently based on which representation is being
-/// used.
-class FormattedKey : public String
+class MasterCredential;
+class NymParameters;
+class OTAsymmetricKey;
+
+typedef std::shared_ptr<proto::NymIDSource> serializedNymIDSource;
+
+class NymIDSource
 {
-typedef String ot_super;
+private:
+    NymIDSource() = delete;
+
+    uint32_t version_ = 0;
+    proto::SourceType type_ = proto::SOURCETYPE_ERROR;
+    std::shared_ptr<OTAsymmetricKey> pubkey_;
+
+    OTData asData() const;
 
 public:
-    FormattedKey();
-    EXPORT FormattedKey(const std::string& value);
+    NymIDSource(const proto::NymIDSource& serializedSource);
+    NymIDSource(const String& stringSource);
+    NymIDSource(
+        const NymParameters& nymParameters,
+        proto::AsymmetricKey& pubkey);
+
+    Identifier NymID() const;
+
+    serializedNymIDSource Serialize() const;
+    bool Verify(const MasterCredential& credential) const;
+
+    String asString() const;
+
+    static serializedNymIDSource ExtractArmoredSource(
+        const OTASCIIArmor& armoredSource);
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_FORMATTEDKEY_HPP
+#endif // OPENTXS_CORE_NYMIDSOURCE_HPP

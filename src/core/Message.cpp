@@ -993,8 +993,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-
-        Contract::saveCredentialsToTag(*pTag, m.m_ascPayload, m.credentials);
+        pTag->add_attribute("publicnym", m.m_ascPayload.Get());
 
         parent.add_tag(pTag);
     }
@@ -1005,13 +1004,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-
-        if (!Contract::loadCredentialsFromXml(xml, m.m_ascPayload,
-                                              m.credentials)) {
-            otErr << "Error in loading credentials, for " << m.m_strCommand
-                  << ".\n";
-            return -1;
-        }
+        m.m_ascPayload.Set(xml->getAttributeValue("publicnym"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -1220,8 +1213,8 @@ public:
     {
         // This means new-style credentials are being sent, not just the public
         // key as before.
-        const bool bCredentials =
-            (m.m_ascPayload.Exists() && m.m_ascPayload2.Exists());
+        const bool bCredentials = (m.m_ascPayload.Exists());
+        OT_ASSERT(bCredentials);
 
         TagPtr pTag(new Tag(m.m_strCommand.Get()));
 
@@ -1230,19 +1223,9 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("nymID2", m.m_strNymID2.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("hasCredentials", formatBool(bCredentials));
 
-        if (m.m_bSuccess) {
-            // Old style. (Deprecated.)
-            if (m.m_strNymPublicKey.Exists()) {
-                pTag->add_tag("nymPublicKey", m.m_strNymPublicKey.Get());
-            }
-
-            // New style:
-            if (bCredentials) {
-                pTag->add_tag("credentialIDs", m.m_ascPayload.Get());
-                pTag->add_tag("credentials", m.m_ascPayload2.Get());
-            }
+        if (m.m_bSuccess && bCredentials) {
+            pTag->add_tag("publicnym", m.m_ascPayload.Get());
         }
         else {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -1261,32 +1244,24 @@ public:
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
-        const String strHasCredentials(
-            xml->getAttributeValue("hasCredentials"));
-        const bool bHasCredentials = strHasCredentials.Compare("true");
-
-        const char* pElementExpected = nullptr;
-        if (m.m_bSuccess)
-            pElementExpected = "nymPublicKey";
-        else
-            pElementExpected = "inReferenceTo";
-
         OTASCIIArmor ascTextExpected;
-        if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                  pElementExpected)) {
-            otErr << "Error in OTMessage::ProcessXMLNode: "
-                     "Expected " << pElementExpected
-                  << " element with text field, for " << m.m_strCommand
-                  << ".\n";
-            return (-1); // error condition
-        }
-        if (m.m_bSuccess)
-            m.m_strNymPublicKey.Set(ascTextExpected);
-        else
-            m.m_ascInReferenceTo = ascTextExpected;
+        const char* pElementExpected = nullptr;
 
-        if (bHasCredentials) {
-            pElementExpected = "credentialIDs";
+        if (!m.m_bSuccess) {
+            pElementExpected = "inReferenceTo";
+            m.m_ascInReferenceTo = ascTextExpected;
+            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
+                pElementExpected)) {
+                otErr << "Error in OTMessage::ProcessXMLNode: "
+                "Expected " << pElementExpected
+                << " element with text field, for " << m.m_strCommand
+                << ".\n";
+                return (-1); // error condition
+            }
+        }
+
+        if (m.m_bSuccess) {
+            pElementExpected = "publicnym";
             ascTextExpected.Release();
 
             if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
@@ -1298,19 +1273,6 @@ public:
                 return (-1); // error condition
             }
             m.m_ascPayload = ascTextExpected;
-
-            pElementExpected = "credentials";
-            ascTextExpected.Release();
-
-            if (!Contract::LoadEncodedTextFieldByName(xml, ascTextExpected,
-                                                      pElementExpected)) {
-                otErr << "Error in OTMessage::ProcessXMLNode: "
-                         "Expected " << pElementExpected
-                      << " element with text field, for " << m.m_strCommand
-                      << ".\n";
-                return (-1); // error condition
-            }
-            m.m_ascPayload2 = ascTextExpected;
         }
 
         if (m.m_bSuccess)

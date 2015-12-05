@@ -42,12 +42,13 @@
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
+#include <opentxs/core/crypto/NymParameters.hpp>
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignatureMetadata.hpp>
 #include <opentxs/core/OTStorage.hpp>
-#include <opentxs/core/FormattedKey.hpp>
 
 #include <cstring>
 
@@ -63,8 +64,9 @@ namespace opentxs
 {
 
 // static
-OTAsymmetricKey* OTAsymmetricKey::KeyFactory(OTAsymmetricKey::KeyType keyType) // Caller IS responsible to
-                                                                                         // delete!
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
+        const KeyType keyType,
+        const proto::KeyRole role)
 {
     OTAsymmetricKey* pKey = nullptr;
     String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
@@ -77,22 +79,107 @@ OTAsymmetricKey* OTAsymmetricKey::KeyFactory(OTAsymmetricKey::KeyType keyType) /
         pKey = new OTAsymmetricKey_OpenSSL;
         validType = true;
 #elif defined(OT_CRYPTO_USING_GPG)
-    //  pKey = new OTAsymmetricKey_GPG;
-    otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
+        pKey = new OTAsymmetricKey_GPG;
+        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
                              "so it's impossible to instantiate the key.\n";
 #else
-    otErr << __FUNCTION__
-          << ": Open-Transactions isn't built with any crypto engine, "
-             "so it's impossible to instantiate the key.\n";
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with any crypto engine, "
+                "so it's impossible to instantiate the key.\n";
 #endif
     } else if (keyType == OTAsymmetricKey::SECP256K1) {
 #if defined(OT_CRYPTO_USING_LIBSECP256K1)
         pKey = new AsymmetricKeySecp256k1;
         validType = true;
 #else
-    otErr << __FUNCTION__
-          << ": Open-Transactions isn't built with libsecp256k1 support, "
-             "so it's impossible to instantiate the key.\n";
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with libsecp256k1 support, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    }
+    OT_ASSERT_MSG(validType, keyTypeError.c_str());
+    return pKey;
+}
+
+// static
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const KeyType keyType, const String& pubkey) // Caller IS responsible to
+                                                                                         // delete!
+{
+    OTAsymmetricKey* pKey = nullptr;
+    String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
+    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    keyTypeError += keyTypeName.Get();
+    bool validType = false;
+
+    if (keyType == OTAsymmetricKey::LEGACY) {
+#if defined(OT_CRYPTO_USING_OPENSSL)
+        pKey = new OTAsymmetricKey_OpenSSL(pubkey);
+        validType = true;
+#elif defined(OT_CRYPTO_USING_GPG)
+        pKey = new OTAsymmetricKey_GPG(pubkey);
+        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
+                             "so it's impossible to instantiate the key.\n";
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with any crypto engine, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        pKey = new AsymmetricKeySecp256k1(pubkey);
+        validType = true;
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with libsecp256k1 support, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    }
+    OT_ASSERT_MSG(validType, keyTypeError.c_str());
+    return pKey;
+}
+
+// static
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(
+    const NymParameters& nymParameters,
+    const proto::KeyRole role) // Caller IS responsible to delete!
+{
+    OTAsymmetricKey::KeyType keyType = nymParameters.AsymmetricKeyType();
+
+    return KeyFactory(keyType, role);
+}
+
+OTAsymmetricKey* OTAsymmetricKey::KeyFactory(const proto::AsymmetricKey& serializedKey) // Caller IS responsible to
+                                                                                         // delete!
+{
+    OTAsymmetricKey::KeyType keyType = static_cast<OTAsymmetricKey::KeyType>(serializedKey.type());
+
+    OTAsymmetricKey* pKey = nullptr;
+    String keyTypeName = OTAsymmetricKey::KeyTypeToString(keyType);
+    std::string keyTypeError = "No valid OTAsymmetricKey can be constructed from type: ";
+    keyTypeError += keyTypeName.Get();
+    bool validType = false;
+
+    if (keyType == OTAsymmetricKey::LEGACY) {
+#if defined(OT_CRYPTO_USING_OPENSSL)
+        pKey = new OTAsymmetricKey_OpenSSL(serializedKey);
+        validType = true;
+#elif defined(OT_CRYPTO_USING_GPG)
+        pKey = new OTAsymmetricKey_GPG;
+        otErr << __FUNCTION__ << ": Open-Transactions doesn't support GPG (yet), "
+                             "so it's impossible to instantiate the key.\n";
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with any crypto engine, "
+                "so it's impossible to instantiate the key.\n";
+#endif
+    } else if (keyType == OTAsymmetricKey::SECP256K1) {
+#if defined(OT_CRYPTO_USING_LIBSECP256K1)
+        pKey = new AsymmetricKeySecp256k1(serializedKey);
+        validType = true;
+#else
+        otErr << __FUNCTION__
+            << ": Open-Transactions isn't built with libsecp256k1 support, "
+                "so it's impossible to instantiate the key.\n";
 #endif
     }
     OT_ASSERT_MSG(validType, keyTypeError.c_str());
@@ -708,11 +795,29 @@ OTAsymmetricKey::OTAsymmetricKey()
     , m_bIsPrivateKey(false)
     , m_pMetadata(new OTSignatureMetadata)
 {
-    //    if (nullptr == m_p_ascKey)
-    //    {
-    //        m_p_ascKey = new OTASCIIArmor;
-    //        OT_ASSERT(nullptr != m_p_ascKey);
-    //    }
+}
+
+OTAsymmetricKey::OTAsymmetricKey(
+    const KeyType keyType,
+    const proto::KeyRole role)
+        : m_keyType(keyType)
+        , role_(role)
+        , m_bIsPublicKey(false)
+        , m_bIsPrivateKey(false)
+        , m_pMetadata(new OTSignatureMetadata)
+{
+}
+
+OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
+    : OTAsymmetricKey(
+        static_cast<OTAsymmetricKey::KeyType>(serializedKey.type()),
+        serializedKey.role())
+{
+    if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
+        SetAsPublic();
+    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
+        SetAsPrivate();
+    }
 }
 
 OTAsymmetricKey::~OTAsymmetricKey()
@@ -901,6 +1006,33 @@ OTAsymmetricKey::KeyType OTAsymmetricKey::keyType() const
 
 {
     return m_keyType;
+}
+
+serializedAsymmetricKey OTAsymmetricKey::Serialize() const
+
+{
+    serializedAsymmetricKey serializedKey = std::make_shared<proto::AsymmetricKey>();
+
+    serializedKey->set_version(1);
+    serializedKey->set_role(role_);
+    serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(m_keyType));
+
+    return serializedKey;
+}
+
+OTData OTAsymmetricKey::SerializeKeyToData(const proto::AsymmetricKey& serializedKey) const
+{
+    return proto::ProtoAsData<proto::AsymmetricKey>(serializedKey);
+}
+
+bool OTAsymmetricKey::operator==(const proto::AsymmetricKey& rhs) const
+{
+    serializedAsymmetricKey tempKey = Serialize();
+
+    OTData LHData = SerializeKeyToData(*tempKey);
+    OTData RHData = SerializeKeyToData(rhs);
+
+    return (LHData == RHData);
 }
 
 } // namespace opentxs

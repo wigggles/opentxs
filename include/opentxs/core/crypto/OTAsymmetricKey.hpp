@@ -41,6 +41,9 @@
 
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/util/Timer.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
+
+#include <memory>
 #include <list>
 
 namespace opentxs
@@ -52,9 +55,10 @@ class Identifier;
 class OTPassword;
 class OTSignatureMetadata;
 class String;
-class FormattedKey;
+class NymParameters;
 
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
+typedef std::shared_ptr<proto::AsymmetricKey> serializedAsymmetricKey;
 
 // Todo:
 // 1. Add this value to the config file so it becomes merely a default value
@@ -115,10 +119,10 @@ private:
 
 public:
     enum KeyType: int32_t {
-        ERROR_TYPE,
-        NULL_TYPE,
-        LEGACY,
-        SECP256K1
+        ERROR_TYPE = proto::AKEYTYPE_ERROR,
+        NULL_TYPE = proto::AKEYTYPE_NULL,
+        LEGACY = proto::AKEYTYPE_LEGACY,
+        SECP256K1 = proto::AKEYTYPE_SECP256K1
     };
 
     static String KeyTypeToString(const KeyType keyType);
@@ -129,12 +133,24 @@ public:
 
     virtual CryptoAsymmetric& engine() const = 0;
 
+private:
+    static OTAsymmetricKey* KeyFactory(
+        const KeyType keyType,
+        const proto::KeyRole role);
+
 protected:
     KeyType m_keyType = ERROR_TYPE;
+    proto::KeyRole role_ = proto::KEYROLE_ERROR;
+    OTAsymmetricKey(const KeyType keyType, const proto::KeyRole role);
 
 public:                                           // INSTANTIATION
-    EXPORT static OTAsymmetricKey* KeyFactory(KeyType keyType);  // Caller IS responsible to
-                                                  // delete!
+    EXPORT static OTAsymmetricKey* KeyFactory(const KeyType keyType, const String& pubkey);  // Caller IS responsible to
+                                                                                            // delete!
+    EXPORT static OTAsymmetricKey* KeyFactory(
+        const NymParameters& nymParameters,
+        const proto::KeyRole role);  // Caller IS responsible to delete!
+    EXPORT static OTAsymmetricKey* KeyFactory(const proto::AsymmetricKey& serializedKey);  // Caller IS responsible to
+                                                                                           // delete!
 public:
     static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
     EXPORT static OT_OPENSSL_CALLBACK* GetPasswordCallback();
@@ -188,9 +204,12 @@ protected:
     void ReleaseKeyLowLevel();                        // call this.
     virtual void ReleaseKeyLowLevel_Hook() const = 0; // override this.
     // CONSTRUCTION (PROTECTED)
+    OTAsymmetricKey(const proto::AsymmetricKey& serializedKey);
     EXPORT OTAsymmetricKey();
 
-public: // DESTRUCTION
+public:
+    OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const;
+    bool operator==(const proto::AsymmetricKey&) const;
     EXPORT virtual ~OTAsymmetricKey();
     virtual void Release();
     void Release_AsymmetricKey();
@@ -283,28 +302,12 @@ public: // DESTRUCTION
     virtual bool CalculateID(Identifier& theOutput) const; // Only works for
                                                            // public keys.
 
-    virtual bool GetPrivateKey(
-        FormattedKey& strOutput,
-        const OTAsymmetricKey* pPubkey = nullptr, //I wish this wasn't necessary
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) const = 0;
-    virtual bool SetPrivateKey(
-        const FormattedKey& strCert,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0;
-
     virtual bool GetPublicKey(String& strKey) const = 0;
-    virtual bool GetPublicKey(FormattedKey& strKey) const = 0;
-    virtual bool SetPublicKey(const String& strKey) = 0;
-    virtual bool SetPublicKey(const FormattedKey& strKey) = 0;
-
-    virtual bool SetPublicKeyFromPrivateKey(
-        const FormattedKey& strCert,
-        const String* pstrReason = nullptr,
-        const OTPassword* pImportPassword = nullptr) = 0;
 
     virtual bool ReEncryptPrivateKey(const OTPassword& theExportPassword,
                                      bool bImporting) const = 0;
+
+    virtual serializedAsymmetricKey Serialize() const;
 };
 
 } // namespace opentxs

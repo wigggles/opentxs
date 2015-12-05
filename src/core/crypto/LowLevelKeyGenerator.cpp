@@ -117,11 +117,15 @@ LowLevelKeyGenerator::~LowLevelKeyGenerator()
     if (nullptr != dp) {
         delete dp;
     }
+    if (pkeyData_) {
+        pkeyData_.release();
+    }
 }
 
-LowLevelKeyGenerator::LowLevelKeyGenerator(const std::shared_ptr<NymParameters>& pkeyData)
-    : pkeyData_(pkeyData), m_bCleanup(true)
+LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
+    : m_bCleanup(true)
 {
+    pkeyData_.reset(const_cast<NymParameters*>(&pkeyData));
 
     #if defined(OT_CRYPTO_USING_OPENSSL)
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
@@ -265,7 +269,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
     return false; //unsupported keyType
 }
 
-bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData, bool ephemeral)
+bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData)
 {
     // pkeyData can not be null if LowLevelkeyGenerator has been constructed
     if (pkeyData_->nymParameterType() == NymParameters::LEGACY) {
@@ -283,17 +287,16 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
         // Since we are in OpenSSL-specific code, we have to make sure these are
         // OpenSSL-specific keys.
         //
-        OTAsymmetricKey_OpenSSL* pPublicKey =
-            dynamic_cast<OTAsymmetricKey_OpenSSL*>(theKeypair.m_pkeyPublic);
-        OTAsymmetricKey_OpenSSL* pPrivateKey =
-            dynamic_cast<OTAsymmetricKey_OpenSSL*>(theKeypair.m_pkeyPrivate);
+        std::shared_ptr<OTAsymmetricKey_OpenSSL> pPublicKey = std::dynamic_pointer_cast<OTAsymmetricKey_OpenSSL>(theKeypair.m_pkeyPublic);
 
-        if (nullptr == pPublicKey) {
+        std::shared_ptr<OTAsymmetricKey_OpenSSL> pPrivateKey = std::dynamic_pointer_cast<OTAsymmetricKey_OpenSSL>(theKeypair.m_pkeyPrivate);
+
+        if (!pPublicKey) {
             otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL "
                                         "failed. (theKeypair.m_pkeyPublic)\n";
             return false;
         }
-        if (nullptr == pPrivateKey) {
+        if (!pPrivateKey) {
             otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKey_OpenSSL "
                                         "failed. (theKeypair.m_pkeyPrivate)\n";
             return false;
@@ -332,6 +335,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
 
         // Success! At this point, theKeypair's public and private keys have been
         // set.
+
         return true;
         #elif defined(OT_CRYPTO_USING_GPG)
 
@@ -349,17 +353,16 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
         // Since we are in secp256k1-specific code, we have to make sure these are
         // secp256k1-specific keys.
         //
-        AsymmetricKeySecp256k1* pPublicKey =
-            dynamic_cast<AsymmetricKeySecp256k1*>(theKeypair.m_pkeyPublic);
-        AsymmetricKeySecp256k1* pPrivateKey =
-            dynamic_cast<AsymmetricKeySecp256k1*>(theKeypair.m_pkeyPrivate);
+        std::shared_ptr<AsymmetricKeySecp256k1> pPublicKey = std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(theKeypair.m_pkeyPublic);
 
-        if (nullptr == pPublicKey) {
+        std::shared_ptr<AsymmetricKeySecp256k1> pPrivateKey = std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(theKeypair.m_pkeyPrivate);
+
+        if (!pPublicKey) {
             otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKeySecp256k1 "
                                         "failed. (theKeypair.m_pkeyPublic)\n";
             return false;
         }
-        if (nullptr == pPrivateKey) {
+        if (!pPrivateKey) {
             otErr << __FUNCTION__ << ": dynamic_cast to OTAsymmetricKeySecp256k1 "
                                         "failed. (theKeypair.m_pkeyPrivate)\n";
             return false;
@@ -369,7 +372,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
         pPrivateKey->SetAsPrivate();
 
         bool pubkeySet = engine.ECDSAPubkeyToAsymmetricKey(ldp->publicKey_, *pPublicKey);
-        bool privkeySet = engine.ECDSAPrivkeyToAsymmetricKey(ldp->privateKey_, passwordData, *pPrivateKey, ephemeral);
+        bool privkeySet = engine.ECDSAPrivkeyToAsymmetricKey(ldp->privateKey_, passwordData, *pPrivateKey);
 
         return (pubkeySet && privkeySet);
         #endif

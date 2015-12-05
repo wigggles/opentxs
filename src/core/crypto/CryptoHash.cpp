@@ -74,8 +74,6 @@ CryptoHash::HashType CryptoHash::StringToHashType(const String& inputString)
         return CryptoHash::HASH256;
     else if (inputString.Compare("HASH160"))
         return CryptoHash::HASH160;
-    else if (inputString.Compare("SHA1"))
-        return CryptoHash::SHA1;
     else if (inputString.Compare("SHA224"))
         return CryptoHash::SHA224;
     else if (inputString.Compare("SHA256"))
@@ -101,9 +99,6 @@ String CryptoHash::HashTypeToString(const CryptoHash::HashType hashType)
             break;
         case CryptoHash::HASH160 :
             hashTypeString = "HASH160";
-            break;
-        case CryptoHash::SHA1 :
-            hashTypeString = "SHA1";
             break;
         case CryptoHash::SHA224 :
             hashTypeString = "SHA224";

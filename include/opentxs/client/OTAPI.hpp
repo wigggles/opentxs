@@ -455,9 +455,6 @@ public:
         const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
         const std::string& SUB_CRED_ID);
 
-    EXPORT static std::string AddChildCredentialLegacy(
-        const std::string& NYM_ID, const std::string& MASTER_CRED_ID,
-        const int32_t& nKeySize);
     EXPORT static bool RevokeChildCredential(const std::string& NYM_ID,
                                            const std::string& MASTER_CRED_ID,
                                            const std::string& SUB_CRED_ID);
@@ -488,7 +485,7 @@ public:
         const std::string& str_Contract);
     EXPORT static std::string CalculateContractID(
         const std::string& str_Contract);
-    
+
     EXPORT static std::string GetSignerNymID(
         const std::string& str_Contract);
 
@@ -1290,15 +1287,15 @@ public:
                                           // cause a save.)
         const time64_t& VALID_FROM,       // Default (0 or nullptr) == NOW
         const time64_t& VALID_TO          // Default (0 or nullptr) == no expiry / cancel anytime.
-    
+
         );
-    
+
     EXPORT static bool Smart_ArePartiesSpecified(
         const std::string& THE_CONTRACT);
-    
+
     EXPORT static bool Smart_AreAssetTypesSpecified(
         const std::string& THE_CONTRACT);
-    
+
     //
     // todo: Someday add a parameter here BYLAW_LANGUAGE so that people can use
     // custom languages in their scripts. For now I have a default language, so
@@ -3795,7 +3792,7 @@ public:
     EXPORT static bool ResyncNymWithServer(const std::string& NOTARY_ID,
                                            const std::string& NYM_ID,
                                            const std::string& THE_MESSAGE);
-    
+
     /** bool networkFailure. This is a simple bool that is set to false
       just before any messages are sent to the server. If the send or
       receive fails on the network level, this bool is set to true. So
@@ -3803,7 +3800,7 @@ public:
       purely from network troubles.
      */
     EXPORT static bool networkFailure();
-    
+
     /** -----------------------------------------------------------
     // GET MESSAGE COMMAND TYPE
     //

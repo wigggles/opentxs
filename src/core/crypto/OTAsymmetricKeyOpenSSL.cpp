@@ -46,8 +46,9 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/OTData.hpp>
-#include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/String.hpp>
 
+#include <string>
 #include <cstring>
 
 #if defined(OT_CRYPTO_USING_OPENSSL)
@@ -71,16 +72,66 @@ namespace opentxs
 #if defined(OT_CRYPTO_USING_OPENSSL)
 
 OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
-    : OTAsymmetricKey()
+    : OTAsymmetricKey(OTAsymmetricKey::LEGACY, proto::KEYROLE_ERROR)
     , m_p_ascKey(nullptr)
     , dp(new OTAsymmetricKey_OpenSSLPrivdp())
-{
+    {
+
+    dp->backlink = this;
+
+    dp->m_pX509 = nullptr;
+    dp->m_pKey = nullptr;
+}
+
+OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::KeyRole role)
+    : OTAsymmetricKey(OTAsymmetricKey::LEGACY, role)
+    , m_p_ascKey(nullptr)
+    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    {
+
+    dp->backlink = this;
+
+    dp->m_pX509 = nullptr;
+    dp->m_pKey = nullptr;
+}
+
+OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& serializedKey)
+    : OTAsymmetricKey(serializedKey)
+    , m_p_ascKey(new OTASCIIArmor)
+    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    {
+
     dp->backlink = this;
 
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 
     m_keyType = OTAsymmetricKey::LEGACY;
+
+    OTData dataKey(serializedKey.key().c_str(), serializedKey.key().size());
+    m_p_ascKey->SetData(dataKey);
+
+    if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
+        SetAsPublic();
+    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
+        SetAsPrivate();
+    }
+}
+
+OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const String& publicKey)
+    : OTAsymmetricKey()
+    , m_p_ascKey(nullptr)
+    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    {
+
+    dp->backlink = this;
+
+    dp->m_pX509 = nullptr;
+    dp->m_pKey = nullptr;
+
+    m_keyType = OTAsymmetricKey::LEGACY;
+
+    SetPublicKey(publicKey);
 }
 
 OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
@@ -148,24 +199,6 @@ bool OTAsymmetricKey_OpenSSL::GetPublicKey(String& strKey) const
 }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::GetPublicKey(FormattedKey& strKey) const
-{
-    if (nullptr != m_p_ascKey) {
-        strKey.Concatenate(
-            "- -----BEGIN PUBLIC KEY-----\n" // ESCAPED VERSION
-            "%s"
-            "- -----END PUBLIC KEY-----\n",
-            m_p_ascKey->Get());
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey_OpenSSL::GetPublicKey: Error: no "
-                 "public key.\n";
-
-    return false;
-}
-
-// virtual
 bool OTAsymmetricKey_OpenSSL::SetPublicKey(const String& strKey)
 {
     ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
@@ -184,37 +217,6 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKey(const String& strKey)
     OTASCIIArmor theArmor;
 
     if (theArmor.LoadFromString(const_cast<String&>(strKey), false)) {
-        m_p_ascKey->Set(theArmor);
-        return true;
-    }
-    else
-        otErr << "OTAsymmetricKey_OpenSSL::SetPublicKey: Error: failed loading "
-                 "ascii-armored contents from bookended string:\n\n" << strKey
-              << "\n\n";
-
-    return false;
-}
-
-// virtual
-bool OTAsymmetricKey_OpenSSL::SetPublicKey(const FormattedKey& strKey)
-{
-    ReleaseKeyLowLevel(); // In case the key is already loaded, we release it
-                          // here. (Since it's being replaced, it's now the
-                          // wrong key anyway.)
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
-
-    if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
-        OT_ASSERT(nullptr != m_p_ascKey);
-    }
-
-    // This reads the string into the Armor and removes the bookends. (-----
-    // BEGIN ...)
-    OTASCIIArmor theArmor;
-    String strKeystr = strKey;
-
-    if (theArmor.LoadFromString(strKeystr, true)) {
         m_p_ascKey->Set(theArmor);
         return true;
     }
@@ -252,7 +254,7 @@ void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook() const
 // Load the private key from a .pem formatted cert string
 //
 bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
-    const FormattedKey& strCert,    // Contains certificate and private key.
+    const String& strCert,    // Contains certificate and private key.
     const String* pstrReason, // This reason is what displays on the
                               // passphrase dialog.
     const OTPassword* pImportPassword) // Used when importing an exported
@@ -353,7 +355,7 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
 }
 
 bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
-    const FormattedKey& strCert, const String* pstrReason,
+    const String& strCert, const String* pstrReason,
     const OTPassword* pImportPassword)
 {
     Release();
@@ -685,7 +687,7 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
 
 // virtual
 bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
-    FormattedKey& strOutput, const OTAsymmetricKey* pPubkey, const String* pstrReason,
+    String& strOutput, const OTAsymmetricKey* pPubkey, const String* pstrReason,
     const OTPassword* pImportPassword) const
 {
     const EVP_CIPHER* pCipher =
@@ -760,6 +762,25 @@ CryptoAsymmetric& OTAsymmetricKey_OpenSSL::engine() const
 
 {
     return CryptoEngine::Instance().RSA();
+}
+
+serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
+
+{
+    serializedAsymmetricKey serializedKey = ot_super::Serialize();
+
+    OTData dataKey;
+    m_p_ascKey->GetData(dataKey);
+
+    if (IsPrivate()) {
+        serializedKey->set_mode(proto::KEYMODE_PRIVATE);
+    } else {
+        serializedKey->set_mode(proto::KEYMODE_PUBLIC);
+    }
+
+    serializedKey->set_key(dataKey.GetPointer(), dataKey.GetSize());
+
+    return serializedKey;
 }
 
 #elif defined(OT_CRYPTO_USING_GPG)

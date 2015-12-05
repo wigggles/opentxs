@@ -283,6 +283,14 @@ void Contract::CalculateContractID(Identifier& newID) const
         otErr << __FUNCTION__ << ": Error calculating Contract digest.\n";
 }
 
+void Contract::CalculateAndSetContractID(Identifier& newID)
+{
+    Identifier contractID;
+    CalculateContractID(contractID);
+    SetIdentifier(contractID);
+    newID = contractID;
+}
+
 bool Contract::VerifyContractID() const
 {
     Identifier newID;
@@ -733,11 +741,11 @@ bool Contract::VerifySignature(const OTAsymmetricKey& theKey,
     CryptoAsymmetric& engine = theKey.engine();
 
     if (false ==
-        engine.VerifySignature(
+        engine.VerifyContractSignature(
             trim(m_xmlUnsigned), theKey, theSignature, hashType,
             (nullptr != pPWData) ? pPWData : &thePWData)) {
         otLog4 << __FUNCTION__
-               << ": engine.VerifySignature returned false.\n";
+               << ": engine.VerifyContractSignature returned false.\n";
         return false;
     }
 
@@ -1870,32 +1878,18 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
             else // theSigner has Credentials, so we'll add him to the
                    // contract.
             {
-                String strCredList, strSignerNymID;
-                String::Map mapCredFiles;
-                theSigner.GetIdentifier(strSignerNymID);
-                theSigner.GetPublicCredentials(strCredList, &mapCredFiles);
+                const String publicNym = theSigner.asPublicNym();
 
                 std::unique_ptr<Nym> pNym(new Nym);
+                pNym->LoadCredentialIndex(publicNym);
 
-                pNym->SetIdentifier(strSignerNymID);
-                pNym->SetNymIDSource(theSigner.GetNymIDSource());
-                pNym->SetAltLocation(theSigner.GetAltLocation());
-
-                if (!pNym->LoadFromString(strCredList, &mapCredFiles)) {
-                    otErr << __FUNCTION__ << ": Failure loading nym "
-                          << strSignerNymID << " from credential string.\n";
-                    return false;
-                }
-                // Now that the Nym has been loaded up from the two strings,
-                // including the list of credential IDs, and the map containing
-                // the
-                // credentials themselves, let's try to Verify the pseudonym. If
-                // we
+                // Now that the Nym has been loaded up from the public nym,
+                // let's try to Verify the pseudonym. If we
                 // verify, then we're safe to add the Nym to the contract.
                 //
-                else if (!pNym->VerifyPseudonym()) {
+                if (!pNym->VerifyPseudonym()) {
                     otErr
-                        << __FUNCTION__ << ": Loaded nym " << strSignerNymID
+                        << __FUNCTION__ << ": Loaded nym " << pNym->GetConstID()
                         << " from credentials, but then it failed verifying.\n";
                     return false;
                 }
@@ -1927,13 +1921,13 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         SaveContract();
         String strTemp;
         SaveContractRaw(strTemp);
-        
+
         if (LoadContractFromString(strTemp)) // The ultimate test is, once
         {                                    // we've created the serialized
             Identifier NEW_ID;               // string for this contract, is
             CalculateContractID(NEW_ID);     // to then load it up from that string.
             m_ID = NEW_ID;
-            
+
             return true;
         }
     }
@@ -1973,44 +1967,17 @@ void Contract::CreateInnerContents(Tag& parent)
                           "Contract::CreateInnerContents.\n");
 
             if ("signer" == str_name) {
-                const bool bHasCredentials =
-                    (pNym->GetMasterCredentialCount() > 0);
+                OT_ASSERT(pNym->GetMasterCredentialCount() > 0);
 
                 String strNymID;
                 pNym->GetIdentifier(strNymID);
 
-                OTASCIIArmor ascAltLocation;
-                if (pNym->GetAltLocation().Exists())
-                    ascAltLocation.SetString(pNym->GetAltLocation(),
-                                             false); // bLineBreaks=true by
-                                                     // default. But here, no
-                                                     // line breaks.
+                String publicNym = pNym->asPublicNym();
 
                 TagPtr pTag(new Tag(str_name)); // "signer"
-                pTag->add_attribute("hasCredentials",
-                                    formatBool(bHasCredentials));
                 pTag->add_attribute("nymID", strNymID.Get());
-                pTag->add_attribute("altLocation", ascAltLocation.Get());
+                pTag->add_attribute("publicNym", publicNym.Get());
 
-                if (pNym->GetNymIDSource().Exists()) {
-                    OTASCIIArmor ascNymIDSource(pNym->GetNymIDSource());
-                    pTag->add_tag("nymIDSource", ascNymIDSource.Get());
-                }
-
-                // credentialIDs
-                // credentials
-                //
-                if (bHasCredentials) {
-                    String strCredIDList;
-                    String::Map credentials;
-
-                    pNym->GetPublicCredentials(strCredIDList, &credentials);
-
-                    if (strCredIDList.Exists() && !credentials.empty()) {
-                        OTASCIIArmor armor1(strCredIDList);
-                        saveCredentialsToTag(*pTag, armor1, credentials);
-                    }
-                }
                 parent.add_tag(pTag);
             } // "signer"
         }
@@ -2091,18 +2058,6 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
     }
     else if (strNodeName.Compare("signer")) {
         const String strSignerNymID = xml->getAttributeValue("nymID");
-        const String strHasCredentials =
-            xml->getAttributeValue("hasCredentials");
-        const OTASCIIArmor ascAltLocation =
-            xml->getAttributeValue("altLocation");
-        String strAltLocation, strSignerSource;
-
-        if (ascAltLocation.Exists())
-            ascAltLocation.GetString(strAltLocation,
-                                     false); // bLineBreaks=true by default.
-
-        bool bHasCredentials = strHasCredentials.Compare("true");
-        const bool bHasAltLocation = strAltLocation.Exists();
 
         if (!strSignerNymID.Exists()) {
             otErr << "Error in " << __FUNCTION__
@@ -2111,193 +2066,41 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
             return (-1); // error condition
         }
 
-        const char* pElementExpected = "nymIDSource";
-        otWarn << __FUNCTION__ << ": Loading " << pElementExpected << "...\n";
-        if (!Contract::LoadEncodedTextFieldByName(xml, strSignerSource,
-                                                  pElementExpected)) {
-            otErr << "Error in " << __FILE__ << " line " << __LINE__
-                  << ": failed loading expected " << pElementExpected
-                  << " field:\n\n" << m_xmlUnsigned << "\n\n\n";
-            return (-1); // error condition
+        std::unique_ptr<Nym> pNym(new Nym);
+
+        String publicNym = xml->getAttributeValue("publicNym");
+
+        if (false ==
+            pNym->LoadCredentialIndex(publicNym)) {
+            otErr << __FUNCTION__ << ": Failure loading nym "
+                    << strSignerNymID << " from credential string.\n";
         }
-        // TODO: hash the source right here and compare it to the NymID, just to
-        // be safe.
-
-        String::Map credsMap;
-        OTASCIIArmor credListArmor;
-
-        if (!bHasCredentials) {
-            // If there are no credentials provided (which is proper) then we
-            // should
-            // just download them from the source.
-            // ...Unless it's one of those where you can't discover such things
-            // from the source,
-            // in which case an alternate location must be provided.
+        // Now that the Nym has been loaded up from the two strings,
+        // including the list of credential IDs, and the map
+        // containing the
+        // credentials themselves, let's try to Verify the
+        // pseudonym. If we
+        // verify, then we're safe to add the Nym to the contract.
+        //
+        else if (!pNym->VerifyPseudonym()) {
+            otErr << __FUNCTION__ << ": Loaded nym " << strSignerNymID
+                    << " from credentials, but then it failed "
+                        "verifying.\n";
+        }
+        else // Okay, we loaded the Nym up from the credentials in
+                // the contract, AND
+        {      // verified the Nym (including the credentials.)
+            // So let's add it to the contract...
             //
-            if (bHasAltLocation) {
-                otErr << __FUNCTION__
-                      << ": WARNING: No credentials provided. An alternate "
-                         "location is "
-                         "listed, but that's not yet supported in the "
-                         "code.\nLocation: " << strAltLocation << "\n";
 
-                // A signer ideally just has a NymID and source.
-                // Then we can directly just download the credentials from the
-                // source.
-                // But let's say the source doesn't include download info (like
-                // if it contains DN info.)
-                // We can have this optional attribute "altLocation" for the
-                // alternate download location.
-                // We can also optionally allow people to just directly put the
-                // credentials inside the
-                // contract (credentialIDs, and credentials). That's why
-                // hasCredentials can be true or false.
-                // Ideally, people will not do that. Instead, we can download
-                // them from the source, or from
-                // the alternate location, if the source cannot supply. But
-                // worst case, they can directly embed
-                // the credentials, though it's not best practice for a real
-                // contract, it can be useful for
-                // testing.
-                //
-                // If we eventually add the download code here, put the
-                // credential list into ascArmor,
-                // and the credentials into ascArmor2.
-            }
-            else // There's no alternate location, and no credentials
-                   // provided,
-            { // Therefore we be must expected to download them based on the
-                // source
-                // string, and if we can't, then we've failed to load.
-                //
-                otErr << __FUNCTION__
-                      << ": WARNING: Alternate location not listed, and no "
-                         "credentials provided, so we need to download"
-                         " them from the source--but that's not yet supported "
-                         "in the code.\nNymID Source String: "
-                      << strSignerSource << "\n";
-                //
-                // If we eventually add the download code here, put the
-                // credential list into ascArmor,
-                // and the credentials into ascArmor2.
-            }
-            return (-1); // for now, since this block is incomplete.
+            m_mapNyms[strNodeName.Get() /*"signer"*/] = pNym.release();
+            // Add pNym to the contract's internal list of nyms.
+
+            return 1; // <==== Success!
         }
-        else           // (bHasCredentials)
-        {
-            if (!loadCredentialsFromXml(xml, credListArmor, credsMap)) {
-                otErr << "Error in " << __FUNCTION__
-                      << ": Failed to load credentials.\n";
-                return -1;
-            }
-        }
-
-        bHasCredentials = (credListArmor.Exists() && !credsMap.empty());
-
-        // bHasCredentials might have gotten set to true in the block above the
-        // above block,
-        // after downloading, checking alternate location, etc. Otherwise, in
-        // the above block,
-        // it was loaded from the contract itself.
-        if (bHasCredentials) {
-            String strCredentialIDs;
-            credListArmor.GetString(strCredentialIDs);
-
-            if (strCredentialIDs.Exists()) {
-                std::unique_ptr<Nym> pNym(new Nym);
-                pNym->SetIdentifier(strSignerNymID);
-
-                if (false ==
-                    pNym->LoadFromString(strCredentialIDs, &credsMap)) {
-                    otErr << __FUNCTION__ << ": Failure loading nym "
-                          << strSignerNymID << " from credential string.\n";
-                }
-                // Now that the Nym has been loaded up from the two strings,
-                // including the list of credential IDs, and the map
-                // containing the
-                // credentials themselves, let's try to Verify the
-                // pseudonym. If we
-                // verify, then we're safe to add the Nym to the contract.
-                //
-                else if (!pNym->VerifyPseudonym()) {
-                    otErr << __FUNCTION__ << ": Loaded nym " << strSignerNymID
-                          << " from credentials, but then it failed "
-                             "verifying.\n";
-                }
-                else // Okay, we loaded the Nym up from the credentials in
-                       // the contract, AND
-                {      // verified the Nym (including the credentials.)
-                    // So let's add it to the contract...
-                    //
-
-                    m_mapNyms[strNodeName.Get() /*"signer"*/] = pNym.release();
-                    // Add pNym to the contract's internal list of nyms.
-
-                    return 1; // <==== Success!
-                }
-            }
-        } // Has Credentials.
         return (-1);
     }
     return 0;
-}
-
-void Contract::saveCredentialsToTag(Tag& parent,
-                                    const OTASCIIArmor& strCredIDList,
-                                    const String::Map& credentials)
-{
-    if (strCredIDList.Exists()) {
-        parent.add_tag("credentialIDs", strCredIDList.Get());
-    }
-
-    if (!credentials.empty()) {
-        TagPtr pTag(new Tag("credentials"));
-
-        for (auto i : credentials) {
-            OTASCIIArmor armored(i.second);
-            TagPtr pTagCred(new Tag("credential", armored.Get()));
-            pTagCred->add_attribute("ID", i.first);
-            pTag->add_tag(pTagCred);
-        }
-        parent.add_tag(pTag);
-    }
-}
-
-bool Contract::loadCredentialsFromXml(irr::io::IrrXMLReader* xml,
-                                      OTASCIIArmor& credList,
-                                      String::Map& credentials)
-{
-    if (!Contract::LoadEncodedTextFieldByName(xml, credList, "credentialIDs")) {
-        otErr << "Error in OTMessage::ProcessXMLNode: Expected credentialIDs "
-                 "element with text field.\n";
-        return false;
-    }
-
-    if (!Contract::SkipToElement(xml) ||
-        strcmp(xml->getNodeName(), "credentials") != 0) {
-        return false;
-    }
-
-    while (true) {
-        if (!Contract::SkipToElement(xml) ||
-            strcmp(xml->getNodeName(), "credential") != 0) {
-            break;
-        }
-
-        String masterId = xml->getAttributeValue("ID");
-        if (!masterId.Exists()) return false;
-
-        OTASCIIArmor armored;
-        if (!Contract::LoadEncodedTextFieldByName(xml, armored, "credential")) {
-            return false;
-        }
-        String dearmored(armored);
-
-        credentials.insert(std::pair<std::string, std::string>(
-            masterId.Get(), dearmored.Get()));
-    }
-
-    return true;
 }
 
 } // namespace opentxs

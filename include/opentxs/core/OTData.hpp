@@ -55,6 +55,7 @@ public:
     EXPORT OTData(const OTData& source);
     EXPORT OTData(const OTASCIIArmor& source);
     EXPORT OTData(const std::vector<unsigned char>& sourceVector);
+    EXPORT OTData(OTData&& other);
     EXPORT virtual ~OTData();
 
     EXPORT void Release();

@@ -4,13 +4,18 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shadow -Wno-error")
 endif()
 
-PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER Generics.proto Bitcoin.proto Markets.proto Moneychanger.proto)
+PROTOBUF_GENERATE_CPP(
+    PROTO_SRC PROTO_HEADER
+    Generics.proto
+    Bitcoin.proto
+    Markets.proto
+    Moneychanger.proto)
 
 set(ProtobufIncludePath ${CMAKE_CURRENT_BINARY_DIR}
         CACHE INTERNAL "Path to generated protobuf files.")
 
 if (WIN32)
-  # suppress std::_Copy_impl being unsafe warnings 
+  # suppress std::_Copy_impl being unsafe warnings
   add_definitions("/wd4996")
 endif()
 

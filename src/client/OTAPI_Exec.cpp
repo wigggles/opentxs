@@ -459,13 +459,13 @@ int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
     return OTAPI()->NumList_Count(theList);
 }
 
-    
+
 bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
 {
     return Identifier::validateID(strPurportedID);
 }
 
-    
+
 // CREATE NYM  -- Create new User
 //
 // Creates a new Nym and adds it to the wallet.
@@ -480,7 +480,7 @@ bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
 //
 std::string OTAPI_Exec::CreateNymLegacy(
     const int32_t& nKeySize,               // must be 1024, 2048, 4096, or 8192
-    const std::string& NYM_ID_SOURCE,      // Can be empty.
+    __attribute__((unused)) const std::string& NYM_ID_SOURCE,
     const std::string& ALT_LOCATION) const // Can be empty.
 {
     if (0 >= nKeySize) {
@@ -502,10 +502,12 @@ std::string OTAPI_Exec::CreateNymLegacy(
         return "";
     }
 
-    std::shared_ptr<NymParameters> pKeyData;
-    pKeyData = std::make_shared<NymParameters>(nKeySize);
+    std::shared_ptr<NymParameters> nymParameters;
+    nymParameters = std::make_shared<NymParameters>(nKeySize);
+    //nymParameters->SetSource(NYM_ID_SOURCE);
+    nymParameters->SetAltLocation(ALT_LOCATION);
 
-    Nym* pNym = OTAPI()->CreateNym(pKeyData, NYM_ID_SOURCE, ALT_LOCATION);
+    Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym) // Creation failed.
     {
         otOut << __FUNCTION__ << ": Failed trying to create Nym.\n";
@@ -519,15 +521,17 @@ std::string OTAPI_Exec::CreateNymLegacy(
 }
 
 std::string OTAPI_Exec::CreateNymECDSA(
-    const std::string& NYM_ID_SOURCE,      // Can be empty.
+    __attribute__((unused)) const std::string& NYM_ID_SOURCE,
     const std::string& ALT_LOCATION) const // Can be empty.
 {
-    std::shared_ptr<NymParameters> pKeyData;
-    pKeyData = std::make_shared<NymParameters>(
+    std::shared_ptr<NymParameters> nymParameters;
+    nymParameters = std::make_shared<NymParameters>(
         NymParameters::SECP256K1,
         Credential::SECP256K1);
+    //nymParameters->SetSource(NYM_ID_SOURCE);
+    nymParameters->SetAltLocation(ALT_LOCATION);
 
-    Nym* pNym = OTAPI()->CreateNym(pKeyData, NYM_ID_SOURCE, ALT_LOCATION);
+    Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym) // Creation failed.
     {
         otOut << __FUNCTION__ << ": Failed trying to create Nym.\n";
@@ -601,7 +605,7 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     // private.
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
-    const std::string str_return(pNym->GetNymIDSource().Get());
+    const std::string str_return(pNym->Source().asString().Get());
     return str_return;
 }
 
@@ -679,7 +683,7 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr != pCredential) // Found the master credential...
-        str_return = pCredential->GetPubCredential().Get();
+        str_return = pCredential->MasterAsString().Get();
     return str_return;
 }
 
@@ -741,7 +745,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     const CredentialSet* pCredential = pNym->GetRevokedCredential(strCredID);
 
     if (nullptr != pCredential) // Found the (revoked) master credential...
-        str_return = pCredential->GetPubCredential().Get();
+        str_return = pCredential->MasterAsString().Get();
     return str_return;
 }
 
@@ -834,62 +838,7 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
         const String strSubID(SUB_CRED_ID);
         const Credential* pSub = pCredential->GetChildCredential(strSubID);
 
-        if (nullptr != pSub) return pSub->GetPubCredential().Get();
-    }
-    return "";
-}
-
-/// This function ONLY makes RSA credentials
-/// Deprecated.
-std::string OTAPI_Exec::AddChildCredentialLegacy(const std::string& NYM_ID,
-                                               const std::string& MASTER_CRED_ID,
-                                               const int32_t& nKeySize) const
-{
-    if (NYM_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return "";
-    }
-    if (MASTER_CRED_ID.empty()) {
-        otErr << __FUNCTION__ << ": nullptr MASTER_CRED_ID passed in!\n";
-        return "";
-    }
-    if (0 >= nKeySize) {
-        otErr << __FUNCTION__
-              << ": Keysize is 0 or less, will fail! Try 1024.\n";
-        return "";
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    Identifier nym_id(NYM_ID);
-    // This tries to get, then tries to load as public, then tries to load as
-    // private.
-    Nym* pNym =
-        OTAPI()->GetOrLoadPrivateNym(nym_id, false, __FUNCTION__, &thePWData);
-    if (nullptr == pNym) return "";
-    const String strCredID(MASTER_CRED_ID);
-    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
-
-    if (nullptr == pCredential)
-        otOut << __FUNCTION__ << ": Sorry, (Nym " << NYM_ID
-              << ") no master credential found with the ID: " << strCredID
-              << "\n";
-    else // Found the master credential...
-    {
-        const Identifier idMasterCredential(strCredID);
-        String strNewChildCredID;
-
-        std::shared_ptr<NymParameters> pKeyData;
-        pKeyData = std::make_shared<NymParameters>(nKeySize);
-
-        const bool bAdded =
-            pNym->AddNewChildKeyCredential(idMasterCredential, pKeyData, nullptr,
-                               &thePWData, &strNewChildCredID);
-
-        if (bAdded) {
-            return strNewChildCredID.Get();
-        }
-        else
-            otErr << __FUNCTION__
-                  << ": Failed trying to add new child credential.\n";
+        if (nullptr != pSub) return pSub->AsString();
     }
     return "";
 }
@@ -948,7 +897,7 @@ bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
     }
     return false;
 }
-    
+
 std::string OTAPI_Exec::GetSignerNymID(
     const std::string& str_Contract) const
 {
@@ -965,7 +914,7 @@ std::string OTAPI_Exec::GetSignerNymID(
     std::string str_Trim(str_Contract);
     std::string str_Trim2 = String::trim(str_Trim);
     String strContract(str_Trim2.c_str());
-    
+
     if (strContract.GetLength() < 2) {
         otOut << __FUNCTION__ << ": Empty contract passed in!\n";
         return "";
@@ -1084,10 +1033,10 @@ std::string OTAPI_Exec::CalculateContractID(
         otOut << __FUNCTION__ << ": Empty contract passed in!\n";
         return "";
     }
-    
+
     Contract * pContract = ::InstantiateContract(strContract);
     std::unique_ptr<Contract> theAngel(pContract);
-    
+
     if (nullptr != pContract) {
         Identifier idOutput;
         pContract->CalculateContractID(idOutput);
@@ -1140,7 +1089,7 @@ std::string OTAPI_Exec::CreateServerContract(
         return "";
     }
     std::unique_ptr<OTServerContract> pContract(new OTServerContract);
-    
+
     std::string pBuf = "";
 
     // <==========  **** CREATE CONTRACT!! ****
@@ -1245,9 +1194,9 @@ std::string OTAPI_Exec::CreateAssetContract(
         return "";
     }
     std::unique_ptr<AssetContract> pContract(new AssetContract);
-    
+
     std::string pBuf = "";
-    
+
     // <==========  **** CREATE CONTRACT!! ****
     if (pContract->CreateContract(strContract, *pNym))
     {
@@ -2439,9 +2388,9 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
         otErr << __FUNCTION__ << ": Empty PARTIAL_ID passed in!\n";
         return "";
     }
-    
+
     Nym * pObject = nullptr;
-    
+
     Identifier thePartialID(PARTIAL_ID);
 
     // In this case, the user maybe passed in the FULL ID.
@@ -5517,8 +5466,8 @@ std::string OTAPI_Exec::Create_SmartContract(
     return strOutput.Get();
 }
 
-    
-    
+
+
 bool OTAPI_Exec::Smart_ArePartiesSpecified(const std::string& THE_CONTRACT) const
 {
     if (THE_CONTRACT.empty()) {
@@ -5954,7 +5903,7 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
     return strOutput.Get();
 }
 
-    
+
 // returns: the updated smart contract (or "")
 std::string OTAPI_Exec::SmartContract_AddCallback(
     const std::string& THE_CONTRACT, // The contract, about to have the callback
@@ -15636,7 +15585,7 @@ bool OTAPI_Exec::ResyncNymWithServer(const std::string& NOTARY_ID,
     }
     Nym theMessageNym; // <====================
 
-    if (!theMessageNym.LoadFromString(strMessageNym)) {
+    if (!theMessageNym.LoadNymFromString(strMessageNym)) {
         otErr << __FUNCTION__ << ": Failed loading theMessageNym from a "
                                  "string. String contents:\n\n" << strMessageNym
               << "\n\n";

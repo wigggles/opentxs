@@ -239,7 +239,7 @@ uint32_t CryptoSymmetric::TagSize(const Mode Mode)
 BinarySecret CryptoSymmetric::GetMasterKey(const OTPasswordData& passwordData, const bool askTwice)
 
 {
-    BinarySecret masterPassword(std::make_shared<OTPassword>());
+    BinarySecret masterPassword = CryptoEngine::Instance().AES().InstantiateBinarySecretSP();
 
     OTPassword* masterPasswordInitial = CryptoEngine::Instance().AES().InstantiateBinarySecret();
 

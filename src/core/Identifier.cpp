@@ -172,7 +172,7 @@ bool Identifier::validateID(const std::string & strPurportedID)
     CryptoEngine::Instance().Util().SetIDFromEncoded(strID, theID);
     return !theID.empty();
 }
-    
+
 // When calling SignContract or VerifySignature with "HASH256" as the hash type,
 // the signature will use (sha256 . sha256) as a message digest.
 // In this case, SignContractDefaultHash and VerifyContractDefaultHash are used,

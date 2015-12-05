@@ -38,7 +38,6 @@
 
 #include <opentxs/core/crypto/Letter.hpp>
 
-#include <opentxs/core/FormattedKey.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
@@ -231,7 +230,7 @@ bool Letter::Seal(
 
     if (encrypted) {
         OTASCIIArmor encodedCiphertext(ciphertext);
-        FormattedKey ephemeralPubkey;
+        String ephemeralPubkey;
         listOfSessionKeys sessionKeys;
         String macType = "null";
 
@@ -245,12 +244,11 @@ bool Letter::Seal(
             // Generate an ephemeral keypair for ECDH shared secret derivation.
             // Why not use the sender's secp256k1 key for this?
             // Because maybe the sender only has RSA credentials.
-            OTKeypair ephemeralKeypair(OTAsymmetricKey::SECP256K1);
-            std::shared_ptr<NymParameters> pKeyData;
-            pKeyData = std::make_shared<NymParameters>(
+            NymParameters pKeyData(
                 NymParameters::SECP256K1,
                 Credential::SECP256K1);
-            ephemeralKeypair.MakeNewKeypair(pKeyData, true);
+
+            OTKeypair ephemeralKeypair(pKeyData);
             ephemeralKeypair.GetPublicKey(ephemeralPubkey);
 
             const OTAsymmetricKey& ephemeralPrivkey = ephemeralKeypair.GetPrivateKey();
@@ -271,8 +269,7 @@ bool Letter::Seal(
                                         ephemeralPrivkey,
                                         *(it.second),
                                         passwordData,
-                                        encryptedSessionKey,
-                                        true);
+                                        encryptedSessionKey);
                 if (haveSessionKey) {
                     sessionKeys.push_back(encryptedSessionKey);
 
@@ -414,8 +411,9 @@ bool Letter::Open(
         String ephemeralPubkey(contents.EphemeralKey());
 
         if(ephemeralPubkey.Exists()) {
-            OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(OTAsymmetricKey::SECP256K1);
-            publicKey->SetPublicKey(ephemeralPubkey);
+            OTAsymmetricKey* publicKey = OTAsymmetricKey::KeyFactory(OTAsymmetricKey::SECP256K1, ephemeralPubkey);
+
+            OT_ASSERT(nullptr != publicKey);
 
             // Get all the session keys
             listOfSessionKeys sessionKeys(contents.SessionKeys());

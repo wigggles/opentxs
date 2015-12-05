@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
 
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
+
 namespace opentxs
 {
 
@@ -53,15 +55,14 @@ protected:
 
 public:
     enum HashType {
-      ERROR,
-      NONE,
-      HASH256,
-      HASH160,
-      SHA1,
-      SHA224,
-      SHA256,
-      SHA384,
-      SHA512
+      ERROR = proto::HASHTYPE_ERROR,
+      NONE = proto::HASHTYPE_NONE,
+      HASH256 = proto::HASHTYPE_BTC160,
+      HASH160 = proto::HASHTYPE_BTC256,
+      SHA224 = proto::HASHTYPE_SHA224,
+      SHA256 = proto::HASHTYPE_SHA256,
+      SHA384 = proto::HASHTYPE_SHA384,
+      SHA512 = proto::HASHTYPE_SHA512
     };
 
     virtual ~CryptoHash() = default;

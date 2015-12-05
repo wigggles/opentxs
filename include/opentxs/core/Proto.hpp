@@ -36,19 +36,32 @@
  *
  ************************************************************/
 
-#include <opentxs/core/FormattedKey.hpp>
+#ifndef OPENTXS_CORE_PROTO_HPP
+#define OPENTXS_CORE_PROTO_HPP
+
+#include <opentxs/core/Proto.hpp>
+
+#include "OTData.hpp"
+#include "util/Assert.hpp"
 
 namespace opentxs
 {
-
-FormattedKey::FormattedKey()
-    : ot_super()
+namespace proto
 {
-}
-
-FormattedKey::FormattedKey(const std::string& value)
-    : ot_super(value)
+template<class T>
+OTData ProtoAsData(const T& serialized)
 {
-}
+    int size = serialized.ByteSize();
+    char* protoArray = new char [size];
 
+    OT_ASSERT_MSG(nullptr != protoArray, "protoArray failed to dynamically allocate.");
+
+    serialized.SerializeToArray(protoArray, size);
+    OTData serializedData(protoArray, size);
+    delete[] protoArray;
+    return serializedData;
+}
+}
 } // namespace opentxs
+
+#endif // OPENTXS_CORE_PROTO_HPP

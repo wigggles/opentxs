@@ -64,7 +64,7 @@
 
 #include <opentxs/core/crypto/OTKeypair.hpp>
 
-#include <opentxs/core/FormattedKey.hpp>
+#include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -99,39 +99,36 @@
 
 namespace opentxs
 {
+OTKeypair::OTKeypair(
+    const NymParameters& nymParameters,
+    const proto::KeyRole role)
+    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(nymParameters, role))
+    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(nymParameters, role))
+{
+    MakeNewKeypair(nymParameters);
+}
 
-OTKeypair::OTKeypair(OTAsymmetricKey::KeyType keyType)
-    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(keyType))
-    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(keyType))
+OTKeypair::OTKeypair(
+    const proto::AsymmetricKey& serializedPubkey,
+    const proto::AsymmetricKey& serializedPrivkey)
+        : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
+        , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(serializedPrivkey))
+{
+}
+
+OTKeypair::OTKeypair(
+    const proto::AsymmetricKey& serializedPubkey)
+        : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
 {
 }
 
 OTKeypair::~OTKeypair()
 {
-
-    if (nullptr != m_pkeyPublic) delete m_pkeyPublic;
-    m_pkeyPublic = nullptr;
-
-    if (nullptr != m_pkeyPrivate) delete m_pkeyPrivate;
-    m_pkeyPrivate = nullptr;
-}
-
-void OTKeypair::SetMetadata(const OTSignatureMetadata& theMetadata)
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
-    OT_ASSERT(nullptr != m_pkeyPrivate->m_pMetadata);
-
-    // Set it for both keys.
-    //
-    *(m_pkeyPublic->m_pMetadata) = theMetadata;
-    *(m_pkeyPrivate->m_pMetadata) = theMetadata;
 }
 
 bool OTKeypair::HasPublicKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->IsPublic(); // This means it actually has a public key
                                      // in it, or tried to.
@@ -139,7 +136,7 @@ bool OTKeypair::HasPublicKey() const
 
 bool OTKeypair::HasPrivateKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return m_pkeyPrivate->IsPrivate(); // This means it actually has a private
                                        // key in it, or tried to.
@@ -149,7 +146,7 @@ bool OTKeypair::HasPrivateKey() const
 // TODO this violates encapsulation and should be deprecated
 const OTAsymmetricKey& OTKeypair::GetPublicKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return (*m_pkeyPublic);
 }
@@ -158,70 +155,35 @@ const OTAsymmetricKey& OTKeypair::GetPublicKey() const
 // TODO this violates encapsulation and should be deprecated
 const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return (*m_pkeyPrivate);
 }
 
-// Get a private key as an opentxs::FormattedKey string
-bool OTKeypair::GetPrivateKey(FormattedKey& strOutput,
-                                              const String* pstrReason,
-                                              const OTPassword* pImportPassword)
+bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters)
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    if(!m_pkeyPrivate) {
+        m_pkeyPrivate.reset(OTAsymmetricKey::KeyFactory(
+                                                        nymParameters,
+                                                        proto::KEYROLE_ERROR));
+    }
+    if(!m_pkeyPublic) {
+        m_pkeyPublic.reset(OTAsymmetricKey::KeyFactory(
+            nymParameters,
+            proto::KEYROLE_ERROR));
+    }
 
-    const bool bSaved =
-        m_pkeyPrivate->GetPrivateKey(strOutput, m_pkeyPublic, pstrReason, pImportPassword);
+    LowLevelKeyGenerator lowLevelKeys(nymParameters);
 
-    return bSaved;
-}
-
-// Set a private key from an opentxs::String.
-// It is the responsibility of OTAsymmetricKey subclasses to perform any needed
-// decoding of the string.
-// This function sets both strings.
-bool OTKeypair::SetPrivateKey(
-    const FormattedKey& strCert,
-    const String* pstrReason,
-    const OTPassword* pImportPassword
-    )
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    bool privateSuccess, publicSuccess;
-
-    privateSuccess = m_pkeyPrivate->SetPrivateKey(
-        strCert, pstrReason, pImportPassword);
-
-    OT_ASSERT(privateSuccess);
-
-    publicSuccess = m_pkeyPublic->SetPublicKeyFromPrivateKey(
-        strCert, pstrReason, pImportPassword);
-
-    return (privateSuccess && publicSuccess);
-}
-
-bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData, bool ephemeral)
-{
-    OT_ASSERT(nullptr != m_pkeyPrivate);
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    if (pKeyData) {
-        LowLevelKeyGenerator lowLevelKeys(pKeyData);//does not take ownership
-
-        if (!lowLevelKeys.MakeNewKeypair()) {
-            otErr << "OTKeypair::MakeNewKeypair"
-                << ": Failed in a call to LowLevelKeyGenerator::MakeNewKeypair.\n";
-            return false;
-        }
-
-        OTPasswordData passwordData("Enter or set the wallet master password.");
-        return lowLevelKeys.SetOntoKeypair(*this, passwordData, ephemeral);
-    } else {
+    if (!lowLevelKeys.MakeNewKeypair()) {
+        otErr << "OTKeypair::MakeNewKeypair"
+            << ": Failed in a call to LowLevelKeyGenerator::MakeNewKeypair.\n";
         return false;
     }
+
+    OTPasswordData passwordData("Enter or set the wallet master password.");
+    return lowLevelKeys.SetOntoKeypair(*this, passwordData);
+
     // If true is returned:
     // Success! At this point, theKeypair's public and private keys have been
     // set.
@@ -230,46 +192,26 @@ bool OTKeypair::MakeNewKeypair(const std::shared_ptr<NymParameters>& pKeyData, b
 bool OTKeypair::SignContract(Contract& theContract,
                              const OTPasswordData* pPWData)
 {
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate);
 
     return theContract.SignWithKey(*m_pkeyPrivate, pPWData);
 }
 
 // PUBLIC KEY
 
-// Get a public key as a opentxs::FormattedKey string.
-// This form is only used by self-signed MasterCredentials
-bool OTKeypair::GetPublicKey(FormattedKey& strKey) const
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    return m_pkeyPublic->GetPublicKey(strKey);
-}
 // Get a public key as an opentxs::String.
 // This form is used in all cases except for the NymIDSource
 // of a self-signed MasterCredential
 bool OTKeypair::GetPublicKey(String& strKey) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->GetPublicKey(strKey);
 }
 
-// Set a public key from an opentxs::String.
-// It is the responsibility of OTAsymmetricKey subclasses to perform any needed
-// decoding of the string.
-bool OTKeypair::SetPublicKey(const String& strKey)
-{
-    OT_ASSERT(nullptr != m_pkeyPublic);
-
-    // the below function SetPublicKey (in the return call) expects the
-    // bookends to still be there, and it will handle removing them.
-    return m_pkeyPublic->SetPublicKey(strKey);
-}
-
 bool OTKeypair::CalculateID(Identifier& theOutput) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->CalculateID(theOutput); // Only works for public keys.
 }
@@ -279,7 +221,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
                                       // when theSignature has no metadata.
     const OTSignature& theSignature, bool bInclusive) const
 {
-    OT_ASSERT(nullptr != m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic);
     OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
 
     // We know that EITHER exact metadata matches must occur, and the signature
@@ -308,7 +250,7 @@ int32_t OTKeypair::GetPublicKeyBySignature(
          (theSignature.getMetaData() == *(m_pkeyPublic->m_pMetadata)))) {
         // ...Then add m_pkeyPublic as a possible match, to listOutput.
         //
-        listOutput.push_back(m_pkeyPublic);
+        listOutput.push_back(m_pkeyPublic.get());
         return 1;
     }
     return 0;
@@ -316,12 +258,11 @@ int32_t OTKeypair::GetPublicKeyBySignature(
 
 // Used when importing/exporting a Nym to/from the wallet.
 //
-bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
-                          FormattedKey& strOutput)
+bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
 {
 
-    OT_ASSERT(nullptr != m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPrivate);
 
     OT_ASSERT(HasPublicKey());
     OT_ASSERT(HasPrivateKey());
@@ -374,17 +315,25 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting,
     const bool bReEncrypted = m_pkeyPrivate->ReEncryptPrivateKey(
         theExportPassword, bImporting); // <==== IMPORT or EXPORT occurs here.
 
-    bool haveNewPrivateKey = m_pkeyPrivate->GetPrivateKey(strOutput);
-
-    if (!(bReEncrypted && haveNewPrivateKey)) {
-        strOutput.Release();
+    if (!(bReEncrypted)) {
         otErr << __FUNCTION__ << ": Failure, either when re-encrypting, or "
                                  "when subsequently retrieving "
                                  "the public/private keys. bImporting == "
               << (bImporting ? "true" : "false") << "\n";
     }
 
-    return (bReEncrypted && haveNewPrivateKey);
+    return (bReEncrypted);
+}
+
+serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
+{
+    OT_ASSERT(m_pkeyPublic);
+
+    if (privateKey) {
+        return m_pkeyPrivate->Serialize();
+    } else {
+        return m_pkeyPublic->Serialize();
+    }
 }
 
 } // namespace opentxs

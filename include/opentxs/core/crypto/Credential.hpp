@@ -41,6 +41,7 @@
 
 #include <opentxs/core/Contract.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
 
@@ -81,9 +82,25 @@ class Tag;
 // This is stored as an Contract, and it must be signed by the
 // MasterCredential.
 //
+
+typedef std::shared_ptr<proto::Credential> serializedCredential;
+typedef bool CredentialModeFlag;
+typedef bool SerializationModeFlag;
+typedef bool SerializationSignatureFlag;
+
 class Credential : public Contract
 {
 public:
+
+    static const CredentialModeFlag PRIVATE_VERSION = true;
+    static const CredentialModeFlag PUBLIC_VERSION = false;
+
+    static const SerializationModeFlag AS_PRIVATE = true;
+    static const SerializationModeFlag AS_PUBLIC = false;
+
+    static const SerializationSignatureFlag WITH_SIGNATURES = true;
+    static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
+
     enum CredentialType: int32_t {
         ERROR_TYPE,
         LEGACY,
@@ -97,33 +114,25 @@ public:
 
     static OTAsymmetricKey::KeyType CredentialTypeToKeyType(CredentialType credentialType);
 
+    virtual bool SaveContract();
+    virtual bool SaveContract(const char* szFoldername,
+                             const char* szFilename);
+    virtual void ReleaseSignatures(const bool onlyPrivate);
+
 private: // Private prevents erroneous use by other classes.
     typedef Contract ot_super;
     friend class CredentialSet;
-
-    const std::string CredentialObjectName = "credential";
-    const std::string CredentialObjectNameOld = "childCredential";
-
     Credential() = delete;
 
 protected:
-    enum CredStoreAs {
-        credPrivateInfo =
-            0, // For saving the private keys, too. Default behavior.
-        credPublicInfo = 1,  // For saving a version with public keys only.
-        credMasterSigned = 2 // For saving a version with the master signature
-                             // included, so the child key credential can then countersign on
-                             // top of that. (To prove that the child key credential
-                             // authorizes the master key's signature.) Only
-                             // used by child key credentials.
-    };
-    CredStoreAs m_StoreAs; // Not serialized.
     CredentialType m_Type = Credential::ERROR_TYPE;
+    proto::CredentialRole m_Role = proto::CREDROLE_ERROR;
 
 public:
     CredentialType GetType() const;
 
 protected:
+    proto::KeyMode m_mode = proto::KEYMODE_ERROR;
     CredentialSet* m_pOwner = nullptr;   // a pointer for convenience only. Do not cleanup.
     String m_strMasterCredID; // All credentials within the same
                               // CredentialSet share the same
@@ -131,38 +140,6 @@ protected:
                               // master credential.
     String m_strNymID;        // All credentials within the same CredentialSet
                               // (including m_MasterCredential) must have
-    String m_strSourceForNymID;   // the same NymID and source.
-    String::Map m_mapPublicInfo;  // A map of strings containing the
-                                  // credential's public info. This was
-                                  // originally 1 string but subclasses ended
-                                  // up needing a map of them. Who'da thought.
-    String::Map m_mapPrivateInfo; // A map of strings containing the
-                                  // credential's private info. This was
-                                  // originally 1 string but subclasses ended
-                                  // up needing a map of them. Who'da thought.
-    String m_strMasterSigned;     // A public version of the credential with the
-                                  // master credential's signature on it. (The
-                                  // final public version will contain the
-                                  // child key credential's own signature on top of that.)
-    String m_strContents; // The actual final public credential as sent to the
-                          // server. Does not include private keys, even on
-                          // client side.
-    void UpdatePublicContentsToTag(Tag& parent);   // Used in
-                                                   // UpdateContents.
-    void UpdatePublicCredentialToTag(Tag& parent); // Used in
-                                                   // UpdateContents.
-    void UpdatePrivateContentsToTag(Tag& parent);  // Used in
-                                                   // UpdateContents.
-    inline void SetMasterSigned(const String& strMasterSigned)
-    {
-        m_strMasterSigned = strMasterSigned;
-    }
-    inline void SetContents(const String& strContents)
-    {
-        m_strContents = strContents;
-    }
-    void SetNymIDandSource(const String& strNymID,
-                           const String& strSourceForNymID);
     void SetMasterCredID(const String& strMasterCredID); // Used in all
                                                          // subclasses except
                                                          // MasterCredential. (It
@@ -174,30 +151,26 @@ protected:
                                                          // So it could never
                                                          // contain its own
                                                          // ID.)
-    inline void StoreAsMasterSigned()
-    {
-        m_StoreAs = credMasterSigned;
-    } // Upon signing, the credential reverts to credPrivateInfo again.
-    inline void StoreAsPublic()
-    {
-        m_StoreAs = credPublicInfo;
-    } // Upon signing, the credential reverts to credPrivateInfo again.
-    virtual bool SetPublicContents(const String::Map& mapPublic);
-    virtual bool SetPrivateContents(
-        const String::Map& mapPrivate,
-        const OTPassword* pImportPassword = nullptr); // if not nullptr, it
-                                                      // means to
-                                                      // use
-    // this password by default.
+
+    Credential(CredentialSet& theOwner, const proto::Credential& serializedCred);
+    Credential(CredentialSet& theOwner, const NymParameters& nymParameters);
+    virtual serializedCredential Serialize(
+        SerializationModeFlag asPrivate,
+        SerializationSignatureFlag asSigned) const;
+    virtual serializedCredential SerializeForPublicSignature() const;
+    virtual serializedCredential SerializeForPrivateSignature() const;
+    virtual serializedCredential SerializeForIdentifier() const;
+    OTData SerializeCredToData(const proto::Credential& serializedCred) const;
+
 public:
-    const String::Map& GetPublicMap() const
-    {
-        return m_mapPublicInfo;
-    }
-    const String::Map& GetPrivateMap() const
-    {
-        return m_mapPrivateInfo;
-    }
+    serializedSignature GetSelfSignature(CredentialModeFlag version = PUBLIC_VERSION) const;
+    EXPORT virtual bool LoadContractFromString(const String& theStr);
+
+    static serializedCredential ExtractArmoredCredential(const String stringCredential);
+    static serializedCredential ExtractArmoredCredential(const OTASCIIArmor armoredCredential);
+
+    bool isPrivate() const;
+    bool isPublic() const;
     const String& GetMasterCredID() const
     {
         return m_strMasterCredID;
@@ -206,37 +179,10 @@ public:
     {
         return m_strNymID;
     } // NymID for this credential.
-    const String& GetNymIDSource() const
-    {
-        return m_strSourceForNymID;
-    } // Source for NymID for this credential. (Hash it to get ID.)
-    const String& GetContents() const
-    {
-        return m_strContents;
-    } // The actual, final, signed public credential. Public keys only.
 
-    EXPORT const String& GetPubCredential() const; // More intelligent version
-                                                   // of GetContents. Higher
-                                                   // level.
-    const String& GetPriCredential() const; // I needed this for exporting a
-                                            // Nym (with credentials) from the
-                                            // wallet.
+    std::string AsString(const bool asPrivate = false) const;
 
-    const String& GetMasterSigned() const
-    {
-        return m_strMasterSigned;
-    } // For child key credentials, the master credential signs first, then the child key credential signs a
-      // version which contains the "master signed" version. (This proves the
-      // child key credential really authorizes all this.) That "master signed" version is
-      // stored here in m_strMasterSigned. But the final actual public
-      // credential (which must be hashed to get the credential ID) is the
-      // contents, not the master signed. The contents is the public version,
-      // signed by the child key credential, which contains the master-signed version inside
-      // of it as a data member (this variable in fact, m_strMasterSigned.) You
-      // might ask: then what's in m_strRawContents? Answer: the version that
-      // includes the private keys. Well at least, on the client side. On the
-      // server side, the raw contents will contain only the public version
-      // because that's all the client will send it. Que sera sera.
+    EXPORT const serializedCredential GetSerializedPubCredential() const;
     virtual bool VerifyInternally(); // Call VerifyNymID. Also verify
                                      // m_strMasterCredID against the hash of
                                      // m_pOwner->m_MasterCredential (the master
@@ -285,17 +231,9 @@ public:
                               // hash of
                               // m_strSourceForNymID.
     virtual bool VerifySignedByMaster();
-    void SetOwner(CredentialSet& theOwner);
-    virtual void SetMetadata()
-    {
-    } // Only key-based subclasses will use this.
-    Credential(CredentialSet& theOwner);
-    Credential(CredentialSet& theOwner, CredentialType type);
     virtual ~Credential();
     virtual void Release();
     void Release_Credential();
-    virtual void UpdateContents();
-    virtual int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 };
 
 } // namespace opentxs

@@ -47,6 +47,7 @@ set(cxx-sources
   crypto/Crypto.cpp
   crypto/CryptoHash.cpp
   crypto/CryptoUtil.cpp
+  crypto/CryptoAsymmetric.cpp
   crypto/CryptoSymmetric.cpp
   crypto/OpenSSL.cpp
   ${LIBSECP256K1}
@@ -77,7 +78,6 @@ set(cxx-sources
   crypto/OTSignedFile.cpp
   OTStorage.cpp
   String.cpp
-  FormattedKey.cpp
   OTStringXML.cpp
   crypto/Credential.cpp
   crypto/ChildKeyCredential.cpp
@@ -85,6 +85,7 @@ set(cxx-sources
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
+  NymIDSource.cpp
 )
 
 file(GLOB cxx-headers
@@ -142,6 +143,15 @@ endif()
 
 target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
 target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
+
+add_library(opentxs-proto STATIC IMPORTED)
+add_library(opentxs-verify STATIC IMPORTED)
+
+set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
+set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
+
+target_link_libraries(opentxs-core PRIVATE opentxs-proto)
+target_link_libraries(opentxs-core PRIVATE opentxs-verify)
 
 if (OT_CRYPTO_USING_LIBSECP256K1)
     add_library(staticlibsecp256k1 STATIC IMPORTED)
