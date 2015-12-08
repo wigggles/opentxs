@@ -59,6 +59,9 @@ CryptoEngine::CryptoEngine()
 #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     , psecp256k1_(new Libsecp256k1(*pSSL_))
 #endif
+    #ifdef OT_CRYPTO_USING_TREZOR
+    , pBip39_(new TrezorCrypto())
+#endif
 {
     Init();
 }
@@ -125,6 +128,14 @@ CryptoSymmetric& CryptoEngine::AES()
     OT_ASSERT(nullptr != pSSL_);
 
     return *pSSL_;
+}
+#endif
+#ifdef OT_CRYPTO_WITH_BIP39
+Bip39& CryptoEngine::BIP39()
+{
+    OT_ASSERT(nullptr != pBip39_);
+
+    return *pBip39_;
 }
 #endif
 CryptoEngine& CryptoEngine::Instance()

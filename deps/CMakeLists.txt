@@ -144,6 +144,9 @@ if (OT_CRYPTO_USING_TREZOR)
         trezor-crypto/aes_modes.c
     )
 
+set_source_files_properties(${trezor-sources}
+    PROPERTIES COMPILE_FLAGS "-fPIC"
+)
     file(GLOB trezor-headers
         "${CMAKE_CURRENT_SOURCE_DIR}/trezor-crypto/*.h"
     )
