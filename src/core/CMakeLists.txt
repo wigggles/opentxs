@@ -13,6 +13,12 @@ else()
   set(KEYSECP256K1 "")
 endif()
 
+if(OT_CRYPTO_USING_TREZOR)
+  set(TREZOR_TARGET "trezor-crypto")
+else()
+  set(TREZOR_TARGET "")
+endif()
+
 add_subdirectory(otprotob)
 add_subdirectory(trade)
 add_subdirectory(cron)
@@ -141,7 +147,7 @@ else()
   )
 endif()
 
-target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
+target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local ${TREZOR_TARGET})
 target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LIBRARY} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
 add_library(opentxs-proto STATIC IMPORTED)

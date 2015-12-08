@@ -123,3 +123,34 @@ if (OT_CRYPTO_USING_LIBSECP256K1)
     )
     set_property(TARGET libsecp256k1 PROPERTY EXCLUDE_FROM_ALL TRUE)
 endif()
+
+if (OT_CRYPTO_USING_TREZOR)
+    set(trezor-sources
+        trezor-crypto/bignum.c
+        trezor-crypto/ecdsa.c
+        trezor-crypto/secp256k1.c
+        trezor-crypto/nist256p1.c
+        trezor-crypto/rand.c
+        trezor-crypto/hmac.c
+        trezor-crypto/bip32.c
+        trezor-crypto/bip39.c
+        trezor-crypto/pbkdf2.c
+        trezor-crypto/base58.c
+        trezor-crypto/ripemd160.c
+        trezor-crypto/sha2.c
+        trezor-crypto/aescrypt.c
+        trezor-crypto/aeskey.c
+        trezor-crypto/aestab.c
+        trezor-crypto/aes_modes.c
+    )
+
+    file(GLOB trezor-headers
+        "${CMAKE_CURRENT_SOURCE_DIR}/trezor-crypto/*.h"
+    )
+
+    add_library(trezor-crypto
+        STATIC
+        ${trezor-sources}
+        ${trezor-headers}
+    )
+endif()
