@@ -22,3 +22,6 @@
 [submodule "deps/bitcoin-secp256k1"]
 	path = deps/bitcoin-secp256k1
 	url = https://github.com/bitcoin/secp256k1.git
+[submodule "deps/trezor-crypto"]
+	path = deps/trezor-crypto
+	url = https://github.com/trezor/trezor-crypto.git
