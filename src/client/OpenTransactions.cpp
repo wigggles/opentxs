@@ -1307,67 +1307,15 @@ bool OT_API::IsNym_RegisteredAtServer(const Identifier& NYM_ID,
     return pNym->IsRegisteredAtServer(strNotaryID);
 }
 
-/*
- CHANGE MASTER KEY and PASSWORD.
-
- Normally your passphrase is used to derive a key, which is used to unlock
- a random number (a symmetric key), which is used as the passphrase to open the
- master key, which is used as the passphrase to any given Nym.
-
+// --------------------------------------------------------------------
+/**
+ 
  Since all the Nyms are encrypted to the master key, and since we can change the
  passphrase on the master key without changing the master key itself, then we
-don't
- have to do anything to update all the Nyms, since that part hasn't changed.
-
- But we might want a separate "Change Master Key" function that replaces that
-key
- itself, in which case we'd HAVE to load up all the Nyms and re-save them.
-
-*** UPDATE: Seems the easiest thing to do is to just change both the key and
-passphase
- at the same time here, by loading up all the private nyms, destroying the
-master key,
- and then saving all the private Nyms. (With master key never actually being
-"paused.")
- This will automatically cause it to generate a new master key during the saving
-process.
+ don't have to do anything to update all the Nyms, since that part hasn't changed.
+ 
  (Make sure to save the wallet also.)
  */
-
-/*
-
- // Done:
-
- Load up separate copies of all the Nyms.
- (Set them to destruct automatically on exit, no matter what.)
-
- Change them to temp PW.
-
- Re-generate master.
-
- Change them to new master.
-
- Save nyms, save wallet.
-
- Reload wallet.
-
- IF anything fails along the way, we just return. What happens? The temp
- Nyms we converted are destroyed, not saved, and were not the actual wallet
- copies anyway (which are still old.) The master key itself is reverted to
- its former form (I stored a copy of that) and the wallet file itself is
- never overwritten.
- Once we successfully convert everything, we save the Nyms and then re-load
- the wallet (and thus the nyms...) Now the updated Nyms are loaded up in the
- wallet, and the temp ones just destruct when we exit the function. Perfect.
-
- */
-
-// WARNING: This function, if successful, saves and re-loads the wallet.
-// Therefore if you have any pointers to things inside the wallet, such as
-// a pointer to a Nym, that pointer will be bad after you call this function.
-// So make sure you grab a fresh pointer in such situations, after calling this.
-// (Because the one you had before will crash you.)
-//
 bool OT_API::Wallet_ChangePassphrase() const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
@@ -1376,390 +1324,51 @@ bool OT_API::Wallet_ChangePassphrase() const
               << ": Not initialized; call OT_API::Init first.\n";
         OT_FAIL;
     }
-    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
+    OTWallet * pWallet = OTAPI_Wrap::OTAPI()->GetWallet(
         __FUNCTION__); // This logs and ASSERTs already.
     if (nullptr == pWallet) return false;
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    String strReason("Enter existing wallet master passphrase");
+    // --------------------------------------------------------------------
+    std::shared_ptr<OTCachedKey> pCachedKey(OTCachedKey::It());
 
-    OTPassword old_passphrase;
-    std::shared_ptr<OTCachedKey> pMasterCredential(OTCachedKey::It());
-    const bool bGotOldPassphrase =
-        (pMasterCredential && pMasterCredential->IsGenerated() &&
-         pMasterCredential->GetMasterPassword(pMasterCredential, old_passphrase,
-                                         strReason.Get()));
-    class ot_change_pw
+    if (!pCachedKey)
     {
-        std::list<Nym*>* m_plist_nyms; // We'll be responsible in this
-                                       // class for cleaning these up.
-
-    public:
-        ot_change_pw(std::list<Nym*>& list_nyms)
-            : m_plist_nyms(&list_nyms)
-        {
-        }
-        ~ot_change_pw()
-        {
-            if (nullptr != m_plist_nyms) {
-                while (!m_plist_nyms->empty()) // Here's the cleanup.
-                {
-                    auto it = m_plist_nyms->begin();
-                    Nym* pNym = *it;
-                    OT_ASSERT(nullptr != pNym);
-
-                    delete pNym;
-                    pNym = nullptr;
-                    m_plist_nyms->erase(it);
-                }
-            }
-        }
-    };
-    std::list<Nym*> list_nyms; // Any Nyms on this list will be cleaned
-                               // up automatically in the ot_change_pw
-                               // destructor. Thus
-    ot_change_pw the_cleanup(list_nyms); // we cannot add Nyms here that are
-                                         // also on the Wallet. We load our own
-                                         // copies just for this list.
-    bool bAtLeastOneNymHasCredentials = false;
-    bool bSuccessLoading =
-        true; // defaults to true in case there aren't any Nyms.
-
-    // Loop through all the private Nyms and get them all loaded up into a list.
-    //
-    const int32_t nNymCount = pWallet->GetNymCount();
-    for (int32_t iii = 0; iii < nNymCount; ++iii) {
-        Identifier NYM_ID;
-        String NYM_NAME;
-
-        const bool bGotNym = pWallet->GetNym(iii, NYM_ID, NYM_NAME);
-        OT_ASSERT(bGotNym);
-        const String strNymID(NYM_ID);
-
-        // otherwise it's a public Nym, so we just skip it.
-        if (Nym::DoesCertfileExist(strNymID)) // is there a private key
-                                              // or credential available
-                                              // for this Nym?
-        { // In here, we know there's a private key...
-
-            // CALLER responsible to delete!
-            Nym* pNym = LoadPrivateNym(
-                NYM_ID, false /*bChecking*/,
-                __FUNCTION__); // This also loads credentials, if there are any.
-
-            // We use LoadPrivateNym here instead. (meaning: need to clean them
-            // up.)
-            // Therefore use a nested class here to handle the cleanup.
-            // This way we aren't changing the actual Nyms in the wallet until
-            // it's re-loaded.
-            // Any failure between now and then, and it's not re-loaded, and
-            // none of the Nyms
-            // were ever changed!
-
-            if (nullptr == pNym) // Since we KNOW there's a private key, yet it
-                                 // failed, therefore the user must have entered
-                                 // the wrong password...
-            {
-                bSuccessLoading = false;
-                break;
-            }
-            // else... (add to list for cleanup, on exit from this function.)
-            list_nyms.push_back(pNym); // ONLY private Nyms, and they ALL must
-                                       // successfully load and verify.
-
-            if (pNym->GetMasterCredentialCount() > 0)
-                bAtLeastOneNymHasCredentials = true;
-        }
-    }
-    if (!bSuccessLoading) {
-        otErr << __FUNCTION__
-              << ": Error: Failed to load all the private Nyms. Wrong "
-                 "passphrase? (Aborting operation.)\n";
+        otOut << __FUNCTION__ << ": Failed to get wallet master cached key.\n";
         return false;
     }
-    // By this point we KNOW we have successfully loaded up ALL the private Nyms
-    // for this wallet, and that list_nyms contains a pointer to each one...
-    // ENCRYPT ALL CREDENTIALS FROM MASTER KEY INTO A TEMP KEY
-    //
-    OTPassword theTempPassword; // Used to store a temp password only. Only for
-                                // credentialed nyms.
-    OTPasswordData thePWData("Enter existing wallet master passphrase");
-
-    // At this point, for Nyms with credentials, we need to ReEncrypt the Nym's
-    // credentials,
-    // similar to importing or exporting the Nym from the wallet. Except this
-    // time, we have
-    // to ReEncrypt FROM a wallet-based Nym to a temporary passphrase, then
-    // destroy and re-
-    // create the wallet's cached master key, then ReEncrypt AGAIN from the
-    // temporary passphrase
-    // and back to the new master passphrase that was just generated.
-    // Makes sense? It's the easiest way to do it based on the existing code we
-    // have.
-    //
-    if (bAtLeastOneNymHasCredentials) // All the Nyms on our list are private,
-                                      // by this point. And within this block,
-                                      // they have credentials, too.
+    // --------------------------------------------------------------------
+    if (!pCachedKey->IsGenerated())
     {
-        theTempPassword.randomizePassword(12); // the new random PW will be 12
-                                               // bytes int64_t. (We discard it
-                                               // after this function is done.)
-        bool bSuccessReEncrypting = true;
-        for (auto& it : list_nyms) {
-            Nym* pNym = it;
-            OT_ASSERT(nullptr != pNym);
-            // We know at least one Nym has credentials. Does this one?
-            //
-            if (pNym->GetMasterCredentialCount() >
-                0) // If this specific Nym has credentials...
-            {
-                // It won't ask for a passphrase when using the temp password,
-                // since it already
-                // has the password. So it will only ask for a passphrase when
-                // it is NOT using
-                // the temp password, e.g. when using the wallet's cached master
-                // key. ABOVE (here)
-                // that will be the OLD master key, and BELOW (after the master
-                // key is re-created)
-                // that will be the NEW master key.
-                // That's why here, it says: "Enter your EXISTING wallet master
-                // passphrase."
-                //
-                const bool bExported = pNym->ReEncryptPrivateCredentials(
-                    false /* (EXPORTING) bImporting=FALSE */, &thePWData,
-                    &theTempPassword);
-                if (!bExported) {
-                    bSuccessReEncrypting = false; // At least this way if
-                                                  // there's a failure, it's
-                                                  // equally to all the Nyms,
-                                                  // and not halfway through.
-                }
-            }
-        }
-        if (!bSuccessReEncrypting) // FAILURE
-        {
-            otErr
-                << __FUNCTION__
-                << ": Failed trying to re-encrypt Nym's private credentials.\n";
-            return false; // Nyms are cleaned up automatically when we return.
-        }
+        otOut << __FUNCTION__ << ": Wallet master cached key doesn't exist. Try creating a new Nym first.\n";
+        return false;
     }
-    // By this point, if there were credentials on any of the Nyms, they are all
-    // now converted
-    // (in RAM, not in local storage) to the temp password, and OUT of the
-    // wallet's master key
-    // (which we're about to destroy and re-create.)
-    // Destroy the wallet's cached master key (in Ram, not on disk--yet.)
-    //
+    // --------------------------------------------------------------------
     OTASCIIArmor ascBackup;
     OTCachedKey::It()->SerializeTo(ascBackup); // Just in case!
-    OTCachedKey::It()->ResetMasterPassword();  // Which will force it to be
-                                               // re-created next time someone
-                                               // tries to use it...
-
-    // NOTE: Below this point we cannot return without setting the master
-    // passphrase BACK.
-    // GENERATE the wallet's NEW MASTER KEY.
-    //
-    strReason.Set("Choose a new passphrase: ");
-
-    // This step would be unnecessary if we knew for a fact that at least
-    // one Nym exists. But in the off-chance that there ARE NO NYMS in the
-    // wallet, we need to have this here, in order to MAKE SURE that the new
-    // master key is generated. Otherwise it would never end up actually having
-    // to generate the thing. (Since, if there are no Nyms to re-save, it would
-    // never need to actually retrieve the master key, which is what triggers it
-    // to generate if it's not already there.) So we just force that step here,
-    // to make sure it happens, even if there are no Nyms to save below this
-    // point.
-    //
-    OTPassword new_passphrase;
-    std::shared_ptr<OTCachedKey> sharedPtr(OTCachedKey::It());
-    const bool bRegenerate =
-        sharedPtr->GetMasterPassword(sharedPtr, new_passphrase, strReason.Get(),
-                                     true); // bVerifyTwice=false by default.
-    if (!bRegenerate) // Failure generating new master key.
+    // --------------------------------------------------------------------
+    const bool bSuccess = pCachedKey->ChangeUserPassphrase();
+    
+    if (!bSuccess)
     {
-        otErr << __FUNCTION__ << ": Error: Failed while trying to regenerate "
-                                 "master key, in call: "
-                                 "OTCachedKey::It()->GetMasterPassword. "
-                                 "(Setting it back to the old "
-                                 "one.)\n";
-        if (!OTCachedKey::It()->SerializeFrom(ascBackup))
-            otErr << __FUNCTION__
-                  << ": Error: Failed while trying to restore master "
-                     "key, in call: "
-                     "OTCachedKey::It()->GetMasterPassword. (While "
-                     "setting it back to the old one.)\n"
-                     "Original value: \n" << ascBackup << "\n";
-        // todo security: is
-        // it risky to have
-        // the key displayed
-        // in this log?
+        otOut << __FUNCTION__ << ": Failed trying to change the user master passphrase.\n";
         return false;
-        //
-        // NOTE: Since we loaded our own copies of the Nyms, we haven't changed
-        // the copies in the wallet,
-        // nor the wallet itself. So we can just return, since our copies of the
-        // Nyms will already be cleaned
-        // up automatically.
     }
-  else // SUCCESS creating new master key, so let's CONVERT AND RE-SAVE ALL
+    // --------------------------------------------------------------------
+    const bool bSaved = pWallet->SaveWallet();
+
+    if ( !bSaved )
     {
-      // THE NYMS, so they'll be using it from now on...
-
-      // (Master key would normally be generated here, if we hadn't already
-      // forced it above,
-      // but we did that to make sure it got re-created in the event there are
-      // zero nyms.)
-
-      // Todo: save them to temp files and only copy over if everything
-      // else is successful. Same with wallet. Also make backups.
-      //
-      bool bSuccessResaving =
-        true; // in case the list is empty, we assume success here.
-
-      // Let's save all these Nyms under the new master key.
-      for ( auto& it : list_nyms )
-        {
-          Nym* pNym = it;
-          OT_ASSERT ( nullptr != pNym );
-          bool bSaved = false;
-
-          OT_ASSERT ( pNym->GetMasterCredentialCount() > 0 );
-
-          if ( pNym->GetMasterCredentialCount() > 0 )
-            {
-              // We had converted the Nyms to a temp key above, so now we need
-              // to convert
-              // from the temp key to the new wallet key. Then we can save
-              // them and re-load
-              // the wallet.
-              //
-              // We're supplying the temp password (from above), and importing
-              // the Nyms back
-              // from that, back into to the wallet's new master key. So it
-              // will only ask
-              // for a passphrase for the wallet, since the other passphrase
-              // is already provided.
-              // Therefore thePWData is relevant to the wallet only.
-              //
-              bool bSavedCredentials = false;
-              const bool bImported = pNym->ReEncryptPrivateCredentials (
-                                       true /*bImporting*/, // <==== CONVERT FROM TEMP PW TO NEW
-                                       // MASTER KEY.
-                                       &thePWData, &theTempPassword );
-              if ( bImported ) // Success? Okay, let's Save those credentials we
-                // just imported, to local storage.
-                {
-                  bSavedCredentials = pNym->WriteCredentials();
-                  if (!bSavedCredentials) {
-                      otErr << __FUNCTION__
-                      << ": After converting credentials to "
-                      "new master key, failure trying to "
-                      "store private credentials for Nym."
-                      << "\n";
-                  }
-                }
-              bSaved = bImported && bSavedCredentials;
-            }
-          if ( !bSaved ) bSuccessResaving = false;
-        }
-      if ( !bSuccessResaving ) // Failed saving all the Nyms after switching
-        // their credentials over.
-        {
-          OTASCIIArmor ascBackup2;
-          OTCachedKey::It()->SerializeTo ( ascBackup2 ); // Just in case!
-          otErr << __FUNCTION__
-                << ": ERROR: Failed re-saving Nym (into new Master "
-                "Key.) It's possible "
-                "some Nyms are already saved on the new key, while "
-                "others are still stuck "
-                "on the old key!! Therefore, asserting now. OLD KEY "
-                "was:\n" << ascBackup << "\n\n NEW KEY is: " << ascBackup2
-                << "\n";
-          // Todo: security: keys are exposed
-          // here. Is this log safe?
-          OT_FAIL_MSG ( "ASSERT while trying to change wallet's master key and "
-                        "passphrase.\n" );
-        }
-      else // SAVE THE WALLET.
-        {
-          // We've converted all the Nyms, so let's go ahead and convert the
-          // extra
-          // symmetric keys inside the wallet. (These are what a client app
-          // might
-          // use to encrypt its local database.)
-          //
-          if ( bGotOldPassphrase )
-            {
-              if ( !pWallet->ChangePassphrasesOnExtraKeys ( old_passphrase,
-                   new_passphrase ) )
-                otErr << __FUNCTION__
-                      << ": ERROR: "
-                      "pWallet->ChangePassphrasesOnExtraKeys "
-                      "failed. "
-                      "(Continuing, but your extra symmetric keys "
-                      "in the wallet "
-                      "may be messed up!)\n";
-            }
-          // By this point, we have successfully converted all the Nyms (our
-          // local copies of the wallet's private nyms)
-          // to the new master key, AND we have successfully saved those Nyms
-          // to local storage. Now, if we just save and
-          // re-load the wallet itself, it should load up using the new master
-          // key, and it should load up its own copies
-          // of those same Nyms again, using that new master key to decrypt
-          // them. (Those new copies of those Nyms being
-          // the ones that we saved to local storage just above, using our
-          // local copies.)
-          //
-          // With the wallet updated thus, we can simply discard the local
-          // copies, which will have outlived their usefulness.
-          // They will already be destroyed on exit, automatically.
-          //
-          bool bLoaded = false;
-          const bool bSaved = pWallet->SaveWallet();
-          if ( bSaved ) // Next, re-load it so the Nyms we've changed will be
-            // loaded up in their new forms. (The nyms local to this
-            // function will be destroyed on exit, but they are
-            // separate from the nyms in the wallet, which will
-            // appear in their new forms upon loading, presuming the
-            // Nyms were successfully saved above.)
-            //
-            bLoaded = pWallet->LoadWallet();
-          else
-            otErr << __FUNCTION__ << ": Failed saving wallet \n";
-          if ( !bLoaded )
-            {
-              OTASCIIArmor ascBackup2;
-              OTCachedKey::It()->SerializeTo ( ascBackup2 ); // Just in case!
-              // Note: if we even got this far, that means we already saved
-              // the Nyms under the new master Key,
-              // to local storage. Therefore we NEED that new key, if it
-              // wasn't properly saved in the wallet file
-              // just now! (And we need to have made a real backup of the
-              // wallet before attempting this...todo.)
-              // In the meantime, the best thing we can do is just LOG that
-              // key here, and hope the server operator
-              // still has the log! Log both keys (new and old.)
-              otErr
-                  << __FUNCTION__
-                  << ": ERROR: Failed saving or re-loading Wallet (with new "
-                  "Master Key.) "
-                  "Asserting now. OLD KEY was:\n" << ascBackup
-                  << "\n\n NEW KEY is: " << ascBackup2 << "\n";
-              // Todo: security: keys are exposed here.
-              // Is this log safe?
-              OT_FAIL_MSG ( "ASSERT while trying to save and re-load wallet "
-                            "with new master key and passphrase.\n" );
-            }
-          else
-            otOut << "\nSuccess changing master passphrase for wallet!\n";
-          return bLoaded;
-        }
+        otErr << __FUNCTION__ << ": Failed saving wallet (reverting.)\n";
+        if (OTCachedKey::It()->SerializeFrom(ascBackup))
+            pWallet->SaveWallet();
+        return false;
     }
-  return false;
+    else
+        otOut << "\nSuccess changing master passphrase for wallet!\n";
+    // --------------------------------------------------------------------
+    return true;
 }
+
 
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {

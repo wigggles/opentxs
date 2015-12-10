@@ -343,10 +343,18 @@ public:
                                   OTPassword& theOutput,
                                   const char* szDisplay = nullptr,
                                   bool bVerifyTwice = false);
-    // Caller must delete!
+
     EXPORT static std::shared_ptr<OTCachedKey> CreateMasterPassword(
         OTPassword& theOutput, const char* szDisplay = nullptr,
         int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
+    
+    // GetMasterPassword USES the User Passphrase to decrypt the cached key
+    // and return a decrypted plaintext of that cached symmetric key.
+    // Whereas ChangeUserPassphrase CHANGES the User Passphrase that's used
+    // to encrypt that cached key. The cached key itself is not changed, nor
+    // returned. It is merely re-encrypted.
+    EXPORT bool ChangeUserPassphrase();
+    
 
     EXPORT void DestroyMasterPassword(); // The thread, when the time comes,
                                          // calls this method using the instance
