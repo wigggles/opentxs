@@ -95,6 +95,7 @@ set(cxx-sources
   OTTransaction.cpp
   OTTransactionType.cpp
   NymIDSource.cpp
+  crypto/Bip32.cpp
 )
 
 file(GLOB cxx-headers

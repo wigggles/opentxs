@@ -196,14 +196,14 @@ public:
     EXPORT bool Decrypt_ByKeyID(const std::string& key_id,
                                 const String& strCiphertext, String& strOutput,
                                 const String* pstrDisplay = nullptr);
-    
+
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
         const std::string* pReason = nullptr); // Use this one.
-    
+
     EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
         const std::string& str_id) const; // Low level.
-    
+
     EXPORT bool addExtraKey(const std::string& str_id,
                             std::shared_ptr<OTSymmetricKey> pKey); // Low level.
     // These functions are low-level. They don't check for dependent data before

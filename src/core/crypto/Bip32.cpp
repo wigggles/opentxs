@@ -36,35 +36,44 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_BIP32_HPP
-#define OPENTXS_CORE_CRYPTO_BIP32_HPP
+#include <opentxs/core/crypto/Bip32.hpp>
 
-#include <string>
-#include <opentxs-proto/verify/VerifyCredentials.hpp>
-
-#include <opentxs/core/crypto/CryptoSymmetric.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/OTCachedKey.hpp>
 
 namespace opentxs
 {
-class OTPassword;
 
-class Bip32
+BinarySecret Bip32::GetHDSeed() const
 {
-public:
-    virtual serializedAsymmetricKey SeedToPrivateKey(
-        const OTPassword& seed) const = 0;
-    virtual serializedAsymmetricKey GetChild(
-        const proto::AsymmetricKey& parent,
-        const uint32_t index) const = 0;
-    virtual serializedAsymmetricKey PrivateToPublic(
-        const serializedAsymmetricKey& key) const = 0;
+    BinarySecret decryptedCachedKey;
 
-    BinarySecret GetHDSeed() const;
-    serializedAsymmetricKey GetHDKey(const proto::HDPath path) const;
+    std::shared_ptr<OTCachedKey> encryptedCachedKey(OTCachedKey::It());
+    if (encryptedCachedKey) {
+        std::string pReason = "loading the master HD seed for this wallet";
+        encryptedCachedKey->GetMasterPassword(
+            encryptedCachedKey,
+            *decryptedCachedKey,
+            pReason.c_str());
+    }
+    return decryptedCachedKey;
+}
 
-};
+serializedAsymmetricKey Bip32::GetHDKey(const proto::HDPath path) const
+{
+    uint32_t depth = path.child_size();
+    if (0 == depth) {
+        BinarySecret seed = GetHDSeed();
+
+        return SeedToPrivateKey(*seed);
+    } else {
+        proto::HDPath newpath = path;
+        newpath.mutable_child()->RemoveLast();
+        serializedAsymmetricKey parentnode = GetHDKey(newpath);
+
+        return GetChild(
+            *parentnode,
+            path.child(depth));
+    }
+}
 
 } // namespace opentxs
-
-#endif // OPENTXS_CORE_CRYPTO_BIP32_HPP

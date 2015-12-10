@@ -2010,18 +2010,11 @@ bool OTWallet::LoadWallet(const char* szFilename)
 std::string OTWallet::GetHDWordlist() const
 {
     std::string wordlist = "";
+    BinarySecret masterseed = CryptoEngine::Instance().BIP32().GetHDSeed();
 
-    std::shared_ptr<OTCachedKey> encryptedCachedKey(OTCachedKey::It());
-    if (encryptedCachedKey) {
-        OTPassword decryptedCachedKey;
-        std::string pReason = "loading the master HD seed for this wallet";
-        const bool bGotMasterPW = encryptedCachedKey->GetMasterPassword(
-            encryptedCachedKey, decryptedCachedKey, pReason.c_str());
-
-        if (bGotMasterPW) {
-            wordlist = CryptoEngine::Instance().BIP39().toWords(decryptedCachedKey);
-            otErr << "New HD seed: " << wordlist << "\n";
-        }
+    if (masterseed) {
+        wordlist = CryptoEngine::Instance().BIP39().toWords(*masterseed);
+        otErr << "New HD seed: " << wordlist << "\n";
     }
     return wordlist;
 }
