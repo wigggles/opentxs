@@ -67,7 +67,7 @@ OTWallet::OTWallet()
 {
     m_pWithdrawalPurse = nullptr;
 }
-
+//
 OTWallet::~OTWallet()
 {
     Release();
@@ -209,6 +209,10 @@ Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
     if (!this->ConvertNymToCachedKey(*pNym))
        otErr << __FUNCTION__
           << ": Error: Failed in OTWallet::ConvertNymToCachedKey.\n";
+
+    if (Credential::HD == nymParameters.credentialType()) {
+        next_hd_key++;
+    }
 
     this->SaveWallet(); // Since it just changed.
 
@@ -1207,6 +1211,10 @@ bool OTWallet::SaveContract(String& strContract)
                                      ? "2.0"
                                      : m_strVersion.Get());
 
+    TagPtr hdTag = std::make_shared<Tag>("hd");
+    hdTag->add_attribute("index", std::to_string(next_hd_key));
+    tag.add_tag(hdTag);
+
     if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
     {
         OTASCIIArmor ascMasterContents;
@@ -1950,6 +1958,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         otErr << __FUNCTION__
                               << ": Error loading existing Asset Account.\n";
                     }
+                }
+                else if (strNodeName.Compare("hd")) {
+                    next_hd_key = std::stoi(xml->getAttributeValue("index"));
                 }
                 else {
                     // unknown element type
