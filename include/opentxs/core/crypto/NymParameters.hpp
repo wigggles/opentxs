@@ -114,7 +114,7 @@ private:
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
     NymParameterType nymType_ = NymParameterType::SECP256K1;
-    Credential::CredentialType credentialType_ = Credential::SECP256K1;
+    Credential::CredentialType credentialType_ = Credential::HD;
 #elif defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
     NymParameterType nymType_ = NymParameterType::LEGACY;
     Credential::CredentialType credentialType_ = Credential::LEGACY;
