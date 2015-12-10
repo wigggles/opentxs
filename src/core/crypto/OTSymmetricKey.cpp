@@ -526,9 +526,13 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(const String* pstrDisplay,
     const char* szDisplay = "OTSymmetricKey::GetPassphraseFromUser";
     OTPasswordData thePWData((nullptr == pstrDisplay) ? szDisplay
                                                       : pstrDisplay->Get());
+    // -------------------------------------------------------------------
+    //
+    // OLD SYSTEM! (NO MASTER KEY INVOLVEMENT.)
+    //
     thePWData.setUsingOldSystem(); // So the cached key doesn't interfere, since
                                    // this is for a plain symmetric key.
-
+    // -------------------------------------------------------------------
     const int32_t nCallback =
         souped_up_pass_cb(pPassUserInput->getPasswordWritable_char(),
                           pPassUserInput->getBlockSize(), bAskTwice ? 1 : 0,

@@ -518,6 +518,77 @@ std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
     return std::shared_ptr<OTCachedKey>();
 }
 
+    
+// GetMasterPassword USES the User Passphrase to decrypt the cached key
+// and return a decrypted plaintext of that cached symmetric key.
+// Whereas ChangeUserPassphrase CHANGES the User Passphrase that's used
+// to encrypt that cached key. The cached key itself is not changed, nor
+// returned. It is merely re-encrypted.
+bool OTCachedKey::ChangeUserPassphrase()
+{
+    if (nullptr == m_pSymmetricKey)
+    {
+        otErr << __FUNCTION__ << ": The Master Key does not appear yet to exist. Try creating a Nym first.\n";
+        return false;
+    }
+    // --------------------------------------------------------------------
+    const String strReason1("Enter old wallet master passphrase");
+    
+    // Returns a text OTPassword, or nullptr.
+    std::shared_ptr<OTPassword> pOldUserPassphrase(OTSymmetricKey::GetPassphraseFromUser(&strReason1)); //bool bAskTwice = false
+    
+    if (!pOldUserPassphrase)
+    {
+        otErr << __FUNCTION__ << ": Error: Failed while trying to get old passphrase from user.\n";
+        return false;
+    }
+    // --------------------------------------------------------------------
+    const String strReason2("Create new wallet master passphrase");
+    
+    // Returns a text OTPassword, or nullptr.
+    std::shared_ptr<OTPassword> pNewUserPassphrase(OTSymmetricKey::GetPassphraseFromUser(&strReason2, true)); //bool bAskTwice = false by default.
+    
+    if (!pNewUserPassphrase)
+    {
+        otErr << __FUNCTION__ << ": Error: Failed while trying to get new passphrase from user.\n";
+        return false;
+    }
+    // --------------------------------------------------------------------
+    std::lock_guard<std::mutex> lock(m_Mutex);
+
+    LowLevelReleaseThread();
+    // --------------------------------------------------------------------
+    if (nullptr != m_pMasterPassword)
+    {
+        OTPassword* pPassword = m_pMasterPassword;
+        
+        m_pMasterPassword = nullptr;
+        
+        delete pPassword;
+        pPassword = nullptr;
+    }
+    // --------------------------------------------------------------------
+    // We remove it from the system keychain:
+    //
+    const std::string str_display;
+    const Identifier  idCachedKey(*m_pSymmetricKey); // Symmetric Key ID of the Master key.
+    const String      strCachedKeyHash(idCachedKey); // Same thing, in string form.
+    
+    const bool bDeletedSecret =
+        IsUsingSystemKeyring() && OTKeyring::DeleteSecret(
+                            strCachedKeyHash, // HASH OF ENCRYPTED MASTER KEY
+                            str_display);     // "optional" display string.
+    if (bDeletedSecret) {
+        otOut << "OTCachedKey::ChangeUserPassphrase: FYI, deleted "
+        "the derived key (used for unlocking the master key password) "
+        "from system keychain at the same time as we changed the user passphrase.\n";
+    }
+    // --------------------------------------------------------------------
+    // Now we actually change the password on the symmetric key object:
+    //
+    return m_pSymmetricKey->ChangePassphrase(*pOldUserPassphrase, *pNewUserPassphrase);
+}
+
 // Called by the password callback function.
 // The password callback uses this to get the password for any individual Nym.
 // This will also generate the master password, if one does not already exist.
@@ -551,10 +622,9 @@ bool OTCachedKey::GetMasterPassword(std::shared_ptr<OTCachedKey>& mySharedPtr,
     // If m_pMasterPassword is nullptr, (which below this point it is) then...
     //
     // Either it hasn't been created yet, in which case we need to instantiate
-    // it,
-    // OR it expired, in which case m_pMasterPassword is nullptr,
-    // but m_pThread isn't, and still needs cleaning up before we instantiate
-    // another one!
+    // it, OR it expired, in which case m_pMasterPassword is nullptr,
+    // but m_pThread isn't, and still needs cleaning up before we
+    // instantiate another one!
     //
     LowLevelReleaseThread();
 
