@@ -1370,6 +1370,25 @@ bool OT_API::Wallet_ChangePassphrase() const
 }
 
 
+std::string OT_API::Wallet_GetWords()
+{
+    bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();
+
+    if (!bInitialized) {
+        otErr << __FUNCTION__
+              << ": Not initialized; call OT_API::Init first.\n";
+        OT_FAIL;
+    }
+
+    OTWallet* pWallet = OTAPI_Wrap::OTAPI()->GetWallet(__FUNCTION__);
+
+    if (nullptr == pWallet) {
+        return "";
+    }
+
+    return pWallet->GetHDWordlist();
+}
+
 bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {
     bool bInitialized = OTAPI_Wrap::OTAPI()->IsInitialized();

@@ -202,7 +202,7 @@ public:
         const std::string* pReason = nullptr); // Use this one.
     
     EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
-        const std::string& str_id); // Low level.
+        const std::string& str_id) const; // Low level.
     
     EXPORT bool addExtraKey(const std::string& str_id,
                             std::shared_ptr<OTSymmetricKey> pKey); // Low level.
@@ -221,6 +221,7 @@ public:
     EXPORT bool RemoveAccount(const Identifier& theTargetID);
     EXPORT bool RemovePrivateNym(const Identifier& theTargetID);
     EXPORT bool RemovePublicNym(const Identifier& theTargetID);
+    EXPORT std::string GetHDWordlist() const;
 
 private:
     void AddNym(const Nym& theNym, mapOfNyms& map);

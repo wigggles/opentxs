@@ -44,6 +44,7 @@
 
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -1472,7 +1473,7 @@ bool OTWallet::Decrypt_ByKeyID(const std::string& key_id,
     return false;
 }
 
-std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(const std::string& str_id)
+std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(const std::string& str_id) const
 {
     if (str_id.empty()) return std::shared_ptr<OTSymmetricKey>();
 
@@ -2004,6 +2005,25 @@ bool OTWallet::LoadWallet(const char* szFilename)
     if (bNeedToSaveAgain) SaveWallet(szFilename);
 
     return true;
+}
+
+std::string OTWallet::GetHDWordlist() const
+{
+    std::string wordlist = "";
+
+    std::shared_ptr<OTCachedKey> encryptedCachedKey(OTCachedKey::It());
+    if (encryptedCachedKey) {
+        OTPassword decryptedCachedKey;
+        std::string pReason = "loading the master HD seed for this wallet";
+        const bool bGotMasterPW = encryptedCachedKey->GetMasterPassword(
+            encryptedCachedKey, decryptedCachedKey, pReason.c_str());
+
+        if (bGotMasterPW) {
+            wordlist = CryptoEngine::Instance().BIP39().toWords(decryptedCachedKey);
+            otErr << "New HD seed: " << wordlist << "\n";
+        }
+    }
+    return wordlist;
 }
 
 bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
