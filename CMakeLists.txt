@@ -338,6 +338,7 @@ endif()
 if(OT_CRYPTO_USING_TREZOR)
   add_definitions(-DOT_CRYPTO_USING_TREZOR)
   add_definitions(-DOT_CRYPTO_WITH_BIP39)
+  add_definitions(-DOT_CRYPTO_WITH_BIP32)
 endif()
 
 add_definitions(-DOT_CASH_USING_LUCRE)

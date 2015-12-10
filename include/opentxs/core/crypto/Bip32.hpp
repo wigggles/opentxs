@@ -36,41 +36,30 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
-#define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
+#ifndef OPENTXS_CORE_CRYPTO_BIP32_HPP
+#define OPENTXS_CORE_CRYPTO_BIP32_HPP
 
-extern "C" {
-    #include <trezor-crypto/bip32.h>
-}
-
-#include <memory>
-
-#include <opentxs/core/crypto/Bip32.hpp>
-#include <opentxs/core/crypto/Bip39.hpp>
-#include <opentxs/core/crypto/OTPassword.hpp>
+#include <string>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 
 namespace opentxs
 {
-
 class OTPassword;
 
-class TrezorCrypto : public Bip39, public Bip32
+class Bip32
 {
-private:
-    std::shared_ptr<HDNode> SerializedToHDNode(
-        const proto::AsymmetricKey& serialized) const;
-    serializedAsymmetricKey HDNodeToSerialized(const HDNode& node) const;
+
 public:
-    virtual std::string toWords(const OTPassword& seed) const;
+
     virtual serializedAsymmetricKey SeedToPrivateKey(
-        const OTPassword& seed) const;
+        const OTPassword& seed) const = 0;
     virtual serializedAsymmetricKey GetChild(
         const proto::AsymmetricKey& parent,
-        const uint32_t index) const;
+        const uint32_t index) const = 0;
     virtual serializedAsymmetricKey PrivateToPublic(
-        const serializedAsymmetricKey& key) const;
+        const serializedAsymmetricKey& key) const = 0;
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
+#endif // OPENTXS_CORE_CRYPTO_BIP32_HPP
