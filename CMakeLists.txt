@@ -56,6 +56,7 @@ option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
 
 option(OT_CRYPTO_USING_OPENSSL       "Use OpenSSL crypto implementation" ON)
 option(OT_CRYPTO_USING_LIBSECP256K1  "Use libsecp256k1 crypto implementation" ON)
+option(OT_CRYPTO_USING_TREZOR  "Use trezor crypto implementation" ON)
 
 # SWIG Bindings
 option(JAVA    "Build with Java binding" OFF)
@@ -111,6 +112,7 @@ message(STATUS "secp256k1               ${OT_CRYPTO_SUPPORTED_KEY_SECP256K1}")
 message(STATUS "Crypto library providers---------------------")
 message(STATUS "OpenSSL:                ${OT_CRYPTO_USING_OPENSSL}")
 message(STATUS "libsecp256k1:           ${OT_CRYPTO_USING_LIBSECP256K1}")
+message(STATUS "trezor-crypto:          ${OT_CRYPTO_USING_TREZOR}")
 
 message(STATUS "Bindings ------------------------------------")
 message(STATUS "Java binding:           ${JAVA}")
@@ -331,6 +333,12 @@ endif()
 
 if(OT_CRYPTO_USING_LIBSECP256K1)
   add_definitions(-DOT_CRYPTO_USING_LIBSECP256K1)
+endif()
+
+if(OT_CRYPTO_USING_TREZOR)
+  add_definitions(-DOT_CRYPTO_USING_TREZOR)
+  add_definitions(-DOT_CRYPTO_WITH_BIP39)
+  add_definitions(-DOT_CRYPTO_WITH_BIP32)
 endif()
 
 add_definitions(-DOT_CASH_USING_LUCRE)

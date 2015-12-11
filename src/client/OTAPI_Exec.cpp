@@ -527,7 +527,7 @@ std::string OTAPI_Exec::CreateNymECDSA(
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(
         NymParameters::SECP256K1,
-        Credential::SECP256K1);
+        Credential::HD);
     //nymParameters->SetSource(NYM_ID_SOURCE);
     nymParameters->SetAltLocation(ALT_LOCATION);
 

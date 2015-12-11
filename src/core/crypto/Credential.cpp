@@ -265,11 +265,8 @@ String Credential::CredentialTypeToString(Credential::CredentialType credentialT
         case Credential::LEGACY :
             credentialString="legacy";
             break;
-        case Credential::SECP256K1 :
-            credentialString="secp256k1";
-            break;
-        case Credential::URL :
-            credentialString="url";
+        case Credential::HD :
+            credentialString="hd";
             break;
         default :
             credentialString="error";
@@ -282,10 +279,8 @@ Credential::CredentialType Credential::StringToCredentialType(const String & cre
 {
     if (credentialType.Compare("legacy"))
         return Credential::LEGACY;
-    else if (credentialType.Compare("secp256k1"))
-        return Credential::SECP256K1;
-    else if (credentialType.Compare("url"))
-        return Credential::URL;
+    else if (credentialType.Compare("hd"))
+        return Credential::HD;
     return Credential::ERROR_TYPE;
 }
 
@@ -298,11 +293,8 @@ OTAsymmetricKey::KeyType Credential::CredentialTypeToKeyType(Credential::Credent
         case Credential::LEGACY :
             newKeyType = OTAsymmetricKey::LEGACY;
             break;
-        case Credential::SECP256K1 :
+        case Credential::HD :
             newKeyType = OTAsymmetricKey::SECP256K1;
-            break;
-        case Credential::URL :
-            newKeyType = OTAsymmetricKey::NULL_TYPE;
             break;
         default :
             newKeyType = OTAsymmetricKey::ERROR_TYPE;

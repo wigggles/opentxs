@@ -102,10 +102,9 @@ public:
     static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
 
     enum CredentialType: int32_t {
-        ERROR_TYPE,
-        LEGACY,
-        URL,
-        SECP256K1
+        ERROR_TYPE = proto::CREDTYPE_ERROR,
+        LEGACY = proto::CREDTYPE_LEGACY,
+        HD = proto::CREDTYPE_HD
     };
 
     static String CredentialTypeToString(CredentialType credentialType);

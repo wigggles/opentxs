@@ -65,6 +65,7 @@
 #include <opentxs/core/crypto/KeyCredential.hpp>
 
 #include <opentxs/core/crypto/CredentialSet.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignature.hpp>
 #include <opentxs/core/Log.hpp>
@@ -276,12 +277,81 @@ KeyCredential::KeyCredential(CredentialSet& theOwner, const proto::Credential& s
     }
 }
 
-KeyCredential::KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
-    : ot_super(theOwner, nymParameters)
+KeyCredential::KeyCredential(
+    CredentialSet& theOwner,
+    const NymParameters& nymParameters,
+    const proto::CredentialRole role)
+        : ot_super(theOwner, nymParameters)
 {
-    m_AuthentKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_AUTH);
-    m_EncryptKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_ENCRYPT);
-    m_SigningKey =  std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
+    if (Credential::HD != nymParameters.credentialType()) {
+        m_AuthentKey =
+            std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_AUTH);
+        m_EncryptKey =
+            std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_ENCRYPT);
+        m_SigningKey =
+            std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
+    } else {
+        m_AuthentKey =
+            DeriveHDKeypair(
+                nymParameters.Nym(),
+                0, // FIXME When multiple credential sets per nym are
+                   // implemented, this number must increment with each one.
+                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1, // FIXME
+                   // When multiple child credentials per credential set
+                   // are imeplemnted, this number must increment with each one.
+                proto::KEYROLE_AUTH);
+        m_EncryptKey =
+            DeriveHDKeypair(
+                nymParameters.Nym(),
+                0, //FIXME
+                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1, //FIXME
+                proto::KEYROLE_ENCRYPT);
+        m_SigningKey =
+            DeriveHDKeypair(
+                nymParameters.Nym(),
+                0, //FIXME
+                (proto::CREDROLE_MASTERKEY == role) ? 0 : 1, //FIXME
+                proto::KEYROLE_SIGN);
+    }
+}
+
+std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
+    const uint32_t nym,
+    const uint32_t credset,
+    const uint32_t credindex,
+    const proto::KeyRole role)
+{
+    proto::HDPath keyPath;
+    keyPath.add_child(NYM_PURPOSE | HARDENED);
+    keyPath.add_child(nym | HARDENED);
+    keyPath.add_child(credset | HARDENED);
+    keyPath.add_child(credindex | HARDENED);
+
+    switch (role) {
+        case proto::KEYROLE_AUTH :
+            keyPath.add_child(AUTH_KEY | HARDENED);
+            break;
+        case proto::KEYROLE_ENCRYPT :
+            keyPath.add_child(ENCRYPT_KEY | HARDENED);
+            break;
+        case proto::KEYROLE_SIGN :
+            keyPath.add_child(SIGN_KEY | HARDENED);
+            break;
+        default :
+            break;
+    }
+
+    serializedAsymmetricKey privateKey =
+        CryptoEngine::Instance().BIP32().GetHDKey(keyPath);
+    privateKey->set_role(role);
+
+    serializedAsymmetricKey publicKey = CryptoEngine::Instance().BIP32().PrivateToPublic(*privateKey);
+
+    std::shared_ptr<OTKeypair> newKeypair = std::make_shared<OTKeypair>(
+        *publicKey,
+        *privateKey);
+
+    return newKeypair;
 }
 
 KeyCredential::~KeyCredential()

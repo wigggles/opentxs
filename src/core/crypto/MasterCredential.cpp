@@ -154,7 +154,7 @@ serializedCred.publiccredential().masterdata().source());
 }
 
 MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
-    : ot_super(theOwner, nymParameters)
+    : ot_super(theOwner, nymParameters, proto::CREDROLE_MASTERKEY)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
     m_Role = proto::CREDROLE_MASTERKEY;

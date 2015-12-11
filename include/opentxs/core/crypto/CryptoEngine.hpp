@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 #define OPENTXS_CORE_CRYPTO_CRYPTOENGINE_HPP
 
+#include <opentxs/core/crypto/Bip39.hpp>
+#include <opentxs/core/crypto/Bip32.hpp>
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/crypto/CryptoHash.hpp>
 #include <opentxs/core/crypto/CryptoSymmetric.hpp>
@@ -52,6 +54,10 @@
 
 #ifdef OT_CRYPTO_USING_LIBSECP256K1
 #include <opentxs/core/crypto/Libsecp256k1.hpp>
+#endif
+
+#ifdef OT_CRYPTO_USING_TREZOR
+#include <opentxs/core/crypto/TrezorCrypto.hpp>
 #endif
 
 namespace opentxs
@@ -68,6 +74,10 @@ typedef OpenSSL SSLImplementation;
 typedef Libsecp256k1 secp256k1;
 #endif
 
+#if defined OT_CRYPTO_USING_TREZOR
+typedef TrezorCrypto bitcoincrypto;
+#endif
+
 //Singlton class for providing an interface to external crypto libraries
 //and hold the state required by those libraries.
 class CryptoEngine
@@ -81,7 +91,9 @@ private:
 #ifdef OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     secp256k1* psecp256k1_ = nullptr;
 #endif
-
+#ifdef OT_CRYPTO_USING_TREZOR
+    bitcoincrypto* pbitcoincrypto_ = nullptr;
+#endif
     static CryptoEngine* pInstance_;
 
 public:
@@ -99,6 +111,12 @@ public:
     //Symmetric encryption engines
 #ifdef OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT CryptoSymmetric& AES();
+#endif
+#ifdef OT_CRYPTO_WITH_BIP39
+    EXPORT Bip39& BIP39();
+#endif
+#ifdef OT_CRYPTO_WITH_BIP32
+    EXPORT Bip32& BIP32();
 #endif
 
     EXPORT static CryptoEngine& Instance();

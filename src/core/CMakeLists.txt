@@ -13,6 +13,14 @@ else()
   set(KEYSECP256K1 "")
 endif()
 
+if(OT_CRYPTO_USING_TREZOR)
+  set(TREZOR_TARGET "trezor-crypto")
+  set(LIBTREZORCRYPTO "crypto/TrezorCrypto.cpp")
+else()
+  set(TREZOR_TARGET "")
+  set(LIBTREZORCRYPTO "")
+endif()
+
 add_subdirectory(otprotob)
 add_subdirectory(trade)
 add_subdirectory(cron)
@@ -51,6 +59,7 @@ set(cxx-sources
   crypto/CryptoSymmetric.cpp
   crypto/OpenSSL.cpp
   ${LIBSECP256K1}
+  ${LIBTREZORCRYPTO}
   crypto/CryptoEngine.cpp
   OTData.cpp
   crypto/Letter.cpp
@@ -86,6 +95,7 @@ set(cxx-sources
   OTTransaction.cpp
   OTTransactionType.cpp
   NymIDSource.cpp
+  crypto/Bip32.cpp
 )
 
 file(GLOB cxx-headers
@@ -158,6 +168,10 @@ if (OT_CRYPTO_USING_LIBSECP256K1)
     set_property(TARGET staticlibsecp256k1 PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/deps/lib/libsecp256k1.a)
     target_link_libraries(opentxs-core PRIVATE staticlibsecp256k1)
     target_link_libraries(opentxs-core PUBLIC ${GMP_LIBRARIES})
+endif()
+
+if (OT_CRYPTO_USING_TREZOR)
+    target_link_libraries(opentxs-core PRIVATE ${TREZOR_TARGET})
 endif()
 
 set_lib_property(opentxs-core)

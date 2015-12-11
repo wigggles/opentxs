@@ -44,6 +44,7 @@
 
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/AssetContract.hpp>
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
@@ -66,7 +67,7 @@ OTWallet::OTWallet()
 {
     m_pWithdrawalPurse = nullptr;
 }
-
+//
 OTWallet::~OTWallet()
 {
     Release();
@@ -191,7 +192,14 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 // (Wallet stores it in RAM and will delete when it destructs.)
 Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
 {
-    Nym* pNym = new Nym(nymParameters);
+    NymParameters revisedParameters = nymParameters;
+
+    if (Credential::HD == nymParameters.credentialType()) {
+        revisedParameters.SetNym(NextHDSeed());
+        next_hd_key++;
+    }
+
+    Nym* pNym = new Nym(revisedParameters);
     OT_ASSERT(nullptr != pNym);
 
     this->AddNym(*pNym); // Add our new nym to the wallet, who "owns" it hereafter.
@@ -1206,6 +1214,10 @@ bool OTWallet::SaveContract(String& strContract)
                                      ? "2.0"
                                      : m_strVersion.Get());
 
+    TagPtr hdTag = std::make_shared<Tag>("hd");
+    hdTag->add_attribute("index", std::to_string(next_hd_key));
+    tag.add_tag(hdTag);
+
     if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
     {
         OTASCIIArmor ascMasterContents;
@@ -1472,7 +1484,7 @@ bool OTWallet::Decrypt_ByKeyID(const std::string& key_id,
     return false;
 }
 
-std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(const std::string& str_id)
+std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(const std::string& str_id) const
 {
     if (str_id.empty()) return std::shared_ptr<OTSymmetricKey>();
 
@@ -1950,6 +1962,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
                               << ": Error loading existing Asset Account.\n";
                     }
                 }
+                else if (strNodeName.Compare("hd")) {
+                    next_hd_key = std::stoi(xml->getAttributeValue("index"));
+                }
                 else {
                     // unknown element type
                     otErr << __FUNCTION__
@@ -2004,6 +2019,17 @@ bool OTWallet::LoadWallet(const char* szFilename)
     if (bNeedToSaveAgain) SaveWallet(szFilename);
 
     return true;
+}
+
+std::string OTWallet::GetHDWordlist() const
+{
+    std::string wordlist = "";
+    BinarySecret masterseed = CryptoEngine::Instance().BIP32().GetHDSeed();
+
+    if (masterseed) {
+        wordlist = CryptoEngine::Instance().BIP39().toWords(*masterseed);
+    }
+    return wordlist;
 }
 
 bool OTWallet::ConvertNymToCachedKey(Nym& theNym)

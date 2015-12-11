@@ -196,14 +196,14 @@ public:
     EXPORT bool Decrypt_ByKeyID(const std::string& key_id,
                                 const String& strCiphertext, String& strOutput,
                                 const String* pstrDisplay = nullptr);
-    
+
     EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
         const std::string& str_KeyID,
         const std::string* pReason = nullptr); // Use this one.
-    
+
     EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
-        const std::string& str_id); // Low level.
-    
+        const std::string& str_id) const; // Low level.
+
     EXPORT bool addExtraKey(const std::string& str_id,
                             std::shared_ptr<OTSymmetricKey> pKey); // Low level.
     // These functions are low-level. They don't check for dependent data before
@@ -221,6 +221,7 @@ public:
     EXPORT bool RemoveAccount(const Identifier& theTargetID);
     EXPORT bool RemovePrivateNym(const Identifier& theTargetID);
     EXPORT bool RemovePublicNym(const Identifier& theTargetID);
+    EXPORT std::string GetHDWordlist() const;
 
 private:
     void AddNym(const Nym& theNym, mapOfNyms& map);
@@ -272,8 +273,13 @@ private:
     // While waiting on server response to withdrawal,
     // store private coin data here for unblinding
     Purse* m_pWithdrawalPurse;
+    uint32_t next_hd_key = 0;
 
 public:
+    inline uint32_t NextHDSeed() const {
+        return next_hd_key;
+    }
+
     String m_strFilename;
     String m_strDataFolder;
 };
