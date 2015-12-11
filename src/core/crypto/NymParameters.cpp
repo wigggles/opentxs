@@ -61,7 +61,19 @@ NymParameters::NymParameterType NymParameters::nymParameterType() {
 
 OTAsymmetricKey::KeyType NymParameters::AsymmetricKeyType() const
 {
-    return Credential::CredentialTypeToKeyType(credentialType_);
+    OTAsymmetricKey::KeyType newKeyType;
+
+    switch (nymType_) {
+        case NymParameters::LEGACY :
+            newKeyType = OTAsymmetricKey::LEGACY;
+            break;
+        case NymParameters::SECP256K1 :
+            newKeyType = OTAsymmetricKey::SECP256K1;
+            break;
+        default :
+            newKeyType = OTAsymmetricKey::ERROR_TYPE;
+    }
+    return newKeyType;
 }
 
 void NymParameters::setNymParameterType(NymParameters::NymParameterType theKeytype) {

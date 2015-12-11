@@ -111,8 +111,6 @@ public:
 
     static CredentialType StringToCredentialType(const String & credentialType);
 
-    static OTAsymmetricKey::KeyType CredentialTypeToKeyType(CredentialType credentialType);
-
     virtual bool SaveContract();
     virtual bool SaveContract(const char* szFoldername,
                              const char* szFilename);

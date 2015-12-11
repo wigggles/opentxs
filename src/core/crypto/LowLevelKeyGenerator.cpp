@@ -281,8 +281,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
         OT_ASSERT(nullptr != ldp->m_pKey);
         OT_ASSERT(nullptr != ldp->m_pX509);
 
-        OT_ASSERT(nullptr != theKeypair.m_pkeyPublic);
-        OT_ASSERT(nullptr != theKeypair.m_pkeyPrivate);
+        OT_ASSERT(theKeypair.m_pkeyPublic);
+        OT_ASSERT(theKeypair.m_pkeyPrivate);
 
         // Since we are in OpenSSL-specific code, we have to make sure these are
         // OpenSSL-specific keys.
@@ -347,8 +347,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData&
         LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp* ldp =
             static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorSecp256k1dp*>(dp);
 
-        OT_ASSERT(nullptr != theKeypair.m_pkeyPublic);
-        OT_ASSERT(nullptr != theKeypair.m_pkeyPrivate);
+        OT_ASSERT(theKeypair.m_pkeyPublic);
+        OT_ASSERT(theKeypair.m_pkeyPrivate);
 
         // Since we are in secp256k1-specific code, we have to make sure these are
         // secp256k1-specific keys.

@@ -284,24 +284,6 @@ Credential::CredentialType Credential::StringToCredentialType(const String & cre
     return Credential::ERROR_TYPE;
 }
 
-OTAsymmetricKey::KeyType Credential::CredentialTypeToKeyType(Credential::CredentialType credentialType)
-
-{
-    OTAsymmetricKey::KeyType newKeyType;
-
-    switch (credentialType) {
-        case Credential::LEGACY :
-            newKeyType = OTAsymmetricKey::LEGACY;
-            break;
-        case Credential::HD :
-            newKeyType = OTAsymmetricKey::SECP256K1;
-            break;
-        default :
-            newKeyType = OTAsymmetricKey::ERROR_TYPE;
-    }
-    return newKeyType;
-}
-
 Credential::CredentialType Credential::GetType() const
 
 {
