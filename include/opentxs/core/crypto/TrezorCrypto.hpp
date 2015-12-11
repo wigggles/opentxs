@@ -57,9 +57,15 @@ class OTPassword;
 class TrezorCrypto : public Bip39, public Bip32
 {
 private:
+    typedef bool DerivationMode;
+    const DerivationMode DERIVE_PRIVATE = true;
+    const DerivationMode DERIVE_PUBLIC = false;
+
     std::shared_ptr<HDNode> SerializedToHDNode(
         const proto::AsymmetricKey& serialized) const;
-    serializedAsymmetricKey HDNodeToSerialized(const HDNode& node) const;
+    serializedAsymmetricKey HDNodeToSerialized(
+        const HDNode& node,
+        const DerivationMode privateVersion) const;
 public:
     virtual std::string toWords(const OTPassword& seed) const;
     virtual serializedAsymmetricKey SeedToPrivateKey(
@@ -68,7 +74,7 @@ public:
         const proto::AsymmetricKey& parent,
         const uint32_t index) const;
     virtual serializedAsymmetricKey PrivateToPublic(
-        const serializedAsymmetricKey& key) const;
+        const proto::AsymmetricKey& key) const;
 };
 
 } // namespace opentxs

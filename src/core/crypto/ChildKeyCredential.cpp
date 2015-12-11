@@ -90,7 +90,7 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const proto::Creden
 }
 
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters)
-    : ot_super(other, nymParameters)
+    : ot_super(other, nymParameters, proto::CREDROLE_CHILDKEY)
 {
     m_strContractType = "KEY CREDENTIAL";
     m_Role = proto::CREDROLE_CHILDKEY;

@@ -153,11 +153,18 @@ private: // Private prevents erroneous use by other classes.
     bool addKeyCredentialtoSerializedCredential(
         serializedCredential credential,
         const bool addPrivate) const;
-
+    std::shared_ptr<OTKeypair> DeriveHDKeypair(
+        const uint32_t nym,
+        const uint32_t credset,
+        const uint32_t credindex,
+        const proto::KeyRole role);
 
 protected:
     virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
-    KeyCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
+    KeyCredential(
+        CredentialSet& theOwner,
+        const NymParameters& nymParameters,
+        const proto::CredentialRole role);
     KeyCredential(CredentialSet& theOwner, const proto::Credential& serializedCred);
 public:
     std::shared_ptr<OTKeypair> m_SigningKey; // Signing keys, for signing/verifying a "legal

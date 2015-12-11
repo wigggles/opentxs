@@ -192,7 +192,14 @@ bool OTWallet::SignContractWithFirstNymOnList(Contract& theContract)
 // (Wallet stores it in RAM and will delete when it destructs.)
 Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
 {
-    Nym* pNym = new Nym(nymParameters);
+    NymParameters revisedParameters = nymParameters;
+
+    if (Credential::HD == nymParameters.credentialType()) {
+        revisedParameters.SetNym(NextHDSeed());
+        next_hd_key++;
+    }
+
+    Nym* pNym = new Nym(revisedParameters);
     OT_ASSERT(nullptr != pNym);
 
     this->AddNym(*pNym); // Add our new nym to the wallet, who "owns" it hereafter.
@@ -209,10 +216,6 @@ Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
     if (!this->ConvertNymToCachedKey(*pNym))
        otErr << __FUNCTION__
           << ": Error: Failed in OTWallet::ConvertNymToCachedKey.\n";
-
-    if (Credential::HD == nymParameters.credentialType()) {
-        next_hd_key++;
-    }
 
     this->SaveWallet(); // Since it just changed.
 
@@ -2025,7 +2028,6 @@ std::string OTWallet::GetHDWordlist() const
 
     if (masterseed) {
         wordlist = CryptoEngine::Instance().BIP39().toWords(*masterseed);
-        otErr << "New HD seed: " << wordlist << "\n";
     }
     return wordlist;
 }

@@ -38,6 +38,7 @@
 
 #include <opentxs/core/crypto/Bip32.hpp>
 
+#include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 
 namespace opentxs
@@ -45,17 +46,8 @@ namespace opentxs
 
 BinarySecret Bip32::GetHDSeed() const
 {
-    BinarySecret decryptedCachedKey;
-
-    std::shared_ptr<OTCachedKey> encryptedCachedKey(OTCachedKey::It());
-    if (encryptedCachedKey) {
-        std::string pReason = "loading the master HD seed for this wallet";
-        encryptedCachedKey->GetMasterPassword(
-            encryptedCachedKey,
-            *decryptedCachedKey,
-            pReason.c_str());
-    }
-    return decryptedCachedKey;
+    OTPasswordData pReason = "loading the master HD seed for this wallet";
+    return CryptoSymmetric::GetMasterKey(pReason);
 }
 
 serializedAsymmetricKey Bip32::GetHDKey(const proto::HDPath path) const
@@ -63,16 +55,26 @@ serializedAsymmetricKey Bip32::GetHDKey(const proto::HDPath path) const
     uint32_t depth = path.child_size();
     if (0 == depth) {
         BinarySecret seed = GetHDSeed();
+        serializedAsymmetricKey node = SeedToPrivateKey(*seed);
 
-        return SeedToPrivateKey(*seed);
+        return node;
     } else {
         proto::HDPath newpath = path;
         newpath.mutable_child()->RemoveLast();
         serializedAsymmetricKey parentnode = GetHDKey(newpath);
+        uint32_t root = parentnode->path().root();
 
-        return GetChild(
+        serializedAsymmetricKey node = GetChild(
             *parentnode,
-            path.child(depth));
+            path.child(depth-1));
+
+        // We assume the caller to this function did not know the root node
+        // fingerprint. Set the list of children, then restore the root
+        // fingerprint that we saved a few lines ago.
+        *(node->mutable_path()) = path;
+        node->mutable_path()->set_root(root);
+
+        return node;
     }
 }
 

@@ -47,6 +47,12 @@
 
 namespace opentxs
 {
+const uint32_t NYM_PURPOSE = 0x4f544e4d; // OTNM
+const uint32_t HARDENED = 0x80000000; // set MSB to indicate hardened derivation
+const uint32_t AUTH_KEY = 0x41555448; // AUTH
+const uint32_t ENCRYPT_KEY = 0x454e4352; // ENCRYPT
+const uint32_t SIGN_KEY = 0x5349474e; // SIGN
+
 class OTPassword;
 
 class Bip32
@@ -58,7 +64,7 @@ public:
         const proto::AsymmetricKey& parent,
         const uint32_t index) const = 0;
     virtual serializedAsymmetricKey PrivateToPublic(
-        const serializedAsymmetricKey& key) const = 0;
+        const proto::AsymmetricKey& key) const = 0;
 
     BinarySecret GetHDSeed() const;
     serializedAsymmetricKey GetHDKey(const proto::HDPath path) const;

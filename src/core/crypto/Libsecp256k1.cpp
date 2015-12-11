@@ -266,18 +266,7 @@ bool Libsecp256k1::ImportECDSAPrivkey(
     const OTPassword& password,
     OTPassword& privkey) const
 {
-    OTPassword keyPassword;
-    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
-
-    OTData decryptedKey;
-    CryptoEngine::Instance().AES().Decrypt(
-        CryptoSymmetric::AES_256_ECB,
-        keyPassword,
-        static_cast<const char*>(asymmetricKey.GetPointer()),
-        asymmetricKey.GetSize(),
-        decryptedKey);
-
-    return privkey.setMemory(decryptedKey);
+    return DecryptPrivateKey(asymmetricKey, password, privkey);
 }
 
 bool Libsecp256k1::ECDSAPrivkeyToAsymmetricKey(
@@ -297,18 +286,43 @@ bool Libsecp256k1::ExportECDSAPrivkey(
     const OTPassword& password,
     OTAsymmetricKey& asymmetricKey) const
 {
+    OTData encryptedKey;
+
+    EncryptPrivateKey(privkey, password, encryptedKey);
+
+    return static_cast<AsymmetricKeySecp256k1&>(asymmetricKey).SetKey(encryptedKey, true);
+}
+
+bool Libsecp256k1::EncryptPrivateKey(
+    const OTPassword& plaintextKey,
+    const OTPassword& password,
+    OTData& encryptedKey)
+{
     OTPassword keyPassword;
     CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
 
-    OTData encryptedKey;
-    CryptoEngine::Instance().AES().Encrypt(
+    return CryptoEngine::Instance().AES().Encrypt(
         CryptoSymmetric::AES_256_ECB,
         keyPassword,
-        static_cast<const char*>(privkey.getMemory()),
-        privkey.getMemorySize(),
+        static_cast<const char*>(plaintextKey.getMemory()),
+        plaintextKey.getMemorySize(),
         encryptedKey);
+}
 
-    return static_cast<AsymmetricKeySecp256k1&>(asymmetricKey).SetKey(encryptedKey, true);
+bool Libsecp256k1::DecryptPrivateKey(
+    const OTData& encryptedKey,
+    const OTPassword& password,
+    OTPassword& plaintextKey)
+{
+    OTPassword keyPassword;
+    CryptoEngine::Instance().Hash().Digest(CryptoHash::SHA256, password, keyPassword);
+
+    return CryptoEngine::Instance().AES().Decrypt(
+        CryptoSymmetric::AES_256_ECB,
+        keyPassword,
+        static_cast<const char*>(encryptedKey.GetPointer()),
+        encryptedKey.GetSize(),
+        plaintextKey);
 }
 
 bool Libsecp256k1::ECDH(

@@ -127,6 +127,14 @@ public:
         const OTPassword& privkey,
         const OTPassword& password,
         OTAsymmetricKey& asymmetricKey) const;
+    static bool EncryptPrivateKey(
+        const OTPassword& plaintextKey,
+        const OTPassword& password,
+        OTData& encryptedKey);
+    static bool DecryptPrivateKey(
+        const OTData& encryptedKey,
+        const OTPassword& password,
+        OTPassword& plaintextKey);
 
     bool ECDH(
         const OTAsymmetricKey& publicKey,
