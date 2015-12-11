@@ -83,7 +83,7 @@ serializedAsymmetricKey TrezorCrypto::GetChild(
 {
     std::shared_ptr<HDNode> node = SerializedToHDNode(parent);
 
-    if (proto::KEYMODE_PUBLIC == parent.mode()) {
+    if (proto::KEYMODE_PRIVATE == parent.mode()) {
         hdnode_private_ckd(node.get(), index);
     } else {
         hdnode_public_ckd(node.get(), index);
