@@ -163,6 +163,9 @@ String CryptoSymmetric::ModeToString(const Mode Mode)
         case CryptoSymmetric::AES_128_CBC :
             modeString="aes-128-cbc";
             break;
+        case CryptoSymmetric::AES_256_CBC :
+            modeString="aes-256-cbc";
+            break;
         case CryptoSymmetric::AES_256_ECB  :
             modeString="aes-256-ecb";
             break;
@@ -182,6 +185,8 @@ CryptoSymmetric::Mode CryptoSymmetric::StringToMode(const String& Mode)
 {
     if (Mode.Compare("aes-128-cbc"))
         return CryptoSymmetric::AES_128_CBC ;
+    if (Mode.Compare("aes-256-cbc"))
+        return CryptoSymmetric::AES_256_CBC ;
     if (Mode.Compare("aes-256-ecb"))
         return CryptoSymmetric::AES_256_ECB ;
     if (Mode.Compare("aes-128-gcm"))
@@ -198,6 +203,9 @@ uint32_t CryptoSymmetric::KeySize(const Mode Mode)
     switch (Mode) {
         case CryptoSymmetric::AES_128_CBC :
             keySize= 16;
+            break;
+        case CryptoSymmetric::AES_256_CBC :
+            keySize= 32;
             break;
         case CryptoSymmetric::AES_256_ECB  :
             keySize= 32;

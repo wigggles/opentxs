@@ -99,6 +99,7 @@ public:
     enum Mode: int32_t {
         ERROR_MODE,
         AES_128_CBC,
+        AES_256_CBC,
         AES_256_ECB,
         AES_128_GCM,
         AES_256_GCM

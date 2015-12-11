@@ -690,6 +690,9 @@ const EVP_CIPHER* OpenSSL::OpenSSLdp::CipherModeToOpenSSLMode(
         case CryptoSymmetric::AES_128_CBC :
             OpenSSLCipher = EVP_aes_128_cbc();
             break;
+        case CryptoSymmetric::AES_256_CBC :
+            OpenSSLCipher = EVP_aes_256_cbc();
+            break;
         case CryptoSymmetric::AES_256_ECB :
             OpenSSLCipher = EVP_aes_256_ecb();
             break;
@@ -1332,7 +1335,7 @@ bool OpenSSL::Encrypt(
     OTData& theEncryptedOutput) const                 // OUTPUT. (Ciphertext.)
 {
     return Encrypt(
-        CryptoSymmetric::AES_128_CBC, // What OT was using before
+        CryptoSymmetric::AES_256_CBC, // What OT was using before
         theRawSymmetricKey,
         theIV,
         szInput,
@@ -1571,7 +1574,7 @@ bool OpenSSL::Decrypt(
                                                       // will work.)
 {
     return Decrypt(
-        CryptoSymmetric::AES_128_CBC, // What OT was using before
+        CryptoSymmetric::AES_256_CBC, // What OT was using before
         theRawSymmetricKey,
         theIV,
         szInput,
@@ -2078,7 +2081,7 @@ bool OpenSSL::EncryptSessionKey(
     //
     dataOutput.Release();
 
-    const EVP_CIPHER* cipher_type = EVP_aes_128_cbc(); // todo hardcoding.
+    const EVP_CIPHER* cipher_type = EVP_aes_256_cbc(); // todo hardcoding.
 
     /*
     int32_t EVP_SealInit(EVP_CIPHER_CTX* ctx, const EVP_CIPHER* type,
@@ -2807,7 +2810,7 @@ bool OpenSSL::DecryptSessionKey(OTData& dataInput, const Nym& theRecipient,
                       dataInput.GetSize() - nRunningTotal);
 
     //
-    const EVP_CIPHER* cipher_type = EVP_aes_128_cbc(); // todo hardcoding.
+    const EVP_CIPHER* cipher_type = EVP_aes_256_cbc(); // todo hardcoding.
 
     // int32_t EVP_OpenInit(
     //          EVP_CIPHER_CTX *ctx,
