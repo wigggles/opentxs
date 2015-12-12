@@ -80,9 +80,9 @@ public:
 
     bool operator==(const proto::PaymentCode& rhs) const;
 
-    Identifier ID() const;
+    const Identifier ID() const;
     const std::string asBase58() const;
-    const SerializedPaymentCode Serialize() const;
+    SerializedPaymentCode Serialize() const;
     bool Verify(const MasterCredential& credential) const;
     bool Sign(
         const uint32_t nym,

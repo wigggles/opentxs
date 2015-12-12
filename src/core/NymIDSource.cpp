@@ -211,7 +211,8 @@ bool NymIDSource::Verify(
 bool NymIDSource::Sign(
     const NymParameters& nymParameters,
     const MasterCredential& credential,
-    proto::Signature& sig) const
+    proto::Signature& sig,
+    const OTPasswordData* pPWData) const
 {
     bool goodsig = false;
 
@@ -225,7 +226,8 @@ bool NymIDSource::Sign(
                 goodsig = payment_code_->Sign(
                     nymParameters.Nym(),
                     credential,
-                    sig);
+                    sig,
+                    pPWData);
             }
 
             break;

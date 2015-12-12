@@ -84,7 +84,8 @@ public:
     bool Sign(
         const NymParameters& nymParameters,
         const MasterCredential& credential,
-        proto::Signature& sig) const;
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr) const;
 
     String asString() const;
     String Description() const;

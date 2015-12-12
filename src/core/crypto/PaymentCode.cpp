@@ -144,7 +144,7 @@ const std::string PaymentCode::asBase58() const
     return CryptoEngine::Instance().Util().Base58CheckEncode(binaryVersion).Get();
 }
 
-const SerializedPaymentCode PaymentCode::Serialize() const
+SerializedPaymentCode PaymentCode::Serialize() const
 {
     SerializedPaymentCode serialized = std::make_shared<proto::PaymentCode>();
 
@@ -162,7 +162,7 @@ const SerializedPaymentCode PaymentCode::Serialize() const
     return serialized;
 }
 
-Identifier PaymentCode::ID() const
+const Identifier PaymentCode::ID() const
 {
 
     uint8_t core[65]{};
