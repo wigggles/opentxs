@@ -84,18 +84,26 @@ Credential::CredentialType NymParameters::credentialType() const {
     return credentialType_;
 }
 
-void NymParameters::setCredentialType(Credential::CredentialType theCredentialtype) {
+void NymParameters::setCredentialType(
+    Credential::CredentialType theCredentialtype)
+{
     credentialType_ = theCredentialtype;
-}
 
-const std::string& NymParameters::AltLocation() const
-{
-    return altLocation_;
-}
+    switch (theCredentialtype) {
+        case (Credential::LEGACY) :
+            SetSourceType(proto::SOURCETYPE_PUBKEY);
+            SetSourceProofType(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
-void NymParameters::SetAltLocation(const std::string& location)
-{
-    altLocation_ = location;
+            break;
+        case (Credential::HD) :
+            SetSourceType(proto::SOURCETYPE_BIP47);
+            SetSourceProofType(proto::SOURCEPROOFTYPE_SIGNATURE);
+
+            break;
+        default :
+
+            break;
+    }
 }
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)

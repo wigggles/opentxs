@@ -75,11 +75,16 @@ public:
     NymIDSource(
         const NymParameters& nymParameters,
         proto::AsymmetricKey& pubkey);
+    NymIDSource(std::unique_ptr<PaymentCode>& source);
 
     Identifier NymID() const;
 
     serializedNymIDSource Serialize() const;
     bool Verify(const MasterCredential& credential) const;
+    bool Sign(
+        const NymParameters& nymParameters,
+        const MasterCredential& credential,
+        proto::Signature& sig) const;
 
     String asString() const;
 

@@ -193,11 +193,9 @@ Identifier PaymentCode::ID() const
 bool PaymentCode::Verify(const MasterCredential& credential) const
 {
     serializedCredential serializedMaster =
-        credential.Serialize(
-            Credential::AS_PUBLIC,
-            Credential::WITH_SIGNATURES);
+        credential.SerializeForPublicSignature();
 
-    if (!proto::Verify(*serializedMaster, proto::CREDROLE_MASTERKEY, true)) {
+    if (!proto::Verify(*serializedMaster, proto::CREDROLE_MASTERKEY, false)) {
         otErr << __FUNCTION__ << ": Invalid master credential syntax.\n";
         return false;
     }
@@ -232,8 +230,8 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
 
 bool PaymentCode::Sign(
     const uint32_t nym,
-    Credential& credential,
-    proto::Signature sig,
+    const Credential& credential,
+    proto::Signature& sig,
     const OTPasswordData* pPWData) const
 {
     if (!pubkey_) {
@@ -249,10 +247,17 @@ bool PaymentCode::Sign(
               << " payment code.\n";
         return false;
     }
+
+    OTData existingKeyData, compareKeyData;
     serializedAsymmetricKey compareKey =
     CryptoEngine::Instance().BIP32().PrivateToPublic(*privatekey);
+    compareKey->clear_path();
 
-    if (!(*pubkey_ == *compareKey)) {
+    std::dynamic_pointer_cast<AsymmetricKeySecp256k1>
+        (pubkey_)->GetKey(existingKeyData);
+    compareKeyData.Assign(compareKey->key().c_str(), compareKey->key().size());
+
+    if (!(existingKeyData == compareKeyData)) {
         otErr << __FUNCTION__ << ": Private key is not valid for this"
         << " payment code.\n";
         return false;
@@ -262,18 +267,12 @@ bool PaymentCode::Sign(
 
     serializedCredential serialized = credential.SerializeForPublicSignature();
 
-    OTData root(
-        privatekey->path().root().c_str(),
-        privatekey->path().root().size());
-    String fingerprint =
-        CryptoEngine::Instance().Util().Base58CheckEncode(root);
-
     bool goodSig = signingKey->Sign(
         proto::ProtoAsData<proto::Credential>(*serialized),
         sig,
         pPWData,
         nullptr,
-        fingerprint,
+        ID(),
         proto::SIGROLE_NYMIDSOURCE);
 
     return goodSig;

@@ -86,8 +86,8 @@ public:
     bool Verify(const MasterCredential& credential) const;
     bool Sign(
         const uint32_t nym,
-        Credential& credential,
-        proto::Signature sig,
+        const Credential& credential,
+        proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const;
 };
 

@@ -311,9 +311,11 @@ serializedCredential Credential::Serialize(
     if (asSigned) {
         serializedSignature publicSig;
         serializedSignature privateSig;
+        serializedSignature sourceSig;
 
         proto::Signature* pPrivateSig;
         proto::Signature* pPublicSig;
+        proto::Signature* pSourceSig;
 
         if (asPrivate) {
             privateSig = GetSelfSignature(true);
@@ -332,6 +334,14 @@ serializedCredential Credential::Serialize(
             pPublicSig = serializedCredential->add_signature();
             *pPublicSig = *GetSelfSignature(false);
         }
+
+        sourceSig = GetSourceSignature();
+        if (sourceSig) {
+            pSourceSig = serializedCredential->add_signature();
+            *pSourceSig = *sourceSig;
+        }
+    } else {
+        serializedCredential->clear_signature(); // just in case...
     }
 
     String credID;
@@ -426,11 +436,11 @@ serializedSignature Credential::GetSourceSignature() const
 
     for (auto& it : m_listSerializedSignatures) {
         if (it->role() == proto::SIGROLE_NYMIDSOURCE) {
-            *signature = *it;
+            signature = std::make_shared<proto::Signature>(*it);
+
             break;
         }
     }
-
     return signature;
 }
 

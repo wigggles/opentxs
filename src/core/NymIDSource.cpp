@@ -79,6 +79,13 @@ NymIDSource::NymIDSource(
     pubkey_.reset(OTAsymmetricKey::KeyFactory(pubkey));
 }
 
+NymIDSource::NymIDSource(std::unique_ptr<PaymentCode>& source)
+        : version_(1)
+        , type_(proto::SOURCETYPE_BIP47)
+{
+    payment_code_.reset(source.release());
+}
+
 OTData NymIDSource::asData() const
 {
     serializedNymIDSource serializedSource = Serialize();
@@ -170,7 +177,7 @@ bool NymIDSource::Verify(
                     return false;
                 }
             } else {
-                //FIXME implement this
+                OT_ASSERT_MSG(false, "Not yet implemented");
                 return false;
             }
 
@@ -188,6 +195,7 @@ bool NymIDSource::Verify(
         case proto::SOURCETYPE_BIP47 :
             if (payment_code_) {
                 if (!payment_code_->Verify(credential)) {
+                    otErr << __FUNCTION__ << ": Invalid source signature.\n";
                     return false;
                 }
             }
@@ -198,6 +206,34 @@ bool NymIDSource::Verify(
     }
 
     return true;
+}
+
+bool NymIDSource::Sign(
+    const NymParameters& nymParameters,
+    const MasterCredential& credential,
+    proto::Signature& sig) const
+{
+    bool goodsig = false;
+
+    switch (type_) {
+        case (proto::SOURCETYPE_PUBKEY) :
+            OT_ASSERT_MSG(false, "This is not implemented yet.");
+
+            break;
+        case (proto::SOURCETYPE_BIP47) :
+            if (payment_code_) {
+                goodsig = payment_code_->Sign(
+                    nymParameters.Nym(),
+                    credential,
+                    sig);
+            }
+
+            break;
+        default :
+            break;
+    }
+
+    return goodsig;
 }
 
 String NymIDSource::asString() const

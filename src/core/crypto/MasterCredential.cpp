@@ -160,23 +160,30 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
     m_Role = proto::CREDROLE_MASTERKEY;
 
     std::shared_ptr<NymIDSource> source;
-
     std::unique_ptr<proto::SourceProof> sourceProof;
     sourceProof.reset(new proto::SourceProof);
 
-    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
-      nymParameters.SourceProofType())  {
+    proto::SourceProofType proofType = nymParameters.SourceProofType();
+
+    if (proto::SOURCETYPE_PUBKEY == nymParameters.SourceType()) {
+        OT_ASSERT_MSG(
+            proto::SOURCEPROOFTYPE_SELF_SIGNATURE == proofType,
+            "non self-signed credentials not yet implemented");
+
         source = std::make_shared<NymIDSource>(
             nymParameters,
             *(m_SigningKey->GetPublicKey().Serialize()));
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
-    }
-    else {
-        // FIXME this master credential will be invalid.
-        // VerifyInternally() will catch the error.
-        // Need to implement non-self signed credentials for real though.
+    } else if (proto::SOURCETYPE_BIP47 == nymParameters.SourceType()) {
+        sourceProof->set_version(1);
+        sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
+
+        std::unique_ptr<PaymentCode> bip47Source;
+        bip47Source.reset(new PaymentCode(nymParameters.Nym()));
+
+        source = std::make_shared<NymIDSource>(bip47Source);
     }
 
     source_proof_.reset(sourceProof.release());
@@ -189,6 +196,17 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
     CalculateAndSetContractID(masterID);
 
     SelfSign();
+
+    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != proofType) {
+        serializedSignature sig = std::make_shared<proto::Signature>();
+        bool haveSourceSig = source->Sign(nymParameters, *this, *sig);
+
+        OT_ASSERT(haveSourceSig);
+
+        if (haveSourceSig) {
+            m_listSerializedSignatures.push_back(sig);
+        }
+    }
 
     String credID(masterID), nym(nymID);
 
