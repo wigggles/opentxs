@@ -195,11 +195,18 @@ public:
     void Release_KeyCredential();
 
     virtual bool Sign(
-        const proto::Credential& credential,
-        const CryptoHash::HashType hashType,
-        OTData& signature, // output
+        const OTData& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
-        const OTPasswordData* pPWData = nullptr) const;
+        const proto::SignatureRole role = proto::SIGROLE_ERROR,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const;
+    virtual bool Sign(
+        const Credential& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const proto::SignatureRole role = proto::SIGROLE_PUBCREDENTIAL) const;
     virtual bool SelfSign(
         const OTPassword* exportPassword = nullptr,
         const OTPasswordData* pPWData = nullptr,

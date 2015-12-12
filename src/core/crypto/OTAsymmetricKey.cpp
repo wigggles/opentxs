@@ -1059,6 +1059,11 @@ bool OTAsymmetricKey::Verify(
     const OTData& plaintext,
     const proto::Signature& sig) const
 {
+    if (IsPrivate()) {
+        otErr << "You must use public keys to verify signatures.\n";
+        return false;
+    }
+
     OTData signature;
     signature.Assign(sig.signature().c_str(), sig.signature().size());
 
@@ -1068,6 +1073,44 @@ bool OTAsymmetricKey::Verify(
         signature,
         static_cast<CryptoHash::HashType>(sig.hashtype()),
         nullptr);
+}
+
+bool OTAsymmetricKey::Sign(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword,
+    const String credID,
+    const proto::SignatureRole role) const
+{
+    if (IsPublic()) {
+        otErr << "You must use private keys to create signatures.\n";
+        return false;
+    }
+
+    OTData signature;
+
+    bool goodSig = engine().Sign(
+        plaintext,
+        *this,
+        Identifier::DefaultHashAlgorithm,
+        signature,
+        pPWData,
+        exportPassword);
+
+    if (goodSig) {
+        sig.set_version(1);
+        if (credID.Exists()) {
+            sig.set_credentialid(credID.Get());
+        }
+        if (proto::SIGROLE_ERROR != role) {
+            sig.set_role(role);
+        }
+        sig.set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+        sig.set_signature(signature.GetPointer(), signature.GetSize());
+    }
+
+    return goodSig;
 }
 
 const std::string OTAsymmetricKey::Path() const

@@ -76,13 +76,8 @@ PaymentCode::PaymentCode(
         , bitmessage_version_(bitmessageVersion)
         , bitmessage_stream_(bitmessageStream)
 {
-    proto::HDPath path;
-    path.add_child(PC_PURPOSE | HARDENED);
-    path.add_child(BITCOIN_TYPE | HARDENED);
-    path.add_child(nym | HARDENED);
-
     serializedAsymmetricKey privatekey =
-        CryptoEngine::Instance().BIP32().GetHDKey(path);
+        CryptoEngine::Instance().BIP32().GetPaymentCode(nym);
 
     chain_code_.Assign(
         privatekey->chaincode().c_str(),
@@ -233,6 +228,55 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
     return pubkey_->Verify(
         proto::ProtoAsData<proto::Credential>(*serializedMaster),
         *sourceSig);
+}
+
+bool PaymentCode::Sign(
+    const uint32_t nym,
+    Credential& credential,
+    proto::Signature sig,
+    const OTPasswordData* pPWData) const
+{
+    if (!pubkey_) {
+        otErr << __FUNCTION__ << ": Payment code not instantiated.\n";
+        return false;
+    }
+
+    serializedAsymmetricKey privatekey =
+        CryptoEngine::Instance().BIP32().GetPaymentCode(nym);
+
+    if (!privatekey) {
+        otErr << __FUNCTION__ << ": Failed to derive private key for"
+              << " payment code.\n";
+        return false;
+    }
+    serializedAsymmetricKey compareKey =
+    CryptoEngine::Instance().BIP32().PrivateToPublic(*privatekey);
+
+    if (!(*pubkey_ == *compareKey)) {
+        otErr << __FUNCTION__ << ": Private key is not valid for this"
+        << " payment code.\n";
+        return false;
+    }
+    std::unique_ptr<OTAsymmetricKey>
+        signingKey(OTAsymmetricKey::KeyFactory(*privatekey));
+
+    serializedCredential serialized = credential.SerializeForPublicSignature();
+
+    OTData root(
+        privatekey->path().root().c_str(),
+        privatekey->path().root().size());
+    String fingerprint =
+        CryptoEngine::Instance().Util().Base58CheckEncode(root);
+
+    bool goodSig = signingKey->Sign(
+        proto::ProtoAsData<proto::Credential>(*serialized),
+        sig,
+        pPWData,
+        nullptr,
+        fingerprint,
+        proto::SIGROLE_NYMIDSOURCE);
+
+    return goodSig;
 }
 
 void PaymentCode::ConstructKey(const OTData& pubkey, const OTData& chaincode)

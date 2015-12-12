@@ -81,4 +81,14 @@ serializedAsymmetricKey Bip32::GetHDKey(const proto::HDPath path) const
     }
 }
 
+serializedAsymmetricKey Bip32::GetPaymentCode(const uint32_t nym) const
+{
+    proto::HDPath path;
+    path.add_child(PC_PURPOSE | HARDENED);
+    path.add_child(BITCOIN_TYPE | HARDENED);
+    path.add_child(nym | HARDENED);
+
+    return GetHDKey(path);
+}
+
 } // namespace opentxs

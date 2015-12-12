@@ -315,6 +315,13 @@ public:
     virtual bool Verify(
         const OTData& plaintext,
         const proto::Signature& sig) const;
+    virtual bool Sign(
+        const OTData& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const String credID = "",
+        const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
 };
 
 } // namespace opentxs

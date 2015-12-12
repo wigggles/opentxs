@@ -51,6 +51,7 @@ namespace opentxs
 
 typedef std::shared_ptr<proto::PaymentCode> SerializedPaymentCode;
 
+class Credential;
 class MasterCredential;
 
 class PaymentCode
@@ -83,7 +84,11 @@ public:
     const std::string asBase58() const;
     const SerializedPaymentCode Serialize() const;
     bool Verify(const MasterCredential& credential) const;
-
+    bool Sign(
+        const uint32_t nym,
+        Credential& credential,
+        proto::Signature sig,
+        const OTPasswordData* pPWData = nullptr) const;
 };
 
 } // namespace opentxs

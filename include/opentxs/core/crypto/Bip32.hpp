@@ -72,6 +72,7 @@ public:
 
     BinarySecret GetHDSeed() const;
     serializedAsymmetricKey GetHDKey(const proto::HDPath path) const;
+    serializedAsymmetricKey GetPaymentCode(const uint32_t nym) const;
 
 };
 

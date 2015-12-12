@@ -154,12 +154,12 @@ protected:
     virtual serializedCredential Serialize(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const;
-    virtual serializedCredential SerializeForPublicSignature() const;
     virtual serializedCredential SerializeForPrivateSignature() const;
     virtual serializedCredential SerializeForIdentifier() const;
     OTData SerializeCredToData(const proto::Credential& serializedCred) const;
 
 public:
+    virtual serializedCredential SerializeForPublicSignature() const;
     serializedSignature GetSelfSignature(CredentialModeFlag version = PUBLIC_VERSION) const;
     serializedSignature GetSourceSignature() const;
     EXPORT virtual bool LoadContractFromString(const String& theStr);
