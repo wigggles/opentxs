@@ -46,6 +46,7 @@
 #include "Identifier.hpp"
 #include "OTData.hpp"
 #include "String.hpp"
+#include "crypto/PaymentCode.hpp"
 
 namespace opentxs
 {
@@ -64,6 +65,7 @@ private:
     uint32_t version_ = 0;
     proto::SourceType type_ = proto::SOURCETYPE_ERROR;
     std::shared_ptr<OTAsymmetricKey> pubkey_;
+    std::shared_ptr<PaymentCode> payment_code_;
 
     OTData asData() const;
 

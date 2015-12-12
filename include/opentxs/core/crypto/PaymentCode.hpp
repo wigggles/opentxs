@@ -70,12 +70,14 @@ private:
     PaymentCode() = delete;
 
 public:
-    PaymentCode(proto::PaymentCode& paycode);
+    PaymentCode(const proto::PaymentCode& paycode);
     PaymentCode(
         const uint32_t nym,
         const bool bitmessage = false,
         const uint8_t bitmessageVersion = 0,
         const uint8_t bitmessageStream = 0);
+
+    bool operator==(const proto::PaymentCode& rhs) const;
 
     Identifier ID() const;
     const std::string asBase58() const;

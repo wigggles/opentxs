@@ -48,7 +48,7 @@
 namespace opentxs
 {
 
-PaymentCode::PaymentCode(proto::PaymentCode& paycode)
+PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     : version_(paycode.version())
     , chain_code_(paycode.chaincode().c_str(), paycode.chaincode().size())
     , hasBitmessage_(paycode.has_bitmessage())
@@ -94,6 +94,16 @@ PaymentCode::PaymentCode(
     OTData pubkey(key->key().c_str(), key->key().size());
 
     ConstructKey(pubkey, chain_code_);
+}
+
+bool PaymentCode::operator==(const proto::PaymentCode& rhs) const
+{
+    SerializedPaymentCode tempPaycode = Serialize();
+
+    OTData LHData = proto::ProtoAsData<proto::PaymentCode>(*tempPaycode);
+    OTData RHData = proto::ProtoAsData<proto::PaymentCode>(rhs);
+
+    return (LHData == RHData);
 }
 
 const OTData PaymentCode::Pubkey() const
@@ -197,10 +207,21 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
         return false;
     }
 
+    bool sameSource = (*this ==
+            serializedMaster->
+                publiccredential().masterdata().source().paymentcode());
+
+    if (!sameSource) {
+        otErr << __FUNCTION__ << ": Master credential was not derived from"
+              << " this source->\n";
+        return false;
+    }
+
     serializedSignature sourceSig = credential.GetSourceSignature();
 
     if (!sourceSig) {
-        otErr << __FUNCTION__ << ": Credential not signed by a source.\n";
+        otErr << __FUNCTION__ << ": Master credential not signed by its"
+              << " source.\n";
         return false;
     }
 
