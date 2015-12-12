@@ -1035,4 +1035,19 @@ bool OTAsymmetricKey::operator==(const proto::AsymmetricKey& rhs) const
     return (LHData == RHData);
 }
 
+bool OTAsymmetricKey::Verify(
+    const OTData& plaintext,
+    const proto::Signature& sig) const
+{
+    OTData signature;
+    signature.Assign(sig.signature().c_str(), sig.signature().size());
+
+    return engine().Verify(
+        plaintext,
+        *this,
+        signature,
+        static_cast<CryptoHash::HashType>(sig.hashtype()),
+        nullptr);
+}
+
 } // namespace opentxs

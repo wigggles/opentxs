@@ -208,8 +208,7 @@ public:
     EXPORT virtual bool VerifySig(
                                 const proto::Signature& sig,
                                 const OTAsymmetricKey& theKey,
-                                const bool asPrivate = true,
-                                const OTPasswordData* pPWData = nullptr) const;
+                                const bool asPrivate = true) const;
 
 
 };

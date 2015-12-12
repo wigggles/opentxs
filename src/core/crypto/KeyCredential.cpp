@@ -557,16 +557,8 @@ bool KeyCredential::SelfSign(
 bool KeyCredential::VerifySig(
                             const proto::Signature& sig,
                             const OTAsymmetricKey& theKey,
-                            const bool asPrivate,
-                            const OTPasswordData* pPWData) const
+                            const bool asPrivate) const
 {
-    bool verified = false;
-
-    OTData signature;
-    signature.Assign(sig.signature().c_str(), sig.signature().size());
-
-    OTPasswordData thePWData("KeyCredential::VerifyWithKey");
-
     serializedCredential serialized;
 
     if ((proto::KEYMODE_PRIVATE != m_mode) && asPrivate) {
@@ -581,14 +573,8 @@ bool KeyCredential::VerifySig(
     }
 
     OTData plaintext = SerializeCredToData(*serialized);
-    verified = theKey.engine().Verify(
-                                plaintext,
-                                theKey,
-                                signature,
-                                static_cast<CryptoHash::HashType>(sig.hashtype()),
-                                pPWData);
 
-    return verified;
+    return theKey.Verify(plaintext, sig);
 }
 
 } // namespace opentxs

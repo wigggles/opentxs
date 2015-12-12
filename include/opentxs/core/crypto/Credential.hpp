@@ -161,6 +161,7 @@ protected:
 
 public:
     serializedSignature GetSelfSignature(CredentialModeFlag version = PUBLIC_VERSION) const;
+    serializedSignature GetSourceSignature() const;
     EXPORT virtual bool LoadContractFromString(const String& theStr);
 
     static serializedCredential ExtractArmoredCredential(const String stringCredential);

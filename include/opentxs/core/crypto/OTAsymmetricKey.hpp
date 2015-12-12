@@ -308,6 +308,9 @@ public:
                                      bool bImporting) const = 0;
 
     virtual serializedAsymmetricKey Serialize() const;
+    virtual bool Verify(
+        const OTData& plaintext,
+        const proto::Signature& sig) const;
 };
 
 } // namespace opentxs

@@ -421,6 +421,20 @@ serializedSignature Credential::GetSelfSignature(CredentialModeFlag version) con
     return nullptr;
 }
 
+serializedSignature Credential::GetSourceSignature() const
+{
+    serializedSignature signature;
+
+    for (auto& it : m_listSerializedSignatures) {
+        if (it->role() == proto::SIGROLE_NYMIDSOURCE) {
+            *signature = *it;
+            break;
+        }
+    }
+
+    return signature;
+}
+
 bool Credential::SaveContract(const char* szFoldername, const char* szFilename)
 {
     OT_ASSERT_MSG(nullptr != szFilename,
