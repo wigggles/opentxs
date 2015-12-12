@@ -113,12 +113,10 @@ public:
                                  const std::string& TARGET_NYM_ID) const;
 
     EXPORT std::string create_nym_ecdsa(
-                                  const std::string& NYM_ID_SOURCE,
-                                  const std::string& ALT_LOCATION) const;
+                                  const std::string& NYM_ID_SOURCE) const;
 
     EXPORT std::string create_nym_legacy(int32_t nKeybits,
-                                  const std::string& NYM_ID_SOURCE,
-                                  const std::string& ALT_LOCATION) const;
+                                  const std::string& NYM_ID_SOURCE) const;
 
     EXPORT std::string issue_asset_type(const std::string& NOTARY_ID,
                                         const std::string& NYM_ID,
@@ -156,7 +154,7 @@ public:
                                  const std::string& NYM_ID,
                                  const std::string& ACCOUNT_ID,
                                  bool bForceDownload = false) const;
-    
+
     EXPORT bool retrieve_nym(const std::string& NOTARY_ID,
                              const std::string& NYM_ID,
                              bool bForceDownload = true) const;
@@ -349,7 +347,7 @@ public:
 
 //    EXPORT bool networkFailureRaw(); // This returns m_bNetworkFailure
 //    EXPORT bool networkFailure();    // This returns m_bNetworkFailure but also resets it back to false.
-    
+
 private:
     OT_ME(const OT_ME&);
     OT_ME& operator=(const OT_ME&);
@@ -360,7 +358,7 @@ private:
     std::shared_ptr<OTScript> m_pScript;
 
     bool m_bNetworkFailure;
-    
+
     bool HaveWorkingScript();
 
     bool Register_OTDB_With_Script();

@@ -61,18 +61,14 @@ CmdNewNymECDSA::~CmdNewNymECDSA()
 
 int32_t CmdNewNymECDSA::runWithOptions()
 {
-    return run(getOption("label"), getOption("source"),
-               getOption("location"));
+    return run(getOption("label"), getOption("source"));
 }
 
 // FYI, a source can be a URL, a Bitcoin address, a Namecoin address,
 // a public key, or the unique DN info from a traditionally-issued cert.
 // Hashing the source should produce the NymID. Also, the source should
 // always (somehow) validate the credential IDs, if they are to be trusted
-// for their purported Nym. Another optional parameter is 'altlocation'
-// which, in the case of DN info as a source, would be the download location
-// where a Cert should be found with that DN info, or a PKI where the Cert
-// can be found.
+// for their purported Nym.
 //
 // NOTE: If you leave the source BLANK, then OT will just generate a public
 // key to serve as the source. The public key will be hashed to form the
@@ -82,15 +78,14 @@ int32_t CmdNewNymECDSA::runWithOptions()
 
 int32_t CmdNewNymECDSA::run(
     string label,
-    string source,
-    string location)
+    string source)
 {
     if (!checkMandatory("label", label)) {
         return -1;
     }
 
     OT_ME ot_me;
-    string mynym = ot_me.create_nym_ecdsa(source, location);
+    string mynym = ot_me.create_nym_ecdsa(source);
     if ("" == mynym) {
         otOut << "Error: cannot create new nym.\n";
         return -1;

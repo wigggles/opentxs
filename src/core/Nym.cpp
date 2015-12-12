@@ -2683,7 +2683,7 @@ void Nym::DisplayStatistics(String& strOutput)
     } // for
 
     strOutput.Concatenate("Source for ID:\n%s\n", source_->asString().Get());
-    strOutput.Concatenate("Alt. location: %s\n\n", m_strAltLocation.Get());
+    strOutput.Concatenate("Description: %s\n\n", m_strDescription.Get());
 
     const size_t nMasterCredCount = GetMasterCredentialCount();
     if (nMasterCredCount > 0) {
@@ -2859,12 +2859,12 @@ void Nym::SerializeNymIDSource(Tag& parent) const
 
         TagPtr pTag(new Tag("nymIDSource", source_->asString().Get()));
 
-        if (m_strAltLocation.Exists()) {
-            OTASCIIArmor ascAltLocation;
-            ascAltLocation.SetString(m_strAltLocation,
+        if (m_strDescription.Exists()) {
+            OTASCIIArmor ascDescription;
+            ascDescription.SetString(m_strDescription,
                                      false); // bLineBreaks=true by default.
 
-            pTag->add_attribute("altLocation", ascAltLocation.Get());
+            pTag->add_attribute("Description", ascDescription.Get());
         }
         parent.add_tag(pTag);
     }
@@ -3674,11 +3674,11 @@ bool Nym::LoadNymFromString(const String& strNym,
             }
             else if (strNodeName.Compare("nymIDSource")) {
                 //                  otLog3 << "Loading nymIDSource...\n");
-                OTASCIIArmor ascAltLocation =
-                    xml->getAttributeValue("altLocation"); // optional.
-                if (ascAltLocation.Exists())
-                    ascAltLocation.GetString(
-                        m_strAltLocation,
+                OTASCIIArmor ascDescription =
+                    xml->getAttributeValue("Description"); // optional.
+                if (ascDescription.Exists())
+                    ascDescription.GetString(
+                        m_strDescription,
                         false); // bLineBreaks=true by default.
 
                 OTASCIIArmor stringSource;
@@ -4823,7 +4823,7 @@ Nym::Nym(const NymParameters& nymParameters)
     SetSource(pNewCredentialSet->Source());
     m_nymID = source_->NymID();
 
-    SetAltLocation(source_->Description());
+    SetDescription(source_->Description());
 
     m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
         pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));

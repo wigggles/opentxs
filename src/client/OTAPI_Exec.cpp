@@ -480,8 +480,7 @@ bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
 //
 std::string OTAPI_Exec::CreateNymLegacy(
     const int32_t& nKeySize,               // must be 1024, 2048, 4096, or 8192
-    __attribute__((unused)) const std::string& NYM_ID_SOURCE,
-    const std::string& ALT_LOCATION) const // Can be empty.
+    __attribute__((unused)) const std::string& NYM_ID_SOURCE) const // Can be empty.
 {
     if (0 >= nKeySize) {
         otErr << __FUNCTION__
@@ -519,8 +518,7 @@ std::string OTAPI_Exec::CreateNymLegacy(
 }
 
 std::string OTAPI_Exec::CreateNymECDSA(
-    __attribute__((unused)) const std::string& NYM_ID_SOURCE,
-    const std::string& ALT_LOCATION) const // Can be empty.
+    __attribute__((unused)) const std::string& NYM_ID_SOURCE) const // Can be empty.
 {
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(
@@ -605,7 +603,7 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     return str_return;
 }
 
-std::string OTAPI_Exec::GetNym_AltSourceLocation(
+std::string OTAPI_Exec::GetNym_Description(
     const std::string& NYM_ID) const
 {
     if (NYM_ID.empty()) {
@@ -618,7 +616,7 @@ std::string OTAPI_Exec::GetNym_AltSourceLocation(
     // private.
     Nym* pNym = OTAPI()->GetOrLoadNym(nym_id, false, __FUNCTION__, &thePWData);
     if (nullptr == pNym) return "";
-    const std::string str_return(pNym->GetAltLocation().Get());
+    const std::string str_return(pNym->GetDescription().Get());
     return str_return;
 }
 
