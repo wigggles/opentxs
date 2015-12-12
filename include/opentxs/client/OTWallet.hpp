@@ -273,11 +273,11 @@ private:
     // While waiting on server response to withdrawal,
     // store private coin data here for unblinding
     Purse* m_pWithdrawalPurse;
-    uint32_t next_hd_key = 0;
+    uint32_t next_hd_key_ = 0;
 
 public:
     inline uint32_t NextHDSeed() const {
-        return next_hd_key;
+        return next_hd_key_;
     }
 
     String m_strFilename;

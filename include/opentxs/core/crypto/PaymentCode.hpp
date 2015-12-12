@@ -62,14 +62,20 @@ private:
     std::shared_ptr<OTAsymmetricKey> pubkey_;
     OTData chain_code_;
     bool hasBitmessage_ = false;
-    uint8_t bitmessage_version = 0;
-    uint8_t bitmessage_stream = 0;
+    uint8_t bitmessage_version_ = 0;
+    uint8_t bitmessage_stream_ = 0;
 
     const OTData Pubkey() const;
     void ConstructKey(const OTData& pubkey, const OTData& chaincode);
     PaymentCode() = delete;
+
 public:
     PaymentCode(proto::PaymentCode& paycode);
+    PaymentCode(
+        const uint32_t nym,
+        const bool bitmessage = false,
+        const uint8_t bitmessageVersion = 0,
+        const uint8_t bitmessageStream = 0);
 
     Identifier ID() const;
     const std::string asBase58() const;

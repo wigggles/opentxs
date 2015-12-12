@@ -60,11 +60,40 @@ PaymentCode::PaymentCode(proto::PaymentCode& paycode)
     ConstructKey(key, chaincode);
 
     if (paycode.has_bitmessageversion()) {
-        bitmessage_version = paycode.bitmessageversion();
+        bitmessage_version_ = paycode.bitmessageversion();
     }
     if (paycode.has_bitmessagestream()) {
-        bitmessage_stream = paycode.bitmessagestream();
+        bitmessage_stream_ = paycode.bitmessagestream();
     }
+}
+
+PaymentCode::PaymentCode(
+    const uint32_t nym,
+    const bool bitmessage,
+    const uint8_t bitmessageVersion,
+    const uint8_t bitmessageStream)
+        : hasBitmessage_(bitmessage)
+        , bitmessage_version_(bitmessageVersion)
+        , bitmessage_stream_(bitmessageStream)
+{
+    proto::HDPath path;
+    path.add_child(PC_PURPOSE | HARDENED);
+    path.add_child(BITCOIN_TYPE | HARDENED);
+    path.add_child(nym | HARDENED);
+
+    serializedAsymmetricKey privatekey =
+        CryptoEngine::Instance().BIP32().GetHDKey(path);
+
+    chain_code_.Assign(
+        privatekey->chaincode().c_str(),
+        privatekey->chaincode().size());
+
+    serializedAsymmetricKey key =
+        CryptoEngine::Instance().BIP32().PrivateToPublic(*privatekey);
+
+    OTData pubkey(key->key().c_str(), key->key().size());
+
+    ConstructKey(pubkey, chain_code_);
 }
 
 const OTData PaymentCode::Pubkey() const
@@ -102,8 +131,8 @@ const std::string PaymentCode::asBase58() const
         chain_code_.GetPointer(),
         chain_code_.GetSize(),
         false);
-    serialized[68] = bitmessage_version;
-    serialized[69] = bitmessage_stream;
+    serialized[68] = bitmessage_version_;
+    serialized[69] = bitmessage_stream_;
 
     OTData binaryVersion(serialized, sizeof(serialized));
 
@@ -122,8 +151,8 @@ const SerializedPaymentCode PaymentCode::Serialize() const
     }
 
     serialized->set_chaincode(chain_code_.GetPointer(), chain_code_.GetSize());
-    serialized->set_bitmessageversion(bitmessage_version);
-    serialized->set_bitmessagestream(bitmessage_stream);
+    serialized->set_bitmessageversion(bitmessage_version_);
+    serialized->set_bitmessagestream(bitmessage_stream_);
 
     return serialized;
 }

@@ -196,7 +196,7 @@ Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
 
     if (Credential::HD == nymParameters.credentialType()) {
         revisedParameters.SetNym(NextHDSeed());
-        next_hd_key++;
+        next_hd_key_++;
     }
 
     Nym* pNym = new Nym(revisedParameters);
@@ -1215,7 +1215,7 @@ bool OTWallet::SaveContract(String& strContract)
                                      : m_strVersion.Get());
 
     TagPtr hdTag = std::make_shared<Tag>("hd");
-    hdTag->add_attribute("index", std::to_string(next_hd_key));
+    hdTag->add_attribute("index", std::to_string(next_hd_key_));
     tag.add_tag(hdTag);
 
     if (OTCachedKey::It()->IsGenerated()) // If it exists, then serialize it.
@@ -1963,7 +1963,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     }
                 }
                 else if (strNodeName.Compare("hd")) {
-                    next_hd_key = std::stoi(xml->getAttributeValue("index"));
+                    next_hd_key_ = std::stoi(xml->getAttributeValue("index"));
                 }
                 else {
                     // unknown element type
