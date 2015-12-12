@@ -41,6 +41,7 @@
 
 #include <opentxs/core/crypto/CryptoAsymmetric.hpp>
 #include <opentxs/core/util/Timer.hpp>
+#include <opentxs/core/OTData.hpp>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <memory>
@@ -132,6 +133,7 @@ public:
     KeyType keyType() const;
 
     virtual CryptoAsymmetric& engine() const = 0;
+    const std::string Path() const;
 
 private:
     static OTAsymmetricKey* KeyFactory(
@@ -142,6 +144,8 @@ protected:
     KeyType m_keyType = ERROR_TYPE;
     proto::KeyRole role_ = proto::KEYROLE_ERROR;
     OTAsymmetricKey(const KeyType keyType, const proto::KeyRole role);
+    std::shared_ptr<proto::HDPath> path_;
+    OTData chain_code_;
 
 public:                                           // INSTANTIATION
     EXPORT static OTAsymmetricKey* KeyFactory(const KeyType keyType, const String& pubkey);  // Caller IS responsible to

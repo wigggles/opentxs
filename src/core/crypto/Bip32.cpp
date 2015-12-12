@@ -56,13 +56,14 @@ serializedAsymmetricKey Bip32::GetHDKey(const proto::HDPath path) const
     if (0 == depth) {
         BinarySecret seed = GetHDSeed();
         serializedAsymmetricKey node = SeedToPrivateKey(*seed);
-
         return node;
     } else {
         proto::HDPath newpath = path;
         newpath.mutable_child()->RemoveLast();
         serializedAsymmetricKey parentnode = GetHDKey(newpath);
-        uint32_t root = parentnode->path().root();
+        OTData root(
+            parentnode->path().root().c_str(),
+            parentnode->path().root().size());
 
         serializedAsymmetricKey node = GetChild(
             *parentnode,
@@ -72,7 +73,9 @@ serializedAsymmetricKey Bip32::GetHDKey(const proto::HDPath path) const
         // fingerprint. Set the list of children, then restore the root
         // fingerprint that we saved a few lines ago.
         *(node->mutable_path()) = path;
-        node->mutable_path()->set_root(root);
+        node->mutable_path()->set_root(
+            root.GetPointer(),
+            root.GetSize());
 
         return node;
     }

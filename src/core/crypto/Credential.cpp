@@ -298,7 +298,7 @@ serializedCredential Credential::Serialize(
     serializedCredential serializedCredential = std::make_shared<proto::Credential>();
 
     serializedCredential->set_version(1);
-    serializedCredential->set_type(proto::CREDTYPE_LEGACY);
+    serializedCredential->set_type(static_cast<proto::CredentialType>(m_Type));
 
     if (asPrivate) {
         OT_ASSERT(proto::KEYMODE_PRIVATE == m_mode);
@@ -382,7 +382,6 @@ bool Credential::SaveContract()
     }
 
     serializedCredential serializedProto = Serialize(serializationMode, WITH_SIGNATURES);
-
 
     bool validProto = proto::Verify(*serializedProto, m_Role, WITH_SIGNATURES);
 
