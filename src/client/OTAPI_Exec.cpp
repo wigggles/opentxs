@@ -504,8 +504,6 @@ std::string OTAPI_Exec::CreateNymLegacy(
 
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(nKeySize);
-    //nymParameters->SetSource(NYM_ID_SOURCE);
-    nymParameters->SetAltLocation(ALT_LOCATION);
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym) // Creation failed.
@@ -528,8 +526,6 @@ std::string OTAPI_Exec::CreateNymECDSA(
     nymParameters = std::make_shared<NymParameters>(
         NymParameters::SECP256K1,
         Credential::HD);
-    //nymParameters->SetSource(NYM_ID_SOURCE);
-    nymParameters->SetAltLocation(ALT_LOCATION);
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym) // Creation failed.

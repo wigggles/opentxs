@@ -87,6 +87,7 @@ public:
         proto::Signature& sig) const;
 
     String asString() const;
+    String Description() const;
 
     static serializedNymIDSource ExtractArmoredSource(
         const OTASCIIArmor& armoredSource);

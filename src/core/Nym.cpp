@@ -4823,6 +4823,8 @@ Nym::Nym(const NymParameters& nymParameters)
     SetSource(pNewCredentialSet->Source());
     m_nymID = source_->NymID();
 
+    SetAltLocation(source_->Description());
+
     m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
         pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
 

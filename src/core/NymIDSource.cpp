@@ -258,4 +258,30 @@ serializedNymIDSource NymIDSource::ExtractArmoredSource(
     return protoSource;
 }
 
+String NymIDSource::Description() const
+{
+    String description;
+    Identifier keyID;
+
+    switch (type_) {
+        case (proto::SOURCETYPE_PUBKEY) :
+            if (pubkey_) {
+                pubkey_->CalculateID(keyID);
+                description = keyID;
+            }
+
+            break;
+        case (proto::SOURCETYPE_BIP47) :
+            if (payment_code_) {
+                description = payment_code_->asBase58();
+            }
+
+            break;
+        default :
+            break;
+    }
+
+    return description;
+}
+
 } // namespace opentxs
