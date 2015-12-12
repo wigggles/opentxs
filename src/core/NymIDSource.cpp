@@ -53,7 +53,16 @@ NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
     : version_(serializedSource.version())
     , type_(serializedSource.type())
 {
-    pubkey_.reset(OTAsymmetricKey::KeyFactory(serializedSource.key()));
+    switch (type_) {
+        case proto::SOURCETYPE_PUBKEY :
+            pubkey_.reset(OTAsymmetricKey::KeyFactory(serializedSource.key()));
+            break;
+        case proto::SOURCETYPE_BIP47 :
+            payment_code_.reset(new PaymentCode(serializedSource.paymentcode()));
+            break;
+        default:
+            break;
+    }
 }
 
 NymIDSource::NymIDSource(const String& stringSource)
@@ -70,6 +79,13 @@ NymIDSource::NymIDSource(
     pubkey_.reset(OTAsymmetricKey::KeyFactory(pubkey));
 }
 
+NymIDSource::NymIDSource(std::unique_ptr<PaymentCode>& source)
+        : version_(1)
+        , type_(proto::SOURCETYPE_BIP47)
+{
+    payment_code_.reset(source.release());
+}
+
 OTData NymIDSource::asData() const
 {
     serializedNymIDSource serializedSource = Serialize();
@@ -79,12 +95,24 @@ OTData NymIDSource::asData() const
 
 Identifier NymIDSource::NymID() const
 {
-    OTData dataVersion = asData();
-
     Identifier nymID;
+    OTData dataVersion;
 
-    nymID.CalculateDigest(dataVersion);
+    switch (type_) {
+        case proto::SOURCETYPE_PUBKEY :
+            dataVersion = asData();
+            nymID.CalculateDigest(dataVersion);
 
+            break;
+        case proto::SOURCETYPE_BIP47 :
+            if (payment_code_) {
+                nymID = payment_code_->ID();
+            }
+
+            break;
+        default:
+            break;
+    }
     return nymID;
 }
 
@@ -94,9 +122,24 @@ serializedNymIDSource NymIDSource::Serialize() const
     source->set_version(version_);
     source->set_type(type_);
 
-    serializedAsymmetricKey key = pubkey_->Serialize();
-    key->set_role(proto::KEYROLE_SIGN);
-    *(source->mutable_key()) = *key;
+    serializedAsymmetricKey key;
+    SerializedPaymentCode paycode;
+
+    switch (type_) {
+        case proto::SOURCETYPE_PUBKEY :
+            key = pubkey_->Serialize();
+            key->set_role(proto::KEYROLE_SIGN);
+            *(source->mutable_key()) = *key;
+
+            break;
+        case proto::SOURCETYPE_BIP47 :
+            paycode = payment_code_->Serialize();
+            *(source->mutable_paymentcode()) = *paycode;
+
+            break;
+        default:
+            break;
+    }
 
     return source;
 }
@@ -104,39 +147,95 @@ serializedNymIDSource NymIDSource::Serialize() const
 bool NymIDSource::Verify(
     const MasterCredential& credential) const
 {
-    serializedCredential serializedMaster =
-        credential.Serialize(
-            Credential::AS_PUBLIC,
-            Credential::WITH_SIGNATURES);
+    serializedCredential serializedMaster;
+    bool isSelfSigned, sameSource;
 
-    if (!proto::Verify(*serializedMaster, proto::CREDROLE_MASTERKEY, true)) {
-        otErr << __FUNCTION__ << ": Invalid master credential syntax.\n";
-        return false;
-    }
+    switch (type_) {
+        case proto::SOURCETYPE_PUBKEY :
+            serializedMaster =
+                credential.Serialize(
+                    Credential::AS_PUBLIC,
+                    Credential::WITH_SIGNATURES);
 
-    bool isSelfSigned =
-        (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
-        serializedMaster->publiccredential().masterdata().sourceproof().type());
+            if (!proto::Verify(
+                    *serializedMaster,
+                    proto::CREDROLE_MASTERKEY,
+                    true)) {
+                otErr << __FUNCTION__
+                      << ": Invalid master credential syntax.\n";
+                return false;
+            }
 
-    if (isSelfSigned) {
-        if (!credential.VerifySignedBySelf()) {
-            otErr << __FUNCTION__ << ": Invalid self-signature.\n";
-            return false;
-        }
-    } else {
-        //FIXME implement this
-        return false;
-    }
+            isSelfSigned =
+                (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
+                    serializedMaster->
+                        publiccredential().masterdata().sourceproof().type());
 
-    bool sameSource = (*(this->pubkey_) ==
-            serializedMaster->publiccredential().key(proto::KEYROLE_SIGN - 1));
+            if (isSelfSigned) {
+                if (!credential.VerifySignedBySelf()) {
+                    otErr << __FUNCTION__ << ": Invalid self-signature.\n";
+                    return false;
+                }
+            } else {
+                OT_ASSERT_MSG(false, "Not yet implemented");
+                return false;
+            }
 
-    if (!sameSource) {
-        otErr << __FUNCTION__ << ": Master credential was not derived from this source->\n";
-        return false;
+            sameSource = (*(this->pubkey_) ==
+                    serializedMaster->
+                        publiccredential().key(proto::KEYROLE_SIGN - 1));
+
+            if (!sameSource) {
+                otErr << __FUNCTION__ << ": Master credential was not"
+                      << " derived from this source->\n";
+                return false;
+            }
+
+            break;
+        case proto::SOURCETYPE_BIP47 :
+            if (payment_code_) {
+                if (!payment_code_->Verify(credential)) {
+                    otErr << __FUNCTION__ << ": Invalid source signature.\n";
+                    return false;
+                }
+            }
+
+            break;
+        default:
+            break;
     }
 
     return true;
+}
+
+bool NymIDSource::Sign(
+    const NymParameters& nymParameters,
+    const MasterCredential& credential,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData) const
+{
+    bool goodsig = false;
+
+    switch (type_) {
+        case (proto::SOURCETYPE_PUBKEY) :
+            OT_ASSERT_MSG(false, "This is not implemented yet.");
+
+            break;
+        case (proto::SOURCETYPE_BIP47) :
+            if (payment_code_) {
+                goodsig = payment_code_->Sign(
+                    nymParameters.Nym(),
+                    credential,
+                    sig,
+                    pPWData);
+            }
+
+            break;
+        default :
+            break;
+    }
+
+    return goodsig;
 }
 
 String NymIDSource::asString() const
@@ -159,6 +258,32 @@ serializedNymIDSource NymIDSource::ExtractArmoredSource(
     protoSource->ParseFromArray(dataSource.GetPointer(), dataSource.GetSize());
 
     return protoSource;
+}
+
+String NymIDSource::Description() const
+{
+    String description;
+    Identifier keyID;
+
+    switch (type_) {
+        case (proto::SOURCETYPE_PUBKEY) :
+            if (pubkey_) {
+                pubkey_->CalculateID(keyID);
+                description = keyID;
+            }
+
+            break;
+        case (proto::SOURCETYPE_BIP47) :
+            if (payment_code_) {
+                description = payment_code_->asBase58();
+            }
+
+            break;
+        default :
+            break;
+    }
+
+    return description;
 }
 
 } // namespace opentxs

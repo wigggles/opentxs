@@ -144,8 +144,7 @@ public:
     EXPORT CmdNewNymLegacy();
     virtual ~CmdNewNymLegacy();
 
-    EXPORT int32_t run(std::string keybits, std::string label,
-                       std::string source, std::string location);
+    EXPORT int32_t run(std::string keybits, std::string label, std::string source);
 
 protected:
     virtual int32_t runWithOptions();

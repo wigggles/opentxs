@@ -818,6 +818,15 @@ OTAsymmetricKey::OTAsymmetricKey(const proto::AsymmetricKey& serializedKey)
     } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()){
         SetAsPrivate();
     }
+
+    if (serializedKey.has_path()) {
+        path_ = std::make_shared<proto::HDPath>(serializedKey.path());
+    }
+    if (serializedKey.has_chaincode()) {
+        chain_code_.Assign(
+            serializedKey.chaincode().c_str(),
+            serializedKey.chaincode().size());
+    }
 }
 
 OTAsymmetricKey::~OTAsymmetricKey()
@@ -1017,6 +1026,17 @@ serializedAsymmetricKey OTAsymmetricKey::Serialize() const
     serializedKey->set_role(role_);
     serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(m_keyType));
 
+    if (IsPrivate()) {
+        if (path_) {
+            *(serializedKey->mutable_path()) = *path_;
+        }
+        if (0 < chain_code_.GetSize()) {
+            serializedKey->set_chaincode(
+                chain_code_.GetPointer(),
+                chain_code_.GetSize());
+        }
+    }
+
     return serializedKey;
 }
 
@@ -1033,6 +1053,90 @@ bool OTAsymmetricKey::operator==(const proto::AsymmetricKey& rhs) const
     OTData RHData = SerializeKeyToData(rhs);
 
     return (LHData == RHData);
+}
+
+bool OTAsymmetricKey::Verify(
+    const OTData& plaintext,
+    const proto::Signature& sig) const
+{
+    if (IsPrivate()) {
+        otErr << "You must use public keys to verify signatures.\n";
+        return false;
+    }
+
+    OTData signature;
+    signature.Assign(sig.signature().c_str(), sig.signature().size());
+
+    return engine().Verify(
+        plaintext,
+        *this,
+        signature,
+        static_cast<CryptoHash::HashType>(sig.hashtype()),
+        nullptr);
+}
+
+bool OTAsymmetricKey::Sign(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword,
+    const String credID,
+    const proto::SignatureRole role) const
+{
+    if (IsPublic()) {
+        otErr << "You must use private keys to create signatures.\n";
+        return false;
+    }
+
+    OTData signature;
+
+    bool goodSig = engine().Sign(
+        plaintext,
+        *this,
+        Identifier::DefaultHashAlgorithm,
+        signature,
+        pPWData,
+        exportPassword);
+
+    if (goodSig) {
+        sig.set_version(1);
+        if (credID.Exists()) {
+            sig.set_credentialid(credID.Get());
+        }
+        if (proto::SIGROLE_ERROR != role) {
+            sig.set_role(role);
+        }
+        sig.set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
+        sig.set_signature(signature.GetPointer(), signature.GetSize());
+    }
+
+    return goodSig;
+}
+
+const std::string OTAsymmetricKey::Path() const
+{
+    String path = "";
+
+    if (path_) {
+        if (path_->has_root()) {
+            OTData dataRoot(path_->root().c_str(), path_->root().size());
+            String root =
+                CryptoEngine::Instance().Util().Base58CheckEncode(dataRoot);
+            path.Concatenate(root);
+
+            for (auto& it : path_->child()) {
+                path.Concatenate(" / ");
+                if (it < HARDENED) {
+                    path.Concatenate(std::to_string(it));
+                } else {
+                    path.Concatenate(std::to_string(it - HARDENED));
+                    path.Concatenate("'");
+                }
+            }
+        }
+    }
+
+    return path.Get();
 }
 
 } // namespace opentxs

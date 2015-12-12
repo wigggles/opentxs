@@ -60,9 +60,9 @@ namespace opentxs
 //
 #define OT_DEFAULT_ITERATION_COUNT 65535      // in bytes
 #define OT_DEFAULT_SYMMETRIC_SALT_SIZE 8      // in bytes
-#define OT_DEFAULT_SYMMETRIC_KEY_SIZE 16      // in bytes
+#define OT_DEFAULT_SYMMETRIC_KEY_SIZE 32      // in bytes
 #define OT_DEFAULT_SYMMETRIC_KEY_SIZE_MAX 64  // in bytes == 512 bits
-#define OT_DEFAULT_SYMMETRIC_IV_SIZE 16       // in bytes
+#define OT_DEFAULT_SYMMETRIC_IV_SIZE 32       // in bytes
 #define OT_DEFAULT_SYMMETRIC_BUFFER_SIZE 4096 // in bytes
 #define OT_DEFAULT_PUBLIC_KEYSIZE 128         // in bytes == 4096 bits
 #define OT_DEFAULT_PUBLIC_KEYSIZE_MAX 512     // in bytes == 1024 bits

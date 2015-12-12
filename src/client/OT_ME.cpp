@@ -309,11 +309,10 @@ std::string OT_ME::check_nym(const std::string& NOTARY_ID,
 // returns new Nym ID
 //
 std::string OT_ME::create_nym_ecdsa(
-                              const std::string& strNymIDSource,
-                              const std::string& strAltLocation) const
+                              const std::string& strNymIDSource) const
 {
     std::string strNymID =
-        OTAPI_Wrap::CreateNymECDSA(strNymIDSource, strAltLocation);
+        OTAPI_Wrap::CreateNymECDSA(strNymIDSource);
 
     if (!VerifyStringVal(strNymID)) {
         otOut << "OT_ME_create_nym_ecdsa: Failed in "
@@ -327,11 +326,10 @@ std::string OT_ME::create_nym_ecdsa(
 // returns new Nym ID
 //
 std::string OT_ME::create_nym_legacy(int32_t nKeybits,
-                              const std::string& strNymIDSource,
-                              const std::string& strAltLocation) const
+                              const std::string& strNymIDSource) const
 {
     std::string strNymID =
-        OTAPI_Wrap::CreateNymLegacy(nKeybits, strNymIDSource, strAltLocation);
+        OTAPI_Wrap::CreateNymLegacy(nKeybits, strNymIDSource);
 
     if (!VerifyStringVal(strNymID)) {
         otOut << "OT_ME_create_nym_legacy: Failed in "
@@ -1901,8 +1899,8 @@ bool OT_ME::Register_API_With_Script_Chai(const OTScriptChai& theScript) const
 
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_SourceForID),
                             "OT_API_GetNym_SourceForID");
-        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_AltSourceLocation),
-                            "OT_API_GetNym_AltSourceLocation");
+        theScript.chai->add(fun(&OTAPI_Wrap::GetNym_Description),
+                            "OT_API_GetNym_Description");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MasterCredentialCount),
                             "OT_API_GetNym_MasterCredentialCount");
         theScript.chai->add(fun(&OTAPI_Wrap::GetNym_MasterCredentialID),

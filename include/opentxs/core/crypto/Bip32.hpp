@@ -40,17 +40,21 @@
 #define OPENTXS_CORE_CRYPTO_BIP32_HPP
 
 #include <string>
+
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <opentxs/core/crypto/CryptoSymmetric.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <opentxs/core/crypto/PaymentCode.hpp>
 
 namespace opentxs
 {
 const uint32_t NYM_PURPOSE = 0x4f544e4d; // OTNM
+const uint32_t PC_PURPOSE = 47; // BIP-47
 const uint32_t HARDENED = 0x80000000; // set MSB to indicate hardened derivation
+const uint32_t BITCOIN_TYPE = 0; // coin type
 const uint32_t AUTH_KEY = 0x41555448; // AUTH
-const uint32_t ENCRYPT_KEY = 0x454e4352; // ENCRYPT
+const uint32_t ENCRYPT_KEY = 0x454e4352; // ENCR
 const uint32_t SIGN_KEY = 0x5349474e; // SIGN
 
 class OTPassword;
@@ -68,6 +72,7 @@ public:
 
     BinarySecret GetHDSeed() const;
     serializedAsymmetricKey GetHDKey(const proto::HDPath path) const;
+    serializedAsymmetricKey GetPaymentCode(const uint32_t nym) const;
 
 };
 

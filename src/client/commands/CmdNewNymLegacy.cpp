@@ -62,18 +62,14 @@ CmdNewNymLegacy::~CmdNewNymLegacy()
 
 int32_t CmdNewNymLegacy::runWithOptions()
 {
-    return run(getOption("keybits"), getOption("label"), getOption("source"),
-               getOption("location"));
+    return run(getOption("keybits"), getOption("label"), getOption("source"));
 }
 
 // FYI, a source can be a URL, a Bitcoin address, a Namecoin address,
 // a public key, or the unique DN info from a traditionally-issued cert.
 // Hashing the source should produce the NymID. Also, the source should
 // always (somehow) validate the credential IDs, if they are to be trusted
-// for their purported Nym. Another optional parameter is 'altlocation'
-// which, in the case of DN info as a source, would be the download location
-// where a Cert should be found with that DN info, or a PKI where the Cert
-// can be found.
+// for their purported Nym.
 //
 // NOTE: If you leave the source BLANK, then OT will just generate a public
 // key to serve as the source. The public key will be hashed to form the
@@ -81,8 +77,7 @@ int32_t CmdNewNymLegacy::runWithOptions()
 // corresponding private key. That's the only way they can be 'verified by
 // their source.'
 
-int32_t CmdNewNymLegacy::run(string keybits, string label, string source,
-                       string location)
+int32_t CmdNewNymLegacy::run(string keybits, string label, string source)
 {
     if (!checkMandatory("label", label)) {
         return -1;
@@ -99,7 +94,7 @@ int32_t CmdNewNymLegacy::run(string keybits, string label, string source,
     }
 
     OT_ME ot_me;
-    string mynym = ot_me.create_nym_legacy(bits, source, location);
+    string mynym = ot_me.create_nym_legacy(bits, source);
     if ("" == mynym) {
         otOut << "Error: cannot create new nym.\n";
         return -1;

@@ -146,27 +146,17 @@ bool ChildKeyCredential::AddMasterSignature()
         return false;
     }
 
-    String credID = m_pOwner->GetMasterCredID();
-    OTData masterSignature;
-    serializedSignature serializedMasterSignature;
-    serializedMasterSignature.reset(new proto::Signature);
+    serializedSignature serializedMasterSignature =
+        std::make_shared<proto::Signature>();
 
-    serializedCredential publicVersion = SerializeForPublicSignature();
     bool havePublicSig = m_pOwner->GetMasterCredential().Sign(
-        *publicVersion,
-        Identifier::DefaultHashAlgorithm,
-        masterSignature);
+        *this,
+        *serializedMasterSignature);
 
     if (!havePublicSig) {
         otErr << __FUNCTION__ << ": Failed to obtain signature from master credential.\n";
         return false;
     }
-
-    serializedMasterSignature->set_version(1);
-    serializedMasterSignature->set_credentialid(credID.Get());
-    serializedMasterSignature->set_role(proto::SIGROLE_PUBCREDENTIAL);
-    serializedMasterSignature->set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
-    serializedMasterSignature->set_signature(masterSignature.GetPointer(), masterSignature.GetSize());
 
     m_listSerializedSignatures.push_back(serializedMasterSignature);
 

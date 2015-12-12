@@ -36,64 +36,61 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_NYMIDSOURCE_HPP
-#define OPENTXS_CORE_NYMIDSOURCE_HPP
+#ifndef OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
+#define OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
 
 #include <memory>
-
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include "Identifier.hpp"
-#include "OTData.hpp"
-#include "String.hpp"
-#include "crypto/PaymentCode.hpp"
+#include <opentxs/core/Identifier.hpp>
+#include <opentxs/core/OTData.hpp>
+#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
 
 namespace opentxs
 {
 
+typedef std::shared_ptr<proto::PaymentCode> SerializedPaymentCode;
+
+class Credential;
 class MasterCredential;
-class NymParameters;
-class OTAsymmetricKey;
 
-typedef std::shared_ptr<proto::NymIDSource> serializedNymIDSource;
-
-class NymIDSource
+class PaymentCode
 {
 private:
-    NymIDSource() = delete;
+    const uint8_t BIP47_VERSION_BYTE = 0x47;
 
-    uint32_t version_ = 0;
-    proto::SourceType type_ = proto::SOURCETYPE_ERROR;
+    uint8_t version_ = 1;
     std::shared_ptr<OTAsymmetricKey> pubkey_;
-    std::shared_ptr<PaymentCode> payment_code_;
+    OTData chain_code_;
+    bool hasBitmessage_ = false;
+    uint8_t bitmessage_version_ = 0;
+    uint8_t bitmessage_stream_ = 0;
 
-    OTData asData() const;
+    const OTData Pubkey() const;
+    void ConstructKey(const OTData& pubkey, const OTData& chaincode);
+    PaymentCode() = delete;
 
 public:
-    NymIDSource(const proto::NymIDSource& serializedSource);
-    NymIDSource(const String& stringSource);
-    NymIDSource(
-        const NymParameters& nymParameters,
-        proto::AsymmetricKey& pubkey);
-    NymIDSource(std::unique_ptr<PaymentCode>& source);
+    PaymentCode(const proto::PaymentCode& paycode);
+    PaymentCode(
+        const uint32_t nym,
+        const bool bitmessage = false,
+        const uint8_t bitmessageVersion = 0,
+        const uint8_t bitmessageStream = 0);
 
-    Identifier NymID() const;
+    bool operator==(const proto::PaymentCode& rhs) const;
 
-    serializedNymIDSource Serialize() const;
+    const Identifier ID() const;
+    const std::string asBase58() const;
+    SerializedPaymentCode Serialize() const;
     bool Verify(const MasterCredential& credential) const;
     bool Sign(
-        const NymParameters& nymParameters,
-        const MasterCredential& credential,
+        const uint32_t nym,
+        const Credential& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const;
-
-    String asString() const;
-    String Description() const;
-
-    static serializedNymIDSource ExtractArmoredSource(
-        const OTASCIIArmor& armoredSource);
 };
 
 } // namespace opentxs
 
-#endif // OPENTXS_CORE_NYMIDSOURCE_HPP
+#endif // OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP

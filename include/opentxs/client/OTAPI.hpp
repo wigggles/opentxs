@@ -415,13 +415,11 @@ public:
     // is that master credentials be signed by the corresponding private key.
     */
     EXPORT static std::string CreateNymLegacy(
-        const int32_t& nKeySize, const std::string& NYM_ID_SOURCE,
-        const std::string& ALT_LOCATION); // source and location can be empty.
+        const int32_t& nKeySize, const std::string& NYM_ID_SOURCE); // source can be empty.
                                           // (OT will generate a Nym with a
                                           // public key as the source.)
     EXPORT static std::string CreateNymECDSA(
-        const std::string& NYM_ID_SOURCE,
-        const std::string& ALT_LOCATION); // source and location can be empty.
+        const std::string& NYM_ID_SOURCE); // source and location can be empty.
                                           // (OT will generate a Nym with a
                                           // public key as the source.)
 
@@ -431,7 +429,7 @@ public:
                                                 int64_t lTransNum);
 
     EXPORT static std::string GetNym_SourceForID(const std::string& NYM_ID);
-    EXPORT static std::string GetNym_AltSourceLocation(
+    EXPORT static std::string GetNym_Description(
         const std::string& NYM_ID);
 
     EXPORT static int32_t GetNym_MasterCredentialCount(const std::string& NYM_ID);

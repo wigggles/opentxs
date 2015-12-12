@@ -273,17 +273,15 @@ bool OTAPI_Wrap::IsValidID(const std::string& strPurportedID)
 }
 
 std::string OTAPI_Wrap::CreateNymLegacy(const int32_t& nKeySize,
-                                  const std::string& NYM_ID_SOURCE,
-                                  const std::string& ALT_LOCATION)
+                                  const std::string& NYM_ID_SOURCE)
 {
-    return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE, ALT_LOCATION);
+    return Exec()->CreateNymLegacy(nKeySize, NYM_ID_SOURCE);
 }
 
 std::string OTAPI_Wrap::CreateNymECDSA(
-                                  const std::string& NYM_ID_SOURCE,
-                                  const std::string& ALT_LOCATION)
+                                  const std::string& NYM_ID_SOURCE)
 {
-    return Exec()->CreateNymECDSA(NYM_ID_SOURCE, ALT_LOCATION);
+    return Exec()->CreateNymECDSA(NYM_ID_SOURCE);
 }
 
 std::string OTAPI_Wrap::GetNym_ActiveCronItemIDs(const std::string& NYM_ID,
@@ -302,9 +300,9 @@ std::string OTAPI_Wrap::GetNym_SourceForID(const std::string& NYM_ID)
     return Exec()->GetNym_SourceForID(NYM_ID);
 }
 
-std::string OTAPI_Wrap::GetNym_AltSourceLocation(const std::string& NYM_ID)
+std::string OTAPI_Wrap::GetNym_Description(const std::string& NYM_ID)
 {
-    return Exec()->GetNym_AltSourceLocation(NYM_ID);
+    return Exec()->GetNym_Description(NYM_ID);
 }
 
 int32_t OTAPI_Wrap::GetNym_MasterCredentialCount(const std::string& NYM_ID)

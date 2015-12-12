@@ -66,9 +66,6 @@ public:
 
     void setCredentialType(Credential::CredentialType theCredentialtype);
 
-    const std::string& AltLocation() const;
-    void SetAltLocation(const std::string& location);
-
     inline proto::SourceType SourceType() const
     {
         return sourceType_;
@@ -133,8 +130,6 @@ public:
 #endif
 
 private:
-    std::string altLocation_ = "";
-
     proto::SourceType sourceType_ = proto::SOURCETYPE_PUBKEY;
     proto::SourceProofType sourceProofType_ =
         proto::SOURCEPROOFTYPE_SELF_SIGNATURE;

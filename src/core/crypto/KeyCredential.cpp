@@ -60,10 +60,10 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include <opentxs/core/stdafx.hpp>
-
 #include <opentxs/core/crypto/KeyCredential.hpp>
 
+#include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/CryptoEngine.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
@@ -481,21 +481,47 @@ bool KeyCredential::addKeyCredentialtoSerializedCredential(
 }
 
 bool KeyCredential::Sign(
-    const proto::Credential& credential,
-    const CryptoHash::HashType hashType,
-    OTData& signature, // output
+    const OTData& plaintext,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData,
     const OTPassword* exportPassword,
-    const OTPasswordData* pPWData) const
+    const proto::SignatureRole role,
+    proto::KeyRole key) const
 {
-    OTData plaintext = SerializeCredToData(credential);
+    const OTAsymmetricKey* keyToUse;
 
-    return this->m_SigningKey->GetPrivateKey().engine().Sign(
-                                                            plaintext,
-                                                            this->m_SigningKey->GetPrivateKey(),
-                                                            hashType,
-                                                            signature,
-                                                            pPWData,
-                                                            exportPassword);
+    switch (key) {
+        case (proto::KEYROLE_AUTH) :
+            keyToUse = &(this->m_AuthentKey->GetPrivateKey());
+            break;
+        case (proto::KEYROLE_SIGN) :
+            keyToUse = &(this->m_SigningKey->GetPrivateKey());
+            break;
+        default :
+            otErr << __FUNCTION__ << ": Can not sign with the specified key.\n";
+            return false;
+    }
+
+    String credID;
+    GetIdentifier(credID);
+
+    return keyToUse->Sign(plaintext, sig, pPWData, exportPassword, credID, role);
+}
+
+bool KeyCredential::Sign(
+        const Credential& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData,
+        const OTPassword* exportPassword,
+        const proto::SignatureRole role) const
+{
+    serializedCredential serialized = plaintext.SerializeForPublicSignature();
+    return Sign(
+        proto::ProtoAsData<proto::Credential>(*serialized),
+        sig,
+        pPWData,
+        exportPassword,
+        role);
 }
 
 bool KeyCredential::SelfSign(
@@ -510,44 +536,31 @@ bool KeyCredential::SelfSign(
         std::make_shared<proto::Signature>();
     serializedSignature privateSignature =
         std::make_shared<proto::Signature>();
-    OTData signature;
 
     bool havePublicSig = false;
     if (!onlyPrivate) {
-        serializedCredential publicVersion = SerializeForPublicSignature();
+        const serializedCredential publicVersion = SerializeForPublicSignature();
         havePublicSig = Sign(
-            *publicVersion,
-            Identifier::DefaultHashAlgorithm,
-            signature,
+            proto::ProtoAsData<proto::Credential>(*publicVersion),
+            *publicSignature,
+            pPWData,
             exportPassword,
-            pPWData);
+            proto::SIGROLE_PUBCREDENTIAL);
 
         if (havePublicSig) {
-            publicSignature->set_version(1);
-            publicSignature->set_credentialid(credID.Get());
-            publicSignature->set_role(proto::SIGROLE_PUBCREDENTIAL);
-            publicSignature->set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
-            publicSignature->set_signature(signature.GetPointer(), signature.GetSize());
-
             m_listSerializedSignatures.push_back(publicSignature);
         }
     }
 
     serializedCredential privateVersion = SerializeForPrivateSignature();
     bool havePrivateSig = Sign(
-        *privateVersion,
-        Identifier::DefaultHashAlgorithm,
-        signature,
+        proto::ProtoAsData<proto::Credential>(*privateVersion),
+        *privateSignature,
+        pPWData,
         exportPassword,
-        pPWData);
+        proto::SIGROLE_PRIVCREDENTIAL);
 
     if (havePrivateSig) {
-        privateSignature->set_version(1);
-        privateSignature->set_credentialid(credID.Get());
-        privateSignature->set_role(proto::SIGROLE_PRIVCREDENTIAL);
-        privateSignature->set_hashtype(static_cast<proto::HashType>(Identifier::DefaultHashAlgorithm));
-        privateSignature->set_signature(signature.GetPointer(), signature.GetSize());
-
         m_listSerializedSignatures.push_back(privateSignature);
     }
 
@@ -557,16 +570,8 @@ bool KeyCredential::SelfSign(
 bool KeyCredential::VerifySig(
                             const proto::Signature& sig,
                             const OTAsymmetricKey& theKey,
-                            const bool asPrivate,
-                            const OTPasswordData* pPWData) const
+                            const bool asPrivate) const
 {
-    bool verified = false;
-
-    OTData signature;
-    signature.Assign(sig.signature().c_str(), sig.signature().size());
-
-    OTPasswordData thePWData("KeyCredential::VerifyWithKey");
-
     serializedCredential serialized;
 
     if ((proto::KEYMODE_PRIVATE != m_mode) && asPrivate) {
@@ -581,14 +586,8 @@ bool KeyCredential::VerifySig(
     }
 
     OTData plaintext = SerializeCredToData(*serialized);
-    verified = theKey.engine().Verify(
-                                plaintext,
-                                theKey,
-                                signature,
-                                static_cast<CryptoHash::HashType>(sig.hashtype()),
-                                pPWData);
 
-    return verified;
+    return theKey.Verify(plaintext, sig);
 }
 
 } // namespace opentxs

@@ -298,7 +298,7 @@ serializedCredential Credential::Serialize(
     serializedCredential serializedCredential = std::make_shared<proto::Credential>();
 
     serializedCredential->set_version(1);
-    serializedCredential->set_type(proto::CREDTYPE_LEGACY);
+    serializedCredential->set_type(static_cast<proto::CredentialType>(m_Type));
 
     if (asPrivate) {
         OT_ASSERT(proto::KEYMODE_PRIVATE == m_mode);
@@ -311,9 +311,11 @@ serializedCredential Credential::Serialize(
     if (asSigned) {
         serializedSignature publicSig;
         serializedSignature privateSig;
+        serializedSignature sourceSig;
 
         proto::Signature* pPrivateSig;
         proto::Signature* pPublicSig;
+        proto::Signature* pSourceSig;
 
         if (asPrivate) {
             privateSig = GetSelfSignature(true);
@@ -332,6 +334,14 @@ serializedCredential Credential::Serialize(
             pPublicSig = serializedCredential->add_signature();
             *pPublicSig = *GetSelfSignature(false);
         }
+
+        sourceSig = GetSourceSignature();
+        if (sourceSig) {
+            pSourceSig = serializedCredential->add_signature();
+            *pSourceSig = *sourceSig;
+        }
+    } else {
+        serializedCredential->clear_signature(); // just in case...
     }
 
     String credID;
@@ -383,7 +393,6 @@ bool Credential::SaveContract()
 
     serializedCredential serializedProto = Serialize(serializationMode, WITH_SIGNATURES);
 
-
     bool validProto = proto::Verify(*serializedProto, m_Role, WITH_SIGNATURES);
 
     if (!validProto) {
@@ -419,6 +428,20 @@ serializedSignature Credential::GetSelfSignature(CredentialModeFlag version) con
     }
 
     return nullptr;
+}
+
+serializedSignature Credential::GetSourceSignature() const
+{
+    serializedSignature signature;
+
+    for (auto& it : m_listSerializedSignatures) {
+        if (it->role() == proto::SIGROLE_NYMIDSOURCE) {
+            signature = std::make_shared<proto::Signature>(*it);
+
+            break;
+        }
+    }
+    return signature;
 }
 
 bool Credential::SaveContract(const char* szFoldername, const char* szFilename)

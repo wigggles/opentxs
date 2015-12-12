@@ -145,7 +145,7 @@ public:
     virtual ~CmdNewNymECDSA();
 
     EXPORT int32_t run(std::string label,
-                       std::string source, std::string location);
+                       std::string source);
 
 protected:
     virtual int32_t runWithOptions();

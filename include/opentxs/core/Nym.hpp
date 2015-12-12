@@ -107,12 +107,7 @@ private:
                                           // be a
                                 // public key, or a URL, or DN info from a
                                 // cert, etc.
-    String m_strAltLocation; // If the Nym's credential IDs cannot be directly
-                             // downloaded from the source, the download
-                             // location is placed here instead. For example,
-                             // if the source is DN info from a cert, the alt
-                             // location might contain the URL to download it
-                             // from.
+    String m_strDescription;
     Identifier m_nymID; // Hashed-ID formed by hashing the Nym's public key.
     Identifier m_NymboxHash; // (Server-side) Hash of the Nymbox
 
@@ -435,9 +430,9 @@ public:
     {
         return *source_;
     } // Source for NymID for this credential. (Hash it to get ID.)
-    EXPORT const String& GetAltLocation() const
+    EXPORT const String& GetDescription() const
     {
-        return m_strAltLocation;
+        return m_strDescription;
     } // Alternate download location for Nym's credential IDs. (Primary location
       // being the source itself, but sometimes that's not feasible.)
 
@@ -447,9 +442,9 @@ public:
         std::make_shared<NymIDSource>(source);
         source_ = pSource;
     }
-    EXPORT void SetAltLocation(const String& strLocation)
+    EXPORT void SetDescription(const String& strLocation)
     {
-        m_strAltLocation = strLocation;
+        m_strDescription = strLocation;
     }
 private:
     EXPORT void SerializeNymIDSource(Tag& parent) const;

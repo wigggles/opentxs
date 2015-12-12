@@ -72,7 +72,14 @@ serializedAsymmetricKey TrezorCrypto::SeedToPrivateKey(const OTPassword& seed)
     if (1 == result) {
         derivedKey = HDNodeToSerialized(node, TrezorCrypto::DERIVE_PRIVATE);
     }
-    derivedKey->mutable_path()->set_root(node.fingerprint);
+    OTPassword root;
+    CryptoEngine::Instance().Hash().Digest(
+        CryptoHash::HASH160,
+        seed,
+        root);
+    derivedKey->mutable_path()->set_root(
+        root.getMemory(),
+        root.getMemorySize());
 
     return derivedKey;
 }
