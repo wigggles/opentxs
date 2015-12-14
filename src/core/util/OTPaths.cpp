@@ -61,7 +61,7 @@
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
-#include <CoreServices/CoreServices.h>
+//#include <CoreServices/CoreServices.h>
 #endif
 
 #ifdef TARGET_OS_MAC

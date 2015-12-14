@@ -1002,6 +1002,8 @@ void crit_err_hdlr(int32_t sig_num, siginfo_t* info, void* ucontext)
 }
 */
 
+    
+    
 void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
                    ANDROID_UNUSED siginfo_t* info, ANDROID_UNUSED void* v)
 {
@@ -1026,12 +1028,17 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
     _STRUCT_MCONTEXT* mc; // mcontext_t seems to be missing from arm/_structs.h
     // cppcheck-suppress unreadVariable
     mc = uc->uc_mcontext;
-// eip = mc->__ss.__eip; // arm doesn't have eip
+    eip = mc->__ss.__pc;
+//  eip = mc->__ss.__eip; // arm doesn't have eip
 #else
     mcontext_t mc;
     mc = uc->uc_mcontext;
 #ifdef _LP64
-    eip = mc->__ss.__rip;
+    #if TARGET_IPHONE_SIMULATOR
+      eip = mc->__ss.__rip;
+    #else
+      eip = mc->__ss.__pc;
+    #endif
 #else
     eip = mc->__ss.__eip;
 #endif
