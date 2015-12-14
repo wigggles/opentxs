@@ -117,7 +117,7 @@ extern "C" {
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
-#include <CoreServices/CoreServices.h>
+//#include <CoreServices/CoreServices.h>
 #endif
 
 #if defined(ANDROID)
