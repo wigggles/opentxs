@@ -85,6 +85,7 @@ Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParamete
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
     , owner_backlink_(&theOwner)
+    , version_(1)
 {
     m_strContractType = "CREDENTIAL";
 }
@@ -316,7 +317,7 @@ serializedCredential Credential::asSerialized(
 {
     serializedCredential serializedCredential = std::make_shared<proto::Credential>();
 
-    serializedCredential->set_version(1);
+    serializedCredential->set_version(version_);
     serializedCredential->set_type(static_cast<proto::CredentialType>(type_));
 
     if (asPrivate) {
@@ -527,7 +528,7 @@ bool Credential::AddMasterSignature()
     serializedSignature serializedMasterSignature =
         std::make_shared<proto::Signature>();
 
-    bool havePublicSig = owner_backlink_->GetMasterCredential().Sign(
+    bool havePublicSig = owner_backlink_->Sign(
         *this,
         *serializedMasterSignature);
 
@@ -539,6 +540,30 @@ bool Credential::AddMasterSignature()
     m_listSerializedSignatures.push_back(serializedMasterSignature);
 
     return true;
+}
+
+// Override this method for credentials capable of signing Contracts and
+// producing xml signatures.
+bool Credential::Sign(Contract& theContract, const OTPasswordData* pPWData) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
+}
+
+// Override this method for credentials capable of signing binary data and
+// producing protobuf signatures.
+bool Credential::Sign(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword,
+    const proto::SignatureRole role,
+    proto::KeyRole key) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
 }
 
 // Override this method for credentials capable of verifying other credentials

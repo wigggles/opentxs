@@ -144,6 +144,8 @@ serializedNymIDSource NymIDSource::Serialize() const
     return source;
 }
 
+// This function assumes that all internal verification checks are complete
+// except for the source proof
 bool NymIDSource::Verify(
     const MasterCredential& credential) const
 {
@@ -157,25 +159,11 @@ bool NymIDSource::Verify(
                     Credential::AS_PUBLIC,
                     Credential::WITH_SIGNATURES);
 
-            if (!proto::Verify(
-                    *serializedMaster,
-                    proto::CREDROLE_MASTERKEY,
-                    true)) {
-                otErr << __FUNCTION__
-                      << ": Invalid master credential syntax.\n";
-                return false;
-            }
-
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
                     serializedMaster->masterdata().sourceproof().type());
 
-            if (isSelfSigned) {
-                if (!credential.VerifySignedBySelf()) {
-                    otErr << __FUNCTION__ << ": Invalid self-signature.\n";
-                    return false;
-                }
-            } else {
+            if (!isSelfSigned) {
                 OT_ASSERT_MSG(false, "Not yet implemented");
                 return false;
             }

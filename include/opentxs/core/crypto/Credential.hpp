@@ -39,11 +39,11 @@
 #ifndef OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 #define OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
 
-#include <opentxs/core/Contract.hpp>
-#include <opentxs/core/crypto/OTAsymmetricKey.hpp>
+#include <memory>
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
-#include <memory>
+#include <opentxs/core/Contract.hpp>
+#include <opentxs/core/String.hpp>
 
 // A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
@@ -72,16 +72,9 @@
 namespace opentxs
 {
 
-class Contract;
 class CredentialSet;
 class Identifier;
-class OTPassword;
-class String;
-class Tag;
-
-// This is stored as an Contract, and it must be signed by the
-// MasterCredential.
-//
+class NymParameters;
 
 typedef std::shared_ptr<proto::Credential> serializedCredential;
 typedef bool CredentialModeFlag;
@@ -124,6 +117,7 @@ protected:
     CredentialSet* owner_backlink_ = nullptr; // Do not cleanup.
     String master_id_;
     String nym_id_;
+    uint32_t version_ = 0;
 
     Credential(CredentialSet& owner, const proto::Credential& serializedCred);
     Credential(CredentialSet& owner, const NymParameters& nymParameters);
@@ -168,6 +162,16 @@ public:
 
     virtual void Release();
     void Release_Credential();
+    virtual bool Sign(
+        Contract& theContract,
+        const OTPasswordData* pPWData = nullptr) const;
+    virtual bool Sign(
+        const OTData& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const proto::SignatureRole role = proto::SIGROLE_ERROR,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const;
     virtual bool Verify(const Credential& credential) const;
 
     virtual ~Credential();

@@ -1044,4 +1044,72 @@ SerializedCredentialSet CredentialSet::Serialize(
     return credSet;
 }
 
+bool CredentialSet::Sign(
+    const OTData& plaintext,
+    proto::Signature& sig,
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword,
+    const proto::SignatureRole role,
+    proto::KeyRole key) const
+{
+    switch (role) {
+        case (proto::SIGROLE_PUBCREDENTIAL) :
+            return m_MasterCredential->Sign(
+                plaintext,
+                sig,
+                pPWData,
+                exportPassword,
+                role,
+                key);
+
+            break;
+        case (proto::SIGROLE_NYMIDSOURCE) :
+            otErr << __FUNCTION__ << ": Credentials to be signed with a nym"
+                  << " source can not use this method.\n";
+
+            return false;
+        case (proto::SIGROLE_PRIVCREDENTIAL) :
+            otErr << __FUNCTION__ << ": Private credential can not use this "
+                  << "method.\n";
+
+            return false;
+        default :
+            // Find the first private child credential, and use it to sign
+            for (auto& it: m_mapCredentials) {
+                if (nullptr != it.second) {
+                    if (it.second->isPrivate()) {
+                        return it.second->Sign(
+                            plaintext,
+                            sig,
+                            pPWData,
+                            exportPassword,
+                            role,
+                            key);
+                    }
+                }
+            }
+    }
+
+    return false;
+}
+
+bool CredentialSet::Sign(
+        const Credential& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData,
+        const OTPassword* exportPassword,
+        const proto::SignatureRole role) const
+{
+    serializedCredential serialized = plaintext.asSerialized(
+                Credential::AS_PUBLIC,
+                Credential::WITHOUT_SIGNATURES);
+
+    return Sign(
+        proto::ProtoAsData<proto::Credential>(*serialized),
+                sig,
+                pPWData,
+                exportPassword,
+                role);
+}
+
 } // namespace opentxs

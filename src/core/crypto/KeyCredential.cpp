@@ -375,7 +375,7 @@ void KeyCredential::Release_KeyCredential()
 
 }
 
-bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData)
+bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData) const
 {
     OT_ASSERT(m_SigningKey);
 
@@ -508,25 +508,6 @@ bool KeyCredential::Sign(
     GetIdentifier(credID);
 
     return keyToUse->Sign(plaintext, sig, pPWData, exportPassword, credID, role);
-}
-
-bool KeyCredential::Sign(
-        const Credential& plaintext,
-        proto::Signature& sig,
-        const OTPasswordData* pPWData,
-        const OTPassword* exportPassword,
-        const proto::SignatureRole role) const
-{
-    serializedCredential serialized = plaintext.asSerialized(
-        Credential::AS_PUBLIC,
-        Credential::WITHOUT_SIGNATURES);
-
-    return Sign(
-        proto::ProtoAsData<proto::Credential>(*serialized),
-        sig,
-        pPWData,
-        exportPassword,
-        role);
 }
 
 bool KeyCredential::SelfSign(

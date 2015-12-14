@@ -76,7 +76,6 @@
 namespace opentxs
 {
 
-class CredentialSet;
 class Identifier;
 class OTPassword;
 class OTPasswordData;
@@ -253,6 +252,20 @@ public:
     EXPORT void ClearChildCredentials();
     EXPORT ~CredentialSet();
     EXPORT bool WriteCredentials() const;
+
+    bool Sign(
+        const OTData& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const proto::SignatureRole role = proto::SIGROLE_ERROR,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const;
+    bool Sign(
+        const Credential& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const proto::SignatureRole role = proto::SIGROLE_PUBCREDENTIAL) const;
 };
 
 } // namespace opentxs
