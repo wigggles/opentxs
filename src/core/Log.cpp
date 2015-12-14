@@ -1036,8 +1036,10 @@ void crit_err_hdlr(ANDROID_UNUSED int32_t sig_num,
 #ifdef _LP64
     #if TARGET_IPHONE_SIMULATOR
       eip = mc->__ss.__rip;
-    #else
+    #elif TARGET_OS_IPHONE
       eip = mc->__ss.__pc;
+    #else
+      eip = mc->__ss.__rip;
     #endif
 #else
     eip = mc->__ss.__eip;
