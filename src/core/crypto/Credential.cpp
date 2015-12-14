@@ -82,24 +82,24 @@ namespace opentxs
 
 Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : Contract()
-    , m_Type(nymParameters.credentialType())
-    , m_mode(proto::KEYMODE_PRIVATE)
-    , m_pOwner(&theOwner)
+    , type_(nymParameters.credentialType())
+    , mode_(proto::KEYMODE_PRIVATE)
+    , owner_backlink_(&theOwner)
 {
     m_strContractType = "CREDENTIAL";
 }
 
 Credential::Credential(CredentialSet& theOwner, const proto::Credential& serializedCred)
     : Contract()
-    , m_Type(static_cast<Credential::CredentialType>(serializedCred.type()))
-    , m_mode(serializedCred.mode())
-    , m_pOwner(&theOwner)
+    , type_(serializedCred.type())
+    , mode_(serializedCred.mode())
+    , owner_backlink_(&theOwner)
     {
     m_strContractType = "CREDENTIAL";
-    m_Role = serializedCred.role();
+    role_ = serializedCred.role();
 
     if (serializedCred.has_nymid()) {
-        m_strNymID = serializedCred.nymid();
+        nym_id_ = serializedCred.nymid();
         SetIdentifier(serializedCred.id());
     }
 
@@ -130,88 +130,80 @@ void Credential::Release_Credential()
     // Release any dynamically allocated members here. (Normally.)
 }
 
-void Credential::SetMasterCredID(const String& strMasterCredID)
-{
-    m_strMasterCredID = strMasterCredID;
-}
-
 // VERIFICATION
 
-// Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
+// Verify that nym_id_ matches the nymID of the parent credential set
 //
 bool Credential::VerifyNymID() const
 {
 
-    return (m_strNymID == m_pOwner->GetNymID());
+    return (nym_id_ == owner_backlink_->GetNymID());
 }
 
-// Call VerifyNymID. Then verify m_strMasterCredID against the hash of
-// m_pOwner->GetMasterCredential().GetPubCredential() (the master credential.) Verify
-// that
-// m_pOwner->GetMasterCredential() and *this have the same NymID. Then verify the
-// signature of m_pOwner->GetMasterCredential().
+// Verify that master_id_ matches the MasterID of the parent credential set
 //
-bool Credential::VerifyInternally()
+bool Credential::VerifyMasterID() const
 {
-    OT_ASSERT(nullptr != m_pOwner);
+    if (proto::CREDROLE_MASTERKEY == role_) {
+        return (m_ID == owner_backlink_->GetMasterCredID());
+    } else {
+        return (master_id_ == owner_backlink_->GetMasterCredID());
+    }
+}
 
-    // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
-    //
-    if (!VerifyNymID()) return false;
+// Verify this credential produces its purported ID
+bool Credential::VerifyCredentialID() const
+{
+    Identifier realID;
+    CalculateContractID(realID);
 
-    // Verify that m_pOwner->GetMasterCredential() and *this have the same NymID.
-    //
-    if (!m_strNymID.Compare(m_pOwner->GetMasterCredential().GetNymID())) {
-        otOut << __FUNCTION__
-              << ": Failure: The actual master credential's NymID doesn't "
-                 "match the NymID on this child credential.\n"
-                 "    This NymID: " << m_strNymID
-              << "\nMaster's NymID: " << m_pOwner->GetMasterCredential().GetNymID()
-              << "\n My Master Cred ID: " << m_strMasterCredID << "\n";
+    return (m_ID == realID);
+}
+
+// Verifies the cryptographic integrity of a credential.
+// Assumes the CredentialSet specified by owner_backlink_ is valid.
+bool Credential::VerifyInternally() const
+{
+    OT_ASSERT(nullptr != owner_backlink_);
+
+    if (nullptr == owner_backlink_) {
+        otErr << __FUNCTION__ << ": This credential is not attached"
+              << " to a CredentialSet. Can not verify.\n";
+
         return false;
     }
 
-    // Verify m_strMasterCredID against the hash of
-    // m_pOwner->GetMasterCredential().GetPubCredential()
-    // (the master credentialID is a hash of the master credential.)
-    //
-    String strActualMasterID;
-    m_pOwner->GetMasterCredential().GetIdentifier(strActualMasterID);
+    if (!VerifyNymID()) {
+        otErr << __FUNCTION__ << ": NymID for this credential does not match"
+              << "NymID of parent CredentialSet.\n";
 
-    if (!m_strMasterCredID.Compare(strActualMasterID)) {
-        otOut << __FUNCTION__
-              << ": Failure: When the actual Master Credential is hashed, the "
-                 "result doesn't match the expected Master Credential ID.\n"
-                 "Expected: " << m_strMasterCredID
-              << "\n   Found: " << strActualMasterID << "\nMaster Cred:\n" << "\n";
         return false;
     }
 
-    // Then verify the signature of m_pOwner->GetMasterCredential()...
-    // Let's get a few things straight:
-    // * MasterCredential is a key (derived from KeyCredential, derived from
-    // Credential) and it can only sign itself.
-    // * The only further verification a master credential can get is if its hash is
-    // posted at the source. Or, if the source
-    //   is a public key, then the master key must be signed by the
-    // corresponding private key. (Again: itself.)
-    // * Conversely to a master credential which can ONLY sign itself, all key credentials must
-    // ALSO sign themselves.
-    //
-    // * Thus: Any KeyCredential (both master and child, but no other
-    // credentials) must ** sign itself.**
-    // * Whereas m_strMasterSigned is only used by ChildKeyCredential, and thus only must
-    // be verified there.
-    // * Any Credential must also be signed by its master. (Except masters,
-    // which already sign themselves.)
-    // * Any MasterCredential must (at some point, and/or regularly) verify against
-    // its own source.
+    if (!VerifyMasterID()) {
+        otErr << __FUNCTION__ << ": MasterID for this credential does not match"
+              << "MasterID of parent CredentialSet.\n";
 
-    // * Any Credential must also be signed by its master. (Except masters,
-    // which already sign themselves.)
-    //
-    if (!VerifySignedByMaster()) {
-        otOut << __FUNCTION__ << ": Failure: This child credential hasn't been "
+        return false;
+    }
+
+    if (!VerifyCredentialID()) {
+        otErr << __FUNCTION__ << ": Purported ID for this credential does not"
+              << " match its actual contents.\n";
+
+        return false;
+    }
+
+    bool GoodMasterSignature = false;
+
+    if (proto::CREDROLE_MASTERKEY == role_) {
+        GoodMasterSignature = true; // Covered by VerifySignedBySelf()
+    } else {
+        GoodMasterSignature = VerifySignedByMaster();
+    }
+
+    if (!GoodMasterSignature) {
+        otErr << __FUNCTION__ << ": Failure: This credential hasn't been "
                                  "signed by its master credential.\n";
         return false;
     }
@@ -219,78 +211,105 @@ bool Credential::VerifyInternally()
     return true;
 }
 
-bool Credential::VerifySignedByMaster()
+bool Credential::VerifySignedByMaster() const
 {
-    OT_ASSERT(nullptr != m_pOwner);
-    OT_ASSERT(m_pOwner->GetMasterCredential().m_SigningKey);
-    return VerifyWithKey(m_pOwner->GetMasterCredential().m_SigningKey->GetPublicKey());
+    OT_ASSERT(owner_backlink_);
+
+    return (owner_backlink_->GetMasterCredential().Verify(*this));
 }
 
-bool Credential::VerifyContract()
+serializedSignature Credential::MasterSignature() const
 {
-    if (!VerifyContractID()) {
-        otWarn << __FUNCTION__ << ": Failed verifying credential ID against "
-                                  "whatever it was expected to be.\n";
+    serializedSignature masterSignature;
+    proto::SignatureRole targetRole = proto::SIGROLE_PUBCREDENTIAL;
+    for (auto& it : m_listSerializedSignatures) {
+
+        if ((it->role() == targetRole) &&
+            (it->credentialid() == MasterID().Get())) {
+
+            masterSignature = it;
+            break;
+        }
+    }
+
+    return masterSignature;
+}
+
+// Perform syntax (non-cryptographic) verifications of a credential
+bool Credential::isValid() const
+{
+    serializedCredential serializedProto;
+
+    return isValid(serializedProto);
+}
+
+// Returns the serialized form to prevent unnecessary serializations
+bool Credential::isValid(serializedCredential& credential) const
+{
+    SerializationModeFlag serializationMode = AS_PUBLIC;
+
+    if (proto::KEYMODE_PRIVATE == mode_) {
+        serializationMode = AS_PRIVATE;
+    }
+
+    credential = asSerialized(serializationMode, WITH_SIGNATURES);
+
+    return proto::Verify(*credential, role_, WITH_SIGNATURES);
+}
+
+// Overrides opentxs::Contract()
+bool Credential::VerifyContract() const
+{
+    // Check syntax
+    if (!isValid()) {
         return false;
     }
 
-    if (!VerifyInternally()) // Logs copiously.
-        return false;
-
-    return true;
+    // Check cryptographic requirements
+    return VerifyInternally();
 }
 
 // Overriding from Contract.
 void Credential::CalculateContractID(Identifier& newID) const
 {
-    serializedCredential idVersion = SerializeForIdentifier();
+    serializedCredential idVersion = asSerialized(
+        Credential::AS_PUBLIC,
+        Credential::WITHOUT_SIGNATURES);
 
-    OTData serializedData = SerializeCredToData(*idVersion);
+    if (idVersion->has_id()) {
+        idVersion->clear_id();
+    }
+
+    OTData serializedData = proto::ProtoAsData<proto::Credential>(*idVersion);
 
     if (!newID.CalculateDigest(serializedData))
         otErr << __FUNCTION__ << ": Error calculating credential digest.\n";
 }
 
-const serializedCredential Credential::GetSerializedPubCredential() const
-{
-    return Serialize(false, true);
-}
-
-String Credential::CredentialTypeToString(Credential::CredentialType credentialType)
-
+String Credential::CredentialTypeToString(proto::CredentialType credentialType)
 {
     String credentialString;
 
     switch (credentialType) {
-        case Credential::LEGACY :
-            credentialString="legacy";
+        case proto::CREDTYPE_LEGACY :
+            credentialString="Legacy";
             break;
-        case Credential::HD :
-            credentialString="hd";
+        case proto::CREDTYPE_HD :
+            credentialString="HD";
             break;
         default :
-            credentialString="error";
+            credentialString="Error";
     }
     return credentialString;
 }
 
-Credential::CredentialType Credential::StringToCredentialType(const String & credentialType)
+proto::CredentialType Credential::Type() const
 
 {
-    if (credentialType.Compare("legacy"))
-        return Credential::LEGACY;
-    else if (credentialType.Compare("hd"))
-        return Credential::HD;
-    return Credential::ERROR_TYPE;
+    return type_;
 }
 
-Credential::CredentialType Credential::GetType() const
-
-{
-    return m_Type;
-}
-
-serializedCredential Credential::Serialize(
+serializedCredential Credential::asSerialized(
     SerializationModeFlag asPrivate,
     SerializationSignatureFlag asSigned) const
 
@@ -298,11 +317,11 @@ serializedCredential Credential::Serialize(
     serializedCredential serializedCredential = std::make_shared<proto::Credential>();
 
     serializedCredential->set_version(1);
-    serializedCredential->set_type(static_cast<proto::CredentialType>(m_Type));
+    serializedCredential->set_type(static_cast<proto::CredentialType>(type_));
 
     if (asPrivate) {
-        OT_ASSERT(proto::KEYMODE_PRIVATE == m_mode);
-        serializedCredential->set_mode(m_mode);
+        OT_ASSERT(proto::KEYMODE_PRIVATE == mode_);
+        serializedCredential->set_mode(mode_);
 
     } else {
         serializedCredential->set_mode(proto::KEYMODE_PUBLIC);
@@ -318,7 +337,7 @@ serializedCredential Credential::Serialize(
         proto::Signature* pSourceSig;
 
         if (asPrivate) {
-            privateSig = GetSelfSignature(true);
+            privateSig = SelfSignature(true);
 
             OT_ASSERT(nullptr != privateSig);
             if (nullptr != privateSig) {
@@ -327,15 +346,15 @@ serializedCredential Credential::Serialize(
             }
         }
 
-        publicSig = GetSelfSignature(false);
+        publicSig = SelfSignature(false);
 
         OT_ASSERT(nullptr != publicSig);
         if (nullptr != publicSig) {
             pPublicSig = serializedCredential->add_signature();
-            *pPublicSig = *GetSelfSignature(false);
+            *pPublicSig = *SelfSignature(false);
         }
 
-        sourceSig = GetSourceSignature();
+        sourceSig = SourceSignature();
         if (sourceSig) {
             pSourceSig = serializedCredential->add_signature();
             *pSourceSig = *sourceSig;
@@ -348,59 +367,20 @@ serializedCredential Credential::Serialize(
     GetIdentifier(credID);
 
     serializedCredential->set_id(credID.Get());
-    serializedCredential->set_nymid(GetNymID().Get());
+    serializedCredential->set_nymid(NymID().Get());
 
     return serializedCredential;
 }
 
-serializedCredential Credential::SerializeForPublicSignature() const
-{
-    serializedCredential pubsigVersion = Serialize(AS_PUBLIC, WITHOUT_SIGNATURES);
-
-    return pubsigVersion;
-}
-
-serializedCredential Credential::SerializeForPrivateSignature() const
-{
-    serializedCredential privsigVersion = Serialize(AS_PRIVATE, WITHOUT_SIGNATURES);
-
-    return privsigVersion;
-}
-
-serializedCredential Credential::SerializeForIdentifier() const
-{
-    serializedCredential idVersion = SerializeForPublicSignature();
-
-    if (idVersion->has_id()) {
-        idVersion->clear_id();
-    }
-
-    return idVersion;
-}
-
-OTData Credential::SerializeCredToData(const proto::Credential& serializedCred) const
-{
-    return proto::ProtoAsData<proto::Credential>(serializedCred);
-}
-
 bool Credential::SaveContract()
 {
-    SerializationModeFlag serializationMode = AS_PUBLIC;
+    serializedCredential serializedProto;
 
-    if (proto::KEYMODE_PRIVATE == m_mode) {
-        serializationMode = AS_PRIVATE;
-    }
-
-    serializedCredential serializedProto = Serialize(serializationMode, WITH_SIGNATURES);
-
-    bool validProto = proto::Verify(*serializedProto, m_Role, WITH_SIGNATURES);
-
-    if (!validProto) {
+    if (!isValid(serializedProto)) {
         otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
+        OT_ASSERT(false);
         return false;
     }
-
-    OT_ASSERT(validProto);
 
     OTData serializedData = proto::ProtoAsData<proto::Credential>(*serializedProto);
     OTASCIIArmor armoredData(serializedData);
@@ -409,7 +389,7 @@ bool Credential::SaveContract()
     return true;
 }
 
-serializedSignature Credential::GetSelfSignature(CredentialModeFlag version) const
+serializedSignature Credential::SelfSignature(CredentialModeFlag version) const
 {
     proto::SignatureRole targetRole;
 
@@ -430,7 +410,7 @@ serializedSignature Credential::GetSelfSignature(CredentialModeFlag version) con
     return nullptr;
 }
 
-serializedSignature Credential::GetSourceSignature() const
+serializedSignature Credential::SourceSignature() const
 {
     serializedSignature signature;
 
@@ -480,34 +460,28 @@ bool Credential::SaveContract(const char* szFoldername, const char* szFilename)
 
 bool Credential::isPrivate() const
 {
-    return (proto::KEYMODE_PRIVATE == m_mode);
+    return (proto::KEYMODE_PRIVATE == mode_);
 }
 
 bool Credential::isPublic() const
 {
-    return (proto::KEYMODE_PUBLIC == m_mode);
+    return (proto::KEYMODE_PUBLIC == mode_);
 }
 
-std::string Credential::AsString(const bool asPrivate) const
+std::string Credential::asString(const bool asPrivate) const
 {
     serializedCredential credenial;
     OTData dataCredential;
     String stringCredential;
 
-    credenial = Serialize(asPrivate, true);
-    dataCredential = SerializeCredToData(*credenial);
+    credenial = asSerialized(asPrivate, Credential::WITH_SIGNATURES);
+    dataCredential = proto::ProtoAsData<proto::Credential>(*credenial);
 
     OTASCIIArmor armoredCredential(dataCredential);
 
     armoredCredential.WriteArmoredString(stringCredential, "Credential");
 
     return stringCredential.Get();
-}
-
-bool Credential::LoadContractFromString(__attribute__((unused)) const String& theStr)
-{
-    OT_ASSERT_MSG(false, "Error: Any code still calling this function is broken and wrong.\n");
-    return false;
 }
 
 //static
@@ -541,6 +515,38 @@ void Credential::ReleaseSignatures(const bool onlyPrivate)
             i++;
         }
     }
+}
+
+bool Credential::AddMasterSignature()
+{
+    if (nullptr == owner_backlink_) {
+        otErr << __FUNCTION__ << ": Missing master credential.\n";
+        return false;
+    }
+
+    serializedSignature serializedMasterSignature =
+        std::make_shared<proto::Signature>();
+
+    bool havePublicSig = owner_backlink_->GetMasterCredential().Sign(
+        *this,
+        *serializedMasterSignature);
+
+    if (!havePublicSig) {
+        otErr << __FUNCTION__ << ": Failed to obtain signature from master credential.\n";
+        return false;
+    }
+
+    m_listSerializedSignatures.push_back(serializedMasterSignature);
+
+    return true;
+}
+
+// Override this method for credentials capable of verifying other credentials
+bool Credential::Verify(const Credential& credential) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
 }
 
 } // namespace opentxs

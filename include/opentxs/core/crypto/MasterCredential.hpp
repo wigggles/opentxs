@@ -83,7 +83,7 @@ private: // Private prevents erroneous use by other classes.
     MasterCredential() = delete;
     std::unique_ptr<proto::SourceProof> source_proof_;
 public:
-    virtual bool VerifyInternally();  // Verify that m_strNymID is the same as
+    virtual bool VerifyInternally() const;  // Verify that m_strNymID is the same as
                                       // the hash of m_strSourceForNymID. Also
                                       // verify that *this ==
                                       // m_pOwner->m_MasterCredential (the master
@@ -95,7 +95,10 @@ public:
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
     virtual ~MasterCredential();
 
-    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
+    virtual serializedCredential asSerialized(
+        SerializationModeFlag asPrivate,
+        SerializationSignatureFlag asSigned) const;
+    virtual bool Verify(const Credential& credential) const;
 };
 
 } // namespace opentxs

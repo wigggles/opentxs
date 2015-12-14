@@ -165,7 +165,6 @@ public:
         const String& strInput,
         const String& strNymID, // Caller is responsible to delete.
         const String& strMasterCredID,
-        const Credential::CredentialType theType,
         OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
@@ -175,7 +174,6 @@ public:
     EXPORT bool Load_MasterFromString(
         const String& strInput, const String& strNymID,
         const String& strMasterCredID,
-        Credential::CredentialType theType,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
@@ -190,7 +188,6 @@ public:
     EXPORT bool LoadChildKeyCredentialFromString(
         const String& strInput,
         const String& strSubID,
-        const Credential::CredentialType theType,
         const OTPassword* pImportPassword = nullptr);
     EXPORT size_t GetChildCredentialCount() const;
     EXPORT const Credential* GetChildCredential(
@@ -225,7 +222,6 @@ public:
                              bool bShowRevoked = false,
                              bool bValid = true) const;
     EXPORT bool VerifyInternally() const;
-    EXPORT bool VerifyAgainstSource() const;
     EXPORT const MasterCredential& GetMasterCredential() const
     {
         return *m_MasterCredential;

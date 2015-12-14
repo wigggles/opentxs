@@ -82,17 +82,15 @@ private:
     typedef KeyCredential ot_super;
     ChildKeyCredential() = delete;
 
-    virtual bool AddMasterSignature();
-    serializedSignature GetMasterSignature() const;
 public:
     ChildKeyCredential(CredentialSet& other, const String& stringCredential);
     ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
     ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred);
     virtual ~ChildKeyCredential();
 
-    virtual bool VerifySignedByMaster();
-
-    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
+    virtual serializedCredential asSerialized(
+        SerializationModeFlag asPrivate,
+        SerializationSignatureFlag asSigned) const;
 };
 
 } // namespace opentxs

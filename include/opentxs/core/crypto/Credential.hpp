@@ -91,147 +91,86 @@ typedef bool SerializationSignatureFlag;
 class Credential : public Contract
 {
 public:
-
     static const CredentialModeFlag PRIVATE_VERSION = true;
     static const CredentialModeFlag PUBLIC_VERSION = false;
-
     static const SerializationModeFlag AS_PRIVATE = true;
     static const SerializationModeFlag AS_PUBLIC = false;
-
     static const SerializationSignatureFlag WITH_SIGNATURES = true;
     static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
 
-    enum CredentialType: int32_t {
-        ERROR_TYPE = proto::CREDTYPE_ERROR,
-        LEGACY = proto::CREDTYPE_LEGACY,
-        HD = proto::CREDTYPE_HD
-    };
+    static String CredentialTypeToString(proto::CredentialType credentialType);
+    static serializedCredential ExtractArmoredCredential(const String stringCredential);
+    static serializedCredential ExtractArmoredCredential(const OTASCIIArmor armoredCredential);
 
-    static String CredentialTypeToString(CredentialType credentialType);
-
-    static CredentialType StringToCredentialType(const String & credentialType);
-
-    virtual bool SaveContract();
-    virtual bool SaveContract(const char* szFoldername,
-                             const char* szFilename);
-    virtual void ReleaseSignatures(const bool onlyPrivate);
-
-private: // Private prevents erroneous use by other classes.
+private:
     typedef Contract ot_super;
     friend class CredentialSet;
     Credential() = delete;
 
+    // Syntax (non cryptographic) validation
+    bool isValid() const;
+    // Returns the serialized form to prevent unnecessary serializations
+    bool isValid(serializedCredential& credential) const;
+
+    bool VerifyCredentialID() const;
+    bool VerifyMasterID() const;
+    bool VerifyNymID() const;
+    bool VerifySignedByMaster() const;
+
 protected:
-    CredentialType m_Type = Credential::ERROR_TYPE;
-    proto::CredentialRole m_Role = proto::CREDROLE_ERROR;
+    proto::CredentialType type_ = proto::CREDTYPE_ERROR;
+    proto::CredentialRole role_ = proto::CREDROLE_ERROR;
+    proto::KeyMode mode_ = proto::KEYMODE_ERROR;
+    CredentialSet* owner_backlink_ = nullptr; // Do not cleanup.
+    String master_id_;
+    String nym_id_;
+
+    Credential(CredentialSet& owner, const proto::Credential& serializedCred);
+    Credential(CredentialSet& owner, const NymParameters& nymParameters);
+
+    virtual bool VerifyInternally() const;
+
+    bool AddMasterSignature();
 
 public:
-    CredentialType GetType() const;
-
-protected:
-    proto::KeyMode m_mode = proto::KEYMODE_ERROR;
-    CredentialSet* m_pOwner = nullptr;   // a pointer for convenience only. Do not cleanup.
-    String m_strMasterCredID; // All credentials within the same
-                              // CredentialSet share the same
-                              // m_strMasterCredID. It's a hash of the signed
-                              // master credential.
-    String m_strNymID;        // All credentials within the same CredentialSet
-                              // (including m_MasterCredential) must have
-    void SetMasterCredID(const String& strMasterCredID); // Used in all
-                                                         // subclasses except
-                                                         // MasterCredential. (It
-                                                         // can't contain its
-                                                         // own ID, since it
-                                                         // is signed, and the
-                                                         // ID is its hash
-                                                         // AFTER it's signed.
-                                                         // So it could never
-                                                         // contain its own
-                                                         // ID.)
-
-    Credential(CredentialSet& theOwner, const proto::Credential& serializedCred);
-    Credential(CredentialSet& theOwner, const NymParameters& nymParameters);
-    virtual serializedCredential Serialize(
-        SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const;
-    virtual serializedCredential SerializeForPrivateSignature() const;
-    virtual serializedCredential SerializeForIdentifier() const;
-    OTData SerializeCredToData(const proto::Credential& serializedCred) const;
-
-public:
-    virtual serializedCredential SerializeForPublicSignature() const;
-    serializedSignature GetSelfSignature(CredentialModeFlag version = PUBLIC_VERSION) const;
-    serializedSignature GetSourceSignature() const;
-    EXPORT virtual bool LoadContractFromString(const String& theStr);
-
-    static serializedCredential ExtractArmoredCredential(const String stringCredential);
-    static serializedCredential ExtractArmoredCredential(const OTASCIIArmor armoredCredential);
+    const String& MasterID() const
+    {
+        return master_id_;
+    }
+    const String& NymID() const
+    {
+        return nym_id_;
+    }
+    proto::CredentialRole Role() const
+    {
+        return role_;
+    }
+    serializedSignature MasterSignature() const;
+    serializedSignature SelfSignature(
+        CredentialModeFlag version = PUBLIC_VERSION) const;
+    serializedSignature SourceSignature() const;
+    proto::CredentialType Type() const;
 
     bool isPrivate() const;
     bool isPublic() const;
-    const String& GetMasterCredID() const
-    {
-        return m_strMasterCredID;
-    } // MasterCredentialID (usually applicable.) MasterCredential doesn't use this.
-    const String& GetNymID() const
-    {
-        return m_strNymID;
-    } // NymID for this credential.
 
-    std::string AsString(const bool asPrivate = false) const;
+    std::string asString(const bool asPrivate = false) const;
+    virtual serializedCredential asSerialized(
+        SerializationModeFlag asPrivate,
+        SerializationSignatureFlag asSigned) const;
 
-    EXPORT const serializedCredential GetSerializedPubCredential() const;
-    virtual bool VerifyInternally(); // Call VerifyNymID. Also verify
-                                     // m_strMasterCredID against the hash of
-                                     // m_pOwner->m_MasterCredential (the master
-                                     // credential.) Verify that
-                                     // m_pOwner->m_MasterCredential and *this have the
-                                     // same NymID. Then verify the signature of
-                                     // m_pOwner->m_MasterCredential on
-                                     // m_strMasterSigned.
-    // We also inherit Contract::VerifyContractID() which hashes the contents
-    // and compares to the ID as already set.
-    // Unlike Contract, a credential's ID is formed by hashing GetContents(),
-    // not by hashing m_xmlRawContents,
-    // (that is, the public info only, not the version containing the private
-    // keys.) So we override CalculateContractID
-    // to account for that.
-    //
+    // Inherited from opentxs::Contract
     EXPORT virtual void CalculateContractID(Identifier& newID) const;
+    virtual void ReleaseSignatures(const bool onlyPrivate);
+    virtual bool SaveContract();
+    virtual bool SaveContract(const char* szFoldername, const char* szFilename);
+    virtual bool VerifyContract() const;
 
-    // We also inherit Contract::VerifyContract() which tries to find the
-    // "contract" key. Of course, there is no
-    // "contract" key in this case, so we should override it and provide our own
-    // version. What should it do? Well, it
-    // should call VerifyContractID, VerifyInternally, VerifyMaster, and
-    // VerifyAgainstSource. (If that last step later
-    // on adds too much slowdown, then we'll modify that function to check a
-    // signed file left for us by the IDENTITY
-    // VERIFICATION SREVER which we can stick in a separate process.)
-    // HOWEVER!! This may add vast unnecessary delay. For example, if we
-    // "VerifyContract" on EACH credential, which
-    // we SHOULD do, then that means EACH credential is going to verify its
-    // Master (when they share the same master...)
-    // and EACH credential is going to also re-verify its source (when they
-    // all share the same source!)
-    // Solution?
-    // Clearly the master itself only needs to be verified once, including its
-    // source, when the Nym is first loaded.
-    // (Verifying it twice would be redundant.) After that, each credential
-    // should be verified internally and against
-    // its master -- again, when first loaded. No need to verify it again after
-    // that, since it wouldn't have even loaded.
-    // After that, any signature for that Nym should be verifiable using one of
-    // that Nym's credentials.
-    //
-    virtual bool VerifyContract();
-    bool VerifyNymID() const; // Verifies that m_strNymID is the same as the
-                              // hash of
-                              // m_strSourceForNymID.
-    virtual bool VerifySignedByMaster();
-    virtual ~Credential();
     virtual void Release();
     void Release_Credential();
+    virtual bool Verify(const Credential& credential) const;
+
+    virtual ~Credential();
 };
 
 } // namespace opentxs

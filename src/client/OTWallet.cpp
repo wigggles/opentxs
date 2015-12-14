@@ -194,7 +194,7 @@ Nym * OTWallet::CreateNym(const NymParameters& nymParameters)
 {
     NymParameters revisedParameters = nymParameters;
 
-    if (Credential::HD == nymParameters.credentialType()) {
+    if (proto::CREDTYPE_HD == nymParameters.credentialType()) {
         revisedParameters.SetNym(NextHDSeed());
         next_hd_key_++;
     }

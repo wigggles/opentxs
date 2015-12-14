@@ -160,7 +160,9 @@ private: // Private prevents erroneous use by other classes.
         const proto::KeyRole role);
 
 protected:
-    virtual serializedCredential Serialize(bool asPrivate = false, bool asSigned = true) const;
+    virtual serializedCredential asSerialized(
+        SerializationModeFlag asPrivate,
+        SerializationSignatureFlag asSigned) const;
     KeyCredential(
         CredentialSet& theOwner,
         const NymParameters& nymParameters,
@@ -176,12 +178,7 @@ public:
     bool ReEncryptKeys(const OTPassword& theExportPassword,
                        bool bImporting); // Used when importing/exporting a Nym
                                          // to/from the wallet.
-    virtual bool VerifyInternally(); // Verify that m_strNymID is the same as
-                                     // the hash of m_strSourceForNymID. Also
-                                     // verify that *this ==
-                                     // m_pOwner->m_MasterCredential (the master
-                                     // credential.) Then verify the
-                                     // (self-signed) signature on *this.
+    virtual bool VerifyInternally() const;
     bool VerifySignedBySelf() const;
     bool Sign(Contract& theContract, const OTPasswordData* pPWData = nullptr);
     EXPORT int32_t GetPublicKeysBySignature(

@@ -153,7 +153,7 @@ bool NymIDSource::Verify(
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY :
             serializedMaster =
-                credential.Serialize(
+                credential.asSerialized(
                     Credential::AS_PUBLIC,
                     Credential::WITH_SIGNATURES);
 
@@ -168,8 +168,7 @@ bool NymIDSource::Verify(
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
-                    serializedMaster->
-                        publiccredential().masterdata().sourceproof().type());
+                    serializedMaster->masterdata().sourceproof().type());
 
             if (isSelfSigned) {
                 if (!credential.VerifySignedBySelf()) {

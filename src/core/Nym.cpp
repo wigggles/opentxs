@@ -2509,31 +2509,12 @@ bool Nym::VerifyPseudonym() const
                 return false;
             }
 
+            // Verify all Credentials in the CredentialSet, including source
+            // verification for the master credential.
             if (!pCredential->VerifyInternally()) {
                 otOut << __FUNCTION__ << ": Credential ("
                       << pCredential->GetMasterCredID()
                       << ") failed its own internal verification.\n";
-                return false;
-            }
-
-            // Warning: time-intensive. Todo optimize: load a contract here
-            // which verifies authorization,
-            // based on a signature from a separate process which did an
-            // identity lookup externally.
-            // Once that authorization times out, then the identity verification
-            // server can just sign
-            // another one.
-            //
-            if (!pCredential->VerifyAgainstSource()) // todo optimize,
-                                                     // warning:
-                                                     // time-intensive.
-            {
-                otOut
-                    << __FUNCTION__
-                    << ": Credential failed against its source. Credential ID: "
-                    << pCredential->GetMasterCredID()
-                    << "\n"
-                       "NymID: " << pCredential->GetNymID() << "\n";
                 return false;
             }
         }
@@ -2693,7 +2674,7 @@ void Nym::DisplayStatistics(String& strOutput)
             if (nullptr != pCredentialSet) {
                 const String strCredType =
                     Credential::CredentialTypeToString(
-                        pCredentialSet->GetMasterCredential().GetType());
+                        pCredentialSet->GetMasterCredential().Type());
                 strOutput.Concatenate("%s Master Credential ID: %s \n",
                                       strCredType.Get(),
                                       pCredentialSet->GetMasterCredID().Get());
@@ -2703,7 +2684,7 @@ void Nym::DisplayStatistics(String& strOutput)
                 if (nChildCredentialCount > 0) {
                     for (size_t vvv = 0; vvv < nChildCredentialCount; ++vvv) {
                         const Credential * pChild = pCredentialSet->GetChildCredentialByIndex(vvv);
-                        const String strChildCredType = Credential::CredentialTypeToString(pChild->GetType());
+                        const String strChildCredType = Credential::CredentialTypeToString(pChild->Type());
                         const std::string str_childcred_id(
                             pCredentialSet->GetChildCredentialIDByIndex(vvv));
 
@@ -3747,7 +3728,6 @@ bool Nym::LoadNymFromString(const String& strNym,
                                     : pstrReason->Get());
                             pCredential = CredentialSet::LoadMasterFromString(
                                 strMasterCredential, strNymID, strID,
-                                Credential::StringToCredentialType(strType),
                                 &thePWData, pImportPassword);
                         }
                     }
@@ -3843,7 +3823,7 @@ bool Nym::LoadNymFromString(const String& strNym,
                                 it_cred->second.c_str());
                             if (strChildCredential.Exists())
                                 bLoaded = pCredential->LoadChildKeyCredentialFromString(
-                                    strChildCredential, strID, Credential::StringToCredentialType(strType),
+                                    strChildCredential, strID,
                                     pImportPassword);
                         }
                     }

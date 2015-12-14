@@ -62,9 +62,9 @@ public:
 
     void setNymParameterType(NymParameterType theKeytype);
 
-    Credential::CredentialType credentialType() const;
+    proto::CredentialType credentialType() const;
 
-    void setCredentialType(Credential::CredentialType theCredentialtype);
+    void setCredentialType(proto::CredentialType theCredentialtype);
 
     inline proto::SourceType SourceType() const
     {
@@ -95,7 +95,7 @@ public:
 
     NymParameters(
         NymParameterType theKeytype,
-        Credential::CredentialType theCredentialtype);
+        proto::CredentialType theCredentialtype);
     NymParameters() = default;
     ~NymParameters() = default;
 
@@ -136,13 +136,13 @@ private:
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
     NymParameterType nymType_ = NymParameterType::SECP256K1;
-    Credential::CredentialType credentialType_ = Credential::HD;
+    proto::CredentialType credentialType_ = proto::CREDTYPE_HD;
 #elif defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
     NymParameterType nymType_ = NymParameterType::LEGACY;
-    Credential::CredentialType credentialType_ = Credential::LEGACY;
+    proto::CredentialType credentialType_ = proto::CREDTYPE_LEGACY;
 #else
     NymParameterType nymType_ = NymParameterType::ERROR;
-    Credential::CredentialType credentialType_ = Credential::ERROR_TYPE;
+    proto::CredentialType credentialType_ = proto::CREDTYPE_ERROR;
 #endif
 
 //----------------------------------------

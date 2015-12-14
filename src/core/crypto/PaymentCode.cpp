@@ -193,7 +193,9 @@ const Identifier PaymentCode::ID() const
 bool PaymentCode::Verify(const MasterCredential& credential) const
 {
     serializedCredential serializedMaster =
-        credential.SerializeForPublicSignature();
+        credential.asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITHOUT_SIGNATURES);
 
     if (!proto::Verify(*serializedMaster, proto::CREDROLE_MASTERKEY, false)) {
         otErr << __FUNCTION__ << ": Invalid master credential syntax.\n";
@@ -201,8 +203,7 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
     }
 
     bool sameSource = (*this ==
-            serializedMaster->
-                publiccredential().masterdata().source().paymentcode());
+            serializedMaster->masterdata().source().paymentcode());
 
     if (!sameSource) {
         otErr << __FUNCTION__ << ": Master credential was not derived from"
@@ -210,7 +211,7 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
         return false;
     }
 
-    serializedSignature sourceSig = credential.GetSourceSignature();
+    serializedSignature sourceSig = credential.SourceSignature();
 
     if (!sourceSig) {
         otErr << __FUNCTION__ << ": Master credential not signed by its"
@@ -265,7 +266,9 @@ bool PaymentCode::Sign(
     std::unique_ptr<OTAsymmetricKey>
         signingKey(OTAsymmetricKey::KeyFactory(*privatekey));
 
-    serializedCredential serialized = credential.SerializeForPublicSignature();
+        serializedCredential serialized = credential.asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITHOUT_SIGNATURES);
 
     bool goodSig = signingKey->Sign(
         proto::ProtoAsData<proto::Credential>(*serialized),

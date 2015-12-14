@@ -49,7 +49,7 @@ namespace opentxs
 
 NymParameters::NymParameters(
     NymParameters::NymParameterType theKeytype,
-    Credential::CredentialType theCredentialtype)
+    proto::CredentialType theCredentialtype)
 {
         setNymParameterType(theKeytype);
         setCredentialType(theCredentialtype);
@@ -80,22 +80,22 @@ void NymParameters::setNymParameterType(NymParameters::NymParameterType theKeyty
     nymType_ = theKeytype;
 }
 
-Credential::CredentialType NymParameters::credentialType() const {
+proto::CredentialType NymParameters::credentialType() const {
     return credentialType_;
 }
 
 void NymParameters::setCredentialType(
-    Credential::CredentialType theCredentialtype)
+    proto::CredentialType theCredentialtype)
 {
     credentialType_ = theCredentialtype;
 
     switch (theCredentialtype) {
-        case (Credential::LEGACY) :
+        case (proto::CREDTYPE_LEGACY) :
             SetSourceType(proto::SOURCETYPE_PUBKEY);
             SetSourceProofType(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
             break;
-        case (Credential::HD) :
+        case (proto::CREDTYPE_HD) :
             SetSourceType(proto::SOURCETYPE_BIP47);
             SetSourceProofType(proto::SOURCEPROOFTYPE_SIGNATURE);
 
@@ -109,7 +109,7 @@ void NymParameters::setCredentialType(
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
 NymParameters::NymParameters(const int32_t keySize)
     : nymType_(NymParameters::LEGACY),
-    credentialType_(Credential::LEGACY),
+    credentialType_(proto::CREDTYPE_LEGACY),
     nBits_(keySize)
 {
 }

@@ -523,7 +523,7 @@ std::string OTAPI_Exec::CreateNymECDSA(
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(
         NymParameters::SECP256K1,
-        Credential::HD);
+        proto::CREDTYPE_HD);
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym) // Creation failed.
@@ -832,7 +832,7 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
         const String strSubID(SUB_CRED_ID);
         const Credential* pSub = pCredential->GetChildCredential(strSubID);
 
-        if (nullptr != pSub) return pSub->AsString();
+        if (nullptr != pSub) return pSub->asString();
     }
     return "";
 }

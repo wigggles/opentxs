@@ -77,26 +77,26 @@ ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const String& strin
     : ChildKeyCredential(other, *Credential::ExtractArmoredCredential(stringCred))
 {
     m_strContractType = "KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_CHILDKEY;
+    role_ = proto::CREDROLE_CHILDKEY;
 }
 
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred)
     : ot_super(other, serializedCred)
 {
     m_strContractType = "KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_CHILDKEY;
+    role_ = proto::CREDROLE_CHILDKEY;
 
-    SetMasterCredID(serializedCred.publiccredential().childdata().masterid());
+    master_id_ = serializedCred.childdata().masterid();
 }
 
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters)
     : ot_super(other, nymParameters, proto::CREDROLE_CHILDKEY)
 {
     m_strContractType = "KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_CHILDKEY;
+    role_ = proto::CREDROLE_CHILDKEY;
 
-    m_strNymID = other.GetNymID();
-    SetMasterCredID(other.GetMasterCredID());
+    nym_id_ = other.GetNymID();
+    master_id_ = other.GetMasterCredID();
 
     Identifier childID;
     CalculateAndSetContractID(childID);
@@ -118,90 +118,23 @@ ChildKeyCredential::~ChildKeyCredential()
 {
 }
 
-bool ChildKeyCredential::VerifySignedByMaster()
-{
-    OT_ASSERT(m_pOwner->GetMasterCredential().m_SigningKey);
-
-    serializedSignature masterSig = GetMasterSignature();
-
-    if (!masterSig) {
-        otErr << __FUNCTION__ << ": Could not find master signature.\n";
-        return false;
-    }
-
-    bool goodSig = VerifySig(*masterSig, m_pOwner->GetMasterCredential().m_SigningKey->GetPublicKey(), false);
-
-    if (!goodSig) {
-        otErr << __FUNCTION__ << ": Could not verify master signature.\n";
-        return false;
-    }
-
-    return true;
-}
-
-bool ChildKeyCredential::AddMasterSignature()
-{
-    if (nullptr == m_pOwner) {
-        otErr << __FUNCTION__ << ": Missing master credential.\n";
-        return false;
-    }
-
-    serializedSignature serializedMasterSignature =
-        std::make_shared<proto::Signature>();
-
-    bool havePublicSig = m_pOwner->GetMasterCredential().Sign(
-        *this,
-        *serializedMasterSignature);
-
-    if (!havePublicSig) {
-        otErr << __FUNCTION__ << ": Failed to obtain signature from master credential.\n";
-        return false;
-    }
-
-    m_listSerializedSignatures.push_back(serializedMasterSignature);
-
-    OT_ASSERT(m_listSerializedSignatures.size()==3);
-
-    return true;
-}
-
-serializedSignature ChildKeyCredential::GetMasterSignature() const
-{
-    serializedSignature masterSignature;
-    proto::SignatureRole targetRole = proto::SIGROLE_PUBCREDENTIAL;
-    for (auto& it : m_listSerializedSignatures) {
-
-        if ((it->role() == targetRole) &&
-            (it->credentialid() == GetMasterCredID().Get())) {
-
-            masterSignature = it;
-            break;
-        }
-    }
-
-    return masterSignature;
-}
-
-serializedCredential ChildKeyCredential::Serialize(bool asPrivate, bool asSigned) const
+serializedCredential ChildKeyCredential::asSerialized(
+    SerializationModeFlag asPrivate,
+    SerializationSignatureFlag asSigned) const
 {
     serializedCredential serializedCredential =
-        this->ot_super::Serialize(asPrivate, asSigned);
+        this->ot_super::asSerialized(asPrivate, asSigned);
 
     std::unique_ptr<proto::ChildCredentialParameters> parameters;
     parameters.reset(new proto::ChildCredentialParameters);
 
     parameters->set_version(1);
-    parameters->set_masterid(GetMasterCredID().Get());
+    parameters->set_masterid(MasterID().Get());
 
-    // Only the public credential gets ChildCredentialParameters
-    if (serializedCredential->has_publiccredential()) {
-        proto::KeyCredential* keyCredential = serializedCredential->mutable_publiccredential();
-        keyCredential->set_allocated_childdata(parameters.release());
-
-    }
+    serializedCredential->set_allocated_childdata(parameters.release());
 
     if (asSigned) {
-        serializedSignature masterSignature = GetMasterSignature();
+        serializedSignature masterSignature = MasterSignature();
 
         if (masterSignature) {
             // We do not own this pointer.

@@ -246,7 +246,7 @@ bool Letter::Seal(
             // Because maybe the sender only has RSA credentials.
             NymParameters pKeyData(
                 NymParameters::SECP256K1,
-                Credential::LEGACY);
+                proto::CREDTYPE_LEGACY);
 
             OTKeypair ephemeralKeypair(pKeyData);
             ephemeralKeypair.GetPublicKey(ephemeralPubkey);

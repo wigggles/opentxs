@@ -143,35 +143,22 @@ bool CredentialSet::VerifyInternally() const
 {
     OT_ASSERT(m_MasterCredential);
 
-    Identifier theActualMasterCredID;
-    m_MasterCredential->CalculateContractID(theActualMasterCredID);
-    const String strActualMasterCredID(theActualMasterCredID);
-
-    if (!m_strNymID.Compare(m_MasterCredential->GetNymID())) {
+    if (!m_MasterCredential) {
         otOut << __FUNCTION__
-              << ": NymID did not match its "
-                 "counterpart in m_MasterCredential (failed to verify): " << GetNymID()
-              << "\n";
+              << ": This credential set does not have a master credential.\n";
         return false;
     }
 
-    if (!GetMasterCredID().Compare(strActualMasterCredID)) {
-        otOut << __FUNCTION__
-              << ": Master Credential ID did not match its "
-                 "counterpart in m_MasterCredential:\nExpected Master Credential ID: "
-              << GetMasterCredID()
-              << "\n "
-                 "Hash of m_MasterCredential contents: " << strActualMasterCredID << "\n";
-        return false;
-    }
-
+    // Check for a valid master credential, including whether or not the NymID
+    // and MasterID in the CredentialSet match the master credentials's versions.
     if (!(m_MasterCredential->VerifyContract())) {
         otOut << __FUNCTION__
-              << ": Master Credential failed to verify: " << GetMasterCredID()
-              << "\nNymID: " << GetNymID() << "\n";
+        << ": Master Credential failed to verify: " << GetMasterCredID()
+        << "\nNymID: " << GetNymID() << "\n";
         return false;
     }
 
+    // Check each child credential for validity.
     for (const auto& it : m_mapCredentials) {
         std::string str_sub_id = it.first;
         Credential* pSub = it.second;
@@ -184,36 +171,6 @@ bool CredentialSet::VerifyInternally() const
             return false;
         }
     }
-
-    return true;
-}
-
-bool CredentialSet::VerifyAgainstSource() const
-{
-    // * Any MasterCredential must (at some point, and/or regularly) verify against
-    // its own source.
-    //
-    OT_ASSERT(m_MasterCredential);
-
-    if (!m_MasterCredential->VerifyAgainstSource()) {
-        otWarn
-            << __FUNCTION__
-            << ": Failed verifying master credential against its own source.\n";
-        return false;
-    }
-    // NOTE: This spot will have a significant delay, TODO OPTIMIZE. Performing
-    // a Freenet lookup, or DNS, etc,
-    // will introduce delay inside the call VerifyAgainstSource. Therefore in
-    // the int64_t term, we must have a
-    // separate server process which will verify identities for some specified
-    // period of time (specified in
-    // their credentials I suppose...) That way, when we call
-    // VerifyAgainstSource, we are verifying against
-    // some server-signed authorization, based on a lookup that some separate
-    // process did within the past
-    // X allowed time, such that the lookup is still considered valid (without
-    // having to lookup every single
-    // time, which is untenable.)
 
     return true;
 }
@@ -242,7 +199,9 @@ void CredentialSet::SetSource(const std::shared_ptr<NymIDSource>& source)
 const serializedCredential CredentialSet::GetSerializedPubCredential() const
 {
     OT_ASSERT(m_MasterCredential)
-    return m_MasterCredential->GetSerializedPubCredential();
+    return m_MasterCredential->asSerialized(
+        Credential::AS_PUBLIC,
+        Credential::WITH_SIGNATURES);
 }
 
 // private
@@ -302,7 +261,7 @@ const String CredentialSet::GetMasterCredID() const
 String CredentialSet::MasterAsString() const
 {
     if (m_MasterCredential) {
-        return m_MasterCredential->AsString();
+        return m_MasterCredential->asString();
     } else {
         return "";
     }
@@ -337,7 +296,6 @@ CredentialSet* CredentialSet::LoadMasterFromString(
     const String& strNymID, // Caller is responsible to delete, in both
                             // CreateMaster and LoadMaster.
     const String& strMasterCredID,
-    const Credential::CredentialType theType,
     OTPasswordData* pPWData,
     const OTPassword* pImportPassword)
 {
@@ -349,7 +307,7 @@ CredentialSet* CredentialSet::LoadMasterFromString(
                                  ? "Enter wallet master passphrase."
                                  : "Enter passphrase for exported Nym.");
     const bool bLoaded = pCredential->Load_MasterFromString(
-        strInput, strNymID, strMasterCredID, theType,
+        strInput, strNymID, strMasterCredID,
         (nullptr == pPWData) ? &thePWData : pPWData, pImportPassword);
     if (!bLoaded) {
         otErr << __FUNCTION__
@@ -458,7 +416,6 @@ bool CredentialSet::ReEncryptPrivateCredentials(
 bool CredentialSet::Load_MasterFromString(const String& strInput,
                                          const String& strNymID,
                                          const String& strMasterCredID,
-                                         const Credential::CredentialType theType,
                                          const OTPasswordData*,
                                          const OTPassword* pImportPassword)
 {
@@ -550,7 +507,6 @@ bool CredentialSet::Load_Master(const String& strNymID,
 
 bool CredentialSet::LoadChildKeyCredentialFromString(const String& strInput,
                                         const String& strSubID,
-                                        const Credential::CredentialType theType,
                                         const OTPassword* pImportPassword)
 {
     // Make sure it's not already there.
@@ -938,18 +894,16 @@ void CredentialSet::SerializeIDs(Tag& parent, const String::List& listRevokedIDs
 
         pTag->add_attribute("ID", GetMasterCredID().Get());
         pTag->add_attribute("valid", formatBool(bValid));
-        pTag->add_attribute("type",
-            Credential::CredentialTypeToString(m_MasterCredential->GetType()).Get());
 
         parent.add_tag(pTag);
 
         if (nullptr != pmapPubInfo) // optional out-param.
             pmapPubInfo->insert(std::pair<std::string, std::string>(
-                GetMasterCredID().Get(), m_MasterCredential->AsString(false)));
+                GetMasterCredID().Get(), m_MasterCredential->asString(false)));
 
         if (nullptr != pmapPriInfo) // optional out-param.
             pmapPriInfo->insert(std::pair<std::string, std::string>(
-                GetMasterCredID().Get(), m_MasterCredential->AsString(true)));
+                GetMasterCredID().Get(), m_MasterCredential->asString(true)));
     }
 
     for (const auto& it : m_mapCredentials) {
@@ -977,14 +931,12 @@ void CredentialSet::SerializeIDs(Tag& parent, const String::List& listRevokedIDs
 
             if (nullptr != pChildKeyCredential) {
                 pTag.reset(new Tag("keyCredential"));
-                pTag->add_attribute("type",
-                    Credential::CredentialTypeToString(pChildKeyCredential->GetType()).Get());
                 pTag->add_attribute("masterID",
-                                    pChildKeyCredential->GetMasterCredID().Get());
+                                    pChildKeyCredential->MasterID().Get());
             }
             else {
                 pTag.reset(new Tag("credential"));
-                pTag->add_attribute("masterID", pSub->GetMasterCredID().Get());
+                pTag->add_attribute("masterID", pSub->MasterID().Get());
             }
 
             pTag->add_attribute("ID", str_cred_id);
@@ -994,11 +946,11 @@ void CredentialSet::SerializeIDs(Tag& parent, const String::List& listRevokedIDs
 
             if (nullptr != pmapPubInfo) // optional out-param.
                 pmapPubInfo->insert(std::pair<std::string, std::string>(
-                    str_cred_id.c_str(), pSub->AsString(false)));
+                    str_cred_id.c_str(), pSub->asString(false)));
 
             if (nullptr != pmapPriInfo) // optional out-param.
                 pmapPriInfo->insert(std::pair<std::string, std::string>(
-                    str_cred_id.c_str(), pSub->AsString(true)));
+                    str_cred_id.c_str(), pSub->asString(true)));
 
         } // if (bChildCredValid)
     }
@@ -1068,21 +1020,21 @@ SerializedCredentialSet CredentialSet::Serialize(
     } else {
         credSet->set_mode(proto::CREDSETMODE_FULL);
         *(credSet->mutable_mastercredential()) =
-                                            *(m_MasterCredential->Serialize(
+                                            *(m_MasterCredential->asSerialized(
                                                 Credential::AS_PUBLIC,
                                                 Credential::WITH_SIGNATURES));
 
         std::unique_ptr<proto::Credential> pChildCred;
         for (auto& it: m_mapCredentials) {
             pChildCred.reset(credSet->add_activechildren());
-            *pChildCred = *(it.second->Serialize(
+            *pChildCred = *(it.second->asSerialized(
                 Credential::AS_PUBLIC,
                 Credential::WITH_SIGNATURES));
             pChildCred.release();
         }
         for (auto& it: m_mapRevokedCredentials) {
             pChildCred.reset(credSet->add_revokedchildren());
-            *pChildCred = *(it.second->Serialize(
+            *pChildCred = *(it.second->asSerialized(
                 Credential::AS_PUBLIC,
                 Credential::WITH_SIGNATURES));
             pChildCred.release();

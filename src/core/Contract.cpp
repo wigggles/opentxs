@@ -234,7 +234,7 @@ void Contract::GetIdentifier(String& theIdentifier) const
 // Make sure this contract checks out. Very high level.
 // Verifies ID, existence of public key, and signature.
 //
-bool Contract::VerifyContract()
+bool Contract::VerifyContract() const
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.

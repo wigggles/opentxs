@@ -336,4 +336,17 @@ serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
     }
 }
 
+bool OTKeypair::Verify(
+    const OTData& plaintext,
+    const proto::Signature& sig) const
+{
+    if (!m_pkeyPublic) {
+        otErr << __FUNCTION__ << ": Missing public key. Can not verify.\n";
+
+        return false;
+    }
+
+    return m_pkeyPublic->Verify(plaintext, sig);
+}
+
 } // namespace opentxs
