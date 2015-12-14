@@ -97,6 +97,7 @@ set(cxx-sources
   NymIDSource.cpp
   crypto/Bip32.cpp
   crypto/PaymentCode.cpp
+  crypto/ContactCredential.cpp
 )
 
 file(GLOB cxx-headers

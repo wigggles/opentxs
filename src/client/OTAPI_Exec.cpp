@@ -73,6 +73,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/Proto.hpp>
 
 #include <opentxs/ext/InstantiateContract.hpp>
 
@@ -891,6 +892,74 @@ bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
     }
     return false;
 }
+    
+
+std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+        << ": Not initialized; call OT_API::Init first.\n";
+        return "";
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
+        return "";
+    }
+    opentxs::Identifier nymID(NYM_ID);
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+    opentxs::Nym * pNym = OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
+    if (nullptr == pNym) return "";
+    // ------------------------------
+    proto::ContactData contactData = OTAPI()->GetContactData(*pNym);
+    // ------------------------------
+    OTData otData = proto::ProtoAsData<proto::ContactData>(contactData);
+    OTASCIIArmor ascData(otData);
+    // ------------------------------
+    opentxs::String strData;
+    ascData.WriteArmoredString(strData, "CONTACT_DATA");
+    // ------------------------------
+    return strData.Get();
+}
+    
+bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
+                                const std::string& THE_DATA) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+        << ": Not initialized; call OT_API::Init first.\n";
+        return false;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
+        return false;
+    }
+    if (THE_DATA.empty()) {
+        otErr << __FUNCTION__ << ": nullptr THE_DATA passed in!\n";
+        return false;
+    }
+    opentxs::Identifier nymID(NYM_ID);
+    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
+    if (nullptr == pNym) return false;
+    // ------------------------------
+    opentxs::String strData(THE_DATA);
+    opentxs::OTASCIIArmor ascData;
+    
+    if (!ascData.LoadFromString(strData))
+    {
+        otErr << __FUNCTION__ << ": Failed trying to load ContactData from string.\n";
+        return false;
+    }
+    // ------------------------------
+    OTData otData(ascData);
+    proto::ContactData contactData;
+    if (!contactData.ParseFromArray(otData.GetPointer(), otData.GetSize()))
+        return false;
+    // ------------------------------
+    return OTAPI()->SetContactData(*pNym, contactData);
+}
+
 
 std::string OTAPI_Exec::GetSignerNymID(
     const std::string& str_Contract) const

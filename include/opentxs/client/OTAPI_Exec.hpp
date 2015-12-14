@@ -462,6 +462,10 @@ public:
                                     const std::string& MASTER_CRED_ID,
                                     const std::string& SUB_CRED_ID) const;
 
+    EXPORT std::string GetContactData(const std::string& NYM_ID) const;
+    EXPORT bool SetContactData(const std::string& NYM_ID,
+                               const std::string& THE_DATA) const;
+
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,
     // and signs it with that Nym.
