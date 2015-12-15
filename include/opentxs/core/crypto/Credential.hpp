@@ -160,6 +160,7 @@ public:
     virtual bool SaveContract(const char* szFoldername, const char* szFilename);
     virtual bool VerifyContract() const;
 
+    virtual bool GetContactData(proto::ContactData& contactData) const;
     virtual void Release();
     void Release_Credential();
     virtual bool Sign(

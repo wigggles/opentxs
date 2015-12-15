@@ -1309,11 +1309,11 @@ bool OT_API::IsNym_RegisteredAtServer(const Identifier& NYM_ID,
 
 // --------------------------------------------------------------------
 /**
- 
+
  Since all the Nyms are encrypted to the master key, and since we can change the
  passphrase on the master key without changing the master key itself, then we
  don't have to do anything to update all the Nyms, since that part hasn't changed.
- 
+
  (Make sure to save the wallet also.)
  */
 bool OT_API::Wallet_ChangePassphrase() const
@@ -1347,7 +1347,7 @@ bool OT_API::Wallet_ChangePassphrase() const
     OTCachedKey::It()->SerializeTo(ascBackup); // Just in case!
     // --------------------------------------------------------------------
     const bool bSuccess = pCachedKey->ChangeUserPassphrase();
-    
+
     if (!bSuccess)
     {
         otOut << __FUNCTION__ << ": Failed trying to change the user master passphrase.\n";
@@ -4486,6 +4486,16 @@ Nym* OT_API::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
 
     return pWallet->GetOrLoadNym(NYM_ID, bChecking, szFuncName,
                                  nullptr == pPWData ? &thePWData : pPWData);
+}
+
+proto::ContactData OT_API::GetContactData(const Nym& fromNym) const
+{
+    return fromNym.ContactData();
+}
+
+bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
+{
+    return onNym.SetContactData(data);
 }
 
 /** Tries to get the account from the wallet.

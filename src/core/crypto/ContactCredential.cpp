@@ -40,6 +40,9 @@
 
 #include <opentxs/core/Proto.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/crypto/CredentialSet.hpp>
+#include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/util/OTFolders.hpp>
 
 namespace opentxs
 {
@@ -52,6 +55,42 @@ ContactCredential::ContactCredential(
     m_strContractType = "CONTACT CREDENTIAL";
     master_id_ = credential.childdata().masterid();
     data_.reset(new proto::ContactData(credential.contactdata()));
+}
+
+ContactCredential::ContactCredential(
+    CredentialSet& parent,
+    const NymParameters& nymParameters)
+        : ot_super(parent, nymParameters)
+{
+    role_ = proto::CREDROLE_CONTACT;
+    nym_id_ = parent.GetNymID();
+    master_id_ = parent.GetMasterCredID();
+    data_.reset(new proto::ContactData(nymParameters.ContactData()));
+
+    Identifier childID;
+    CalculateAndSetContractID(childID);
+
+    AddMasterSignature();
+
+    String credID(childID);
+
+    String strFoldername, strFilename;
+    strFoldername.Format("%s%s%s", OTFolders::Credential().Get(),
+                         Log::PathSeparator(), parent.GetNymID().Get());
+    strFilename.Format("%s", credID.Get());
+
+    SaveContract(strFoldername.Get(), strFilename.Get());
+}
+
+bool ContactCredential::GetContactData(proto::ContactData& contactData) const
+{
+    if (!data_) {
+        return false;
+    }
+
+    contactData = *data_;
+
+    return true;
 }
 
 } // namespace opentxs

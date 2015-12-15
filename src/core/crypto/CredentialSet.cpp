@@ -69,6 +69,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/ChildKeyCredential.hpp>
+#include <opentxs/core/crypto/ContactCredential.hpp>
 #include <opentxs/core/util/Tag.hpp>
 #include <opentxs/core/Proto.hpp>
 
@@ -1091,6 +1092,69 @@ bool CredentialSet::Sign(
     }
 
     return false;
+}
+
+bool CredentialSet::GetContactData(proto::ContactData& contactData) const
+{
+    bool found = false;
+
+    for (auto& it: m_mapCredentials) {
+        if (nullptr != it.second) {
+            if (proto::CREDROLE_CONTACT == it.second->Role()) {
+                found = it.second->GetContactData(contactData);
+            }
+        }
+    }
+
+    return found;
+}
+
+void CredentialSet::RevokeContactCredentials(
+    std::list<std::string>& contactCredentialIDs)
+{
+    std::list<std::string> credentialsToDelete;
+
+    for (auto& it: m_mapCredentials) {
+        if (nullptr != it.second) {
+            if (proto::CREDROLE_CONTACT == it.second->Role()) {
+                String credID;
+                it.second->GetIdentifier(credID);
+                contactCredentialIDs.push_back(credID.Get());
+                credentialsToDelete.push_back(credID.Get());
+            }
+        }
+    }
+
+    for (auto& it: credentialsToDelete) {
+        m_mapCredentials.erase(it);
+    }
+}
+
+bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
+{
+    if (!m_MasterCredential) {
+        return false;
+    }
+
+    NymParameters nymParameters;
+    nymParameters.SetContactData(contactData);
+
+    ContactCredential* newChildCredential =
+        new ContactCredential(*this, nymParameters);
+
+    if (nullptr == newChildCredential) {
+        return false;
+    }
+
+    String strChildCredID;
+    newChildCredential->GetIdentifier(strChildCredID);
+
+    m_mapCredentials.insert(
+        std::pair<std::string, Credential*>(
+            strChildCredID.Get(),
+            newChildCredential));
+
+    return true;
 }
 
 bool CredentialSet::Sign(

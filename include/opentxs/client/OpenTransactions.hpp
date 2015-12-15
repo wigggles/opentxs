@@ -187,7 +187,7 @@ public:
                              const char* szFuncName = nullptr,
                              const OTPasswordData* pPWData = nullptr) const;
     EXPORT proto::ContactData GetContactData(const Nym& fromNym) const;
-    EXPORT bool SetContactData(const Nym& onNym,
+    EXPORT bool SetContactData(Nym& onNym,
                                const proto::ContactData&) const;
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,

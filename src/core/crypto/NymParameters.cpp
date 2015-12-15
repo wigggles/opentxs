@@ -106,6 +106,11 @@ void NymParameters::setCredentialType(
     }
 }
 
+void NymParameters::SetContactData(const proto::ContactData& contactData)
+{
+    contact_data_.reset(new proto::ContactData(contactData));
+}
+
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
 NymParameters::NymParameters(const int32_t keySize)
     : nymType_(NymParameters::LEGACY),

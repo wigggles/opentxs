@@ -253,6 +253,10 @@ public:
     EXPORT ~CredentialSet();
     EXPORT bool WriteCredentials() const;
 
+    bool GetContactData(proto::ContactData& contactData) const;
+    void RevokeContactCredentials(std::list<std::string>& contactCredentialIDs);
+    bool AddContactCredential(const proto::ContactData& contactData);
+
     bool Sign(
         const OTData& plaintext,
         proto::Signature& sig,

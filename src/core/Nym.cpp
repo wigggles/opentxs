@@ -4926,4 +4926,47 @@ bool Nym::WriteCredentials() const
     return true;
 }
 
+proto::ContactData Nym::ContactData() const
+{
+    proto::ContactData contactData;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            it.second->GetContactData(contactData);
+        }
+    }
+
+    return contactData;
+}
+
+bool Nym::SetContactData(const proto::ContactData& data)
+{
+    std::list<std::string> revokedIDs;
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            it.second->RevokeContactCredentials(revokedIDs);
+        }
+    }
+
+    for (auto& it : revokedIDs) {
+        m_listRevokedIDs.push_back(it);
+    }
+
+    bool added = false;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            if (it.second->HasPrivate()) {
+                it.second->AddContactCredential(data);
+                SaveCredentialIDs();
+                added = true;
+
+                break;
+            }
+        }
+    }
+
+    return added;
+}
+
 } // namespace opentxs

@@ -93,11 +93,12 @@ Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParamete
 Credential::Credential(CredentialSet& theOwner, const proto::Credential& serializedCred)
     : Contract()
     , type_(serializedCred.type())
+    , role_(serializedCred.role())
     , mode_(serializedCred.mode())
     , owner_backlink_(&theOwner)
+    , version_(serializedCred.version())
     {
     m_strContractType = "CREDENTIAL";
-    role_ = serializedCred.role();
 
     if (serializedCred.has_nymid()) {
         nym_id_ = serializedCred.nymid();
@@ -540,6 +541,14 @@ bool Credential::AddMasterSignature()
     m_listSerializedSignatures.push_back(serializedMasterSignature);
 
     return true;
+}
+
+// Override this method for credentials capable of returning contact data.
+bool Credential::GetContactData(proto::ContactData& contactData) const
+{
+    OT_ASSERT_MSG(false, "This method was called on the wrong credential.\n");
+
+    return false;
 }
 
 // Override this method for credentials capable of signing Contracts and

@@ -60,6 +60,10 @@ public:
     ContactCredential(
         CredentialSet& parent,
         const proto::Credential& credential);
+    ContactCredential(
+        CredentialSet& parent,
+        const NymParameters& nymParameters);
+    bool GetContactData(proto::ContactData& contactData) const override;
 };
 
 } // namespace opentxs

@@ -854,6 +854,8 @@ public:
     EXPORT void DisplayStatistics(String& strOutput);
 
     EXPORT bool WriteCredentials() const;
+    proto::ContactData ContactData() const;
+    bool SetContactData(const proto::ContactData& data);
 };
 
 } // namespace opentxs

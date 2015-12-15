@@ -359,18 +359,18 @@ std::string OTAPI_Wrap::GetNym_ChildCredentialContents(
     return Exec()->GetNym_ChildCredentialContents(NYM_ID, MASTER_CRED_ID,
                                                 SUB_CRED_ID);
 }
-    
-std::string OTAPI_Wrap::GetContactData(const std::string& NYM_ID) const
+
+std::string OTAPI_Wrap::GetContactData(const std::string& NYM_ID)
 {
     return Exec()->GetContactData(NYM_ID);
 }
 
 bool OTAPI_Wrap::SetContactData(const std::string& NYM_ID,
-                                const std::string& THE_DATA) const
+                                const std::string& THE_DATA)
 {
     return Exec()->SetContactData(NYM_ID, THE_DATA);
 }
-    
+
 bool OTAPI_Wrap::RevokeChildCredential(const std::string& NYM_ID,
                                      const std::string& MASTER_CRED_ID,
                                      const std::string& SUB_CRED_ID)
