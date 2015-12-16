@@ -44,6 +44,7 @@
 #include <opentxs/core/crypto/NymParameters.hpp>
 
 #include <memory>
+#include <set>
 
 namespace opentxs
 {
@@ -189,6 +190,12 @@ public:
     EXPORT proto::ContactData GetContactData(const Nym& fromNym) const;
     EXPORT bool SetContactData(Nym& onNym,
                                const proto::ContactData&) const;
+    EXPORT std::set<uint32_t> GetContactSections (const uint32_t version = 1);
+    EXPORT std::set<uint32_t> GetContactSectionTypes (const uint32_t section, const uint32_t version = 1);
+    EXPORT std::string GetContactSectionName (const uint32_t section, std::string lang = "en");
+    EXPORT std::string GetContactTypeName (const uint32_t type, std::string lang = "en");
+    EXPORT std::string GetContactAttributeName (const uint32_t type, std::string lang = "en");
+    
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,
                                      const Identifier& NOTARY_ID,

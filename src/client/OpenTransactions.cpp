@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include <opentxs-proto/verify/VerifyContacts.hpp>
+
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OpenTransactions.hpp>
@@ -4496,6 +4498,44 @@ proto::ContactData OT_API::GetContactData(const Nym& fromNym) const
 bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
 {
     return onNym.SetContactData(data);
+}
+
+std::set<uint32_t> OT_API::GetContactSections (const uint32_t version)
+{
+    std::set<uint32_t> sections;
+    
+    for (auto& it: proto::AllowedSectionNames.at(version)) {
+        sections.insert(static_cast<uint32_t>(it));
+    }
+
+    return sections;
+}
+
+std::set<uint32_t> OT_API::GetContactSectionTypes (const uint32_t section, const uint32_t version)
+{
+    proto::ContactSectionVersion contactVersion{version, static_cast<proto::ContactSectionName>(section)};
+    std::set<uint32_t> sectionTypes;
+    
+    for (auto& it: proto::AllowedItemTypes.at(contactVersion)) {
+        sectionTypes.insert(it);
+    }
+
+    return sectionTypes;
+}
+
+std::string OT_API::GetContactSectionName (const uint32_t section, std::string lang)
+{
+    return proto::TranslateSectionName(section, lang);
+}
+
+std::string OT_API::GetContactTypeName (const uint32_t type, std::string lang)
+{
+    return proto::TranslateItemType(type, lang);
+}
+
+std::string OT_API::GetContactAttributeName (const uint32_t type, std::string lang)
+{
+    return proto::TranslateItemAttributes(type, lang);
 }
 
 /** Tries to get the account from the wallet.

@@ -653,7 +653,7 @@ std::string OTAPI_Exec::GetNym_MasterCredentialID(const std::string& NYM_ID,
     if (nullptr == pNym) return "";
     std::string str_return;
     const CredentialSet* pCredential =
-        pNym->GetMasterCredentialByIndex(static_cast<const int32_t>(nIndex));
+        pNym->GetMasterCredentialByIndex(nIndex);
 
     if (nullptr != pCredential)
         str_return = pCredential->GetMasterCredID().Get();
@@ -714,7 +714,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredID(const std::string& NYM_ID,
     if (nullptr == pNym) return "";
     std::string str_return;
     const CredentialSet* pCredential =
-        pNym->GetRevokedCredentialByIndex(static_cast<const int32_t>(nIndex));
+        pNym->GetRevokedCredentialByIndex(nIndex);
 
     if (nullptr != pCredential) {
         str_return = pCredential->GetMasterCredID().Get();
@@ -797,8 +797,7 @@ std::string OTAPI_Exec::GetNym_ChildCredentialID(
     CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr != pCredential) // Found the master credential...
-        return pCredential->GetChildCredentialIDByIndex(
-            static_cast<const int32_t>(nIndex));
+        return pCredential->GetChildCredentialIDByIndex(nIndex);
 
     return "";
 }
@@ -6724,7 +6723,7 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(const std::string& THE_CONTRACT,
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTParty* pParty = pScriptable->GetPartyByIndex(
         nTempIndex); // has range-checking built-in.
     if (nullptr == pParty) {
@@ -6755,7 +6754,7 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(const std::string& THE_CONTRACT,
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTBylaw* pBylaw = pScriptable->GetBylawByIndex(
         nTempIndex); // has range-checking built-in.
     if (nullptr == pBylaw) {
@@ -6960,7 +6959,7 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTClause* pClause = pBylaw->GetClauseByIndex(nTempIndex);
     if (nullptr == pClause) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -7050,7 +7049,7 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTVariable* pVar = pBylaw->GetVariableByIndex(nTempIndex);
     if (nullptr == pVar) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -7250,7 +7249,7 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     return pBylaw->GetHookNameByIndex(nTempIndex);
 }
 
@@ -7385,7 +7384,7 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     return pBylaw->GetCallbackNameByIndex(nTempIndex);
 }
 
@@ -7570,7 +7569,7 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTPartyAccount* pAcct = pParty->GetAccountByIndex(nTempIndex);
     if (nullptr == pAcct) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -7767,7 +7766,7 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
         }
         else // We found the party...
         {
-            const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+            const int32_t nTempIndex = nIndex;
             OTAgent* pAgent = pParty->GetAgentByIndex(nTempIndex);
 
             if (nullptr == pAgent) {
