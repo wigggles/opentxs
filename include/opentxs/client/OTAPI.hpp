@@ -460,6 +460,7 @@ public:
     EXPORT static std::string GetContactData(const std::string& NYM_ID);
     EXPORT static bool SetContactData(const std::string& NYM_ID,
                                       const std::string& THE_DATA);
+    EXPORT std::string NymIDFromPaymentCode(const std::string& paymentCode) const;
 
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,

@@ -61,7 +61,8 @@ public:
     EXPORT std::string UlongToString(const uint64_t& lNumber) const;
 
     EXPORT bool IsValidID(const std::string& strPurportedID) const;
-
+    EXPORT std::string NymIDFromPaymentCode(const std::string& paymentCode) const;
+    
     /**
     INITIALIZE the OTAPI library
 

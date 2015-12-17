@@ -71,6 +71,7 @@ private:
     PaymentCode() = delete;
 
 public:
+    PaymentCode(const std::string& base58);
     PaymentCode(const proto::PaymentCode& paycode);
     PaymentCode(
         const uint32_t nym,

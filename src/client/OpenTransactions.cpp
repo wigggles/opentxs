@@ -4537,6 +4537,14 @@ std::string OT_API::GetContactAttributeName (const uint32_t type, std::string la
 {
     return proto::TranslateItemAttributes(type, lang);
 }
+//static
+std::string OT_API::NymIDFromPaymentCode(const std::string& paymentCode)
+{
+    PaymentCode code(paymentCode);
+    Identifier nymID = code.ID();
+    String nymIDString = nymID;
+    return nymIDString.Get();
+}
 
 /** Tries to get the account from the wallet.
  Otherwise loads it from local storage.

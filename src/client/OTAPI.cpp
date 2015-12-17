@@ -371,6 +371,11 @@ bool OTAPI_Wrap::SetContactData(const std::string& NYM_ID,
     return Exec()->SetContactData(NYM_ID, THE_DATA);
 }
 
+std::string OTAPI_Wrap::NymIDFromPaymentCode(const std::string& paymentCode) const
+{
+    return Exec()->NymIDFromPaymentCode(paymentCode);
+}
+
 bool OTAPI_Wrap::RevokeChildCredential(const std::string& NYM_ID,
                                      const std::string& MASTER_CRED_ID,
                                      const std::string& SUB_CRED_ID)

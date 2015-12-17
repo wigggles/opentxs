@@ -48,6 +48,41 @@
 namespace opentxs
 {
 
+PaymentCode::PaymentCode(const std::string& base58)
+{
+    OTData rawCode;
+    CryptoEngine::Instance().Util().Base58CheckDecode(base58, rawCode);
+    
+    if (81 == rawCode.GetSize()) {
+        uint8_t prependByte, features;
+        rawCode.OTfread(&prependByte, 1);
+
+        rawCode.OTfread(&version_, 1);
+        rawCode.OTfread(&features, 1);
+
+        if (features & 0x80) {
+            hasBitmessage_ = true;
+        }
+
+        OTData key;
+        key.SetSize(33);
+        chain_code_.SetSize(32);
+        
+        OT_ASSERT(33 == key.GetSize());
+        OT_ASSERT(32 == chain_code_.GetSize());
+
+        rawCode.OTfread(static_cast<uint8_t*>(const_cast<void*>(key.GetPointer())), key.GetSize());
+        rawCode.OTfread(static_cast<uint8_t*>(const_cast<void*>(chain_code_.GetPointer())), chain_code_.GetSize());
+
+        ConstructKey(key, chain_code_);
+        
+        if (hasBitmessage_) {
+            rawCode.OTfread(&bitmessage_version_, 1);
+            rawCode.OTfread(&bitmessage_stream_, 1);
+        }
+    }
+}
+
 PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     : version_(paycode.version())
     , chain_code_(paycode.chaincode().c_str(), paycode.chaincode().size())

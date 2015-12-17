@@ -466,6 +466,10 @@ bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
     return Identifier::validateID(strPurportedID);
 }
 
+std::string OTAPI_Exec::NymIDFromPaymentCode(const std::string& paymentCode) const
+{
+    return OT_API::NymIDFromPaymentCode(paymentCode);
+}
 
 // CREATE NYM  -- Create new User
 //
