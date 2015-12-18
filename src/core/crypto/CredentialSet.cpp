@@ -225,8 +225,11 @@ CredentialSet::CredentialSet(
             LoadChildKeyCredential(it);
         }
     } else {
+        Credential* masterCred = Credential::CredentialFactory(
+            *this,
+            serializedCredentialSet.mastercredential());
         m_MasterCredential.reset(
-            new MasterCredential(*this, serializedCredentialSet.mastercredential()));
+            dynamic_cast<MasterCredential*>(masterCred));
         for (auto& it: serializedCredentialSet.activechildren()) {
             LoadChildKeyCredential(it);
         }
@@ -422,8 +425,26 @@ bool CredentialSet::Load_MasterFromString(const String& strInput,
 {
     m_strNymID = strNymID;
 
-    MasterCredential* newMaster = new MasterCredential(*this, strInput);
-    m_MasterCredential.reset(newMaster);
+    serializedCredential serializedCred =
+        Credential::ExtractArmoredCredential(strInput);
+
+    if (!serializedCred) {
+        otErr << __FUNCTION__
+              << ": Could not parse retrieved credential as a protobuf.\n";
+        return false;
+    }
+
+    Credential* purported =
+        Credential::CredentialFactory(
+            *this, *serializedCred, proto::CREDROLE_MASTERKEY);
+
+    m_MasterCredential.reset(dynamic_cast<MasterCredential*>(purported));
+
+    if (!m_MasterCredential) {
+        otErr << __FUNCTION__
+              << ": Failed to construct credential from protobuf.\n";
+        return false;
+    }
 
     // m_MasterCredential and the child key credentials all have a pointer to "owner" (who is *this)
     // and so I can set pImportPassword onto a member variable, perform the
@@ -490,13 +511,11 @@ bool CredentialSet::Load_Master(const String& strNymID,
         return false;
     }
 
-    bool validProto = proto::Verify(*serializedCred, proto::CREDROLE_MASTERKEY, true);
-    if (!validProto) {
-        otErr << __FUNCTION__ << ": Invalid serialized master credential.\n";
-        return false;
-    }
+    Credential* purported =
+        Credential::CredentialFactory(
+            *this, *serializedCred, proto::CREDROLE_MASTERKEY);
 
-    m_MasterCredential.reset(new MasterCredential(*this, *serializedCred));
+    m_MasterCredential.reset(dynamic_cast<MasterCredential*>(purported));
 
     if (!m_MasterCredential) {
         otErr << __FUNCTION__ << ": Failed to construct credential from protobuf.\n";
@@ -523,8 +542,11 @@ bool CredentialSet::LoadChildKeyCredentialFromString(const String& strInput,
         m_mapCredentials.erase(it);
     }
 
-    ChildKeyCredential* pSub = new ChildKeyCredential(*this, strInput);
-    std::unique_ptr<ChildKeyCredential> theSubAngel(pSub);
+    serializedCredential credential =
+        Credential::ExtractArmoredCredential(strInput);
+    Credential* pSub =
+        Credential::CredentialFactory(*this, *credential);
+    std::unique_ptr<Credential> theSubAngel(pSub);
     OT_ASSERT(nullptr != pSub);
 
     SetImportPassword(pImportPassword); // might be nullptr.
@@ -608,8 +630,8 @@ bool CredentialSet::LoadChildKeyCredential(const proto::Credential& serializedCr
         m_mapCredentials.erase(it);
     }
 
-    std::unique_ptr<ChildKeyCredential> pSub;
-    pSub.reset(new ChildKeyCredential(*this, serializedCred));
+    std::unique_ptr<Credential> pSub;
+    pSub.reset(Credential::CredentialFactory(*this, serializedCred));
 
     m_mapCredentials.insert(std::pair<std::string, Credential*>(
         serializedCred.id(), pSub.release()));

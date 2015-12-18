@@ -80,25 +80,25 @@ class MasterCredential : public KeyCredential
 {
 private: // Private prevents erroneous use by other classes.
     typedef KeyCredential ot_super;
-    MasterCredential() = delete;
+    friend class Credential;
+
     std::unique_ptr<proto::SourceProof> source_proof_;
-public:
-    virtual bool VerifyInternally() const;  // Verify that m_strNymID is the same as
-                                      // the hash of m_strSourceForNymID. Also
-                                      // verify that *this ==
-                                      // m_pOwner->m_MasterCredential (the master
-                                      // credential.) Then verify the
-                                      // (self-signed) signature on *this.
-    bool VerifyAgainstSource() const;
-    MasterCredential(CredentialSet& theOwner, const String& stringCredential);
+
+    MasterCredential() = delete;
     MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred);
+
+public:
     MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters);
-    virtual ~MasterCredential();
+
+    virtual bool VerifyInternally() const;
+    bool VerifyAgainstSource() const;
 
     virtual serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const;
     virtual bool Verify(const Credential& credential) const;
+
+    virtual ~MasterCredential();
 };
 
 } // namespace opentxs

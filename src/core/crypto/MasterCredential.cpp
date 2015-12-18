@@ -104,15 +104,6 @@ bool MasterCredential::VerifyAgainstSource() const
     return owner_backlink_->Source().Verify(*this);
 }
 
-MasterCredential::MasterCredential(CredentialSet& theOwner, const String&
-stringCred)
-    : MasterCredential(theOwner, *Credential::ExtractArmoredCredential(stringCred))
-{
-    m_strContractType = "MASTER KEY CREDENTIAL";
-    role_ = proto::CREDROLE_MASTERKEY;
-
-}
-
 MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
 : ot_super(theOwner, serializedCred)
 {

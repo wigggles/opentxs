@@ -60,15 +60,19 @@
 // ChildCredentials are used for all other actions, and never sign other
 // Credentials
 
-#include <opentxs/core/stdafx.hpp>
+#include <memory>
 
 #include <opentxs/core/crypto/Credential.hpp>
 
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
-#include <opentxs/core/crypto/CredentialSet.hpp>
-#include <opentxs/core/Proto.hpp>
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTStorage.hpp>
+#include <opentxs/core/Proto.hpp>
+#include <opentxs/core/stdafx.hpp>
+#include <opentxs/core/crypto/ChildKeyCredential.hpp>
+#include <opentxs/core/crypto/ContactCredential.hpp>
+#include <opentxs/core/crypto/CredentialSet.hpp>
+#include <opentxs/core/crypto/MasterCredential.hpp>
+#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 
 #include <map>
 
@@ -79,6 +83,39 @@
 
 namespace opentxs
 {
+
+Credential* Credential::CredentialFactory(
+        CredentialSet& parent,
+        const proto::Credential& serialized,
+        const proto::CredentialRole& purportedRole)
+{
+    Credential* result = nullptr;
+
+    // This check allows all constructors to assume inputs are well-formed
+    if (!proto::Verify(serialized, purportedRole)) {
+        otErr << __FUNCTION__ << ": Invalid serialized credential.\n";
+        return result;
+    }
+
+    switch (serialized.role()) {
+        case proto::CREDROLE_MASTERKEY :
+            result = new MasterCredential(parent, serialized);
+
+            return result;
+        case proto::CREDROLE_CHILDKEY :
+            result = new ChildKeyCredential(parent, serialized);
+
+            return result;
+        case proto::CREDROLE_CONTACT :
+            result = new ContactCredential(parent, serialized);
+
+            return result;
+        default :
+            break;
+    }
+
+    return result;
+}
 
 Credential::Credential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : Contract()

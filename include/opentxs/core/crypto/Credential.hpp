@@ -92,8 +92,14 @@ public:
     static const SerializationSignatureFlag WITHOUT_SIGNATURES = false;
 
     static String CredentialTypeToString(proto::CredentialType credentialType);
-    static serializedCredential ExtractArmoredCredential(const String stringCredential);
-    static serializedCredential ExtractArmoredCredential(const OTASCIIArmor armoredCredential);
+    static serializedCredential ExtractArmoredCredential(
+        const String stringCredential);
+    static serializedCredential ExtractArmoredCredential(
+        const OTASCIIArmor armoredCredential);
+    static Credential* CredentialFactory(
+        CredentialSet& parent,
+        const proto::Credential& serialized,
+        const proto::CredentialRole& purportedRole = proto::CREDROLE_ERROR);
 
 private:
     typedef Contract ot_super;

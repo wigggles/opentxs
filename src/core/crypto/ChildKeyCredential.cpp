@@ -73,13 +73,6 @@
 namespace opentxs
 {
 
-ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const String& stringCred)
-    : ChildKeyCredential(other, *Credential::ExtractArmoredCredential(stringCred))
-{
-    m_strContractType = "KEY CREDENTIAL";
-    role_ = proto::CREDROLE_CHILDKEY;
-}
-
 ChildKeyCredential::ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred)
     : ot_super(other, serializedCred)
 {

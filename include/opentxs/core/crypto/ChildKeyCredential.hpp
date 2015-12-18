@@ -80,17 +80,18 @@ class ChildKeyCredential : public KeyCredential
 
 private:
     typedef KeyCredential ot_super;
+    friend class Credential;
     ChildKeyCredential() = delete;
+    ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred);
 
 public:
-    ChildKeyCredential(CredentialSet& other, const String& stringCredential);
     ChildKeyCredential(CredentialSet& other, const NymParameters& nymParameters);
-    ChildKeyCredential(CredentialSet& other, const proto::Credential& serializedCred);
-    virtual ~ChildKeyCredential();
 
     virtual serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
         SerializationSignatureFlag asSigned) const;
+
+    virtual ~ChildKeyCredential();
 };
 
 } // namespace opentxs
