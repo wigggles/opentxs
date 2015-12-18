@@ -64,6 +64,11 @@ public:
         CredentialSet& parent,
         const NymParameters& nymParameters);
     bool GetContactData(proto::ContactData& contactData) const override;
+    virtual serializedCredential asSerialized(
+        SerializationModeFlag asPrivate,
+        SerializationSignatureFlag asSigned) const;
+
+    virtual ~ContactCredential() = default;
 };
 
 } // namespace opentxs

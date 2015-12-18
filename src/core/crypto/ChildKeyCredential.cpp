@@ -118,14 +118,6 @@ serializedCredential ChildKeyCredential::asSerialized(
     serializedCredential serializedCredential =
         this->ot_super::asSerialized(asPrivate, asSigned);
 
-    std::unique_ptr<proto::ChildCredentialParameters> parameters;
-    parameters.reset(new proto::ChildCredentialParameters);
-
-    parameters->set_version(1);
-    parameters->set_masterid(MasterID().Get());
-
-    serializedCredential->set_allocated_childdata(parameters.release());
-
     if (asSigned) {
         serializedSignature masterSignature = MasterSignature();
 

@@ -93,4 +93,28 @@ bool ContactCredential::GetContactData(proto::ContactData& contactData) const
     return true;
 }
 
+serializedCredential ContactCredential::asSerialized(
+    SerializationModeFlag asPrivate,
+    SerializationSignatureFlag asSigned) const
+{
+    serializedCredential serializedCredential =
+        this->ot_super::asSerialized(asPrivate, asSigned);
+
+    if (asSigned) {
+        serializedSignature masterSignature = MasterSignature();
+
+        if (masterSignature) {
+            // We do not own this pointer.
+            proto::Signature* serializedMasterSignature = serializedCredential->add_signature();
+            *serializedMasterSignature = *masterSignature;
+        } else {
+            otErr << __FUNCTION__ << ": Failed to get master signature.\n";
+        }
+    }
+
+    *(serializedCredential->mutable_contactdata()) = *data_;
+
+    return serializedCredential;
+}
+
 } // namespace opentxs

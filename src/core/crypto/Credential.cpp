@@ -357,6 +357,17 @@ serializedCredential Credential::asSerialized(
 
     serializedCredential->set_version(version_);
     serializedCredential->set_type(static_cast<proto::CredentialType>(type_));
+    serializedCredential->set_role(static_cast<proto::CredentialRole>(role_));
+
+    if (proto::CREDROLE_MASTERKEY != role_) {
+        std::unique_ptr<proto::ChildCredentialParameters> parameters;
+        parameters.reset(new proto::ChildCredentialParameters);
+
+        parameters->set_version(1);
+        parameters->set_masterid(MasterID().Get());
+
+        serializedCredential->set_allocated_childdata(parameters.release());
+    }
 
     if (asPrivate) {
         OT_ASSERT(proto::KEYMODE_PRIVATE == mode_);
@@ -378,7 +389,6 @@ serializedCredential Credential::asSerialized(
         if (asPrivate) {
             privateSig = SelfSignature(true);
 
-            OT_ASSERT(nullptr != privateSig);
             if (nullptr != privateSig) {
                 pPrivateSig = serializedCredential->add_signature();
                 *pPrivateSig = *privateSig;
