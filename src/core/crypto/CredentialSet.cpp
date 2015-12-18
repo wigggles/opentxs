@@ -611,9 +611,14 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
 bool CredentialSet::LoadChildKeyCredential(const proto::Credential& serializedCred)
 {
 
-    bool validProto = proto::Verify(serializedCred, proto::CREDROLE_CHILDKEY, true);
+    bool validProto = proto::Verify(serializedCred, proto::CREDROLE_ERROR, true);
     if (!validProto) {
         otErr << __FUNCTION__ << ": Invalid serialized child key credential.\n";
+        return false;
+    }
+
+    if (proto::CREDROLE_MASTERKEY == serializedCred.role()) {
+        otErr << __FUNCTION__ << ": unexpected master credential.\n";
         return false;
     }
 
