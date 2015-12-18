@@ -156,8 +156,8 @@ endif()
 target_link_libraries(opentxs-core PRIVATE opentxs-recurring opentxs-script opentxs-cron opentxs-trade otprotob irrxml bitcoin-base58 czmq_local)
 target_link_libraries(opentxs-core PUBLIC ${PROTOBUF_LITE_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${OPENTXS_SYSTEM_LIBRARIES} ${keyring})
 
-add_library(opentxs-proto STATIC IMPORTED)
-add_library(opentxs-verify STATIC IMPORTED)
+add_library(opentxs-proto SHARED IMPORTED)
+add_library(opentxs-verify SHARED IMPORTED)
 
 set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
 set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})

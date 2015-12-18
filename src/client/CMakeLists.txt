@@ -155,6 +155,15 @@ endif()
 target_link_libraries(opentxs-client PUBLIC opentxs-ext opentxs-cash opentxs-basket opentxs-core PRIVATE czmq_local)
 set_lib_property(opentxs-client)
 
+add_library(opentxs-proto SHARED IMPORTED)
+add_library(opentxs-verify SHARED IMPORTED)
+
+set_property(TARGET opentxs-proto PROPERTY IMPORTED_LOCATION ${OPENTXS_PROTO})
+set_property(TARGET opentxs-verify PROPERTY IMPORTED_LOCATION ${OPENTXS_VERIFY})
+
+target_link_libraries(opentxs-client PRIVATE opentxs-proto)
+target_link_libraries(opentxs-client PRIVATE opentxs-verify)
+
 if(WIN32)
   add_custom_command(TARGET opentxs-client POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
