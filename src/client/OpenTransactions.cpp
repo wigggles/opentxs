@@ -4503,7 +4503,7 @@ bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
 std::set<uint32_t> OT_API::GetContactSections (const uint32_t version)
 {
     std::set<uint32_t> sections;
-    
+
     for (auto& it: proto::AllowedSectionNames.at(version)) {
         sections.insert(static_cast<uint32_t>(it));
     }
@@ -4515,7 +4515,7 @@ std::set<uint32_t> OT_API::GetContactSectionTypes (const uint32_t section, const
 {
     proto::ContactSectionVersion contactVersion{version, static_cast<proto::ContactSectionName>(section)};
     std::set<uint32_t> sectionTypes;
-    
+
     for (auto& it: proto::AllowedItemTypes.at(contactVersion)) {
         sectionTypes.insert(it);
     }
@@ -4541,9 +4541,14 @@ std::string OT_API::GetContactAttributeName (const uint32_t type, std::string la
 std::string OT_API::NymIDFromPaymentCode(const std::string& paymentCode)
 {
     PaymentCode code(paymentCode);
-    Identifier nymID = code.ID();
-    String nymIDString = nymID;
-    return nymIDString.Get();
+
+    if (code.VerifyInternally()) {
+        Identifier nymID = code.ID();
+        String nymIDString = nymID;
+        return nymIDString.Get();
+    } else {
+        return "";
+    }
 }
 
 /** Tries to get the account from the wallet.
