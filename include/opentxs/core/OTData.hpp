@@ -51,6 +51,8 @@ class OTData
 {
 public:
     EXPORT OTData();
+    EXPORT explicit OTData(const uint32_t num);
+    EXPORT explicit OTData(const int64_t num);
     EXPORT OTData(const void* data, uint32_t size);
     EXPORT OTData(const OTData& source);
     EXPORT OTData(const OTASCIIArmor& source);

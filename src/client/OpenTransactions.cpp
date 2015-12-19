@@ -4495,6 +4495,48 @@ proto::ContactData OT_API::GetContactData(const Nym& fromNym) const
     return fromNym.ContactData();
 }
 
+OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
+{
+    proto::ContactData data = GetContactData(fromNym);
+
+    OT_API::ClaimSet claimSet;
+
+    for (auto& section: data.section()) {
+        for (auto& item: section.item()) {
+            std::set<uint32_t> attributes;
+
+            for (auto& attrib: item.attribute()) {
+                attributes.insert(attrib);
+            }
+
+            OTData preimage(static_cast<uint32_t>(section.name()));
+            OTData type(static_cast<uint32_t>(item.type()));
+            OTData start(item.start());
+            OTData end(item.end());
+
+            preimage += type;
+            preimage += start;
+            preimage += end;
+            preimage.Concatenate(item.value().c_str(), item.value().size());
+
+            OTData hash;
+            CryptoEngine::Instance().Hash().Digest(
+                CryptoHash::HASH160,
+                preimage,
+                hash);
+            String ident = CryptoEngine::Instance().Util().Base58CheckEncode(
+                hash);
+
+            Claim claim{ident.Get(), section.name(), item.type(), item.value(),
+                item.start(), item.end(), attributes};
+
+            claimSet.insert(claim);
+        }
+    }
+
+    return claimSet;
+}
+
 bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
 {
     return onNym.SetContactData(data);

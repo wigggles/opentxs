@@ -45,6 +45,7 @@
 
 #include <memory>
 #include <set>
+#include <tuple>
 
 namespace opentxs
 {
@@ -83,6 +84,10 @@ private:
 public:
     EXPORT static bool InitOTApp();
     EXPORT static bool CleanupOTApp();
+
+    // Claim fields: identifier, section, type, value, start, end, attributes
+    typedef std::tuple<std::string, uint32_t, uint32_t, std::string, int64_t, int64_t, std::set<uint32_t>> Claim;
+    typedef std::set<Claim> ClaimSet;
 
 private:
     class Pid;
@@ -188,6 +193,7 @@ public:
                              const char* szFuncName = nullptr,
                              const OTPasswordData* pPWData = nullptr) const;
     EXPORT proto::ContactData GetContactData(const Nym& fromNym) const;
+    EXPORT ClaimSet GetClaims(const Nym& fromNym) const;
     EXPORT bool SetContactData(Nym& onNym,
                                const proto::ContactData&) const;
     EXPORT std::set<uint32_t> GetContactSections (const uint32_t version = 1);
