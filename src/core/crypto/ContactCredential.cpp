@@ -100,6 +100,7 @@ serializedCredential ContactCredential::asSerialized(
     serializedCredential serializedCredential =
         this->ot_super::asSerialized(asPrivate, asSigned);
 
+    serializedCredential->clear_signature(); //this fixes a bug, but shouldn't
     if (asSigned) {
         serializedSignature masterSignature = MasterSignature();
 
