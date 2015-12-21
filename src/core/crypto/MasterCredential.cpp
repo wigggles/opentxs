@@ -68,58 +68,31 @@
 #include <opentxs/core/crypto/CredentialSet.hpp>
 #include <opentxs/core/crypto/Credential.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/String.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/Proto.hpp>
+#include <opentxs/core/String.hpp>
+
 
 namespace opentxs
 {
 
-// Verify that m_strNymID is the same as the hash of m_strSourceForNymID. Also
+// Verify that nym_id_ is the same as the hash of m_strSourceForNymID. Also
 // verify that
-// *this == m_pOwner->GetMasterCredential() (the master credential.) Verify the
+// *this == owner_backlink_->GetMasterCredential() (the master credential.) Verify the
 // (self-signed)
 // signature on *this.
 //
-bool MasterCredential::VerifyInternally()
+bool MasterCredential::VerifyInternally() const
 {
-    // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
-    //
-    // We can't use super here, since Credential::VerifyInternally will
-    // verify
-    // m_strMasterCredID against the actual Master, which is not relevant to us
-    // in
-    // MasterCredential. But this means if we need anything else that
-    // KeyCredential::VerifyInternally
-    // was doing, we will have to duplicate that here as well...
-    //  if (!ot_super::VerifyInternally())
-    //      return false;
-    if (!VerifyNymID()) return false;
-
-    OT_ASSERT(nullptr != m_pOwner);
-    // Verify that *this == m_pOwner->GetMasterCredential() (the master credential.)
-    //
-    if (this != &(m_pOwner->GetMasterCredential())) {
-        otOut << __FUNCTION__ << ": Failure: Expected *this object to be the "
-                                 "same as m_pOwner->GetMasterCredential(), "
-                                 "but it wasn't.\n";
+    // Perform common Key Credential verifications
+    if (!ot_super::VerifyInternally()) {
         return false;
     }
 
-    // Remember this note above: ...if we need anything else that
-    // KeyCredential::VerifyInternally
-    // was doing, we will have to duplicate that here as well...
-    // Since we aren't calling KeyCredential::VerifyInternally (the super) and
-    // since that function
-    // verifies that the credential is self-signed, we must do the same
-    // verification here:
-    //
-    // Any KeyCredential (both master and child, but no other credentials)
-    // must ** sign itself.**
-    //
-    if (!VerifySignedBySelf()) {
-        otOut << __FUNCTION__ << ": Failed verifying master credential: it's "
-                                 "not signed by itself (its own signing "
-                                 "key.)\n";
+    // Check that the source validates this credential
+    if (!VerifyAgainstSource()) {
+        otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
+                                 "signed by itself (its own signing key.)\n";
         return false;
     }
 
@@ -128,36 +101,27 @@ bool MasterCredential::VerifyInternally()
 
 bool MasterCredential::VerifyAgainstSource() const
 {
-    return m_pOwner->Source().Verify(*this);
-}
-
-MasterCredential::MasterCredential(CredentialSet& theOwner, const String&
-stringCred)
-    : MasterCredential(theOwner, *Credential::ExtractArmoredCredential(stringCred))
-{
-    m_strContractType = "MASTER KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_MASTERKEY;
-
+    return owner_backlink_->Source().Verify(*this);
 }
 
 MasterCredential::MasterCredential(CredentialSet& theOwner, const proto::Credential& serializedCred)
 : ot_super(theOwner, serializedCred)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_MASTERKEY;
+    role_ = proto::CREDROLE_MASTERKEY;
 
     std::shared_ptr<NymIDSource> source = std::make_shared<NymIDSource>(
-serializedCred.publiccredential().masterdata().source());
+        serializedCred.masterdata().source());
 
-    m_pOwner->SetSource(source);
-    source_proof_.reset(new proto::SourceProof(serializedCred.publiccredential().masterdata().sourceproof()));
+    owner_backlink_->SetSource(source);
+    source_proof_.reset(new proto::SourceProof(serializedCred.masterdata().sourceproof()));
 }
 
 MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters& nymParameters)
     : ot_super(theOwner, nymParameters, proto::CREDROLE_MASTERKEY)
 {
     m_strContractType = "MASTER KEY CREDENTIAL";
-    m_Role = proto::CREDROLE_MASTERKEY;
+    role_ = proto::CREDROLE_MASTERKEY;
 
     std::shared_ptr<NymIDSource> source;
     std::unique_ptr<proto::SourceProof> sourceProof;
@@ -187,10 +151,10 @@ MasterCredential::MasterCredential(CredentialSet& theOwner, const NymParameters&
     }
 
     source_proof_.reset(sourceProof.release());
-    m_pOwner->SetSource(source);
-    String nymID = m_pOwner->GetNymID();
+    owner_backlink_->SetSource(source);
+    String nymID = owner_backlink_->GetNymID();
 
-    m_strNymID = nymID;
+    nym_id_ = nymID;
 
     Identifier masterID;
     CalculateAndSetContractID(masterID);
@@ -222,27 +186,63 @@ MasterCredential::~MasterCredential()
 {
 }
 
-serializedCredential MasterCredential::Serialize(bool asPrivate, bool asSigned) const
+serializedCredential MasterCredential::asSerialized(
+    SerializationModeFlag asPrivate,
+    SerializationSignatureFlag asSigned) const
 {
     serializedCredential serializedCredential =
-        this->ot_super::Serialize(asPrivate, asSigned);
+        this->ot_super::asSerialized(asPrivate, asSigned);
 
-    proto::MasterCredentialParameters* parameters = new proto::MasterCredentialParameters;
+    proto::MasterCredentialParameters* parameters =
+        new proto::MasterCredentialParameters;
 
     parameters->set_version(1);
-    *(parameters->mutable_source()) = *(m_pOwner->Source().Serialize());
+    *(parameters->mutable_source()) = *(owner_backlink_->Source().Serialize());
 
-    // Only the public credential gets MasterCredentialParameters
-    if (serializedCredential->has_publiccredential()) {
-        proto::KeyCredential* keyCredential = serializedCredential->mutable_publiccredential();
-        keyCredential->set_allocated_masterdata(parameters);
-
-    }
+    serializedCredential->set_allocated_masterdata(parameters);
 
     serializedCredential->set_role(proto::CREDROLE_MASTERKEY);
-    *(serializedCredential->mutable_publiccredential()->mutable_masterdata()->mutable_sourceproof())=*source_proof_;
+    *(serializedCredential->mutable_masterdata()->mutable_sourceproof()) =
+        *source_proof_;
 
     return serializedCredential;
+}
+
+bool MasterCredential::Verify(const Credential& credential) const
+{
+    serializedCredential serializedCred =
+        credential.asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITHOUT_SIGNATURES);
+
+    if (!proto::Verify(*serializedCred, credential.Role(), false)) {
+        otErr << __FUNCTION__ << ": Invalid credential syntax.\n";
+        return false;
+    }
+
+    bool sameMaster = (m_ID == credential.MasterID());
+
+    if (!sameMaster) {
+        otErr << __FUNCTION__ << ": Credential does not designate this"
+              << " credential as its master.\n";
+        return false;
+    }
+
+    serializedSignature masterSig = credential.MasterSignature();
+
+    if (!masterSig) {
+        otErr << __FUNCTION__ << ": Missing master signature.\n";
+        return false;
+    }
+
+    if (!m_SigningKey) {
+        otErr << __FUNCTION__ << ": Master is missing signing keypair.\n";
+        return false;
+    }
+
+    return m_SigningKey->Verify(
+        proto::ProtoAsData<proto::Credential>(*serializedCred),
+        *masterSig);
 }
 
 } // namespace opentxs

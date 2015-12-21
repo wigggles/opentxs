@@ -48,6 +48,41 @@
 namespace opentxs
 {
 
+PaymentCode::PaymentCode(const std::string& base58)
+{
+    OTData rawCode;
+    CryptoEngine::Instance().Util().Base58CheckDecode(base58, rawCode);
+
+    if (81 == rawCode.GetSize()) {
+        uint8_t prependByte, features;
+        rawCode.OTfread(&prependByte, 1);
+
+        rawCode.OTfread(&version_, 1);
+        rawCode.OTfread(&features, 1);
+
+        if (features & 0x80) {
+            hasBitmessage_ = true;
+        }
+
+        OTData key;
+        key.SetSize(33);
+        chain_code_.SetSize(32);
+
+        OT_ASSERT(33 == key.GetSize());
+        OT_ASSERT(32 == chain_code_.GetSize());
+
+        rawCode.OTfread(static_cast<uint8_t*>(const_cast<void*>(key.GetPointer())), key.GetSize());
+        rawCode.OTfread(static_cast<uint8_t*>(const_cast<void*>(chain_code_.GetPointer())), chain_code_.GetSize());
+
+        ConstructKey(key, chain_code_);
+
+        if (hasBitmessage_) {
+            rawCode.OTfread(&bitmessage_version_, 1);
+            rawCode.OTfread(&bitmessage_stream_, 1);
+        }
+    }
+}
+
 PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     : version_(paycode.version())
     , chain_code_(paycode.chaincode().c_str(), paycode.chaincode().size())
@@ -174,12 +209,14 @@ const Identifier PaymentCode::ID() const
         pubkey.GetPointer(),
         pubkey.GetSize(),
         false);
-    OTPassword::safe_memcpy(
-        &core[33],
-        32,
-        chain_code_.GetPointer(),
-        chain_code_.GetSize(),
-        false);
+    if (chain_code_.GetSize() == 32) {
+        OTPassword::safe_memcpy(
+            &core[33],
+            32,
+            chain_code_.GetPointer(),
+            chain_code_.GetSize(),
+            false);
+    }
 
     OTData dataVersion(core, sizeof(core));
 
@@ -193,7 +230,9 @@ const Identifier PaymentCode::ID() const
 bool PaymentCode::Verify(const MasterCredential& credential) const
 {
     serializedCredential serializedMaster =
-        credential.SerializeForPublicSignature();
+        credential.asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITHOUT_SIGNATURES);
 
     if (!proto::Verify(*serializedMaster, proto::CREDROLE_MASTERKEY, false)) {
         otErr << __FUNCTION__ << ": Invalid master credential syntax.\n";
@@ -201,8 +240,7 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
     }
 
     bool sameSource = (*this ==
-            serializedMaster->
-                publiccredential().masterdata().source().paymentcode());
+            serializedMaster->masterdata().source().paymentcode());
 
     if (!sameSource) {
         otErr << __FUNCTION__ << ": Master credential was not derived from"
@@ -210,7 +248,7 @@ bool PaymentCode::Verify(const MasterCredential& credential) const
         return false;
     }
 
-    serializedSignature sourceSig = credential.GetSourceSignature();
+    serializedSignature sourceSig = credential.SourceSignature();
 
     if (!sourceSig) {
         otErr << __FUNCTION__ << ": Master credential not signed by its"
@@ -265,7 +303,9 @@ bool PaymentCode::Sign(
     std::unique_ptr<OTAsymmetricKey>
         signingKey(OTAsymmetricKey::KeyFactory(*privatekey));
 
-    serializedCredential serialized = credential.SerializeForPublicSignature();
+        serializedCredential serialized = credential.asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITHOUT_SIGNATURES);
 
     bool goodSig = signingKey->Sign(
         proto::ProtoAsData<proto::Credential>(*serialized),
@@ -292,6 +332,11 @@ void PaymentCode::ConstructKey(const OTData& pubkey, const OTData& chaincode)
     OTAsymmetricKey* key = OTAsymmetricKey::KeyFactory(newKey);
 
     pubkey_.reset(key);
+}
+
+bool PaymentCode::VerifyInternally() const
+{
+    return(proto::Verify(*Serialize(), version_, version_));
 }
 
 } // namespace opentxs

@@ -39,6 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 #define OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
 
+#include <memory>
+
 #include <opentxs-proto/verify/VerifyCredentials.hpp>
 
 #include <opentxs/core/crypto/Credential.hpp>
@@ -62,9 +64,9 @@ public:
 
     void setNymParameterType(NymParameterType theKeytype);
 
-    Credential::CredentialType credentialType() const;
+    proto::CredentialType credentialType() const;
 
-    void setCredentialType(Credential::CredentialType theCredentialtype);
+    void setCredentialType(proto::CredentialType theCredentialtype);
 
     inline proto::SourceType SourceType() const
     {
@@ -86,6 +88,13 @@ public:
         sourceProofType_ = sType;
     }
 
+    inline proto::ContactData ContactData() const
+    {
+        return *contact_data_;
+    }
+
+    void SetContactData(const proto::ContactData& contactData);
+
 #if defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
     int32_t keySize();
 
@@ -95,7 +104,7 @@ public:
 
     NymParameters(
         NymParameterType theKeytype,
-        Credential::CredentialType theCredentialtype);
+        proto::CredentialType theCredentialtype);
     NymParameters() = default;
     ~NymParameters() = default;
 
@@ -133,16 +142,17 @@ private:
     proto::SourceType sourceType_ = proto::SOURCETYPE_PUBKEY;
     proto::SourceProofType sourceProofType_ =
         proto::SOURCEPROOFTYPE_SELF_SIGNATURE;
+    std::shared_ptr<proto::ContactData> contact_data_;
 
 #if defined(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
     NymParameterType nymType_ = NymParameterType::SECP256K1;
-    Credential::CredentialType credentialType_ = Credential::HD;
+    proto::CredentialType credentialType_ = proto::CREDTYPE_HD;
 #elif defined(OT_CRYPTO_SUPPORTED_KEY_RSA)
     NymParameterType nymType_ = NymParameterType::LEGACY;
-    Credential::CredentialType credentialType_ = Credential::LEGACY;
+    proto::CredentialType credentialType_ = proto::CREDTYPE_LEGACY;
 #else
     NymParameterType nymType_ = NymParameterType::ERROR;
-    Credential::CredentialType credentialType_ = Credential::ERROR_TYPE;
+    proto::CredentialType credentialType_ = proto::CREDTYPE_ERROR;
 #endif
 
 //----------------------------------------

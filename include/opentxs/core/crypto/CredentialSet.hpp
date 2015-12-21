@@ -76,7 +76,6 @@
 namespace opentxs
 {
 
-class CredentialSet;
 class Identifier;
 class OTPassword;
 class OTPasswordData;
@@ -165,7 +164,6 @@ public:
         const String& strInput,
         const String& strNymID, // Caller is responsible to delete.
         const String& strMasterCredID,
-        const Credential::CredentialType theType,
         OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
@@ -175,7 +173,6 @@ public:
     EXPORT bool Load_MasterFromString(
         const String& strInput, const String& strNymID,
         const String& strMasterCredID,
-        Credential::CredentialType theType,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
 
@@ -190,7 +187,6 @@ public:
     EXPORT bool LoadChildKeyCredentialFromString(
         const String& strInput,
         const String& strSubID,
-        const Credential::CredentialType theType,
         const OTPassword* pImportPassword = nullptr);
     EXPORT size_t GetChildCredentialCount() const;
     EXPORT const Credential* GetChildCredential(
@@ -225,7 +221,6 @@ public:
                              bool bShowRevoked = false,
                              bool bValid = true) const;
     EXPORT bool VerifyInternally() const;
-    EXPORT bool VerifyAgainstSource() const;
     EXPORT const MasterCredential& GetMasterCredential() const
     {
         return *m_MasterCredential;
@@ -257,6 +252,24 @@ public:
     EXPORT void ClearChildCredentials();
     EXPORT ~CredentialSet();
     EXPORT bool WriteCredentials() const;
+
+    bool GetContactData(proto::ContactData& contactData) const;
+    void RevokeContactCredentials(std::list<std::string>& contactCredentialIDs);
+    bool AddContactCredential(const proto::ContactData& contactData);
+
+    bool Sign(
+        const OTData& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const proto::SignatureRole role = proto::SIGROLE_ERROR,
+        proto::KeyRole key = proto::KEYROLE_SIGN) const;
+    bool Sign(
+        const Credential& plaintext,
+        proto::Signature& sig,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr,
+        const proto::SignatureRole role = proto::SIGROLE_PUBCREDENTIAL) const;
 };
 
 } // namespace opentxs

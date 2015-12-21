@@ -77,7 +77,7 @@ bool KeyCredential::VerifySignedBySelf() const
 {
     OT_ASSERT(m_SigningKey);
 
-    serializedSignature publicSig = GetSelfSignature(false);
+    serializedSignature publicSig = SelfSignature(false);
 
     if (!publicSig) {
         otErr << __FUNCTION__ << ": Could not find public self signature.\n";
@@ -93,7 +93,7 @@ bool KeyCredential::VerifySignedBySelf() const
 
     if (isPrivate())
     {
-        serializedSignature privateSig = GetSelfSignature(true);
+        serializedSignature privateSig = SelfSignature(true);
 
         if (!privateSig)
         {
@@ -218,14 +218,14 @@ int32_t KeyCredential::GetPublicKeysBySignature(
 // parent, whereas ChildKeyCredential does.)
 // Then verify the (self-signed) signature on *this.
 //
-bool KeyCredential::VerifyInternally()
+bool KeyCredential::VerifyInternally() const
 {
-    // Verify that m_strNymID is the same as the hash of m_strSourceForNymID.
-    if (!ot_super::VerifyInternally()) return false;
+    // Perform common Credential verifications
+    if (!ot_super::VerifyInternally()) {
+        return false;
+    }
 
-    // Any KeyCredential (both master and child, but no other credentials)
-    // must ** sign itself.**
-    //
+    // All KeyCredentials must sign themselves
     if (!VerifySignedBySelf()) {
         otOut << __FUNCTION__ << ": Failed verifying key credential: it's not "
                                  "signed by itself (its own signing key.)\n";
@@ -283,7 +283,7 @@ KeyCredential::KeyCredential(
     const proto::CredentialRole role)
         : ot_super(theOwner, nymParameters)
 {
-    if (Credential::HD != nymParameters.credentialType()) {
+    if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
         m_AuthentKey =
             std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_AUTH);
         m_EncryptKey =
@@ -375,7 +375,7 @@ void KeyCredential::Release_KeyCredential()
 
 }
 
-bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData)
+bool KeyCredential::Sign(Contract& theContract, const OTPasswordData* pPWData) const
 {
     OT_ASSERT(m_SigningKey);
 
@@ -400,10 +400,12 @@ bool KeyCredential::ReEncryptKeys(const OTPassword& theExportPassword,
                      // to keep these changes.
 }
 
-serializedCredential KeyCredential::Serialize(bool asPrivate, bool asSigned) const
+serializedCredential KeyCredential::asSerialized(
+    SerializationModeFlag asPrivate,
+    SerializationSignatureFlag asSigned) const
 {
     serializedCredential serializedCredential =
-        this->ot_super::Serialize(asPrivate, asSigned);
+        this->ot_super::asSerialized(asPrivate, asSigned);
 
     addKeyCredentialtoSerializedCredential(serializedCredential, false);
 
@@ -508,22 +510,6 @@ bool KeyCredential::Sign(
     return keyToUse->Sign(plaintext, sig, pPWData, exportPassword, credID, role);
 }
 
-bool KeyCredential::Sign(
-        const Credential& plaintext,
-        proto::Signature& sig,
-        const OTPasswordData* pPWData,
-        const OTPassword* exportPassword,
-        const proto::SignatureRole role) const
-{
-    serializedCredential serialized = plaintext.SerializeForPublicSignature();
-    return Sign(
-        proto::ProtoAsData<proto::Credential>(*serialized),
-        sig,
-        pPWData,
-        exportPassword,
-        role);
-}
-
 bool KeyCredential::SelfSign(
     const OTPassword* exportPassword,
     const OTPasswordData* pPWData,
@@ -539,7 +525,9 @@ bool KeyCredential::SelfSign(
 
     bool havePublicSig = false;
     if (!onlyPrivate) {
-        const serializedCredential publicVersion = SerializeForPublicSignature();
+        const serializedCredential publicVersion = asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITHOUT_SIGNATURES);
         havePublicSig = Sign(
             proto::ProtoAsData<proto::Credential>(*publicVersion),
             *publicSignature,
@@ -552,7 +540,9 @@ bool KeyCredential::SelfSign(
         }
     }
 
-    serializedCredential privateVersion = SerializeForPrivateSignature();
+    serializedCredential privateVersion = asSerialized(
+        Credential::AS_PRIVATE,
+        Credential::WITHOUT_SIGNATURES);
     bool havePrivateSig = Sign(
         proto::ProtoAsData<proto::Credential>(*privateVersion),
         *privateSignature,
@@ -574,18 +564,22 @@ bool KeyCredential::VerifySig(
 {
     serializedCredential serialized;
 
-    if ((proto::KEYMODE_PRIVATE != m_mode) && asPrivate) {
+    if ((proto::KEYMODE_PRIVATE != mode_) && asPrivate) {
         otErr << __FUNCTION__ << ": Can not serialize a public credential as a private credential.\n";
         return false;
     }
 
     if (asPrivate) {
-        serialized = SerializeForPrivateSignature();
+        serialized = asSerialized(
+            Credential::AS_PRIVATE,
+            Credential::WITHOUT_SIGNATURES);
     } else {
-        serialized = SerializeForPublicSignature();
+        serialized = asSerialized(
+            Credential::AS_PUBLIC,
+            Credential::WITHOUT_SIGNATURES);
     }
 
-    OTData plaintext = SerializeCredToData(*serialized);
+    OTData plaintext = proto::ProtoAsData<proto::Credential>(*serialized);
 
     return theKey.Verify(plaintext, sig);
 }

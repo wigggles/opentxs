@@ -71,6 +71,7 @@ private:
     PaymentCode() = delete;
 
 public:
+    PaymentCode(const std::string& base58);
     PaymentCode(const proto::PaymentCode& paycode);
     PaymentCode(
         const uint32_t nym,
@@ -83,6 +84,7 @@ public:
     const Identifier ID() const;
     const std::string asBase58() const;
     SerializedPaymentCode Serialize() const;
+    bool VerifyInternally() const;
     bool Verify(const MasterCredential& credential) const;
     bool Sign(
         const uint32_t nym,

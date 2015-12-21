@@ -61,6 +61,16 @@ OTData::OTData(const OTASCIIArmor& source)
     }
 }
 
+OTData::OTData(const uint32_t num)
+{
+    Assign(&num, sizeof(uint32_t));
+}
+
+OTData::OTData(const int64_t num)
+{
+    Assign(&num, sizeof(uint64_t));
+}
+
 OTData::OTData(const void* data, uint32_t size)
 {
     Assign(data, size);

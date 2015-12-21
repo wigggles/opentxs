@@ -73,6 +73,7 @@
 #include <opentxs/core/Nym.hpp>
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/crypto/OTSymmetricKey.hpp>
+#include <opentxs/core/Proto.hpp>
 
 #include <opentxs/ext/InstantiateContract.hpp>
 
@@ -465,6 +466,10 @@ bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
     return Identifier::validateID(strPurportedID);
 }
 
+std::string OTAPI_Exec::NymIDFromPaymentCode(const std::string& paymentCode) const
+{
+    return OT_API::NymIDFromPaymentCode(paymentCode);
+}
 
 // CREATE NYM  -- Create new User
 //
@@ -523,7 +528,7 @@ std::string OTAPI_Exec::CreateNymECDSA(
     std::shared_ptr<NymParameters> nymParameters;
     nymParameters = std::make_shared<NymParameters>(
         NymParameters::SECP256K1,
-        Credential::HD);
+        proto::CREDTYPE_HD);
 
     Nym* pNym = OTAPI()->CreateNym(*nymParameters);
     if (nullptr == pNym) // Creation failed.
@@ -652,7 +657,7 @@ std::string OTAPI_Exec::GetNym_MasterCredentialID(const std::string& NYM_ID,
     if (nullptr == pNym) return "";
     std::string str_return;
     const CredentialSet* pCredential =
-        pNym->GetMasterCredentialByIndex(static_cast<const int32_t>(nIndex));
+        pNym->GetMasterCredentialByIndex(nIndex);
 
     if (nullptr != pCredential)
         str_return = pCredential->GetMasterCredID().Get();
@@ -713,7 +718,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredID(const std::string& NYM_ID,
     if (nullptr == pNym) return "";
     std::string str_return;
     const CredentialSet* pCredential =
-        pNym->GetRevokedCredentialByIndex(static_cast<const int32_t>(nIndex));
+        pNym->GetRevokedCredentialByIndex(nIndex);
 
     if (nullptr != pCredential) {
         str_return = pCredential->GetMasterCredID().Get();
@@ -796,8 +801,7 @@ std::string OTAPI_Exec::GetNym_ChildCredentialID(
     CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr != pCredential) // Found the master credential...
-        return pCredential->GetChildCredentialIDByIndex(
-            static_cast<const int32_t>(nIndex));
+        return pCredential->GetChildCredentialIDByIndex(nIndex);
 
     return "";
 }
@@ -832,7 +836,7 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
         const String strSubID(SUB_CRED_ID);
         const Credential* pSub = pCredential->GetChildCredential(strSubID);
 
-        if (nullptr != pSub) return pSub->AsString();
+        if (nullptr != pSub) return pSub->asString();
     }
     return "";
 }
@@ -891,6 +895,74 @@ bool OTAPI_Exec::RevokeChildCredential(const std::string& NYM_ID,
     }
     return false;
 }
+    
+
+std::string OTAPI_Exec::GetContactData(const std::string& NYM_ID) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+        << ": Not initialized; call OT_API::Init first.\n";
+        return "";
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
+        return "";
+    }
+    opentxs::Identifier nymID(NYM_ID);
+    OTPasswordData thePWData(OT_PW_DISPLAY);
+    opentxs::Nym * pNym = OTAPI()->GetOrLoadNym(nymID, false, __FUNCTION__, &thePWData);
+    if (nullptr == pNym) return "";
+    // ------------------------------
+    proto::ContactData contactData = OTAPI()->GetContactData(*pNym);
+    // ------------------------------
+    OTData otData = proto::ProtoAsData<proto::ContactData>(contactData);
+    OTASCIIArmor ascData(otData);
+    // ------------------------------
+    opentxs::String strData;
+    ascData.WriteArmoredString(strData, "CONTACT_DATA");
+    // ------------------------------
+    return strData.Get();
+}
+    
+bool OTAPI_Exec::SetContactData(const std::string& NYM_ID,
+                                const std::string& THE_DATA) const
+{
+    bool bIsInitialized = OTAPI()->IsInitialized();
+    if (!bIsInitialized) {
+        otErr << __FUNCTION__
+        << ": Not initialized; call OT_API::Init first.\n";
+        return false;
+    }
+    if (NYM_ID.empty()) {
+        otErr << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
+        return false;
+    }
+    if (THE_DATA.empty()) {
+        otErr << __FUNCTION__ << ": nullptr THE_DATA passed in!\n";
+        return false;
+    }
+    opentxs::Identifier nymID(NYM_ID);
+    Nym* pNym = OTAPI()->GetOrLoadPrivateNym(nymID, false, __FUNCTION__);
+    if (nullptr == pNym) return false;
+    // ------------------------------
+    opentxs::String strData(THE_DATA);
+    opentxs::OTASCIIArmor ascData;
+    
+    if (!ascData.LoadFromString(strData))
+    {
+        otErr << __FUNCTION__ << ": Failed trying to load ContactData from string.\n";
+        return false;
+    }
+    // ------------------------------
+    OTData otData(ascData);
+    proto::ContactData contactData;
+    if (!contactData.ParseFromArray(otData.GetPointer(), otData.GetSize()))
+        return false;
+    // ------------------------------
+    return OTAPI()->SetContactData(*pNym, contactData);
+}
+
 
 std::string OTAPI_Exec::GetSignerNymID(
     const std::string& str_Contract) const
@@ -6655,7 +6727,7 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(const std::string& THE_CONTRACT,
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTParty* pParty = pScriptable->GetPartyByIndex(
         nTempIndex); // has range-checking built-in.
     if (nullptr == pParty) {
@@ -6686,7 +6758,7 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(const std::string& THE_CONTRACT,
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTBylaw* pBylaw = pScriptable->GetBylawByIndex(
         nTempIndex); // has range-checking built-in.
     if (nullptr == pBylaw) {
@@ -6891,7 +6963,7 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTClause* pClause = pBylaw->GetClauseByIndex(nTempIndex);
     if (nullptr == pClause) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -6981,7 +7053,7 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTVariable* pVar = pBylaw->GetVariableByIndex(nTempIndex);
     if (nullptr == pVar) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -7181,7 +7253,7 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     return pBylaw->GetHookNameByIndex(nTempIndex);
 }
 
@@ -7316,7 +7388,7 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     return pBylaw->GetCallbackNameByIndex(nTempIndex);
 }
 
@@ -7501,7 +7573,7 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
         return "";
     }
 
-    const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+    const int32_t nTempIndex = nIndex;
     OTPartyAccount* pAcct = pParty->GetAccountByIndex(nTempIndex);
     if (nullptr == pAcct) {
         otOut << __FUNCTION__ << ": Smart contract loaded up, and "
@@ -7698,7 +7770,7 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
         }
         else // We found the party...
         {
-            const int32_t nTempIndex = static_cast<const int32_t>(nIndex);
+            const int32_t nTempIndex = nIndex;
             OTAgent* pAgent = pParty->GetAgentByIndex(nTempIndex);
 
             if (nullptr == pAgent) {

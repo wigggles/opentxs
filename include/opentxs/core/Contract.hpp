@@ -280,7 +280,7 @@ public:
     // signature on the contract. So the contract is self-verifying. Right now
     // only public keys are
     // supported, but soon contracts will also support x509 certs.
-    EXPORT virtual bool VerifyContract();
+    EXPORT virtual bool VerifyContract() const;
 
     // Overriden for example in OTOffer, OTMarket.
     // You can get it in string or binary form.

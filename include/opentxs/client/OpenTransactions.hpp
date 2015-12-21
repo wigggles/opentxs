@@ -44,6 +44,8 @@
 #include <opentxs/core/crypto/NymParameters.hpp>
 
 #include <memory>
+#include <set>
+#include <tuple>
 
 namespace opentxs
 {
@@ -82,6 +84,10 @@ private:
 public:
     EXPORT static bool InitOTApp();
     EXPORT static bool CleanupOTApp();
+
+    // Claim fields: identifier, section, type, value, start, end, attributes
+    typedef std::tuple<std::string, uint32_t, uint32_t, std::string, int64_t, int64_t, std::set<uint32_t>> Claim;
+    typedef std::set<Claim> ClaimSet;
 
 private:
     class Pid;
@@ -186,6 +192,16 @@ public:
     EXPORT Nym* GetOrLoadNym(const Identifier& NYM_ID, bool bChecking = false,
                              const char* szFuncName = nullptr,
                              const OTPasswordData* pPWData = nullptr) const;
+    EXPORT proto::ContactData GetContactData(const Nym& fromNym) const;
+    EXPORT ClaimSet GetClaims(const Nym& fromNym) const;
+    EXPORT bool SetContactData(Nym& onNym,
+                               const proto::ContactData&) const;
+    EXPORT std::set<uint32_t> GetContactSections (const uint32_t version = 1);
+    EXPORT std::set<uint32_t> GetContactSectionTypes (const uint32_t section, const uint32_t version = 1);
+    EXPORT std::string GetContactSectionName (const uint32_t section, std::string lang = "en");
+    EXPORT std::string GetContactTypeName (const uint32_t type, std::string lang = "en");
+    EXPORT std::string GetContactAttributeName (const uint32_t type, std::string lang = "en");
+    EXPORT static std::string NymIDFromPaymentCode(const std::string& paymentCode);
 
     EXPORT Account* GetOrLoadAccount(const Nym& theNym,
                                      const Identifier& ACCT_ID,

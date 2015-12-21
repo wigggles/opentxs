@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include <opentxs-proto/verify/VerifyContacts.hpp>
+
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OpenTransactions.hpp>
@@ -1309,11 +1311,11 @@ bool OT_API::IsNym_RegisteredAtServer(const Identifier& NYM_ID,
 
 // --------------------------------------------------------------------
 /**
- 
+
  Since all the Nyms are encrypted to the master key, and since we can change the
  passphrase on the master key without changing the master key itself, then we
  don't have to do anything to update all the Nyms, since that part hasn't changed.
- 
+
  (Make sure to save the wallet also.)
  */
 bool OT_API::Wallet_ChangePassphrase() const
@@ -1347,7 +1349,7 @@ bool OT_API::Wallet_ChangePassphrase() const
     OTCachedKey::It()->SerializeTo(ascBackup); // Just in case!
     // --------------------------------------------------------------------
     const bool bSuccess = pCachedKey->ChangeUserPassphrase();
-    
+
     if (!bSuccess)
     {
         otOut << __FUNCTION__ << ": Failed trying to change the user master passphrase.\n";
@@ -4486,6 +4488,109 @@ Nym* OT_API::GetOrLoadNym(const Identifier& NYM_ID, bool bChecking,
 
     return pWallet->GetOrLoadNym(NYM_ID, bChecking, szFuncName,
                                  nullptr == pPWData ? &thePWData : pPWData);
+}
+
+proto::ContactData OT_API::GetContactData(const Nym& fromNym) const
+{
+    return fromNym.ContactData();
+}
+
+OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
+{
+    proto::ContactData data = GetContactData(fromNym);
+
+    OT_API::ClaimSet claimSet;
+
+    for (auto& section: data.section()) {
+        for (auto& item: section.item()) {
+            std::set<uint32_t> attributes;
+
+            for (auto& attrib: item.attribute()) {
+                attributes.insert(attrib);
+            }
+
+            OTData preimage(static_cast<uint32_t>(section.name()));
+            OTData type(static_cast<uint32_t>(item.type()));
+            OTData start(item.start());
+            OTData end(item.end());
+
+            preimage += type;
+            preimage += start;
+            preimage += end;
+            preimage.Concatenate(item.value().c_str(), item.value().size());
+
+            OTData hash;
+            CryptoEngine::Instance().Hash().Digest(
+                CryptoHash::HASH160,
+                preimage,
+                hash);
+            String ident = CryptoEngine::Instance().Util().Base58CheckEncode(
+                hash);
+
+            Claim claim{ident.Get(), section.name(), item.type(), item.value(),
+                item.start(), item.end(), attributes};
+
+            claimSet.insert(claim);
+        }
+    }
+
+    return claimSet;
+}
+
+bool OT_API::SetContactData(Nym& onNym, const proto::ContactData& data) const
+{
+    return onNym.SetContactData(data);
+}
+
+std::set<uint32_t> OT_API::GetContactSections (const uint32_t version)
+{
+    std::set<uint32_t> sections;
+
+    for (auto& it: proto::AllowedSectionNames.at(version)) {
+        sections.insert(static_cast<uint32_t>(it));
+    }
+
+    return sections;
+}
+
+std::set<uint32_t> OT_API::GetContactSectionTypes (const uint32_t section, const uint32_t version)
+{
+    proto::ContactSectionVersion contactVersion{version, static_cast<proto::ContactSectionName>(section)};
+    std::set<uint32_t> sectionTypes;
+
+    for (auto& it: proto::AllowedItemTypes.at(contactVersion)) {
+        sectionTypes.insert(it);
+    }
+
+    return sectionTypes;
+}
+
+std::string OT_API::GetContactSectionName (const uint32_t section, std::string lang)
+{
+    return proto::TranslateSectionName(section, lang);
+}
+
+std::string OT_API::GetContactTypeName (const uint32_t type, std::string lang)
+{
+    return proto::TranslateItemType(type, lang);
+}
+
+std::string OT_API::GetContactAttributeName (const uint32_t type, std::string lang)
+{
+    return proto::TranslateItemAttributes(type, lang);
+}
+//static
+std::string OT_API::NymIDFromPaymentCode(const std::string& paymentCode)
+{
+    PaymentCode code(paymentCode);
+
+    if (code.VerifyInternally()) {
+        Identifier nymID = code.ID();
+        String nymIDString = nymID;
+        return nymIDString.Get();
+    } else {
+        return "";
+    }
 }
 
 /** Tries to get the account from the wallet.

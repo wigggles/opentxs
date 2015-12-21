@@ -61,7 +61,8 @@ public:
     EXPORT std::string UlongToString(const uint64_t& lNumber) const;
 
     EXPORT bool IsValidID(const std::string& strPurportedID) const;
-
+    EXPORT std::string NymIDFromPaymentCode(const std::string& paymentCode) const;
+    
     /**
     INITIALIZE the OTAPI library
 
@@ -461,6 +462,10 @@ public:
     EXPORT bool RevokeChildCredential(const std::string& NYM_ID,
                                     const std::string& MASTER_CRED_ID,
                                     const std::string& SUB_CRED_ID) const;
+
+    EXPORT std::string GetContactData(const std::string& NYM_ID) const;
+    EXPORT bool SetContactData(const std::string& NYM_ID,
+                               const std::string& THE_DATA) const;
 
     /** Creates a contract based on the contents passed in,
     // then sets the contract key based on the NymID,

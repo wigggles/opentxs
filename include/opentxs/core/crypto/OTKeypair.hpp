@@ -116,7 +116,9 @@ public:
     EXPORT ~OTKeypair();
 
     serializedAsymmetricKey Serialize(bool privateKey = false) const;
-
+    virtual bool Verify(
+        const OTData& plaintext,
+        const proto::Signature& sig) const;
 };
 
 } // namespace opentxs
