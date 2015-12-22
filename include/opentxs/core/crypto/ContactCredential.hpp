@@ -66,7 +66,7 @@ public:
     bool GetContactData(proto::ContactData& contactData) const override;
     virtual serializedCredential asSerialized(
         SerializationModeFlag asPrivate,
-        SerializationSignatureFlag asSigned) const;
+        SerializationSignatureFlag asSigned) const override;
 
     virtual ~ContactCredential() = default;
 };
