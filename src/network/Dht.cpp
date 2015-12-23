@@ -36,6 +36,7 @@
  *
  ************************************************************/
 
+#include <opentxs/core/OTData.hpp>
 #include <opentxs/network/Dht.hpp>
 
 namespace opentxs
@@ -54,7 +55,7 @@ void Dht::Init(int port)
 {
     int listenPort = port;
 
-    if ((1000 >= port) || (65535 <= port)) {
+    if ((port <= 1000) || (port >= 65535)) {
         listenPort = 4222;
     }
 
@@ -70,6 +71,43 @@ Dht& Dht::Node(int port)
     }
 
     return *instance_;
+}
+
+void Dht::Insert(
+    const std::string& key,
+    OTData& value,
+    dht::Dht::DoneCallbackSimple cb)
+{
+    if (nullptr != node_) {
+        node_->put(key, value.asVector(), cb);
+    }
+}
+
+void Dht::Insert(
+    const std::string& key,
+    std::string& value,
+    dht::Dht::DoneCallbackSimple cb)
+{
+    OTData data(value.c_str(), value.size());
+
+    Insert(key, data, cb);
+}
+
+void Dht::Retrieve(
+    const std::string& key,
+    dht::Dht::GetCallback vcb,
+    dht::Dht::DoneCallbackSimple dcb,
+    dht::Value::Filter f)
+{
+    if (nullptr != node_) {
+        node_->get(key, vcb, dcb, f);
+    }
+}
+
+// temporary for development only
+dht::DhtRunner* Dht::p()
+{
+    return node_;
 }
 
 void Dht::Cleanup()

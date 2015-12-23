@@ -39,6 +39,7 @@
 #ifndef OPENTXS_CORE_OTDATA_HPP
 #define OPENTXS_CORE_OTDATA_HPP
 
+#include <string>
 #include <cstdint>
 #include <vector>
 
@@ -88,6 +89,7 @@ public:
     EXPORT bool Randomize(uint32_t size);
     EXPORT void zeroMemory() const;
     EXPORT uint32_t OTfread(uint8_t* data, uint32_t size);
+    EXPORT std::vector<uint8_t> asVector();
 
     inline void reset()
     {

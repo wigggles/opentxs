@@ -45,6 +45,8 @@
 namespace opentxs
 {
 
+class OTData;
+
 //Singlton class for providing an interface to OpenDHT.
 class Dht
 {
@@ -61,6 +63,20 @@ private:
 
 public:
     EXPORT static Dht& Node(int port = 4222);
+    EXPORT void Insert(
+        const std::string& key,
+        OTData& value,
+        dht::Dht::DoneCallbackSimple cb={});
+    EXPORT void Insert(
+        const std::string& key,
+        std::string& value,
+        dht::Dht::DoneCallbackSimple cb={});
+    EXPORT void Retrieve(
+        const std::string& key,
+        dht::Dht::GetCallback vcb,
+        dht::Dht::DoneCallbackSimple dcb={},
+        dht::Value::Filter f = dht::Value::AllFilter());
+    dht::DhtRunner* p();
     void Cleanup();
     ~Dht();
 };

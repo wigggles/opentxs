@@ -89,6 +89,10 @@
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
+#if OT_DHT
+#include <opentxs/network/Dht.hpp>
+#endif
+
 #if defined(OT_KEYRING_FLATFILE)
 #include <opentxs/core/crypto/OTKeyring.hpp>
 #endif
@@ -563,7 +567,9 @@ bool OT_API::CleanupOTApp()
         // like the best default, in absence of any brighter ideas.
         //
         App::Me().Cleanup();
-
+#if OT_DHT
+        Dht::Node().Cleanup();
+#endif
         return true;
     }
     else {

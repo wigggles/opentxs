@@ -41,7 +41,7 @@ else()
   )
 endif()
 
-target_link_libraries(${MODULE_NAME} PUBLIC ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
+target_link_libraries(${MODULE_NAME} PUBLIC opentxs-core ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
 
 set_lib_property(${MODULE_NAME})
 

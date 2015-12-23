@@ -39,11 +39,16 @@
 #ifndef OPENTXS_SERVER_SERVERLOADER_HPP
 #define OPENTXS_SERVER_SERVERLOADER_HPP
 
+#include <vector>
+
 #include "OTServer.hpp"
 #include <opentxs/core/app/App.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/util/OTDataFolder.hpp>
 #include <opentxs/core/Log.hpp>
+#if OT_DHT
+#include <opentxs/network/Dht.hpp>
+#endif
 
 #include <czmq.h>
 
@@ -91,6 +96,9 @@ public:
         }
 
         App::Me();
+#if OT_DHT
+        Dht::Node();
+#endif
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent
         // in envelopes. It also does various other initialization work.
@@ -119,6 +127,9 @@ public:
         }
         OTCachedKey::Cleanup();
         App::Me().Cleanup();
+#if OT_DHT
+        Dht::Node().Cleanup();
+#endif
     }
 
     OTServer* getServer()

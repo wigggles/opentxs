@@ -37,6 +37,7 @@
  ************************************************************/
 
 #include <opentxs/server/MainFile.hpp>
+#include <opentxs/network/Dht.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
@@ -582,6 +583,15 @@ bool MainFile::LoadServerUserAndContract()
                 Log::Output(0, "\n** Main Server Contract Verified **\n");
                 server_->m_pServerContract.swap(pContract);
                 bSuccess = true;
+#if OT_DHT
+                OTData contract = server_->m_pServerContract->asData();
+                Dht::Node().Insert(
+                    server_->m_strNotaryID.Get(),
+                    contract,
+                    [](bool ok) { std::cout <<
+                        (ok ? "server contract inserted into DHT" : "failure")
+                        << std::endl;});
+#endif
             }
             else {
                 Log::Output(0, "\nMain Server Contract FAILED to verify.\n");
