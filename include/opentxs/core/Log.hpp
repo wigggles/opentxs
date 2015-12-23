@@ -45,6 +45,8 @@
 #include <deque>
 #include <iostream>
 #include <cstdint>
+#include <chrono>
+#include <thread>
 
 #if defined(unix) || defined(__unix__) || defined(__unix) ||                   \
     defined(__APPLE__) || defined(linux) || defined(__linux) ||                \
@@ -171,7 +173,7 @@ public:
     EXPORT static bool PopMemlogFront();
     EXPORT static bool PopMemlogBack();
     EXPORT static bool PushMemlogFront(const String& strLog);
-    EXPORT static bool SleepMilliseconds(int64_t lMilliseconds);
+    EXPORT static bool Sleep(const std::chrono::microseconds us);
 
     // Output() logs normal output, which carries a verbosity level.
     //

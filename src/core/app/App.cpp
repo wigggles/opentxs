@@ -36,6 +36,7 @@
  *
  ************************************************************/
 
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -99,7 +100,7 @@ void App::Periodic()
             storage_->RunGC();
         }
 
-        Log::SleepMilliseconds(250);
+        Log::Sleep(std::chrono::milliseconds(250));
     }
 }
 

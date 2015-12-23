@@ -36,6 +36,8 @@
  *
  ************************************************************/
 
+#include <chrono>
+
 #include <opentxs/server/ServerSettings.hpp>
 #include <opentxs/server/ServerLoader.hpp>
 #include <opentxs/server/MessageProcessor.hpp>
@@ -114,7 +116,7 @@ void MessageProcessor::run()
         if (!zpoller_expired(zmqPoller_)) {
             otErr << __FUNCTION__ << ": zpoller_wait error\n";
             // we do not want busy loop if something goes wrong
-            Log::SleepMilliseconds(100);
+            Log::Sleep(std::chrono::milliseconds(100));
         }
     }
 }
