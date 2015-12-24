@@ -97,7 +97,7 @@ public:
 
         App::Me();
 #if OT_DHT
-        Dht::Node();
+        Dht::Node(4223);
 #endif
 
         // OTServer::Init loads up server's nym so it can decrypt messages sent

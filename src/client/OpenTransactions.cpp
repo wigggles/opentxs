@@ -89,10 +89,6 @@
 #include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/core/OTStorage.hpp>
 
-#if OT_DHT
-#include <opentxs/network/Dht.hpp>
-#endif
-
 #if defined(OT_KEYRING_FLATFILE)
 #include <opentxs/core/crypto/OTKeyring.hpp>
 #endif
@@ -529,6 +525,9 @@ bool OT_API::InitOTApp()
             otErr << __FUNCTION__ << ": Unable to Init data folders";
             OT_FAIL;
         }
+#if OT_DHT
+        Dht::Node(4221);
+#endif
 
         App::Me();
 
@@ -13724,6 +13723,11 @@ int32_t OT_API::SendMessage(OTServerContract* pServerContract, Nym* pNym,
     // That will suffice for 2 billion request or 70 years if the client makes
     // a request every second.
     return static_cast<int32_t>(requestNumber);
+}
+
+Dht& OT_API::getDHT()
+{
+    return Dht::Node();
 }
 
 } // namespace opentxs

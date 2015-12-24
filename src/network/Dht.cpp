@@ -38,6 +38,7 @@
 
 #include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTData.hpp>
+#include <opentxs/core/OTServerContract.hpp>
 #include <opentxs/network/Dht.hpp>
 
 namespace opentxs
@@ -85,8 +86,12 @@ void Dht::Insert(
 
     otErr << "Inserting key: " << infoHash.toString() << "\n";
 
+    std::shared_ptr<dht::Value> pValue = std::make_shared<dht::Value>(
+        static_cast<const uint8_t*>(value.GetPointer()),
+        value.GetSize());
+
     if (nullptr != node_) {
-        node_->put(infoHash, value.asVector(), cb);
+        node_->put(infoHash, pValue, cb);
     }
 }
 
@@ -109,6 +114,38 @@ void Dht::Retrieve(
     if (nullptr != node_) {
         node_->get(key, vcb, dcb, f);
     }
+}
+
+// static
+bool Dht::ProcessServerContract(
+    const std::vector<std::shared_ptr<dht::Value>>& values)
+{
+    std::string theresult;
+    bool foundData = false;
+
+    for (const auto & it: values)
+    {
+        auto & ptr = *it;
+        std::string data(ptr.data.begin(), ptr.data.end());
+        foundData = data.size() > 0;
+
+        if (data.size() > 0) {
+            OTServerContract newContract;
+            bool loaded = newContract.LoadContractFromString(data);
+
+            if (loaded) {
+                otErr << "Loaded contract." << std::endl;
+            } else {
+                otErr << "Something went wrong." << std::endl;
+            }
+        }
+    }
+
+    if (!foundData) {
+        otErr << "empty result." << std::endl;
+    }
+
+    return foundData;
 }
 
 // temporary for development only

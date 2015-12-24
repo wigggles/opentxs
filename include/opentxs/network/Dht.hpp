@@ -76,6 +76,8 @@ public:
         dht::Dht::GetCallback vcb,
         dht::Dht::DoneCallbackSimple dcb={},
         dht::Value::Filter f = dht::Value::AllFilter());
+    EXPORT static bool ProcessServerContract(
+        const std::vector<std::shared_ptr<dht::Value>>& values);
     dht::DhtRunner* p();
     void Cleanup();
     ~Dht();
