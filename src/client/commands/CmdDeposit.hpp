@@ -149,11 +149,12 @@ public:
     EXPORT int32_t depositCheque(const std::string& server,
                                  const std::string& myacct,
                                  const std::string& mynym,
-                                 const std::string& instrument) const;
+                                 const std::string& instrument,
+                                 std::string * pOptionalOutput=nullptr) const;
     EXPORT int32_t
         depositPurse(const std::string& server, const std::string& myacct,
                      const std::string& mynym, std::string instrument,
-                     const std::string& indices) const;
+                     const std::string& indices, std::string * pOptionalOutput=nullptr) const;
 
 protected:
     virtual int32_t runWithOptions();

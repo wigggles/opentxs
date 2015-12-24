@@ -158,7 +158,8 @@ int32_t CmdDeposit::run(string mynym, string myacct, string indices)
 
 int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
                                   const string& mynym,
-                                  const string& instrument) const
+                                  const string& instrument,
+                                  string * pOptionalOutput/*=nullptr*/) const
 {
     string assetType = getAccountAssetType(myacct);
     if ("" == assetType) {
@@ -180,6 +181,9 @@ int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
         return reply;
     }
 
+    if (nullptr != pOptionalOutput)
+        *pOptionalOutput = response;
+    
     if (!MadeEasy::retrieve_account(server, mynym, myacct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
@@ -190,7 +194,7 @@ int32_t CmdDeposit::depositCheque(const string& server, const string& myacct,
 
 int32_t CmdDeposit::depositPurse(const string& server, const string& myacct,
                                  const string& mynym, string instrument,
-                                 const string& indices) const
+                                 const string& indices, string * pOptionalOutput/*=nullptr*/) const
 {
     string assetType = getAccountAssetType(myacct);
     if ("" == assetType) {
@@ -200,7 +204,7 @@ int32_t CmdDeposit::depositPurse(const string& server, const string& myacct,
     if ("" != instrument) {
         vector<string> tokens;
         return MadeEasy::depositCashPurse(server, assetType, mynym, instrument,
-                                          tokens, myacct, false);
+                                          tokens, myacct, false, pOptionalOutput);
     }
 
     // we have to load the purse ourselves
@@ -216,5 +220,5 @@ int32_t CmdDeposit::depositPurse(const string& server, const string& myacct,
     }
 
     return MadeEasy::depositCashPurse(server, assetType, mynym, instrument,
-                                      tokens, myacct, true);
+                                      tokens, myacct, true, pOptionalOutput);
 }

@@ -163,13 +163,15 @@ private:
                               const std::string& mynym,
                               const std::string& myacct,
                               const std::string& hisnym,
-                              const std::string& instrument, int32_t nIndex);
-    int32_t confirmPaymentPlan(const std::string& plan);
+                              const std::string& instrument, int32_t nIndex,
+                              std::string * pOptionalOutput=nullptr);
+    int32_t confirmPaymentPlan(const std::string& plan, std::string * pOptionalOutput=nullptr);
     int32_t confirmSmartContract(const std::string& server,
                                  const std::string& mynym,
                                  const std::string& myacct,
                                  const std::string& hisnym,
-                                 const std::string& contract, int32_t nIndex);
+                                 const std::string& contract, int32_t nIndex,
+                                 std::string * pOptionalOutput=nullptr);
     int32_t sendToNextParty(const std::string& server, const std::string& mynym,
                             const std::string& hisnym,
                             const std::string& contract);

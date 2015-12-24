@@ -1239,8 +1239,8 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
     const string& notaryID, const string& instrumentDefinitionID,
     const string& nymID, const string& oldPurse,
     const vector<string>& selectedTokens, const string& accountID,
-    bool bReimportIfFailure) // So we don't re-import a purse that wasn't
-                             // internal to begin with.
+    bool bReimportIfFailure, // So we don't re-import a purse that wasn't internal to begin with.
+    string * pOptionalOutput/*=nullptr*/)
 {
     string recipientNymID = OTAPI_Wrap::GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {
@@ -1279,6 +1279,10 @@ OT_MADE_EASY_OT int32_t MadeEasy::depositCashPurse(
         notaryID, recipientNymID, accountID, strAttempt, strResponse);
 
     if (1 == nInterpretReply) {
+        
+        if (nullptr != pOptionalOutput)
+            *pOptionalOutput = strResponse;
+        
         // Download all the intermediary files (account balance, inbox, outbox,
         // etc)
         // since they have probably changed from this operation.

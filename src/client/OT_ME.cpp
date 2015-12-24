@@ -517,6 +517,15 @@ bool OT_ME::accept_from_paymentbox(const std::string& ACCOUNT_ID,
     return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE);
 }
 
+bool OT_ME::accept_from_paymentbox_overload(const std::string& ACCOUNT_ID,
+                                            const std::string& INDICES,
+                                            const std::string& PAYMENT_TYPE,
+                                            std::string * pOptionalOutput/*=nullptr*/) const
+{
+    CmdAcceptPayments cmd;
+    return 1 == cmd.acceptFromPaymentbox(ACCOUNT_ID, INDICES, PAYMENT_TYPE, pOptionalOutput);
+}
+
 // load_public_key():
 //
 // Load a public key from local storage, and return it (or null).

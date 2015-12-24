@@ -5794,6 +5794,26 @@ int64_t OTTransaction::GetReferenceNumForDisplay()
     case OTTransaction::basketReceipt:
     case OTTransaction::finalReceipt:
     case OTTransaction::instrumentNotice:
+            /*
+             NOTE: Right about here you might be wondering to yourself, Hmm,
+             I wonder why the instrumentNotice returns the GetReferenceToNum.
+             I guess I'd think that an instrumentNotice containing an incoming
+             cheque should have the cheque# as its "in reference to" number.
+             Makes sense, right?
+             
+             ...EXCEPT THAT CHEQUE IS ENCRYPTED. The payload on an instrumentNotice
+             is encrypted. So unless we had the recipient's private key inside this
+             function, which we don't, we have no way of decrypting that cheque and
+             returning the "Display" number that the user actually wants to see.
+             
+             TODO long term: Add a Nym* parameter so we have the OPTION here to
+             decrypt the payload and return the correct data.
+             
+             In the meantime, I don't need to change anything here, since OTRecordList
+             decrypts the payloads already, and has a pPayment* now where I can get the
+             actual instrument's transaction number. So I will harvest it in OTRecordList
+             and from there the GUI will have the right one.
+             */
     case OTTransaction::instrumentRejection:
         lReferenceNum = GetReferenceToNum();
         break;

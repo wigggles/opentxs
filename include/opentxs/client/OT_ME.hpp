@@ -185,7 +185,12 @@ public:
     EXPORT bool accept_from_paymentbox(const std::string& ACCOUNT_ID,
                                        const std::string& INDICES,
                                        const std::string& PAYMENT_TYPE) const;
-
+    
+    EXPORT bool accept_from_paymentbox_overload(const std::string& ACCOUNT_ID,
+                                       const std::string& INDICES,
+                                       const std::string& PAYMENT_TYPE,
+                                       std::string * pOptionalOutput=nullptr) const;
+    
     EXPORT std::string load_public_encryption_key(
         const std::string& NYM_ID) const;
 
