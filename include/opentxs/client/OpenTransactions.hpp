@@ -39,6 +39,10 @@
 #ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 #define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
 
+#if OT_DHT
+#include <opentxs/network/Dht.hpp>
+#endif
+
 #include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/core/crypto/NymParameters.hpp>
@@ -1134,6 +1138,10 @@ public:
 
     EXPORT void AddServerContract(const OTServerContract& pContract) const;
     EXPORT void AddAssetContract(const AssetContract& theContract) const;
+
+    #if OT_DHT
+    EXPORT Dht& getDHT();
+    #endif
 
 private:
     std::shared_ptr<Settings> LoadConfigFile();
