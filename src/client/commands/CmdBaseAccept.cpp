@@ -235,7 +235,8 @@ int32_t CmdBaseAccept::acceptFromInbox(const string& myacct,
 
 int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
                                             const string& indices,
-                                            const string& paymentType) const
+                                            const string& paymentType,
+                                            string * pOptionalOutput/*=nullptr*/) const
 {
     if ("" == myacct) {
         otOut << "Error: myacct is empty.\n";
@@ -279,7 +280,7 @@ int32_t CmdBaseAccept::acceptFromPaymentbox(const string& myacct,
     for (int32_t i = items - 1; 0 <= i; i--) {
         if (all || OTAPI_Wrap::NumList_VerifyQuery(indices, to_string(i))) {
             CmdPayInvoice payInvoice;
-            payInvoice.processPayment(myacct, paymentType, inbox, i);
+            payInvoice.processPayment(myacct, paymentType, inbox, i, pOptionalOutput);
         }
     }
 

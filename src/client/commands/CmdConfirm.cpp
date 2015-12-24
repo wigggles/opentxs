@@ -134,7 +134,8 @@ int32_t CmdConfirm::run(string server, string mynym, string myacct,
 int32_t CmdConfirm::confirmInstrument(const string& server, const string& mynym,
                                       const string& myacct,
                                       const string& hisnym,
-                                      const string& instrument, int32_t index)
+                                      const string& instrument, int32_t index,
+                                      std::string * pOptionalOutput/*=nullptr*/)
 {
     string instrumentType = OTAPI_Wrap::Instrmnt_GetType(instrument);
     if ("" == instrumentType) {
@@ -171,12 +172,12 @@ int32_t CmdConfirm::confirmInstrument(const string& server, const string& mynym,
     }
 
     if ("PAYMENT PLAN" == instrumentType) {
-        return confirmPaymentPlan(instrument);
+        return confirmPaymentPlan(instrument, pOptionalOutput);
     }
 
     if ("SMARTCONTRACT" == instrumentType) {
         return confirmSmartContract(server, mynym, myacct, hisnym, instrument,
-                                    index);
+                                    index, pOptionalOutput);
     }
 
     // CHEQUE VOUCHER INVOICE PURSE
@@ -184,7 +185,7 @@ int32_t CmdConfirm::confirmInstrument(const string& server, const string& mynym,
     return -1;
 }
 
-int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
+int32_t CmdConfirm::confirmPaymentPlan(const string& plan, string * pOptionalOutput/*=nullptr*/)
 {
     string server = OTAPI_Wrap::Instrmnt_GetNotaryID(plan);
     if ("" == server) {
@@ -227,6 +228,7 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
     // the payment plan that we confirmed
     string response =
         MadeEasy::deposit_payment_plan(server, senderUser, confirmed);
+    
     int32_t success = responseStatus(response);
     if (1 != success) {
         otOut << "Error: cannot deposit payment plan.\n";
@@ -239,6 +241,9 @@ int32_t CmdConfirm::confirmPaymentPlan(const string& plan)
     if (1 != reply) {
         return reply;
     }
+
+    if (nullptr != pOptionalOutput)
+        *pOptionalOutput = response;
 
     if (!MadeEasy::retrieve_account(server, senderUser, senderAcct, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
@@ -268,7 +273,8 @@ int32_t CmdConfirm::confirmSmartContract(const string& server,
                                          const string& mynym,
                                          const string& myacct,
                                          const string& hisnym,
-                                         const string& contract, int32_t index)
+                                         const string& contract, int32_t index,
+                                         string * pOptionalOutput/*=nullptr*/)
 {
     int32_t parties = OTAPI_Wrap::Smart_GetPartyCount(contract);
     if (0 > parties) {
@@ -370,6 +376,9 @@ int32_t CmdConfirm::confirmSmartContract(const string& server,
         otOut << "Error: cannot confirm smart contract party.\n";
         return harvestTxNumbers(contract, mynym);
     }
+
+    if (nullptr != pOptionalOutput)
+        *pOptionalOutput = confirmed;
 
     if (OTAPI_Wrap::Smart_AreAllPartiesConfirmed(confirmed)) {
         // If you are the last party to sign, then ACTIVATE THE SMART CONTRACT.

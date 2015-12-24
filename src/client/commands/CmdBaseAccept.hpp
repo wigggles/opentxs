@@ -149,7 +149,8 @@ public:
                                    const int32_t itemType) const;
     EXPORT int32_t acceptFromPaymentbox(const std::string& myacct,
                                         const std::string& indices,
-                                        const std::string& paymentType) const;
+                                        const std::string& paymentType,
+                                        std::string * pOptionalOutput=nullptr) const;
 };
 
 } // namespace opentxs

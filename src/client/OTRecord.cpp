@@ -39,6 +39,7 @@
 #include <opentxs/core/stdafx.hpp>
 
 #include <opentxs/client/OTRecord.hpp>
+#include <opentxs/client/OTRecordList.hpp>
 #include <opentxs/client/OpenTransactions.hpp>
 #include <opentxs/client/OT_ME.hpp>
 #include <opentxs/client/OTAPI.hpp>
@@ -860,13 +861,22 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
         strIndices.Format("%d", nIndex);
         const std::string str_indices(strIndices.Get());
 
+        std::string str_server_response;
+
         OT_ME madeEasy;
-        if (!madeEasy.accept_from_paymentbox(str_into_acct, str_indices,
-                                             "ANY")) {
+        if (!madeEasy.accept_from_paymentbox_overload(str_into_acct, str_indices,
+                                             "ANY", &str_server_response)) {
             otErr << __FUNCTION__
                   << ": Error while trying to accept this instrument.\n";
             return false;
         }
+        else
+            backlink_.notifyOfSuccessfulNotarization(str_into_acct,
+                                                     m_str_nym_id,
+                                                     m_str_notary_id,
+                                                     str_server_response,
+                                                     m_lTransactionNum,
+                                                     m_lTransNumForDisplay);
     } // case: instrument
     break;
     default:
@@ -1344,7 +1354,8 @@ bool OTRecord::operator<(const OTRecord& rhs)
 {
     return m_ValidFrom < rhs.m_ValidFrom;
 }
-OTRecord::OTRecord(const std::string& str_notary_id,
+OTRecord::OTRecord(OTRecordList & backlink,
+                   const std::string& str_notary_id,
                    const std::string& str_instrument_definition_id,
                    const std::string& str_currency_tla,
                    const std::string& str_nym_id,
@@ -1353,7 +1364,9 @@ OTRecord::OTRecord(const std::string& str_notary_id,
                    const std::string& str_amount, const std::string& str_type,
                    bool bIsPending, bool bIsOutgoing, bool bIsRecord,
                    bool bIsReceipt, OTRecordType eRecordType)
-    : m_nBoxIndex(-1)
+    
+    : backlink_(backlink)
+    , m_nBoxIndex(-1)
     , m_ValidFrom(OT_TIME_ZERO)
     , m_ValidTo(OT_TIME_ZERO)
     , m_str_notary_id(str_notary_id)
