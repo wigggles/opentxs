@@ -3,6 +3,7 @@
 include_directories(SYSTEM
   ${ZEROMQ_INCLUDE_DIRS}
   ${CZMQ_INCLUDE_DIR}
+  ${OPENDHT_INCLUDE_DIR}
 )
 
 set(cxx-sources

@@ -38,6 +38,9 @@
 
 #include <opentxs/core/stdafx.hpp>
 
+#include <opentxs/client/OpenTransactions.hpp>
+#include <opentxs/client/OTAPI.hpp>
+#include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OTWallet.hpp>
 
 #include <opentxs/cash/Purse.hpp>
@@ -2031,6 +2034,62 @@ std::string OTWallet::GetHDWordlist() const
     }
     return wordlist;
 }
+
+#if OT_DHT
+bool OTWallet::ProcessServerContract(
+    const std::vector<std::shared_ptr<dht::Value>>& values)
+{
+    std::string theresult;
+    bool foundData = false;
+    bool foundValid = false;
+
+    for (const auto & it: values)
+    {
+        auto & ptr = *it;
+        std::string data(ptr.data.begin(), ptr.data.end());
+        foundData = data.size() > 0;
+
+        if (ptr.user_type.size() > 0) {
+            Identifier contractID(ptr.user_type);
+
+            if (data.size() > 0) {
+                OTServerContract* newContract = new OTServerContract;
+                bool loaded = newContract->LoadContractFromString(data);
+
+                if (loaded) {
+                    Identifier serverID;
+                    newContract->SetIdentifier(contractID);
+
+                    if (newContract->VerifyContract()) {
+                        String strContractPath(OTFolders::Contract().Get());
+
+                        OTWallet* wallet =
+                            opentxs::OTAPI_Wrap::It()->OTAPI()->GetWallet();
+
+                        if (nullptr != wallet) {
+                            wallet->AddServerContract(*newContract);
+                            otLog3 << "Saved contract: " << ptr.user_type
+                                << std::endl;
+                            foundValid = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (!foundValid) {
+        otErr << "Found results, but none are valid." << std::endl;
+    }
+
+    if (!foundData) {
+        otErr << "All results are empty" << std::endl;
+    }
+
+    return foundData;
+}
+#endif
 
 bool OTWallet::ConvertNymToCachedKey(Nym& theNym)
 {

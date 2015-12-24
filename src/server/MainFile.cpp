@@ -587,10 +587,6 @@ bool MainFile::LoadServerUserAndContract()
                 otErr << "Inserting server contract: "
                       << server_->m_strNotaryID.Get() << std::endl;
                 OTData contract = server_->m_pServerContract->asData();
-                std::string strContract(
-                    static_cast<const char*>(contract.GetPointer()),
-                    contract.GetSize());
-                otErr << strContract << std::endl;
                 Dht::Node().Insert(
                     server_->m_strNotaryID.Get(),
                     contract,

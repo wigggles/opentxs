@@ -47,6 +47,10 @@
 #include <set>
 #include <string>
 
+#if OT_DHT
+#include <opendht.h>
+#endif
+
 namespace opentxs
 {
 
@@ -222,6 +226,10 @@ public:
     EXPORT bool RemovePrivateNym(const Identifier& theTargetID);
     EXPORT bool RemovePublicNym(const Identifier& theTargetID);
     EXPORT std::string GetHDWordlist() const;
+#if OT_DHT
+    EXPORT static bool ProcessServerContract(
+        const std::vector<std::shared_ptr<dht::Value>>& values);
+#endif
 
 private:
     void AddNym(const Nym& theNym, mapOfNyms& map);
