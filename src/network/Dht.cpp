@@ -137,6 +137,7 @@ bool Dht::ProcessServerContract(
                 otErr << "Loaded contract." << std::endl;
             } else {
                 otErr << "Something went wrong." << std::endl;
+                otErr << contract << std::endl;
             }
         }
     }

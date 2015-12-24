@@ -2115,10 +2115,11 @@ OTData Contract::asData()
     SaveContract();
 
     if (!m_strRawFile.empty()) {
-        OTASCIIArmor ascTemp(m_strRawFile);
-        String strFinal;
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get());
-        contract.Assign(ascTemp.Get(), ascTemp.GetLength());
+        //OTASCIIArmor ascTemp(m_strRawFile);
+        //String strFinal;
+        //ascTemp.WriteArmoredString(strFinal, m_strContractType.Get());
+        //contract.Assign(ascTemp.Get(), ascTemp.GetLength());
+        contract.Assign(m_strRawFile.Get(), m_strRawFile.GetLength()+1);
     }
 
     return contract;
