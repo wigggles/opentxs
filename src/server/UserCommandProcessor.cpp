@@ -36,6 +36,7 @@
  *
  ************************************************************/
 
+#include <opentxs/network/Dht.hpp>
 #include <opentxs/server/UserCommandProcessor.hpp>
 #include <opentxs/server/OTServer.hpp>
 #include <opentxs/server/ClientConnection.hpp>
@@ -2185,7 +2186,19 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                 if (pAssetContract->VerifyContract()) {
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
-
+#if OT_DHT
+                    otErr << "Publishing asset contract: "
+                    << MsgIn.m_strInstrumentDefinitionID.Get() << std::endl;
+                    OTData contract = pAssetContract->asData();
+                    Dht::Node().Insert(
+                        MsgIn.m_strInstrumentDefinitionID.Get(),
+                        contract,
+                        [](bool ok) { std::cout <<
+                            (ok ?
+                                "Asset contract published in DHT" :
+                                "Failed to publish asset contract")
+                            << std::endl;});
+#endif
                     std::unique_ptr<Account> pNewAccount(
                         Account::GenerateNewAccount(NYM_ID, NOTARY_ID,
                                                     server_->m_nymServer, MsgIn,
