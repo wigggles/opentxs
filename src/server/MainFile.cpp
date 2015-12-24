@@ -481,6 +481,19 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             server_->transactor_
                                 .contractsMap_[InstrumentDefinitionID.Get()] =
                                 pContract;
+#if OT_DHT
+                            otErr << "Publishing asset contract: "
+                                << InstrumentDefinitionID.Get() << std::endl;
+                            OTData contract = pContract->asData();
+                            Dht::Node().Insert(
+                                InstrumentDefinitionID.Get(),
+                                contract,
+                                [](bool ok) { std::cout <<
+                                    (ok ?
+                                        "Asset contract published in DHT" :
+                                        "Failed to publish asset contract")
+                                    << std::endl;});
+#endif
                         }
                         else {
                             delete pContract;
@@ -584,14 +597,16 @@ bool MainFile::LoadServerUserAndContract()
                 server_->m_pServerContract.swap(pContract);
                 bSuccess = true;
 #if OT_DHT
-                otErr << "Inserting server contract: "
+                otErr << "Publishing server contract: "
                       << server_->m_strNotaryID.Get() << std::endl;
                 OTData contract = server_->m_pServerContract->asData();
                 Dht::Node().Insert(
                     server_->m_strNotaryID.Get(),
                     contract,
                     [](bool ok) { std::cout <<
-                        (ok ? "server contract inserted into DHT" : "failure")
+                        (ok ?
+                            "Server contract published in DHT" :
+                            "Failed to publish server contract in DHT")
                         << std::endl;});
 #endif
             }
