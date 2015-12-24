@@ -111,6 +111,22 @@ void Dht::Insert(
     Insert(key, data, cb);
 }
 
+void Dht::Insert(
+    const std::string ID,
+    const Contract& contract)
+{
+    otErr << "Publishing contract: " << ID << std::endl;
+    OTData data = contract.asData();
+    Insert(
+        ID,
+        data,
+        [](bool ok) { std::cout <<
+            (ok ?
+            "Contract published in DHT" :
+            "Failed to publish contract")
+            << std::endl;});
+}
+
 void Dht::Retrieve(
     const std::string& key,
     dht::Dht::GetCallback vcb,

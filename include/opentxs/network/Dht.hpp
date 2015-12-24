@@ -42,6 +42,8 @@
 #if OT_DHT
 #include <opendht.h>
 
+#include <opentxs/core/Contract.hpp>
+
 namespace opentxs
 {
 
@@ -71,6 +73,9 @@ public:
         const std::string& key,
         std::string& value,
         dht::Dht::DoneCallbackSimple cb={});
+    EXPORT void Insert(
+        const std::string ID,
+        const Contract& contract);
     EXPORT void Retrieve(
         const std::string& key,
         dht::Dht::GetCallback vcb,

@@ -2187,17 +2187,9 @@ void UserCommandProcessor::UserCmdRegisterInstrumentDefinition(Nym& theNym,
                     // Create an ISSUER account (like a normal account, except
                     // it can go negative)
 #if OT_DHT
-                    otErr << "Publishing asset contract: "
-                    << MsgIn.m_strInstrumentDefinitionID.Get() << std::endl;
-                    OTData contract = pAssetContract->asData();
                     Dht::Node().Insert(
                         MsgIn.m_strInstrumentDefinitionID.Get(),
-                        contract,
-                        [](bool ok) { std::cout <<
-                            (ok ?
-                                "Asset contract published in DHT" :
-                                "Failed to publish asset contract")
-                            << std::endl;});
+                        *pAssetContract);
 #endif
                     std::unique_ptr<Account> pNewAccount(
                         Account::GenerateNewAccount(NYM_ID, NOTARY_ID,

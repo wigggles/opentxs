@@ -2108,7 +2108,7 @@ int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
     return 0;
 }
 
-OTData Contract::asData()
+OTData Contract::asData() const
 {
     OTData contract;
 
