@@ -584,6 +584,8 @@ bool MainFile::LoadServerUserAndContract()
                 server_->m_pServerContract.swap(pContract);
                 bSuccess = true;
 #if OT_DHT
+                otErr << "Inserting server contract: "
+                      << server_->m_strNotaryID.Get() << "\n";
                 OTData contract = server_->m_pServerContract->asData();
                 Dht::Node().Insert(
                     server_->m_strNotaryID.Get(),

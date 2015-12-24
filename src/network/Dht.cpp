@@ -36,6 +36,7 @@
  *
  ************************************************************/
 
+#include <opentxs/core/Log.hpp>
 #include <opentxs/core/OTData.hpp>
 #include <opentxs/network/Dht.hpp>
 
@@ -78,8 +79,14 @@ void Dht::Insert(
     OTData& value,
     dht::Dht::DoneCallbackSimple cb)
 {
+    dht::InfoHash infoHash = dht::InfoHash::get(
+        reinterpret_cast<const uint8_t*>(key.c_str()),
+        key.size());
+
+    otErr << "Inserting key: " << infoHash.toString() << "\n";
+
     if (nullptr != node_) {
-        node_->put(key, value.asVector(), cb);
+        node_->put(infoHash, value.asVector(), cb);
     }
 }
 
