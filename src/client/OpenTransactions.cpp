@@ -4510,9 +4510,9 @@ OT_API::ClaimSet OT_API::GetClaims(const Nym& fromNym) const
             }
 
             OTData preimage(static_cast<uint32_t>(section.name()));
-            OTData type(static_cast<uint32_t>(item.type()));
-            OTData start(item.start());
-            OTData end(item.end());
+            OTData type ( static_cast<uint32_t>(item.type ()) );
+            OTData start( static_cast< int64_t>(item.start()) );
+            OTData end  ( static_cast< int64_t>(item.end  ()) );
 
             preimage += type;
             preimage += start;
