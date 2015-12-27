@@ -100,7 +100,7 @@ int32_t CmdProposePlan::run(string server, string mynym, string hisnym,
         return -1;
     }
 
-    if (!checkNym("hisnym", mynym)) {
+    if (!checkNym("hisnym", hisnym)) {
         return -1;
     }
 
@@ -108,7 +108,7 @@ int32_t CmdProposePlan::run(string server, string mynym, string hisnym,
         return -1;
     }
 
-    if (!checkAccount("hisacct", myacct)) {
+    if (!checkAccount("hisacct", hisacct)) {
         return -1;
     }
 

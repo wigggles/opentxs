@@ -4770,8 +4770,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     const time64_t& PAYMENT_PLAN_DELAY,  // which begins occuring after delay
     const time64_t& PAYMENT_PLAN_PERIOD, // (seconds from now) and happens
     // ----------------------------------------// every period, ad infinitum,
-    // until
-    time64_t PAYMENT_PLAN_LENGTH,     // after the length (in seconds)
+    time64_t PAYMENT_PLAN_LENGTH,     // until after the length (in seconds)
     int32_t PAYMENT_PLAN_MAX_PAYMENTS // expires, or after the maximum
     ) const                           // number of payments. These last
 {                                     // two arguments are optional.
